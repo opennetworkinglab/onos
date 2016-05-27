@@ -60,6 +60,7 @@ import org.onosproject.incubator.net.tunnel.TunnelListener;
 import org.onosproject.incubator.net.tunnel.TunnelName;
 import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultAnnotations.Builder;
 import org.onosproject.net.Device;
@@ -92,6 +93,7 @@ import org.onosproject.pce.pceservice.api.PceService;
 import org.onosproject.pce.pcestore.PcePathInfo;
 import org.onosproject.pce.pcestore.PceccTunnelInfo;
 import org.onosproject.pce.pcestore.api.PceStore;
+import org.onosproject.pcep.api.DeviceCapability;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.Serializer;
@@ -174,6 +176,9 @@ public class PceManager implements PceService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService netCfgService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LabelResourceAdminService labelRsrcAdminService;
@@ -300,6 +305,14 @@ public class PceManager implements PceService {
 
         if (srcLsrId == null || dstLsrId == null) {
             // LSR id is not known.
+            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType));
+            return false;
+        }
+
+        // Get device config from netconfig, to ascertain that session with ingress is present.
+        DeviceCapability cfg = netCfgService.getConfig(DeviceId.deviceId(srcLsrId), DeviceCapability.class);
+        if (cfg == null) {
+            log.debug("No session to ingress.");
             pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType));
             return false;
         }
@@ -441,7 +454,7 @@ public class PceManager implements PceService {
                     bwConstraintValue = bwConstraint.bandwidth().bps();
                 } else if (constraint instanceof CostConstraint) {
                     costConstraint = (CostConstraint) constraint;
-                costType = costConstraint.type().name();
+                    costType = costConstraint.type().name();
                 }
             }
 
@@ -621,7 +634,8 @@ public class PceManager implements PceService {
             while (it.hasNext() && cost > 0) {
                 Constraint constraint = it.next();
                 if (constraint instanceof CapabilityConstraint) {
-                    cost = ((CapabilityConstraint) constraint).isValidLink(edge.link(), deviceService) ? 1 : -1;
+                    cost = ((CapabilityConstraint) constraint).isValidLink(edge.link(), deviceService,
+                                                                           netCfgService) ? 1 : -1;
                 } else {
                     cost = constraint.cost(edge.link(), resourceService::isAvailable);
                 }

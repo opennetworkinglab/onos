@@ -15,12 +15,14 @@
  */
 package org.onosproject.pce.pceservice.constraint;
 
-import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
+import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.ResourceContext;
 import org.onosproject.net.intent.constraint.BooleanConstraint;
+import org.onosproject.pcep.api.DeviceCapability;
 
 import java.util.Objects;
 
@@ -32,11 +34,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 public final class CapabilityConstraint extends BooleanConstraint {
 
     private final CapabilityType capabilityType;
-    public static final String PCECC_CAPABILITY = "pceccCapability";
-    public static final String SR_CAPABILITY = "srCapability";
-    public static final String LABEL_STACK_CAPABILITY = "labelStackCapability";
     public static final String LSRID = "lsrId";
-    public static final String L3 = "L3";
     public static final String TRUE = "true";
 
     /**
@@ -117,45 +115,33 @@ public final class CapabilityConstraint extends BooleanConstraint {
      *
      * @param link to validate source and destination based on capability constraint
      * @param deviceService instance of DeviceService
+     * @param netCfgService instance of NetworkConfigService
      * @return true if link satisfies capability constraint otherwise false
      */
-    public boolean isValidLink(Link link, DeviceService deviceService) {
-        if (deviceService == null) {
+    public boolean isValidLink(Link link, DeviceService deviceService, NetworkConfigService netCfgService) {
+        if (deviceService == null || netCfgService == null) {
             return false;
         }
 
         Device srcDevice = deviceService.getDevice(link.src().deviceId());
         Device dstDevice = deviceService.getDevice(link.dst().deviceId());
 
-        //TODO: Usage of annotations are for transient solution. In future will be replaces with the
+        //TODO: Usage of annotations are for transient solution. In future will be replaced with the
         // network config service / Projection model.
         // L3 device
-        if (srcDevice == null
-                || dstDevice == null
-                || srcDevice.annotations().value(AnnotationKeys.TYPE) == null
-                || dstDevice.annotations().value(AnnotationKeys.TYPE) == null
-                || !srcDevice.annotations().value(AnnotationKeys.TYPE).equals(L3)
-                || !dstDevice.annotations().value(AnnotationKeys.TYPE).equals(L3)) {
+        if (srcDevice == null || dstDevice == null) {
             return false;
         }
 
-        String scrLsrId = srcDevice.annotations().value(LSRID);
+        String srcLsrId = srcDevice.annotations().value(LSRID);
         String dstLsrId = dstDevice.annotations().value(LSRID);
 
-        Device srcCapDevice = null;
-        Device dstCapDevice = null;
+        DeviceCapability srcDeviceConfig = netCfgService.getConfig(DeviceId.deviceId(srcLsrId),
+                                                                       DeviceCapability.class);
+        DeviceCapability dstDeviceConfig = netCfgService.getConfig(DeviceId.deviceId(dstLsrId),
+                                                                       DeviceCapability.class);
 
-        // Get Capability device
-        Iterable<Device> devices = deviceService.getAvailableDevices();
-        for (Device dev : devices) {
-            if (dev.annotations().value(LSRID).equals(scrLsrId)) {
-                srcCapDevice = dev;
-            } else if (dev.annotations().value(LSRID).equals(dstLsrId)) {
-                dstCapDevice = dev;
-            }
-        }
-
-        if (srcCapDevice == null || dstCapDevice == null) {
+        if (srcDeviceConfig == null || dstDeviceConfig == null) {
             return false;
         }
 
@@ -163,23 +149,11 @@ public final class CapabilityConstraint extends BooleanConstraint {
         case WITH_SIGNALLING:
             return true;
         case WITHOUT_SIGNALLING_AND_WITHOUT_SR:
-            if (srcCapDevice.annotations().value(PCECC_CAPABILITY) != null
-                    && dstCapDevice.annotations().value(PCECC_CAPABILITY) != null) {
-                return srcCapDevice.annotations().value(PCECC_CAPABILITY).equals(TRUE)
-                        && dstCapDevice.annotations().value(PCECC_CAPABILITY).equals(TRUE);
-            }
-            return false;
+            return srcDeviceConfig.localLabelCap() && dstDeviceConfig.localLabelCap();
+
         case SR_WITHOUT_SIGNALLING:
-            if (srcCapDevice.annotations().value(LABEL_STACK_CAPABILITY) != null
-                    && dstCapDevice.annotations().value(LABEL_STACK_CAPABILITY) != null
-                    && srcCapDevice.annotations().value(SR_CAPABILITY) != null
-                    && dstCapDevice.annotations().value(SR_CAPABILITY) != null) {
-                return srcCapDevice.annotations().value(LABEL_STACK_CAPABILITY).equals(TRUE)
-                        && dstCapDevice.annotations().value(LABEL_STACK_CAPABILITY).equals(TRUE)
-                        && srcCapDevice.annotations().value(SR_CAPABILITY).equals(TRUE)
-                        && dstCapDevice.annotations().value(SR_CAPABILITY).equals(TRUE);
-            }
-            return false;
+            return srcDeviceConfig.srCap() && dstDeviceConfig.srCap()
+                        && srcDeviceConfig.labelStackCap() && dstDeviceConfig.labelStackCap();
         default:
             return false;
         }
