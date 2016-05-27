@@ -19,6 +19,7 @@ import io.atomix.copycat.client.CopycatClient;
 import io.atomix.resource.AbstractResource;
 import io.atomix.resource.ResourceTypeInfo;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -40,6 +41,7 @@ import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorComman
 import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorCommands.Withdraw;
 import org.onosproject.store.service.AsyncLeaderElector;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
@@ -48,8 +50,10 @@ import com.google.common.collect.Sets;
 @ResourceTypeInfo(id = -152, factory = AtomixLeaderElectorFactory.class)
 public class AtomixLeaderElector extends AbstractResource<AtomixLeaderElector>
     implements AsyncLeaderElector {
+    private final Set<Consumer<Status>> statusChangeListeners =
+            Sets.newCopyOnWriteArraySet();
     private final Set<Consumer<Change<Leadership>>> leadershipChangeListeners =
-            Sets.newIdentityHashSet();
+            Sets.newCopyOnWriteArraySet();
 
     public static final String CHANGE_SUBJECT = "leadershipChangeEvents";
 
@@ -129,5 +133,20 @@ public class AtomixLeaderElector extends AbstractResource<AtomixLeaderElector>
             return submit(new Unlisten()).thenApply(v -> null);
         }
         return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public void addStatusChangeListener(Consumer<Status> listener) {
+        statusChangeListeners.add(listener);
+    }
+
+    @Override
+    public void removeStatusChangeListener(Consumer<Status> listener) {
+        statusChangeListeners.remove(listener);
+    }
+
+    @Override
+    public Collection<Consumer<Status>> statusChangeListeners() {
+        return ImmutableSet.copyOf(statusChangeListeners);
     }
 }
