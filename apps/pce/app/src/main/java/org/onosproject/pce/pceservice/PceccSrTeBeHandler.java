@@ -107,6 +107,8 @@ public final class PceccSrTeBeHandler {
      *
      * @param labelRsrcAdminService label resource admin service
      * @param labelRsrcService label resource service
+     * @param flowObjectiveService flow objective service to push device label information
+     * @param appId application id
      * @param pceStore PCE label store
      */
     public void initialize(LabelResourceAdminService labelRsrcAdminService,

@@ -94,6 +94,8 @@ public final class BasicPceccHandler {
      * Initialization of label manager and pce store.
      *
      * @param labelRsrcService label resource service
+     * @param flowObjectiveService flow objective service to push device label information
+     * @param appId applicaton id
      * @param pceStore pce label store
      */
     public void initialize(LabelResourceService labelRsrcService, FlowObjectiveService flowObjectiveService,
