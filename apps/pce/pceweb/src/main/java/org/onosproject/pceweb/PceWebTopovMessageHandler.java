@@ -278,18 +278,16 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
                     .valueOf(dstDevice.annotations().value("lsrId")));
 
             Collection<Tunnel> tunnelSet = tunnelService.queryTunnel(tunSrc, tunDst);
-            if (tunnelSet != null) {
-                ObjectNode result = objectNode();
-                ArrayNode arrayNode = arrayNode();
-
-                for (Tunnel tunnel : tunnelSet) {
-                    if (tunnel.type() == MPLS) {
-                        arrayNode.add(tunnel.tunnelId().toString());
-                    }
+            ObjectNode result = objectNode();
+            ArrayNode arrayNode = arrayNode();
+            for (Tunnel tunnel : tunnelSet) {
+                if (tunnel.type() == MPLS) {
+                    arrayNode.add(tunnel.tunnelId().toString());
                 }
-                result.putArray(BUFFER_ARRAY).addAll(arrayNode);
-                sendMessage(PCEWEB_SHOW_TUNNEL, sid, result);
-           }
+            }
+
+            result.putArray(BUFFER_ARRAY).addAll(arrayNode);
+            sendMessage(PCEWEB_SHOW_TUNNEL, sid, result);
         }
     }
 
@@ -342,18 +340,17 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
                     .valueOf(dstDevice.annotations().value("lsrId")));
 
             Collection<Tunnel> tunnelSet = tunnelService.queryTunnel(tunSrc, tunDst);
-              if (tunnelSet != null) {
-                ObjectNode result = objectNode();
-                ArrayNode arrayNode = arrayNode();
+            ObjectNode result = objectNode();
+            ArrayNode arrayNode = arrayNode();
 
-                for (Tunnel tunnel : tunnelSet) {
-                    if (tunnel.type() == MPLS) {
-                        arrayNode.add(tunnel.tunnelId().toString());
-                    }
+            for (Tunnel tunnel : tunnelSet) {
+                if (tunnel.type() == MPLS) {
+                    arrayNode.add(tunnel.tunnelId().toString());
                 }
-                result.putArray(BUFFER_ARRAY).addAll(arrayNode);
-                sendMessage(PCEWEB_SHOW_TUNNEL_REMOVE, sid, result);
-           }
+            }
+
+            result.putArray(BUFFER_ARRAY).addAll(arrayNode);
+            sendMessage(PCEWEB_SHOW_TUNNEL_REMOVE, sid, result);
         }
     }
 

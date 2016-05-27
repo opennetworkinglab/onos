@@ -21,16 +21,23 @@
 
     // injected refs
     var $log, fs, flash, wss, tps, ns, tds, ds;
-
+    var tunnelNameData, tunnelNameDataRemove;
    // constants
     var srcMessage = 'pceTopovSetSrc',
         dstMessage = 'pceTopovSetDst',
         clearMessage = 'pceTopovClear',
-        setModemsg =  'pceTopovSetMode',
-        L3dev = 'requestIpDevDetails';
+        setPathmsg =  'pceTopovSetMode',
+        updatePathmsgQuery = 'pceTopovUpdateQuery',
+        remPathmsgQuery = 'pceTopovRemQuery',
+        updatePathmsg = 'pceTopovUpdate',
+        remPathmsg = 'pceTopovRem',
+        showTunnelInfoMsg = 'pceTopovShowTunnels',
+        queryDisplayTunnelMsg = 'pceTopovTunnelDisplay',
+        showTunnelInfoRemoveMsg = 'pceTopovShowTunnelsRem';
     // internal state
     var currentMode = null;
-
+    var handlerMap = {},
+        handlerMapRem = {};
     // === ---------------------------
     // === Helper functions
 
@@ -58,153 +65,326 @@
         flash.flash('Cleared source and destination');
     }
 
-    function dOk() {
-        var bandWidth = d3.select('#band-width-box').property("checked");
-        var bandValue = null;
-        var bandType = null;
-
-        if (bandWidth) {
-
-            bandValue = d3.select('#band-width-value').property("value");
-
-            if (d3.select("#band-kpbs-val").property("checked")) {
-                bandType = 'kbps';
-            } else if (d3.select('#band-mpbs-val').property("checked")) {
-                bandType = 'mbps';
-            }
-        }
-
-        var costType = d3.select('#pce-cost-type').property("checked");
-        var costTypeVal = null;
-
-        if (costType) {
-
-            if (d3.select("#pce-cost-type-igp").property("checked")) {
-                costTypeVal = 'igp';
-            } else if (d3.select('#pce-cost-type-te').property("checked")) {
-               costTypeVal = 'te';
-            }
-       }
-
-       var lspType = d3.select('#pce-lsp-type').property("checked");
-       var lspTypeVal = null;
-
-       if (lspType) {
-
-           if (d3.select("#pce-lsp-type-cr").property("checked")) {
-               lspTypeVal = 'cr';
-           } else if (d3.select('#pce-lsp-type-srbe').property("checked")) {
-               lspTypeVal = 'srbe';
-           } else if (d3.select('#pce-lsp-type-srte').property("checked")) {
-               lspTypeVal = 'srte';
-           }
-       }
-
-         //TBD: Read the user inputs and need to send the event for calculating the path based on constrainsts.
-         // TBD: Need to read IGP cost type and LSP type.
-         //wss.sendEvent(setModemsg);
-         //flash.flash('creat path message');
-
-       $log.debug('Dialog OK button clicked');
-    }
-
     function dClose() {
         $log.debug('Dialog Close button clicked (or Esc pressed)');
     }
 
     function createUserText() {
-        var content = ds.createDiv();
-        var form = content.append('form');
-        var p = form.append('p');
+        var content = ds.createDiv('constraints-input'),
+            form = content.append('form'),
+            p = form.append('p');
+
+        function addAttribute(name, id, nameField, type) {
+            p.append('input').attr({
+                type: type,
+                name: name,
+                id: id
+            });
+
+            p.append('span').text(nameField);
+            p.append('br');
+        }
 
         //Add the bandwidth related inputs.
-        p.append('input').attr({
-            id: 'band-width-box',
-            type: 'checkbox',
-            name: 'band-width-name'
-        });
-        p.append('span').text('Band Width');
-        p.append('br');
-        p.append('input').attr({
-            id: 'band-width-value',
-            type: 'number',
-            name: 'band-width-value-name'
-        });
-        p.append('input').attr({
-            id: 'band-kpbs-val',
-            type: 'radio',
-            name: 'pce-band-type'
-        });
-        p.append('span').text('kpbs');
-        p.append('input').attr({
-            id: 'band-mpbs-val',
-            type: 'radio',
-            name: 'pce-band-type'
-        });
-        p.append('span').text('mpbs');
-        p.append('br');
-
+        addAttribute('band-width-name', 'band-width-box', 'Band Width', 'checkbox');
+        addAttribute('band-width-value-name', 'band-width-value', null, 'number');
+        addAttribute('pce-band-type', 'band-kpbs-val', 'kbps', 'radio');
+        addAttribute('pce-band-type', 'band-mpbs-val', 'mbps', 'radio');
         //Add the cost type related inputs.
-        p.append('input').attr({
-            id: 'pce-cost-type',
-            type: 'checkbox',
-            name: 'pce-cost-type-name'
-        });
-        p.append('span').text('Cost Type');
-        p.append('br');
-        p.append('input').attr({
-            id: 'pce-cost-type-igp',
-            type: 'radio',
-            name: 'pce-cost-type-valname'
-        });
-        p.append('span').text('IGP');
-        p.append('input').attr({
-            id: 'pce-cost-type-te',
-            type: 'radio',
-            name: 'pce-cost-type-valname'
-        });
-        p.append('span').text('TE');
-        p.append('br');
-
+        addAttribute('pce-cost-type-name', 'pce-cost-type', 'Cost Type', 'checkbox');
+        addAttribute('pce-cost-type-valname', 'pce-cost-type-igp', 'IGP', 'radio');
+        addAttribute('pce-cost-type-valname', 'pce-cost-type-te', 'TE', 'radio');
         //Add the LSP type related inputs.
-        p.append('input').attr({
-            id: 'pce-lsp-type',
-            type: 'checkbox',
-            name: 'pce-lsp-type-name'
-        });
-        p.append('span').text('Lsp Type');
-        p.append('br');
-        p.append('input').attr({
-            id: 'pce-lsp-type-cr',
-            type: 'radio',
-            name: 'pce-lsp-type-valname'
-        });
-        p.append('span').text('CR');
-        p.append('input').attr({
-            id: 'pce-lsp-type-srbe',
-            type: 'radio',
-            name: 'pce-lsp-type-valname'
-        });
-        p.append('span').text('SR BE');
-        p.append('input').attr({
-            id: 'pce-lsp-type-srte',
-            type: 'radio',
-            name: 'pce-lsp-type-valname'
-        });
-        p.append('span').text('SR TE');
+        addAttribute('pce-lsp-type-name', 'pce-lsp-type', 'Lsp Type', 'checkbox');
+        addAttribute('pce-lsp-type-valname', 'pce-lsp-type-cr', 'WITH SIGNALLING', 'radio');
+        addAttribute('pce-lsp-type-valname', 'pce-lsp-type-srbe', 'WITHOUT SR WITHOUT SIGNALLING', 'radio');
+        addAttribute('pce-lsp-type-valname', 'pce-lsp-type-srte', 'WITH SR WITHOUT SIGNALLING', 'radio');
+        //Add the tunnel name
+        addAttribute('pce-tunnel-name', 'pce-tunnel-name-id', 'Tunnel Name', 'text');
 
         return content;
     }
 
-    function setMode() {
+    function createUserTextUpdate(data) {
+        var content = ds.createDiv(),
+            form = content.append('form'),
+            p = form.append('p');
+
+        p.append('span').text('Tunnel IDs');
+        p.append('br');
+
+        data.a.forEach( function (val, idx) {
+            p.append('input').attr({
+                id: 'tunnel-id-'+idx,
+                type: 'radio',
+                name: 'tunnel-id-name',
+                value: val
+            });
+
+            p.append('span').text(val);
+            p.append('br');
+
+        } );
+
+        return content;
+    }
+
+    function createUserTextUpdatePathEvent() {
+        var content = ds.createDiv(),
+            form = content.append('form'),
+            p = form.append('p');
+
+        function addAttribute(name, id, nameField, type) {
+            p.append('input').attr({
+                type: type,
+                name: name,
+                id: id
+            });
+
+            p.append('span').text(nameField);
+            p.append('br');
+        }
+
+        //Add the bandwidth related inputs.
+        addAttribute('band-width-name', 'update-band-width-box', 'Band Width', 'checkbox');
+        addAttribute('band-width-value-name', 'update-band-width-value', null, 'number');
+        addAttribute('pce-band-type', 'update-band-kpbs-val', 'kbps', 'radio');
+        addAttribute('pce-band-type', 'update-band-mpbs-val', 'mbps', 'radio');
+        //Add the cost type related inputs.
+        addAttribute('pce-cost-type', 'update-pce-cost-type', 'Cost Type', 'checkbox');
+        addAttribute('pce-cost-type-value', 'update-pce-cost-type-igp', 'IGP', 'radio');
+        addAttribute('pce-cost-type-value', 'update-pce-cost-type-te', 'TE', 'radio');
+
+        return content;
+    }
+
+    function createUserTextRemove(data) {
+
+        var content = ds.createDiv(),
+            form = content.append('form'),
+            p = form.append('p');
+
+        p.append('span').text('Tunnel IDs');
+        p.append('br');
+
+        data.a.forEach( function (val, idx) {
+            p.append('input').attr({
+                id: 'tunnel-id-remove-'+idx,
+                type: 'checkbox',
+                name: 'tunnel-id-name-remove',
+                value: val
+            });
+
+            p.append('span').text(val);
+            p.append('br');
+        } );
+
+        return content;
+    }
+
+    function isChecked(viewId) {
+        return d3.select('#' + viewId).property('checked');
+    }
+
+    function getCheckedValue(viewId) {
+        return d3.select('#' + viewId).property('value');
+    }
+
+    function showTunnelInformation(data) {
+        wss.unbindHandlers(handlerMap);
+        tunnelNameData = data;
+
+        function dOkUpdate() {
+            var tdString = '' ;
+            tunnelNameData.a.forEach( function (val, idx) {
+                var tunnelName = isChecked('tunnel-id-'+idx);
+                if (tunnelName)
+                {
+                    tdString = val;
+                }
+            } );
+
+            if (tdString) {
+                constraintsUpdateDialog(tdString);
+            } else {
+                $log.debug("No tunnel id is selected.");
+            }
+
+            $log.debug('Dialog OK button clicked');
+        }
+
         tds.openDialog()
-        .setTitle('constraints user')
+            .setTitle('Available LSPs with selected device')
+            .addContent(createUserTextUpdate(data))
+            .addOkChained(dOkUpdate, 'GOTO Selection of constraints')
+            .addCancel(dClose, 'Close')
+            .bindKeys();
+    }
+
+    function constraintsUpdateDialog(tunnelId) {
+
+        // invoked when the OK button is pressed on this dialog
+        function dOkUpdateEvent() {
+            $log.debug('Select constraints for update path Dialog OK button pressed');
+
+            var bandWidth = isChecked('update-band-width-box'),
+                bandValue = null,
+                bandType = null;
+
+            if (bandWidth) {
+                bandValue = d3.select('#update-band-width-value');
+
+                if (isChecked('update-band-kpbs-val')) {
+                    bandType = 'kbps';
+                } else if (isChecked('update-band-mpbs-val')) {
+                    bandType = 'mbps';
+                }
+            }
+
+            var costType = isChecked('update-pce-cost-type'),
+                costTypeVal = null;
+
+            if (costType) {
+                if (isChecked('update-pce-cost-type-igp')) {
+                    costTypeVal = 'igp';
+                } else if (isChecked('update-pce-cost-type-te')) {
+                   costTypeVal = 'te';
+                }
+            }
+
+            wss.sendEvent(updatePathmsg, {
+                    bw: bandValue,
+                    ctype: costTypeVal,
+                    tunnelname: tunnelId
+            });
+
+            flash.flash('update path message');
+
+        }
+
+        tds.openDialog()
+            .setTitle('Select constraints for update path')
+            .addContent(createUserTextUpdatePathEvent())
+            .addCancel()
+            .addOk(dOkUpdateEvent, 'Update Path')     // NOTE: NOT the "chained" version!
+            .bindKeys();
+
+    }
+
+    function showTunnelInformationRemove(data) {
+
+        wss.unbindHandlers(handlerMapRem);
+        tunnelNameDataRemove = data;
+        tds.openDialog()
+            .setTitle('Available Tunnels for remove')
+            .addContent(createUserTextRemove(data))
+            .addOk(dOkRemove, 'Remove')
+            .addCancel(dClose, 'Close')
+            .bindKeys();
+    }
+
+    //setup path
+    function setMode() {
+
+        function dOk() {
+            var bandWidth = isChecked('band-width-box'),
+                bandValue = null,
+                bandType = null;
+
+            if (bandWidth) {
+                bandValue = getCheckedValue('band-width-value');
+
+                if (isChecked('band-kpbs-val')) {
+                    bandType = 'kbps';
+                } else if (isChecked('band-mpbs-val')) {
+                    bandType = 'mbps';
+                }
+            }
+
+            var costType = isChecked('pce-cost-type'),
+                costTypeVal = null;
+
+            if (costType) {
+                if (isChecked('pce-cost-type-igp')) {
+                    costTypeVal = 'igp';
+                } else if (isChecked('pce-cost-type-te')) {
+                   costTypeVal = 'te';
+                }
+            }
+
+            var lspType = isChecked('pce-lsp-type'),
+                lspTypeVal = null;
+
+            if (lspType) {
+                if (isChecked('pce-lsp-type-cr')) {
+                   lspTypeVal = 'cr';
+                } else if (isChecked('pce-lsp-type-srbe')) {
+                   lspTypeVal = 'srbe';
+                } else if (isChecked('pce-lsp-type-srte')) {
+                   lspTypeVal = 'srte';
+                }
+            }
+
+            wss.sendEvent(setPathmsg, {
+                bw: bandValue,
+                bwtype: bandType,
+                ctype: costTypeVal,
+                lsptype: lspTypeVal,
+                tunnelname: getCheckedValue('pce-tunnel-name-id')
+            });
+
+            flash.flash('create path message');
+            $log.debug('Dialog OK button clicked');
+        }
+
+        tds.openDialog()
+        .setTitle('constraints selection')
         .addContent(createUserText())
         .addOk(dOk, 'OK')
         .addCancel(dClose, 'Close')
         .bindKeys();
     }
 
+    function updatePath(node) {
+
+        wss.sendEvent(updatePathmsgQuery, {
+            srid: node[0],
+            dsid: node[1]
+        });
+
+        handlerMap[showTunnelInfoMsg] = showTunnelInformation;
+        wss.bindHandlers(handlerMap);
+
+        flash.flash('update path message');
+    }
+
+    function dOkRemove() {
+
+        tunnelNameDataRemove.a.forEach( function (val, idx) {
+            var tunnelNameVal = isChecked('tunnel-id-remove-'+idx);
+            if (tunnelNameVal) {
+                wss.sendEvent(remPathmsg, {
+                    tunnelid: val
+                });
+            }
+        } );
+
+        flash.flash('remove path message');
+    }
+
+    function remPath(node) {
+        wss.sendEvent(remPathmsgQuery, {
+            srid: node[0],
+            dsid: node[1]
+        });
+
+        handlerMapRem[showTunnelInfoRemoveMsg] = showTunnelInformationRemove;
+        wss.bindHandlers(handlerMapRem);
+    }
+
+  function queryTunnelDisplay() {
+        wss.sendEvent(queryDisplayTunnelMsg);
+    }
     // === ---------------------------
     // === Module Factory Definition
 
@@ -227,8 +407,10 @@
                 setSrc: setSrc,
                 setDst: setDst,
                 clear: clear,
-                setMode: setMode
-
+                setMode: setMode,
+                updatePath: updatePath,
+                remPath: remPath,
+                queryTunnelDisplay: queryTunnelDisplay
             };
         }]);
 }());
