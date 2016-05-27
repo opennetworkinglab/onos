@@ -29,6 +29,10 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link.Type;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.OchPort;
 import org.onosproject.net.OduCltPort;
@@ -54,6 +58,7 @@ import org.onosproject.net.link.LinkProviderService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.pcep.api.DeviceCapability;
 import org.onosproject.pcep.api.PcepController;
 import org.onosproject.pcep.api.PcepDpid;
 import org.onosproject.pcep.api.PcepLink;
@@ -122,29 +127,26 @@ public class PcepTopologyProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PcepClientController pcepClientController;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry netConfigRegistry;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService netConfigService;
+
     private DeviceProviderService deviceProviderService;
     private LinkProviderService linkProviderService;
 
     private HashMap<Long, List<PortDescription>> portMap = new HashMap<>();
     private InternalLinkProvider listener = new InternalLinkProvider();
 
-    /*
-     * For the client supporting SR capability.
-     */
-    public static final String SR_CAPABILITY = "srCapability";
-
-    /*
-     * For the client supporting PCECC capability.
-     */
-    public static final String PCECC_CAPABILITY = "pceccCapability";
-
-    /*
-     * For the client supporting label stack capability.
-     */
-    public static final String LABEL_STACK_CAPABILITY = "labelStackCapability";
-
-    public static final String LSRID = "lsrId";
-    private static final String UNKNOWN = "unknown";
+    private final ConfigFactory<DeviceId, DeviceCapability> configFactory =
+            new ConfigFactory<DeviceId, DeviceCapability>(SubjectFactories.DEVICE_SUBJECT_FACTORY,
+                    DeviceCapability.class, "deviceCapability", true) {
+                @Override
+                public DeviceCapability createConfig() {
+                    return new DeviceCapability();
+                }
+            };
 
     @Activate
     public void activate() {
@@ -153,6 +155,7 @@ public class PcepTopologyProvider extends AbstractProvider
         controller.addListener(listener);
         controller.addLinkListener(listener);
         pcepClientController.addNodeListener(listener);
+        netConfigRegistry.registerConfigFactory(configFactory);
     }
 
     @Deactivate
@@ -162,6 +165,7 @@ public class PcepTopologyProvider extends AbstractProvider
         controller.removeListener(listener);
         controller.removeLinkListener(listener);
         pcepClientController.removeNodeListener(listener);
+        netConfigRegistry.unregisterConfigFactory(configFactory);
     }
 
     private List<PortDescription> buildPortDescriptions(PcepDpid dpid,
@@ -334,49 +338,27 @@ public class PcepTopologyProvider extends AbstractProvider
         }
 
         @Override
-        public void addNode(PcepClient pc) {
-            if (deviceProviderService == null) {
+        public void addDevicePcepConfig(PcepClient pc) {
+            if (netConfigRegistry == null) {
+                log.error("Cannot add PCEP device capability as network config service is not available.");
                 return;
             }
-
-            //Right now device URI for PCEP devices is their LSRID
-            DeviceId deviceId = deviceId(uri(new PcepDpid(pc.getPccId().id().getIp4Address().toInt())));
-            ChassisId cId = new ChassisId();
-
-            Device.Type deviceType = Device.Type.ROUTER;
-
-            DefaultAnnotations.Builder annotationBuilder = DefaultAnnotations.builder();
-            //PCC capabilities (SR, PCECC and PCECC-SR)
-            annotationBuilder.set(SR_CAPABILITY, String.valueOf(pc.capability().srCapability()));
-            annotationBuilder.set(PCECC_CAPABILITY, String.valueOf(pc.capability().pceccCapability()));
-            annotationBuilder.set(LABEL_STACK_CAPABILITY, String.valueOf(pc.capability().labelStackCapability()));
-            //PccId is the lsrId contained in openMsg, if not present it will be the socket address
-            annotationBuilder.set(LSRID, String.valueOf(pc.getPccId().id()));
-
-            DeviceDescription description = new DefaultDeviceDescription(
-                    deviceId.uri(),
-                    deviceType,
-                    UNKNOWN,
-                    UNKNOWN,
-                    UNKNOWN,
-                    UNKNOWN,
-                    cId,
-                    annotationBuilder.build());
-
-            deviceProviderService.deviceConnected(deviceId, description);
+            DeviceId pccDeviceId = DeviceId.deviceId(String.valueOf(pc.getPccId().ipAddress()));
+            DeviceCapability deviceCap = netConfigService.addConfig(pccDeviceId, DeviceCapability.class);
+            deviceCap.setLabelStackCap(pc.capability().labelStackCapability())
+                .setLocalLabelCap(pc.capability().pceccCapability())
+                .setSrCap(pc.capability().srCapability())
+                .apply();
         }
 
         @Override
-        public void deleteNode(PccId pccId) {
-            if (deviceProviderService == null || deviceService == null) {
+        public void deleteDevicePcepConfig(PccId pccId) {
+            if (netConfigRegistry == null) {
+                log.error("Cannot remove PCEP device capability as network config service is not available.");
                 return;
             }
-            //TODO: In device manager, in deviceDisconnected() method, get the device but null check is not validated
-            if (deviceService.getDevice(DeviceId.deviceId(uri(new PcepDpid(pccId.id()
-                    .getIp4Address().toInt())))) == null) {
-                return;
-            }
-            deviceProviderService.deviceDisconnected(deviceId(uri(new PcepDpid(pccId.id().getIp4Address().toInt()))));
+            DeviceId pccDeviceId = DeviceId.deviceId(String.valueOf(pccId.ipAddress()));
+            netConfigService.removeConfig(pccDeviceId, DeviceCapability.class);
         }
     }
 
