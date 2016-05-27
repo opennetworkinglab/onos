@@ -96,7 +96,7 @@ public final class BgpLinkAttrMaxLinkBandwidth implements BgpValueType {
      *
      * @return Maximum link bandwidth
      */
-    float linkAttrMaxLinkBandwidth() {
+    public float linkAttrMaxLinkBandwidth() {
         return maxBandwidth;
     }
 
