@@ -102,12 +102,14 @@ import org.onosproject.net.topology.TopologyGraph;
 import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyServiceAdapter;
 import org.onosproject.net.topology.TopologyVertex;
+import org.onosproject.pce.pceservice.PathComputationTest.MockNetConfigRegistryAdapter;
 import org.onosproject.pce.pceservice.PathComputationTest.MockPathResourceService;
 import org.onosproject.pce.pceservice.constraint.CostConstraint;
 import org.onosproject.pce.pcestore.api.PceStore;
 import org.onosproject.pce.util.LabelResourceAdapter;
 import org.onosproject.pce.util.PceStoreAdapter;
 import org.onosproject.pce.util.TunnelServiceAdapter;
+import org.onosproject.pcep.api.DeviceCapability;
 import org.onosproject.pce.util.FlowObjServiceAdapter;
 import org.onosproject.store.service.TestStorageService;
 
@@ -130,6 +132,7 @@ public class PceManagerTest {
     private TestStorageService storageService = new TestStorageService();
     private PacketService packetService = new MockPacketService();
     private MockDeviceService deviceService = new MockDeviceService();
+    private MockNetConfigRegistryAdapter netConfigRegistry = new PathComputationTest.MockNetConfigRegistryAdapter();
     private MockFlowObjService flowObjectiveService = new MockFlowObjService();
     private PceStore pceStore = new PceStoreAdapter();
     private LabelResourceService labelResourceService = new LabelResourceAdapter();
@@ -137,13 +140,9 @@ public class PceManagerTest {
     public static ProviderId providerId = new ProviderId("pce", "foo");
     private static final String L3 = "L3";
     private static final String LSRID = "lsrId";
-    private static final String PCECC_CAPABILITY = "pceccCapability";
-    private static final String SR_CAPABILITY = "srCapability";
-    private static final String LABEL_STACK_CAPABILITY = "labelStackCapability";
 
     private TopologyGraph graph = null;
     private Device deviceD1, deviceD2, deviceD3, deviceD4;
-    private Device pcepDeviceD1, pcepDeviceD2, pcepDeviceD3, pcepDeviceD4;
     private Link link1, link2, link3, link4;
     protected static int flowsDownloaded;
     private TunnelListener tunnelListener;
@@ -163,6 +162,7 @@ public class PceManagerTest {
         pceManager.storageService = storageService;
         pceManager.packetService = packetService;
         pceManager.deviceService = deviceService;
+        pceManager.netCfgService = netConfigRegistry;
         pceManager.labelRsrcService = labelResourceService;
         pceManager.flowObjectiveService = flowObjectiveService;
         pceManager.pceStore = pceStore;
@@ -231,27 +231,6 @@ public class PceManagerTest {
         builderDev4.set(AnnotationKeys.TYPE, L3);
         builderDev4.set(LSRID, "4.4.4.4");
 
-        if (setSrCap) {
-            builderDev1.set(SR_CAPABILITY, "true");
-            builderDev2.set(SR_CAPABILITY, "true");
-            builderDev3.set(SR_CAPABILITY, "true");
-            builderDev4.set(SR_CAPABILITY, "true");
-        }
-
-        if (setPceccCap) {
-            builderDev1.set(PCECC_CAPABILITY, "true");
-            builderDev2.set(PCECC_CAPABILITY, "true");
-            builderDev3.set(PCECC_CAPABILITY, "true");
-            builderDev4.set(PCECC_CAPABILITY, "true");
-        }
-
-        if (setLabelStackCap) {
-            builderDev1.set(LABEL_STACK_CAPABILITY, "true");
-            builderDev2.set(LABEL_STACK_CAPABILITY, "true");
-            builderDev3.set(LABEL_STACK_CAPABILITY, "true");
-            builderDev4.set(LABEL_STACK_CAPABILITY, "true");
-        }
-
         deviceD1 = new MockDevice(D1.deviceId(), builderDev1.build());
         deviceD2 = new MockDevice(D2.deviceId(), builderDev2.build());
         deviceD3 = new MockDevice(D3.deviceId(), builderDev3.build());
@@ -262,17 +241,29 @@ public class PceManagerTest {
         deviceService.addDevice(deviceD3);
         deviceService.addDevice(deviceD4);
 
-        pcepDeviceD1 = new MockDevice(DeviceId.deviceId(PathComputationTest.PCEPDEVICE1), builderDev1.build());
-        deviceService.addDevice(pcepDeviceD1);
+        DeviceCapability device1Cap = netConfigRegistry.addConfig(DeviceId.deviceId("1.1.1.1"), DeviceCapability.class);
+        device1Cap.setLabelStackCap(setLabelStackCap)
+        .setLocalLabelCap(setPceccCap)
+        .setSrCap(setSrCap)
+        .apply();
 
-        pcepDeviceD2 = new MockDevice(DeviceId.deviceId(PathComputationTest.PCEPDEVICE2), builderDev1.build());
-        deviceService.addDevice(pcepDeviceD2);
+        DeviceCapability device2Cap = netConfigRegistry.addConfig(DeviceId.deviceId("2.2.2.2"), DeviceCapability.class);
+        device2Cap.setLabelStackCap(setLabelStackCap)
+        .setLocalLabelCap(setPceccCap)
+        .setSrCap(setSrCap)
+        .apply();
 
-        pcepDeviceD3 = new MockDevice(DeviceId.deviceId(PathComputationTest.PCEPDEVICE3), builderDev1.build());
-        deviceService.addDevice(pcepDeviceD3);
+        DeviceCapability device3Cap = netConfigRegistry.addConfig(DeviceId.deviceId("3.3.3.3"), DeviceCapability.class);
+        device3Cap.setLabelStackCap(setLabelStackCap)
+        .setLocalLabelCap(setPceccCap)
+        .setSrCap(setSrCap)
+        .apply();
 
-        pcepDeviceD4 = new MockDevice(DeviceId.deviceId(PathComputationTest.PCEPDEVICE4), builderDev1.build());
-        deviceService.addDevice(pcepDeviceD4);
+        DeviceCapability device4Cap = netConfigRegistry.addConfig(DeviceId.deviceId("4.4.4.4"), DeviceCapability.class);
+        device4Cap.setLabelStackCap(setLabelStackCap)
+        .setLocalLabelCap(setPceccCap)
+        .setSrCap(setSrCap)
+        .apply();
 
         if (bandwidth != 0) {
             List<Resource> resources = new LinkedList<>();

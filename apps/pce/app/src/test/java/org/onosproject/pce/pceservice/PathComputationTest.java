@@ -40,6 +40,10 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.Device.Type;
+import org.onosproject.net.config.Config;
+import org.onosproject.net.config.ConfigApplyDelegate;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.resource.ContinuousResource;
@@ -60,7 +64,11 @@ import org.onosproject.net.topology.TopologyVertex;
 import org.onosproject.pce.pceservice.constraint.CapabilityConstraint;
 import org.onosproject.pce.pceservice.constraint.CostConstraint;
 import org.onosproject.pce.pceservice.constraint.SharedBandwidthConstraint;
-
+import org.onosproject.pcep.api.DeviceCapability;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
@@ -94,6 +102,7 @@ public class PathComputationTest {
 
     private final MockPathResourceService resourceService = new MockPathResourceService();
     private final MockDeviceService deviceService = new MockDeviceService();
+    private final MockNetConfigRegistryAdapter netConfigRegistry = new MockNetConfigRegistryAdapter();
     private PceManager pceManager = new PceManager();
     public static ProviderId providerId = new ProviderId("pce", "foo");
     public static final String DEVICE1 = "D001";
@@ -123,6 +132,7 @@ public class PathComputationTest {
     public void startUp() {
         pceManager.resourceService = resourceService;
         pceManager.deviceService = deviceService;
+        pceManager.netCfgService = netConfigRegistry;
     }
 
     /**
@@ -164,6 +174,7 @@ public class PathComputationTest {
     public void tearDown() {
         pceManager.resourceService = null;
         pceManager.deviceService = null;
+        pceManager.netCfgService = null;
     }
 
     /**
@@ -234,6 +245,7 @@ public class PathComputationTest {
             }
         }
 
+        @Override
         public double weight(TopologyEdge edge) {
             if (!constraints.iterator().hasNext()) {
                 //Takes default cost/hopcount as 1 if no constraints specified
@@ -247,7 +259,8 @@ public class PathComputationTest {
             while (it.hasNext() && cost > 0) {
                 Constraint constraint = it.next();
                 if (constraint instanceof CapabilityConstraint) {
-                    cost = ((CapabilityConstraint) constraint).isValidLink(edge.link(), deviceService) ? 1 : -1;
+                    cost = ((CapabilityConstraint) constraint).isValidLink(edge.link(), deviceService,
+                                                                           netConfigRegistry) ? 1 : -1;
                 } else {
                     cost = constraint.cost(edge.link(), resourceService::isAvailable);
                 }
@@ -343,6 +356,63 @@ public class PathComputationTest {
                 }
             }
             return false;
+        }
+    }
+
+    /* Mock test for network config registry. */
+    public static class MockNetConfigRegistryAdapter extends NetworkConfigRegistryAdapter {
+        private ConfigFactory cfgFactory;
+        private Map<DeviceId, DeviceCapability> classConfig = new HashMap<>();
+
+        @Override
+        public void registerConfigFactory(ConfigFactory configFactory) {
+            cfgFactory = configFactory;
+        }
+
+        @Override
+        public void unregisterConfigFactory(ConfigFactory configFactory) {
+            cfgFactory = null;
+        }
+
+        @Override
+        public <S, C extends Config<S>> C addConfig(S subject, Class<C> configClass) {
+            if (configClass == DeviceCapability.class) {
+                DeviceCapability devCap = new DeviceCapability();
+                classConfig.put((DeviceId) subject, devCap);
+
+                JsonNode node = new ObjectNode(new MockJsonNode());
+                ObjectMapper mapper = new ObjectMapper();
+                ConfigApplyDelegate delegate = new InternalApplyDelegate();
+                devCap.init((DeviceId) subject, null, node, mapper, delegate);
+                return (C) devCap;
+            }
+
+            return null;
+        }
+
+        @Override
+        public <S, C extends Config<S>> void removeConfig(S subject, Class<C> configClass) {
+            classConfig.remove(subject);
+        }
+
+        @Override
+        public <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass) {
+            if (configClass == DeviceCapability.class) {
+                return (C) classConfig.get(subject);
+            }
+            return null;
+        }
+
+        private class MockJsonNode extends JsonNodeFactory {
+        }
+
+        // Auxiliary delegate to receive notifications about changes applied to
+        // the network configuration - by the apps.
+        private class InternalApplyDelegate implements ConfigApplyDelegate {
+            @Override
+            public void onApply(Config config) {
+                //configs.put(config.subject(), config.node());
+            }
         }
     }
 
@@ -614,11 +684,23 @@ public class PathComputationTest {
         builder.set(LSRID, "1.1.1.1");
         addDevice(DEVICE1, builder);
 
+        DeviceCapability device1Cap = netConfigRegistry.addConfig(DeviceId.deviceId("1.1.1.1"), DeviceCapability.class);
+        device1Cap.setLabelStackCap(false)
+            .setLocalLabelCap(false)
+            .setSrCap(false)
+            .apply();
+
         //Device2
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "2.2.2.2");
         addDevice(DEVICE2, builder);
+
+        DeviceCapability device2Cap = netConfigRegistry.addConfig(DeviceId.deviceId("2.2.2.2"), DeviceCapability.class);
+        device2Cap.setLabelStackCap(false)
+            .setLocalLabelCap(false)
+            .setSrCap(false)
+            .apply();
 
         //Device3
         builder = DefaultAnnotations.builder();
@@ -626,11 +708,23 @@ public class PathComputationTest {
         builder.set(LSRID, "3.3.3.3");
         addDevice(DEVICE3, builder);
 
+        DeviceCapability device3Cap = netConfigRegistry.addConfig(DeviceId.deviceId("3.3.3.3"), DeviceCapability.class);
+        device3Cap.setLabelStackCap(false)
+            .setLocalLabelCap(false)
+            .setSrCap(false)
+            .apply();
+
         //Device4
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "4.4.4.4");
         addDevice(DEVICE4, builder);
+
+        DeviceCapability device4Cap = netConfigRegistry.addConfig(DeviceId.deviceId("4.4.4.4"), DeviceCapability.class);
+        device4Cap.setLabelStackCap(false)
+            .setLocalLabelCap(false)
+            .setSrCap(false)
+            .apply();
 
         Set<Path> paths = computePath(link1, link2, link3, link4, constraints);
 
@@ -663,32 +757,44 @@ public class PathComputationTest {
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "1.1.1.1");
         addDevice(DEVICE1, builder);
-        builder.set(PCECC_CAPABILITY, "true");
-        addDevice(PCEPDEVICE1, builder);
+        DeviceCapability device1Cap = netConfigRegistry.addConfig(DeviceId.deviceId("1.1.1.1"), DeviceCapability.class);
+        device1Cap.setLabelStackCap(false)
+            .setLocalLabelCap(true)
+            .setSrCap(false)
+            .apply();
 
         //Device2
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "2.2.2.2");
         addDevice(DEVICE2, builder);
-        builder.set(PCECC_CAPABILITY, "true");
-        addDevice(PCEPDEVICE2, builder);
+        DeviceCapability device2Cap = netConfigRegistry.addConfig(DeviceId.deviceId("2.2.2.2"), DeviceCapability.class);
+        device2Cap.setLabelStackCap(false)
+            .setLocalLabelCap(true)
+            .setSrCap(false)
+            .apply();
 
         //Device3
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "3.3.3.3");
         addDevice(DEVICE3, builder);
-        builder.set(PCECC_CAPABILITY, "true");
-        addDevice(PCEPDEVICE3, builder);
+        DeviceCapability device3Cap = netConfigRegistry.addConfig(DeviceId.deviceId("3.3.3.3"), DeviceCapability.class);
+        device3Cap.setLabelStackCap(false)
+            .setLocalLabelCap(true)
+            .setSrCap(false)
+            .apply();
 
         //Device4
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "4.4.4.4");
         addDevice(DEVICE4, builder);
-        builder.set(PCECC_CAPABILITY, "true");
-        addDevice(PCEPDEVICE4, builder);
+        DeviceCapability device4Cap = netConfigRegistry.addConfig(DeviceId.deviceId("4.4.4.4"), DeviceCapability.class);
+        device4Cap.setLabelStackCap(false)
+            .setLocalLabelCap(true)
+            .setSrCap(false)
+            .apply();
 
         Set<Path> paths = computePath(link1, link2, link3, link4, constraints);
 
@@ -721,36 +827,44 @@ public class PathComputationTest {
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "1.1.1.1");
         addDevice(DEVICE1, builder);
-        builder.set(SR_CAPABILITY, "true");
-        builder.set(LABEL_STACK_CAPABILITY, "true");
-        addDevice(PCEPDEVICE1, builder);
+        DeviceCapability device1Cap = netConfigRegistry.addConfig(DeviceId.deviceId("1.1.1.1"), DeviceCapability.class);
+        device1Cap.setLabelStackCap(true)
+            .setLocalLabelCap(false)
+            .setSrCap(true)
+            .apply();
 
         //Device2
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "2.2.2.2");
         addDevice(DEVICE2, builder);
-        builder.set(SR_CAPABILITY, "true");
-        builder.set(LABEL_STACK_CAPABILITY, "true");
-        addDevice(PCEPDEVICE2, builder);
+        DeviceCapability device2Cap = netConfigRegistry.addConfig(DeviceId.deviceId("2.2.2.2"), DeviceCapability.class);
+        device2Cap.setLabelStackCap(true)
+            .setLocalLabelCap(false)
+            .setSrCap(true)
+            .apply();
 
         //Device3
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "3.3.3.3");
         addDevice(DEVICE3, builder);
-        builder.set(SR_CAPABILITY, "true");
-        builder.set(LABEL_STACK_CAPABILITY, "true");
-        addDevice(PCEPDEVICE3, builder);
+        DeviceCapability device3Cap = netConfigRegistry.addConfig(DeviceId.deviceId("3.3.3.3"), DeviceCapability.class);
+        device3Cap.setLabelStackCap(true)
+            .setLocalLabelCap(false)
+            .setSrCap(true)
+            .apply();
 
         //Device4
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "4.4.4.4");
         addDevice(DEVICE4, builder);
-        builder.set(SR_CAPABILITY, "true");
-        builder.set(LABEL_STACK_CAPABILITY, "true");
-        addDevice(PCEPDEVICE4, builder);
+        DeviceCapability device4Cap = netConfigRegistry.addConfig(DeviceId.deviceId("4.4.4.4"), DeviceCapability.class);
+        device4Cap.setLabelStackCap(true)
+            .setLocalLabelCap(false)
+            .setSrCap(true)
+            .apply();
         Set<Path> paths = computePath(link1, link2, link3, link4, constraints);
 
         List<Link> links = new LinkedList<>();
@@ -783,36 +897,45 @@ public class PathComputationTest {
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "1.1.1.1");
         addDevice(DEVICE1, builder);
-        builder.set(SR_CAPABILITY, "true");
-        builder.set(LABEL_STACK_CAPABILITY, "true");
-        addDevice(PCEPDEVICE1, builder);
+        DeviceCapability device1Cap = netConfigRegistry.addConfig(DeviceId.deviceId("1.1.1.1"), DeviceCapability.class);
+        device1Cap.setLabelStackCap(true)
+            .setLocalLabelCap(false)
+            .setSrCap(true)
+            .apply();
 
         //Device2
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "2.2.2.2");
         addDevice(DEVICE2, builder);
-        builder.set(SR_CAPABILITY, "true");
-        builder.set(LABEL_STACK_CAPABILITY, "true");
-        addDevice(PCEPDEVICE2, builder);
+        DeviceCapability device2Cap = netConfigRegistry.addConfig(DeviceId.deviceId("2.2.2.2"), DeviceCapability.class);
+        device2Cap.setLabelStackCap(true)
+            .setLocalLabelCap(false)
+            .setSrCap(true)
+            .apply();
 
         //Device3
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "3.3.3.3");
         addDevice(DEVICE3, builder);
-        builder.set(SR_CAPABILITY, "true");
-        builder.set(LABEL_STACK_CAPABILITY, "true");
-        addDevice(PCEPDEVICE3, builder);
+        DeviceCapability device3Cap = netConfigRegistry.addConfig(DeviceId.deviceId("3.3.3.3"), DeviceCapability.class);
+        device3Cap.setLabelStackCap(true)
+            .setLocalLabelCap(false)
+            .setSrCap(true)
+            .apply();
 
         //Device4
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "4.4.4.4");
         addDevice(DEVICE4, builder);
-        builder.set(SR_CAPABILITY, "true");
-        builder.set(LABEL_STACK_CAPABILITY, "true");
-        addDevice(PCEPDEVICE4, builder);
+        DeviceCapability device4Cap = netConfigRegistry.addConfig(DeviceId.deviceId("4.4.4.4"), DeviceCapability.class);
+        device4Cap.setLabelStackCap(true)
+            .setLocalLabelCap(false)
+            .setSrCap(true)
+            .apply();
+
         Set<Path> paths = computePath(link1, link2, link3, link4, constraints);
 
         List<Link> links = new LinkedList<>();
@@ -842,36 +965,45 @@ public class PathComputationTest {
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "1.1.1.1");
         addDevice(DEVICE1, builder);
-        builder.set(SR_CAPABILITY, "true");
-        builder.set(LABEL_STACK_CAPABILITY, "true");
-        addDevice(PCEPDEVICE1, builder);
+        DeviceCapability device1Cap = netConfigRegistry.addConfig(DeviceId.deviceId("1.1.1.1"), DeviceCapability.class);
+        device1Cap.setLabelStackCap(true)
+            .setLocalLabelCap(false)
+            .setSrCap(true)
+            .apply();
 
         //Device2
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "2.2.2.2");
         addDevice(DEVICE2, builder);
-        builder.set(SR_CAPABILITY, "true");
-        builder.set(LABEL_STACK_CAPABILITY, "true");
-        addDevice(PCEPDEVICE2, builder);
+        DeviceCapability device2Cap = netConfigRegistry.addConfig(DeviceId.deviceId("2.2.2.2"), DeviceCapability.class);
+        device2Cap.setLabelStackCap(true)
+            .setLocalLabelCap(false)
+            .setSrCap(true)
+            .apply();
 
         //Device3
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "3.3.3.3");
         addDevice(DEVICE3, builder);
-        builder.set(SR_CAPABILITY, "true");
-        builder.set(LABEL_STACK_CAPABILITY, "true");
-        addDevice(PCEPDEVICE3, builder);
+        DeviceCapability device3Cap = netConfigRegistry.addConfig(DeviceId.deviceId("3.3.3.3"), DeviceCapability.class);
+        device3Cap.setLabelStackCap(true)
+            .setLocalLabelCap(false)
+            .setSrCap(true)
+            .apply();
 
         //Device4
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "4.4.4.4");
         addDevice(DEVICE4, builder);
-        builder.set(SR_CAPABILITY, "true");
-        builder.set(LABEL_STACK_CAPABILITY, "true");
-        addDevice(PCEPDEVICE4, builder);
+        DeviceCapability device4Cap = netConfigRegistry.addConfig(DeviceId.deviceId("4.4.4.4"), DeviceCapability.class);
+        device4Cap.setLabelStackCap(true)
+            .setLocalLabelCap(false)
+            .setSrCap(true)
+            .apply();
+
         Set<Path> paths = computePath(link1, link2, link3, link4, constraints);
 
         List<Link> links = new LinkedList<>();
@@ -969,24 +1101,33 @@ public class PathComputationTest {
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "1.1.1.1");
         addDevice(DEVICE1, builder);
-        builder.set(PCECC_CAPABILITY, "true");
-        addDevice(PCEPDEVICE1, builder);
+        DeviceCapability device1Cap = netConfigRegistry.addConfig(DeviceId.deviceId("1.1.1.1"), DeviceCapability.class);
+        device1Cap.setLabelStackCap(false)
+            .setLocalLabelCap(true)
+            .setSrCap(false)
+            .apply();
 
         //Device2
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "2.2.2.2");
         addDevice(DEVICE2, builder);
-        builder.set(PCECC_CAPABILITY, "true");
-        addDevice(PCEPDEVICE2, builder);
+        DeviceCapability device2Cap = netConfigRegistry.addConfig(DeviceId.deviceId("2.2.2.2"), DeviceCapability.class);
+        device2Cap.setLabelStackCap(false)
+            .setLocalLabelCap(true)
+            .setSrCap(false)
+            .apply();
 
         //Device4
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "4.4.4.4");
         addDevice(DEVICE4, builder);
-        builder.set(PCECC_CAPABILITY, "true");
-        addDevice(PCEPDEVICE4, builder);
+        DeviceCapability device4Cap = netConfigRegistry.addConfig(DeviceId.deviceId("4.4.4.4"), DeviceCapability.class);
+        device4Cap.setLabelStackCap(false)
+            .setLocalLabelCap(true)
+            .setSrCap(false)
+            .apply();
         Set<Path> paths = computePath(link1, link2, link3, link4, constraints);
 
         List<Link> links = new LinkedList<>();
@@ -1019,24 +1160,33 @@ public class PathComputationTest {
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "1.1.1.1");
         addDevice(DEVICE2, builder);
-        builder.set(PCECC_CAPABILITY, "true");
-        addDevice(PCEPDEVICE1, builder);
+        DeviceCapability device1Cap = netConfigRegistry.addConfig(DeviceId.deviceId("1.1.1.1"), DeviceCapability.class);
+        device1Cap.setLabelStackCap(false)
+            .setLocalLabelCap(true)
+            .setSrCap(false)
+            .apply();
 
         //Device2
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "2.2.2.2");
         addDevice(DEVICE2, builder);
-        builder.set(PCECC_CAPABILITY, "true");
-        addDevice(PCEPDEVICE2, builder);
+        DeviceCapability device2Cap = netConfigRegistry.addConfig(DeviceId.deviceId("2.2.2.2"), DeviceCapability.class);
+        device2Cap.setLabelStackCap(false)
+            .setLocalLabelCap(true)
+            .setSrCap(false)
+            .apply();
 
         //Device4
         builder = DefaultAnnotations.builder();
         builder.set(AnnotationKeys.TYPE, L3);
         builder.set(LSRID, "4.4.4.4");
         addDevice(DEVICE4, builder);
-        builder.set(PCECC_CAPABILITY, "true");
-        addDevice(PCEPDEVICE4, builder);
+        DeviceCapability device4Cap = netConfigRegistry.addConfig(DeviceId.deviceId("4.4.4.4"), DeviceCapability.class);
+        device4Cap.setLabelStackCap(false)
+            .setLocalLabelCap(true)
+            .setSrCap(false)
+            .apply();
         Set<Path> paths = computePath(link1, link2, link3, link4, constraints);
 
         assertThat(paths, is(new HashSet<>()));
