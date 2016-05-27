@@ -26,6 +26,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -189,6 +192,10 @@ public class PceManager implements PceService {
 
     private final PcepPacketProcessor processor = new PcepPacketProcessor();
     private final TopologyListener topologyListener = new InternalTopologyListener();
+    private ScheduledExecutorService executor;
+
+    public static final int INITIAL_DELAY = 30;
+    public static final int PERIODIC_DELAY = 30;
 
     /**
      * Creates new instance of PceManager.
@@ -217,6 +224,9 @@ public class PceManager implements PceService {
 
         packetService.addProcessor(processor, PacketProcessor.director(4));
         topologyService.addListener(topologyListener);
+        executor = Executors.newSingleThreadScheduledExecutor();
+        //Start a timer when the component is up, with initial delay of 30min and periodic delays at 30min
+        executor.scheduleAtFixedRate(new GlobalOptimizationTimer(), INITIAL_DELAY, PERIODIC_DELAY, TimeUnit.MINUTES);
         log.info("Started");
     }
 
@@ -225,6 +235,8 @@ public class PceManager implements PceService {
         tunnelService.removeListener(listener);
         packetService.removeProcessor(processor);
         topologyService.removeListener(topologyListener);
+        //Shutdown the thread when component is deactivated
+        executor.shutdown();
         log.info("Stopped");
     }
 
@@ -653,7 +665,12 @@ public class PceManager implements PceService {
                 constraintList.add(CostConstraint.of(CostConstraint.Type.valueOf(tunnel.annotations().value(
                         COST_TYPE))));
             }
-            if (!updatePath(tunnel.tunnelId(), constraintList)) {
+
+            /*
+             * If tunnel was UP after recomputation failed then store failed path in PCE store send PCIntiate(remove)
+             * and If tunnel is failed and computation fails nothing to do because tunnel status will be same[Failed]
+             */
+            if (!updatePath(tunnel.tunnelId(), constraintList) && !tunnel.state().equals(Tunnel.State.FAILED)) {
                 // If updation fails store in PCE store as failed path
                 // then PCInitiate (Remove)
                 pceStore.addFailedPathInfo(new PcePathInfo(tunnel.path().src().deviceId(), tunnel
@@ -942,4 +959,44 @@ public class PceManager implements PceService {
         }
     }
 
+    //Computes path from tunnel store and also path failed to setup.
+    private void callForOptimization() {
+        //Recompute the LSPs which it was delegated [LSPs stored in PCE store (failed paths)]
+        for (PcePathInfo failedPathInfo : pceStore.getFailedPathInfos()) {
+            checkForMasterAndSetupPath(failedPathInfo);
+        }
+
+        //Recompute the LSPs for which it was delegated [LSPs stored in tunnel store]
+        tunnelService.queryTunnel(MPLS).forEach(t -> {
+        checkForMasterAndUpdateTunnel(t.path().src().deviceId(), t);
+        });
+    }
+
+    private boolean checkForMasterAndSetupPath(PcePathInfo failedPathInfo) {
+        /**
+         * Master of ingress node will setup the path failed stored in PCE store.
+         */
+        if (mastershipService.isLocalMaster(failedPathInfo.src())) {
+            if (setupPath(failedPathInfo.src(), failedPathInfo.dst(), failedPathInfo.name(),
+                    failedPathInfo.constraints(), failedPathInfo.lspType())) {
+                // If computation is success remove that path
+                pceStore.removeFailedPathInfo(failedPathInfo);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    //Timer to call global optimization
+    private class GlobalOptimizationTimer implements Runnable {
+
+        public GlobalOptimizationTimer() {
+        }
+
+        @Override
+        public void run() {
+            callForOptimization();
+        }
+    }
 }
