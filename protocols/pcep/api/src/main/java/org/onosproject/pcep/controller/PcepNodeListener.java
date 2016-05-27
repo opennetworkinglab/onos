@@ -25,12 +25,12 @@ public interface PcepNodeListener {
      *
      * @param pc PCEP client details
      */
-    void addNode(PcepClient pc);
+    void addDevicePcepConfig(PcepClient pc);
 
     /**
      * Notifies that the node was removed.
      *
      * @param pccId PCEP client ID
      */
-    void deleteNode(PccId pccId);
+    void deleteDevicePcepConfig(PccId pccId);
 }

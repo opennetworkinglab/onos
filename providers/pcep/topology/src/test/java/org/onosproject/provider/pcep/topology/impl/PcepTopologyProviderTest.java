@@ -12,13 +12,7 @@
  */
 package org.onosproject.provider.pcep.topology.impl;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
 import static org.onosproject.net.Link.State.ACTIVE;
-import static org.onosproject.provider.pcep.topology.impl.PcepTopologyProvider.LABEL_STACK_CAPABILITY;
-import static org.onosproject.provider.pcep.topology.impl.PcepTopologyProvider.LSRID;
-import static org.onosproject.provider.pcep.topology.impl.PcepTopologyProvider.PCECC_CAPABILITY;
-import static org.onosproject.provider.pcep.topology.impl.PcepTopologyProvider.SR_CAPABILITY;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -39,6 +33,10 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.config.Config;
+import org.onosproject.net.config.ConfigApplyDelegate;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
@@ -51,11 +49,19 @@ import org.onosproject.net.link.LinkProvider;
 import org.onosproject.net.link.LinkProviderRegistry;
 import org.onosproject.net.link.LinkProviderService;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.pcep.api.DeviceCapability;
 import org.onosproject.pcep.controller.ClientCapability;
 import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcep.controller.PcepClient;
 import org.onosproject.pcep.controller.PcepNodeListener;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.nullValue;
 /**
  * Test for PCEP topology provider.
  */
@@ -68,6 +74,7 @@ public class PcepTopologyProviderTest {
     private final PcepControllerAdapter controller = new PcepControllerAdapter();
     private final MockLinkRegistry linkRegistry = new MockLinkRegistry();
     private final MockDeviceService deviceService = new MockDeviceService();
+    private final MockNetConfigRegistryAdapter netConfigRegistry = new MockNetConfigRegistryAdapter();
     private Map<DeviceId, Device> deviceMap = new HashMap<>();
 
     @Before
@@ -77,6 +84,8 @@ public class PcepTopologyProviderTest {
         provider.linkProviderRegistry = linkRegistry;
         provider.controller = controller;
         provider.deviceService = deviceService;
+        provider.netConfigRegistry = netConfigRegistry;
+        provider.netConfigService = netConfigRegistry;
         provider.activate();
     }
 
@@ -88,6 +97,8 @@ public class PcepTopologyProviderTest {
         provider.linkProviderRegistry = null;
         provider.controller = null;
         provider.deviceService = null;
+        provider.netConfigRegistry = null;
+        provider.netConfigService = null;
     }
 
     /* Class implement device test registry */
@@ -217,24 +228,104 @@ public class PcepTopologyProviderTest {
         }
     }
 
+    /* Mock test for device service */
+    private class MockNetConfigRegistryAdapter extends NetworkConfigRegistryAdapter {
+        private ConfigFactory cfgFactory;
+        private Map<DeviceId, DeviceCapability> classConfig = new HashMap<>();
+
+        @Override
+        public void registerConfigFactory(ConfigFactory configFactory) {
+            cfgFactory = configFactory;
+        }
+
+        @Override
+        public void unregisterConfigFactory(ConfigFactory configFactory) {
+            cfgFactory = null;
+        }
+
+        @Override
+        public <S, C extends Config<S>> C addConfig(S subject, Class<C> configClass) {
+            if (configClass == DeviceCapability.class) {
+                DeviceCapability devCap = new DeviceCapability();
+                classConfig.put((DeviceId) subject, devCap);
+
+                JsonNode node = new ObjectNode(new MockJsonNode());
+                ObjectMapper mapper = new ObjectMapper();
+                ConfigApplyDelegate delegate = new InternalApplyDelegate();
+                devCap.init((DeviceId) subject, null, node, mapper, delegate);
+                return (C) devCap;
+            }
+
+            return null;
+        }
+
+        @Override
+        public <S, C extends Config<S>> void removeConfig(S subject, Class<C> configClass) {
+            classConfig.remove(subject);
+        }
+
+        @Override
+        public <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass) {
+            if (configClass == DeviceCapability.class) {
+                return (C) classConfig.get(subject);
+            }
+            return null;
+        }
+
+        private class MockJsonNode extends JsonNodeFactory {
+        }
+
+        // Auxiliary delegate to receive notifications about changes applied to
+        // the network configuration - by the apps.
+        private class InternalApplyDelegate implements ConfigApplyDelegate {
+            @Override
+            public void onApply(Config config) {
+                //configs.put(config.subject(), config.node());
+            }
+        }
+    }
+
     /**
-     * Adds the PCEP device and removes it.
+     * Adds the PCEP device with SR, label stack and local label capabilities and deletes the device.
      */
     @Test
     public void testPcepTopologyProviderTestAddDevice1() {
         PcepClient pc = clientController.getClient(PccId.pccId(IpAddress.valueOf("1.1.1.1")));
         for (PcepNodeListener l : clientController.pcepNodeListener) {
             pc.setCapability(new ClientCapability(true, true, false, true, true));
-            l.addNode(pc);
-            assertThat(nodeRegistry.connected.size(), is(1));
-            assertThat(deviceMap.keySet().iterator().next(), is(DeviceId.deviceId("l3:1.1.1.1")));
-            assertThat(deviceMap.values().iterator().next().annotations().value(LABEL_STACK_CAPABILITY), is("true"));
-            assertThat(deviceMap.values().iterator().next().annotations().value(LSRID), is("1.1.1.1"));
-            assertThat(deviceMap.values().iterator().next().annotations().value(PCECC_CAPABILITY), is("true"));
-            assertThat(deviceMap.values().iterator().next().annotations().value(SR_CAPABILITY), is("true"));
+            l.addDevicePcepConfig(pc);
 
-            l.deleteNode(pc.getPccId());
-            assertThat(nodeRegistry.connected.size(), is(0));
+            DeviceId pccDeviceId = DeviceId.deviceId(String.valueOf(pc.getPccId().ipAddress()));
+            DeviceCapability deviceCap = netConfigRegistry.getConfig(pccDeviceId, DeviceCapability.class);
+            assertThat(deviceCap.srCap(), is(true));
+            assertThat(deviceCap.labelStackCap(), is(true));
+            assertThat(deviceCap.localLabelCap(), is(true));
+
+            l.deleteDevicePcepConfig(pc.getPccId());
+            deviceCap = netConfigRegistry.getConfig(pccDeviceId, DeviceCapability.class);
+            assertThat(deviceCap, is(nullValue()));
+        }
+    }
+
+    /**
+     * Adds the PCEP device with SR, and local label capabilities and deletes the device.
+     */
+    @Test
+    public void testPcepTopologyProviderTestAddDevice2() {
+        PcepClient pc = clientController.getClient(PccId.pccId(IpAddress.valueOf("1.1.1.1")));
+        for (PcepNodeListener l : clientController.pcepNodeListener) {
+            pc.setCapability(new ClientCapability(true, true, false, false, true));
+            l.addDevicePcepConfig(pc);
+
+            DeviceId pccDeviceId = DeviceId.deviceId(String.valueOf(pc.getPccId().ipAddress()));
+            DeviceCapability deviceCap = netConfigRegistry.getConfig(pccDeviceId, DeviceCapability.class);
+            assertThat(deviceCap.srCap(), is(true));
+            assertThat(deviceCap.labelStackCap(), is(false));
+            assertThat(deviceCap.localLabelCap(), is(true));
+
+            l.deleteDevicePcepConfig(pc.getPccId());
+            deviceCap = netConfigRegistry.getConfig(pccDeviceId, DeviceCapability.class);
+            assertThat(deviceCap, is(nullValue()));
         }
     }
 }

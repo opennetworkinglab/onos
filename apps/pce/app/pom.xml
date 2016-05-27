@@ -132,5 +132,10 @@
             <artifactId>onlab-misc</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-app-pcep-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

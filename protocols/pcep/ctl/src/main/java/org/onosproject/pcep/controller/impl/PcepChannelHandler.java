@@ -261,7 +261,7 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
                         disconnectDuplicate(h);
                     } else {
                         h.setState(ESTABLISHED);
-                        //Session is established, add a PCEP device
+                        //Session is established, add a network configuration with LSR id and device capabilities.
                         h.addNode();
                     }
                 }
@@ -472,14 +472,14 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
     }
 
     /**
-     * Adds PCEP device once session is established.
+     * Adds PCEP device configuration with capabilities once session is established.
      */
     private void addNode() {
         pc.addNode(pc);
     }
 
     /**
-     * Deletes PCEP device when session is disconnected.
+     * Deletes PCEP device configuration when session is disconnected.
      */
     private void deleteNode() {
         pc.deleteNode(pc.getPccId());

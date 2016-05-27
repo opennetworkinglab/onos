@@ -275,14 +275,14 @@ public class PcepClientControllerAdapter implements PcepClientController {
         @Override
         public void addNode(PcepClient pc) {
             for (PcepNodeListener l : pcepNodeListener) {
-                l.addNode(pc);
+                l.addDevicePcepConfig(pc);
             }
         }
 
         @Override
         public void deleteNode(PccId pccId) {
             for (PcepNodeListener l : pcepNodeListener) {
-                l.deleteNode(pccId);
+                l.deleteDevicePcepConfig(pccId);
             }
         }
 
