@@ -200,7 +200,7 @@
 
         } else if (tps.summaryVisible()) {
             // else if the Summary Panel is visible, hide it
-            tps.hideSummaryPanel();
+            tps.hideSummary();
         }
     }
 
