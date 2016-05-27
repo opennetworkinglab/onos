@@ -74,7 +74,7 @@ def defaultUser():
     return user
 
 # Module vars, initialized below
-HOME = ONOS_ROOT = KARAF_ROOT = ONOS_HOME = ONOS_USER = None
+HOME = ONOS_ROOT = ONOS_USER = None
 ONOS_APPS = ONOS_WEB_USER = ONOS_WEB_PASS = ONOS_TAR = None
 
 def initONOSEnv():
@@ -84,20 +84,16 @@ def initONOSEnv():
        nodes: list of ONOS nodes
        returns: ONOS environment variable dict"""
     # pylint: disable=global-statement
-    global HOME, ONOS_ROOT, KARAF_ROOT, ONOS_HOME, ONOS_USER
+    global HOME, ONOS_ROOT, ONOS_USER
     global ONOS_APPS, ONOS_WEB_USER, ONOS_WEB_PASS
     env = {}
     def sd( var, val ):
         "Set default value for environment variable"
         env[ var ] = environ.setdefault( var, val )
         return env[ var ]
+    assert environ[ 'HOME' ]
     HOME = sd( 'HOME', environ[ 'HOME' ] )
-    assert HOME
     ONOS_ROOT = sd( 'ONOS_ROOT',  join( HOME, 'onos' ) )
-    KARAF_ROOT = sd( 'KARAF_ROOT',
-                      glob( join( HOME,
-                                  'Applications/apache-karaf-*' ) )[ -1 ] )
-    ONOS_HOME = sd( 'ONOS_HOME',  dirname( KARAF_ROOT ) )
     environ[ 'ONOS_USER' ] = defaultUser()
     ONOS_USER = sd( 'ONOS_USER', defaultUser() )
     ONOS_APPS = sd( 'ONOS_APPS',
@@ -194,14 +190,11 @@ def RenamedTopo( topo, *args, **kwargs ):
 class ONOSNode( Controller ):
     "ONOS cluster node"
 
-    # Default karaf client location
-    client = '/tmp/onos1/karaf/bin/client'
-
     def __init__( self, name, **kwargs ):
         kwargs.update( inNamespace=True )
         Controller.__init__( self, name, **kwargs )
         self.dir = '/tmp/%s' % self.name
-        # Satisfy pylint
+        self.client = self.dir + '/karaf/bin/client'
         self.ONOS_HOME = '/tmp'
 
     # pylint: disable=arguments-differ
@@ -224,6 +217,7 @@ class ONOSNode( Controller ):
         service = join( self.ONOS_HOME, 'bin/onos-service' )
         self.ucmd( service, 'server 1>../onos.log 2>../onos.log'
                    ' & echo $! > onos.pid; ln -s `pwd`/onos.pid ..' )
+        self.onosPid = int( self.cmd( 'cat onos.pid' ).strip() )
 
     # pylint: enable=arguments-differ
 
@@ -231,6 +225,16 @@ class ONOSNode( Controller ):
         # XXX This will kill all karafs - too bad!
         self.cmd( 'pkill -HUP -f karaf.jar && wait' )
         self.cmd( 'rm -rf', self.dir )
+
+    def isRunning( self ):
+        "Is our ONOS process still running?"
+        cmd = 'ps -p %d  >/dev/null 2>&1 && echo "running" || echo "not running"'
+        return self.cmd( cmd % self.onosPid ) == 'running'
+
+    def sanityCheck( self ):
+        "Check whether we've quit or are running out of memory"
+        if not self.isRunning():
+            raise Exception( 'ONOS node %s has died' % self.name )
 
     def waitStarted( self ):
         "Wait until we've really started"
@@ -281,6 +285,7 @@ class ONOSCluster( Controller ):
         args = list( args )
         name = args.pop( 0 )
         topo = kwargs.pop( 'topo', None )
+        nat = kwargs.pop( 'nat', 'nat0' )
         # Default: single switch with 1 ONOS node
         if not topo:
             topo = SingleSwitchTopo
@@ -297,13 +302,13 @@ class ONOSCluster( Controller ):
         self.net = Mininet( topo=topo, ipBase=self.ipBase,
                             host=ONOSNode, switch=LinuxBridge,
                             controller=None )
-        self.net.addNAT().configDefault()
+        if nat:
+            self.net.addNAT( nat ).configDefault()
         updateNodeIPs( self.env, self.nodes() )
         self._remoteControllers = []
 
     def start( self ):
         "Start up ONOS cluster"
-        killprocs( 'karaf.jar' )
         info( '*** ONOS_APPS = %s\n' % ONOS_APPS )
         self.net.start()
         for node in self.nodes():
@@ -402,6 +407,10 @@ class ONOSCLI( OldCLI ):
             net = MininetFacade( net, cnet=c0.net )
         OldCLI.__init__( self, net, **kwargs )
 
+    def onos1( self ):
+        "Helper function: return default ONOS node"
+        return self.mn.controllers[ 0 ].net.hosts[ 0 ]
+
     def do_onos( self, line ):
         "Send command to ONOS CLI"
         c0 = self.mn.controllers[ 0 ]
@@ -409,7 +418,10 @@ class ONOSCLI( OldCLI ):
             # cmdLoop strips off command name 'onos'
             if line.startswith( ':' ):
                 line = 'onos' + line
-            cmd = 'onos1 client -h onos1 ' + line
+            onos1 = self.onos1().name
+            if line:
+                line = '"%s"' % line
+            cmd = '%s client -h %s %s' % ( onos1, onos1, line )
             quietRun( 'stty -echo' )
             self.default( cmd )
             quietRun( 'stty echo' )
@@ -423,8 +435,8 @@ class ONOSCLI( OldCLI ):
         self.do_onos( ':balance-masters' )
 
     def do_log( self, line ):
-        "Run tail -f /tmp/onos1/log on onos1; press control-C to stop"
-        self.default( 'onos1 tail -f /tmp/onos1/log' )
+        "Run tail -f /tmp/onos1/log; press control-C to stop"
+        self.default( self.onos1().name, 'tail -f /tmp/%s/log' % self.onos1() )
 
 
 ### Exports for bin/mn
