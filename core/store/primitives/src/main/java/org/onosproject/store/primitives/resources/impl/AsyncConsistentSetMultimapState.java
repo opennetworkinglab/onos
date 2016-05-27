@@ -476,11 +476,6 @@ public class AsyncConsistentSetMultimapState extends ResourceStateMachine
                 });
                 if (valuesToAdd.isEmpty()) {
                     //Do not increment or add the commit if no change resulted
-//                    TODO fairly sure the below case is unreachable but
-//                    TODO need to make sure
-//                    if (valueCountdownMap.isEmpty()) {
-//                        backingMap.remove(((Put) commit.operation()).key());
-//                    }
                     commit.close();
                     return null;
                 }

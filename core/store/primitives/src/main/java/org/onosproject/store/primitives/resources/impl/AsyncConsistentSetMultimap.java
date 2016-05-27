@@ -158,7 +158,6 @@ public class AsyncConsistentSetMultimap
 
     @Override
     public CompletableFuture<Map<String, Collection<byte[]>>> asMap() {
-        //TODO
         throw new UnsupportedOperationException("Expensive operation.");
     }
 
