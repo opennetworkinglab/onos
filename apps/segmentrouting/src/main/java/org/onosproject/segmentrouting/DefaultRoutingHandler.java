@@ -47,7 +47,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * routing rule population.
  */
 public class DefaultRoutingHandler {
-    private static final int MAX_RETRY_ATTEMPTS = 5;
+    private static final int MAX_RETRY_ATTEMPTS = 25;
     private static final String ECMPSPG_MISSING = "ECMP shortest path graph not found";
     private static Logger log = LoggerFactory.getLogger(DefaultRoutingHandler.class);
 
@@ -212,11 +212,11 @@ public class DefaultRoutingHandler {
                 log.trace("repopulateRoutingRulesForRoutes: running ECMP graph for device {}", link.get(0));
                 EcmpShortestPathGraph ecmpSpg = new EcmpShortestPathGraph(link.get(0), srManager);
                 if (populateEcmpRoutingRules(link.get(0), ecmpSpg, ImmutableSet.of())) {
-                    log.debug("Populating flow rules from {} to all is successful",
+                    log.debug("Populating flow rules from all to dest:{} is successful",
                               link.get(0));
                     currentEcmpSpgMap.put(link.get(0), ecmpSpg);
                 } else {
-                    log.warn("Failed to populate the flow rules from {} to all", link.get(0));
+                    log.warn("Failed to populate the flow rules from all to dest:{}", link.get(0));
                     return false;
                 }
             } else {
@@ -463,9 +463,9 @@ public class DefaultRoutingHandler {
     /**
      * Populate ECMP rules for subnets from target to destination via nexthops.
      *
-     * @param targetSw Device ID of target switch
-     * @param destSw Device ID of destination switch
-     * @param nextHops List of next hops
+     * @param targetSw Device ID of target switch in which rules will be programmed
+     * @param destSw Device ID of final destination switch to which the rules will forward
+     * @param nextHops List of next hops via which destSw will be reached
      * @param subnets Subnets to be populated. If empty, populate all configured subnets.
      * @return true if succeed
      */
@@ -647,6 +647,8 @@ public class DefaultRoutingHandler {
 
         @Override
         public void run() {
+            log.info("RETRY FILTER ATTEMPT# {} for dev:{}",
+                     MAX_RETRY_ATTEMPTS - attempts, devId);
             boolean success = rulePopulator.populateRouterMacVlanFilters(devId);
             if (!success && --attempts > 0) {
                 executorService.schedule(this, 200, TimeUnit.MILLISECONDS);

@@ -239,7 +239,8 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     private boolean queueObjective(DeviceId deviceId, ForwardingObjective fwd) {
         if (fwd.nextId() != null &&
                 flowObjectiveStore.getNextGroup(fwd.nextId()) == null) {
-            log.trace("Queuing forwarding objective for nextId {}", fwd.nextId());
+            log.debug("Queuing forwarding objective {} for nextId {} meant for device {}",
+                      fwd.id(), fwd.nextId(), deviceId);
             // TODO: change to computeIfAbsent
             Set<PendingNext> newset = Collections.newSetFromMap(
                                           new ConcurrentHashMap<PendingNext, Boolean>());
@@ -398,7 +399,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                 Set<PendingNext> pending = pendingForwards.remove(event.subject());
 
                 if (pending == null) {
-                    log.warn("Nothing pending for this obj event {}", event);
+                    log.debug("Nothing pending for this obj event {}", event);
                     return;
                 }
 
@@ -457,7 +458,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     public List<String> getNextMappings() {
         List<String> mappings = new ArrayList<>();
         Map<Integer, NextGroup> allnexts = flowObjectiveStore.getAllGroups();
-        // XXX if the NextGroup upon decoding stored info of the deviceId
+        // XXX if the NextGroup after de-serialization actually stored info of the deviceId
         // then info on any nextObj could be retrieved from one controller instance.
         // Right now the drivers on one instance can only fetch for next-ids that came
         // to them.
