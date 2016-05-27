@@ -52,6 +52,7 @@ import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelListener;
 import org.onosproject.incubator.net.tunnel.TunnelName;
 import org.onosproject.incubator.net.tunnel.TunnelService;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultAnnotations.Builder;
 import org.onosproject.net.Device;
@@ -63,6 +64,7 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import org.onosproject.net.link.LinkEvent;
 import org.onosproject.pce.pceservice.constraint.CapabilityConstraint;
 import org.onosproject.pce.pceservice.constraint.CapabilityConstraint.CapabilityType;
 import org.onosproject.pce.pceservice.constraint.CostConstraint;
@@ -76,6 +78,9 @@ import org.onosproject.net.resource.Resources;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyEdge;
+import org.onosproject.net.topology.TopologyEvent;
+import org.onosproject.net.topology.TopologyListener;
+import org.onosproject.net.topology.TopologyService;
 import org.onosproject.pce.pceservice.api.PceService;
 import org.onosproject.pce.pcestore.PcePathInfo;
 import org.onosproject.pce.pcestore.PceccTunnelInfo;
@@ -171,12 +176,19 @@ public class PceManager implements PceService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveService flowObjectiveService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected TopologyService topologyService;
+
     private TunnelListener listener = new InnerTunnelListener();
     private BasicPceccHandler crHandler;
     private PceccSrTeBeHandler srTeHandler;
     private ApplicationId appId;
 
     private final PcepPacketProcessor processor = new PcepPacketProcessor();
+    private final TopologyListener topologyListener = new InternalTopologyListener();
 
     /**
      * Creates new instance of PceManager.
@@ -204,6 +216,7 @@ public class PceManager implements PceService {
                 .asDistributedSet();
 
         packetService.addProcessor(processor, PacketProcessor.director(4));
+        topologyService.addListener(topologyListener);
         log.info("Started");
     }
 
@@ -211,6 +224,7 @@ public class PceManager implements PceService {
     protected void deactivate() {
         tunnelService.removeListener(listener);
         packetService.removeProcessor(processor);
+        topologyService.removeListener(topologyListener);
         log.info("Stopped");
     }
 
@@ -395,6 +409,7 @@ public class PceManager implements PceService {
         List<Link> links = tunnel.path().links();
         String lspSigType = tunnel.annotations().value(LSP_SIG_TYPE);
         double bwConstraintValue = 0;
+        String costType = null;
         SharedBandwidthConstraint shBwConstraint = null;
         BandwidthConstraint bwConstraint = null;
         CostConstraint costConstraint = null;
@@ -409,6 +424,7 @@ public class PceManager implements PceService {
                     bwConstraintValue = bwConstraint.bandwidth().bps();
                 } else if (constraint instanceof CostConstraint) {
                     costConstraint = (CostConstraint) constraint;
+                costType = costConstraint.type().name();
                 }
             }
 
@@ -454,6 +470,9 @@ public class PceManager implements PceService {
 
         Builder annotationBuilder = DefaultAnnotations.builder();
         annotationBuilder.set(BANDWIDTH, String.valueOf(bwConstraintValue));
+        if (costType != null) {
+            annotationBuilder.set(COST_TYPE, costType);
+        }
         annotationBuilder.set(LSP_SIG_TYPE, lspSigType);
         annotationBuilder.set(PCE_INIT, TRUE);
         annotationBuilder.set(DELEGATE, TRUE);
@@ -594,8 +613,61 @@ public class PceManager implements PceService {
         }
     }
 
+    //TODO: annotations used for temporarily later projection/network config will be used
+    private class InternalTopologyListener implements TopologyListener {
+       @Override
+        public void event(TopologyEvent event) {
+             event.reasons().forEach(e -> {
+                //If event type is link removed, get the impacted tunnel
+                if (e instanceof LinkEvent) {
+                    LinkEvent linkEvent = (LinkEvent) e;
+                    if (linkEvent.type() == LinkEvent.Type.LINK_REMOVED) {
+                        tunnelService.queryTunnel(MPLS).forEach(t -> {
+                                if (t.path().links().contains(((Link) e.subject()))) {
+                                    // Check whether this ONOS instance is master for ingress device if yes,
+                                    // recompute and send update
+                                    checkForMasterAndUpdateTunnel(t.path().src().deviceId(), t);
+                                }
+                        });
+                    }
+                }
+                });
+        }
+    }
 
-    // Allocates the bandwidth locally for PCECC tunnels.
+    private boolean checkForMasterAndUpdateTunnel(DeviceId src, Tunnel tunnel) {
+        /**
+         * Master of ingress node will recompute and also delegation flag must be set.
+         */
+        if (mastershipService.isLocalMaster(src)
+                && Boolean.valueOf(tunnel.annotations().value(DELEGATE)) != null) {
+            LinkedList<Constraint> constraintList = new LinkedList<>();
+
+            if (tunnel.annotations().value(BANDWIDTH) != null) {
+                //Requested bandwidth will be same as previous allocated bandwidth for the tunnel
+                BandwidthConstraint localConst = new BandwidthConstraint(Bandwidth.bps(Double.parseDouble(tunnel
+                        .annotations().value(BANDWIDTH))));
+                constraintList.add(localConst);
+            }
+            if (tunnel.annotations().value(COST_TYPE) != null) {
+                constraintList.add(CostConstraint.of(CostConstraint.Type.valueOf(tunnel.annotations().value(
+                        COST_TYPE))));
+            }
+            if (!updatePath(tunnel.tunnelId(), constraintList)) {
+                // If updation fails store in PCE store as failed path
+                // then PCInitiate (Remove)
+                pceStore.addFailedPathInfo(new PcePathInfo(tunnel.path().src().deviceId(), tunnel
+                        .path().dst().deviceId(), tunnel.tunnelName().value(), constraintList,
+                        LspType.valueOf(tunnel.annotations().value(LSP_SIG_TYPE))));
+                //Release that tunnel calling PCInitiate
+                releasePath(tunnel.tunnelId());
+            }
+        }
+
+        return false;
+    }
+
+     // Allocates the bandwidth locally for PCECC tunnels.
     private TunnelConsumerId reserveBandwidth(Path computedPath, double bandwidthConstraint,
                                   SharedBandwidthConstraint shBwConstraint) {
         checkNotNull(computedPath);
