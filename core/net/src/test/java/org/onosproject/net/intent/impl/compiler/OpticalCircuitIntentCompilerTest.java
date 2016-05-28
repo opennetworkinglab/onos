@@ -18,6 +18,7 @@ package org.onosproject.net.intent.impl.compiler;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.packet.ChassisId;
 import org.onosproject.TestApplicationId;
@@ -25,6 +26,7 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
+import org.onosproject.net.AbstractProjectableModel;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.DefaultAnnotations;
@@ -69,6 +71,7 @@ import org.onosproject.net.driver.DefaultDriver;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
+import org.onosproject.net.driver.DriverServiceAdapter;
 import org.onosproject.net.driver.TestBehaviourImpl;
 import org.onosproject.net.driver.TestBehaviourTwoImpl;
 
@@ -352,6 +355,11 @@ public class OpticalCircuitIntentCompilerTest {
             }
             return null;
         }
+    }
+
+    @BeforeClass
+    public static void setUpClass() {
+        AbstractProjectableModel.setDriverService("key", new DriverServiceAdapter());
     }
 
     @Before
