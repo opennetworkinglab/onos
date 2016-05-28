@@ -28,6 +28,7 @@ import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangOutput;
 import org.onosproject.yangutils.datamodel.YangRpc;
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.datamodel.YangUses;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
@@ -48,8 +49,10 @@ import static org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDa
 import static org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType.getJavaImportPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getParentNodeInGenCode;
 import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.updatePackageInfo;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 
 /**
  * Represents rpc information extended to support java code generation.
@@ -189,15 +192,52 @@ public class YangJavaRpc
          * Add the rpc information to the parent's service temp file.
          */
         try {
+            String rpcsChildNodePkg = getPackageDirPathFromJavaJPackage(getJavaFileInfo().getBaseCodeGenPath() +
+                    (getJavaFileInfo().getPackage() + "." + getJavaFileInfo().getJavaName()).toLowerCase());
+
             ((TempJavaCodeFragmentFilesContainer) parent).getTempJavaCodeFragmentFiles().getServiceTempFiles()
                     .addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfoOfInput, javaAttributeInfoOfOutput,
                             ((JavaFileInfoContainer) parent).getJavaFileInfo().getPluginConfig(),
                             ((YangNode) this).getName(), isInputLeafHolder(), isOutputLeafHolder(),
                             isInputSingleChildHolder(), isOutputSingleChildHolder());
+
+            if (javaAttributeInfoOfInput != null && javaAttributeInfoOfOutput != null
+                    && isInputLeafHolder() && isOutputLeafHolder()) {
+                deleteDirectoryWhenNoFileIsGeneratedForInputOutput(rpcsChildNodePkg);
+            } else if (javaAttributeInfoOfInput != null && javaAttributeInfoOfOutput == null
+                    && isInputLeafHolder()) {
+                deleteDirectoryWhenNoFileIsGeneratedForInputOutput(rpcsChildNodePkg);
+            } else if (javaAttributeInfoOfInput == null && javaAttributeInfoOfOutput != null
+                    && isOutputLeafHolder()) {
+                deleteDirectoryWhenNoFileIsGeneratedForInputOutput(rpcsChildNodePkg);
+            } else {
+                YangNode node = this.getChild();
+                while (node != null) {
+                    YangNode tempNode = node.getChild();
+                    while (tempNode != null) {
+                        if (tempNode instanceof YangUses) {
+                            deleteDirectoryWhenNoFileIsGeneratedForInputOutput(rpcsChildNodePkg);
+                        }
+                        tempNode = tempNode.getNextSibling();
+                    }
+                    node = node.getNextSibling();
+                }
+            }
         } catch (IOException e) {
             throw new TranslatorException("Failed to generate code for RPC node " + this.getName());
         }
         // No file will be generated during RPC exit.
+    }
+
+    /**
+     * When there is no file generation for input output node we should delete the directory generated
+     * for RPC.
+     *
+     * @param emptyPkg empty package
+     * @throws IOException when fails to do IO operations
+     */
+    private void deleteDirectoryWhenNoFileIsGeneratedForInputOutput(String emptyPkg) throws IOException {
+        deleteDirectory(emptyPkg);
     }
 
     /**

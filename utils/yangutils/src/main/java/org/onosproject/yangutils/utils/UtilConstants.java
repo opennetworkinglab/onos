@@ -930,7 +930,7 @@ public final class UtilConstants {
      * Static attribute for AugmentationHolder class import package.
      */
     public static final String PROVIDED_AUGMENTATION_CLASS_IMPORT_PKG =
-            "org.onosproject.yangutils.translator.tojava";
+            "org.onosproject.yangutils.utils";
 
     /**
      * Static attribute for AugmentationHolder class import class.
@@ -940,7 +940,7 @@ public final class UtilConstants {
     /**
      * Static attribute for AugmentedInfo class import package.
      */
-    public static final String AUGMENTED_INFO_CLASS_IMPORT_PKG = "org.onosproject.yangutils.translator.tojava";
+    public static final String AUGMENTED_INFO_CLASS_IMPORT_PKG = "org.onosproject.yangutils.utils";
 
     /**
      * Static attribute for AugmentedInfo class import class.

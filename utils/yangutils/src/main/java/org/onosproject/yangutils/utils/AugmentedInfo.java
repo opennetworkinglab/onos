@@ -14,31 +14,10 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.translator.tojava;
-
-import java.util.List;
+package org.onosproject.yangutils.utils;
 
 /**
- * Abstraction of an entity which represents augmentation of a YANG node.
+ * Abstraction of an entity which represents augmented info.
  */
-public interface AugmentationHolder {
-
-    /**
-     * Adds augment info to the augment info list.
-     *
-     * @param augmentInfo augment info of node
-     */
-    void addAugmentation(AugmentedInfo augmentInfo);
-
-    /**
-     * Removes augment info from the node.
-     */
-    void removeAugmentation();
-
-    /**
-     * Returns list of augment info.
-     *
-     * @return list of augment info
-     */
-    List<AugmentedInfo> getAugmentedInfoList();
+public interface AugmentedInfo {
 }
