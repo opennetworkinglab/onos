@@ -53,12 +53,11 @@ public abstract class RequestHandler {
     /**
      * Processes the incoming message payload from the client.
      *
-     * @param sid message sequence identifier
+     * @param sid     message sequence identifier
      * @param payload request message payload
      */
     // TODO: remove sid from signature
     public abstract void process(long sid, ObjectNode payload);
-
 
 
     // ===================================================================
@@ -120,7 +119,7 @@ public abstract class RequestHandler {
      * Returns the specified node property as a string.
      *
      * @param node message event
-     * @param key property name
+     * @param key  property name
      * @return property as a string
      */
     protected String string(ObjectNode node, String key) {
@@ -130,13 +129,26 @@ public abstract class RequestHandler {
     /**
      * Returns the specified node property as a string, with a default fallback.
      *
-     * @param node         object node
-     * @param key          property name
-     * @param defValue     fallback value if property is absent
+     * @param node     object node
+     * @param key      property name
+     * @param defValue fallback value if property is absent
      * @return property as a string
      */
     protected String string(ObjectNode node, String key, String defValue) {
         return JsonUtils.string(node, key, defValue);
+    }
+
+    /**
+     * Returns the specified node property as a boolean. More precisely, if
+     * the value for the given key is the string "true" then this returns true,
+     * false otherwise.
+     *
+     * @param node object node
+     * @param key  property name
+     * @return property as a boolean
+     */
+    protected boolean bool(ObjectNode node, String key) {
+        return JsonUtils.bool(node, key);
     }
 
 }
