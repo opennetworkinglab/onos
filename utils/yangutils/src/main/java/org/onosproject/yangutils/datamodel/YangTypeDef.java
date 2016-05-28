@@ -21,6 +21,8 @@ import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
 
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
+
 /*-
  * Reference RFC 6020.
  *
@@ -54,7 +56,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
 /**
  * Represents data model node to maintain information defined in YANG typedef.
  */
-public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable, YangTypeHolder {
+public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable, YangTypeHolder, CollisionDetector {
 
     /**
      * Default value in string, needs to be converted to the target object,
@@ -185,7 +187,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable, Y
      * @return the data type
      */
     public YangType<?> getTypeDefBaseType() {
-        if (!(getTypeList().isEmpty())) {
+        if (!getTypeList().isEmpty()) {
             return getTypeList().get(0);
         }
         return null;
@@ -271,5 +273,19 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable, Y
     @Override
     public List<YangType<?>> getTypeList() {
         return typeList;
+    }
+
+    @Override
+    public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
+        // Asks helper to detect colliding child.
+        detectCollidingChildUtil(identifierName, dataType, this);
+    }
+
+    @Override
+    public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
+        if (getName().equals(identifierName)) {
+            throw new DataModelException("YANG file error: Duplicate input identifier detected, same as typedef \""
+                    + getName() + "\"");
+        }
     }
 }

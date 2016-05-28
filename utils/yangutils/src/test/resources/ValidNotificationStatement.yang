@@ -14,7 +14,7 @@ module rock {
            type int32;
         }
         leaf if-name {
-           type leafref;
+           type string;
         }
         leaf if-admin-status {
            type P:admin-status;

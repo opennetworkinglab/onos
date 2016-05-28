@@ -444,8 +444,8 @@ public class YangList extends YangNode
         validateConfig(leaves, leafLists);
 
         /* A list must have atleast one key leaf if config is true */
-        if (isConfig
-                && (keys == null || leaves == null && leafLists == null && !isUsesPresentInList())) {
+        if (isConfig && (keys == null || leaves == null && leafLists == null) && !isUsesPresentInList()
+                && !isListPresentInGrouping()) {
             throw new DataModelException("A list must have atleast one key leaf if config is true;");
         } else if (keys != null) {
             validateKey(leaves, leafLists, keys);
@@ -565,7 +565,7 @@ public class YangList extends YangNode
                 }
             }
 
-            if (!leafFound && !isUsesPresentInList()) {
+            if (!leafFound && !isUsesPresentInList() && !isListPresentInGrouping()) {
                 throw new DataModelException("An identifier, in key, must refer to a child leaf of the list");
             }
             leafFound = false;
@@ -617,6 +617,18 @@ public class YangList extends YangNode
             node = node.getNextSibling();
         }
         return false;
+        // TODO When grouping linking is done this method has to be modified.
     }
 
+    private boolean isListPresentInGrouping() {
+        YangNode node = this.getParent();
+        while (node != null) {
+            if (node instanceof YangGrouping) {
+                return true;
+            }
+            node = node.getParent();
+        }
+        return false;
+        // TODO When grouping linking is done this method has to be modified.
+    }
 }

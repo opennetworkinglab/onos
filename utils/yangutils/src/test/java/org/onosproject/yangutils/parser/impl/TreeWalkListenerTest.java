@@ -52,4 +52,34 @@ public class TreeWalkListenerTest {
         thrown.expectMessage("YANG file error : \"anyxml\" is not supported.");
         manager.getDataModel("src/test/resources/AnyxmlStatement.yang");
     }
+
+    /**
+     * Checks whether exception is thrown when extra brace is added in the EOF.
+     */
+    @Test
+    public void processFileWithExtraBrace() throws IOException, ParserException {
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("mismatched input '}' expecting <EOF>");
+        manager.getDataModel("src/test/resources/ProcessFileWithExtraBrace.yang");
+    }
+
+    /**
+     * Checks whether exception is thrown when leaf is given after module ends.
+     */
+    @Test
+    public void processFileWithExtraLeaf() throws IOException, ParserException {
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("mismatched input 'leaf' expecting <EOF>");
+        manager.getDataModel("src/test/resources/ProcessFileWithExtraLeaf.yang");
+    }
+
+    /**
+     * Checks whether exception is thrown when extra brace is added in between the EOF.
+     */
+    @Test
+    public void processFileWithExtraBraceInBetween() throws IOException, ParserException {
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("mismatched input 'container' expecting <EOF>");
+        manager.getDataModel("src/test/resources/ProcessFileWithExtraBraceInBetween.yang");
+    }
 }

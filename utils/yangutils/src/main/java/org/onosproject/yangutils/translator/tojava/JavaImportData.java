@@ -22,12 +22,14 @@ import java.util.TreeSet;
 
 import static java.util.Collections.sort;
 
+import static org.onosproject.yangutils.utils.UtilConstants.ABSTRACT_EVENT;
 import static org.onosproject.yangutils.utils.UtilConstants.ARRAY_LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTATION_HOLDER_CLASS_IMPORT_CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO_CLASS_IMPORT_CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO_CLASS_IMPORT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.COLLECTION_IMPORTS;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.EVENT_LISTENER;
 import static org.onosproject.yangutils.utils.UtilConstants.GOOGLE_MORE_OBJECT_IMPORT_CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.GOOGLE_MORE_OBJECT_IMPORT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
@@ -35,10 +37,10 @@ import static org.onosproject.yangutils.utils.UtilConstants.JAVA_LANG;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_UTIL_OBJECTS_IMPORT_CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_UTIL_OBJECTS_IMPORT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.LIST;
-import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_REG;
 import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.ONOS_EVENT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.PROVIDED_AUGMENTATION_CLASS_IMPORT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
@@ -218,7 +220,7 @@ public class JavaImportData {
      * @return import string for ListenerService class
      */
     public String getListenerServiceImport() {
-        return IMPORT + LISTENER_PKG + PERIOD + LISTENER_SERVICE + SEMI_COLAN + NEW_LINE;
+        return IMPORT + ONOS_EVENT_PKG + PERIOD + LISTENER_SERVICE + SEMI_COLAN + NEW_LINE;
     }
 
     /**
@@ -227,6 +229,24 @@ public class JavaImportData {
      * @return import string for ListenerRegistry class
      */
     public String getListenerRegistryImport() {
-        return IMPORT + LISTENER_PKG + PERIOD + LISTENER_REG + SEMI_COLAN + NEW_LINE;
+        return IMPORT + ONOS_EVENT_PKG + PERIOD + LISTENER_REG + SEMI_COLAN + NEW_LINE;
+    }
+
+    /**
+     * Returns import string for AbstractEvent class.
+     *
+     * @return import string for AbstractEvent class
+     */
+    public String getAbstractEventsImport() {
+        return IMPORT + ONOS_EVENT_PKG + PERIOD + ABSTRACT_EVENT + SEMI_COLAN + NEW_LINE;
+    }
+
+    /**
+     * Returns import string for EventListener class.
+     *
+     * @return import string for EventListener class
+     */
+    public String getEventListenerImport() {
+        return IMPORT + ONOS_EVENT_PKG + PERIOD + EVENT_LISTENER + SEMI_COLAN + NEW_LINE;
     }
 }

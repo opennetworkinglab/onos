@@ -66,11 +66,10 @@ public final class JavaCodeGeneratorUtil {
      *
      * @param rootNode root node of the data model tree
      * @param yangPlugin YANG plugin config
-     * @param fileName YANG file name
      * @throws TranslatorException when fails to generate java code file the current
      *                     node
      */
-    public static void generateJavaCode(YangNode rootNode, YangPluginConfig yangPlugin, String fileName)
+    public static void generateJavaCode(YangNode rootNode, YangPluginConfig yangPlugin)
             throws TranslatorException {
 
         YangNode codeGenNode = rootNode;
@@ -78,33 +77,18 @@ public final class JavaCodeGeneratorUtil {
 
         while (codeGenNode != null) {
             if (curTraversal != PARENT) {
-                if (codeGenNode instanceof JavaCodeGenerator) {
-                    setCurNode(codeGenNode);
-                    generateCodeEntry(codeGenNode, yangPlugin, fileName);
-                } else {
-                    /*
-                     * For grouping and uses, there is no code generation, skip the generation for the child.
-                     */
-                    if (codeGenNode.getNextSibling() != null) {
-                        curTraversal = SIBILING;
-                        codeGenNode = codeGenNode.getNextSibling();
-                    } else {
-                        curTraversal = PARENT;
-                        codeGenNode = codeGenNode.getParent();
-                    }
-                    continue;
-                }
-
+                setCurNode(codeGenNode);
+                generateCodeEntry(codeGenNode, yangPlugin);
             }
             if (curTraversal != PARENT && codeGenNode.getChild() != null) {
                 curTraversal = CHILD;
                 codeGenNode = codeGenNode.getChild();
             } else if (codeGenNode.getNextSibling() != null) {
-                generateCodeExit(codeGenNode, fileName);
+                generateCodeExit(codeGenNode);
                 curTraversal = SIBILING;
                 codeGenNode = codeGenNode.getNextSibling();
             } else {
-                generateCodeExit(codeGenNode, fileName);
+                generateCodeExit(codeGenNode);
                 curTraversal = PARENT;
                 codeGenNode = codeGenNode.getParent();
             }
@@ -117,20 +101,17 @@ public final class JavaCodeGeneratorUtil {
      * @param codeGenNode current data model node for which the code needs to be
      * generated
      * @param yangPlugin YANG plugin config
-     * @param fileName YANG file name
      * @throws TranslatorException when fails to generate java code file the current
      *                     node
      */
-    private static void generateCodeEntry(YangNode codeGenNode, YangPluginConfig yangPlugin, String fileName)
+    private static void generateCodeEntry(YangNode codeGenNode, YangPluginConfig yangPlugin)
             throws TranslatorException {
 
         if (codeGenNode instanceof JavaCodeGenerator) {
             ((JavaCodeGenerator) codeGenNode).generateCodeEntry(yangPlugin);
         } else {
-            TranslatorException ex = new TranslatorException(
+            throw new TranslatorException(
                     "Generated data model node cannot be translated to target language code");
-            ex.setFileName(fileName);
-            throw ex;
         }
     }
 
@@ -139,19 +120,16 @@ public final class JavaCodeGeneratorUtil {
      *
      * @param codeGenNode current data model node for which the code needs to be
      * generated
-     * @param fileName YANG file name
      * @throws TranslatorException when fails to generate java code file the current
      *                     node
      */
-    private static void generateCodeExit(YangNode codeGenNode, String fileName) throws TranslatorException {
+    private static void generateCodeExit(YangNode codeGenNode) throws TranslatorException {
 
         if (codeGenNode instanceof JavaCodeGenerator) {
             ((JavaCodeGenerator) codeGenNode).generateCodeExit();
         } else {
-            TranslatorException ex = new TranslatorException(
+            throw new TranslatorException(
                     "Generated data model node cannot be translated to target language code");
-            ex.setFileName(fileName);
-            throw ex;
         }
     }
 
@@ -162,26 +140,28 @@ public final class JavaCodeGeneratorUtil {
     private static void freeRestResources() {
 
         YangNode freedNode = getCurNode();
-        YangNode tempNode = freedNode;
-        TraversalType curTraversal = ROOT;
+        if (getCurNode() != null) {
+            YangNode tempNode = freedNode;
+            TraversalType curTraversal = ROOT;
 
-        while (freedNode != tempNode.getParent()) {
+            while (freedNode != tempNode.getParent()) {
 
-            if (curTraversal != PARENT && freedNode.getChild() != null) {
-                curTraversal = CHILD;
-                freedNode = freedNode.getChild();
-            } else if (freedNode.getNextSibling() != null) {
-                curTraversal = SIBILING;
-                if (freedNode != tempNode) {
-                    free(freedNode);
+                if (curTraversal != PARENT && freedNode.getChild() != null) {
+                    curTraversal = CHILD;
+                    freedNode = freedNode.getChild();
+                } else if (freedNode.getNextSibling() != null) {
+                    curTraversal = SIBILING;
+                    if (freedNode != tempNode) {
+                        free(freedNode);
+                    }
+                    freedNode = freedNode.getNextSibling();
+                } else {
+                    curTraversal = PARENT;
+                    if (freedNode != tempNode) {
+                        free(freedNode);
+                    }
+                    freedNode = freedNode.getParent();
                 }
-                freedNode = freedNode.getNextSibling();
-            } else {
-                curTraversal = PARENT;
-                if (freedNode != tempNode) {
-                    free(freedNode);
-                }
-                freedNode = freedNode.getParent();
             }
         }
     }
@@ -213,36 +193,38 @@ public final class JavaCodeGeneratorUtil {
     public static void translatorErrorHandler(YangNode rootNode)
             throws IOException {
 
-        /**
-         * Free other resources where translator has failed.
-         */
-        freeRestResources();
+        if (rootNode != null) {
+            /**
+             * Free other resources where translator has failed.
+             */
+            freeRestResources();
 
-        /**
-         * Start removing all open files.
-         */
-        YangNode tempNode = rootNode;
-        setCurNode(tempNode.getChild());
-        TraversalType curTraversal = ROOT;
+            /**
+             * Start removing all open files.
+             */
+            YangNode tempNode = rootNode;
+            setCurNode(tempNode.getChild());
+            TraversalType curTraversal = ROOT;
 
-        while (tempNode != null) {
+            while (tempNode != null) {
 
-            if (curTraversal != PARENT) {
-                close(tempNode);
+                if (curTraversal != PARENT) {
+                    close(tempNode);
+                }
+                if (curTraversal != PARENT && tempNode.getChild() != null) {
+                    curTraversal = CHILD;
+                    tempNode = tempNode.getChild();
+                } else if (tempNode.getNextSibling() != null) {
+                    curTraversal = SIBILING;
+                    tempNode = tempNode.getNextSibling();
+                } else {
+                    curTraversal = PARENT;
+                    tempNode = tempNode.getParent();
+                }
             }
-            if (curTraversal != PARENT && tempNode.getChild() != null) {
-                curTraversal = CHILD;
-                tempNode = tempNode.getChild();
-            } else if (tempNode.getNextSibling() != null) {
-                curTraversal = SIBILING;
-                tempNode = tempNode.getNextSibling();
-            } else {
-                curTraversal = PARENT;
-                tempNode = tempNode.getParent();
-            }
+
+            freeRestResources();
         }
-
-        freeRestResources();
     }
 
     /**
@@ -254,8 +236,8 @@ public final class JavaCodeGeneratorUtil {
      */
     private static void close(YangNode node)
             throws IOException {
-
-        if (((TempJavaCodeFragmentFilesContainer) node).getTempJavaCodeFragmentFiles() != null) {
+        if (node instanceof JavaCodeGenerator && ((TempJavaCodeFragmentFilesContainer) node)
+                .getTempJavaCodeFragmentFiles() != null) {
             ((TempJavaCodeFragmentFilesContainer) node).getTempJavaCodeFragmentFiles().freeTemporaryResources(true);
         }
     }

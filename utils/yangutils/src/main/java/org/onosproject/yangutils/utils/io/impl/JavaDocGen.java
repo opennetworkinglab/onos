@@ -17,12 +17,14 @@
 package org.onosproject.yangutils.utils.io.impl;
 
 import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
+import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_CLASS_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_INTERFACE_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_OBJECT;
+import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.ENUM_ATTRIBUTE_JAVADOC;
 import static org.onosproject.yangutils.utils.UtilConstants.ENUM_CLASS_JAVADOC;
 import static org.onosproject.yangutils.utils.UtilConstants.EVENT_JAVA_DOC;
@@ -181,7 +183,12 @@ public final class JavaDocGen {
         /**
          * For manager setters.
          */
-        MANAGER_SETTER_METHOD
+        MANAGER_SETTER_METHOD,
+
+        /**
+         * For event subject.
+         */
+        EVENT_SUBJECT_CLASS
     }
 
     /**
@@ -190,14 +197,15 @@ public final class JavaDocGen {
      * @param type java doc type
      * @param name name of the YangNode
      * @param isList is list attribute
+     * @param pluginConfig plugin configurations
      * @return javadocs.
      */
-    public static String getJavaDoc(JavaDocType type, String name, boolean isList) {
+    public static String getJavaDoc(JavaDocType type, String name, boolean isList, YangPluginConfig pluginConfig) {
 
-        name = JavaIdentifierSyntax.getSmallCase(getCamelCase(name, null));
+        name = JavaIdentifierSyntax.getSmallCase(getCamelCase(name, pluginConfig.getConflictResolver()));
         switch (type) {
             case IMPL_CLASS: {
-                return generateForImplClass(name);
+                return generateForClass(name);
             }
             case BUILDER_CLASS: {
                 return generateForBuilderClass(name);
@@ -248,13 +256,16 @@ public final class JavaDocGen {
                return generateForRpcService(name);
             }
             case RPC_MANAGER: {
-               return generateForImplClass(name);
+               return generateForClass(name);
             }
             case EVENT: {
                 return generateForEvent(name);
             }
             case EVENT_LISTENER: {
                 return generateForEventListener(name);
+            }
+            case EVENT_SUBJECT_CLASS: {
+                return generateForClass(name);
             }
             default: {
                 return generateForConstructors(name);
@@ -279,14 +290,19 @@ public final class JavaDocGen {
      * @param rpcName name of the rpc
      * @param inputName name of input
      * @param outputName name of output
+     * @param pluginConfig plugin configurations
      * @return javaDocs of rpc method
      */
-    public static String generateJavaDocForRpc(String rpcName, String inputName, String outputName) {
-        rpcName = getCamelCase(rpcName, null);
+    public static String generateJavaDocForRpc(String rpcName, String inputName, String outputName,
+            YangPluginConfig pluginConfig) {
+        rpcName = getCamelCase(rpcName, pluginConfig.getConflictResolver());
 
-        String javadoc = NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_RPC
-                + rpcName + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK
-                + getInputString(inputName, rpcName);
+        String javadoc =
+                NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_RPC
+                        + rpcName + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK;
+        if (!inputName.equals(EMPTY_STRING)) {
+            javadoc = javadoc + getInputString(inputName, rpcName);
+        }
         if (!outputName.equals(VOID)) {
             javadoc = javadoc + getOutputString(outputName, rpcName);
         }
@@ -393,7 +409,8 @@ public final class JavaDocGen {
         } else {
             setter = setter + VALUE + SPACE + OF + SPACE;
         }
-        setter = setter + attribute + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_RETURN + BUILDER_OBJECT + attribute
+        setter = setter + attribute + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_RETURN + BUILDER_OBJECT
+                + attribute
                 + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
         return setter;
     }
@@ -470,7 +487,7 @@ public final class JavaDocGen {
      * @param className class name
      * @return javaDocs
      */
-    private static String generateForImplClass(String className) {
+    private static String generateForClass(String className) {
         return NEW_LINE + JAVA_DOC_FIRST_LINE + IMPL_CLASS_JAVA_DOC + className + PERIOD + NEW_LINE + JAVA_DOC_END_LINE;
     }
 

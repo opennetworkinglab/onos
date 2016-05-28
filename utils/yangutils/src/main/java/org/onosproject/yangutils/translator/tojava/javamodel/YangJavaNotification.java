@@ -30,8 +30,6 @@ import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesCont
 import org.onosproject.yangutils.translator.tojava.utils.JavaExtendsListHolder;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_CLASS;
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_LISTENER_INTERFACE;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfAugmentableNode;
@@ -62,8 +60,7 @@ public class YangJavaNotification
     public YangJavaNotification() {
         super();
         setJavaFileInfo(new JavaFileInfo());
-        getJavaFileInfo().setGeneratedFileTypes(GENERATE_INTERFACE_WITH_BUILDER
-                | GENERATE_EVENT_CLASS | GENERATE_EVENT_LISTENER_INTERFACE);
+        getJavaFileInfo().setGeneratedFileTypes(GENERATE_INTERFACE_WITH_BUILDER);
     }
 
     /**
@@ -167,17 +164,8 @@ public class YangJavaNotification
      */
     @Override
     public void generateCodeExit() throws TranslatorException {
-        /**
-         * As part of the notification support the following files needs to be generated.
-         * 1) Subject of the notification(event), this is simple interface with builder class.
-         * 2) Event class extending "AbstractEvent" and defining event type enum.
-         * 3) Event listener interface extending "EventListener".
-         *
-         * The manager class needs to extend the "ListenerRegistry".
-         */
         try {
-            getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER
-                    | GENERATE_EVENT_CLASS | GENERATE_EVENT_LISTENER_INTERFACE, this);
+            getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
         } catch (IOException e) {
             throw new TranslatorException("Failed to generate code for notification node " + this.getName());
         }

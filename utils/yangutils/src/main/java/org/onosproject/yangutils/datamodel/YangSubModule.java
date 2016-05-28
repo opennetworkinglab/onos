@@ -285,6 +285,7 @@ public class YangSubModule extends YangNode
      *
      * @return the list of imported modules
      */
+    @Override
     public List<YangImport> getImportList() {
         return importList;
     }
@@ -294,6 +295,7 @@ public class YangSubModule extends YangNode
      *
      * @param importedModule module being imported
      */
+    @Override
     public void addToImportList(YangImport importedModule) {
         getImportList().add(importedModule);
     }
@@ -308,6 +310,7 @@ public class YangSubModule extends YangNode
      *
      * @return the included list of sub modules
      */
+    @Override
     public List<YangInclude> getIncludeList() {
         return includeList;
     }
@@ -317,6 +320,7 @@ public class YangSubModule extends YangNode
      *
      * @param includeModule submodule being included
      */
+    @Override
     public void addToIncludeList(YangInclude includeModule) {
         getIncludeList().add(includeModule);
     }

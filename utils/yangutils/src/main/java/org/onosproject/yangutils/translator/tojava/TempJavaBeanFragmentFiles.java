@@ -19,6 +19,8 @@ package org.onosproject.yangutils.translator.tojava;
 import java.io.File;
 import java.io.IOException;
 
+import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
+
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getConstructor;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.closeFile;
@@ -84,10 +86,10 @@ public class TempJavaBeanFragmentFiles
      * @param attr attribute info
      * @throws IOException when fails to append to temporary file
      */
-    private void addConstructor(JavaAttributeInfo attr)
+    private void addConstructor(JavaAttributeInfo attr, YangPluginConfig pluginConfig)
             throws IOException {
         appendToFile(getConstructorImplTempFileHandle(), getConstructor(getGeneratedJavaClassName(), attr,
-                getGeneratedJavaFiles()));
+                getGeneratedJavaFiles(), pluginConfig));
     }
 
     /**
@@ -98,10 +100,10 @@ public class TempJavaBeanFragmentFiles
      * @throws IOException IO operation fail
      */
     @Override
-    void addJavaSnippetInfoToApplicableTempFiles(JavaAttributeInfo newAttrInfo)
+    void addJavaSnippetInfoToApplicableTempFiles(JavaAttributeInfo newAttrInfo, YangPluginConfig pluginConfig)
             throws IOException {
-        super.addJavaSnippetInfoToApplicableTempFiles(newAttrInfo);
-        addConstructor(newAttrInfo);
+        super.addJavaSnippetInfoToApplicableTempFiles(newAttrInfo, pluginConfig);
+        addConstructor(newAttrInfo, pluginConfig);
     }
 
     /**

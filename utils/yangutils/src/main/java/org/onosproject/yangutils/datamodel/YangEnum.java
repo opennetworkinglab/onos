@@ -50,7 +50,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
 /**
  * Represents the ENUM data type information.
  */
-public class YangEnum implements YangCommonInfo, Parsable {
+public class YangEnum implements YangCommonInfo, Parsable, Comparable<YangEnum> {
 
     /**
      * Named value for the ENUM.
@@ -225,5 +225,13 @@ public class YangEnum implements YangCommonInfo, Parsable {
     @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
+    }
+
+    @Override
+    public int compareTo(YangEnum otherEnum) {
+        if (this.namedValue.equals(otherEnum.getNamedValue())) {
+            return 0;
+        }
+        return new Integer(this.value).compareTo(otherEnum.getValue());
     }
 }

@@ -27,18 +27,7 @@ import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.JavaImportData;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.getTempJavaFragement;
-import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
-import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_CLOSE_BRACKET;
-import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_OPEN_BRACKET;
-import static org.onosproject.yangutils.utils.UtilConstants.EVENT_LISTENER_STRING;
-import static org.onosproject.yangutils.utils.UtilConstants.EVENT_STRING;
-import static org.onosproject.yangutils.utils.UtilConstants.EXTEND;
-import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_REG;
-import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
-import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
-import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 
 /**
  * Represent the extends list for generated java classes. It holds the class details which needs
@@ -87,38 +76,12 @@ public class JavaExtendsListHolder {
         if (!fileInfo.getPackage().equals(info.getPkgInfo())) {
             JavaImportData importData = getTempJavaFragement(node).getJavaImportData();
             importData.addImportInfo(info);
+
             /*true means import should be added*/
             getExtendedClassStore().put(info, true);
         }
         getExtendedClassStore().put(info, false);
         addToExtendsList(info);
-    }
-
-    /**
-     * Returns extends string for class.
-     *
-     * @param genFileType generated file type
-     * @param className class name
-     * @param isNotificationPresent if notification node is present
-     * @return extends string
-     */
-    public String getExtendsString(int genFileType, String className, boolean isNotificationPresent) {
-        String extend = EXTEND + SPACE;
-        if (genFileType == GENERATE_SERVICE_AND_MANAGER && isNotificationPresent) {
-            extend = extend + LISTENER_REG + DIAMOND_OPEN_BRACKET + className + EVENT_STRING + COMMA + SPACE
-                    + className + EVENT_LISTENER_STRING + DIAMOND_CLOSE_BRACKET + NEW_LINE;
-        } else {
-            for (JavaQualifiedTypeInfo info : getExtendsList()) {
-                if (info.getClassInfo().equals(className)) {
-                    if (!getExtendedClassStore().get(info)) {
-                        return extend + info.getClassInfo();
-                    } else {
-                        return extend + info.getPkgInfo() + PERIOD + info.getClassInfo();
-                    }
-                }
-            }
-        }
-        return null;
     }
 
     /**

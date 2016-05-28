@@ -37,6 +37,11 @@ public final class YangToJavaNamingConflictUtil {
     private static String replacementForHyphenInIdentifier;
 
     /**
+     * Contains the prefix value for adding with the identifier.
+     */
+    private static String prefixForIdentifier;
+
+    /**
      * Creates an object for YANG to java naming conflict util.
      */
     public YangToJavaNamingConflictUtil() {
@@ -94,5 +99,23 @@ public final class YangToJavaNamingConflictUtil {
      */
     public String getReplacementForUnderscore() {
         return replacementForUnderscoreInIdentifier;
+    }
+
+    /**
+     * Sets the prefix value for adding with the identifier.
+     *
+     * @param prefix prefix for identifier
+     */
+    public void setPrefixForIdentifier(String prefix) {
+        prefixForIdentifier = prefix;
+    }
+
+    /**
+     * Returns the prefix for identifier.
+     *
+     * @return prefix for identifier
+     */
+    public String getPrefixForIdentifier() {
+        return prefixForIdentifier;
     }
 }

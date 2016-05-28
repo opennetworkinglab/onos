@@ -29,6 +29,7 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getBuild;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getBuildForInterface;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getCheckNotNull;
@@ -105,7 +106,7 @@ public final class MethodsGeneratorTest {
             throws SecurityException, NoSuchMethodException, IllegalArgumentException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
 
-        Class<?>[] classesToConstruct = {MethodsGenerator.class};
+        Class<?>[] classesToConstruct = {MethodsGenerator.class };
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
@@ -118,8 +119,10 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getTypeConstructorTest() {
+
+        YangPluginConfig pluginConfig = new YangPluginConfig();
         JavaAttributeInfo testAttr = getTestAttribute();
-        String test = getTypeConstructorStringAndJavaDoc(testAttr, CLASS_NAME);
+        String test = getTypeConstructorStringAndJavaDoc(testAttr, CLASS_NAME, pluginConfig);
         assertThat(true, is(test.contains(PUBLIC + SPACE + CLASS_NAME + OPEN_PARENTHESIS)));
     }
 
@@ -162,7 +165,8 @@ public final class MethodsGeneratorTest {
     @Test
     public void getConstructorTest() {
         JavaAttributeInfo testAttr = getTestAttribute();
-        String method = getConstructor(CLASS_NAME, testAttr, GENERATE_SERVICE_AND_MANAGER);
+        YangPluginConfig pluginConfig = new YangPluginConfig();
+        String method = getConstructor(CLASS_NAME, testAttr, GENERATE_SERVICE_AND_MANAGER, pluginConfig);
         assertThat(true, is(method.contains(THIS + PERIOD + CLASS_NAME + SPACE + EQUAL + SPACE + "builder" + OBJECT
                 + PERIOD + GET_METHOD_PREFIX + "Testname" + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN)));
     }
@@ -172,7 +176,8 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getConstructorStartTest() {
-        String method = getConstructorStart(CLASS_NAME);
+        YangPluginConfig pluginConfig = new YangPluginConfig();
+        String method = getConstructorStart(CLASS_NAME, pluginConfig);
         assertThat(true, is(method.contains(PUBLIC + SPACE + CLASS_NAME + IMPL + OPEN_PARENTHESIS + CLASS_NAME
                 + BUILDER + SPACE + BUILDER.toLowerCase() + OBJECT + CLOSE_PARENTHESIS + SPACE
                 + OPEN_CURLY_BRACKET + NEW_LINE)));
@@ -227,10 +232,10 @@ public final class MethodsGeneratorTest {
     public void getSetterForClassTest() {
         JavaAttributeInfo testAttr = getTestAttribute();
         String method = getSetterForClass(testAttr, CLASS_NAME, GENERATE_SERVICE_AND_MANAGER);
-//        assertThat(true, is(
-//                method.contains(PUBLIC + SPACE + CLASS_NAME + BUILDER + SPACE + SET_METHOD_PREFIX
-//                        + getCaptialCase(ATTRIBUTE_NAME) + OPEN_PARENTHESIS + STRING_DATA_TYPE + SPACE
-//                        + ATTRIBUTE_NAME)));
+        assertThat(true, is(
+                method.contains(PUBLIC + SPACE + VOID + SPACE +
+                        SET_METHOD_PREFIX + getCapitalCase(CLASS_NAME) + OPEN_PARENTHESIS +
+                        STRING_DATA_TYPE + SPACE + ATTRIBUTE_NAME)));
     }
 
     /**
@@ -240,7 +245,8 @@ public final class MethodsGeneratorTest {
     public void getSetterForInterfaceTest() {
         String method = getSetterForInterface(CLASS_NAME, STRING_DATA_TYPE, CLASS_NAME, false,
                 GENERATE_SERVICE_AND_MANAGER);
-//        assertThat(true, is(method.contains(CLASS_NAME + BUILDER + SPACE + SET_METHOD_PREFIX + "Testname")));
+        assertThat(true, is(method.contains(VOID + SPACE +
+                SET_METHOD_PREFIX + "Testname")));
     }
 
     /**

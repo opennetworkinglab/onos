@@ -271,8 +271,8 @@ public class YangUses
         }
 
         YangNode usesParentNode = getParentNodeInGenCode(this);
-        if ((!(usesParentNode instanceof YangLeavesHolder))
-                || (!(usesParentNode instanceof CollisionDetector))) {
+        if (!(usesParentNode instanceof YangLeavesHolder)
+                || !(usesParentNode instanceof CollisionDetector)) {
             throw new LinkerException("Linker Exception: YANG uses holder construct is wrong");
         }
 

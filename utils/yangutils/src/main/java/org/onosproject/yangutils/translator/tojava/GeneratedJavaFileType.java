@@ -84,6 +84,11 @@ public final class GeneratedJavaFileType {
     public static final int GENERATE_EVENT_LISTENER_INTERFACE = 512;
 
     /**
+     * Event listener class.
+     */
+    public static final int GENERATE_EVENT_SUBJECT_CLASS = 1024;
+
+    /**
      * Creates an instance of generate java file type.
      */
     private GeneratedJavaFileType() {

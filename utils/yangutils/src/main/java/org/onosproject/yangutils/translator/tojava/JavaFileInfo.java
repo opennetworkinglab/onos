@@ -16,6 +16,8 @@
 
 package org.onosproject.yangutils.translator.tojava;
 
+import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
+
 /**
  * Represents cached java file handle, which supports the addition of member attributes and
  * methods.
@@ -47,6 +49,11 @@ public class JavaFileInfo {
      * File generation base directory path.
      */
     private String codeGenDirFilePath;
+
+    /**
+     * Plugin configuration for naming convention.
+     */
+    private YangPluginConfig pluginConfig;
 
     /**
      * Returns the types of files being generated corresponding to the YANG
@@ -151,5 +158,23 @@ public class JavaFileInfo {
      */
     public void setBaseCodeGenPath(String path) {
         codeGenDirFilePath = path;
+    }
+
+    /**
+     * Returns plugin configurations.
+     *
+     * @return the pluginConfig
+     */
+    public YangPluginConfig getPluginConfig() {
+        return pluginConfig;
+    }
+
+    /**
+     * Sets plugin configurations.
+     *
+     * @param pluginConfig the pluginConfig to set
+     */
+    public void setPluginConfig(YangPluginConfig pluginConfig) {
+        this.pluginConfig = pluginConfig;
     }
 }

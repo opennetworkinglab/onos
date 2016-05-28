@@ -16,32 +16,38 @@
 
 package org.onosproject.yangutils.utils.io.impl;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.LinkedList;
-import java.util.Stack;
+import java.util.List;
 import java.util.Set;
+import java.util.Stack;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
 import org.onosproject.yangutils.plugin.manager.YangFileInfo;
-
+import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 import org.slf4j.Logger;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.HASH;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.OPEN_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.ORG;
 import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE;
+import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
@@ -61,6 +67,9 @@ public final class YangIoUtils {
 
     private static final Logger log = getLogger(YangIoUtils.class);
     private static final String TARGET_RESOURCE_PATH = SLASH + TEMP + SLASH + YANG_RESOURCES + SLASH;
+    private static final int LINE_SIZE = 116;
+    private static final int SUB_LINE_SIZE = 112;
+    private static final int ZERO = 0;
 
     /**
      * Creates an instance of YANG io utils.
@@ -83,19 +92,19 @@ public final class YangIoUtils {
     /**
      * Adds package info file for the created directory.
      *
-     * @param path        directory path
-     * @param classInfo   class info for the package
-     * @param pack        package of the directory
+     * @param path directory path
+     * @param classInfo class info for the package
+     * @param pack package of the directory
      * @param isChildNode is it a child node
+     * @param pluginConfig plugin configurations
      * @throws IOException when fails to create package info file
      */
-    public static void addPackageInfo(File path, String classInfo, String pack, boolean isChildNode)
+    public static void addPackageInfo(File path, String classInfo, String pack, boolean isChildNode,
+            YangPluginConfig pluginConfig)
             throws IOException {
 
-        if (pack.contains(ORG)) {
-            String[] strArray = pack.split(ORG);
-            pack = ORG + strArray[1];
-        }
+        pack = parsePkg(pack);
+
         try {
 
             File packageInfo = new File(path + SLASH + "package-info.java");
@@ -105,14 +114,43 @@ public final class YangIoUtils {
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
 
             bufferedWriter.write(CopyrightHeader.getCopyrightHeader());
-            bufferedWriter.write(getJavaDoc(PACKAGE_INFO, classInfo, isChildNode));
-            bufferedWriter.write(PACKAGE + SPACE + pack + SEMI_COLAN);
-
+            bufferedWriter.write(getJavaDoc(PACKAGE_INFO, classInfo, isChildNode, pluginConfig));
+            String pkg = PACKAGE + SPACE + pack + SEMI_COLAN;
+            if (pkg.length() > LINE_SIZE) {
+                pkg = whenDelimiterIsPersent(pkg, LINE_SIZE);
+            }
+            bufferedWriter.write(pkg);
             bufferedWriter.close();
             fileWriter.close();
         } catch (IOException e) {
             throw new IOException("Exception occured while creating package info file.");
         }
+    }
+
+    /**
+     * Parses package and returns updated package.
+     *
+     * @param pack package needs to be updated
+     * @return updated package
+     */
+    public static String parsePkg(String pack) {
+
+        if (pack.contains(ORG)) {
+            String[] strArray = pack.split(ORG);
+            if (strArray.length >= 3) {
+                for (int i = 1; i < strArray.length; i++) {
+                    if (i == 1) {
+                        pack = ORG + strArray[1];
+                    } else {
+                        pack = pack + ORG + strArray[i];
+                    }
+                }
+            } else {
+                pack = ORG + strArray[1];
+            }
+        }
+
+        return pack;
     }
 
     /**
@@ -169,7 +207,7 @@ public final class YangIoUtils {
     /**
      * Adds generated source directory to the compilation root.
      *
-     * @param source  directory
+     * @param source directory
      * @param project current maven project
      * @param context current build context
      */
@@ -182,7 +220,7 @@ public final class YangIoUtils {
     /**
      * Removes extra char from the string.
      *
-     * @param valueString    string to be trimmed
+     * @param valueString string to be trimmed
      * @param removealStirng extra chars
      * @return new string
      */
@@ -217,8 +255,8 @@ public final class YangIoUtils {
      * Returns the directory path of the package in canonical form.
      *
      * @param baseCodeGenPath base path where the generated files needs to be
-     *                        put
-     * @param pathOfJavaPkg   java package of the file being generated
+     *            put
+     * @param pathOfJavaPkg java package of the file being generated
      * @return absolute path of the package in canonical form
      */
     public static String getDirectory(String baseCodeGenPath, String pathOfJavaPkg) {
@@ -238,8 +276,8 @@ public final class YangIoUtils {
      * Returns the absolute path of the package in canonical form.
      *
      * @param baseCodeGenPath base path where the generated files needs to be
-     *                        put
-     * @param pathOfJavaPkg   java package of the file being generated
+     *            put
+     * @param pathOfJavaPkg java package of the file being generated
      * @return absolute path of the package in canonical form
      */
     public static String getAbsolutePackagePath(String baseCodeGenPath, String pathOfJavaPkg) {
@@ -249,9 +287,9 @@ public final class YangIoUtils {
     /**
      * Copies YANG files to the current project's output directory.
      *
-     * @param yangFileInfo set of YANG files
-     * @param outputDir    project's output directory
-     * @param project      maven project
+     * @param yangFileInfo list of YANG files
+     * @param outputDir project's output directory
+     * @param project maven project
      * @throws IOException when fails to copy files to destination resource directory
      */
     public static void copyYangFilesToTarget(Set<YangFileInfo> yangFileInfo, String outputDir, MavenProject project)
@@ -317,5 +355,127 @@ public final class YangIoUtils {
         } catch (IOException e) {
             throw new IOException("Failed to insert in " + file + "file");
         }
+    }
+
+    /**
+     * Validates a line size in given file whether it is having more then 120 characters.
+     * If yes it will update and give a new file.
+     *
+     * @param dataFile file in which need to verify all lines.
+     * @return updated file
+     * @throws IOException when fails to do IO operations.
+     */
+    public static File validateLineLength(File dataFile) throws IOException {
+        File tempFile = dataFile;
+        FileReader fileReader = new FileReader(dataFile);
+        BufferedReader bufferReader = new BufferedReader(fileReader);
+        try {
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = bufferReader.readLine();
+
+            while (line != null) {
+                if (line.length() > LINE_SIZE) {
+                    if (line.contains(PERIOD)) {
+                        line = whenDelimiterIsPersent(line, LINE_SIZE);
+                    } else if (line.contains(SPACE)) {
+                        line = whenSpaceIsPresent(line, LINE_SIZE);
+                    }
+                    stringBuilder.append(line);
+                } else {
+                    stringBuilder.append(line + NEW_LINE);
+                }
+                line = bufferReader.readLine();
+            }
+            FileWriter writer = new FileWriter(tempFile);
+            writer.write(stringBuilder.toString());
+            writer.close();
+            return tempFile;
+        } finally {
+            fileReader.close();
+            bufferReader.close();
+        }
+    }
+
+    /*When delimiters are present in the given line.*/
+    private static String whenDelimiterIsPersent(String line, int lineSize) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        if (line.length() > lineSize) {
+            String[] strArray = line.split(Pattern.quote(PERIOD));
+            stringBuilder = updateString(strArray, stringBuilder, PERIOD, lineSize);
+        } else {
+            stringBuilder.append(line + NEW_LINE);
+        }
+        String[] strArray = stringBuilder.toString().split(NEW_LINE);
+        StringBuilder tempBuilder = new StringBuilder();
+        for (String str : strArray) {
+            if (str.length() > SUB_LINE_SIZE) {
+                if (line.contains(PERIOD) && !line.contains(PERIOD + HASH + OPEN_PARENTHESIS)) {
+                    String[] strArr = str.split(Pattern.quote(PERIOD));
+                    tempBuilder = updateString(strArr, tempBuilder, PERIOD, SUB_LINE_SIZE);
+                } else if (str.contains(SPACE)) {
+                    tempBuilder.append(whenSpaceIsPresent(str, SUB_LINE_SIZE));
+                }
+            } else {
+                tempBuilder.append(str + NEW_LINE);
+            }
+        }
+        return tempBuilder.toString();
+
+    }
+
+    /*When spaces are present in the given line.*/
+    private static String whenSpaceIsPresent(String line, int lineSize) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (line.length() > lineSize) {
+            String[] strArray = line.split(SPACE);
+            stringBuilder = updateString(strArray, stringBuilder, SPACE, lineSize);
+        } else {
+            stringBuilder.append(line + NEW_LINE);
+        }
+
+        String[] strArray = stringBuilder.toString().split(NEW_LINE);
+        StringBuilder tempBuilder = new StringBuilder();
+        for (String str : strArray) {
+            if (str.length() > SUB_LINE_SIZE) {
+                if (str.contains(SPACE)) {
+                    String[] strArr = str.split(SPACE);
+                    tempBuilder = updateString(strArr, tempBuilder, SPACE, SUB_LINE_SIZE);
+                }
+            } else {
+                tempBuilder.append(str + NEW_LINE);
+            }
+        }
+        return tempBuilder.toString();
+    }
+
+    /*Updates the given line with the given size conditions.*/
+    private static StringBuilder updateString(String[] strArray, StringBuilder stringBuilder, String string,
+            int lineSize) {
+
+        StringBuilder tempBuilder = new StringBuilder();
+        for (String str : strArray) {
+            tempBuilder.append(str + string);
+            if (tempBuilder.length() > lineSize) {
+                String tempString = stringBuilder.toString();
+                stringBuilder.delete(ZERO, stringBuilder.length());
+                tempString = trimAtLast(tempString, string);
+                stringBuilder.append(tempString);
+                if (string.equals(PERIOD)) {
+                    stringBuilder.append(NEW_LINE + TWELVE_SPACE_INDENTATION + PERIOD + str + string);
+                } else {
+                    stringBuilder.append(NEW_LINE + TWELVE_SPACE_INDENTATION + str + string);
+                }
+                tempBuilder.delete(ZERO, tempBuilder.length());
+                tempBuilder.append(TWELVE_SPACE_INDENTATION);
+            } else {
+                stringBuilder.append(str + string);
+            }
+        }
+        String tempString = stringBuilder.toString();
+        tempString = trimAtLast(tempString, string);
+        stringBuilder.delete(ZERO, stringBuilder.length());
+        stringBuilder.append(tempString + NEW_LINE);
+        return stringBuilder;
     }
 }

@@ -19,7 +19,10 @@ package org.onosproject.yangutils.translator.tojava.utils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
@@ -38,6 +41,9 @@ import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
  */
 public final class JavaIdentifierSyntaxTest {
 
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
     private static final String PARENT_PACKAGE = "test5/test6/test7";
     private static final String CHILD_PACKAGE = "test1:test2:test3";
     private static final String DATE1 = "2000-1-5";
@@ -47,10 +53,17 @@ public final class JavaIdentifierSyntaxTest {
     private static final String DATE_WITH_REV1 = "rev20000105";
     private static final String DATE_WITH_REV2 = "rev19920125";
     private static final String VERSION_NUMBER = "v1";
+    private static final String VALID_PREFIX = "123add-prefix";
+    private static final String INVALID_PREFIX = "-*()&^&#$%";
+    private static final String INVALID_PREFIX1 = "abc~!@#$%^&*()_+}{:<>?`1234567890-=[]''|,./SS";
+    private static final String INVALID_NAME_SPACE_FOR_INVALID_PREFIX = "try:#test3:9case3";
     private static final String INVALID_NAME_SPACE1 = "byte:#test2:9test3";
     private static final String INVALID_NAME_SPACE2 = "const:#test2://9test3";
-    private static final String VALID_NAME_SPACE1 = "yangautoprefixbyte.test2.yangautoprefix9test3";
+    private static final String INVALID_NAME_SPACE3 = "CONST:TRY://9test3";
+    private static final String VALID_NAME_SPACE1 = "123addprefixbyte.test2.123addprefix9test3";
     private static final String VALID_NAME_SPACE2 = "yangautoprefixconst.test2.yangautoprefix9test3";
+    private static final String VALID_NAME_SPACE3 = "abc1234567890ssconst.test2.abc1234567890ss9test3";
+    private static final String VALID_NAME_SPACE4 = "yangautoprefixconst.yangautoprefixtry.yangautoprefix9test3";
     private static final String WITHOUT_CAMEL_CASE = "test-camel-case-identifier";
     private static final String WITH_CAMEL_CASE = "testCamelCaseIdentifier";
     private static final String WITHOUT_CAMEL_CASE1 = ".-_try-._-.123";
@@ -77,9 +90,16 @@ public final class JavaIdentifierSyntaxTest {
     private static final String WITH_CAMEL_CASE11 = "test3Name";
     private static final String WITHOUT_CAMEL_CASE12 = "TEST3name";
     private static final String WITH_CAMEL_CASE12 = "test3Name";
+    private static final String WITHOUT_CAMEL_CASE13 = "t-RY";
+    private static final String WITH_CAMEL_CASE13 = "tRy";
+    private static final String WITHOUT_CAMEL_CASE14 = "TRY";
+    private static final String WITH_CAMEL_CASE14 = "yangAutoPrefixTry";
     private static final String WITHOUT_CAPITAL = "test_this";
     private static final String WITH_CAPITAL = "Test_this";
     private static final String WITH_SMALL = "test_this";
+    private static final String WITH_CAMEL_CASE_WITH_PREFIX = "123addPrefixTry";
+    private static final String WITH_CAMEL_CASE_WITH_PREFIX1 = "abc1234567890Ss1123G123Gaa";
+    private static YangToJavaNamingConflictUtil conflictResolver = new YangToJavaNamingConflictUtil();
 
     /**
      * Unit test for private constructor.
@@ -111,9 +131,21 @@ public final class JavaIdentifierSyntaxTest {
      */
     @Test
     public void getRootPackageTest() {
-        String rootPackage = getRootPackage((byte) 1, CHILD_PACKAGE, DATE1);
+        conflictResolver.setPrefixForIdentifier(null);
+        String rootPackage = getRootPackage((byte) 1, CHILD_PACKAGE, DATE1, conflictResolver);
         assertThat(rootPackage.equals(DEFAULT_BASE_PKG + PERIOD + VERSION_NUMBER
                 + PERIOD + CHILD_WITH_PERIOD + PERIOD + DATE_WITH_REV1), is(true));
+    }
+
+    /**
+     * Unit test for root package generation with invalid prefix.
+     */
+    @Test
+    public void getRootPackageWithInvalidPrefix() throws TranslatorException {
+        thrown.expect(TranslatorException.class);
+        thrown.expectMessage("The given prefix in pom.xml is invalid.");
+        conflictResolver.setPrefixForIdentifier(INVALID_PREFIX);
+        String rootPackage1 = getRootPackage((byte) 1, INVALID_NAME_SPACE_FOR_INVALID_PREFIX, DATE1, conflictResolver);
     }
 
     /**
@@ -121,12 +153,22 @@ public final class JavaIdentifierSyntaxTest {
      */
     @Test
     public void getRootPackageWithSpecialCharactersTest() {
-        String rootPackage = getRootPackage((byte) 1, INVALID_NAME_SPACE1, DATE1);
+        conflictResolver.setPrefixForIdentifier(VALID_PREFIX);
+        String rootPackage = getRootPackage((byte) 1, INVALID_NAME_SPACE1, DATE1, conflictResolver);
         assertThat(rootPackage.equals(DEFAULT_BASE_PKG + PERIOD + VERSION_NUMBER
                 + PERIOD + VALID_NAME_SPACE1 + PERIOD + DATE_WITH_REV1), is(true));
-        String rootPackage1 = getRootPackage((byte) 1, INVALID_NAME_SPACE2, DATE1);
+        conflictResolver.setPrefixForIdentifier(null);
+        String rootPackage1 = getRootPackage((byte) 1, INVALID_NAME_SPACE2, DATE1, conflictResolver);
         assertThat(rootPackage1.equals(DEFAULT_BASE_PKG + PERIOD + VERSION_NUMBER
                 + PERIOD + VALID_NAME_SPACE2 + PERIOD + DATE_WITH_REV1), is(true));
+        String rootPackage2 = getRootPackage((byte) 1, INVALID_NAME_SPACE3, DATE1, conflictResolver);
+        assertThat(rootPackage2.equals(DEFAULT_BASE_PKG + PERIOD + VERSION_NUMBER
+                + PERIOD + VALID_NAME_SPACE4 + PERIOD + DATE_WITH_REV1), is(true));
+        conflictResolver.setPrefixForIdentifier(INVALID_PREFIX1);
+        String rootPackage3 = getRootPackage((byte) 1, INVALID_NAME_SPACE2, DATE1, conflictResolver);
+        assertThat(rootPackage3.equals(DEFAULT_BASE_PKG + PERIOD + VERSION_NUMBER
+                + PERIOD + VALID_NAME_SPACE3 + PERIOD + DATE_WITH_REV1), is(true));
+
     }
 
     /**
@@ -134,7 +176,7 @@ public final class JavaIdentifierSyntaxTest {
      */
     @Test
     public void getRootPackageWithRevTest() {
-        String rootPkgWithRev = getRootPackage((byte) 1, CHILD_PACKAGE, DATE2);
+        String rootPkgWithRev = getRootPackage((byte) 1, CHILD_PACKAGE, DATE2, null);
         assertThat(rootPkgWithRev.equals(
                 DEFAULT_BASE_PKG + PERIOD + VERSION_NUMBER + PERIOD + CHILD_WITH_PERIOD + PERIOD + DATE_WITH_REV2),
                 is(true));
@@ -154,32 +196,63 @@ public final class JavaIdentifierSyntaxTest {
      */
     @Test
     public void getCamelCaseTest() {
-        String camelCase = getCamelCase(WITHOUT_CAMEL_CASE, null);
+        conflictResolver.setPrefixForIdentifier(null);
+        String camelCase = getCamelCase(WITHOUT_CAMEL_CASE, conflictResolver);
         assertThat(camelCase.equals(WITH_CAMEL_CASE), is(true));
-        String camelCase1 = getCamelCase(WITHOUT_CAMEL_CASE1, null);
+        String camelCase1 = getCamelCase(WITHOUT_CAMEL_CASE1, conflictResolver);
         assertThat(camelCase1.equals(WITH_CAMEL_CASE1), is(true));
-        String camelCase2 = getCamelCase(WITHOUT_CAMEL_CASE2, null);
+        String camelCase2 = getCamelCase(WITHOUT_CAMEL_CASE2, conflictResolver);
         assertThat(camelCase2.equals(WITH_CAMEL_CASE2), is(true));
-        String camelCase3 = getCamelCase(WITHOUT_CAMEL_CASE3, null);
+        String camelCase3 = getCamelCase(WITHOUT_CAMEL_CASE3, conflictResolver);
         assertThat(camelCase3.equals(WITH_CAMEL_CASE3), is(true));
-        String camelCase4 = getCamelCase(WITHOUT_CAMEL_CASE4, null);
+        String camelCase4 = getCamelCase(WITHOUT_CAMEL_CASE4, conflictResolver);
         assertThat(camelCase4.equals(WITH_CAMEL_CASE4), is(true));
-        String camelCase5 = getCamelCase(WITHOUT_CAMEL_CASE5, null);
+        String camelCase5 = getCamelCase(WITHOUT_CAMEL_CASE5, conflictResolver);
         assertThat(camelCase5.equals(WITH_CAMEL_CASE5), is(true));
-        String camelCase6 = getCamelCase(WITHOUT_CAMEL_CASE6, null);
+        String camelCase6 = getCamelCase(WITHOUT_CAMEL_CASE6, conflictResolver);
         assertThat(camelCase6.equals(WITH_CAMEL_CASE6), is(true));
-        String camelCase7 = getCamelCase(WITHOUT_CAMEL_CASE7, null);
+        String camelCase7 = getCamelCase(WITHOUT_CAMEL_CASE7, conflictResolver);
         assertThat(camelCase7.equals(WITH_CAMEL_CASE7), is(true));
-        String camelCase8 = getCamelCase(WITHOUT_CAMEL_CASE8, null);
+        String camelCase8 = getCamelCase(WITHOUT_CAMEL_CASE8, conflictResolver);
         assertThat(camelCase8.equals(WITH_CAMEL_CASE8), is(true));
-        String camelCase9 = getCamelCase(WITHOUT_CAMEL_CASE9, null);
+        String camelCase9 = getCamelCase(WITHOUT_CAMEL_CASE9, conflictResolver);
         assertThat(camelCase9.equals(WITH_CAMEL_CASE9), is(true));
-        String camelCase10 = getCamelCase(WITHOUT_CAMEL_CASE10, null);
+        String camelCase10 = getCamelCase(WITHOUT_CAMEL_CASE10, conflictResolver);
         assertThat(camelCase10.equals(WITH_CAMEL_CASE10), is(true));
-        String camelCase11 = getCamelCase(WITHOUT_CAMEL_CASE11, null);
+        String camelCase11 = getCamelCase(WITHOUT_CAMEL_CASE11, conflictResolver);
         assertThat(camelCase11.equals(WITH_CAMEL_CASE11), is(true));
-        String camelCase12 = getCamelCase(WITHOUT_CAMEL_CASE12, null);
+        String camelCase12 = getCamelCase(WITHOUT_CAMEL_CASE12, conflictResolver);
         assertThat(camelCase12.equals(WITH_CAMEL_CASE12), is(true));
+        String camelCase13 = getCamelCase(WITHOUT_CAMEL_CASE13, conflictResolver);
+        assertThat(camelCase13.equals(WITH_CAMEL_CASE13), is(true));
+        String camelCase14 = getCamelCase(WITHOUT_CAMEL_CASE14, conflictResolver);
+        assertThat(camelCase14.equals(WITH_CAMEL_CASE14), is(true));
+    }
+
+    /**
+     * Unit test for getting the camel case along with the prefix provided.
+     */
+    @Test
+    public void getCamelCaseWithPrefixTest() {
+
+        conflictResolver.setPrefixForIdentifier(VALID_PREFIX);
+        String camelCase = getCamelCase(WITHOUT_CAMEL_CASE2, conflictResolver);
+        assertThat(camelCase.equals(WITH_CAMEL_CASE_WITH_PREFIX), is(true));
+        conflictResolver.setPrefixForIdentifier(INVALID_PREFIX1);
+        String camelCase2 = getCamelCase(WITHOUT_CAMEL_CASE3, conflictResolver);
+        assertThat(camelCase2.equals(WITH_CAMEL_CASE_WITH_PREFIX1), is(true));
+    }
+
+    /**
+     * Unit test for getting the camel case along with the invalid prefix provided.
+     */
+    @Test
+    public void getCamelCaseWithInvalidPrefixTest() throws TranslatorException {
+
+        thrown.expect(TranslatorException.class);
+        thrown.expectMessage("The given prefix in pom.xml is invalid.");
+        conflictResolver.setPrefixForIdentifier(INVALID_PREFIX);
+        String camelCase = getCamelCase(WITHOUT_CAMEL_CASE3, conflictResolver);
     }
 
     /**

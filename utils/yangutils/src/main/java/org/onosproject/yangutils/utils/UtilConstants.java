@@ -197,6 +197,11 @@ public final class UtilConstants {
     public static final String PARSE_BYTE = "parseByte";
 
     /**
+     * Static attribute for parse boolean.
+     */
+    public static final String PARSE_BOOLEAN = "parseBoolean";
+
+    /**
      * Static attribute for parse short.
      */
     public static final String PARSE_SHORT = "parseShort";
@@ -242,6 +247,11 @@ public final class UtilConstants {
     public static final String SPACE = " ";
 
     /**
+     * Static attribute for subject.
+     */
+    public static final String SUBJECT = "Subject";
+
+    /**
      * Static attribute for ListenerRegistry.
      */
     public static final String LISTENER_REG = "ListenerRegistry";
@@ -254,7 +264,7 @@ public final class UtilConstants {
     /**
      * Static attribute for listener package.
      */
-    public static final String LISTENER_PKG = "org.onosproject.event";
+    public static final String ONOS_EVENT_PKG = "org.onosproject.event";
 
     /**
      * Static attribute for colon.
@@ -270,6 +280,21 @@ public final class UtilConstants {
      * Static attribute for input string.
      */
     public static final String INPUT = "input";
+
+    /**
+     * Static attribute for leafref string.
+     */
+    public static final String LEAFREF = "leafref";
+
+    /**
+     * Static attribute for identityref string.
+     */
+    public static final String IDENTITYREF = "identityref";
+
+    /**
+     * Static attribute for instance identifier string.
+     */
+    public static final String INSTANCE_IDENTIFIER = "instance-identifier";
 
     /**
      * Static attribute for output variable of rpc.
@@ -742,6 +767,11 @@ public final class UtilConstants {
     public static final String REGEX_WITH_SINGLE_CAPITAL_CASE_AND_DIGITS_SMALL_CASES = "[A-Z][0-9a-z]+";
 
     /**
+     * Static attribute for regex for any string ending with service.
+     */
+    public static final String REGEX_FOR_ANY_STRING_ENDING_WITH_SERVICE = ".+Service";
+
+    /**
      * Static attribute for class syntax.
      */
     public static final String CLASS = "class";
@@ -770,6 +800,11 @@ public final class UtilConstants {
      * Static attribute for enum syntax.
      */
     public static final String ENUM = "enum";
+
+    /**
+     * Static attribute for type syntax.
+     */
+    public static final String TYPE = "Type";
 
     /**
      * Static attribute for static syntax.
@@ -835,6 +870,11 @@ public final class UtilConstants {
      * For event listener file generation.
      */
     public static final String EVENT_LISTENER_STRING = "Listener";
+
+    /**
+     * For event subject file generation.
+     */
+    public static final String EVENT_SUBJECT_NAME_SUFFIX = "EventSubject";
 
     /**
      * Static attribute for impl syntax.
@@ -942,6 +982,130 @@ public final class UtilConstants {
     public static final String YANG_UTILS_TODO = "//TODO: YANG utils generated code";
 
     /**
+     * Static attribute for activate annotation.
+     */
+    public static final String ACTIVATE_ANNOTATION = "@Activate\n";
+
+    /**
+     * Static attribute for activate.
+     */
+    public static final String ACTIVATE = "activate";
+
+    /**
+     * Static attribute for activate annotation import.
+     */
+    public static final String ACTIVATE_ANNOTATION_IMPORT = "import org.apache.felix.scr.annotations.Activate;\n";
+
+    /**
+     * Static attribute for deactivate annotation.
+     */
+    public static final String DEACTIVATE_ANNOTATION = "@Deactivate\n";
+
+    /**
+     * Static attribute for deactivate.
+     */
+    public static final String DEACTIVATE = "deactivate";
+
+    /**
+     * Static attribute for deactivate annotation import.
+     */
+    public static final String DEACTIVATE_ANNOTATION_IMPORT =
+            "import org.apache.felix.scr.annotations.Deactivate;\n";
+
+    /**
+     * Static attribute for component annotation.
+     */
+    public static final String COMPONENT_ANNOTATION = "@Component";
+
+    /**
+     * Static attribute for immediate.
+     */
+    public static final String IMMEDIATE = "immediate";
+
+    /**
+     * Static attribute for component annotation import.
+     */
+    public static final String COMPONENT_ANNOTATION_IMPORT =
+            "import org.apache.felix.scr.annotations.Component;\n";
+
+    /**
+     * Static attribute for service annotation.
+     */
+    public static final String SERVICE_ANNOTATION = "@Service\n";
+
+    /**
+     * Static attribute for service annotation import.
+     */
+    public static final String SERVICE_ANNOTATION_IMPORT =
+            "import org.apache.felix.scr.annotations.Service;\n";
+
+    /**
+     * Static attribute for logger factory import.
+     */
+    public static final String LOGGER_FACTORY_IMPORT =
+            "import static org.slf4j.LoggerFactory.getLogger;\n";
+
+    /**
+     * Static attribute for logger import.
+     */
+    public static final String LOGGER_IMPORT =
+            "import org.slf4j.Logger;\n";
+
+    /**
+     * Static attribute for logger statement.
+     */
+    public static final String LOGGER_STATEMENT =
+            "\n    private final Logger log = getLogger(getClass());\n";
+
+    /**
+     * Static attribute for logger statement for started.
+     */
+    public static final String STARTED_LOG_INFO =
+            "log.info(\"Started\");\n";
+
+    /**
+     * Static attribute for logger statement for stopped.
+     */
+    public static final String STOPPED_LOG_INFO =
+            "log.info(\"Stopped\");\n";
+
+    /**
+     * Static attribute for AbstractEvent.
+     */
+    public static final String ABSTRACT_EVENT = "AbstractEvent";
+
+    /**
+     * Static attribute for EventListener.
+     */
+    public static final String EVENT_LISTENER = "EventListener";
+
+    /**
+     * Static attribute for YangBinary class.
+     */
+    public static final String YANG_BINARY_CLASS = "YangBinary";
+
+    /**
+     * Static attribute for YangBinary class.
+     */
+    public static final String YANG_BITS_CLASS = "YangBits";
+
+    /**
+     * Static attribute for YANG types package.
+     */
+    public static final String YANG_TYPES_PKG = "org.onosproject.yangutils.utils.builtindatatype";
+
+    /**
+     * Static attribute for MathContext class.
+     */
+    public static final String MATH_CONTEXT = "MathContext";
+
+    /**
+     * Static attribute for DECIMAL64 class.
+     */
+    public static final String YANG_DECIMAL64_CLASS = "YangDecimal64";
+
+
+    /**
      * Static attribute for YANG file error.
      */
     public static final String YANG_FILE_ERROR = "YANG file error : ";
@@ -956,6 +1120,18 @@ public final class UtilConstants {
      */
     public static final String CURRENTLY_UNSUPPORTED = " is not supported in current version, please check wiki" +
             " for YANG utils road map.";
+
+    /**
+     * Static attribute for typedef linker error information.
+     */
+    public static final String TYPEDEF_LINKER_ERROR = "YANG file error: Unable to find base "
+            + "typedef for given type";
+
+    /**
+     * Static attribute for grouping linker error information.
+     */
+    public static final String GROUPING_LINKER_ERROR = "YANG file error: Unable to find base "
+            + "grouping for given uses";
 
     /**
      * Creates an instance of util constants.

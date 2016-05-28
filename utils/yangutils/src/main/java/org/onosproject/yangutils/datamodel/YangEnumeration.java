@@ -16,8 +16,8 @@
 
 package org.onosproject.yangutils.datamodel;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
@@ -31,10 +31,10 @@ import org.onosproject.yangutils.utils.YangConstructType;
 /**
  * Represents the enumeration data type information.
  */
-public class YangEnumeration extends YangNode implements Parsable {
+public class YangEnumeration extends YangNode implements Parsable, CollisionDetector {
 
     // Enumeration info set.
-    private Set<YangEnum> enumSet;
+    private SortedSet<YangEnum> enumSet;
 
     // Enumeration name.
     private String name;
@@ -44,7 +44,7 @@ public class YangEnumeration extends YangNode implements Parsable {
      */
     public YangEnumeration() {
         super(YangNodeType.ENUMERATION_NODE);
-        setEnumSet(new HashSet<YangEnum>());
+        setEnumSet(new TreeSet<YangEnum>());
     }
 
     /**
@@ -52,7 +52,7 @@ public class YangEnumeration extends YangNode implements Parsable {
      *
      * @return the ENUM set
      */
-    public Set<YangEnum> getEnumSet() {
+    public SortedSet<YangEnum> getEnumSet() {
         return enumSet;
     }
 
@@ -61,7 +61,7 @@ public class YangEnumeration extends YangNode implements Parsable {
      *
      * @param enumSet the ENUM set to set
      */
-    private void setEnumSet(Set<YangEnum> enumSet) {
+    private void setEnumSet(SortedSet<YangEnum> enumSet) {
         this.enumSet = enumSet;
     }
 
@@ -125,5 +125,19 @@ public class YangEnumeration extends YangNode implements Parsable {
     @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
+    }
+
+    @Override
+    public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
+        /*
+        Do nothing.The implementation for this is not required.
+         */
+    }
+
+    @Override
+    public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
+        /*
+        Do nothing.The implementation for this is not required.
+         */
     }
 }

@@ -225,9 +225,7 @@ public class YangDerivedInfo<T> implements LocationInfo {
      * @throws DataModelException a violation in data mode rule
      */
     public ResolvableStatus resolve() throws DataModelException {
-
         YangType<?> baseType = getReferredTypeDef().getTypeDefBaseType();
-
         /*
          * Checks the data type of the referred typedef, if it's derived,
          * obtain effective built-in type and restrictions from it's derived
@@ -240,7 +238,6 @@ public class YangDerivedInfo<T> implements LocationInfo {
             if (baseType.getResolvableStatus() != INTRA_FILE_RESOLVED && baseType.getResolvableStatus() != RESOLVED) {
                 throw new DataModelException("Linker Error: Referred typedef is not resolved for type.");
             }
-
             /*
              * Check if the referred typedef is intra file resolved, if yes sets
              * current status also to intra file resolved .
@@ -250,7 +247,7 @@ public class YangDerivedInfo<T> implements LocationInfo {
             }
             setEffectiveBuiltInType(((YangDerivedInfo<?>) baseType.getDataTypeExtendedInfo())
                     .getEffectiveBuiltInType());
-            YangDerivedInfo refDerivedInfo = ((YangDerivedInfo<?>) baseType.getDataTypeExtendedInfo());
+            YangDerivedInfo refDerivedInfo = (YangDerivedInfo<?>) baseType.getDataTypeExtendedInfo();
             /*
              * Check whether the effective built-in type can have range
              * restrictions, if yes call resolution of range.
@@ -327,7 +324,7 @@ public class YangDerivedInfo<T> implements LocationInfo {
                 }
             }
         } else {
-            setEffectiveBuiltInType((baseType.getDataType()));
+            setEffectiveBuiltInType(baseType.getDataType());
             /*
              * Check whether the effective built-in type can have range
              * restrictions, if yes call resolution of range.
@@ -404,7 +401,6 @@ public class YangDerivedInfo<T> implements LocationInfo {
                 }
             }
         }
-
         /*
          * Check if the data type is the one which can't be restricted, in
          * this case check whether no self restrictions should be present.
@@ -418,7 +414,6 @@ public class YangDerivedInfo<T> implements LocationInfo {
                 throw new DataModelException("YANG file error: Restrictions can't be applied to a given type");
             }
         }
-
         // Throw exception for unsupported types
         throw new DataModelException("Linker error: Unable to process the derived type.");
     }
@@ -438,7 +433,7 @@ public class YangDerivedInfo<T> implements LocationInfo {
          * Check that range restriction should be null when built-in type is
          * string.
          */
-        if (!(Strings.isNullOrEmpty(getRangeRestrictionString()))) {
+        if (!Strings.isNullOrEmpty(getRangeRestrictionString())) {
             DataModelException dataModelException = new DataModelException("YANG file error: Range restriction " +
                     "should't be present for string data type.");
             dataModelException.setLine(lineNumber);
@@ -605,7 +600,7 @@ public class YangDerivedInfo<T> implements LocationInfo {
          * Check that string restriction should be null when built-in type is
          * of range type.
          */
-        if (!(Strings.isNullOrEmpty(getLengthRestrictionString())) || getPatternRestriction() != null) {
+        if (!Strings.isNullOrEmpty(getLengthRestrictionString()) || getPatternRestriction() != null) {
             DataModelException dataModelException = new DataModelException("YANG file error: Length/Pattern " +
                     "restriction should't be present for int/uint/decimal data type.");
             dataModelException.setLine(lineNumber);
@@ -660,12 +655,12 @@ public class YangDerivedInfo<T> implements LocationInfo {
      * @return true, if data type can't be restricted, false otherwise
      */
     private boolean isOfValidNonRestrictedType(YangDataTypes dataType) {
-        return (dataType == BOOLEAN
+        return dataType == BOOLEAN
                 || dataType == ENUMERATION
                 || dataType == BITS
                 || dataType == EMPTY
                 || dataType == UNION
                 || dataType == IDENTITYREF
-                || dataType == LEAFREF);
+                || dataType == LEAFREF;
     }
 }

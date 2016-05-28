@@ -35,6 +35,7 @@ import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
 import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_GENERATION;
 import static org.onosproject.yangutils.datamodel.utils.YangDataModelFactory.getYangTypeDefNode;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerCollisionDetector.detectCollidingChildUtil;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
@@ -116,6 +117,11 @@ public final class TypeDefListener {
 
         // Validate sub statement cardinality.
         validateSubStatementsCardinality(ctx);
+
+        // Check for identifier collision
+        int line = ctx.getStart().getLine();
+        int charPositionInLine = ctx.getStart().getCharPositionInLine();
+        detectCollidingChildUtil(listener, line, charPositionInLine, identifier, TYPEDEF_DATA);
 
         /*
          * Create a derived type information, the base type must be set in type

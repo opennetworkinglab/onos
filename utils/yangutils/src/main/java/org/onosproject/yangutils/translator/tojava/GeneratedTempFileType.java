@@ -97,6 +97,31 @@ public final class GeneratedTempFileType {
     public static final int RPC_IMPL_MASK = 16384;
 
     /**
+     * Event enum implementation of class.
+     */
+    public static final int EVENT_ENUM_MASK = 32768;
+
+    /**
+     * Event method implementation of class.
+     */
+    public static final int EVENT_METHOD_MASK = 65536;
+
+    /**
+     * Event subject attribute implementation of class.
+     */
+    public static final int EVENT_SUBJECT_ATTRIBUTE_MASK = 131072;
+
+    /**
+     * Event subject getter implementation of class.
+     */
+    public static final int EVENT_SUBJECT_GETTER_MASK = 262144;
+
+    /**
+     * Event subject setter implementation of class.
+     */
+    public static final int EVENT_SUBJECT_SETTER_MASK = 524288;
+
+    /**
      * Creates an instance of generated temp file type.
      */
     private GeneratedTempFileType() {

@@ -350,6 +350,21 @@ public enum YangConstructType {
     REFINE_DATA,
 
     /**
+     * Identifies the YANG leafref element parsed data.
+     */
+    LEAFREF_DATA,
+
+    /**
+     * Identifies the YANG identityref element parsed data.
+     */
+    IDENTITYREF_DATA,
+
+    /**
+     * Identifies the YANG instance identifier element parsed data.
+     */
+    INSTANCE_IDENTIFIER_DATA,
+
+    /**
      * Identifies the YANG deviation element parsed data.
      */
     DEVIATION_DATA,
@@ -500,6 +515,12 @@ public enum YangConstructType {
                 return "unique";
             case REFINE_DATA:
                 return "refine";
+            case LEAFREF_DATA:
+                return "leafref";
+            case IDENTITYREF_DATA:
+                return "identityref";
+            case INSTANCE_IDENTIFIER_DATA:
+                return "instance-identifier";
             case DEVIATION_DATA:
                 return "deviation";
             case ANYXML_DATA:

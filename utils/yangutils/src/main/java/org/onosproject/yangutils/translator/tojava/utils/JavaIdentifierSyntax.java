@@ -75,16 +75,18 @@ public final class JavaIdentifierSyntax {
      * @param version YANG version
      * @param nameSpace name space of the module
      * @param revision revision of the module defined
-     * @return returns the root package string
+     * @param conflictResolver object of YANG to java naming conflict util
+     * @return the root package string
      */
-    public static String getRootPackage(byte version, String nameSpace, String revision) {
+    public static String getRootPackage(byte version, String nameSpace, String revision,
+            YangToJavaNamingConflictUtil conflictResolver) {
 
         String pkg;
         pkg = DEFAULT_BASE_PKG;
         pkg = pkg + PERIOD;
         pkg = pkg + getYangVersion(version);
         pkg = pkg + PERIOD;
-        pkg = pkg + getPkgFromNameSpace(nameSpace);
+        pkg = pkg + getPkgFromNameSpace(nameSpace, conflictResolver);
         pkg = pkg + PERIOD;
         pkg = pkg + getYangRevisionStr(revision);
 
@@ -144,9 +146,10 @@ public final class JavaIdentifierSyntax {
      * Returns package name from name space.
      *
      * @param nameSpace name space of YANG module
+     * @param conflictResolver object of YANG to java naming conflict util
      * @return java package name as per java rules
      */
-    private static String getPkgFromNameSpace(String nameSpace) {
+    private static String getPkgFromNameSpace(String nameSpace, YangToJavaNamingConflictUtil conflictResolver) {
 
         ArrayList<String> pkgArr = new ArrayList<String>();
         nameSpace = nameSpace.replace(QUOTES, EMPTY_STRING);
@@ -156,7 +159,7 @@ public final class JavaIdentifierSyntax {
         for (String nameSpaceString : nameSpaceArr) {
             pkgArr.add(nameSpaceString);
         }
-        return getPkgFrmArr(pkgArr);
+        return getPkgFrmArr(pkgArr, conflictResolver);
     }
 
     /**
@@ -194,17 +197,19 @@ public final class JavaIdentifierSyntax {
      * Returns the package string.
      *
      * @param pkgArr package array
+     * @param conflictResolver object of YANG to java naming conflict util
      * @return package string
      */
-    private static String getPkgFrmArr(ArrayList<String> pkgArr) {
+    private static String getPkgFrmArr(ArrayList<String> pkgArr, YangToJavaNamingConflictUtil conflictResolver) {
 
         String pkg = EMPTY_STRING;
         int size = pkgArr.size();
         int i = 0;
         for (String member : pkgArr) {
-            boolean presenceOfKeyword = JAVA_KEY_WORDS.contains(member);
+            boolean presenceOfKeyword = JAVA_KEY_WORDS.contains(member.toLowerCase());
             if (presenceOfKeyword || member.matches(REGEX_FOR_FIRST_DIGIT)) {
-                member = YANG_AUTO_PREFIX + member;
+                String prefix = getPrefixForIdentifier(conflictResolver);
+                member = prefix + member;
             }
             pkg = pkg + member;
             if (i != size - 1) {
@@ -216,20 +221,40 @@ public final class JavaIdentifierSyntax {
     }
 
     /**
-     * Returns package sub name from YANG identifier name.
+     * Prefix for adding with identifier and namespace, when it is a java keyword or starting with digits.
      *
-     * @param name YANG identifier name
-     * @return java package sub name as per java rules
+     * @param conflictResolver object of YANG to java naming conflict util
+     * @return prefix which needs to be added
      */
-    public static String getSubPkgFromName(String name) {
+    public static String getPrefixForIdentifier(YangToJavaNamingConflictUtil conflictResolver) {
 
-        ArrayList<String> pkgArr = new ArrayList<String>();
-        String[] nameArr = name.split(COLAN);
-
-        for (String nameString : nameArr) {
-            pkgArr.add(nameString);
+        String prefixForIdentifier = null;
+        if (conflictResolver != null) {
+            prefixForIdentifier = conflictResolver.getPrefixForIdentifier();
         }
-        return getPkgFrmArr(pkgArr);
+        if (prefixForIdentifier != null) {
+            prefixForIdentifier = prefixForIdentifier.replaceAll(REGEX_WITH_ALL_SPECIAL_CHAR, COLAN);
+            String[] strArray = prefixForIdentifier.split(COLAN);
+            try {
+                if (strArray[0].isEmpty()) {
+                    List<String> stringArrangement = new ArrayList<String>();
+                    for (int i = 1; i < strArray.length; i++) {
+                        stringArrangement.add(strArray[i]);
+                    }
+                    strArray = stringArrangement.toArray(new String[stringArrangement.size()]);
+                }
+                prefixForIdentifier = strArray[0];
+                for (int j = 1; j < strArray.length; j++) {
+                    prefixForIdentifier = prefixForIdentifier + strArray[j].substring(0, 1).toUpperCase() +
+                            strArray[j].substring(1);
+                }
+            } catch (ArrayIndexOutOfBoundsException outOfBoundsException) {
+                throw new TranslatorException("The given prefix in pom.xml is invalid.");
+            }
+        } else {
+            prefixForIdentifier = YANG_AUTO_PREFIX;
+        }
+        return prefixForIdentifier;
     }
 
     /**
@@ -267,16 +292,18 @@ public final class JavaIdentifierSyntax {
             }
             strArray = stringArrangement.toArray(new String[stringArrangement.size()]);
         }
-        return upperCaseConflictResolver(strArray);
+        return upperCaseConflictResolver(strArray, conflictResolver);
     }
 
     /**
-     * Resolves the conflict when input has uppercase.
+     * Resolves the conflict when input has upper case.
      *
-     * @param stringArray containing strings for uppercase conflict resolver
+     * @param stringArray containing strings for upper case conflict resolver
+     * @param conflictResolver object of YANG to java naming conflict util
      * @return camel cased string
      */
-    private static String upperCaseConflictResolver(String[] stringArray) {
+    private static String upperCaseConflictResolver(String[] stringArray,
+            YangToJavaNamingConflictUtil conflictResolver) {
 
         for (int l = 0; l < stringArray.length; l++) {
             String[] upperCaseSplitArray = stringArray[l].split(REGEX_WITH_UPPERCASE);
@@ -317,7 +344,7 @@ public final class JavaIdentifierSyntax {
             }
         }
         stringArray = result.toArray(new String[result.size()]);
-        return applyCamelCaseRule(stringArray);
+        return applyCamelCaseRule(stringArray, conflictResolver);
     }
 
     /**
@@ -325,9 +352,10 @@ public final class JavaIdentifierSyntax {
      * the letter next to a number in an array.
      *
      * @param stringArray containing strings for camel case separation
+     * @param conflictResolver object of YANG to java naming conflict util
      * @return camel case rule checked string
      */
-    private static String applyCamelCaseRule(String[] stringArray) {
+    private static String applyCamelCaseRule(String[] stringArray, YangToJavaNamingConflictUtil conflictResolver) {
 
         String ruleChecker = stringArray[0].toLowerCase();
         int i;
@@ -338,7 +366,7 @@ public final class JavaIdentifierSyntax {
             i = 1;
         }
         for (; i < stringArray.length; i++) {
-            if ((i + 1) == stringArray.length) {
+            if (i + 1 == stringArray.length) {
                 if (stringArray[i].matches(REGEX_FOR_SINGLE_LETTER)
                         || stringArray[i].matches(REGEX_FOR_DIGITS_WITH_SINGLE_LETTER)) {
                     ruleChecker = ruleChecker + stringArray[i].toLowerCase();
@@ -359,23 +387,25 @@ public final class JavaIdentifierSyntax {
                 ruleChecker = ruleChecker + stringArray[i].substring(0, 1).toUpperCase() + stringArray[i].substring(1);
             }
         }
-        String ruleCheckerWithPrefix = addPrefix(ruleChecker);
+        String ruleCheckerWithPrefix = addPrefix(ruleChecker, conflictResolver);
         return restrictConsecutiveCapitalCase(ruleCheckerWithPrefix);
     }
 
     /**
-     * Adds prefix YANG auto prefix if the string begins with digit or is a java key word.
+     * Adds prefix, if the string begins with digit or is a java key word.
      *
      * @param camelCasePrefix string for adding prefix
+     * @param conflictResolver object of YANG to java naming conflict util
      * @return prefixed camel case string
      */
-    private static String addPrefix(String camelCasePrefix) {
+    private static String addPrefix(String camelCasePrefix, YangToJavaNamingConflictUtil conflictResolver) {
 
+        String prefix = getPrefixForIdentifier(conflictResolver);
         if (camelCasePrefix.matches(REGEX_FOR_FIRST_DIGIT)) {
-            camelCasePrefix = YANG_AUTO_PREFIX + camelCasePrefix;
+            camelCasePrefix = prefix + camelCasePrefix;
         }
-        if (JAVA_KEY_WORDS.contains(camelCasePrefix.toLowerCase())) {
-            camelCasePrefix = YANG_AUTO_PREFIX + camelCasePrefix.substring(0, 1).toUpperCase()
+        if (JAVA_KEY_WORDS.contains(camelCasePrefix)) {
+            camelCasePrefix = prefix + camelCasePrefix.substring(0, 1).toUpperCase()
                     + camelCasePrefix.substring(1);
         }
         return camelCasePrefix;
@@ -444,13 +474,21 @@ public final class JavaIdentifierSyntax {
      */
     public static String getEnumJavaAttribute(String name) {
 
-        String[] strArray = name.split(HYPHEN);
+        name = name.replaceAll(REGEX_WITH_ALL_SPECIAL_CHAR, COLAN);
+        String[] strArray = name.split(COLAN);
         String output = EMPTY_STRING;
+        if (strArray[0].isEmpty()) {
+            List<String> stringArrangement = new ArrayList<String>();
+            for (int i = 1; i < strArray.length; i++) {
+                stringArrangement.add(strArray[i]);
+            }
+            strArray = stringArrangement.toArray(new String[stringArrangement.size()]);
+        }
         for (int i = 0; i < strArray.length; i++) {
-            output = output + strArray[i];
-            if (i > 0 && i < strArray.length - 1) {
+            if (i > 0 && i < strArray.length) {
                 output = output + UNDER_SCORE;
             }
+            output = output + strArray[i];
         }
         return output;
     }

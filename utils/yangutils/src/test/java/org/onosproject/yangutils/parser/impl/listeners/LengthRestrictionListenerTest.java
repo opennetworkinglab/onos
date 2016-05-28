@@ -267,4 +267,36 @@ public class LengthRestrictionListenerTest {
         assertThat(((YangUint64) rangeInterval.getStartValue()).getValue(), is(BigInteger.valueOf(0)));
         assertThat(((YangUint64) rangeInterval.getEndValue()).getValue(), is(BigInteger.valueOf(100)));
     }
+
+    /**
+     * Checks whether space can be allowed when length statement is present.
+     */
+    @Test
+    public void processLengthStatementWithSpace() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/LengthStatementWithSpace.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        assertThat(leafInfo.getName(), is("invalid-interval"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
+        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
+        YangStringRestriction stringRestriction = (YangStringRestriction) leafInfo
+                .getDataType().getDataTypeExtendedInfo();
+        YangRangeRestriction lengthRestriction = stringRestriction.getLengthRestriction();
+
+        ListIterator<YangRangeInterval> lengthListIterator = lengthRestriction.getAscendingRangeIntervals()
+                .listIterator();
+
+        YangRangeInterval rangeInterval = lengthListIterator.next();
+
+        assertThat(((YangUint64) rangeInterval.getStartValue()).getValue(), is(BigInteger.valueOf(0)));
+        assertThat(((YangUint64) rangeInterval.getEndValue()).getValue(), is(BigInteger.valueOf(100)));
+    }
 }

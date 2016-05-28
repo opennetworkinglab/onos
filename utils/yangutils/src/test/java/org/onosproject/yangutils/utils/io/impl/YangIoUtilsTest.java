@@ -25,6 +25,7 @@ import org.apache.maven.project.MavenProject;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 import org.onosproject.yangutils.utils.UtilConstants;
 import org.sonatype.plexus.build.incremental.BuildContext;
 import org.sonatype.plexus.build.incremental.DefaultBuildContext;
@@ -68,7 +69,7 @@ public final class YangIoUtilsTest {
 
         File dirPath = new File(CREATE_PATH);
         dirPath.mkdirs();
-        addPackageInfo(dirPath, CHECK1, CREATE_PATH, false);
+        addPackageInfo(dirPath, CHECK1, CREATE_PATH, false, getStubPluginConfig());
         File filePath = new File(dirPath + File.separator + PKG_INFO);
         assertThat(filePath.isFile(), is(true));
     }
@@ -83,7 +84,7 @@ public final class YangIoUtilsTest {
 
         File dirPath = new File(CREATE_PATH);
         dirPath.mkdirs();
-        addPackageInfo(dirPath, CHECK1, PATH + CREATE_PATH, false);
+        addPackageInfo(dirPath, CHECK1, PATH + CREATE_PATH, false, getStubPluginConfig());
         File filePath = new File(dirPath + File.separator + PKG_INFO);
         assertThat(filePath.isFile(), is(true));
     }
@@ -98,7 +99,7 @@ public final class YangIoUtilsTest {
 
         File dirPath = new File(CREATE_PATH);
         dirPath.mkdirs();
-        addPackageInfo(dirPath, CHECK1, PATH + CREATE_PATH, true);
+        addPackageInfo(dirPath, CHECK1, PATH + CREATE_PATH, true, getStubPluginConfig());
         File filePath = new File(dirPath + File.separator + PKG_INFO);
         assertThat(filePath.isFile(), is(true));
     }
@@ -114,7 +115,7 @@ public final class YangIoUtilsTest {
         File dirPath = new File("invalid/check");
         thrown.expect(IOException.class);
         thrown.expectMessage(MSG);
-        addPackageInfo(dirPath, CHECK1, CREATE_PATH, false);
+        addPackageInfo(dirPath, CHECK1, CREATE_PATH, false, getStubPluginConfig());
         File filePath1 = new File(dirPath + File.separator + PKG_INFO);
         assertThat(filePath1.isFile(), is(false));
     }
@@ -130,7 +131,8 @@ public final class YangIoUtilsTest {
      * @throws InvocationTargetException when an exception occurs by the method or constructor
      */
     @Test
-    public void callPrivateConstructors() throws SecurityException, NoSuchMethodException, IllegalArgumentException,
+    public void callPrivateConstructors()
+            throws SecurityException, NoSuchMethodException, IllegalArgumentException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
 
         Class<?>[] classesToConstruct = {YangIoUtils.class };
@@ -192,7 +194,7 @@ public final class YangIoUtilsTest {
         addToSource(sourceDir.toString(), project, context);
     }
 
-    /*
+    /**
      * Unit test case for trim at last method.
      */
     @Test
@@ -202,4 +204,14 @@ public final class YangIoUtilsTest {
         assertThat(test.contains(TRIM_STRING), is(true));
     }
 
+    /**
+     * Returns stub pluginConfig.
+     *
+     * @return stub pluginConfig
+     */
+    private YangPluginConfig getStubPluginConfig() {
+        YangPluginConfig pluginConfig = new YangPluginConfig();
+        pluginConfig.setConflictResolver(null);
+        return pluginConfig;
+    }
 }

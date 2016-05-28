@@ -22,6 +22,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
@@ -84,10 +86,12 @@ public final class FileSystemUtil {
                 YangNode parent = getParentNodeInGenCode(yangNode);
                 if (parent != null) {
                     pkgInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo().getJavaName();
-                    addPackageInfo(pack, pkgInfo, getJavaPackageFromPackagePath(pkg), true);
+                    addPackageInfo(pack, pkgInfo, getJavaPackageFromPackagePath(pkg), true,
+                            ((JavaFileInfoContainer) parent).getJavaFileInfo().getPluginConfig());
                 } else {
                     pkgInfo = ((JavaFileInfoContainer) yangNode).getJavaFileInfo().getJavaName();
-                    addPackageInfo(pack, pkgInfo, getJavaPackageFromPackagePath(pkg), false);
+                    addPackageInfo(pack, pkgInfo, getJavaPackageFromPackagePath(pkg), false,
+                            ((JavaFileInfoContainer) yangNode).getJavaFileInfo().getPluginConfig());
                 }
             } catch (IOException e) {
                 throw new IOException("failed to create package-info file");
@@ -120,6 +124,7 @@ public final class FileSystemUtil {
      */
     public static String readAppendFile(String toAppend, String spaces)
             throws IOException {
+
         FileReader fileReader = new FileReader(toAppend);
         BufferedReader bufferReader = new BufferedReader(fileReader);
         try {
@@ -156,15 +161,22 @@ public final class FileSystemUtil {
      */
     public static void updateFileHandle(File inputFile, String contentTobeAdded, boolean isClose)
             throws IOException {
+
+        List<FileWriter> fileWriterStore = new ArrayList<>();
+
         FileWriter fileWriter = new FileWriter(inputFile, true);
+        fileWriterStore.add(fileWriter);
         PrintWriter outputPrintWriter = new PrintWriter(fileWriter, true);
         if (!isClose) {
             outputPrintWriter.write(contentTobeAdded);
             outputPrintWriter.flush();
             outputPrintWriter.close();
         } else {
-            fileWriter.flush();
-            fileWriter.close();
+            for (FileWriter curWriter : fileWriterStore) {
+                curWriter.flush();
+                curWriter.close();
+                curWriter = null;
+            }
         }
     }
 }

@@ -115,7 +115,7 @@ public final class JavaCodeSnippetGen {
      * @param type attribute type
      * @return list attribute string
      */
-    private static String getListAttribute(String type) {
+    public static String getListAttribute(String type) {
         return LIST + DIAMOND_OPEN_BRACKET + type + DIAMOND_CLOSE_BRACKET;
     }
 
@@ -145,10 +145,11 @@ public final class JavaCodeSnippetGen {
      *
      * @param name name of attribute
      * @param value value of the enum
+     * @param pluginConfig plugin configurations
      * @return string for enum's attribute
      */
-    public static String generateEnumAttributeString(String name, int value) {
-        return getJavaDoc(ENUM_ATTRIBUTE, name, false) + FOUR_SPACE_INDENTATION
+    public static String generateEnumAttributeString(String name, int value, YangPluginConfig pluginConfig) {
+        return getJavaDoc(ENUM_ATTRIBUTE, name, false, pluginConfig) + FOUR_SPACE_INDENTATION
                 + getEnumJavaAttribute(name).toUpperCase() + OPEN_PARENTHESIS
                 + value + CLOSE_PARENTHESIS + COMMA + NEW_LINE;
     }

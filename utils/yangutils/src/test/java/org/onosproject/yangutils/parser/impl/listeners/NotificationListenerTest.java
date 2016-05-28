@@ -66,6 +66,6 @@ public class NotificationListenerTest {
         YangLeaf leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getName(), is("if-name"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("leafref"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
     }
 }

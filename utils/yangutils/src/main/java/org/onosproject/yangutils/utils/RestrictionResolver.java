@@ -99,11 +99,11 @@ public final class RestrictionResolver {
             }
 
             if (rangeBoundary.length == MIN_RANGE_BOUNDARY) {
-                startInterval = rangeBoundary[0];
-                endInterval = rangeBoundary[0];
+                startInterval = rangeBoundary[0].trim();
+                endInterval = rangeBoundary[0].trim();
             } else {
-                startInterval = rangeBoundary[0];
-                endInterval = rangeBoundary[1];
+                startInterval = rangeBoundary[0].trim();
+                endInterval = rangeBoundary[1].trim();
             }
 
             try {
@@ -186,11 +186,11 @@ public final class RestrictionResolver {
             }
 
             if (rangeBoundary.length == MIN_RANGE_BOUNDARY) {
-                startInterval = rangeBoundary[0];
-                endInterval = rangeBoundary[0];
+                startInterval = rangeBoundary[0].trim();
+                endInterval = rangeBoundary[0].trim();
             } else {
-                startInterval = rangeBoundary[0];
-                endInterval = rangeBoundary[1];
+                startInterval = rangeBoundary[0].trim();
+                endInterval = rangeBoundary[1].trim();
             }
 
             try {
