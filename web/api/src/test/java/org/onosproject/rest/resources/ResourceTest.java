@@ -17,26 +17,23 @@ package org.onosproject.rest.resources;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
+import org.glassfish.jersey.test.TestProperties;
 import org.glassfish.jersey.test.jetty.JettyTestContainerFactory;
 import org.glassfish.jersey.test.spi.TestContainerException;
 import org.glassfish.jersey.test.spi.TestContainerFactory;
-
-import java.io.IOException;
-import java.net.ServerSocket;
 
 /**
  * Base class for REST API tests.
  * Performs common configuration operations.
  */
 public class ResourceTest extends JerseyTest {
-    private static final int DEFAULT_PORT = 9998;
 
     /**
      * Creates a new web-resource test.
      */
     public ResourceTest() {
         super(ResourceConfig.forApplicationClass(CoreWebApplication.class));
-        this.set("jersey.config.test.container.port", getRandomPort(DEFAULT_PORT));
+        configureProperties();
     }
 
     /**
@@ -44,26 +41,11 @@ public class ResourceTest extends JerseyTest {
      */
     public ResourceTest(ResourceConfig config) {
         super(config);
-        this.set("jersey.config.test.container.port", getRandomPort(DEFAULT_PORT));
+        configureProperties();
     }
 
-    /**
-     * Returns an unused port number to make sure that each unit test runs in
-     * different port number.
-     *
-     * @param defaultPort default port number
-     * @return a randomized unique port number
-     */
-    private int getRandomPort(int defaultPort) {
-        try {
-            ServerSocket socket = new ServerSocket(0);
-            socket.setReuseAddress(true);
-            int port = socket.getLocalPort();
-            socket.close();
-            return port;
-        } catch (IOException ioe) {
-            return defaultPort;
-        }
+    private void configureProperties() {
+        set(TestProperties.CONTAINER_PORT, 0);
     }
 
     /**
