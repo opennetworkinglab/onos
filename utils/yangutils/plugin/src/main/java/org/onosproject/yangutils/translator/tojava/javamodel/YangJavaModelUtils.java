@@ -300,7 +300,7 @@ public final class YangJavaModelUtils {
             YangPluginConfig yangPluginConfig)
             throws IOException {
         if (!(javaCodeGeneratorInfo instanceof YangNode)) {
-            // TODO:throw exception
+            throw new TranslatorException("invalid node for translation");
         }
         updatePackageInfo(javaCodeGeneratorInfo, yangPluginConfig);
         generateTempFiles(javaCodeGeneratorInfo, yangPluginConfig);
@@ -318,7 +318,7 @@ public final class YangJavaModelUtils {
                                               YangPluginConfig yangPluginConfig, String rootPkg)
             throws IOException {
         if (!(javaCodeGeneratorInfo instanceof YangNode)) {
-            // TODO:throw exception
+            throw new TranslatorException("invalid node for translation");
         }
         updatePackageInfo(javaCodeGeneratorInfo, yangPluginConfig, rootPkg);
 
