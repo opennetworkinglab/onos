@@ -1,5 +1,6 @@
 {
   "priority": 60,
+  "appId": "org.onosproject.sample",
   "isPermanent": "false",
   "timeout": 1,
   "flag": "SPECIFIC",

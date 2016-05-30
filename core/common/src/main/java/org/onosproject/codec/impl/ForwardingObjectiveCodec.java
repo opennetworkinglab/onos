@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -34,11 +33,12 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Forwarding Objective Codec.
  */
-public class ForwardingObjectiveCodec extends JsonCodec<ForwardingObjective> {
+public final class ForwardingObjectiveCodec extends JsonCodec<ForwardingObjective> {
     private final Logger log = getLogger(getClass());
 
     // JSON field names
     private static final String ID = "id";
+    private static final String APP_ID = "appId";
     private static final String SELECTOR = "selector";
     private static final String FLAG = "flag";
     private static final String OPERATION = "operation";
@@ -116,8 +116,9 @@ public class ForwardingObjectiveCodec extends JsonCodec<ForwardingObjective> {
                 (DefaultForwardingObjective.Builder) och.decode(json, baseBuilder, context);
 
         // application id
-        ApplicationId appId = coreService.registerApplication(REST_APP_ID);
-        builder.fromApp(appId);
+        JsonNode appIdJson = json.get(APP_ID);
+        String appId = appIdJson != null ? appIdJson.asText() : REST_APP_ID;
+        builder.fromApp(coreService.registerApplication(appId));
 
         // decode flag
         String flagStr = nullIsIllegal(json.get(FLAG), FLAG + MISSING_MEMBER_MESSAGE).asText();

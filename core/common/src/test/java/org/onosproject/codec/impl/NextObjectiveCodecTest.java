@@ -20,7 +20,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
@@ -46,6 +48,7 @@ public class NextObjectiveCodecTest {
     MockCodecContext context;
     JsonCodec<NextObjective> nextObjectiveCodec;
     final CoreService mockCoreService = createMock(CoreService.class);
+    static final String SAMPLE_APP_ID = "org.onosproject.sample";
 
     /**
      * Sets up for each test.
@@ -57,9 +60,6 @@ public class NextObjectiveCodecTest {
         nextObjectiveCodec = context.codec(NextObjective.class);
         assertThat(nextObjectiveCodec, notNullValue());
 
-        expect(mockCoreService.registerApplication(NextObjectiveCodec.REST_APP_ID))
-                .andReturn(APP_ID).anyTimes();
-        replay(mockCoreService);
         context.registerService(CoreService.class, mockCoreService);
     }
 
@@ -89,6 +89,12 @@ public class NextObjectiveCodecTest {
      */
     @Test
     public void testNextObjectiveDecode() throws IOException {
+
+        ApplicationId appId = new DefaultApplicationId(0, SAMPLE_APP_ID);
+
+        expect(mockCoreService.registerApplication(SAMPLE_APP_ID)).andReturn(appId).anyTimes();
+        replay(mockCoreService);
+
         NextObjective nextObjective = getNextObjective("NextObjective.json");
 
         assertThat(nextObjective.type(), is(NextObjective.Type.FAILOVER));

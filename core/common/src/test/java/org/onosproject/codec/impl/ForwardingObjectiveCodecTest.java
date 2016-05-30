@@ -21,7 +21,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.VlanId;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.Criteria;
@@ -32,9 +34,7 @@ import org.onosproject.net.flowobjective.ForwardingObjective;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -49,6 +49,7 @@ public class ForwardingObjectiveCodecTest {
     MockCodecContext context;
     JsonCodec<ForwardingObjective> forwardingObjectiveCodec;
     final CoreService mockCoreService = createMock(CoreService.class);
+    static final String SAMPLE_APP_ID = "org.onosproject.sample";
 
     /**
      * Sets up for each test.
@@ -60,9 +61,6 @@ public class ForwardingObjectiveCodecTest {
         forwardingObjectiveCodec = context.codec(ForwardingObjective.class);
         assertThat(forwardingObjectiveCodec, notNullValue());
 
-        expect(mockCoreService.registerApplication(ForwardingObjectiveCodec.REST_APP_ID))
-                .andReturn(APP_ID).anyTimes();
-        replay(mockCoreService);
         context.registerService(CoreService.class, mockCoreService);
     }
 
@@ -97,6 +95,12 @@ public class ForwardingObjectiveCodecTest {
      */
     @Test
     public void testForwardingObjectiveDecode() throws IOException {
+
+        ApplicationId appId = new DefaultApplicationId(0, SAMPLE_APP_ID);
+
+        expect(mockCoreService.registerApplication(SAMPLE_APP_ID)).andReturn(appId).anyTimes();
+        replay(mockCoreService);
+
         ForwardingObjective forwardingObjective = getForwardingObjective("ForwardingObjective.json");
 
         assertThat(forwardingObjective.flag(), is(ForwardingObjective.Flag.SPECIFIC));
@@ -104,6 +108,7 @@ public class ForwardingObjectiveCodecTest {
         assertThat(forwardingObjective.timeout(), is(1));
         assertThat(forwardingObjective.op(), is(ForwardingObjective.Operation.ADD));
         assertThat(forwardingObjective.permanent(), is(false));
+        assertThat(forwardingObjective.appId().name(), is(SAMPLE_APP_ID));
     }
 
     /**

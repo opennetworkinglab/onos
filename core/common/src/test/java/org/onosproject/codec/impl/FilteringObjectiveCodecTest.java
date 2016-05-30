@@ -21,7 +21,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.VlanId;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flowobjective.DefaultFilteringObjective;
@@ -47,6 +49,7 @@ public class FilteringObjectiveCodecTest {
     MockCodecContext context;
     JsonCodec<FilteringObjective> filteringObjectiveCodec;
     final CoreService mockCoreService = createMock(CoreService.class);
+    static final String SAMPLE_APP_ID = "org.onosproject.sample";
 
     /**
      * Sets up for each test.
@@ -58,9 +61,6 @@ public class FilteringObjectiveCodecTest {
         filteringObjectiveCodec = context.codec(FilteringObjective.class);
         assertThat(filteringObjectiveCodec, notNullValue());
 
-        expect(mockCoreService.registerApplication(FilteringObjectiveCodec.REST_APP_ID))
-                .andReturn(APP_ID).anyTimes();
-        replay(mockCoreService);
         context.registerService(CoreService.class, mockCoreService);
     }
 
@@ -93,6 +93,12 @@ public class FilteringObjectiveCodecTest {
      */
     @Test
     public void testFilteringObjectiveDecode() throws IOException {
+
+        ApplicationId appId = new DefaultApplicationId(0, SAMPLE_APP_ID);
+
+        expect(mockCoreService.registerApplication(SAMPLE_APP_ID)).andReturn(appId).anyTimes();
+        replay(mockCoreService);
+
         FilteringObjective filteringObjective = getFilteringObjective("FilteringObjective.json");
 
         assertThat(filteringObjective.type(), is(FilteringObjective.Type.PERMIT));

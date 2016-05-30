@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -37,7 +36,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Filtering Objective Codec.
  */
-public class FilteringObjectiveCodec extends JsonCodec<FilteringObjective> {
+public final class FilteringObjectiveCodec extends JsonCodec<FilteringObjective> {
     private final Logger log = getLogger(getClass());
 
     // JSON field names
@@ -45,6 +44,7 @@ public class FilteringObjectiveCodec extends JsonCodec<FilteringObjective> {
     private static final String TYPE = "type";
     private static final String KEY = "key";
     private static final String META = "meta";
+    private static final String APP_ID = "appId";
     private static final String OPERATION = "operation";
     private static final String CONDITIONS = "conditions";
 
@@ -118,9 +118,12 @@ public class FilteringObjectiveCodec extends JsonCodec<FilteringObjective> {
         final DefaultFilteringObjective.Builder builder =
                 (DefaultFilteringObjective.Builder) och.decode(json, baseBuilder, context);
 
+
+
         // application id
-        ApplicationId appId = coreService.registerApplication(REST_APP_ID);
-        builder.fromApp(appId);
+        JsonNode appIdJson = json.get(APP_ID);
+        String appId = appIdJson != null ? appIdJson.asText() : REST_APP_ID;
+        builder.fromApp(coreService.registerApplication(appId));
 
         // decode type
         String typeStr = nullIsIllegal(json.get(TYPE), TYPE + MISSING_MEMBER_MESSAGE).asText();
