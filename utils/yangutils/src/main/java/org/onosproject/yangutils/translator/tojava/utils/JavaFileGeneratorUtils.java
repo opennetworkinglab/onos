@@ -111,8 +111,8 @@ public final class JavaFileGeneratorUtils {
     /**
      * Returns a file object for generated file.
      *
-     * @param fileName file name
      * @param filePath file package path
+     * @param fileName file name
      * @param extension file extension
      * @param handle cached file handle
      * @return file object
@@ -255,19 +255,19 @@ public final class JavaFileGeneratorUtils {
      *
      * @param file generated file
      * @param className generated file class name
-     * @param type generated file type
+     * @param genType generated file type
      * @param imports imports for the file
      * @param pkg generated file package
      * @param pluginConfig plugin configurations
      * @throws IOException when fails to generate a file
      */
-    public static void initiateJavaFileGeneration(File file, String className, int type, List<String> imports,
+    public static void initiateJavaFileGeneration(File file, String className, int genType, List<String> imports,
             String pkg, YangPluginConfig pluginConfig)
             throws IOException {
 
         try {
             file.createNewFile();
-            appendContents(file, className, type, imports, pkg, pluginConfig);
+            appendContents(file, className, genType, imports, pkg, pluginConfig);
         } catch (IOException e) {
             throw new IOException("Failed to create " + file.getName() + " class file.");
         }
@@ -277,18 +277,18 @@ public final class JavaFileGeneratorUtils {
      * Initiates generation of file based on generated file type.
      *
      * @param file generated file
-     * @param type generated file type
+     * @param genType generated file type
      * @param imports imports for the file
      * @param curNode current YANG node
      * @param className class name
      * @throws IOException when fails to generate a file
      */
-    public static void initiateJavaFileGeneration(File file, int type, List<String> imports,
+    public static void initiateJavaFileGeneration(File file, int genType, List<String> imports,
             YangNode curNode, String className) throws IOException {
 
         try {
             file.createNewFile();
-            appendContents(file, type, imports, curNode, className);
+            appendContents(file, genType, imports, curNode, className);
         } catch (IOException e) {
             throw new IOException("Failed to create " + file.getName() + " class file.");
         }
@@ -298,13 +298,13 @@ public final class JavaFileGeneratorUtils {
      * Appends all the contents into a generated java file.
      *
      * @param file generated file
-     * @param fileName generated file name
-     * @param type generated file type
-     * @param pkg generated file package
-     * @param importsList list of java imports.
-     * @throws IOException when fails to append contents
+     * @param genType generated file type
+     * @param importsList list of java imports
+     * @param curNode current YANG node
+     * @param className class name
+     * @throws IOException
      */
-    private static void appendContents(File file, int type, List<String> importsList, YangNode curNode,
+    private static void appendContents(File file, int genType, List<String> importsList, YangNode curNode,
             String className) throws IOException {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
@@ -313,33 +313,33 @@ public final class JavaFileGeneratorUtils {
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
         String pkgString = null;
-        if (type == GENERATE_EVENT_CLASS
-                || type == GENERATE_EVENT_LISTENER_INTERFACE
-                || type == GENERATE_EVENT_SUBJECT_CLASS) {
+        if (genType == GENERATE_EVENT_CLASS
+                || genType == GENERATE_EVENT_LISTENER_INTERFACE
+                || genType == GENERATE_EVENT_SUBJECT_CLASS) {
             pkgString = parsePackageString((path + PERIOD + name).toLowerCase(), importsList);
         } else {
             pkgString = parsePackageString(path, importsList);
         }
-        switch (type) {
+        switch (genType) {
         case INTERFACE_MASK:
             appendHeaderContents(file, pkgString, importsList);
-            write(file, type, INTERFACE, curNode, className);
+            write(file, genType, INTERFACE, curNode, className);
             break;
         case GENERATE_SERVICE_AND_MANAGER:
             appendHeaderContents(file, pkgString, importsList);
-            write(file, type, RPC_INTERFACE, curNode, className);
+            write(file, genType, RPC_INTERFACE, curNode, className);
             break;
         case GENERATE_EVENT_CLASS:
             appendHeaderContents(file, pkgString, importsList);
-            write(file, type, EVENT, curNode, className);
+            write(file, genType, EVENT, curNode, className);
             break;
         case GENERATE_EVENT_LISTENER_INTERFACE:
             appendHeaderContents(file, pkgString, importsList);
-            write(file, type, EVENT_LISTENER, curNode, className);
+            write(file, genType, EVENT_LISTENER, curNode, className);
             break;
         case GENERATE_EVENT_SUBJECT_CLASS:
             appendHeaderContents(file, pkgString, importsList);
-            write(file, type, EVENT_SUBJECT_CLASS, curNode, className);
+            write(file, genType, EVENT_SUBJECT_CLASS, curNode, className);
             break;
         default:
             break;
@@ -351,39 +351,40 @@ public final class JavaFileGeneratorUtils {
      *
      * @param file generated file
      * @param fileName generated file name
-     * @param type generated file type
+     * @param genType generated file type
+     * @param importsList list of java imports
      * @param pkg generated file package
-     * @param importsList list of java imports.
+     * @param pluginConfig plugin configurations
      * @throws IOException when fails to append contents
      */
-    private static void appendContents(File file, String fileName, int type, List<String> importsList, String pkg,
+    private static void appendContents(File file, String fileName, int genType, List<String> importsList, String pkg,
             YangPluginConfig pluginConfig)
             throws IOException {
 
         String pkgString = parsePackageString(pkg, importsList);
 
-        switch (type) {
+        switch (genType) {
         case IMPL_CLASS_MASK:
-            write(file, fileName, type, IMPL_CLASS, pluginConfig);
+            write(file, fileName, genType, IMPL_CLASS, pluginConfig);
             break;
         case BUILDER_INTERFACE_MASK:
-            write(file, fileName, type, BUILDER_INTERFACE, pluginConfig);
+            write(file, fileName, genType, BUILDER_INTERFACE, pluginConfig);
             break;
         case GENERATE_TYPEDEF_CLASS:
             appendHeaderContents(file, pkgString, importsList);
-            write(file, fileName, type, IMPL_CLASS, pluginConfig);
+            write(file, fileName, genType, IMPL_CLASS, pluginConfig);
             break;
         case BUILDER_CLASS_MASK:
             appendHeaderContents(file, pkgString, importsList);
-            write(file, fileName, type, BUILDER_CLASS, pluginConfig);
+            write(file, fileName, genType, BUILDER_CLASS, pluginConfig);
             break;
         case GENERATE_UNION_CLASS:
             appendHeaderContents(file, pkgString, importsList);
-            write(file, fileName, type, IMPL_CLASS, pluginConfig);
+            write(file, fileName, genType, IMPL_CLASS, pluginConfig);
             break;
         case GENERATE_ENUM_CLASS:
             appendHeaderContents(file, pkgString, importsList);
-            write(file, fileName, type, ENUM_CLASS, pluginConfig);
+            write(file, fileName, genType, ENUM_CLASS, pluginConfig);
             break;
         default:
             break;
@@ -443,9 +444,10 @@ public final class JavaFileGeneratorUtils {
      * Writes data to the specific generated file.
      *
      * @param file generated file
-     * @param fileName file name
      * @param genType generated file type
      * @param javaDocType java doc type
+     * @param curNode current YANG node
+     * @param fileName file name
      * @throws IOException when fails to write into a file
      */
     private static void write(File file, int genType, JavaDocType javaDocType, YangNode curNode, String fileName)
@@ -472,7 +474,8 @@ public final class JavaFileGeneratorUtils {
      * @param fileName file name
      * @param genType generated file type
      * @param javaDocType java doc type
-     * @throws IOException when fails to write into a file
+     * @param pluginConfig plugin configurations
+     * @throws IOException
      */
     private static void write(File file, String fileName, int genType, JavaDocType javaDocType,
             YangPluginConfig pluginConfig)
