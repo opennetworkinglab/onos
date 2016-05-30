@@ -38,121 +38,99 @@ public class TunnelServiceAdapter implements TunnelService {
 
     @Override
     public void addListener(TunnelListener listener) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void removeListener(TunnelListener listener) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public Tunnel borrowTunnel(ApplicationId consumerId, TunnelId tunnelId, Annotations... annotations) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public Collection<Tunnel> borrowTunnel(ApplicationId consumerId, TunnelName tunnelName,
                                            Annotations... annotations) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public Collection<Tunnel> borrowTunnel(ApplicationId consumerId, TunnelEndPoint src, TunnelEndPoint dst,
                                            Annotations... annotations) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public Collection<Tunnel> borrowTunnel(ApplicationId consumerId, TunnelEndPoint src, TunnelEndPoint dst, Type type,
                                            Annotations... annotations) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public TunnelId setupTunnel(ApplicationId producerId, ElementId srcElementId, Tunnel tunnel, Path path) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public boolean downTunnel(ApplicationId producerId, TunnelId tunnelId) {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public boolean returnTunnel(ApplicationId consumerId, TunnelId tunnelId, Annotations... annotations) {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public boolean returnTunnel(ApplicationId consumerId, TunnelName tunnelName, Annotations... annotations) {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public boolean returnTunnel(ApplicationId consumerId, TunnelEndPoint src, TunnelEndPoint dst, Type type,
                                 Annotations... annotations) {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public boolean returnTunnel(ApplicationId consumerId, TunnelEndPoint src, TunnelEndPoint dst,
                                 Annotations... annotations) {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public Tunnel queryTunnel(TunnelId tunnelId) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public Collection<TunnelSubscription> queryTunnelSubscription(ApplicationId consumerId) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public Collection<Tunnel> queryTunnel(Type type) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public Collection<Tunnel> queryTunnel(TunnelEndPoint src, TunnelEndPoint dst) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public Collection<Tunnel> queryAllTunnels() {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public int tunnelCount() {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public Iterable<Tunnel> getTunnels(DeviceId deviceId) {
-        // TODO Auto-generated method stub
         return null;
     }
-
 }

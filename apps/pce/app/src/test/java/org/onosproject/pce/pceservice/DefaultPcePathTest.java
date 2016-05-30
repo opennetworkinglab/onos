@@ -21,7 +21,11 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
+import com.google.common.testing.EqualsTester;
+
 import org.onosproject.incubator.net.tunnel.TunnelId;
+import org.onosproject.pce.pceservice.constraint.CostConstraint;
+import org.onosproject.net.intent.constraint.BandwidthConstraint;
 
 /**
  * Unit tests for DefaultPcePath class.
@@ -78,8 +82,8 @@ public class DefaultPcePathTest {
                 .bandwidthConstraint(bandwidth2)
                 .build();
         path2.id(TunnelId.valueOf("2"));
-        //TODO: will be uncommented below line once CostConstraint and LocalBandwidthConstraint classes are ready
-        //new EqualsTester().addEqualityGroup(path1, samePath1).addEqualityGroup(path2).testEquals();
+
+        new EqualsTester().addEqualityGroup(path1, samePath1).addEqualityGroup(path2).testEquals();
     }
 
     /**
@@ -91,7 +95,7 @@ public class DefaultPcePathTest {
         final String bandwidth = "600";
         final String src = "indiatimes";
         final String dst = "deccan";
-        final String type = "3";
+        final String type = "2";
         final String name = "pcc4";
 
         PcePath path = DefaultPcePath.builder()
@@ -103,12 +107,14 @@ public class DefaultPcePathTest {
                 .bandwidthConstraint(bandwidth)
                 .build();
 
-        assertThat(src, is(path.source()));
-        assertThat(dst, is(path.destination()));
-        assertThat(LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR, is(path.lspType()));
-        assertThat(name, is(path.name()));
-        //TODO: will be uncommented below lines once CostConstraint and LocalBandwidthConstraint classes are ready
-        //assertThat(cost, is(path.costConstraint().toString()));
-        //assertThat(bandwidth, is(path.bandwidthConstraint().toString()));
+        assertThat(path.source(), is(src));
+        assertThat(path.destination(), is(dst));
+        assertThat(path.lspType(), is(LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR));
+        assertThat(path.name(), is(name));
+        CostConstraint costConstExpected = CostConstraint.of(CostConstraint.Type.values()[Integer.valueOf(cost) - 1]);
+        CostConstraint costConstActual = (CostConstraint) path.costConstraint();
+        assertThat(costConstActual.type(), is(costConstExpected.type()));
+        BandwidthConstraint bandwidthActual = (BandwidthConstraint) path.bandwidthConstraint();
+        assertThat(bandwidthActual.bandwidth().bps(), is(Double.valueOf(bandwidth)));
     }
 }

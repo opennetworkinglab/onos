@@ -21,15 +21,14 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
-//TODO: below imports needs to be uncommented once TODO in DefaultPcePath class are removed
-//import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import static org.onosproject.net.Link.Type.DIRECT;
 
-//import com.eclipsesource.json.Json;
-//import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonObject;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -64,6 +63,7 @@ import org.onosproject.net.DefaultPath;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.pce.pceservice.api.PceService;
+import org.onosproject.pce.pceservice.PcepAnnotationKeys;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.ProviderId;
@@ -158,10 +158,16 @@ public class PcePathResourceTest extends PceResourceTest {
        // Path
        path = new DefaultPath(providerId, linkList, 10);
 
+       // Annotations
+       DefaultAnnotations.Builder builderAnn = DefaultAnnotations.builder();
+       builderAnn.set(PcepAnnotationKeys.LSP_SIG_TYPE, "2");
+       builderAnn.set(PcepAnnotationKeys.COST_TYPE, "2");
+       builderAnn.set(PcepAnnotationKeys.BANDWIDTH, "200");
+
        // Tunnel
        tunnel = new DefaultTunnel(producerName, src, dst, Tunnel.Type.VXLAN,
                                   Tunnel.State.ACTIVE, groupId, tunnelId,
-                                  tunnelName, path);
+                                  tunnelName, path, builderAnn.build());
     }
 
     /**
@@ -190,16 +196,15 @@ public class PcePathResourceTest extends PceResourceTest {
      */
     @Test
     public void testGetTunnelId() {
-        //TODO: uncomment below lines once TODO in DefaultPcePath class are removed
-        //expect(pceService.queryPath(anyObject()))
-        //                 .andReturn(tunnel)
-        //                 .anyTimes();
-        //replay(pceService);
+        expect(pceService.queryPath(anyObject()))
+                         .andReturn(tunnel)
+                         .anyTimes();
+        replay(pceService);
 
-        //WebTarget wt = target();
-        //String response = wt.path("path/1").request().get(String.class);
-        //JsonObject result = Json.parse(response).asObject();
-        //assertThat(result, notNullValue());
+        WebTarget wt = target();
+        String response = wt.path("path/1").request().get(String.class);
+        JsonObject result = Json.parse(response).asObject();
+        assertThat(result, notNullValue());
     }
 
     /**

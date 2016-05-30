@@ -20,9 +20,12 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 
 import java.util.Objects;
 
+import org.onlab.util.DataRateUnit;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
+import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.Constraint;
+import org.onosproject.pce.pceservice.constraint.CostConstraint;
 
 /**
  * Implementation of an entity which provides functionalities of pce path.
@@ -43,9 +46,10 @@ public final class DefaultPcePath implements PcePath {
      * @param id path id
      * @param src ingress
      * @param dst egress
-     * @param lspType lsp type
+     * @param lspType LSP type
      * @param name symbolic-path-name
-     * @param constrnt pce constraint
+     * @param costConstrnt cost constraint
+     * @param bandwidthConstrnt bandwidth constraint
      */
     private DefaultPcePath(TunnelId id, String src, String dst, LspType lspType,
                            String name, Constraint costConstrnt, Constraint bandwidthConstrnt) {
@@ -210,7 +214,7 @@ public final class DefaultPcePath implements PcePath {
         @Override
         public Builder lspType(String type) {
             if (null != type) {
-                this.lspType = LspType.values()[Integer.valueOf(type) - 1];
+                this.lspType = LspType.values()[Integer.valueOf(type)];
             }
             return this;
         }
@@ -223,19 +227,14 @@ public final class DefaultPcePath implements PcePath {
 
         @Override
         public Builder costConstraint(String cost) {
-            this.costConstraint = null;
-            //TODO: below lines will be uncommented once CostConstraint class is ready
-            //    this.costConstraint = CostConstraint.of(cost);
-            //}
+            this.costConstraint = CostConstraint.of(CostConstraint.Type.values()[Integer.valueOf(cost) - 1]);
             return this;
         }
 
         @Override
         public Builder bandwidthConstraint(String bandwidth) {
-            this.bandwidthConstraint = null;
-            //TODO: below lines will be uncommented once LocalBandwidthConstraint class is ready
-            //    this.bandwidthConstraint = LocalBandwidthConstraint.of(bandwidth);
-            //}
+            this.bandwidthConstraint = BandwidthConstraint.of(Double.valueOf(bandwidth), DataRateUnit
+                    .valueOf("BPS"));
             return this;
         }
 
@@ -244,14 +243,24 @@ public final class DefaultPcePath implements PcePath {
             this.id = TunnelId.valueOf(tunnel.tunnelId().id());
             this.source = tunnel.src().toString();
             this.destination = tunnel.dst().toString();
-            //TODO: need to uncomment below line once LSP_SIG_TYPE is added to AnnotationKeys.
-            this.lspType = null; // = LspType.valueOf(tunnel.annotations()
-                                           //.value(AnnotationKeys.LSP_SIG_TYPE));
             this.name = tunnel.tunnelName().toString();
-            //TODO: uncomment below lines once CostConstraint and LocalBandwidthConstraint classes are ready
-            this.costConstraint = null; // = CostConstraint.of(tunnel.path().cost());
-            this.bandwidthConstraint = null; // = LocalBandwidthConstraint.of(tunnel.annotations()
-                                                                        //.value(AnnotationKeys.BANDWIDTH));
+            // LSP type
+            String lspType = tunnel.annotations().value(PcepAnnotationKeys.LSP_SIG_TYPE);
+            if (lspType != null) {
+               this.lspType = LspType.values()[Integer.valueOf(lspType) - 1];
+            }
+            // Cost type
+            String costType = tunnel.annotations().value(PcepAnnotationKeys.COST_TYPE);
+            if (costType != null) {
+                this.costConstraint = CostConstraint.of(CostConstraint.Type.values()[Integer.valueOf(costType) - 1]);
+            }
+            // Bandwidth
+            String bandwidth = tunnel.annotations().value(PcepAnnotationKeys.BANDWIDTH);
+            if (bandwidth != null) {
+                this.bandwidthConstraint = BandwidthConstraint.of(Double.parseDouble(bandwidth),
+                                                                  DataRateUnit.valueOf("BPS"));
+            }
+
             return this;
         }
 

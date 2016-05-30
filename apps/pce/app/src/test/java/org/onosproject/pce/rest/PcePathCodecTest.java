@@ -24,8 +24,13 @@ import java.io.InputStream;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import org.onlab.util.DataRateUnit;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.pce.pceservice.PcePath;
+import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import org.onosproject.net.intent.Constraint;
+import org.onosproject.pce.pceservice.constraint.CostConstraint;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -80,9 +85,15 @@ public class PcePathCodecTest {
 
         assertThat(pcePath.source().toString(), is("11.0.0.1"));
         assertThat(pcePath.destination(), is("11.0.0.2"));
-        assertThat(pcePath.lspType().toString(), is("SR_WITHOUT_SIGNALLING"));
-        //TODO: uncomment below lines once CostConstraint and LocalBandwidthConstraint are ready
-        //assertThat(pcePath.costConstraint().toString(), is(2));
-        //assertThat(pcePath.bandwidthConstraint().toString(), is(200.0));
+        assertThat(pcePath.lspType().toString(), is("WITHOUT_SIGNALLING_AND_WITHOUT_SR"));
+        // testing cost type
+        String cost = "2";
+        Constraint costConstraint = CostConstraint.of(CostConstraint.Type.values()[Integer.valueOf(cost) - 1]);
+        assertThat(pcePath.costConstraint(), is(costConstraint));
+        // testing bandwidth
+        String bandwidth = "200";
+        Constraint bandwidthConstraint = BandwidthConstraint.of(Double.valueOf(bandwidth), DataRateUnit
+                    .valueOf("BPS"));
+        assertThat(pcePath.bandwidthConstraint(), is(bandwidthConstraint));
     }
 }

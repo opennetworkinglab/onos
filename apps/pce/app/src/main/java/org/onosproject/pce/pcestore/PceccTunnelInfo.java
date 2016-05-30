@@ -15,10 +15,10 @@
  */
 package org.onosproject.pce.pcestore;
 
-import java.util.List;
 import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
+import java.util.List;
 
 import org.onosproject.net.resource.ResourceConsumer;
 import org.onosproject.pce.pcestore.api.LspLocalLabelInfo;
