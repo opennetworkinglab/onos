@@ -87,7 +87,7 @@ public final class PcePathCodec extends JsonCodec<PcePath> {
             jNode = constraintJNode.get(COST);
             if (jNode != null) {
                 String cost = jNode.asText();
-                resultBuilder.bandwidthConstraint(cost);
+                resultBuilder.costConstraint(cost);
             }
 
             // retrieve bandwidth

@@ -53,7 +53,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * Query and program pce path.
  */
-
 @Path("path")
 public class PcePathWebResource extends AbstractWebResource {
 
@@ -124,14 +123,11 @@ public class PcePathWebResource extends AbstractWebResource {
             LspType lspType = path.lspType();
             List<Constraint> listConstrnt = new LinkedList<Constraint>();
 
-            // add cost
-            //TODO: need to uncomment below lines once Bandwidth and Cost constraint classes are ready
-            //CostConstraint.Type costType = CostConstraint.Type.values()[Integer.valueOf(path.constraint().cost())];
-            //listConstrnt.add(CostConstraint.of(costType));
+            // Add bandwidth
+            listConstrnt.add(path.bandwidthConstraint());
 
-            // add bandwidth. Data rate unit is in BPS.
-            //listConstrnt.add(LocalBandwidthConstraint.of(Double.valueOf(path.constraint().bandwidth()), DataRateUnit
-            //        .valueOf("BPS")));
+            // Add cost
+            listConstrnt.add(path.costConstraint());
 
             Boolean issuccess = nullIsNotFound(get(PceService.class)
                                                .setupPath(srcDevice, dstDevice, path.name(), listConstrnt, lspType),
@@ -161,19 +157,15 @@ public class PcePathWebResource extends AbstractWebResource {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
             JsonNode pathNode = jsonTree.get("path");
             PcePath path = codec(PcePath.class).decode((ObjectNode) pathNode, this);
-            // Assign cost
             List<Constraint> constrntList = new LinkedList<Constraint>();
-            //TODO: need to uncomment below lines once CostConstraint class is ready
-            if (path.costConstraint() != null) {
-                //CostConstraint.Type costType = CostConstraint.Type.values()[path.constraint().cost()];
-                //constrntList.add(CostConstraint.of(costType));
+            // Assign bandwidth
+            if (path.bandwidthConstraint() != null) {
+                constrntList.add(path.bandwidthConstraint());
             }
 
-            // Assign bandwidth. Data rate unit is in BPS.
-            if (path.bandwidthConstraint() != null) {
-                //TODO: need to uncomment below lines once BandwidthConstraint class is ready
-                //constrntList.add(LocalBandwidthConstraint
-                //        .of(path.constraint().bandwidth(), DataRateUnit.valueOf("BPS")));
+            // Assign cost
+            if (path.costConstraint() != null) {
+                constrntList.add(path.costConstraint());
             }
 
             Boolean result = nullIsNotFound(get(PceService.class).updatePath(TunnelId.valueOf(id), constrntList),

@@ -34,10 +34,11 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.resource.label.LabelResource;
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
+import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.Link;
 import org.onosproject.net.resource.ResourceConsumer;
+import org.onosproject.pce.pceservice.constraint.CostConstraint;
 import org.onosproject.pce.pceservice.TunnelConsumerId;
 import org.onosproject.pce.pceservice.LspType;
 import org.onosproject.pce.pcestore.api.LspLocalLabelInfo;
@@ -128,10 +129,9 @@ public class DistributedPceStore implements PceStore {
                         new KryoNamespace.Builder()
                                 .register(KryoNamespaces.API)
                                 .register(PcePathInfo.class,
-                                          //TODO: Instead of Constraint.class need to add actual implemented class
-                                          //TODO: on this interface like CostConstraint.class and
-                                          //TODO: BandwidthConstraint.class. Will be added once it is confirmed.
-                                          Constraint.class,
+                                          CostConstraint.class,
+                                          CostConstraint.Type.class,
+                                          BandwidthConstraint.class,
                                           LspType.class)
                                 .build()))
 

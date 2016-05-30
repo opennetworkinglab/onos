@@ -24,9 +24,12 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 
+import org.onlab.util.DataRateUnit;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.Constraint;
+import org.onosproject.pce.pceservice.constraint.CostConstraint;
 import org.onosproject.pce.pceservice.LspType;
 import org.onosproject.pce.pceservice.api.PceService;
 
@@ -71,20 +74,32 @@ public class PceSetupPathCommand extends AbstractShellCommand {
 
         DeviceId srcDevice = DeviceId.deviceId(src);
         DeviceId dstDevice = DeviceId.deviceId(dst);
-        LspType lspType = LspType.values()[type];
         List<Constraint> listConstrnt = new LinkedList<>();
 
-        // add cost
-        //TODO: need to uncomment below lines once CostConstraint is ready
-        //CostConstraint.Type costType = CostConstraint.Type.values()[cost];
-        //listConstrnt.add(CostConstraint.of(costType));
+        // LSP type validation
+        if ((type < 0) || (type > 2)) {
+           error("The LSP type value can be PCE tunnel with signalling in network (0), " +
+                 "PCE tunnel without signalling in network with segment routing (1), " +
+                 "PCE tunnel without signalling in network (2).");
+           return;
+        }
+        LspType lspType = LspType.values()[type];
 
-        // add bandwidth
+        // Add bandwidth
         // bandwidth default data rate unit is in BPS
         if (bandwidth != 0.0) {
-            //TODO: need to uncomment below line once BandwidthConstraint is ready
-            //listConstrnt.add(LocalBandwidthConstraint.of(bandwidth, DataRateUnit.valueOf("BPS")));
+            listConstrnt.add(BandwidthConstraint.of(bandwidth, DataRateUnit.valueOf("BPS")));
         }
+
+        // Add cost
+        // Cost validation
+        if ((cost < 1) || (cost > 2)) {
+            error("The cost attribute value either IGP cost(1) or TE cost(2).");
+            return;
+        }
+        // Here 'cost - 1' indicates the index of enum
+        CostConstraint.Type costType = CostConstraint.Type.values()[cost - 1];
+        listConstrnt.add(CostConstraint.of(costType));
 
         if (!service.setupPath(srcDevice, dstDevice, name, listConstrnt, lspType)) {
             error("Path creation failed.");

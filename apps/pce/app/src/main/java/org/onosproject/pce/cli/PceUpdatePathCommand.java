@@ -24,8 +24,12 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 
+import org.onlab.util.DataRateUnit;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.incubator.net.tunnel.TunnelId;
+import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.Constraint;
+import org.onosproject.pce.pceservice.constraint.CostConstraint;
 import org.onosproject.pce.pceservice.api.PceService;
 
 import org.slf4j.Logger;
@@ -56,23 +60,25 @@ public class PceUpdatePathCommand extends AbstractShellCommand {
         PceService service = get(PceService.class);
 
         List<Constraint> constrntList = new LinkedList<>();
-        // Assign cost
-        if (cost != 0) {
-            //TODO: need to uncomment below lines once CostConstraint is ready
-            //CostConstraint.Type costType = CostConstraint.Type.values()[Integer.valueOf(cost)];
-            //constrntList.add(CostConstraint.of(costType));
-        }
-
         // Assign bandwidth. Data rate unit is in Bps.
         if (bandwidth != 0.0) {
-            //TODO: need to uncomment below line once BandwidthConstraint is ready
-            //constrntList.add(LocalBandwidthConstraint.of(Double.valueOf(bandwidth), DataRateUnit.valueOf("BPS")));
+            constrntList.add(BandwidthConstraint.of(Double.valueOf(bandwidth), DataRateUnit.valueOf("BPS")));
         }
 
-        //TODO: need to uncomment below lines once updatePath method is added to PceService
-        //if (null == service.updatePath(PcePathId.of(id), constrntList)) {
-        //    error("Path updation failed.");
-        //    return;
-        //}
+        // Assign cost
+        if (cost != 0) {
+            // Cost validation
+            if ((cost < 1) || (cost > 2)) {
+                error("The cost attribute value is either IGP cost(1) or TE cost(2).");
+                return;
+            }
+            CostConstraint.Type costType = CostConstraint.Type.values()[cost - 1];
+            constrntList.add(CostConstraint.of(costType));
+        }
+
+        if (!service.updatePath(TunnelId.valueOf(id), constrntList)) {
+            error("Path updation failed.");
+            return;
+        }
     }
 }

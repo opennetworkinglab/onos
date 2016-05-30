@@ -48,7 +48,6 @@ public class MockPceCodecContext implements CodecContext {
     @SuppressWarnings("unchecked")
     @Override
     public <T> T getService(Class<T> serviceClass) {
-        // TODO
         return null;
     }
 
