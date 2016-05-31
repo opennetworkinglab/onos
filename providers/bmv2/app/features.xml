@@ -22,7 +22,9 @@
         <bundle>mvn:${project.groupId}/onos-bmv2-provider-device/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-bmv2-provider-packet/${project.version}</bundle>
         <bundle>mvn:org.apache.thrift/libthrift/0.9.3</bundle>
-        <bundle>mvn:${project.groupId}/onos-bmv2-protocol/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-bmv2-protocol-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-bmv2-protocol-ctl/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-bmv2-protocol-thrift-api/${project.version}</bundle>
     </feature>
 </features>
 

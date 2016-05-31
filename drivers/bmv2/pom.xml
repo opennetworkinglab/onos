@@ -22,6 +22,7 @@
         <artifactId>onos-drivers-general</artifactId>
         <groupId>org.onosproject</groupId>
         <version>1.6.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -36,7 +37,7 @@
         <onos.app.name>org.onosproject.drivers.bmv2</onos.app.name>
         <onos.app.origin>ON.Lab</onos.app.origin>
         <onos.app.category>Drivers</onos.app.category>
-        <onos.app.title>BMv2 Device Drivers</onos.app.title>
+        <onos.app.title>BMv2 Drivers</onos.app.title>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.requires>
             org.onosproject.bmv2
@@ -46,7 +47,7 @@
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-bmv2-protocol</artifactId>
+            <artifactId>onos-bmv2-protocol-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

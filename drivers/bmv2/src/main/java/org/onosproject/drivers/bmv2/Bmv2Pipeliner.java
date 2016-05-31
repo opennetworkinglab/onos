@@ -37,8 +37,8 @@ public class Bmv2Pipeliner extends AbstractHandlerBehaviour implements Pipeliner
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
-        // TODO: get multi-table pipeliner dynamically based on BMv2 device running model
-        // Right now we only support single table pipelines
+        // TODO: get multi-table pipeliner dynamically based on BMv2 device running model (hard).
+        // Right now we are able to map flow objectives only in the first table of the pipeline.
         pipeliner = new DefaultSingleTablePipeline();
         pipeliner.init(deviceId, context);
     }

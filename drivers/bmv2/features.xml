@@ -20,6 +20,6 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-bmv2-protocol/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-bmv2-protocol-api/${project.version}</bundle>
     </feature>
 </features>
