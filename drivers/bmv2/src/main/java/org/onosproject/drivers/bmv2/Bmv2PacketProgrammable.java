@@ -17,56 +17,59 @@
 package org.onosproject.drivers.bmv2;
 
 import org.onlab.util.ImmutableByteSequence;
-import org.onosproject.bmv2.api.runtime.Bmv2Client;
+import org.onosproject.bmv2.api.runtime.Bmv2DeviceAgent;
 import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
-import org.onosproject.bmv2.ctl.Bmv2ThriftClient;
+import org.onosproject.bmv2.api.service.Bmv2Controller;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketProgrammable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 import static java.lang.Math.toIntExact;
-import static org.onosproject.net.PortNumber.FLOOD;
+import static java.util.stream.Collectors.toList;
 import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
+import static org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 
 /**
- * Packet programmable device behaviour implementation for BMv2.
+ * Implementation of the packet programmable behaviour for BMv2.
  */
 public class Bmv2PacketProgrammable extends AbstractHandlerBehaviour implements PacketProgrammable {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(Bmv2PacketProgrammable.class);
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Override
     public void emit(OutboundPacket packet) {
 
         TrafficTreatment treatment = packet.treatment();
 
-        treatment.allInstructions().forEach(inst -> {
-            if (inst.type().equals(OUTPUT)) {
-                Instructions.OutputInstruction outInst = (Instructions.OutputInstruction) inst;
-                if (outInst.port().isLogical()) {
-                    if (outInst.port() == FLOOD) {
-                        // TODO: implement flood
-                        LOG.info("Flood not implemented", outInst);
-                    }
-                    LOG.info("Output on logical port not supported: {}", outInst);
-                } else {
-                    try {
-                        long longPort = outInst.port().toLong();
-                        int portNumber = toIntExact(longPort);
-                        send(portNumber, packet);
-                    } catch (ArithmeticException e) {
-                        LOG.error("Port number overflow! Cannot send packet on port {} (long), as the bmv2" +
-                                          " device only accepts int port values.");
-                    }
-                }
+        // BMv2 supports only OUTPUT instructions.
+        List<OutputInstruction> outInstructions = treatment.allInstructions()
+                .stream()
+                .filter(i -> i.type().equals(OUTPUT))
+                .map(i -> (OutputInstruction) i)
+                .collect(toList());
+
+        if (treatment.allInstructions().size() != outInstructions.size()) {
+            // There are other instructions that are not of type OUTPUT
+            log.warn("Dropping emit request, treatment nor supported: {}", treatment);
+            return;
+        }
+
+        outInstructions.forEach(outInst -> {
+            if (outInst.port().isLogical()) {
+                log.warn("Dropping emit request, logical port not supported: {}", outInst.port());
             } else {
-                LOG.info("Instruction type not supported: {}", inst.type().name());
+                try {
+                    int portNumber = toIntExact(outInst.port().toLong());
+                    send(portNumber, packet);
+                } catch (ArithmeticException e) {
+                    log.error("Dropping emit request, port number too big: {}", outInst.port().toLong());
+                }
             }
         });
     }
@@ -75,19 +78,25 @@ public class Bmv2PacketProgrammable extends AbstractHandlerBehaviour implements 
 
         DeviceId deviceId = handler().data().deviceId();
 
-        Bmv2Client deviceClient;
+        Bmv2Controller controller = handler().get(Bmv2Controller.class);
+        if (controller == null) {
+            log.error("Failed to get BMv2 controller");
+            return;
+        }
+
+        Bmv2DeviceAgent deviceAgent;
         try {
-            deviceClient = Bmv2ThriftClient.of(deviceId);
+            deviceAgent = controller.getAgent(deviceId);
         } catch (Bmv2RuntimeException e) {
-            LOG.error("Failed to connect to Bmv2 device", e);
+            log.error("Failed to get Bmv2 device agent for {}: {}", deviceId, e.explain());
             return;
         }
 
         ImmutableByteSequence bs = ImmutableByteSequence.copyFrom(packet.data());
         try {
-            deviceClient.transmitPacket(port, bs);
+            deviceAgent.transmitPacket(port, bs);
         } catch (Bmv2RuntimeException e) {
-            LOG.info("Unable to push packet to device: deviceId={}, packet={}", deviceId, bs);
+            log.warn("Unable to emit packet trough {}: {}", deviceId, e.explain());
         }
     }
 }

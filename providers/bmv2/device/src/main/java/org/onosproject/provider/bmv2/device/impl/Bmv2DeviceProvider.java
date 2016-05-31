@@ -23,36 +23,38 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
-import org.onlab.packet.ChassisId;
-import org.onlab.util.HexString;
 import org.onlab.util.Timer;
-import org.onosproject.bmv2.api.runtime.Bmv2ControlPlaneServer;
 import org.onosproject.bmv2.api.runtime.Bmv2Device;
 import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
-import org.onosproject.bmv2.ctl.Bmv2ThriftClient;
+import org.onosproject.bmv2.api.service.Bmv2Controller;
+import org.onosproject.bmv2.api.service.Bmv2DeviceContextService;
+import org.onosproject.bmv2.api.service.Bmv2DeviceListener;
 import org.onosproject.common.net.AbstractDeviceProvider;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.config.basics.ConfigException;
-import org.onosproject.net.AnnotationKeys;
-import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.behaviour.PortDiscovery;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
-import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.device.PortStatistics;
+import org.onosproject.net.driver.DefaultDriverData;
+import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.Driver;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -60,9 +62,9 @@ import java.util.concurrent.TimeUnit;
 
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.bmv2.api.runtime.Bmv2Device.*;
-import static org.onosproject.bmv2.ctl.Bmv2ThriftClient.forceDisconnectOf;
-import static org.onosproject.bmv2.ctl.Bmv2ThriftClient.ping;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
+import static org.onosproject.provider.bmv2.device.impl.Bmv2PortStatisticsGetter.getPortStatistics;
+import static org.onosproject.provider.bmv2.device.impl.Bmv2PortStatisticsGetter.initCounters;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -71,11 +73,24 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 public class Bmv2DeviceProvider extends AbstractDeviceProvider {
 
-    private static final Logger LOG = getLogger(Bmv2DeviceProvider.class);
-
     private static final String APP_NAME = "org.onosproject.bmv2";
-    private static final String UNKNOWN = "unknown";
-    private static final int POLL_INTERVAL = 5; // seconds
+
+    private static final int POLL_INTERVAL = 5_000; // milliseconds
+
+    private final Logger log = getLogger(this.getClass());
+
+    private final ExecutorService executorService = Executors
+            .newFixedThreadPool(16, groupedThreads("onos/bmv2", "device-discovery", log));
+
+    private final NetworkConfigListener cfgListener = new InternalNetworkConfigListener();
+
+    private final ConfigFactory cfgFactory = new InternalConfigFactory();
+
+    private final ConcurrentMap<DeviceId, DeviceDescription> activeDevices = Maps.newConcurrentMap();
+
+    private final DevicePoller devicePoller = new DevicePoller();
+
+    private final InternalDeviceListener deviceListener = new InternalDeviceListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry netCfgService;
@@ -87,16 +102,11 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected Bmv2ControlPlaneServer controlPlaneServer;
+    protected Bmv2Controller controller;
 
-    private final ExecutorService deviceDiscoveryExecutor = Executors
-            .newFixedThreadPool(5, groupedThreads("onos/bmv2", "device-discovery", LOG));
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected Bmv2DeviceContextService contextService;
 
-    private final NetworkConfigListener cfgListener = new InternalNetworkConfigListener();
-    private final ConfigFactory cfgFactory = new InternalConfigFactory();
-    private final ConcurrentMap<DeviceId, Boolean> activeDevices = Maps.newConcurrentMap();
-    private final DevicePoller devicePoller = new DevicePoller();
-    private final InternalHelloListener helloListener = new InternalHelloListener();
     private ApplicationId appId;
 
     /**
@@ -111,7 +121,7 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
         appId = coreService.registerApplication(APP_NAME);
         netCfgService.registerConfigFactory(cfgFactory);
         netCfgService.addListener(cfgListener);
-        controlPlaneServer.addHelloListener(helloListener);
+        controller.addDeviceListener(deviceListener);
         devicePoller.start();
         super.activate();
     }
@@ -119,16 +129,16 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
     @Override
     protected void deactivate() {
         devicePoller.stop();
-        controlPlaneServer.removeHelloListener(helloListener);
+        controller.removeDeviceListener(deviceListener);
         try {
             activeDevices.forEach((did, value) -> {
-                deviceDiscoveryExecutor.execute(() -> disconnectDevice(did));
+                executorService.execute(() -> disconnectDevice(did));
             });
-            deviceDiscoveryExecutor.awaitTermination(1000, TimeUnit.MILLISECONDS);
+            executorService.awaitTermination(1000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            LOG.error("Device discovery threads did not terminate");
+            log.error("Device discovery threads did not terminate");
         }
-        deviceDiscoveryExecutor.shutdownNow();
+        executorService.shutdownNow();
         netCfgService.unregisterConfigFactory(cfgFactory);
         netCfgService.removeListener(cfgListener);
         super.deactivate();
@@ -137,14 +147,12 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
     @Override
     public void triggerProbe(DeviceId deviceId) {
         // Asynchronously trigger probe task.
-        deviceDiscoveryExecutor.execute(() -> executeProbe(deviceId));
+        executorService.execute(() -> executeProbe(deviceId));
     }
 
     private void executeProbe(DeviceId did) {
         boolean reachable = isReachable(did);
-        LOG.debug("Probed device: id={}, reachable={}",
-                  did.toString(),
-                  reachable);
+        log.debug("Probed device: id={}, reachable={}", did.toString(), reachable);
         if (reachable) {
             discoverDevice(did);
         } else {
@@ -154,85 +162,108 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
 
     @Override
     public void roleChanged(DeviceId deviceId, MastershipRole newRole) {
-        LOG.debug("roleChanged() is not yet implemented");
+        log.debug("roleChanged() is not yet implemented");
         // TODO: implement mastership handling
     }
 
     @Override
     public boolean isReachable(DeviceId deviceId) {
-        return ping(deviceId);
+        return controller.isReacheable(deviceId);
     }
 
     @Override
     public void changePortState(DeviceId deviceId, PortNumber portNumber, boolean enable) {
-        LOG.debug("changePortState() is not yet implemented");
-        // TODO: implement port handling
+        log.warn("changePortState() not supported");
     }
 
     private void discoverDevice(DeviceId did) {
-        LOG.debug("Starting device discovery... deviceId={}", did);
-
-        // Atomically notify device to core and update port information.
-        activeDevices.compute(did, (k, v) -> {
-            if (!deviceService.isAvailable(did)) {
-                // Device not available in the core, connect it now.
-                DefaultAnnotations.Builder annotationsBuilder = DefaultAnnotations.builder()
-                        .set(AnnotationKeys.PROTOCOL, SCHEME);
-                dumpJsonConfigToAnnotations(did, annotationsBuilder);
-                DeviceDescription descr = new DefaultDeviceDescription(
-                        did.uri(), Device.Type.SWITCH, MANUFACTURER, HW_VERSION,
-                        UNKNOWN, UNKNOWN, new ChassisId(), annotationsBuilder.build());
-                // Reset device state (cleanup entries, etc.)
-                resetDeviceState(did);
-                providerService.deviceConnected(did, descr);
+        log.debug("Starting device discovery... deviceId={}", did);
+        activeDevices.compute(did, (k, lastDescription) -> {
+            DeviceDescription thisDescription = getDeviceDescription(did);
+            if (thisDescription != null) {
+                boolean descriptionChanged = lastDescription != null &&
+                                (!Objects.equals(thisDescription, lastDescription) ||
+                                        !Objects.equals(thisDescription.annotations(), lastDescription.annotations()));
+                if (descriptionChanged || !deviceService.isAvailable(did)) {
+                    // Device description changed or device not available in the core.
+                    if (contextService.notifyDeviceChange(did)) {
+                        // Configuration is the expected one, we can proceed notifying the core.
+                        resetDeviceState(did);
+                        initPortCounters(did);
+                        providerService.deviceConnected(did, thisDescription);
+                        updatePortsAndStats(did);
+                    }
+                }
+                return thisDescription;
+            } else {
+                log.warn("Unable to get device description for {}", did);
+                return lastDescription;
             }
-            updatePorts(did);
-            return true;
         });
     }
 
-    private void dumpJsonConfigToAnnotations(DeviceId did, DefaultAnnotations.Builder builder) {
-        // TODO: store json config string somewhere else, possibly in a Bmv2Controller (see ONOS-4419)
-        try {
-            String md5 = Bmv2ThriftClient.of(did).getJsonConfigMd5();
-            // Convert to hex string for readability.
-            md5 = HexString.toHexString(md5.getBytes());
-            String jsonString = Bmv2ThriftClient.of(did).dumpJsonConfig();
-            builder.set("bmv2JsonConfigMd5", md5);
-            builder.set("bmv2JsonConfigValue", jsonString);
-        } catch (Bmv2RuntimeException e) {
-            LOG.warn("Unable to dump device JSON config from device {}: {}", did, e.toString());
+    private DeviceDescription getDeviceDescription(DeviceId did) {
+        Device device = deviceService.getDevice(did);
+        DeviceDescriptionDiscovery discovery = null;
+        if (device == null) {
+            // Device not yet in the core. Manually get a driver.
+            Driver driver = driverService.getDriver(MANUFACTURER, HW_VERSION, SW_VERSION);
+            if (driver.hasBehaviour(DeviceDescriptionDiscovery.class)) {
+                discovery = driver.createBehaviour(new DefaultDriverHandler(new DefaultDriverData(driver, did)),
+                                                   DeviceDescriptionDiscovery.class);
+            }
+        } else if (device.is(DeviceDescriptionDiscovery.class)) {
+            discovery = device.as(DeviceDescriptionDiscovery.class);
+        }
+        if (discovery == null) {
+            log.warn("No DeviceDescriptionDiscovery behavior for device {}", did);
+            return null;
+        } else {
+            return discovery.discoverDeviceDetails();
         }
     }
 
     private void resetDeviceState(DeviceId did) {
         try {
-            Bmv2ThriftClient.of(did).resetState();
+            controller.getAgent(did).resetState();
         } catch (Bmv2RuntimeException e) {
-            LOG.warn("Unable to reset {}: {}", did, e.toString());
+            log.warn("Unable to reset {}: {}", did, e.toString());
         }
     }
 
-    private void updatePorts(DeviceId did) {
+    private void initPortCounters(DeviceId did) {
+        try {
+            initCounters(controller.getAgent(did));
+        } catch (Bmv2RuntimeException e) {
+            log.warn("Unable to init counter on {}: {}", did, e.explain());
+        }
+    }
+
+    private void updatePortsAndStats(DeviceId did) {
         Device device = deviceService.getDevice(did);
-        if (device.is(PortDiscovery.class)) {
-            PortDiscovery portConfig = device.as(PortDiscovery.class);
-            List<PortDescription> portDescriptions = portConfig.getPorts();
-            providerService.updatePorts(did, portDescriptions);
+        if (device.is(DeviceDescriptionDiscovery.class)) {
+            DeviceDescriptionDiscovery discovery = device.as(DeviceDescriptionDiscovery.class);
+            List<PortDescription> portDescriptions = discovery.discoverPortDetails();
+            if (portDescriptions != null) {
+                providerService.updatePorts(did, portDescriptions);
+            }
         } else {
-            LOG.warn("No PortDiscovery behavior for device {}", did);
+            log.warn("No DeviceDescriptionDiscovery behavior for device {}", did);
+        }
+        try {
+            Collection<PortStatistics> portStats = getPortStatistics(controller.getAgent(did),
+                                                                     deviceService.getPorts(did));
+            providerService.updatePortStatistics(did, portStats);
+        } catch (Bmv2RuntimeException e) {
+            log.warn("Unable to get port statistics for {}: {}", did, e.explain());
         }
     }
 
     private void disconnectDevice(DeviceId did) {
-        LOG.debug("Trying to disconnect device from core... deviceId={}", did);
-
-        // Atomically disconnect device.
+        log.debug("Trying to disconnect device from core... deviceId={}", did);
         activeDevices.compute(did, (k, v) -> {
             if (deviceService.isAvailable(did)) {
                 providerService.deviceDisconnected(did);
-                // Make sure to close the transport session with device. Do we really need this?
-                forceDisconnectOf(did);
             }
             return null;
         });
@@ -269,10 +300,10 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
                         triggerProbe(bmv2Device.asDeviceId());
                     });
                 } catch (ConfigException e) {
-                    LOG.error("Unable to read config: " + e);
+                    log.error("Unable to read config: " + e);
                 }
             } else {
-                LOG.error("Unable to read config (was null)");
+                log.error("Unable to read config (was null)");
             }
         }
 
@@ -285,18 +316,18 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
     }
 
     /**
-     * Listener triggered by Bmv2ControlPlaneServer each time a hello message is received.
+     * Listener triggered by the BMv2 controller each time a hello message is received.
      */
-    private class InternalHelloListener implements Bmv2ControlPlaneServer.HelloListener {
+    private class InternalDeviceListener implements Bmv2DeviceListener {
         @Override
-        public void handleHello(Bmv2Device device) {
+        public void handleHello(Bmv2Device device, int instanceId, String jsonConfigMd5) {
             log.debug("Received hello from {}", device);
             triggerProbe(device.asDeviceId());
         }
     }
 
     /**
-     * Task that periodically trigger device probes.
+     * Task that periodically trigger device probes to check for device status and update port informations.
      */
     private class DevicePoller implements TimerTask {
 
@@ -304,20 +335,31 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
         private Timeout timeout;
 
         @Override
-        public void run(Timeout timeout) throws Exception {
-            if (timeout.isCancelled()) {
+        public void run(Timeout tout) throws Exception {
+            if (tout.isCancelled()) {
                 return;
             }
-            log.debug("Executing polling on {} devices...", activeDevices.size());
-            activeDevices.forEach((did, value) -> triggerProbe(did));
-            timeout.getTimer().newTimeout(this, POLL_INTERVAL, TimeUnit.SECONDS);
+            activeDevices.keySet()
+                    .stream()
+                    // Filter out devices not yet created in the core.
+                    .filter(did -> deviceService.getDevice(did) != null)
+                    .forEach(did -> executorService.execute(() -> pollingTask(did)));
+            tout.getTimer().newTimeout(this, POLL_INTERVAL, TimeUnit.MILLISECONDS);
+        }
+
+        private void pollingTask(DeviceId deviceId) {
+            if (isReachable(deviceId)) {
+                updatePortsAndStats(deviceId);
+            } else {
+                disconnectDevice(deviceId);
+            }
         }
 
         /**
          * Starts the collector.
          */
-         synchronized void start() {
-            LOG.info("Starting device poller...");
+        synchronized void start() {
+            log.info("Starting device poller...");
             timeout = timer.newTimeout(this, 1, TimeUnit.SECONDS);
         }
 
@@ -325,7 +367,7 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
          * Stops the collector.
          */
         synchronized void stop() {
-            LOG.info("Stopping device poller...");
+            log.info("Stopping device poller...");
             timeout.cancel();
         }
     }

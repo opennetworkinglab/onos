@@ -20,7 +20,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.onosproject.net.driver.AbstractDriverLoader;
 
 /**
- * Loader for barefoot drivers from specific xml.
+ * Loader for BMv2 drivers from xml file.
  */
 @Component(immediate = true)
 public class Bmv2DriversLoader extends AbstractDriverLoader {

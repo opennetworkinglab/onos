@@ -23,12 +23,14 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.util.ImmutableByteSequence;
-import org.onosproject.bmv2.api.runtime.Bmv2ControlPlaneServer;
 import org.onosproject.bmv2.api.runtime.Bmv2Device;
+import org.onosproject.bmv2.api.service.Bmv2Controller;
+import org.onosproject.bmv2.api.service.Bmv2PacketListener;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -49,6 +51,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
+
+import static org.onosproject.net.PortNumber.FLOOD;
+import static org.onosproject.net.flow.DefaultTrafficTreatment.emptyTreatment;
+import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
+import static org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 
 /**
  * Implementation of a packet provider for BMv2.
@@ -56,11 +64,11 @@ import java.nio.ByteBuffer;
 @Component(immediate = true)
 public class Bmv2PacketProvider extends AbstractProvider implements PacketProvider {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Bmv2PacketProvider.class);
+    private final Logger log = LoggerFactory.getLogger(Bmv2PacketProvider.class);
     private static final String APP_NAME = "org.onosproject.bmv2";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected Bmv2ControlPlaneServer controlPlaneServer;
+    protected Bmv2Controller controller;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -86,28 +94,28 @@ public class Bmv2PacketProvider extends AbstractProvider implements PacketProvid
     protected void activate() {
         providerService = providerRegistry.register(this);
         coreService.registerApplication(APP_NAME);
-        controlPlaneServer.addPacketListener(packetListener);
-        LOG.info("Started");
+        controller.addPacketListener(packetListener);
+        log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        controlPlaneServer.removePacketListener(packetListener);
+        controller.removePacketListener(packetListener);
         providerRegistry.unregister(this);
         providerService = null;
-        LOG.info("Stopped");
+        log.info("Stopped");
     }
 
     @Override
     public void emit(OutboundPacket packet) {
         if (packet != null) {
-            DeviceId did = packet.sendThrough();
-            Device device = deviceService.getDevice(did);
+            DeviceId deviceId = packet.sendThrough();
+            Device device = deviceService.getDevice(deviceId);
             if (device.is(PacketProgrammable.class)) {
                 PacketProgrammable packetProgrammable = device.as(PacketProgrammable.class);
                 packetProgrammable.emit(packet);
             } else {
-                LOG.info("Unable to send packet, no PacketProgrammable behavior for device {}", did);
+                log.info("No PacketProgrammable behavior for device {}", deviceId);
             }
         }
     }
@@ -117,47 +125,75 @@ public class Bmv2PacketProvider extends AbstractProvider implements PacketProvid
      */
     private class Bmv2PacketContext extends DefaultPacketContext {
 
-        public Bmv2PacketContext(long time, InboundPacket inPkt, OutboundPacket outPkt, boolean block) {
+        Bmv2PacketContext(long time, InboundPacket inPkt, OutboundPacket outPkt, boolean block) {
             super(time, inPkt, outPkt, block);
         }
 
         @Override
         public void send() {
-            if (!this.block()) {
-                if (this.outPacket().treatment() == null) {
-                    TrafficTreatment treatment = (this.treatmentBuilder() == null)
-                            ? DefaultTrafficTreatment.emptyTreatment()
-                            : this.treatmentBuilder().build();
-                    OutboundPacket newPkt = new DefaultOutboundPacket(this.outPacket().sendThrough(),
-                                                                      treatment,
-                                                                      this.outPacket().data());
-                    emit(newPkt);
-                } else {
-                    emit(outPacket());
-                }
+
+            if (this.block()) {
+                log.info("Unable to send, packet context not blocked");
+                return;
+            }
+
+            DeviceId deviceId = outPacket().sendThrough();
+            ByteBuffer rawData = outPacket().data();
+
+            TrafficTreatment treatment;
+            if (outPacket().treatment() == null) {
+                treatment = (treatmentBuilder() == null) ? emptyTreatment() : treatmentBuilder().build();
             } else {
-                LOG.info("Unable to send, packet context not blocked");
+                treatment = outPacket().treatment();
+            }
+
+            // BMv2 doesn't support FLOOD for packet-outs.
+            // Workaround here is to perform multiple emits, one for each device port != packet inPort.
+            Optional<OutputInstruction> floodInst = treatment.allInstructions()
+                    .stream()
+                    .filter(i -> i.type().equals(OUTPUT))
+                    .map(i -> (OutputInstruction) i)
+                    .filter(i -> i.port().equals(FLOOD))
+                    .findAny();
+
+            if (floodInst.isPresent() && treatment.allInstructions().size() == 1) {
+                // Only one instruction and is FLOOD. Do the trick.
+                PortNumber inPort = inPacket().receivedFrom().port();
+                deviceService.getPorts(outPacket().sendThrough())
+                        .stream()
+                        .map(Port::number)
+                        .filter(port -> !port.equals(inPort))
+                        .map(outPort -> DefaultTrafficTreatment.builder().setOutput(outPort).build())
+                        .map(outTreatment -> new DefaultOutboundPacket(deviceId, outTreatment, rawData))
+                        .forEach(Bmv2PacketProvider.this::emit);
+            } else {
+                // Not FLOOD treatment, what to do is up to driver.
+                emit(new DefaultOutboundPacket(deviceId, treatment, rawData));
             }
         }
     }
 
     /**
-     * Internal packet listener to get packet events from the Bmv2ControlPlaneServer.
+     * Internal packet listener to handle packet-in events received from the BMv2 controller.
      */
-    private class InternalPacketListener implements Bmv2ControlPlaneServer.PacketListener {
+    private class InternalPacketListener implements Bmv2PacketListener {
+
         @Override
         public void handlePacketIn(Bmv2Device device, int inputPort, long reason, int tableId, int contextId,
                                    ImmutableByteSequence packet) {
+            Ethernet ethPkt = new Ethernet();
+            ethPkt.deserialize(packet.asArray(), 0, packet.size());
 
-            Ethernet eth = new Ethernet();
-            eth.deserialize(packet.asArray(), 0, packet.size());
+            DeviceId deviceId = device.asDeviceId();
+            ConnectPoint receivedFrom = new ConnectPoint(deviceId, PortNumber.portNumber(inputPort));
 
-            InboundPacket inPkt = new DefaultInboundPacket(new ConnectPoint(device.asDeviceId(),
-                                                                            PortNumber.portNumber(inputPort)),
-                                                           eth, ByteBuffer.wrap(packet.asArray()));
-            OutboundPacket outPkt = new DefaultOutboundPacket(device.asDeviceId(), null,
-                                                              ByteBuffer.wrap(packet.asArray()));
+            ByteBuffer rawData = ByteBuffer.wrap(packet.asArray());
+
+            InboundPacket inPkt = new DefaultInboundPacket(receivedFrom, ethPkt, rawData);
+            OutboundPacket outPkt = new DefaultOutboundPacket(deviceId, null, rawData);
+
             PacketContext pktCtx = new Bmv2PacketContext(System.currentTimeMillis(), inPkt, outPkt, false);
+
             providerService.processPacket(pktCtx);
         }
     }

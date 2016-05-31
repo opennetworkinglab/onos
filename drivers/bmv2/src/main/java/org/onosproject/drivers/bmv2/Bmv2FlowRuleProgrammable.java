@@ -16,28 +16,25 @@
 
 package org.onosproject.drivers.bmv2;
 
-import com.eclipsesource.json.Json;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
-import org.onosproject.bmv2.api.model.Bmv2Model;
-import org.onosproject.bmv2.api.runtime.Bmv2Client;
+import org.onosproject.bmv2.api.context.Bmv2Configuration;
+import org.onosproject.bmv2.api.context.Bmv2DeviceContext;
+import org.onosproject.bmv2.api.context.Bmv2FlowRuleTranslator;
+import org.onosproject.bmv2.api.context.Bmv2FlowRuleTranslatorException;
+import org.onosproject.bmv2.api.context.Bmv2Interpreter;
+import org.onosproject.bmv2.api.runtime.Bmv2DeviceAgent;
+import org.onosproject.bmv2.api.runtime.Bmv2FlowRuleWrapper;
 import org.onosproject.bmv2.api.runtime.Bmv2MatchKey;
+import org.onosproject.bmv2.api.runtime.Bmv2ParsedTableEntry;
 import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
 import org.onosproject.bmv2.api.runtime.Bmv2TableEntry;
-import org.onosproject.bmv2.ctl.Bmv2ThriftClient;
-import org.onosproject.drivers.bmv2.translators.Bmv2DefaultFlowRuleTranslator;
-import org.onosproject.drivers.bmv2.translators.Bmv2FlowRuleTranslator;
-import org.onosproject.drivers.bmv2.translators.Bmv2FlowRuleTranslatorException;
-import org.onosproject.drivers.bmv2.translators.Bmv2SimpleTranslatorConfig;
-import org.onosproject.net.Device;
+import org.onosproject.bmv2.api.runtime.Bmv2TableEntryReference;
+import org.onosproject.bmv2.api.service.Bmv2Controller;
+import org.onosproject.bmv2.api.service.Bmv2DeviceContextService;
+import org.onosproject.bmv2.api.service.Bmv2TableEntryService;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.FlowEntry;
@@ -50,97 +47,130 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
+import static org.onosproject.bmv2.api.runtime.Bmv2RuntimeException.Code.*;
 import static org.onosproject.net.flow.FlowEntry.FlowEntryState.ADDED;
 
 /**
- * Flow rule programmable device behaviour implementation for BMv2.
+ * Implementation of the flow rule programmable behaviour for BMv2.
  */
-public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour
-        implements FlowRuleProgrammable {
+public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implements FlowRuleProgrammable {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(Bmv2FlowRuleProgrammable.class);
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    // There's no Bmv2 client method to poll flow entries from the device. Use a local store.
-    // FIXME: this information should be distributed across instances of the cluster.
-    private static final ConcurrentMap<Triple<DeviceId, String, Bmv2MatchKey>, Pair<Long, TimestampedFlowRule>>
-            ENTRIES_MAP = Maps.newConcurrentMap();
+    // Needed to synchronize operations over the same table entry.
+    private static final ConcurrentMap<Bmv2TableEntryReference, Boolean> ENTRY_LOCKS = Maps.newConcurrentMap();
 
-    // Cache model objects instead of parsing the JSON each time.
-    private static final LoadingCache<String, Bmv2Model> MODEL_CACHE = CacheBuilder.newBuilder()
-            .expireAfterAccess(60, TimeUnit.SECONDS)
-            .build(new CacheLoader<String, Bmv2Model>() {
-                @Override
-                public Bmv2Model load(String jsonString) throws Exception {
-                    // Expensive call.
-                    return Bmv2Model.parse(Json.parse(jsonString).asObject());
-                }
-            });
+    private Bmv2Controller controller;
+    private Bmv2TableEntryService tableEntryService;
+    private Bmv2DeviceContextService contextService;
+
+    private boolean init() {
+        controller = handler().get(Bmv2Controller.class);
+        tableEntryService = handler().get(Bmv2TableEntryService.class);
+        contextService = handler().get(Bmv2DeviceContextService.class);
+        if (controller == null) {
+            log.warn("Failed to get a BMv2 controller");
+            return false;
+        }
+        if (tableEntryService == null) {
+            log.warn("Failed to get a BMv2 table entry service");
+            return false;
+        }
+        if (contextService == null) {
+            log.warn("Failed to get a BMv2 device context service");
+            return false;
+        }
+        return true;
+    }
 
     @Override
     public Collection<FlowEntry> getFlowEntries() {
 
-        DeviceId deviceId = handler().data().deviceId();
-
-        Bmv2Client deviceClient;
-        try {
-            deviceClient = Bmv2ThriftClient.of(deviceId);
-        } catch (Bmv2RuntimeException e) {
-            LOG.error("Failed to connect to Bmv2 device", e);
+        if (!init()) {
             return Collections.emptyList();
         }
 
-        Bmv2Model model = getTranslator(deviceId).config().model();
+        DeviceId deviceId = handler().data().deviceId();
+
+        Bmv2DeviceAgent deviceAgent;
+        try {
+            deviceAgent = controller.getAgent(deviceId);
+        } catch (Bmv2RuntimeException e) {
+            log.error("Failed to get BMv2 device agent: {}", e.explain());
+            return Collections.emptyList();
+        }
+
+        Bmv2DeviceContext context = contextService.getContext(deviceId);
+        if (context == null) {
+            log.warn("Unable to get device context for {}", deviceId);
+        }
+
+        Bmv2Interpreter interpreter = context.interpreter();
+        Bmv2Configuration configuration = context.configuration();
 
         List<FlowEntry> entryList = Lists.newArrayList();
 
-        model.tables().forEach(table -> {
-            // For each table declared in the model for this device, do:
-            try {
-                // Bmv2 doesn't support proper polling for table entries, but only a string based table dump.
-                // The trick here is to first dump the entry ids currently installed in the device for a given table,
-                // and then filter ENTRIES_MAP based on the retrieved values.
-                Set<Long> installedEntryIds = Sets.newHashSet(deviceClient.getInstalledEntryIds(table.name()));
-                ENTRIES_MAP.forEach((key, value) -> {
-                    if (key.getLeft() == deviceId && key.getMiddle() == table.name()
-                            && value != null) {
-                        long entryId = value.getKey();
-                        // Filter entries_map for this device and table.
-                        if (installedEntryIds.contains(entryId)) {
-                            // Entry is installed.
-                            long bytes = 0L;
-                            long packets = 0L;
-                            if (table.hasCounters()) {
-                                // Read counter values from device.
-                                try {
-                                    Pair<Long, Long> counterValue = deviceClient.readTableEntryCounter(table.name(),
-                                                                                                       entryId);
-                                    bytes = counterValue.getLeft();
-                                    packets = counterValue.getRight();
-                                } catch (Bmv2RuntimeException e) {
-                                    LOG.warn("Unable to get counter values for entry {} of table {} of device {}: {}",
-                                             entryId, table.name(), deviceId, e.toString());
-                                }
-                            }
-                            TimestampedFlowRule tsRule = value.getRight();
-                            FlowEntry entry = new DefaultFlowEntry(tsRule.rule(), ADDED,
-                                                                   tsRule.lifeInSeconds(), packets, bytes);
-                            entryList.add(entry);
-                        } else {
-                            // No such entry on device, can remove from local store.
-                            ENTRIES_MAP.remove(key);
+        configuration.tables().forEach(table -> {
+            // For each table in the configuration AND exposed by the interpreter.
+            if (!interpreter.tableIdMap().inverse().containsKey(table.name())) {
+                return;
+            }
+
+            // Bmv2 doesn't support proper polling for table entries, but only a string based table dump.
+            // The trick here is to first dump the entries currently installed in the device for a given table,
+            // and then query a service for the corresponding, previously applied, flow rule.
+            List<Bmv2ParsedTableEntry> installedEntries = tableEntryService.getTableEntries(deviceId, table.name());
+            installedEntries.forEach(parsedEntry -> {
+                Bmv2TableEntryReference entryRef = new Bmv2TableEntryReference(deviceId,
+                                                                               table.name(),
+                                                                               parsedEntry.matchKey());
+                ENTRY_LOCKS.compute(entryRef, (key, value) -> {
+
+                    Bmv2FlowRuleWrapper frWrapper = tableEntryService.lookupEntryReference(entryRef);
+
+                    if (frWrapper == null) {
+                        log.warn("missing reference from table entry service, BUG? " +
+                                         "deviceId={}, tableName={}, matchKey={}",
+                                 deviceId, table.name(), entryRef.matchKey());
+                        return null;
+                    }
+
+                    long remoteEntryId = parsedEntry.entryId();
+                    long localEntryId = frWrapper.entryId();
+
+                    if (remoteEntryId != localEntryId) {
+                        log.warn("getFlowEntries(): inconsistent entry id! BUG? Updating it... remote={}, local={}",
+                                 remoteEntryId, localEntryId);
+                        frWrapper = new Bmv2FlowRuleWrapper(frWrapper.rule(), remoteEntryId,
+                                                            frWrapper.creationDate());
+                        tableEntryService.bindEntryReference(entryRef, frWrapper);
+                    }
+
+                    long bytes = 0L;
+                    long packets = 0L;
+
+                    if (table.hasCounters()) {
+                        // Read counter values from device.
+                        try {
+                            Pair<Long, Long> counterValue = deviceAgent.readTableEntryCounter(table.name(),
+                                                                                              remoteEntryId);
+                            bytes = counterValue.getLeft();
+                            packets = counterValue.getRight();
+                        } catch (Bmv2RuntimeException e) {
+                            log.warn("Unable to get counters for entry {}/{} of device {}: {}",
+                                     table.name(), remoteEntryId, deviceId, e.explain());
                         }
                     }
+
+                    FlowEntry entry = new DefaultFlowEntry(frWrapper.rule(), ADDED, frWrapper.lifeInSeconds(),
+                                                           packets, bytes);
+                    entryList.add(entry);
+                    return true;
                 });
-            } catch (Bmv2RuntimeException e) {
-                LOG.error("Unable to get flow entries for table {} of device {}: {}",
-                          table.name(), deviceId, e.toString());
-            }
+
+            });
         });
 
         return Collections.unmodifiableCollection(entryList);
@@ -160,17 +190,27 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour
 
     private Collection<FlowRule> processFlowRules(Collection<FlowRule> rules, Operation operation) {
 
-        DeviceId deviceId = handler().data().deviceId();
-
-        Bmv2Client deviceClient;
-        try {
-            deviceClient = Bmv2ThriftClient.of(deviceId);
-        } catch (Bmv2RuntimeException e) {
-            LOG.error("Failed to connect to Bmv2 device", e);
+        if (!init()) {
             return Collections.emptyList();
         }
 
-        Bmv2FlowRuleTranslator translator = getTranslator(deviceId);
+        DeviceId deviceId = handler().data().deviceId();
+
+        Bmv2DeviceAgent deviceAgent;
+        try {
+            deviceAgent = controller.getAgent(deviceId);
+        } catch (Bmv2RuntimeException e) {
+            log.error("Failed to get BMv2 device agent: {}", e.explain());
+            return Collections.emptyList();
+        }
+
+        Bmv2DeviceContext context = contextService.getContext(deviceId);
+        if (context == null) {
+            log.error("Unable to get device context for {}", deviceId);
+            return Collections.emptyList();
+        }
+
+        Bmv2FlowRuleTranslator translator = tableEntryService.getFlowRuleTranslator();
 
         List<FlowRule> processedFlowRules = Lists.newArrayList();
 
@@ -179,120 +219,114 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour
             Bmv2TableEntry bmv2Entry;
 
             try {
-                bmv2Entry = translator.translate(rule);
+                bmv2Entry = translator.translate(rule, context);
             } catch (Bmv2FlowRuleTranslatorException e) {
-                LOG.error("Unable to translate flow rule: {}", e.getMessage());
+                log.warn("Unable to translate flow rule: {} - {}", e.getMessage(), rule);
                 continue;
             }
 
             String tableName = bmv2Entry.tableName();
-            Triple<DeviceId, String, Bmv2MatchKey> entryKey = Triple.of(deviceId, tableName, bmv2Entry.matchKey());
+            Bmv2TableEntryReference entryRef = new Bmv2TableEntryReference(deviceId, tableName, bmv2Entry.matchKey());
 
             /*
             From here on threads are synchronized over entryKey, i.e. serialize operations
             over the same matchKey of a specific table and device.
              */
-            ENTRIES_MAP.compute(entryKey, (key, value) -> {
+            ENTRY_LOCKS.compute(entryRef, (key, value) -> {
+                // Get from store
+                Bmv2FlowRuleWrapper frWrapper = tableEntryService.lookupEntryReference(entryRef);
                 try {
                     if (operation == Operation.APPLY) {
                         // Apply entry
                         long entryId;
-                        if (value != null) {
+                        if (frWrapper != null) {
                             // Existing entry.
-                            entryId = value.getKey();
-                            try {
-                                // Tentatively delete entry before re-adding.
-                                // It might not exist on device due to inconsistencies.
-                                deviceClient.deleteTableEntry(bmv2Entry.tableName(), entryId);
-                                value = null;
-                            } catch (Bmv2RuntimeException e) {
-                                // Silently drop exception as we can probably fix this by re-adding the entry.
-                            }
+                            entryId = frWrapper.entryId();
+                            // Tentatively delete entry before re-adding.
+                            // It might not exist on device due to inconsistencies.
+                            silentlyRemove(deviceAgent, entryRef.tableName(), entryId);
                         }
                         // Add entry.
-                        entryId = deviceClient.addTableEntry(bmv2Entry);
-                        value = Pair.of(entryId, new TimestampedFlowRule(rule));
+                        entryId = doAddEntry(deviceAgent, bmv2Entry);
+                        frWrapper = new Bmv2FlowRuleWrapper(rule, entryId, new Date());
                     } else {
                         // Remove entry
-                        if (value == null) {
+                        if (frWrapper == null) {
                             // Entry not found in map, how come?
-                            LOG.debug("Trying to remove entry, but entry ID not found: " + entryKey);
+                            forceRemove(deviceAgent, entryRef.tableName(), entryRef.matchKey());
                         } else {
-                            deviceClient.deleteTableEntry(tableName, value.getKey());
-                            value = null;
+                            long entryId = frWrapper.entryId();
+                            doRemove(deviceAgent, entryRef.tableName(), entryId, entryRef.matchKey());
                         }
+                        frWrapper = null;
                     }
                     // If here, no exceptions... things went well :)
                     processedFlowRules.add(rule);
                 } catch (Bmv2RuntimeException e) {
-                    LOG.warn("Unable to {} flow rule: {}", operation.name().toLowerCase(), e.toString());
+                    log.warn("Unable to {} flow rule: {}", operation.name(), e.explain());
                 }
-                return value;
+                // Update binding in table entry service.
+                if (frWrapper != null) {
+                    tableEntryService.bindEntryReference(entryRef, frWrapper);
+                    return true;
+                } else {
+                    tableEntryService.unbindEntryReference(entryRef);
+                    return null;
+                }
             });
         }
 
         return processedFlowRules;
     }
 
-    /**
-     * Gets the appropriate flow rule translator based on the device running configuration.
-     *
-     * @param deviceId a device id
-     * @return a flow rule translator
-     */
-    private Bmv2FlowRuleTranslator getTranslator(DeviceId deviceId) {
-
-        DeviceService deviceService = handler().get(DeviceService.class);
-        if (deviceService == null) {
-            LOG.error("Unable to get device service");
-            return null;
-        }
-
-        Device device = deviceService.getDevice(deviceId);
-        if (device == null) {
-            LOG.error("Unable to get device {}", deviceId);
-            return null;
-        }
-
-        String jsonString = device.annotations().value("bmv2JsonConfigValue");
-        if (jsonString == null) {
-            LOG.error("Unable to read bmv2 JSON config from device {}", deviceId);
-            return null;
-        }
-
-        Bmv2Model model;
+    private long doAddEntry(Bmv2DeviceAgent agent, Bmv2TableEntry entry) throws Bmv2RuntimeException {
         try {
-            model = MODEL_CACHE.get(jsonString);
-        } catch (ExecutionException e) {
-            LOG.error("Unable to parse bmv2 JSON config for device {}:", deviceId, e.getCause());
-            return null;
+            return agent.addTableEntry(entry);
+        } catch (Bmv2RuntimeException e) {
+            if (e.getCode() != TABLE_DUPLICATE_ENTRY) {
+                forceRemove(agent, entry.tableName(), entry.matchKey());
+                return agent.addTableEntry(entry);
+            } else {
+                throw e;
+            }
         }
+    }
 
-        // TODO: get translator config dynamically.
-        // Now it's hardcoded, selection should be based on the device bmv2 model.
-        Bmv2FlowRuleTranslator.TranslatorConfig translatorConfig = new Bmv2SimpleTranslatorConfig(model);
-        return new Bmv2DefaultFlowRuleTranslator(translatorConfig);
+    private void doRemove(Bmv2DeviceAgent agent, String tableName, long entryId, Bmv2MatchKey matchKey)
+            throws Bmv2RuntimeException {
+        try {
+            agent.deleteTableEntry(tableName, entryId);
+        } catch (Bmv2RuntimeException e) {
+            if (e.getCode() == TABLE_INVALID_HANDLE || e.getCode() == TABLE_EXPIRED_HANDLE) {
+                // entry is not there with the declared ID, try with a forced remove.
+                forceRemove(agent, tableName, matchKey);
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    private void forceRemove(Bmv2DeviceAgent agent, String tableName, Bmv2MatchKey matchKey)
+            throws Bmv2RuntimeException {
+        // Find the entryID (expensive call!)
+        for (Bmv2ParsedTableEntry pEntry : tableEntryService.getTableEntries(agent.deviceId(), tableName)) {
+            if (pEntry.matchKey().equals(matchKey)) {
+                // Remove entry and drop exceptions.
+                silentlyRemove(agent, tableName, pEntry.entryId());
+                break;
+            }
+        }
+    }
+
+    private void silentlyRemove(Bmv2DeviceAgent agent, String tableName, long entryId) {
+        try {
+            agent.deleteTableEntry(tableName, entryId);
+        } catch (Bmv2RuntimeException e) {
+            // do nothing
+        }
     }
 
     private enum Operation {
         APPLY, REMOVE
-    }
-
-    private class TimestampedFlowRule {
-        private final FlowRule rule;
-        private final Date addedDate;
-
-        public TimestampedFlowRule(FlowRule rule) {
-            this.rule = rule;
-            this.addedDate = new Date();
-        }
-
-        public FlowRule rule() {
-            return rule;
-        }
-
-        public long lifeInSeconds() {
-            return (new Date().getTime() - addedDate.getTime()) / 1000;
-        }
     }
 }
