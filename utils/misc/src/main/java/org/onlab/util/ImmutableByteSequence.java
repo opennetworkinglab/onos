@@ -73,6 +73,24 @@ public final class ImmutableByteSequence {
     }
 
     /**
+     * Creates a new immutable byte sequence with the same content and order of
+     * the passed byte array, from/to the given indexes (inclusive).
+     *
+     * @param original a byte array value
+     * @return a new immutable byte sequence
+     */
+    public static ImmutableByteSequence copyFrom(byte[] original, int fromIdx, int toIdx) {
+        checkArgument(original != null && original.length > 0,
+                      "Cannot copy from an empty or null array");
+        checkArgument(toIdx >= fromIdx && toIdx < original.length, "invalid indexes");
+        ByteBuffer buffer = ByteBuffer.allocate((toIdx - fromIdx) + 1);
+        for (int i = fromIdx; i <= toIdx; i++) {
+            buffer.put(original[i]);
+        }
+        return new ImmutableByteSequence(buffer);
+    }
+
+    /**
      * Creates a new immutable byte sequence copying bytes from the given
      * ByteBuffer {@link ByteBuffer}. If the byte buffer order is not big-endian
      * bytes will be copied in reverse order.

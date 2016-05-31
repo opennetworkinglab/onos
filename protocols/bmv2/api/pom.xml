@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014-2016 Open Networking Laboratory
+  ~ Copyright 2016-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,22 +19,26 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>onos-protocols</artifactId>
+        <artifactId>onos-bmv2-protocol</artifactId>
         <groupId>org.onosproject</groupId>
         <version>1.6.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-bmv2-protocol</artifactId>
+    <packaging>bundle</packaging>
 
-    <modules>
-        <module>api</module>
-        <module>ctl</module>
-        <module>thrift-api</module>
-    </modules>
+    <artifactId>onos-bmv2-protocol-api</artifactId>
 
-    <packaging>pom</packaging>
-
-    <description>BMv2 protocol subsystem</description>
+   <dependencies>
+       <dependency>
+           <groupId>org.onosproject</groupId>
+           <artifactId>onos-api</artifactId>
+           <version>${project.version}</version>
+       </dependency>
+       <dependency>
+           <groupId>org.apache.felix</groupId>
+           <artifactId>org.apache.felix.scr.annotations</artifactId>
+       </dependency>
+   </dependencies>
 
 </project>

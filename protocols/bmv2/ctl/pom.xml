@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015-present Open Networking Laboratory
+  ~ Copyright 2016-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,62 +14,36 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>onos-bmv2-protocol</artifactId>
+        <groupId>org.onosproject</groupId>
+        <version>1.6.0-SNAPSHOT</version>
+    </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.onosproject</groupId>
-        <artifactId>onos</artifactId>
-        <version>1.6.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
+    <artifactId>onos-bmv2-protocol-ctl</artifactId>
 
-    <artifactId>onos-drivers-general</artifactId>
-    <packaging>pom</packaging>
-
-    <description>Builtin device drivers general module</description>
-
-    <modules>
-        <module>default</module>
-        <module>ciena</module>
-        <module>fujitsu</module>
-        <module>cisco</module>
-        <module>netconf</module>
-        <module>ovsdb</module>
-        <module>utilities</module>
-        <module>lumentum</module>
-        <module>bti</module>
-        <!--<module>bmv2</module>-->
-        <module>corsa</module>
-        <module>optical</module>
-    </modules>
-
-    <!--<properties>
-        <onos.app.name>org.onosproject.drivers</onos.app.name>
-    </properties>-->
+    <packaging>bundle</packaging>
 
     <dependencies>
         <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.compendium</artifactId>
+            <groupId>org.apache.thrift</groupId>
+            <artifactId>libthrift</artifactId>
+            <version>0.9.3</version>
         </dependency>
-
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-core-serializers</artifactId>
+            <artifactId>onos-bmv2-protocol-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymock</artifactId>
-            <scope>test</scope>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-bmv2-protocol-thrift-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.felix</groupId>
@@ -77,15 +51,8 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-api</artifactId>
+            <artifactId>onos-core-serializers</artifactId>
             <version>${project.version}</version>
-            <classifier>tests</classifier>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-junit</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -96,13 +63,11 @@
                 <artifactId>maven-scr-plugin</artifactId>
             </plugin>
             <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-            </plugin>
-            <plugin>
                 <groupId>org.onosproject</groupId>
                 <artifactId>onos-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
+
+
 </project>
