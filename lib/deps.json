@@ -159,7 +159,7 @@
     "netty-transport-native-epoll": "mvn:io.netty:netty-transport-native-epoll:4.0.36.Final",
     "objenesis": "mvn:org.objenesis:objenesis:2.2",
     "openflowj": {
-      "uri": "mvn:org.onosproject:openflowj:0.9.3.onos-SNAPSHOT",
+      "uri": "mvn:org.onosproject:openflowj:0.9.4.onos-SNAPSHOT",
       "repo": "https://oss.sonatype.org/content/repositories/snapshots"
     },
     "org.apache.felix.scr": "mvn:org.apache.felix:org.apache.felix.scr:1.8.2",
