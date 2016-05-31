@@ -33,6 +33,7 @@ import org.onlab.packet.VlanId;
 import org.onlab.util.Bandwidth;
 import org.onlab.util.ClosedOpenRange;
 import org.onlab.util.Frequency;
+import org.onlab.util.ImmutableByteSequence;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Match;
 import org.onosproject.app.ApplicationState;
@@ -535,6 +536,7 @@ public final class KryoNamespaces {
             )
             .register(ClosedOpenRange.class)
             .register(DiscreteResourceCodec.class)
+            .register(ImmutableByteSequence.class)
             .build("API");
 
 
