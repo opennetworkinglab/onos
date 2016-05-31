@@ -323,7 +323,7 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
 
     /**
      * Tests the get, keySet, keys, values, and entries implementations as well
-     * as a trivial test of the asMap functionality (throws error)
+     * as a trivial test of the asMap functionality (throws error).
      * @throws Exception
      */
     @Ignore
