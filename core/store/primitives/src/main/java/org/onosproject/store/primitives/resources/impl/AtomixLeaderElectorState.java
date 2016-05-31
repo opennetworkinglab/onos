@@ -302,8 +302,10 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
      * @return topic to leader mapping
      */
     public Map<String, Leadership> allLeaderships(Commit<? extends GetAllLeaderships> commit) {
+        Map<String, Leadership> result = new HashMap<>();
         try {
-            return Maps.transformEntries(elections, (k, v) -> leadership(k));
+            result.putAll(Maps.transformEntries(elections, (k, v) -> leadership(k)));
+            return result;
         } finally {
             commit.close();
         }
@@ -539,7 +541,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
         byte[] encodedElections  = serializer.encode(elections);
         writer.writeInt(encodedElections.length);
         writer.write(encodedElections);
-        log.info("Took state machine snapshot");
+        log.debug("Took state machine snapshot");
     }
 
     @Override
@@ -552,7 +554,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
         byte[] encodedElections = new byte[encodedElectionsSize];
         reader.read(encodedElections);
         elections = serializer.decode(encodedElections);
-        log.info("Reinstated state machine from snapshot");
+        log.debug("Reinstated state machine from snapshot");
     }
 
     private AtomicLong termCounter(String topic) {

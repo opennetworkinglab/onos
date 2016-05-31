@@ -19,9 +19,8 @@ import java.util.Arrays;
 
 import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.catalyst.serializer.TypeSerializerFactory;
-import io.atomix.copycat.Query;
 import io.atomix.manager.util.ResourceManagerTypeResolver;
-import io.atomix.variables.state.LongCommands;
+import io.atomix.variables.internal.LongCommands;
 
 import org.onlab.util.Match;
 import org.onosproject.cluster.Leader;
@@ -63,8 +62,7 @@ public final class CatalystSerializers {
                                 Transaction.State.class,
                                 PrepareResult.class,
                                 CommitResult.class,
-                                RollbackResult.class,
-                                Query.ConsistencyLevel.class));
+                                RollbackResult.class));
         // ONOS classes
         serializer.register(Change.class, factory);
         serializer.register(Leader.class, factory);

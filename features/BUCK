@@ -3,6 +3,7 @@ osgi_feature (
   title="ONOS 3rd party dependencies",
   required_features = [],
   included_bundles = [
+    '//lib:atomix',
     '//lib:commons-lang',
     '//lib:commons-lang3',
     '//lib:commons-configuration',
@@ -33,7 +34,6 @@ osgi_feature (
     '//lib:typesafe-config',
     '//lib:concurrent-trees',
     '//lib:commons-io',
-    '//lib:onos-atomix',
     '//lib:jersey-client',
     '//lib:mapdb',
   ]

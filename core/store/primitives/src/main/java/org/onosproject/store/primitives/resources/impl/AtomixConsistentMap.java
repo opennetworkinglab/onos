@@ -97,48 +97,48 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
 
     @Override
     public CompletableFuture<Boolean> isEmpty() {
-        return submit(new IsEmpty());
+        return client.submit(new IsEmpty());
     }
 
     @Override
     public CompletableFuture<Integer> size() {
-        return submit(new Size());
+        return client.submit(new Size());
     }
 
     @Override
     public CompletableFuture<Boolean> containsKey(String key) {
-        return submit(new ContainsKey(key));
+        return client.submit(new ContainsKey(key));
     }
 
     @Override
     public CompletableFuture<Boolean> containsValue(byte[] value) {
-        return submit(new ContainsValue(value));
+        return client.submit(new ContainsValue(value));
     }
 
     @Override
     public CompletableFuture<Versioned<byte[]>> get(String key) {
-        return submit(new Get(key));
+        return client.submit(new Get(key));
     }
 
     @Override
     public CompletableFuture<Set<String>> keySet() {
-        return submit(new KeySet());
+        return client.submit(new KeySet());
     }
 
     @Override
     public CompletableFuture<Collection<Versioned<byte[]>>> values() {
-        return submit(new Values());
+        return client.submit(new Values());
     }
 
     @Override
     public CompletableFuture<Set<Entry<String, Versioned<byte[]>>>> entrySet() {
-        return submit(new EntrySet());
+        return client.submit(new EntrySet());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> put(String key, byte[] value) {
-        return submit(new UpdateAndGet(key, value, Match.ANY, Match.ANY))
+        return client.submit(new UpdateAndGet(key, value, Match.ANY, Match.ANY))
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.oldValue());
     }
@@ -146,7 +146,7 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> putAndGet(String key, byte[] value) {
-        return submit(new UpdateAndGet(key, value, Match.ANY, Match.ANY))
+        return client.submit(new UpdateAndGet(key, value, Match.ANY, Match.ANY))
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.newValue());
     }
@@ -154,14 +154,14 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> putIfAbsent(String key, byte[] value) {
-        return submit(new UpdateAndGet(key, value, Match.NULL, Match.ANY))
+        return client.submit(new UpdateAndGet(key, value, Match.NULL, Match.ANY))
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.oldValue());
     }
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> remove(String key) {
-        return submit(new UpdateAndGet(key, null, Match.ANY, Match.ANY))
+        return client.submit(new UpdateAndGet(key, null, Match.ANY, Match.ANY))
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.oldValue());
     }
@@ -169,7 +169,7 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> remove(String key, byte[] value) {
-        return submit(new UpdateAndGet(key, null, Match.ifValue(value), Match.ANY))
+        return client.submit(new UpdateAndGet(key, null, Match.ifValue(value), Match.ANY))
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.updated());
     }
@@ -177,7 +177,7 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> remove(String key, long version) {
-        return submit(new UpdateAndGet(key, null, Match.ANY, Match.ifValue(version)))
+        return client.submit(new UpdateAndGet(key, null, Match.ANY, Match.ifValue(version)))
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.updated());
     }
@@ -185,7 +185,7 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> replace(String key, byte[] value) {
-        return submit(new UpdateAndGet(key, value, Match.NOT_NULL, Match.ANY))
+        return client.submit(new UpdateAndGet(key, value, Match.NOT_NULL, Match.ANY))
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.oldValue());
     }
@@ -193,10 +193,7 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> replace(String key, byte[] oldValue, byte[] newValue) {
-        return submit(new UpdateAndGet(key,
-                newValue,
-                Match.ifValue(oldValue),
-                Match.ANY))
+        return client.submit(new UpdateAndGet(key, newValue, Match.ifValue(oldValue), Match.ANY))
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.updated());
     }
@@ -204,17 +201,14 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> replace(String key, long oldVersion, byte[] newValue) {
-        return submit(new UpdateAndGet(key,
-                newValue,
-                Match.ANY,
-                Match.ifValue(oldVersion)))
+        return client.submit(new UpdateAndGet(key, newValue, Match.ANY, Match.ifValue(oldVersion)))
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.updated());
     }
 
     @Override
     public CompletableFuture<Void> clear() {
-        return submit(new Clear())
+        return client.submit(new Clear())
                 .whenComplete((r, e) -> throwIfLocked(r))
                 .thenApply(v -> null);
     }
@@ -245,7 +239,7 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
             }
             Match<byte[]> valueMatch = r1 == null ? Match.NULL : Match.ANY;
             Match<Long> versionMatch = r1 == null ? Match.ANY : Match.ifValue(r1.version());
-            return submit(new UpdateAndGet(key,
+            return client.submit(new UpdateAndGet(key,
                     computedValue.get(),
                     valueMatch,
                     versionMatch))
@@ -258,7 +252,7 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     public synchronized CompletableFuture<Void> addListener(MapEventListener<String, byte[]> listener,
                                                             Executor executor) {
         if (mapEventListeners.isEmpty()) {
-            return submit(new Listen()).thenRun(() -> mapEventListeners.putIfAbsent(listener, executor));
+            return client.submit(new Listen()).thenRun(() -> mapEventListeners.putIfAbsent(listener, executor));
         } else {
             mapEventListeners.put(listener, executor);
             return CompletableFuture.completedFuture(null);
@@ -268,7 +262,7 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     public synchronized CompletableFuture<Void> removeListener(MapEventListener<String, byte[]> listener) {
         if (mapEventListeners.remove(listener) != null && mapEventListeners.isEmpty()) {
-            return submit(new Unlisten()).thenApply(v -> null);
+            return client.submit(new Unlisten()).thenApply(v -> null);
         }
         return CompletableFuture.completedFuture(null);
     }
@@ -281,23 +275,23 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
 
     @Override
     public CompletableFuture<Boolean> prepare(MapTransaction<String, byte[]> transaction) {
-        return submit(new TransactionPrepare(transaction)).thenApply(v -> v == PrepareResult.OK);
+        return client.submit(new TransactionPrepare(transaction)).thenApply(v -> v == PrepareResult.OK);
     }
 
     @Override
     public CompletableFuture<Void> commit(TransactionId transactionId) {
-        return submit(new TransactionCommit(transactionId)).thenApply(v -> null);
+        return client.submit(new TransactionCommit(transactionId)).thenApply(v -> null);
     }
 
     @Override
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
-        return submit(new TransactionRollback(transactionId))
+        return client.submit(new TransactionRollback(transactionId))
                 .thenApply(v -> null);
     }
 
     @Override
     public CompletableFuture<Boolean> prepareAndCommit(MapTransaction<String, byte[]> transaction) {
-        return submit(new TransactionPrepareAndCommit(transaction)).thenApply(v -> v == PrepareResult.OK);
+        return client.submit(new TransactionPrepareAndCommit(transaction)).thenApply(v -> v == PrepareResult.OK);
     }
 
     @Override
