@@ -50,11 +50,6 @@ public final class AtomixLeaderElectorCommands {
     public abstract static class ElectionQuery<V> implements Query<V>, CatalystSerializable {
 
         @Override
-        public ConsistencyLevel consistency() {
-            return ConsistencyLevel.BOUNDED_LINEARIZABLE;
-        }
-
-        @Override
         public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
         }
 
@@ -101,11 +96,6 @@ public final class AtomixLeaderElectorCommands {
      */
     @SuppressWarnings("serial")
     public abstract static class ElectionCommand<V> implements Command<V>, CatalystSerializable {
-
-        @Override
-        public ConsistencyLevel consistency() {
-            return ConsistencyLevel.LINEARIZABLE;
-        }
 
         @Override
         public void writeObject(BufferOutput<?> buffer, Serializer serializer) {

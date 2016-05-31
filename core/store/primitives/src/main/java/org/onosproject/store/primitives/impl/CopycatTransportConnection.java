@@ -15,6 +15,18 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import io.atomix.catalyst.concurrent.Listener;
+import io.atomix.catalyst.concurrent.Listeners;
+import io.atomix.catalyst.concurrent.ThreadContext;
+import io.atomix.catalyst.serializer.SerializationException;
+import io.atomix.catalyst.transport.Address;
+import io.atomix.catalyst.transport.Connection;
+import io.atomix.catalyst.transport.MessageHandler;
+import io.atomix.catalyst.transport.TransportException;
+import io.atomix.catalyst.util.Assert;
+import io.atomix.catalyst.util.reference.ReferenceCounted;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -26,8 +38,6 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-
-
 import org.apache.commons.io.IOUtils;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.PartitionId;
@@ -37,18 +47,6 @@ import org.onosproject.store.cluster.messaging.MessagingService;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import io.atomix.catalyst.serializer.SerializationException;
-import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.Connection;
-import io.atomix.catalyst.transport.MessageHandler;
-import io.atomix.catalyst.transport.TransportException;
-import io.atomix.catalyst.util.Assert;
-import io.atomix.catalyst.util.Listener;
-import io.atomix.catalyst.util.Listeners;
-import io.atomix.catalyst.util.ReferenceCounted;
-import io.atomix.catalyst.util.concurrent.ThreadContext;
 
 /**
  * {@link Connection} implementation for CopycatTransport.

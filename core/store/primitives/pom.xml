@@ -69,9 +69,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.onosproject</groupId>
+            <groupId>io.atomix</groupId>
             <artifactId>atomix</artifactId>
-            <version>1.0.onos-SNAPSHOT</version>
+            <version>1.0.0-rc7</version>
         </dependency>
     </dependencies>
 </project>

@@ -37,12 +37,7 @@ public class AtomixLongTest extends AtomixTestBase {
 
     @Test
     public void testBasicOperations() throws Throwable {
-        basicOperationsTest(1);
-        clearTests();
-        basicOperationsTest(2);
-        clearTests();
         basicOperationsTest(3);
-        clearTests();
     }
 
     protected void basicOperationsTest(int clusterSize) throws Throwable {
