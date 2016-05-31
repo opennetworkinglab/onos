@@ -3,29 +3,12 @@ COMPILE_DEPS = [
     '//core/common:onos-core-common',
     '//incubator/api:onos-incubator-api',
     '//core/store/serializers:onos-core-serializers',
-    '//lib:copycat-client',
-    '//lib:copycat-server',
-    '//lib:copycat-protocol',
-    '//lib:copycat-core',
-    '//lib:typesafe-config',
-    '//lib:copycat-api',
-    '//lib:copycat-state-machine',
-    '//lib:copycat-state-log',
-    '//lib:catalyst-transport',
-    '//lib:catalyst-buffer',
-    '//lib:catalyst-common',
-    '//lib:catalyst-local',
-    '//lib:catalyst-serializer',
     '//lib:atomix',
-    '//lib:atomix-resource',
-    '//lib:atomix-variables',
-    '//lib:atomix-resource-manager',
 ]
 
 TEST_DEPS = [
     '//lib:TEST',
     '//core/api:onos-api-tests',
-    '//lib:onos-atomix',
 ]
 
 osgi_jar_with_tests (

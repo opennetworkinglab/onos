@@ -48,10 +48,6 @@ public final class AsyncConsistentMultimapCommands {
     @SuppressWarnings("serial")
     public abstract static class MultimapCommand<V> implements Command<V>,
             CatalystSerializable {
-        @Override
-        public ConsistencyLevel consistency() {
-            return ConsistencyLevel.SEQUENTIAL;
-        }
 
         @Override
         public String toString() {

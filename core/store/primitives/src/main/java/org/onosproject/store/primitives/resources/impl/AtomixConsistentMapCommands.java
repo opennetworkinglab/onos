@@ -51,11 +51,6 @@ public final class AtomixConsistentMapCommands {
     public abstract static class MapCommand<V> implements Command<V>, CatalystSerializable {
 
         @Override
-        public ConsistencyLevel consistency() {
-          return ConsistencyLevel.SEQUENTIAL;
-        }
-
-        @Override
         public String toString() {
             return MoreObjects.toStringHelper(getClass())
                     .toString();

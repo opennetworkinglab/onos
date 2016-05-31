@@ -29,7 +29,7 @@ import com.google.common.collect.Sets;
 import io.atomix.catalyst.transport.Address;
 import io.atomix.catalyst.transport.Client;
 import io.atomix.catalyst.transport.Connection;
-import io.atomix.catalyst.util.concurrent.ThreadContext;
+import io.atomix.catalyst.concurrent.ThreadContext;
 
 /**
  * {@link Client} implementation for {@link CopycatTransport}.
