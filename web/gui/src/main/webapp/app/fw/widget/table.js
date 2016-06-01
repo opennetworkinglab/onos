@@ -24,7 +24,7 @@
     var $log, $window, fs, mast, is;
 
     // constants
-    var tableIconTdSize = 33,
+    var tableIconTdSize = 40,
         pdg = 22,
         flashTime = 1500,
         colWidth = 'col-width',

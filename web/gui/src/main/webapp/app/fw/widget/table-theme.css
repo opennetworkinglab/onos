@@ -17,24 +17,27 @@
 /* ------ for summary-list tables (theme) ------ */
 
 .light div.summary-list tr:nth-child(even) {
-    background-color: #ddd;
+    background-color: #f4f4f4;
 }
 .light div.summary-list tr:nth-child(odd) {
-    background-color: #eee;
+    background-color: #fbfbfb;
 }
 .dark div.summary-list tr:nth-child(even) {
-    background-color: #333;
+    /* TODO: dark theme */
+    background-color: #f4f4f4;
 }
 .dark div.summary-list tr:nth-child(odd) {
-    background-color: #444;
+    /* TODO: dark theme */
+    background-color: #fbfbfb;
 }
 
 .light div.summary-list tr.selected {
-    background-color: deepskyblue !important;
+    background-color: #dbeffc !important;
 }
 
 .dark div.summary-list tr.selected {
-    background-color: #304860;
+    /* TODO: dark theme */
+    background-color: #dbeffc;
 }
 
 /* highlighting */
@@ -46,15 +49,21 @@
 }
 
 .light div.summary-list .table-header td {
-    background-color: #bbb;
+    background-color: #e5e5e6;
+    color: #3c3a3a;
 }
 .dark div.summary-list .table-header td {
-    background-color: #222;
-    color: #ccc;
+    /* TODO: dark theme */
+    background-color: #e5e5e6;
+    color: #3c3a3a;
 }
 
+.light div.summary-list td {
+    color: #3c3a3a;
+}
 .dark div.summary-list td {
-    color: #ccc;
+    /* TODO: dark theme */
+    color: #3c3a3a;
 }
 
 /* Inactive */

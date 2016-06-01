@@ -49,21 +49,26 @@ div.summary-list tr {
 }
 
 div.summary-list td {
-    padding: 6px;
+    padding: 4px;
     text-align: left;
     word-wrap: break-word;
+    font-size: 12pt;
+}
+
+div.summary-list td.table-icon {
+    padding-left: 4px;
 }
 
 div.summary-list .table-header td {
+    font-weight: bold;
+    font-variant: small-caps;
+    text-transform: uppercase;
+    font-size: 11pt;
+    padding-top: 14px;
+    padding-bottom: 14px;
+
     letter-spacing: 0.02em;
     cursor: pointer;
-    font-weight: bold;
-}
-div.summary-list .table-header td:first-child {
-    border-radius: 8px 0 0 0;
-}
-div.summary-list .table-header td:last-child {
-    border-radius: 0 8px 0 0;
 }
 
 /* rows are selectable */

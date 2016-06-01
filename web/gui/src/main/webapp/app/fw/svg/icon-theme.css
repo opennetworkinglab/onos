@@ -35,10 +35,20 @@
 }
 
 .light svg.embeddedIcon .icon.active .glyph {
-    fill: green;
+    fill: #04bf34;
 }
 .dark svg.embeddedIcon .icon.active .glyph {
-    fill: #308C10;
+    /* TODO: dark theme */
+    fill: #04bf34;
+}
+
+.light svg.embeddedIcon .icon.inactive .glyph {
+    /* TODO: */
+    fill: darkred;
+}
+.dark svg.embeddedIcon .icon.inactive .glyph {
+    /* TODO: dark theme */
+    fill: darkred;
 }
 
 .light table svg.embeddedIcon {
@@ -54,16 +64,4 @@
     fill: #ccc;
 }
 
-.light svg.embeddedIcon .icon.active .glyph {
-    fill: green;
-}
-.light svg.embeddedIcon .icon.inactive .glyph {
-    fill: darkred;
-}
-.dark svg.embeddedIcon .icon.active .glyph {
-    fill: #308C10;
-}
-.dark svg.embeddedIcon .icon.inactive .glyph {
-    fill: #AD2D2D;
-}
 

@@ -26,6 +26,10 @@
     width: 40px;
 }
 
+#ov-processor td.priority {
+    text-align: center;
+}
+
 #ov-processor td.number {
     text-align: right;
 }
