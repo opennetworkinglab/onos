@@ -19,9 +19,11 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.linker.exceptions.LinkerException;
-import org.onosproject.yangutils.linker.impl.YangReferenceResolver;
+import org.onosproject.yangutils.linker.ResolvableType;
+import org.onosproject.yangutils.linker.YangReferenceResolver;
 import org.onosproject.yangutils.linker.impl.YangResolutionInfo;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.plugin.manager.YangFileInfo;
@@ -74,7 +76,8 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.resolveLi
 /**
  * Represents data model node to maintain information defined in YANG module.
  */
-public class YangModule extends YangNode
+public class YangModule
+        extends YangNode
         implements YangLeavesHolder, YangDesc, YangReference, Parsable, CollisionDetector, YangReferenceResolver,
         RpcNotificationContainer {
 
@@ -85,7 +88,7 @@ public class YangModule extends YangNode
 
     /**
      * Reference:RFC 6020.
-     * <p>
+     *
      * The "contact" statement provides contact information for the module. The
      * argument is a string that is used to specify contact information for the
      * person or persons to whom technical queries concerning this module should
@@ -96,7 +99,7 @@ public class YangModule extends YangNode
 
     /**
      * Reference:RFC 6020.
-     * <p>
+     *
      * The "description" statement takes as an argument a string that contains a
      * human-readable textual description of this definition. The text is
      * provided in a language (or languages) chosen by the module developer; for
@@ -131,7 +134,7 @@ public class YangModule extends YangNode
 
     /**
      * Reference:RFC 6020.
-     * <p>
+     *
      * The "organization" statement defines the party responsible for this
      * module. The argument is a string that is used to specify a textual
      * description of the organization(s) under whose auspices this module was
@@ -193,7 +196,12 @@ public class YangModule extends YangNode
      * matching "typedef" or "grouping" statement among the immediate
      * sub-statements of each ancestor statement.
      */
-    private List<YangResolutionInfo> unresolvedResolutionList;
+    private List<YangResolutionInfo> derivedTypeResolutionList;
+
+    /**
+     * uses resolution list.
+     */
+    private List<YangResolutionInfo> usesResolutionList;
 
     /**
      * Creates a YANG node of module type.
@@ -201,7 +209,8 @@ public class YangModule extends YangNode
     public YangModule() {
 
         super(YangNodeType.MODULE_NODE);
-        unresolvedResolutionList = new LinkedList<YangResolutionInfo>();
+        derivedTypeResolutionList = new LinkedList<YangResolutionInfo>();
+        usesResolutionList = new LinkedList<YangResolutionInfo>();
         importList = new LinkedList<YangImport>();
         includeList = new LinkedList<YangInclude>();
         listOfLeaf = new LinkedList<YangLeaf>();
@@ -326,6 +335,11 @@ public class YangModule extends YangNode
         return listOfLeaf;
     }
 
+    @Override
+    public void setListOfLeaf(List<YangLeaf> leafsList) {
+        listOfLeaf = leafsList;
+    }
+
     /**
      * Adds a leaf in module.
      *
@@ -345,6 +359,12 @@ public class YangModule extends YangNode
     public List<YangLeafList> getListOfLeafList() {
         return listOfLeafList;
     }
+
+    @Override
+    public void setListOfLeafList(List<YangLeafList> listOfLeafList) {
+        this.listOfLeafList = listOfLeafList;
+    }
+
 
     /**
      * Adds a leaf-list in module.
@@ -413,17 +433,19 @@ public class YangModule extends YangNode
     }
 
     @Override
-    public void resolveSelfFileLinking() throws DataModelException {
+    public void resolveSelfFileLinking(ResolvableType type)
+            throws DataModelException {
         // Get the list to be resolved.
-        List<YangResolutionInfo> resolutionList = getUnresolvedResolutionList();
+        List<YangResolutionInfo> resolutionList = getUnresolvedResolutionList(type);
         // Resolve linking for a resolution list.
         resolveLinkingForResolutionList(resolutionList, this);
     }
 
     @Override
-    public void resolveInterFileLinking() throws DataModelException {
+    public void resolveInterFileLinking(ResolvableType type)
+            throws DataModelException {
         // Get the list to be resolved.
-        List<YangResolutionInfo> resolutionList = getUnresolvedResolutionList();
+        List<YangResolutionInfo> resolutionList = getUnresolvedResolutionList(type);
         // Resolve linking for a resolution list.
         linkInterFileReferences(resolutionList, this);
     }
@@ -500,7 +522,8 @@ public class YangModule extends YangNode
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnEntry() throws DataModelException {
+    public void validateDataOnEntry()
+            throws DataModelException {
         /*
          * Module is root in the data model tree, hence there is no entry
          * validation
@@ -513,7 +536,8 @@ public class YangModule extends YangNode
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnExit() throws DataModelException {
+    public void validateDataOnExit()
+            throws DataModelException {
         /*
          * TODO: perform symbol linking for the imported or included YANG info.
          * TODO: perform symbol resolution for referred YANG entities.
@@ -521,29 +545,47 @@ public class YangModule extends YangNode
     }
 
     @Override
-    public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectCollidingChild(String identifierName, YangConstructType dataType)
+            throws DataModelException {
         // Asks helper to detect colliding child.
         detectCollidingChildUtil(identifierName, dataType, this);
     }
 
     @Override
-    public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectSelfCollision(String identifierName, YangConstructType dataType)
+            throws DataModelException {
         // Not required as module doesn't have any parent.
     }
 
     @Override
-    public List<YangResolutionInfo> getUnresolvedResolutionList() {
-        return unresolvedResolutionList;
+    public List<YangResolutionInfo> getUnresolvedResolutionList(ResolvableType type) {
+        if (type == ResolvableType.YANG_DERIVED_DATA_TYPE) {
+            return derivedTypeResolutionList;
+        } else {
+            return usesResolutionList;
+        }
+
     }
 
     @Override
-    public void addToResolutionList(YangResolutionInfo resolutionInfo) {
-        unresolvedResolutionList.add(resolutionInfo);
+    public void addToResolutionList(YangResolutionInfo resolutionInfo,
+            ResolvableType type) {
+        if (type == ResolvableType.YANG_DERIVED_DATA_TYPE) {
+            derivedTypeResolutionList.add(resolutionInfo);
+        } else if (type == ResolvableType.YANG_USES) {
+            usesResolutionList.add(resolutionInfo);
+        }
     }
 
     @Override
-    public void setResolutionList(List<YangResolutionInfo> resolutionList) {
-        unresolvedResolutionList = resolutionList;
+    public void setResolutionList(List<YangResolutionInfo> resolutionList,
+            ResolvableType type) {
+        if (type == ResolvableType.YANG_DERIVED_DATA_TYPE) {
+            derivedTypeResolutionList = resolutionList;
+        } else if (type == ResolvableType.YANG_USES) {
+            usesResolutionList = resolutionList;
+        }
+
     }
 
     @Override

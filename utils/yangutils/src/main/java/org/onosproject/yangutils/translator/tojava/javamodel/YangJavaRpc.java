@@ -24,6 +24,7 @@ import org.onosproject.yangutils.datamodel.YangInput;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangLeavesHolder;
+import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangOutput;
 import org.onosproject.yangutils.datamodel.YangRpc;
@@ -40,10 +41,8 @@ import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesCont
 import org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
-import static org.onosproject.yangutils.datamodel.YangNodeType.LIST_NODE;
 import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getAttributeInfoForTheData;
 import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getQualifiedTypeInfoOfCurNode;
-import static org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles.resolveGroupingsQuailifiedInfo;
 import static org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType.getJavaDataType;
 import static org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType.getJavaImportClass;
 import static org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType.getJavaImportPackage;
@@ -52,6 +51,13 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSy
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getParentNodeInGenCode;
 import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.updatePackageInfo;
+import static org.onosproject.yangutils.utils.UtilConstants.ACTIVATE;
+import static org.onosproject.yangutils.utils.UtilConstants.COMPONENT;
+import static org.onosproject.yangutils.utils.UtilConstants.DEACTIVATE;
+import static org.onosproject.yangutils.utils.UtilConstants.MANAGER;
+import static org.onosproject.yangutils.utils.UtilConstants.REFERENCE;
+import static org.onosproject.yangutils.utils.UtilConstants.REFERENCE_CARDINALITY;
+import static org.onosproject.yangutils.utils.UtilConstants.SERVICE;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 
 /**
@@ -126,7 +132,8 @@ public class YangJavaRpc
      * @throws TranslatorException translator operations fails
      */
     @Override
-    public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
+    public void generateCodeEntry(YangPluginConfig yangPlugin)
+            throws TranslatorException {
 
         if (!(this instanceof JavaCodeGeneratorInfo)) {
             // TODO:throw exception
@@ -152,7 +159,8 @@ public class YangJavaRpc
      * @throws TranslatorException translator operations fails
      */
     @Override
-    public void generateCodeExit() throws TranslatorException {
+    public void generateCodeExit()
+            throws TranslatorException {
         // Get the parent module/sub-module.
         YangNode parent = getParentNodeInGenCode(this);
 
@@ -216,7 +224,15 @@ public class YangJavaRpc
                     YangNode tempNode = node.getChild();
                     while (tempNode != null) {
                         if (tempNode instanceof YangUses) {
-                            deleteDirectoryWhenNoFileIsGeneratedForInputOutput(rpcsChildNodePkg);
+                            boolean isCodeGenerated = true;
+                            if (node instanceof YangJavaInput) {
+                                isCodeGenerated = ((YangJavaInput) node).isCodeGenFlag();
+                            } else if (node instanceof YangJavaOutput) {
+                                isCodeGenerated = ((YangJavaOutput) node).isCodeGenFlag();
+                            }
+                            if (!isCodeGenerated) {
+                                deleteDirectoryWhenNoFileIsGeneratedForInputOutput(rpcsChildNodePkg);
+                            }
                         }
                         tempNode = tempNode.getNextSibling();
                     }
@@ -236,7 +252,8 @@ public class YangJavaRpc
      * @param emptyPkg empty package
      * @throws IOException when fails to do IO operations
      */
-    private void deleteDirectoryWhenNoFileIsGeneratedForInputOutput(String emptyPkg) throws IOException {
+    private void deleteDirectoryWhenNoFileIsGeneratedForInputOutput(String emptyPkg)
+            throws IOException {
         deleteDirectory(emptyPkg);
     }
 
@@ -244,8 +261,8 @@ public class YangJavaRpc
      * Creates an attribute info object corresponding to a data model node and
      * return it.
      *
-     * @param childNode child data model node(input / output) for which the java code generation
-     * is being handled
+     * @param childNode   child data model node(input / output) for which the java code generation
+     *                    is being handled
      * @param currentNode parent node (module / sub-module) in which the child node is an attribute
      * @return AttributeInfo attribute details required to add in temporary
      * files
@@ -260,7 +277,7 @@ public class YangJavaRpc
          * Get the import info corresponding to the attribute for import in
          * generated java files or qualified access
          */
-        JavaQualifiedTypeInfo qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(currentNode,
+        JavaQualifiedTypeInfo qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(childNode,
                 getCapitalCase(childNodeName));
         if (!(parentNode instanceof TempJavaCodeFragmentFilesContainer)) {
             throw new TranslatorException("Parent node does not have file info");
@@ -281,7 +298,7 @@ public class YangJavaRpc
     /**
      * Process input/output nodes.
      *
-     * @param node YANG node
+     * @param node             YANG node
      * @param yangPluginConfig plugin configurations
      */
     private void processNodeEntry(YangNode node, YangPluginConfig yangPluginConfig) {
@@ -299,7 +316,11 @@ public class YangJavaRpc
         } else if (node.getChild() != null && holder.getListOfLeaf().isEmpty()
                 && holder.getListOfLeafList().isEmpty()) {
             if (getNumberOfChildNodes(node) == 1) {
-                setCodeGenFlagForNode(node, false);
+                if (node.getChild() instanceof YangUses) {
+                    setCodeGenFlagForNode(node, getCodeGenFlagWhenUsesIsAChildNode(node));
+                } else {
+                    setCodeGenFlagForNode(node, false);
+                }
             } else {
                 setCodeGenFlagForNode(node, true);
             }
@@ -308,10 +329,37 @@ public class YangJavaRpc
         }
     }
 
+    /*Returns code gen flag when uses is a child node.*/
+    private boolean getCodeGenFlagWhenUsesIsAChildNode(YangNode node) {
+        YangUses uses = (YangUses) node.getChild();
+
+        List<YangNode> groupingChildResolvedNodes = uses.getUsesResolvedNodeList();
+        List<List<YangLeaf>> groupingChildResolvedLeaves = uses.getUsesResolvedLeavesList();
+        List<List<YangLeafList>> groupingChildResolvedLeafList = uses.getUsesResolvedListOfLeafList();
+
+        if (!groupingChildResolvedNodes.isEmpty()
+                && groupingChildResolvedNodes.size() == 1
+                && groupingChildResolvedLeaves.isEmpty()
+                && groupingChildResolvedLeafList.isEmpty()) {
+            return false;
+        } else if (groupingChildResolvedNodes.isEmpty()
+                && isOnlyOneLeafPresentInGrouping(groupingChildResolvedLeaves)
+                && groupingChildResolvedLeafList.isEmpty()) {
+            return false;
+        } else if (groupingChildResolvedNodes.isEmpty()
+                && groupingChildResolvedLeaves.isEmpty()
+                && isOnlyOneLeafListPresentInGrouping(groupingChildResolvedLeafList)) {
+            return false;
+        }
+        return (groupingChildResolvedNodes.isEmpty()
+                && groupingChildResolvedLeaves.isEmpty()
+                && groupingChildResolvedLeafList.isEmpty());
+    }
+
     /**
      * Process input/output nodes.
      *
-     * @param node YANG node
+     * @param node             YANG node
      * @param yangPluginConfig plugin configurations
      * @return java attribute info
      */
@@ -343,7 +391,7 @@ public class YangJavaRpc
     /**
      * Process input/output node when one leaf is present.
      *
-     * @param node input/output node
+     * @param node             input/output node
      * @param yangPluginConfig plugin configurations
      * @return java attribute for node
      */
@@ -351,30 +399,15 @@ public class YangJavaRpc
             YangPluginConfig yangPluginConfig) {
 
         YangLeavesHolder holder = (YangLeavesHolder) node;
-        List<YangLeaf> listOfLeaves = holder.getListOfLeaf();
-
-        for (YangLeaf leaf : listOfLeaves) {
-            if (!(leaf instanceof JavaLeafInfoContainer)) {
-                throw new TranslatorException("Leaf does not have java information");
-            }
-            JavaLeafInfoContainer javaLeaf = (JavaLeafInfoContainer) leaf;
-            javaLeaf.setConflictResolveConfig(yangPluginConfig.getConflictResolver());
-            javaLeaf.updateJavaQualifiedInfo();
-            JavaAttributeInfo javaAttributeInfo = getAttributeInfoForTheData(
-                    javaLeaf.getJavaQualifiedInfo(),
-                    javaLeaf.getJavaName(yangPluginConfig.getConflictResolver()),
-                    javaLeaf.getDataType(),
-                    addTypeImport(javaLeaf.getDataType(), false, yangPluginConfig), false);
-            setLeafHolderFlag(node, true);
-            return javaAttributeInfo;
-        }
-        return null;
+        YangLeaf leaf = holder.getListOfLeaf().get(0);
+        setLeafHolderFlag(node, true);
+        return getAttributeInfoForLeaf(leaf, yangPluginConfig);
     }
 
     /**
      * Process input/output node when one leaf list is present.
      *
-     * @param node input/output node
+     * @param node             input/output node
      * @param yangPluginConfig plugin configurations
      * @return java attribute for node
      */
@@ -382,33 +415,57 @@ public class YangJavaRpc
             YangPluginConfig yangPluginConfig) {
 
         YangLeavesHolder holder = (YangLeavesHolder) node;
-        List<YangLeafList> listOfLeafList = holder.getListOfLeafList();
+        YangLeafList leafList = holder.getListOfLeafList().get(0);
+        setLeafHolderFlag(node, true);
+        return getAttributeInfoForLeafList(leafList, yangPluginConfig);
+    }
 
-        for (YangLeafList leafList : listOfLeafList) {
-            if (!(leafList instanceof JavaLeafInfoContainer)) {
-                throw new TranslatorException("Leaf-list does not have java information");
-            }
-            JavaLeafInfoContainer javaLeaf = (JavaLeafInfoContainer) leafList;
-            javaLeaf.setConflictResolveConfig(yangPluginConfig.getConflictResolver());
-            javaLeaf.updateJavaQualifiedInfo();
-            ((TempJavaCodeFragmentFilesContainer) this.getParent()).getTempJavaCodeFragmentFiles()
-                    .getServiceTempFiles().getJavaImportData().setIfListImported(true);
-            JavaAttributeInfo javaAttributeInfo = getAttributeInfoForTheData(
-                    javaLeaf.getJavaQualifiedInfo(),
-                    javaLeaf.getJavaName(yangPluginConfig.getConflictResolver()),
-                    javaLeaf.getDataType(),
-                    addTypeImport(javaLeaf.getDataType(), true, yangPluginConfig),
-                    true);
-            setLeafHolderFlag(node, true);
-            return javaAttributeInfo;
-        }
-        return null;
+    /**
+     * Returns java attribute info for leaf.
+     *
+     * @param leaf             YANG leaf
+     * @param yangPluginConfig plugin configurations
+     * @return java attribute info for leaf
+     */
+    private JavaAttributeInfo getAttributeInfoForLeaf(YangLeaf leaf, YangPluginConfig yangPluginConfig) {
+        JavaLeafInfoContainer javaLeaf = (JavaLeafInfoContainer) leaf;
+        javaLeaf.setConflictResolveConfig(yangPluginConfig.getConflictResolver());
+        javaLeaf.updateJavaQualifiedInfo();
+        JavaAttributeInfo javaAttributeInfo = getAttributeInfoForTheData(
+                javaLeaf.getJavaQualifiedInfo(),
+                javaLeaf.getJavaName(yangPluginConfig.getConflictResolver()),
+                javaLeaf.getDataType(),
+                addTypeImport(javaLeaf.getDataType(), false, yangPluginConfig), false);
+        return javaAttributeInfo;
+    }
+
+    /**
+     * Returns java attribute info for leaf list.
+     *
+     * @param leafList         YANG leaf list
+     * @param yangPluginConfig plugin configurations
+     * @return java attribute info for leaf list
+     */
+    private JavaAttributeInfo getAttributeInfoForLeafList(YangLeafList leafList,
+            YangPluginConfig yangPluginConfig) {
+        JavaLeafInfoContainer javaLeaf = (JavaLeafInfoContainer) leafList;
+        javaLeaf.setConflictResolveConfig(yangPluginConfig.getConflictResolver());
+        javaLeaf.updateJavaQualifiedInfo();
+        ((TempJavaCodeFragmentFilesContainer) this.getParent()).getTempJavaCodeFragmentFiles()
+                .getServiceTempFiles().getJavaImportData().setIfListImported(true);
+        JavaAttributeInfo javaAttributeInfo = getAttributeInfoForTheData(
+                javaLeaf.getJavaQualifiedInfo(),
+                javaLeaf.getJavaName(yangPluginConfig.getConflictResolver()),
+                javaLeaf.getDataType(),
+                addTypeImport(javaLeaf.getDataType(), true, yangPluginConfig),
+                true);
+        return javaAttributeInfo;
     }
 
     /**
      * Process input/output node when one child node is present.
      *
-     * @param node input/output node
+     * @param node             input/output node
      * @param yangPluginConfig plugin configurations
      * @return java attribute for node
      */
@@ -418,10 +475,8 @@ public class YangJavaRpc
         String clsInfo = "";
         JavaQualifiedTypeInfo childInfo = new JavaQualifiedTypeInfo();
         if (node.getChild() instanceof YangJavaUses) {
-            childInfo = resolveGroupingsQuailifiedInfo(((YangJavaUses) node.getChild()).getRefGroup(),
-                    yangPluginConfig);
-            clsInfo = getCapitalCase(getCamelCase(((YangJavaUses) node.getChild()).getRefGroup().getName(),
-                    yangPluginConfig.getConflictResolver()));
+            YangJavaUses uses = (YangJavaUses) node.getChild();
+            return processNodeWhenUsesIsChild(uses, node, yangPluginConfig);
         } else {
             String pkg = (rpcInfo.getPackage() + "." + rpcInfo.getJavaName() + "."
                     + getCamelCase(node.getName(), yangPluginConfig.getConflictResolver())).toLowerCase();
@@ -431,7 +486,7 @@ public class YangJavaRpc
             childInfo.setClassInfo(clsInfo);
         }
         boolean isList = false;
-        if (node.getChild().getNodeType().equals(LIST_NODE)) {
+        if (node.getChild() instanceof YangList) {
             isList = true;
         }
         boolean isQualified = addImportToService(childInfo);
@@ -442,6 +497,88 @@ public class YangJavaRpc
         setLeafHolderFlag(node, false);
         setSingleChildHolderFlag(node, true);
         return javaAttributeInfo;
+    }
+
+    /**
+     * Returns java attribute info when child node is uses.
+     *
+     * @param uses             YANG uses node
+     * @param node             YANG node
+     * @param yangPluginConfig plugin configurations
+     * @return java attribute info when child node is uses
+     */
+    private JavaAttributeInfo processNodeWhenUsesIsChild(YangUses uses, YangNode node,
+            YangPluginConfig yangPluginConfig) {
+        String clsInfo = "";
+        JavaQualifiedTypeInfo childInfo = new JavaQualifiedTypeInfo();
+        List<YangNode> groupingChildResolvedNodes = uses.getUsesResolvedNodeList();
+        List<List<YangLeaf>> groupingChildResolvedLeaves = uses.getUsesResolvedLeavesList();
+        List<List<YangLeafList>> groupingChildResolvedLeafList = uses.getUsesResolvedListOfLeafList();
+
+        if (!groupingChildResolvedNodes.isEmpty()
+                && groupingChildResolvedNodes.size() == 1
+                && groupingChildResolvedLeaves.isEmpty()
+                && groupingChildResolvedLeafList.isEmpty()) {
+            YangNode childNodeOfGrouping = groupingChildResolvedNodes.get(0);
+            boolean isList = false;
+            if (childNodeOfGrouping instanceof YangList) {
+                isList = true;
+            }
+            JavaFileInfo childNodeOfGroupingInfo =
+                    ((JavaFileInfoContainer) childNodeOfGrouping).getJavaFileInfo();
+            childInfo.setClassInfo(getCapitalCase(childNodeOfGroupingInfo.getJavaName()));
+            childInfo.setPkgInfo(childNodeOfGroupingInfo.getPackage());
+            clsInfo = childInfo.getClassInfo();
+            boolean isQualified = addImportToService(childInfo);
+            setLeafHolderFlag(node, false);
+            setSingleChildHolderFlag(node, true);
+            return getAttributeInfoForTheData(childInfo, clsInfo, null, isQualified, isList);
+
+        } else if (groupingChildResolvedNodes.isEmpty()
+                && isOnlyOneLeafPresentInGrouping(groupingChildResolvedLeaves)
+                && groupingChildResolvedLeafList.isEmpty()) {
+
+            YangLeaf leaf = groupingChildResolvedLeaves.get(0).get(0);
+            setLeafHolderFlag(node, true);
+            return getAttributeInfoForLeaf(leaf, yangPluginConfig);
+
+        } else if (groupingChildResolvedNodes.isEmpty()
+                && groupingChildResolvedLeaves.isEmpty()
+                && isOnlyOneLeafListPresentInGrouping(groupingChildResolvedLeafList)) {
+            YangLeafList leafList = groupingChildResolvedLeafList.get(0).get(0);
+            setLeafHolderFlag(node, true);
+            return getAttributeInfoForLeafList(leafList, yangPluginConfig);
+
+        } else if (groupingChildResolvedNodes.isEmpty()
+                && groupingChildResolvedLeaves.isEmpty()
+                && groupingChildResolvedLeafList.isEmpty()) {
+            return null;
+        } else {
+            return processNodeWhenMultipleContaintsArePresent(node);
+        }
+    }
+
+    /*Return true if only one leaf is present in grouping node.*/
+    private boolean isOnlyOneLeafPresentInGrouping(List<List<YangLeaf>> groupingChildResolvedLeaves) {
+        if (!groupingChildResolvedLeaves.isEmpty() &&
+                groupingChildResolvedLeaves.size() == 1) {
+            List<YangLeaf> leaves = groupingChildResolvedLeaves.get(0);
+            return leaves.size() == 1;
+        } else {
+            return false;
+        }
+    }
+
+    /*Returns true is only one leaf list is present in grouping node.*/
+    private boolean isOnlyOneLeafListPresentInGrouping(List<List<YangLeafList>> groupingChildResolvedLeafList) {
+
+        if (!groupingChildResolvedLeafList.isEmpty() &&
+                groupingChildResolvedLeafList.size() == 1) {
+            List<YangLeafList> leaves = groupingChildResolvedLeafList.get(0);
+            return leaves.size() == 1;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -460,8 +597,8 @@ public class YangJavaRpc
     /**
      * Adds type import to the RPC import list.
      *
-     * @param type YANG type
-     * @param isList is list attribute
+     * @param type         YANG type
+     * @param isList       is list attribute
      * @param pluginConfig plugin configurations
      * @return type import to the RPC import list
      */
@@ -492,13 +629,26 @@ public class YangJavaRpc
      * @return true or false
      */
     private boolean addImportToService(JavaQualifiedTypeInfo importInfo) {
-        if (((TempJavaCodeFragmentFilesContainer) this.getParent()).getTempJavaCodeFragmentFiles()
-                .getServiceTempFiles().getJavaImportData().addImportInfo(importInfo)) {
-            return !((TempJavaCodeFragmentFilesContainer) this.getParent()).getTempJavaCodeFragmentFiles()
-                    .getServiceTempFiles().getJavaImportData().getImportSet().contains(importInfo);
-        } else {
+        JavaFileInfo fileInfo = ((JavaFileInfoContainer) this.getParent()).getJavaFileInfo();
+
+        if (importInfo.getClassInfo().contentEquals(SERVICE)
+                || importInfo.getClassInfo().contentEquals(COMPONENT)
+                || importInfo.getClassInfo().contentEquals(getCapitalCase(ACTIVATE))
+                || importInfo.getClassInfo().contentEquals(getCapitalCase(DEACTIVATE))
+                || importInfo.getClassInfo().contentEquals(REFERENCE_CARDINALITY)
+                || importInfo.getClassInfo().contentEquals(REFERENCE)
+                || importInfo.getClassInfo().contentEquals(getCapitalCase(fileInfo.getJavaName() + SERVICE))
+                || importInfo.getClassInfo().contentEquals(getCapitalCase(fileInfo.getJavaName() + MANAGER))) {
             return true;
         }
+
+        String className;
+        className = getCapitalCase(fileInfo.getJavaName()) + "Service";
+
+        return ((TempJavaCodeFragmentFilesContainer) this.getParent()).getTempJavaCodeFragmentFiles()
+                .getServiceTempFiles().getJavaImportData().addImportInfo(importInfo,
+                        className, fileInfo.getPackage());
+
     }
 
     /**

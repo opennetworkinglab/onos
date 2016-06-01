@@ -58,7 +58,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
  * Represents leaf data represented in YANG.
  */
 public class YangLeaf
-        implements YangCommonInfo, Parsable {
+        implements YangCommonInfo, Parsable, Cloneable {
 
     /**
      * Name of leaf.
@@ -105,6 +105,11 @@ public class YangLeaf
      * based on the type.
      */
     private String defaultValueInString;
+
+    /**
+     * YANG Node in which the leaf is contained.
+     */
+    YangLeavesHolder containedIn;
 
     /**
      * Creates a YANG leaf.
@@ -278,6 +283,30 @@ public class YangLeaf
      */
     public void setDataType(YangType<?> dataType) {
         this.dataType = dataType;
+    }
+
+    /**
+     * Retrieves the YANG node in which the leaf is defined.
+     *
+     * @return the YANG node in which the leaf is defined
+     */
+    public YangLeavesHolder getContainedIn() {
+        return containedIn;
+    }
+
+    /**
+     * Assigns the YANG node in which the leaf is defined.
+     *
+     * @param containedIn the YANG node in which the leaf is defined
+     */
+    public void setContainedIn(YangLeavesHolder containedIn) {
+        this.containedIn = containedIn;
+    }
+
+    @Override
+    public YangLeaf clone()
+            throws CloneNotSupportedException {
+        return (YangLeaf) super.clone();
     }
 
     /**

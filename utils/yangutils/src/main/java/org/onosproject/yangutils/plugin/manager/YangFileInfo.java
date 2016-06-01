@@ -17,7 +17,7 @@
 package org.onosproject.yangutils.plugin.manager;
 
 import java.util.Objects;
-import org.onosproject.yangutils.linker.impl.ResolvableStatus;
+import org.onosproject.yangutils.linker.ResolvableStatus;
 import org.onosproject.yangutils.datamodel.YangNode;
 
 /**

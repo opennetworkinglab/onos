@@ -35,7 +35,7 @@ import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.addResolutionInfo;
 import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_GENERATION;
 import static org.onosproject.yangutils.datamodel.utils.YangDataModelFactory.getYangType;
-import static org.onosproject.yangutils.linker.impl.ResolvableStatus.UNRESOLVED;
+import static org.onosproject.yangutils.linker.ResolvableStatus.UNRESOLVED;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;

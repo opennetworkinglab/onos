@@ -33,6 +33,13 @@ public interface YangLeavesHolder {
     List<YangLeaf> getListOfLeaf();
 
     /**
+     * Sets the list of leaves.
+     *
+     * @param leafsList the list of leaf to set
+     */
+    void setListOfLeaf(List<YangLeaf> leafsList);
+
+    /**
      * Adds leaf in data holder like container / list.
      *
      * @param leaf the leaf to be added
@@ -45,6 +52,13 @@ public interface YangLeavesHolder {
      * @return the list of leaf-list
      */
     List<YangLeafList> getListOfLeafList();
+
+    /**
+     * Sets the list of leaf-list.
+     *
+     * @param listOfLeafList the list of leaf-list to set
+     */
+    void setListOfLeafList(List<YangLeafList> listOfLeafList);
 
     /**
      * Adds leaf-list in data holder like container / list.

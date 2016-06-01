@@ -68,7 +68,8 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
 /**
  * Represents data model node to maintain information defined in YANG input.
  */
-public class YangInput extends YangNode
+public class YangInput
+        extends YangNode
         implements YangLeavesHolder, Parsable, CollisionDetector, YangAugmentationHolder {
 
     /**
@@ -96,13 +97,15 @@ public class YangInput extends YangNode
     }
 
     @Override
-    public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectCollidingChild(String identifierName, YangConstructType dataType)
+            throws DataModelException {
         // Detect colliding child.
         detectCollidingChildUtil(identifierName, dataType, this);
     }
 
     @Override
-    public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectSelfCollision(String identifierName, YangConstructType dataType)
+            throws DataModelException {
         if (this.getName().equals(identifierName)) {
             throw new DataModelException("YANG file error: Duplicate input identifier detected, same as input \""
                     + this.getName() + "\"");
@@ -115,12 +118,14 @@ public class YangInput extends YangNode
     }
 
     @Override
-    public void validateDataOnEntry() throws DataModelException {
+    public void validateDataOnEntry()
+            throws DataModelException {
         //TODO: implement the method.
     }
 
     @Override
-    public void validateDataOnExit() throws DataModelException {
+    public void validateDataOnExit()
+            throws DataModelException {
         //TODO: implement the method.
     }
 
@@ -130,6 +135,12 @@ public class YangInput extends YangNode
     }
 
     @Override
+    public void setListOfLeaf(List<YangLeaf> leafsList) {
+        listOfLeaf = leafsList;
+    }
+
+
+    @Override
     public void addLeaf(YangLeaf leaf) {
         getListOfLeaf().add(leaf);
     }
@@ -137,6 +148,11 @@ public class YangInput extends YangNode
     @Override
     public List<YangLeafList> getListOfLeafList() {
         return listOfLeafList;
+    }
+
+    @Override
+    public void setListOfLeafList(List<YangLeafList> listOfLeafList) {
+        this.listOfLeafList = listOfLeafList;
     }
 
     @Override

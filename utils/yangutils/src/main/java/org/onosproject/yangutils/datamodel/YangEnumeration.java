@@ -31,7 +31,9 @@ import org.onosproject.yangutils.utils.YangConstructType;
 /**
  * Represents the enumeration data type information.
  */
-public class YangEnumeration extends YangNode implements Parsable, CollisionDetector {
+public class YangEnumeration
+        extends YangNode
+        implements Parsable, CollisionDetector {
 
     // Enumeration info set.
     private SortedSet<YangEnum> enumSet;
@@ -71,7 +73,8 @@ public class YangEnumeration extends YangNode implements Parsable, CollisionDete
      * @param enumInfo the ENUM information to be added
      * @throws DataModelException due to violation in data model rules
      */
-    public void addEnumInfo(YangEnum enumInfo) throws DataModelException {
+    public void addEnumInfo(YangEnum enumInfo)
+            throws DataModelException {
         if (!getEnumSet().add(enumInfo)) {
             throw new DataModelException("YANG ENUM already exists");
         }
@@ -113,7 +116,8 @@ public class YangEnumeration extends YangNode implements Parsable, CollisionDete
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnEntry() throws DataModelException {
+    public void validateDataOnEntry()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
@@ -123,21 +127,24 @@ public class YangEnumeration extends YangNode implements Parsable, CollisionDete
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnExit() throws DataModelException {
+    public void validateDataOnExit()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
     @Override
-    public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectCollidingChild(String identifierName, YangConstructType dataType)
+            throws DataModelException {
         /*
-        Do nothing.The implementation for this is not required.
+        Do nothing, since it is not part of the schema tree, it is only type of an existing node in schema tree.
          */
     }
 
     @Override
-    public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectSelfCollision(String identifierName, YangConstructType dataType)
+            throws DataModelException {
         /*
-        Do nothing.The implementation for this is not required.
+        Do nothing, since it is not part of the schema tree, it is only type of an existing node in schema tree.
          */
     }
 }

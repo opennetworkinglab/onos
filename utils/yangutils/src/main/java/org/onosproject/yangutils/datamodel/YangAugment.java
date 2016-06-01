@@ -79,7 +79,8 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
 /**
  * Representation of data model node to maintain information defined in YANG augment.
  */
-public class YangAugment extends YangNode
+public class YangAugment
+        extends YangNode
         implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector {
 
     /**
@@ -163,13 +164,15 @@ public class YangAugment extends YangNode
     }
 
     @Override
-    public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectCollidingChild(String identifierName, YangConstructType dataType)
+            throws DataModelException {
         // Detect colliding child.
         detectCollidingChildUtil(identifierName, dataType, this);
     }
 
     @Override
-    public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectSelfCollision(String identifierName, YangConstructType dataType)
+            throws DataModelException {
         if (this.getName().equals(identifierName)) {
             throw new DataModelException("YANG file error: Duplicate input identifier detected, same as input \""
                     + this.getName() + "\"");
@@ -191,7 +194,8 @@ public class YangAugment extends YangNode
      *
      * @param leafsList the list of leaf to set
      */
-    private void setListOfLeaf(List<YangLeaf> leafsList) {
+    @Override
+    public void setListOfLeaf(List<YangLeaf> leafsList) {
         listOfLeaf = leafsList;
     }
 
@@ -224,7 +228,8 @@ public class YangAugment extends YangNode
      *
      * @param listOfLeafList the list of leaf-list to set
      */
-    private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
+    @Override
+    public void setListOfLeafList(List<YangLeafList> listOfLeafList) {
         this.listOfLeafList = listOfLeafList;
     }
 
@@ -298,7 +303,8 @@ public class YangAugment extends YangNode
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnEntry() throws DataModelException {
+    public void validateDataOnEntry()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
@@ -308,7 +314,8 @@ public class YangAugment extends YangNode
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnExit() throws DataModelException {
+    public void validateDataOnExit()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
 

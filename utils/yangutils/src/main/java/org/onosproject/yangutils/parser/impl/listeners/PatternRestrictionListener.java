@@ -151,7 +151,7 @@ public final class PatternRestrictionListener {
      * @param ctx      context object of the grammar rule
      */
     public static void processPatternRestrictionExit(TreeWalkListener listener,
-                                                     GeneratedYangParser.PatternStatementContext ctx) {
+                                                    GeneratedYangParser.PatternStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, PATTERN_DATA, ctx.string().getText(), EXIT);

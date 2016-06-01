@@ -247,7 +247,7 @@ public final class AugmentListenerUtil {
     /**
      * Validates whether nodes in target node list are valid or not.
      *
-     * @param targetNodeName current target node
+     * @param targetNodes target node
      * @param curNode YANG node
      * @return true or false
      */

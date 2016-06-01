@@ -39,8 +39,10 @@ import static org.onosproject.yangutils.parser.impl.parserutils.AugmentListenerU
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerCollisionDetector.detectCollidingChildUtil;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction
+        .constructExtendedListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction
+        .constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
@@ -98,7 +100,7 @@ public final class AugmentListener {
      * @param ctx context object of the grammar rule
      */
     public static void processAugmentEntry(TreeWalkListener listener,
-                                       GeneratedYangParser.AugmentStatementContext ctx) {
+            GeneratedYangParser.AugmentStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, AUGMENT_DATA, ctx.augment().getText(), ENTRY);
@@ -120,7 +122,8 @@ public final class AugmentListener {
             YangNode curNode = (YangNode) curData;
             YangAugment yangAugment = getYangAugmentNode(JAVA_GENERATION);
 
-            validateTargetNodePath(targetNodes, curNode, ctx);
+            //validateTargetNodePath(targetNodes, curNode, ctx);
+            // TODO: handle in linker.
 
             yangAugment.setTargetNode(targetNodes);
             yangAugment.setName(generateNameForAugmentNode(curData, targetNodes, listener));
@@ -147,7 +150,7 @@ public final class AugmentListener {
      * @param ctx context object of the grammar rule
      */
     public static void processAugmentExit(TreeWalkListener listener,
-                                      GeneratedYangParser.AugmentStatementContext ctx) {
+            GeneratedYangParser.AugmentStatementContext ctx) {
 
         //Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, AUGMENT_DATA, ctx.augment().getText(), EXIT);
@@ -170,15 +173,15 @@ public final class AugmentListener {
         validateCardinalityMaxOne(ctx.referenceStatement(), REFERENCE_DATA, AUGMENT_DATA, ctx.augment().getText());
         validateCardinalityMaxOne(ctx.whenStatement(), WHEN_DATA, AUGMENT_DATA, ctx.augment().getText());
         validateMutuallyExclusiveChilds(ctx.dataDefStatement(), DATA_DEF_DATA, ctx.caseStatement(),
-                                        CASE_DATA, AUGMENT_DATA, ctx.augment().getText());
+                CASE_DATA, AUGMENT_DATA, ctx.augment().getText());
     }
 
     /**
      * Validates whether the current target node path is correct or not.
      *
      * @param targetNodes list of target nodes
-     * @param line line in YANG file
-     * @param charPositionInLine char position in YANG file
+     * @param curNode current Node
+     * @param ctx augment context
      * @param curNode current YANG node
      */
     private static void validateTargetNodePath(List<YangNodeIdentifier> targetNodes, YangNode curNode,
@@ -189,7 +192,8 @@ public final class AugmentListener {
             if (!moduleId.getName().equals(curNode.getName())) {
                 throw parserException(ctx);
             } else {
-                validateNodeInTargetPath(curNode, targetNodes, ctx);
+                //validateNodeInTargetPath(curNode, targetNodes, ctx);
+                // TODO: handle in linker.
             }
         } else {
             String parentPrefix = getParentsPrefix(curNode);

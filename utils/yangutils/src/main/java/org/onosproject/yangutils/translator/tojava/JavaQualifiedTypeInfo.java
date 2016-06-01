@@ -134,10 +134,10 @@ public class JavaQualifiedTypeInfo
      * Returns the import info for an attribute, which needs to be used for code
      * generation for import or for qualified access.
      *
-     * @param curNode current data model node for which the java file is being
-     * generated
+     * @param curNode       current data model node for which the java file is being
+     *                      generated
      * @param attributeName name of the attribute being added, it will used in
-     * import info for child class
+     *                      import info for child class
      * @return return the import info for this attribute
      */
     public static JavaQualifiedTypeInfo getQualifiedTypeInfoOfCurNode(YangNode curNode,
@@ -149,14 +149,10 @@ public class JavaQualifiedTypeInfo
             throw new TranslatorException("missing java file information to get the package details "
                     + "of attribute corresponding to child node");
         }
-        /*
-         * The scenario when we need to add the child class as an attribute in
-         * the current class. The child class is in the package of the current
-         * classes package with current classes name.
-         */
+
         importInfo.setClassInfo(attributeName);
-        importInfo.setPkgInfo((((JavaFileInfoContainer) curNode).getJavaFileInfo().getPackage() + "."
-                + ((JavaFileInfoContainer) curNode).getJavaFileInfo().getJavaName()).toLowerCase());
+        importInfo.setPkgInfo(((JavaFileInfoContainer) curNode)
+                .getJavaFileInfo().getPackage());
 
         return importInfo;
     }
@@ -165,7 +161,7 @@ public class JavaQualifiedTypeInfo
      * Returns the java qualified type information for the wrapper classes.
      *
      * @param referredTypesAttrInfo attribute of referred type
-     * @param conflictResolver plugin configurations
+     * @param conflictResolver      plugin configurations
      * @return return the import info for this attribute
      */
     public static JavaQualifiedTypeInfo getQualifiedInfoOfFromString(JavaAttributeInfo referredTypesAttrInfo,

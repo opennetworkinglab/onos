@@ -19,9 +19,11 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.linker.exceptions.LinkerException;
-import org.onosproject.yangutils.linker.impl.YangReferenceResolver;
+import org.onosproject.yangutils.linker.ResolvableType;
+import org.onosproject.yangutils.linker.YangReferenceResolver;
 import org.onosproject.yangutils.linker.impl.YangResolutionInfo;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.plugin.manager.YangFileInfo;
@@ -82,7 +84,8 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.resolveLi
 /**
  * Represents data model node to maintain information defined in YANG sub-module.
  */
-public class YangSubModule extends YangNode
+public class YangSubModule
+        extends YangNode
         implements YangLeavesHolder, YangDesc, YangReference, Parsable, CollisionDetector, YangReferenceResolver,
         RpcNotificationContainer {
 
@@ -156,6 +159,7 @@ public class YangSubModule extends YangNode
      * Prefix of parent module.
      */
     private String prefix;
+
     /*-
      * Reference RFC 6020.
      *
@@ -190,14 +194,20 @@ public class YangSubModule extends YangNode
      * matching "typedef" or "grouping" statement among the immediate
      * sub-statements of each ancestor statement.
      */
-    private List<YangResolutionInfo> unresolvedResolutionList;
+    private List<YangResolutionInfo> derivedTypeResolutionList;
+
+    /**
+     * uses resolution list.
+     */
+    private List<YangResolutionInfo> usesResolutionList;
 
     /**
      * Creates a sub module node.
      */
     public YangSubModule() {
         super(YangNodeType.SUB_MODULE_NODE);
-        unresolvedResolutionList = new LinkedList<YangResolutionInfo>();
+        derivedTypeResolutionList = new LinkedList<YangResolutionInfo>();
+        usesResolutionList = new LinkedList<YangResolutionInfo>();
         importList = new LinkedList<YangImport>();
         includeList = new LinkedList<YangInclude>();
         listOfLeaf = new LinkedList<YangLeaf>();
@@ -341,17 +351,19 @@ public class YangSubModule extends YangNode
     }
 
     @Override
-    public void resolveSelfFileLinking() throws DataModelException {
+    public void resolveSelfFileLinking(ResolvableType type)
+            throws DataModelException {
         // Get the list to be resolved.
-        List<YangResolutionInfo> resolutionList = getUnresolvedResolutionList();
+        List<YangResolutionInfo> resolutionList = getUnresolvedResolutionList(type);
         // Resolve linking for a resolution list.
         resolveLinkingForResolutionList(resolutionList, this);
     }
 
     @Override
-    public void resolveInterFileLinking() throws DataModelException {
+    public void resolveInterFileLinking(ResolvableType type)
+            throws DataModelException {
         // Get the list to be resolved.
-        List<YangResolutionInfo> resolutionList = getUnresolvedResolutionList();
+        List<YangResolutionInfo> resolutionList = getUnresolvedResolutionList(type);
         // Resolve linking for a resolution list.
         linkInterFileReferences(resolutionList, this);
     }
@@ -364,6 +376,11 @@ public class YangSubModule extends YangNode
     @Override
     public List<YangLeaf> getListOfLeaf() {
         return listOfLeaf;
+    }
+
+    @Override
+    public void setListOfLeaf(List<YangLeaf> leafsList) {
+        listOfLeaf = leafsList;
     }
 
     /**
@@ -384,6 +401,11 @@ public class YangSubModule extends YangNode
     @Override
     public List<YangLeafList> getListOfLeafList() {
         return listOfLeafList;
+    }
+
+    @Override
+    public void setListOfLeafList(List<YangLeafList> listOfLeafList) {
+        this.listOfLeafList = listOfLeafList;
     }
 
     /**
@@ -486,7 +508,8 @@ public class YangSubModule extends YangNode
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnEntry() throws DataModelException {
+    public void validateDataOnEntry()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
@@ -496,34 +519,52 @@ public class YangSubModule extends YangNode
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnExit() throws DataModelException {
+    public void validateDataOnExit()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
     @Override
-    public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectCollidingChild(String identifierName, YangConstructType dataType)
+            throws DataModelException {
         // Asks helper to detect colliding child.
         detectCollidingChildUtil(identifierName, dataType, this);
     }
 
     @Override
-    public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectSelfCollision(String identifierName, YangConstructType dataType)
+            throws DataModelException {
         // Not required as module doesn't have any parent.
     }
 
     @Override
-    public List<YangResolutionInfo> getUnresolvedResolutionList() {
-        return unresolvedResolutionList;
+    public List<YangResolutionInfo> getUnresolvedResolutionList(ResolvableType type) {
+        if (type == ResolvableType.YANG_DERIVED_DATA_TYPE) {
+            return derivedTypeResolutionList;
+        } else {
+            return usesResolutionList;
+        }
     }
 
     @Override
-    public void addToResolutionList(YangResolutionInfo resolutionInfo) {
-        this.unresolvedResolutionList.add(resolutionInfo);
+    public void addToResolutionList(YangResolutionInfo resolutionInfo,
+            ResolvableType type) {
+        if (type == ResolvableType.YANG_DERIVED_DATA_TYPE) {
+            derivedTypeResolutionList.add(resolutionInfo);
+        } else if (type == ResolvableType.YANG_USES) {
+            usesResolutionList.add(resolutionInfo);
+        }
     }
 
     @Override
-    public void setResolutionList(List<YangResolutionInfo> resolutionList) {
-        this.unresolvedResolutionList = resolutionList;
+    public void setResolutionList(List<YangResolutionInfo> resolutionList,
+            ResolvableType type) {
+        if (type == ResolvableType.YANG_DERIVED_DATA_TYPE) {
+            derivedTypeResolutionList = resolutionList;
+        } else if (type == ResolvableType.YANG_USES) {
+            usesResolutionList = resolutionList;
+        }
+
     }
 
     /**

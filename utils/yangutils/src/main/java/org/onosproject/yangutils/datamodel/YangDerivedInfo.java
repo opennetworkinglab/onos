@@ -17,7 +17,8 @@
 package org.onosproject.yangutils.datamodel;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
-import org.onosproject.yangutils.linker.impl.ResolvableStatus;
+import org.onosproject.yangutils.linker.ResolvableStatus;
+
 import com.google.common.base.Strings;
 
 import static org.onosproject.yangutils.datamodel.YangDataTypes.BINARY;
@@ -30,8 +31,8 @@ import static org.onosproject.yangutils.datamodel.YangDataTypes.IDENTITYREF;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.LEAFREF;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.UNION;
-import static org.onosproject.yangutils.linker.impl.ResolvableStatus.INTRA_FILE_RESOLVED;
-import static org.onosproject.yangutils.linker.impl.ResolvableStatus.RESOLVED;
+import static org.onosproject.yangutils.linker.ResolvableStatus.INTRA_FILE_RESOLVED;
+import static org.onosproject.yangutils.linker.ResolvableStatus.RESOLVED;
 import static org.onosproject.yangutils.utils.RestrictionResolver.isOfRangeRestrictedType;
 import static org.onosproject.yangutils.utils.RestrictionResolver.processLengthRestriction;
 import static org.onosproject.yangutils.utils.RestrictionResolver.processRangeRestriction;
@@ -41,7 +42,8 @@ import static org.onosproject.yangutils.utils.RestrictionResolver.processRangeRe
  *
  * @param <T> extended information.
  */
-public class YangDerivedInfo<T> implements LocationInfo {
+public class YangDerivedInfo<T>
+        implements LocationInfo, Cloneable {
 
     /**
      * YANG typedef reference.
@@ -224,8 +226,11 @@ public class YangDerivedInfo<T> implements LocationInfo {
      * @return resolution status
      * @throws DataModelException a violation in data mode rule
      */
-    public ResolvableStatus resolve() throws DataModelException {
+    public ResolvableStatus resolve()
+            throws DataModelException {
+
         YangType<?> baseType = getReferredTypeDef().getTypeDefBaseType();
+
         /*
          * Checks the data type of the referred typedef, if it's derived,
          * obtain effective built-in type and restrictions from it's derived
@@ -238,6 +243,7 @@ public class YangDerivedInfo<T> implements LocationInfo {
             if (baseType.getResolvableStatus() != INTRA_FILE_RESOLVED && baseType.getResolvableStatus() != RESOLVED) {
                 throw new DataModelException("Linker Error: Referred typedef is not resolved for type.");
             }
+
             /*
              * Check if the referred typedef is intra file resolved, if yes sets
              * current status also to intra file resolved .
@@ -401,6 +407,7 @@ public class YangDerivedInfo<T> implements LocationInfo {
                 }
             }
         }
+
         /*
          * Check if the data type is the one which can't be restricted, in
          * this case check whether no self restrictions should be present.
@@ -414,6 +421,7 @@ public class YangDerivedInfo<T> implements LocationInfo {
                 throw new DataModelException("YANG file error: Restrictions can't be applied to a given type");
             }
         }
+
         // Throw exception for unsupported types
         throw new DataModelException("Linker error: Unable to process the derived type.");
     }
@@ -424,7 +432,8 @@ public class YangDerivedInfo<T> implements LocationInfo {
      * @param refStringRestriction referred string restriction of typedef
      * @throws DataModelException a violation in data model rule
      */
-    private void resolveStringRestriction(YangStringRestriction refStringRestriction) throws DataModelException {
+    private void resolveStringRestriction(YangStringRestriction refStringRestriction)
+            throws DataModelException {
         YangStringRestriction curStringRestriction = null;
         YangRangeRestriction refRangeRestriction = null;
         YangPatternRestriction refPatternRestriction = null;
@@ -522,7 +531,8 @@ public class YangDerivedInfo<T> implements LocationInfo {
      * @return resolved length restriction
      * @throws DataModelException a violation in data model rule
      */
-    private YangRangeRestriction resolveLengthRestriction(YangRangeRestriction refLengthRestriction) throws
+    private YangRangeRestriction resolveLengthRestriction(YangRangeRestriction refLengthRestriction)
+            throws
             DataModelException {
 
         /*
@@ -572,7 +582,8 @@ public class YangDerivedInfo<T> implements LocationInfo {
      * @param curRestriction self restriction
      */
     private void resolveLengthAndRangeRestriction(YangRangeRestriction refRestriction,
-                                                  YangRangeRestriction curRestriction) throws DataModelException {
+            YangRangeRestriction curRestriction)
+            throws DataModelException {
         for (Object curInterval : curRestriction.getAscendingRangeIntervals()) {
             if (!(curInterval instanceof YangRangeInterval)) {
                 throw new DataModelException("Linker error: Current range intervals not processed correctly.");
@@ -594,7 +605,8 @@ public class YangDerivedInfo<T> implements LocationInfo {
      * @param refRangeRestriction referred range restriction of typedef
      * @throws DataModelException a violation in data model rule
      */
-    private void resolveRangeRestriction(YangRangeRestriction refRangeRestriction) throws DataModelException {
+    private void resolveRangeRestriction(YangRangeRestriction refRangeRestriction)
+            throws DataModelException {
 
         /*
          * Check that string restriction should be null when built-in type is

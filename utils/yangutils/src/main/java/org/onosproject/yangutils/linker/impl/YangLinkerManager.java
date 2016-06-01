@@ -17,10 +17,13 @@
 package org.onosproject.yangutils.linker.impl;
 
 import java.util.Set;
+
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.linker.ResolvableType;
 import org.onosproject.yangutils.linker.YangLinker;
+import org.onosproject.yangutils.linker.YangReferenceResolver;
 import org.onosproject.yangutils.linker.exceptions.LinkerException;
 import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 
@@ -29,7 +32,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 /**
  * Representation of entity which provides linking service of YANG files.
  */
-public class YangLinkerManager implements YangLinker {
+public class YangLinkerManager
+        implements YangLinker {
     @Override
     public void resolveDependencies(Set<YangFileInfo> yangFileInfoSet) {
 
@@ -54,7 +58,8 @@ public class YangLinkerManager implements YangLinker {
      * @param yangFileInfoSet set of YANG files info
      * @throws LinkerException fails to link sub-module to parent module
      */
-    public void linkSubModulesToParentModule(Set<YangFileInfo> yangFileInfoSet) throws LinkerException {
+    public void linkSubModulesToParentModule(Set<YangFileInfo> yangFileInfoSet)
+            throws LinkerException {
         for (YangFileInfo yangFileInfo : yangFileInfoSet) {
             YangNode yangNode = yangFileInfo.getRootNode();
             if (yangNode instanceof YangSubModule) {
@@ -106,10 +111,13 @@ public class YangLinkerManager implements YangLinker {
      * @param yangFileInfoSet set of YANG files info
      * @throws LinkerException a violation in linker execution
      */
-    public void processInterFileLinking(Set<YangFileInfo> yangFileInfoSet) throws LinkerException {
+    public void processInterFileLinking(Set<YangFileInfo> yangFileInfoSet)
+            throws LinkerException {
         for (YangFileInfo yangFileInfo : yangFileInfoSet) {
             try {
-                ((YangReferenceResolver) yangFileInfo.getRootNode()).resolveInterFileLinking();
+                ((YangReferenceResolver) yangFileInfo.getRootNode()).resolveInterFileLinking(ResolvableType.YANG_USES);
+                ((YangReferenceResolver) yangFileInfo.getRootNode())
+                        .resolveInterFileLinking(ResolvableType.YANG_DERIVED_DATA_TYPE);
             } catch (DataModelException e) {
                 String errorInfo = "Error in file: " + yangFileInfo.getYangFileName() + " at line: "
                         + e.getLineNumber() + " at position: " + e.getCharPositionInLine() + NEW_LINE + e.getMessage();

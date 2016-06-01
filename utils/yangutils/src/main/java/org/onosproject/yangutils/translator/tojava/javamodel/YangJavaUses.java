@@ -16,7 +16,12 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
+import java.util.List;
 
+import org.onosproject.yangutils.datamodel.YangGrouping;
+import org.onosproject.yangutils.datamodel.YangLeaf;
+import org.onosproject.yangutils.datamodel.YangLeafList;
+import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangUses;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
@@ -24,15 +29,16 @@ import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
-import static org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles.addCurNodeInfoInParentTempFile;
+import static org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles.addCurNodeAsAttributeInTargetTempFile;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getParentNodeInGenCode;
+import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.updatePackageInfo;
 
 /**
  * Represents uses information extended to support java code generation.
  */
 public class YangJavaUses
-        extends YangUses implements JavaCodeGeneratorInfo, JavaCodeGenerator {
-
+        extends YangUses
+        implements JavaCodeGeneratorInfo, JavaCodeGenerator {
 
     /**
      * Contains the information of the java file being generated.
@@ -51,7 +57,6 @@ public class YangJavaUses
     public YangJavaUses() {
         super();
         setJavaFileInfo(new JavaFileInfo());
-        getJavaFileInfo().setGeneratedFileTypes(GENERATE_INTERFACE_WITH_BUILDER);
     }
 
     /**
@@ -97,31 +102,57 @@ public class YangJavaUses
         tempFileHandle = fileHandle;
     }
 
-    /**
-     * Prepare the information for java code generation corresponding to YANG
-     * uses info.
-     *
-     * @param yangPlugin YANG plugin config
-     * @throws TranslatorException translator operation fail
-     */
+
     @Override
-    public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
+    public void generateCodeEntry(YangPluginConfig yangPlugin)
+            throws TranslatorException {
         try {
-            addCurNodeInfoInParentTempFile(this, false, yangPlugin);
+            updatePackageInfo(this, yangPlugin);
+
+            if (!(getParentNodeInGenCode(this) instanceof JavaCodeGeneratorInfo)) {
+                throw new TranslatorException("invalid container of uses");
+            }
+            JavaCodeGeneratorInfo javaCodeGeneratorInfo = (JavaCodeGeneratorInfo) getParentNodeInGenCode(this);
+
+            if (javaCodeGeneratorInfo instanceof YangGrouping) {
+                /*
+                 * Do nothing, since it will taken care in the groupings uses.
+                 */
+                return;
+            }
+
+            for (List<YangLeaf> leavesList :
+                    getUsesResolvedLeavesList()) {
+                //add the resolved leaves to the parent as an attribute
+                javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
+                        .getBeanTempFiles().addLeavesInfoToTempFiles(leavesList, yangPlugin);
+            }
+
+            for (List<YangLeafList> listOfLeafLists :
+                    getUsesResolvedListOfLeafList()) {
+                //add the resolved leaf-list to the parent as an attribute
+                javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
+                        .getBeanTempFiles().addLeafListInfoToTempFiles(listOfLeafLists, yangPlugin);
+            }
+
+            for (YangNode usesResolvedNode :
+                    getUsesResolvedNodeList()) {
+                //add the resolved nodes to the parent as an attribute
+                addCurNodeAsAttributeInTargetTempFile(usesResolvedNode, yangPlugin,
+                        getParentNodeInGenCode(this));
+            }
+
         } catch (IOException e) {
-            throw new TranslatorException(
-                    "Failed to prepare generate code entry for container node " + this.getName());
+            throw new TranslatorException(e.getCause());
         }
     }
 
-    /**
-     * Create a java file using the YANG uses info.
-     *
-     * @throws TranslatorException translator operation fail
-     */
-    @Override
-    public void generateCodeExit() throws TranslatorException {
-        // no code generation will be done for uses.
-    }
 
+    @Override
+    public void generateCodeExit()
+            throws TranslatorException {
+        /*
+         * Do nothing.
+         */
+    }
 }

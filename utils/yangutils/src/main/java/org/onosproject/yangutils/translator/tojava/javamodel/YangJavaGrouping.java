@@ -24,14 +24,14 @@ import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
-import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfNode;
+import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.updatePackageInfo;
 
 /**
  * Represents grouping information extended to support java code generation.
  */
 public class YangJavaGrouping
-        extends YangGrouping implements JavaCodeGeneratorInfo, JavaCodeGenerator {
+        extends YangGrouping
+        implements JavaCodeGeneratorInfo, JavaCodeGenerator {
 
     /**
      * Contains the information of the java file being generated.
@@ -50,7 +50,6 @@ public class YangJavaGrouping
     public YangJavaGrouping() {
         super();
         setJavaFileInfo(new JavaFileInfo());
-        getJavaFileInfo().setGeneratedFileTypes(GENERATE_INTERFACE_WITH_BUILDER);
     }
 
     /**
@@ -96,35 +95,22 @@ public class YangJavaGrouping
         tempFileHandle = fileHandle;
     }
 
-    /**
-     * Prepare the information for java code generation corresponding to YANG
-     * grouping info.
-     *
-     * @param yangPlugin YANG plugin config
-     * @throws TranslatorException translator operation fail
-     */
+
     @Override
-    public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
+    public void generateCodeEntry(YangPluginConfig yangPlugin)
+            throws TranslatorException {
         try {
-            generateCodeOfNode(this, yangPlugin);
+            updatePackageInfo(this, yangPlugin);
         } catch (IOException e) {
-            throw new TranslatorException(
-                    "Failed to prepare generate code entry for container node " + this.getName());
+            throw new TranslatorException(e.getCause());
         }
     }
 
-    /**
-     * Create a java file using the YANG grouping info.
-     *
-     * @throws TranslatorException translator operation fail
-     */
     @Override
-    public void generateCodeExit() throws TranslatorException {
-        try {
-            getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
-        } catch (IOException e) {
-            throw new TranslatorException("Failed to generate code for container node " + this.getName());
-        }
+    public void generateCodeExit()
+            throws TranslatorException {
+        /*
+         * Do nothing.
+         */
     }
-
 }

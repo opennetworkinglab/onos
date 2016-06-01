@@ -17,9 +17,9 @@
 package org.onosproject.yangutils.datamodel;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.linker.Resolvable;
+import org.onosproject.yangutils.linker.ResolvableStatus;
 import org.onosproject.yangutils.linker.exceptions.LinkerException;
-import org.onosproject.yangutils.linker.impl.Resolvable;
-import org.onosproject.yangutils.linker.impl.ResolvableStatus;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
 
@@ -247,7 +247,8 @@ public class YangType<T>
     }
 
     @Override
-    public void resolve() throws LinkerException {
+    public void resolve()
+            throws LinkerException {
        /*
         * Check whether the data type is derived.
         */

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.linker.impl;
+package org.onosproject.yangutils.linker;
 
 /**
  * Represents the status of resolvable entity.
