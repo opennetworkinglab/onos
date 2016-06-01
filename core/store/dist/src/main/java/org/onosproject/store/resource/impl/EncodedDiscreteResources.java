@@ -74,7 +74,10 @@ final class EncodedDiscreteResources {
 
     @SuppressWarnings("unchecked")
     boolean contains(DiscreteResource resource) {
-        return rangeSet.contains(codec.encode(resource));
+        return resource.valueAs(Object.class)
+                .map(x -> codec.encode(x))
+                .map(rangeSet::contains)
+                .orElse(false);
     }
 
     boolean isEmpty() {
