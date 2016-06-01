@@ -23,7 +23,7 @@ import org.onosproject.net.resource.DiscreteResourceCodec;
  * Codec for Vlan.
  */
 @Beta
-public final class VlanCodec implements DiscreteResourceCodec<VlanId> {
+final class VlanCodec implements DiscreteResourceCodec<VlanId> {
     @Override
     public int encode(VlanId resource) {
         return resource.toShort();
