@@ -6,4 +6,5 @@ org.onosproject.oecfg
 org.onosproject.maven
 org.onosproject.grpc*
 org.onosproject.yangutils.*
+org.onosproject.checkstyle
 protobuf.*

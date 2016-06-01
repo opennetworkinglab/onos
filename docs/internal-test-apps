@@ -1,5 +1,8 @@
 org.onosproject.metrics.*
 org.onosproject.demo*
+org.onosproject.events*
+org.onosproject.loadtest*
+org.onosproject.flowperf*
 org.onosproject.election*
 org.onosproject.distributedprimitives*
 org.onosproject.intentperf*

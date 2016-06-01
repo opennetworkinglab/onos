@@ -39,4 +39,8 @@ org.onosproject.drivermatrix*
 org.onosproject.pathpainter*
 org.onosproject.openstack*
 org.onosproject.forwarder*
+org.onosproject.scalablegateway*
 org.onosproject.sfc*
+org.onosproject.xosclient*
+org.onosproject.newoptical*
+

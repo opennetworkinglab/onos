@@ -96,6 +96,10 @@
                             <packages>@internal-test-apps</packages>
                         </group>
                         <group>
+                            <title>Kafka Integration Application</title>
+                            <packages>@internal-kafka</packages>
+                        </group>
+                        <group>
                             <title>OpenFlow Providers &amp; Controller</title>
                             <packages>@internal-openflow</packages>
                         </group>
@@ -118,6 +122,10 @@
                         <group>
                             <title>OSPF Protocol &amp; Providers</title>
                             <packages>@internal-ospf</packages>
+                        </group>
+                        <group>
+                            <title>IS-IS Protocol &amp; Providers</title>
+                            <packages>@internal-isis</packages>
                         </group>
                         <group>
                             <title>REST Protocol &amp; Providers</title>

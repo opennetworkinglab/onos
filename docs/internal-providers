@@ -1,2 +1,8 @@
 org.onosproject.provider.*
 org.onosproject.protocol.*
+org.onosproject.bmv2*
+org.onosproject.snmp*
+org.onosproject.gangliametrics*
+org.onosproject.graphitemetrics*
+org.onosproject.influxdbmetrics*
+
