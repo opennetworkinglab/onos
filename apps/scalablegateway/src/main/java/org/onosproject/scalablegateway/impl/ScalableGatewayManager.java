@@ -39,6 +39,10 @@ import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.DriverService;
+import org.onosproject.net.group.Group;
+import org.onosproject.net.group.GroupDescription;
+import org.onosproject.net.group.GroupService;
 import org.onosproject.scalablegateway.api.GatewayNode;
 import org.onosproject.scalablegateway.api.GatewayNodeConfig;
 import org.onosproject.scalablegateway.api.ScalableGatewayService;
@@ -81,7 +85,14 @@ public class ScalableGatewayManager implements ScalableGatewayService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected GroupService groupService;
+
     private GatewayNodeConfig config;
+    private SelectGroupHandler selectGroupHandler;
 
     private final NetworkConfigListener configListener = new InternalConfigListener();
 
@@ -100,6 +111,7 @@ public class ScalableGatewayManager implements ScalableGatewayService {
         configRegistry.registerConfigFactory(configFactory);
         configService.addListener(configListener);
 
+        selectGroupHandler = new SelectGroupHandler(groupService, deviceService, driverService, appId);
         readConfiguration();
 
         log.info("started");
@@ -141,8 +153,10 @@ public class ScalableGatewayManager implements ScalableGatewayService {
 
     @Override
     public GroupId getGroupIdForGatewayLoadBalance(DeviceId srcDeviceId) {
-        //TODO: Implement group generation method by handler
-        return null;
+        GroupDescription description = selectGroupHandler.createSelectGroupInVxlan(srcDeviceId, getGatewayNodes());
+        groupService.addGroup(description);
+        Group group = groupService.getGroup(description.deviceId(), description.appCookie());
+        return group != null ? group.id() : null;
     }
 
     @Override
