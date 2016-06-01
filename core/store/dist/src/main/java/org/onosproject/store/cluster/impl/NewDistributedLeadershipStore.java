@@ -39,6 +39,9 @@ import org.onosproject.store.service.LeaderElector;
 import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+
 /**
  * Implementation of {@code LeadershipStore} that makes use of a {@link LeaderElector}
  * primitive.
@@ -59,11 +62,13 @@ public class NewDistributedLeadershipStore
 
     private NodeId localNodeId;
     private LeaderElector leaderElector;
+    private final Map<String, Leadership> leaderBoard = Maps.newConcurrentMap();
 
     private final Consumer<Change<Leadership>> leadershipChangeListener =
             change -> {
                 Leadership oldValue = change.oldValue();
                 Leadership newValue = change.newValue();
+                leaderBoard.put(newValue.topic(), newValue);
                 boolean leaderChanged = !Objects.equals(oldValue.leader(), newValue.leader());
                 boolean candidatesChanged = !Objects.equals(oldValue.candidates(), newValue.candidates());
                 LeadershipEvent.Type eventType = null;
@@ -87,6 +92,7 @@ public class NewDistributedLeadershipStore
                       .build()
                       .asLeaderElector();
         leaderElector.addChangeListener(leadershipChangeListener);
+        leaderBoard.putAll(getLeaderships());
         log.info("Started");
     }
 
@@ -123,11 +129,11 @@ public class NewDistributedLeadershipStore
 
     @Override
     public Leadership getLeadership(String topic) {
-        return leaderElector.getLeadership(topic);
+        return leaderBoard.get(topic);
     }
 
     @Override
     public Map<String, Leadership> getLeaderships() {
-        return leaderElector.getLeaderships();
+        return ImmutableMap.copyOf(leaderBoard);
     }
 }

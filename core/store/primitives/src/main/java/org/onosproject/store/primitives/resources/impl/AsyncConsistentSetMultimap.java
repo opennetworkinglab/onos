@@ -70,90 +70,95 @@ public class AsyncConsistentSetMultimap
 
     @Override
     public CompletableFuture<Integer> size() {
-        return client.submit(new Size());
+        return submit(new Size());
     }
 
     @Override
     public CompletableFuture<Boolean> isEmpty() {
-        return client.submit(new IsEmpty());
+        return submit(new IsEmpty());
     }
 
     @Override
     public CompletableFuture<Boolean> containsKey(String key) {
-        return client.submit(new ContainsKey(key));
+        return submit(new ContainsKey(key));
     }
 
     @Override
     public CompletableFuture<Boolean> containsValue(byte[] value) {
-        return client.submit(new ContainsValue(value));
+        return submit(new ContainsValue(value));
     }
 
     @Override
     public CompletableFuture<Boolean> containsEntry(String key, byte[] value) {
-        return client.submit(new ContainsEntry(key, value));
+        return submit(new ContainsEntry(key, value));
     }
 
     @Override
     public CompletableFuture<Boolean> put(String key, byte[] value) {
-        return client.submit(new Put(key, Lists.newArrayList(value), null));
+        return submit(new Put(key, Lists.newArrayList(value), null));
     }
 
     @Override
     public CompletableFuture<Boolean> remove(String key, byte[] value) {
-        return client.submit(new MultiRemove(key,
-                                             Lists.newArrayList(value),
-                                             null));
+        return submit(new MultiRemove(key,
+                                      Lists.newArrayList(value),
+                                      null));
     }
 
     @Override
-    public CompletableFuture<Boolean> removeAll(String key, Collection<? extends byte[]> values) {
-        return client.submit(new MultiRemove(key, (Collection<byte[]>) values, null));
+    public CompletableFuture<Boolean> removeAll(
+            String key, Collection<? extends byte[]> values) {
+        return submit(new MultiRemove(key, (Collection<byte[]>) values, null));
     }
 
     @Override
-    public CompletableFuture<Versioned<Collection<? extends byte[]>>> removeAll(String key) {
-        return client.submit(new RemoveAll(key, null));
+    public CompletableFuture<
+            Versioned<Collection<? extends byte[]>>> removeAll(String key) {
+        return submit(new RemoveAll(key, null));
     }
 
     @Override
     public CompletableFuture<Boolean> putAll(
             String key, Collection<? extends byte[]> values) {
-        return client.submit(new Put(key, values, null));
+        return submit(new Put(key, values, null));
     }
 
     @Override
-    public CompletableFuture<Versioned<Collection<? extends byte[]>>> replaceValues(
+    public CompletableFuture<
+            Versioned<Collection<? extends byte[]>>> replaceValues(
             String key, Collection<byte[]> values) {
-        return client.submit(new Replace(key, values, null));
+        return submit(new Replace(key, values, null));
     }
 
     @Override
     public CompletableFuture<Void> clear() {
-        return client.submit(new Clear());
+        return submit(new Clear());
     }
 
     @Override
-    public CompletableFuture<Versioned<Collection<? extends byte[]>>> get(String key) {
-        return client.submit(new Get(key));
+    public CompletableFuture<
+            Versioned<Collection<? extends byte[]>>> get(String key) {
+        return submit(new Get(key));
     }
 
     @Override
     public CompletableFuture<Set<String>> keySet() {
-        return client.submit(new KeySet());
+        return submit(new KeySet());
     }
 
     @Override
     public CompletableFuture<Multiset<String>> keys() {
-        return client.submit(new Keys());
+        return submit(new Keys());
     }
 
+    @Override
     public CompletableFuture<Multiset<byte[]>> values() {
-        return client.submit(new Values());
+        return submit(new Values());
     }
 
     @Override
     public CompletableFuture<Collection<Map.Entry<String, byte[]>>> entries() {
-        return client.submit(new Entries());
+        return submit(new Entries());
     }
 
     @Override

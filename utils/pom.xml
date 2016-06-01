@@ -32,6 +32,7 @@
     <description>Domain agnostic ON.Lab utilities</description>
 
     <modules>
+        <module>atomix</module>
         <module>junit</module>
         <module>misc</module>
         <module>yangutils</module>

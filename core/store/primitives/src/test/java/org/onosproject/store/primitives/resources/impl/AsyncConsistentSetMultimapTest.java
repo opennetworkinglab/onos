@@ -20,15 +20,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.TreeMultiset;
 import com.google.common.io.Files;
-
 import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.local.LocalTransport;
+import io.atomix.catalyst.transport.LocalTransport;
 import io.atomix.copycat.server.CopycatServer;
 import io.atomix.copycat.server.storage.Storage;
 import io.atomix.copycat.server.storage.StorageLevel;
-import io.atomix.manager.internal.ResourceManagerState;
+import io.atomix.manager.state.ResourceManagerState;
 import io.atomix.resource.ResourceType;
-
 import org.apache.commons.collections.keyvalue.DefaultMapEntry;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -429,7 +427,7 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
 
     @Override
     protected CopycatServer createCopycatServer(Address address) {
-        CopycatServer server = CopycatServer.builder(address)
+        CopycatServer server = CopycatServer.builder(address, members)
                 .withTransport(new LocalTransport(registry))
                 .withStorage(Storage.builder()
                                      .withStorageLevel(StorageLevel.MEMORY)
@@ -442,8 +440,7 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
                 .withSessionTimeout(Duration.ofMillis(100))
                 .build();
         copycatServers.add(server);
-        return server;
-    }
+        return server;    }
 
     /**
      * Returns two arrays contain the same set of elements,

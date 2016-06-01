@@ -15,16 +15,17 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
+import io.atomix.Atomix;
 import io.atomix.AtomixClient;
 import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.local.LocalServerRegistry;
-import io.atomix.catalyst.transport.local.LocalTransport;
+import io.atomix.catalyst.transport.LocalServerRegistry;
+import io.atomix.catalyst.transport.LocalTransport;
 import io.atomix.copycat.client.CopycatClient;
 import io.atomix.copycat.server.CopycatServer;
 import io.atomix.copycat.server.storage.Storage;
 import io.atomix.copycat.server.storage.StorageLevel;
-import io.atomix.manager.internal.ResourceManagerState;
+import io.atomix.manager.state.ResourceManagerState;
 import io.atomix.resource.ResourceType;
 
 import java.io.File;
@@ -52,7 +53,7 @@ public abstract class AtomixTestBase {
     protected List<Address> members;
     protected List<CopycatClient> copycatClients = new ArrayList<>();
     protected List<CopycatServer> copycatServers = new ArrayList<>();
-    protected List<AtomixClient> atomixClients = new ArrayList<>();
+    protected List<Atomix> atomixClients = new ArrayList<>();
     protected List<CopycatServer> atomixServers = new ArrayList<>();
     protected Serializer serializer = CatalystSerializers.getSerializer();
 
@@ -88,7 +89,7 @@ public abstract class AtomixTestBase {
 
         for (int i = 0; i < nodes; i++) {
             CopycatServer server = createCopycatServer(members.get(i));
-            server.bootstrap(members).thenRun(latch::countDown);
+            server.start().thenRun(latch::countDown);
             servers.add(server);
         }
 
@@ -101,7 +102,7 @@ public abstract class AtomixTestBase {
      * Creates a Copycat server.
      */
     protected CopycatServer createCopycatServer(Address address) {
-        CopycatServer server = CopycatServer.builder(address)
+        CopycatServer server = CopycatServer.builder(address, members)
                 .withTransport(new LocalTransport(registry))
                 .withStorage(Storage.builder()
                         .withStorageLevel(StorageLevel.DISK)
@@ -126,11 +127,11 @@ public abstract class AtomixTestBase {
 
         CompletableFuture<Void> closeClients =
                 CompletableFuture.allOf(atomixClients.stream()
-                                                     .map(AtomixClient::close)
+                                                     .map(Atomix::close)
                                                      .toArray(CompletableFuture[]::new));
 
         closeClients.thenCompose(v -> CompletableFuture.allOf(copycatServers.stream()
-                .map(CopycatServer::shutdown)
+                .map(CopycatServer::stop)
                 .toArray(CompletableFuture[]::new))).join();
 
         deleteDirectory(TEST_DIR);
@@ -162,13 +163,13 @@ public abstract class AtomixTestBase {
     /**
      * Creates a Atomix client.
      */
-    protected AtomixClient createAtomixClient() {
+    protected Atomix createAtomixClient() {
         CountDownLatch latch = new CountDownLatch(1);
-        AtomixClient client = AtomixClient.builder()
+        Atomix client = AtomixClient.builder(members)
                 .withTransport(new LocalTransport(registry))
                 .withSerializer(serializer.clone())
                 .build();
-        client.connect(members).thenRun(latch::countDown);
+        client.open().thenRun(latch::countDown);
         atomixClients.add(client);
         Uninterruptibles.awaitUninterruptibly(latch);
         return client;
