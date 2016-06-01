@@ -46,8 +46,8 @@ final class Codecs {
     }
 
     private void init() {
-        codecs.put(VlanId.class, new VlanCodec());
-        codecs.put(MplsLabel.class, new MplsCodec());
+        codecs.put(VlanId.class, new VlanIdCodec());
+        codecs.put(MplsLabel.class, new MplsLabelCodec());
     }
 
     /**

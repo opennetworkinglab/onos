@@ -78,8 +78,8 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
             .register(EmptyDiscreteResources.class)
             .register(new EncodedResourcesSerializer(), EncodedDiscreteResources.class)
             .register(ContinuousResourceAllocation.class)
-            .register(VlanCodec.class)
-            .register(MplsCodec.class)
+            .register(VlanIdCodec.class)
+            .register(MplsLabelCodec.class)
             .build());
 
     // TODO: We should provide centralized values for this
