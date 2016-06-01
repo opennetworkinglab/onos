@@ -475,7 +475,7 @@ public final class JavaFileGeneratorUtils {
      * @param genType generated file type
      * @param javaDocType java doc type
      * @param pluginConfig plugin configurations
-     * @throws IOException
+     * @throws IOException when fails to write into a file
      */
     private static void write(File file, String fileName, int genType, JavaDocType javaDocType,
             YangPluginConfig pluginConfig)
