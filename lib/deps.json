@@ -158,10 +158,7 @@
     "netty-transport": "mvn:io.netty:netty-transport:4.0.36.Final",
     "netty-transport-native-epoll": "mvn:io.netty:netty-transport-native-epoll:4.0.36.Final",
     "objenesis": "mvn:org.objenesis:objenesis:2.2",
-    "openflowj": {
-      "uri": "mvn:org.onosproject:openflowj:0.9.4.onos-SNAPSHOT",
-      "repo": "https://oss.sonatype.org/content/repositories/snapshots"
-    },
+    "openflowj": "mvn:org.onosproject:openflowj:0.9.4.onos",
     "org.apache.felix.scr": "mvn:org.apache.felix:org.apache.felix.scr:1.8.2",
     "org.apache.felix.scr.annotations": "mvn:org.apache.felix:org.apache.felix.scr.annotations:1.9.12",
     "org.apache.karaf.features.core": "mvn:org.apache.karaf.features:org.apache.karaf.features.core:3.0.5",
