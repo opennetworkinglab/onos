@@ -22,12 +22,14 @@ body.light {
     background-color: white;
 }
 body.dark {
+    /* TODO: dark theme */
     background-color: #2b2b2b;
 }
 
 .light #view h2 {
-    color: #800;
+    color: #3c3a3a;
 }
 .dark #view h2 {
-    color: #CE5650;
+    /* TODO: dark theme */
+    color: #3c3a3a;
 }

@@ -18,13 +18,6 @@
  ONOS GUI -- common -- CSS file
  */
 
-#view h2 {
-    margin: 0;
-    /* separated out so that other padding doesn't get clobbered */
-    padding-top: 20px;
-    padding-bottom: 20px;
-}
-
 .clickable {
     cursor: pointer;
 }
