@@ -61,7 +61,7 @@ public final class ExtensionTreatmentType {
         NICIRA_ENCAP_ETH_SRC(121),
         NICIRA_ENCAP_ETH_DST(122),
         NICIRA_ENCAP_ETH_TYPE(123),
-        P4_BMV2_ACTION(128);
+        BMV2_ACTION(128);
 
         private ExtensionTreatmentType type;
 
