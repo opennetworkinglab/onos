@@ -17,6 +17,7 @@ package org.onosproject.store.resource.impl;
 
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceCodec;
 
@@ -46,6 +47,7 @@ final class Codecs {
     }
 
     private void init() {
+        codecs.put(PortNumber.class, new PortNumberCodec());
         codecs.put(VlanId.class, new VlanIdCodec());
         codecs.put(MplsLabel.class, new MplsLabelCodec());
     }

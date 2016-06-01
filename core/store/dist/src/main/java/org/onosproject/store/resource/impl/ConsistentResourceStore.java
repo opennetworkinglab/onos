@@ -78,6 +78,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
             .register(EmptyDiscreteResources.class)
             .register(new EncodedResourcesSerializer(), EncodedDiscreteResources.class)
             .register(ContinuousResourceAllocation.class)
+            .register(PortNumberCodec.class)
             .register(VlanIdCodec.class)
             .register(MplsLabelCodec.class)
             .build());
