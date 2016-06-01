@@ -56,8 +56,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.TWELVE_SPACE_INDENTA
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_RESOURCES;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.appendFileContents;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.updateFileHandle;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.PACKAGE_INFO;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -67,7 +67,7 @@ public final class YangIoUtils {
 
     private static final Logger log = getLogger(YangIoUtils.class);
     private static final String TARGET_RESOURCE_PATH = SLASH + TEMP + SLASH + YANG_RESOURCES + SLASH;
-    private static final int LINE_SIZE = 116;
+    private static final int LINE_SIZE = 118;
     private static final int SUB_LINE_SIZE = 112;
     private static final int ZERO = 0;
 
@@ -92,10 +92,10 @@ public final class YangIoUtils {
     /**
      * Adds package info file for the created directory.
      *
-     * @param path directory path
-     * @param classInfo class info for the package
-     * @param pack package of the directory
-     * @param isChildNode is it a child node
+     * @param path         directory path
+     * @param classInfo    class info for the package
+     * @param pack         package of the directory
+     * @param isChildNode  is it a child node
      * @param pluginConfig plugin configurations
      * @throws IOException when fails to create package info file
      */
@@ -159,7 +159,8 @@ public final class YangIoUtils {
      * @param dir generated directory in previous build
      * @throws IOException when failed to delete directory
      */
-    public static void deleteDirectory(String dir) throws IOException {
+    public static void deleteDirectory(String dir)
+            throws IOException {
         File generatedDirectory = new File(dir);
         if (generatedDirectory.exists()) {
             try {
@@ -177,7 +178,8 @@ public final class YangIoUtils {
      * @param root root directory
      * @throws IOException when fails to do IO operations.
      */
-    public static void searchAndDeleteTempDir(String root) throws IOException {
+    public static void searchAndDeleteTempDir(String root)
+            throws IOException {
         List<File> store = new LinkedList<>();
         Stack<String> stack = new Stack<>();
         stack.push(root);
@@ -207,7 +209,7 @@ public final class YangIoUtils {
     /**
      * Adds generated source directory to the compilation root.
      *
-     * @param source directory
+     * @param source  directory
      * @param project current maven project
      * @param context current build context
      */
@@ -220,7 +222,7 @@ public final class YangIoUtils {
     /**
      * Removes extra char from the string.
      *
-     * @param valueString string to be trimmed
+     * @param valueString    string to be trimmed
      * @param removealStirng extra chars
      * @return new string
      */
@@ -255,8 +257,8 @@ public final class YangIoUtils {
      * Returns the directory path of the package in canonical form.
      *
      * @param baseCodeGenPath base path where the generated files needs to be
-     *            put
-     * @param pathOfJavaPkg java package of the file being generated
+     *                        put
+     * @param pathOfJavaPkg   java package of the file being generated
      * @return absolute path of the package in canonical form
      */
     public static String getDirectory(String baseCodeGenPath, String pathOfJavaPkg) {
@@ -276,8 +278,8 @@ public final class YangIoUtils {
      * Returns the absolute path of the package in canonical form.
      *
      * @param baseCodeGenPath base path where the generated files needs to be
-     *            put
-     * @param pathOfJavaPkg java package of the file being generated
+     *                        put
+     * @param pathOfJavaPkg   java package of the file being generated
      * @return absolute path of the package in canonical form
      */
     public static String getAbsolutePackagePath(String baseCodeGenPath, String pathOfJavaPkg) {
@@ -288,8 +290,8 @@ public final class YangIoUtils {
      * Copies YANG files to the current project's output directory.
      *
      * @param yangFileInfo list of YANG files
-     * @param outputDir project's output directory
-     * @param project maven project
+     * @param outputDir    project's output directory
+     * @param project      maven project
      * @throws IOException when fails to copy files to destination resource directory
      */
     public static void copyYangFilesToTarget(Set<YangFileInfo> yangFileInfo, String outputDir, MavenProject project)
@@ -334,7 +336,8 @@ public final class YangIoUtils {
      * @param srcFile    main file
      * @throws IOException when fails to append contents
      */
-    public static void mergeJavaFiles(File appendFile, File srcFile) throws IOException {
+    public static void mergeJavaFiles(File appendFile, File srcFile)
+            throws IOException {
         try {
             appendFileContents(appendFile, srcFile);
         } catch (IOException e) {
@@ -349,7 +352,8 @@ public final class YangIoUtils {
      * @param data data which need to be inserted
      * @throws IOException when fails to insert into file
      */
-    public static void insertDataIntoJavaFile(File file, String data) throws IOException {
+    public static void insertDataIntoJavaFile(File file, String data)
+            throws IOException {
         try {
             updateFileHandle(file, data, false);
         } catch (IOException e) {
@@ -365,7 +369,8 @@ public final class YangIoUtils {
      * @return updated file
      * @throws IOException when fails to do IO operations.
      */
-    public static File validateLineLength(File dataFile) throws IOException {
+    public static File validateLineLength(File dataFile)
+            throws IOException {
         File tempFile = dataFile;
         FileReader fileReader = new FileReader(dataFile);
         BufferedReader bufferReader = new BufferedReader(fileReader);

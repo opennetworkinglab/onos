@@ -33,12 +33,12 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.BINARY;
+import static org.onosproject.yangutils.linker.ResolvableStatus.INTRA_FILE_RESOLVED;
+import static org.onosproject.yangutils.linker.ResolvableStatus.RESOLVED;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.INT32;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
 import static org.onosproject.yangutils.datamodel.YangNodeType.MODULE_NODE;
-import static org.onosproject.yangutils.linker.impl.ResolvableStatus.INTRA_FILE_RESOLVED;
-import static org.onosproject.yangutils.linker.impl.ResolvableStatus.RESOLVED;
 
 /**
  * Test cases for testing "type" intra file linking.

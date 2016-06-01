@@ -76,6 +76,7 @@ public class TempJavaTypeFragmentFiles
      * Temporary file handle for of string method of class.
      */
     private File ofStringImplTempFileHandle;
+
     /**
      * Temporary file handle for constructor for type class.
      */
@@ -85,6 +86,7 @@ public class TempJavaTypeFragmentFiles
      * Java file handle for typedef class file.
      */
     private File typedefClassJavaFileHandle;
+
     /**
      * Java file handle for type class like union, typedef file.
      */
@@ -211,7 +213,7 @@ public class TempJavaTypeFragmentFiles
                 YangJavaType<?> javaType = (YangJavaType<?>) yangType;
                 javaType.updateJavaQualifiedInfo(pluginConfig.getConflictResolver());
                 String typeName = javaType.getDataTypeName();
-                    typeName = getCamelCase(typeName, pluginConfig.getConflictResolver());
+                typeName = getCamelCase(typeName, pluginConfig.getConflictResolver());
                 JavaAttributeInfo javaAttributeInfo = getAttributeInfoForTheData(
                         javaType.getJavaQualifiedInfo(),
                         typeName, javaType,

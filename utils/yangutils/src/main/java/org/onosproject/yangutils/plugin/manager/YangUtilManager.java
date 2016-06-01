@@ -62,7 +62,8 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getDirectory;
  */
 @Mojo(name = "yang2java", defaultPhase = GENERATE_SOURCES, requiresDependencyResolution = COMPILE,
         requiresProject = true)
-public class YangUtilManager extends AbstractMojo {
+public class YangUtilManager
+        extends AbstractMojo {
 
     private YangNode rootNode;
     // YANG file information set.
@@ -134,7 +135,8 @@ public class YangUtilManager extends AbstractMojo {
     private BuildContext context;
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void execute()
+            throws MojoExecutionException, MojoFailureException {
 
         try {
 
@@ -204,7 +206,8 @@ public class YangUtilManager extends AbstractMojo {
      *
      * @throws MojoExecutionException a violation in mojo excecution
      */
-    public void resolveDependenciesUsingLinker() throws MojoExecutionException {
+    public void resolveDependenciesUsingLinker()
+            throws MojoExecutionException {
         for (YangFileInfo yangFileInfo : getYangFileInfoSet()) {
             setCurYangFileInfo(yangFileInfo);
             try {
@@ -220,7 +223,8 @@ public class YangUtilManager extends AbstractMojo {
      *
      * @throws IOException a violation in IO
      */
-    public void parseYangFileInfoSet() throws IOException {
+    public void parseYangFileInfoSet()
+            throws IOException {
         for (YangFileInfo yangFileInfo : getYangFileInfoSet()) {
             setCurYangFileInfo(yangFileInfo);
             try {

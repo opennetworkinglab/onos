@@ -83,7 +83,6 @@ import static org.onosproject.yangutils.utils.UtilConstants.SERVICE_ANNOTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.UtilConstants.TRUE;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILDER_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILDER_INTERFACE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.ENUM_CLASS;
@@ -94,6 +93,7 @@ import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.IMP
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.INTERFACE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.RPC_INTERFACE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.RPC_MANAGER;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.insertDataIntoJavaFile;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.parsePkg;
 
@@ -111,10 +111,10 @@ public final class JavaFileGeneratorUtils {
     /**
      * Returns a file object for generated file.
      *
-     * @param filePath file package path
-     * @param fileName file name
+     * @param fileName  file name
+     * @param filePath  file package path
      * @param extension file extension
-     * @param handle cached file handle
+     * @param handle    cached file handle
      * @return file object
      */
     public static File getFileObject(String filePath, String fileName, String extension, JavaFileInfo handle) {
@@ -125,7 +125,7 @@ public final class JavaFileGeneratorUtils {
     /**
      * Returns data stored in temporary files.
      *
-     * @param generatedTempFiles temporary file types
+     * @param generatedTempFiles    temporary file types
      * @param tempJavaFragmentFiles temp java fragment files
      * @return data stored in temporary files
      * @throws IOException when failed to get the data from temporary file handle
@@ -253,11 +253,11 @@ public final class JavaFileGeneratorUtils {
     /**
      * Initiates generation of file based on generated file type.
      *
-     * @param file generated file
-     * @param className generated file class name
-     * @param genType generated file type
-     * @param imports imports for the file
-     * @param pkg generated file package
+     * @param file         generated file
+     * @param className    generated file class name
+     * @param genType      generated file type
+     * @param imports      imports for the file
+     * @param pkg          generated file package
      * @param pluginConfig plugin configurations
      * @throws IOException when fails to generate a file
      */
@@ -276,17 +276,22 @@ public final class JavaFileGeneratorUtils {
     /**
      * Initiates generation of file based on generated file type.
      *
-     * @param file generated file
-     * @param genType generated file type
-     * @param imports imports for the file
-     * @param curNode current YANG node
+     * @param file      generated file
+     * @param genType   generated file type
+     * @param imports   imports for the file
+     * @param curNode   current YANG node
      * @param className class name
      * @throws IOException when fails to generate a file
      */
     public static void initiateJavaFileGeneration(File file, int genType, List<String> imports,
-            YangNode curNode, String className) throws IOException {
+            YangNode curNode, String className)
+            throws IOException {
 
         try {
+            if (file.exists()) {
+                throw new IOException(file.getName() + " is reused due to YANG naming");
+            }
+
             file.createNewFile();
             appendContents(file, genType, imports, curNode, className);
         } catch (IOException e) {
@@ -297,15 +302,16 @@ public final class JavaFileGeneratorUtils {
     /**
      * Appends all the contents into a generated java file.
      *
-     * @param file generated file
-     * @param genType generated file type
+     * @param file        generated file
+     * @param genType     generated file type
      * @param importsList list of java imports
-     * @param curNode current YANG node
-     * @param className class name
+     * @param curNode     current YANG node
+     * @param className   class name
      * @throws IOException
      */
     private static void appendContents(File file, int genType, List<String> importsList, YangNode curNode,
-            String className) throws IOException {
+            String className)
+            throws IOException {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
@@ -321,39 +327,39 @@ public final class JavaFileGeneratorUtils {
             pkgString = parsePackageString(path, importsList);
         }
         switch (genType) {
-        case INTERFACE_MASK:
-            appendHeaderContents(file, pkgString, importsList);
-            write(file, genType, INTERFACE, curNode, className);
-            break;
-        case GENERATE_SERVICE_AND_MANAGER:
-            appendHeaderContents(file, pkgString, importsList);
-            write(file, genType, RPC_INTERFACE, curNode, className);
-            break;
-        case GENERATE_EVENT_CLASS:
-            appendHeaderContents(file, pkgString, importsList);
-            write(file, genType, EVENT, curNode, className);
-            break;
-        case GENERATE_EVENT_LISTENER_INTERFACE:
-            appendHeaderContents(file, pkgString, importsList);
-            write(file, genType, EVENT_LISTENER, curNode, className);
-            break;
-        case GENERATE_EVENT_SUBJECT_CLASS:
-            appendHeaderContents(file, pkgString, importsList);
-            write(file, genType, EVENT_SUBJECT_CLASS, curNode, className);
-            break;
-        default:
-            break;
+            case INTERFACE_MASK:
+                appendHeaderContents(file, pkgString, importsList);
+                write(file, genType, INTERFACE, curNode, className);
+                break;
+            case GENERATE_SERVICE_AND_MANAGER:
+                appendHeaderContents(file, pkgString, importsList);
+                write(file, genType, RPC_INTERFACE, curNode, className);
+                break;
+            case GENERATE_EVENT_CLASS:
+                appendHeaderContents(file, pkgString, importsList);
+                write(file, genType, EVENT, curNode, className);
+                break;
+            case GENERATE_EVENT_LISTENER_INTERFACE:
+                appendHeaderContents(file, pkgString, importsList);
+                write(file, genType, EVENT_LISTENER, curNode, className);
+                break;
+            case GENERATE_EVENT_SUBJECT_CLASS:
+                appendHeaderContents(file, pkgString, importsList);
+                write(file, genType, EVENT_SUBJECT_CLASS, curNode, className);
+                break;
+            default:
+                break;
         }
     }
 
     /**
      * Appends all the contents into a generated java file.
      *
-     * @param file generated file
-     * @param fileName generated file name
-     * @param genType generated file type
-     * @param importsList list of java imports
-     * @param pkg generated file package
+     * @param file         generated file
+     * @param fileName     generated file name
+     * @param genType      generated file type
+     * @param importsList  list of java imports
+     * @param pkg          generated file package
      * @param pluginConfig plugin configurations
      * @throws IOException when fails to append contents
      */
@@ -364,37 +370,37 @@ public final class JavaFileGeneratorUtils {
         String pkgString = parsePackageString(pkg, importsList);
 
         switch (genType) {
-        case IMPL_CLASS_MASK:
-            write(file, fileName, genType, IMPL_CLASS, pluginConfig);
-            break;
-        case BUILDER_INTERFACE_MASK:
-            write(file, fileName, genType, BUILDER_INTERFACE, pluginConfig);
-            break;
-        case GENERATE_TYPEDEF_CLASS:
-            appendHeaderContents(file, pkgString, importsList);
-            write(file, fileName, genType, IMPL_CLASS, pluginConfig);
-            break;
-        case BUILDER_CLASS_MASK:
-            appendHeaderContents(file, pkgString, importsList);
-            write(file, fileName, genType, BUILDER_CLASS, pluginConfig);
-            break;
-        case GENERATE_UNION_CLASS:
-            appendHeaderContents(file, pkgString, importsList);
-            write(file, fileName, genType, IMPL_CLASS, pluginConfig);
-            break;
-        case GENERATE_ENUM_CLASS:
-            appendHeaderContents(file, pkgString, importsList);
-            write(file, fileName, genType, ENUM_CLASS, pluginConfig);
-            break;
-        default:
-            break;
+            case IMPL_CLASS_MASK:
+                write(file, fileName, genType, IMPL_CLASS, pluginConfig);
+                break;
+            case BUILDER_INTERFACE_MASK:
+                write(file, fileName, genType, BUILDER_INTERFACE, pluginConfig);
+                break;
+            case GENERATE_TYPEDEF_CLASS:
+                appendHeaderContents(file, pkgString, importsList);
+                write(file, fileName, genType, IMPL_CLASS, pluginConfig);
+                break;
+            case BUILDER_CLASS_MASK:
+                appendHeaderContents(file, pkgString, importsList);
+                write(file, fileName, genType, BUILDER_CLASS, pluginConfig);
+                break;
+            case GENERATE_UNION_CLASS:
+                appendHeaderContents(file, pkgString, importsList);
+                write(file, fileName, genType, IMPL_CLASS, pluginConfig);
+                break;
+            case GENERATE_ENUM_CLASS:
+                appendHeaderContents(file, pkgString, importsList);
+                write(file, fileName, genType, ENUM_CLASS, pluginConfig);
+                break;
+            default:
+                break;
         }
     }
 
     /**
      * Removes base directory path from package and generates package string for file.
      *
-     * @param javaPkg generated java package
+     * @param javaPkg     generated java package
      * @param importsList list of imports
      * @return package string
      */
@@ -416,8 +422,8 @@ public final class JavaFileGeneratorUtils {
      * Appends other contents to interface, builder and typedef classes.
      * for example : ONOS copyright, imports and package.
      *
-     * @param file generated file
-     * @param pkg generated package
+     * @param file        generated file
+     * @param pkg         generated package
      * @param importsList list of imports
      * @throws IOException when fails to append contents
      */
@@ -443,11 +449,11 @@ public final class JavaFileGeneratorUtils {
     /**
      * Writes data to the specific generated file.
      *
-     * @param file generated file
-     * @param genType generated file type
+     * @param file        generated file
+     * @param genType     generated file type
      * @param javaDocType java doc type
-     * @param curNode current YANG node
-     * @param fileName file name
+     * @param curNode     current YANG node
+     * @param fileName    file name
      * @throws IOException when fails to write into a file
      */
     private static void write(File file, int genType, JavaDocType javaDocType, YangNode curNode, String fileName)
@@ -470,10 +476,10 @@ public final class JavaFileGeneratorUtils {
     /**
      * Writes data to the specific generated file.
      *
-     * @param file generated file
-     * @param fileName file name
-     * @param genType generated file type
-     * @param javaDocType java doc type
+     * @param file         generated file
+     * @param fileName     file name
+     * @param genType      generated file type
+     * @param javaDocType  java doc type
      * @param pluginConfig plugin configurations
      * @throws IOException when fails to write into a file
      */

@@ -67,7 +67,8 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
 /**
  * Represents data model node to maintain information defined in YANG output.
  */
-public class YangOutput extends YangNode
+public class YangOutput
+        extends YangNode
         implements YangLeavesHolder, Parsable, CollisionDetector, YangAugmentationHolder {
 
     /**
@@ -95,13 +96,15 @@ public class YangOutput extends YangNode
     }
 
     @Override
-    public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectCollidingChild(String identifierName, YangConstructType dataType)
+            throws DataModelException {
         // Detect colliding child.
         detectCollidingChildUtil(identifierName, dataType, this);
     }
 
     @Override
-    public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectSelfCollision(String identifierName, YangConstructType dataType)
+            throws DataModelException {
         if (this.getName().equals(identifierName)) {
             throw new DataModelException("YANG file error: Duplicate identifier detected, same as output \""
                     + this.getName() + "\"");
@@ -114,12 +117,14 @@ public class YangOutput extends YangNode
     }
 
     @Override
-    public void validateDataOnEntry() throws DataModelException {
+    public void validateDataOnEntry()
+            throws DataModelException {
         //TODO: implement the method.
     }
 
     @Override
-    public void validateDataOnExit() throws DataModelException {
+    public void validateDataOnExit()
+            throws DataModelException {
         //TODO: implement the method.
     }
 
@@ -134,9 +139,20 @@ public class YangOutput extends YangNode
     }
 
     @Override
+    public void setListOfLeaf(List<YangLeaf> leafsList) {
+        listOfLeaf = leafsList;
+    }
+
+    @Override
     public List<YangLeafList> getListOfLeafList() {
         return listOfLeafList;
     }
+
+    @Override
+    public void setListOfLeafList(List<YangLeafList> listOfLeafList) {
+        this.listOfLeafList = listOfLeafList;
+    }
+
 
     @Override
     public void addLeafList(YangLeafList leafList) {

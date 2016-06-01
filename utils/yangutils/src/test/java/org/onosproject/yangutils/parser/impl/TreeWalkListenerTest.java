@@ -32,6 +32,7 @@ public class TreeWalkListenerTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
+
     /**
      * Checks whether exception is thrown for ordered statement.
      */

@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.linker.impl;
+package org.onosproject.yangutils.linker;
 
 import java.util.List;
 import java.util.Set;
+
 import org.onosproject.yangutils.datamodel.YangImport;
 import org.onosproject.yangutils.datamodel.YangInclude;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.linker.exceptions.LinkerException;
+import org.onosproject.yangutils.linker.impl.YangResolutionInfo;
 import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 
 /**
@@ -33,23 +35,26 @@ public interface YangReferenceResolver {
     /**
      * Returns unresolved resolution list.
      *
-     * @return unresolved resolution list
+     * @param type resolvable type
+     * @return list of resolution information objects
      */
-    List<YangResolutionInfo> getUnresolvedResolutionList();
+    List<YangResolutionInfo> getUnresolvedResolutionList(ResolvableType type);
 
     /**
      * Adds to the resolution list.
      *
      * @param resolutionInfo resolution information
+     * @param type           resolvable type
      */
-    void addToResolutionList(YangResolutionInfo resolutionInfo);
+    void addToResolutionList(YangResolutionInfo resolutionInfo, ResolvableType type);
 
     /**
      * Creates resolution list.
      *
      * @param resolutionList resolution list
+     * @param type           resolvable type
      */
-    void setResolutionList(List<YangResolutionInfo> resolutionList);
+    void setResolutionList(List<YangResolutionInfo> resolutionList, ResolvableType type);
 
     /**
      * Returns unresolved imported list.
@@ -110,16 +115,20 @@ public interface YangReferenceResolver {
     /**
      * Resolves self file linking.
      *
+     * @param type resolvable type
      * @throws DataModelException a violation in data model rule
      */
-    void resolveSelfFileLinking() throws DataModelException;
+    void resolveSelfFileLinking(ResolvableType type)
+            throws DataModelException;
 
     /**
      * Resolves inter file linking.
      *
+     * @param type resolvable type
      * @throws DataModelException a violation in data model rule
      */
-    void resolveInterFileLinking() throws DataModelException;
+    void resolveInterFileLinking(ResolvableType type)
+            throws DataModelException;
 
     /**
      * Adds references to include.
@@ -127,7 +136,8 @@ public interface YangReferenceResolver {
      * @param yangFileInfoSet YANG file info set
      * @throws LinkerException a violation of linker rules
      */
-    void addReferencesToIncludeList(Set<YangFileInfo> yangFileInfoSet) throws LinkerException;
+    void addReferencesToIncludeList(Set<YangFileInfo> yangFileInfoSet)
+            throws LinkerException;
 
     /**
      * Adds references to import.
@@ -135,5 +145,6 @@ public interface YangReferenceResolver {
      * @param yangFileInfoSet YANG file info set
      * @throws LinkerException a violation of linker rules
      */
-    void addReferencesToImportList(Set<YangFileInfo> yangFileInfoSet) throws LinkerException;
+    void addReferencesToImportList(Set<YangFileInfo> yangFileInfoSet)
+            throws LinkerException;
 }

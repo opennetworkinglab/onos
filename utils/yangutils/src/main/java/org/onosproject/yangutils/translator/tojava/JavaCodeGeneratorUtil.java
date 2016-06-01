@@ -64,10 +64,10 @@ public final class JavaCodeGeneratorUtil {
     /**
      * Generates Java code files corresponding to the YANG schema.
      *
-     * @param rootNode root node of the data model tree
+     * @param rootNode   root node of the data model tree
      * @param yangPlugin YANG plugin config
      * @throws TranslatorException when fails to generate java code file the current
-     *                     node
+     *                             node
      */
     public static void generateJavaCode(YangNode rootNode, YangPluginConfig yangPlugin)
             throws TranslatorException {
@@ -77,18 +77,35 @@ public final class JavaCodeGeneratorUtil {
 
         while (codeGenNode != null) {
             if (curTraversal != PARENT) {
+                if (!(codeGenNode instanceof JavaCodeGenerator)) {
+                    throw new TranslatorException("Unsupported node to generate code");
+                }
+
                 setCurNode(codeGenNode);
-                generateCodeEntry(codeGenNode, yangPlugin);
+                try {
+                    generateCodeEntry(codeGenNode, yangPlugin);
+                } catch (Exception e) {
+                    throw new TranslatorException(e.getMessage());
+                }
+
             }
             if (curTraversal != PARENT && codeGenNode.getChild() != null) {
                 curTraversal = CHILD;
                 codeGenNode = codeGenNode.getChild();
             } else if (codeGenNode.getNextSibling() != null) {
-                generateCodeExit(codeGenNode);
+                try {
+                    generateCodeExit(codeGenNode);
+                } catch (Exception e) {
+                    throw new TranslatorException(e.getMessage());
+                }
                 curTraversal = SIBILING;
                 codeGenNode = codeGenNode.getNextSibling();
             } else {
-                generateCodeExit(codeGenNode);
+                try {
+                    generateCodeExit(codeGenNode);
+                } catch (Exception e) {
+                    throw new TranslatorException(e.getMessage());
+                }
                 curTraversal = PARENT;
                 codeGenNode = codeGenNode.getParent();
             }
@@ -99,10 +116,10 @@ public final class JavaCodeGeneratorUtil {
      * Generates the current nodes code snippet.
      *
      * @param codeGenNode current data model node for which the code needs to be
-     * generated
-     * @param yangPlugin YANG plugin config
+     *                    generated
+     * @param yangPlugin  YANG plugin config
      * @throws TranslatorException when fails to generate java code file the current
-     *                     node
+     *                             node
      */
     private static void generateCodeEntry(YangNode codeGenNode, YangPluginConfig yangPlugin)
             throws TranslatorException {
@@ -119,11 +136,12 @@ public final class JavaCodeGeneratorUtil {
      * Generates the current nodes code target code from the snippet.
      *
      * @param codeGenNode current data model node for which the code needs to be
-     * generated
+     *                    generated
      * @throws TranslatorException when fails to generate java code file the current
-     *                     node
+     *                             node
      */
-    private static void generateCodeExit(YangNode codeGenNode) throws TranslatorException {
+    private static void generateCodeExit(YangNode codeGenNode)
+            throws TranslatorException {
 
         if (codeGenNode instanceof JavaCodeGenerator) {
             ((JavaCodeGenerator) codeGenNode).generateCodeExit();
@@ -188,7 +206,7 @@ public final class JavaCodeGeneratorUtil {
      * Delete Java code files corresponding to the YANG schema.
      *
      * @param rootNode root node of data-model tree
-     * @throws IOException        when fails to delete java code file the current node
+     * @throws IOException when fails to delete java code file the current node
      */
     public static void translatorErrorHandler(YangNode rootNode)
             throws IOException {

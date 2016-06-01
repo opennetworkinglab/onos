@@ -19,8 +19,6 @@ package org.onosproject.yangutils.translator.tojava.utils;
 import java.io.IOException;
 
 import org.onosproject.yangutils.datamodel.RpcNotificationContainer;
-import org.onosproject.yangutils.datamodel.YangAugment;
-import org.onosproject.yangutils.datamodel.YangAugmentationHolder;
 import org.onosproject.yangutils.datamodel.YangCase;
 import org.onosproject.yangutils.datamodel.YangChoice;
 import org.onosproject.yangutils.datamodel.YangLeavesHolder;
@@ -45,9 +43,6 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSy
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCurNodePackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
-import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTATION_HOLDER;
-import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO;
-import static org.onosproject.yangutils.utils.UtilConstants.PROVIDED_AUGMENTATION_CLASS_IMPORT_PKG;
 
 /**
  * Represents utility class for YANG java model.
@@ -64,7 +59,7 @@ public final class YangJavaModelUtils {
      * Updates YANG java file package information.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param yangPluginConfig YANG plugin config
+     * @param yangPluginConfig      YANG plugin config
      * @throws IOException IO operations fails
      */
     public static void updatePackageInfo(JavaCodeGeneratorInfo javaCodeGeneratorInfo,
@@ -85,7 +80,7 @@ public final class YangJavaModelUtils {
      * Updates YANG java file package information for specified package.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param yangPlugin YANG plugin config
+     * @param yangPlugin            YANG plugin config
      * @throws IOException IO operations fails
      */
     private static void updatePackageInfo(JavaCodeGeneratorInfo javaCodeGeneratorInfo, YangPluginConfig yangPlugin,
@@ -128,7 +123,7 @@ public final class YangJavaModelUtils {
              */
             javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
                     .getServiceTempFiles().addCurNodeLeavesInfoToTempFiles(
-                            (YangNode) javaCodeGeneratorInfo, yangPluginConfig);
+                    (YangNode) javaCodeGeneratorInfo, yangPluginConfig);
             if ((YangNode) javaCodeGeneratorInfo instanceof YangJavaModule) {
                 if (!((YangJavaModule) javaCodeGeneratorInfo).getNotificationNodes().isEmpty()) {
                     updateNotificaitonNodeInfo(javaCodeGeneratorInfo, yangPluginConfig);
@@ -151,7 +146,7 @@ public final class YangJavaModelUtils {
              */
             javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
                     .getBeanTempFiles().addCurNodeLeavesInfoToTempFiles(
-                            (YangNode) javaCodeGeneratorInfo, yangPluginConfig);
+                    (YangNode) javaCodeGeneratorInfo, yangPluginConfig);
         } else if (javaCodeGeneratorInfo instanceof YangTypeHolder) {
             /*
              * Typedef
@@ -194,11 +189,12 @@ public final class YangJavaModelUtils {
      * Updates notification node info in service temporary file.
      *
      * @param javaCodeGeneratorInfo java code generator info
-     * @param yangPluginConfig plugin configurations
+     * @param yangPluginConfig      plugin configurations
      * @throws IOException when fails to do IO operations
      */
     private static void updateNotificaitonNodeInfo(JavaCodeGeneratorInfo javaCodeGeneratorInfo,
-            YangPluginConfig yangPluginConfig) throws IOException {
+            YangPluginConfig yangPluginConfig)
+            throws IOException {
         if ((YangNode) javaCodeGeneratorInfo instanceof YangJavaModule) {
             for (YangNode notificaiton : ((YangJavaModule) javaCodeGeneratorInfo).getNotificationNodes()) {
                 javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
@@ -220,8 +216,8 @@ public final class YangJavaModelUtils {
      * Generates code for the current ata model node and adds itself as an attribute in the parent.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param yangPlugin YANG plugin config
-     * @param isMultiInstance flag to indicate whether it's a list
+     * @param yangPlugin            YANG plugin config
+     * @param isMultiInstance       flag to indicate whether it's a list
      * @throws IOException IO operations fails
      */
     public static void generateCodeAndUpdateInParent(JavaCodeGeneratorInfo javaCodeGeneratorInfo,
@@ -246,7 +242,7 @@ public final class YangJavaModelUtils {
      * Generates code for the current data model node and adds support for it to be augmented.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param yangPlugin YANG plugin config
+     * @param yangPlugin            YANG plugin config
      * @throws IOException IO operations fails
      */
     public static void generateCodeOfAugmentableNode(JavaCodeGeneratorInfo javaCodeGeneratorInfo,
@@ -259,8 +255,9 @@ public final class YangJavaModelUtils {
         generateCodeOfNode(javaCodeGeneratorInfo, yangPlugin);
 
         /*
+        TODO: Need to use this, when augmentation is added in YMS
          * For augmentation of nodes.
-         */
+
         if (javaCodeGeneratorInfo instanceof YangAugmentationHolder) {
             JavaQualifiedTypeInfo augmentationHoldersInfo = new JavaQualifiedTypeInfo();
             augmentationHoldersInfo.setClassInfo(AUGMENTATION_HOLDER);
@@ -276,7 +273,7 @@ public final class YangJavaModelUtils {
                     .addToExtendsList(augmentedInfo, (YangNode) javaCodeGeneratorInfo);
 
         }
-
+        */
         if (javaCodeGeneratorInfo instanceof YangCase) {
             YangNode parent = ((YangCase) javaCodeGeneratorInfo).getParent();
             JavaQualifiedTypeInfo parentsInfo = new JavaQualifiedTypeInfo();
@@ -297,7 +294,7 @@ public final class YangJavaModelUtils {
      * Generates code for the current data model node.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param yangPluginConfig YANG plugin config
+     * @param yangPluginConfig      YANG plugin config
      * @throws IOException IO operations fails
      */
     public static void generateCodeOfNode(JavaCodeGeneratorInfo javaCodeGeneratorInfo,
@@ -314,8 +311,8 @@ public final class YangJavaModelUtils {
      * Generates code for the root module/sub-module node.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param yangPluginConfig YANG plugin config
-     * @param rootPkg package of the root node
+     * @param yangPluginConfig      YANG plugin config
+     * @param rootPkg               package of the root node
      * @throws IOException IO operations fails
      */
     public static void generateCodeOfRootNode(JavaCodeGeneratorInfo javaCodeGeneratorInfo,

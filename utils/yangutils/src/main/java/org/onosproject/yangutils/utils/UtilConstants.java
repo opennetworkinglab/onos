@@ -966,6 +966,7 @@ public final class UtilConstants {
      * Static attribute for augmentable.
      */
     public static final String AUGMENTABLE = "Augmentable";
+
     /**
      * Static attribute for list.
      */
@@ -1016,6 +1017,11 @@ public final class UtilConstants {
      * Static attribute for component annotation.
      */
     public static final String COMPONENT_ANNOTATION = "@Component";
+
+    /**
+     * Static attribute for component.
+     */
+    public static final String COMPONENT = "Component";
 
     /**
      * Static attribute for immediate.
@@ -1132,6 +1138,16 @@ public final class UtilConstants {
      */
     public static final String GROUPING_LINKER_ERROR = "YANG file error: Unable to find base "
             + "grouping for given uses";
+
+    /**
+     * Static attribute for reference.
+     */
+    public static final String REFERENCE = "Reference";
+
+    /**
+     * Static attribute for ReferenceCardinality.
+     */
+    public static final String REFERENCE_CARDINALITY = "ReferenceCardinality";
 
     /**
      * Creates an instance of util constants.

@@ -20,8 +20,6 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static java.util.Collections.sort;
-
 import static org.onosproject.yangutils.utils.UtilConstants.ABSTRACT_EVENT;
 import static org.onosproject.yangutils.utils.UtilConstants.ARRAY_LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTATION_HOLDER_CLASS_IMPORT_CLASS;
@@ -44,6 +42,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.ONOS_EVENT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.PROVIDED_AUGMENTATION_CLASS_IMPORT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
+
+import static java.util.Collections.sort;
 
 /**
  * Represents that generated Java file can contain imports.
@@ -116,20 +116,52 @@ public class JavaImportData {
      * a qualified manner.
      *
      * @param newImportInfo class/interface info being imported
-     * @return status of new addition of class/interface to the import set
+     * @param className     name of the call being generated
+     * @param classPkg      generated class package
+     * @return qualified access status of the import node being added
      */
-    public boolean addImportInfo(JavaQualifiedTypeInfo newImportInfo) {
+    public boolean addImportInfo(JavaQualifiedTypeInfo newImportInfo,
+            String className, String classPkg) {
+
+        if (newImportInfo.getClassInfo().contentEquals(className)) {
+            /*
+             * if the current class name is same as the attribute class name,
+             * then the attribute must be accessed in a qualified manner.
+             */
+            return true;
+        } else if (newImportInfo.getPkgInfo() == null) {
+            /*
+             * If the package info is null, then it is not a candidate for import / qualified access
+             */
+            return false;
+        }
+
+        /*
+         * If the attribute type is having the package info, it is contender
+         * for import list and also need to check if it needs to be a
+         * qualified access.
+         */
+        if (newImportInfo.getPkgInfo().contentEquals(classPkg)) {
+            /**
+             * Package of the referred attribute and the generated class is same, so no need import
+             * or qualified access.
+             */
+            return false;
+        }
 
         for (JavaQualifiedTypeInfo curImportInfo : getImportSet()) {
             if (curImportInfo.getClassInfo()
                     .contentEquals(newImportInfo.getClassInfo())) {
-                return curImportInfo.getPkgInfo()
+                return !curImportInfo.getPkgInfo()
                         .contentEquals(newImportInfo.getPkgInfo());
             }
         }
 
+        /*
+         * import is added, so it is a member for non qualified access
+         */
         getImportSet().add(newImportInfo);
-        return true;
+        return false;
     }
 
     /**

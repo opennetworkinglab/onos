@@ -16,6 +16,8 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
+import java.util.Stack;
+
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangEnumeration;
@@ -26,6 +28,7 @@ import org.onosproject.yangutils.datamodel.YangUnion;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
+import org.onosproject.yangutils.translator.tojava.javamodel.JavaCodeGeneratorInfo;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaEnumeration;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModule;
@@ -34,6 +37,8 @@ import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaUnion;
 
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCurNodePackage;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 import static org.onosproject.yangutils.utils.UtilConstants.BIG_INTEGER;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_DATA_TYPE;
@@ -119,7 +124,7 @@ public final class AttributesJavaDataType {
      * Returns from string method parsed string.
      *
      * @param targetDataType target data type
-     * @param yangType YANG type
+     * @param yangType       YANG type
      * @return parsed string
      */
     public static String getParseFromStringMethod(String targetDataType, YangType<?> yangType) {
@@ -163,8 +168,8 @@ public final class AttributesJavaDataType {
     /**
      * Returns java import class.
      *
-     * @param yangType YANG type
-     * @param isListAttr if the attribute need to be a list
+     * @param yangType     YANG type
+     * @param isListAttr   if the attribute need to be a list
      * @param pluginConfig plugin configurations
      * @return java import class
      */
@@ -199,8 +204,8 @@ public final class AttributesJavaDataType {
                     return BOOLEAN_WRAPPER;
                 case ENUMERATION:
                     return getCapitalCase(
-                        getCamelCase(((YangJavaEnumeration) yangType.getDataTypeExtendedInfo()).getName(),
-                                pluginConfig));
+                            getCamelCase(((YangJavaEnumeration) yangType.getDataTypeExtendedInfo()).getName(),
+                                    pluginConfig));
                 case BITS:
                     return YANG_BITS_CLASS;
                 case BINARY:
@@ -215,13 +220,13 @@ public final class AttributesJavaDataType {
                     return BOOLEAN_WRAPPER;
                 case UNION:
                     return getCapitalCase(getCamelCase(((YangJavaUnion) yangType.getDataTypeExtendedInfo()).getName(),
-                        pluginConfig));
+                            pluginConfig));
                 case INSTANCE_IDENTIFIER:
                     //TODO:INSTANCE_IDENTIFIER
                     break;
                 case DERIVED:
-                return getCapitalCase(
-                        getCamelCase(yangType.getDataTypeName(), pluginConfig));
+                    return getCapitalCase(
+                            getCamelCase(yangType.getDataTypeName(), pluginConfig));
                 default:
                     throw new TranslatorException("given data type is not supported.");
             }
@@ -235,8 +240,8 @@ public final class AttributesJavaDataType {
                     return STRING_DATA_TYPE;
                 case ENUMERATION:
                     return getCapitalCase(
-                        getCamelCase(((YangJavaEnumeration) yangType.getDataTypeExtendedInfo()).getName(),
-                                pluginConfig));
+                            getCamelCase(((YangJavaEnumeration) yangType.getDataTypeExtendedInfo()).getName(),
+                                    pluginConfig));
                 case BITS:
                     return YANG_BITS_CLASS;
                 case BINARY:
@@ -251,13 +256,13 @@ public final class AttributesJavaDataType {
                     return BOOLEAN_DATA_TYPE;
                 case UNION:
                     return getCapitalCase(getCamelCase(((YangJavaUnion) yangType.getDataTypeExtendedInfo()).getName(),
-                        pluginConfig));
+                            pluginConfig));
                 case INSTANCE_IDENTIFIER:
                     //TODO:INSTANCE_IDENTIFIER
                     break;
                 case DERIVED:
-                return getCapitalCase(
-                        getCamelCase(yangType.getDataTypeName(), pluginConfig));
+                    return getCapitalCase(
+                            getCamelCase(yangType.getDataTypeName(), pluginConfig));
                 default:
                     return null;
             }
@@ -268,8 +273,8 @@ public final class AttributesJavaDataType {
     /**
      * Returns java import package.
      *
-     * @param yangType YANG type
-     * @param isListAttr if the attribute is of list type
+     * @param yangType         YANG type
+     * @param isListAttr       if the attribute is of list type
      * @param conflictResolver object of YANG to java naming conflict util
      * @return java import package
      */
@@ -352,7 +357,7 @@ public final class AttributesJavaDataType {
     /**
      * Returns java package for typedef node.
      *
-     * @param type YANG type
+     * @param type             YANG type
      * @param conflictResolver object of YANG to java naming conflict util
      * @return java package for typedef node
      */
@@ -376,7 +381,7 @@ public final class AttributesJavaDataType {
     /**
      * Returns java package for union node.
      *
-     * @param type YANG type
+     * @param type             YANG type
      * @param conflictResolver object of YANG to java naming conflict util
      * @return java package for union node
      */
@@ -396,7 +401,7 @@ public final class AttributesJavaDataType {
     /**
      * Returns YANG enumeration's java package.
      *
-     * @param type YANG type
+     * @param type             YANG type
      * @param conflictResolver object of YANG to java naming conflict util
      * @return YANG enumeration's java package
      */
@@ -415,29 +420,87 @@ public final class AttributesJavaDataType {
     /**
      * Returns package from parent node.
      *
-     * @param parent parent YANG node
+     * @param parent           parent YANG node
      * @param conflictResolver object of YANG to java naming conflict util
      * @return java package from parent node
      */
-    private static String getPackageFromParent(YangNode parent, YangToJavaNamingConflictUtil conflictResolver) {
+    private static String getPackageFromParent(YangNode parent,
+            YangToJavaNamingConflictUtil conflictResolver) {
         if (!(parent instanceof JavaFileInfoContainer)) {
             throw new TranslatorException("invalid child node is being processed.");
         }
         JavaFileInfo parentInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo();
         if (parentInfo.getPackage() == null) {
-            if (parent instanceof YangJavaModule) {
-                YangJavaModule module = (YangJavaModule) parent;
-                String modulePkg = getRootPackage(module.getVersion(), module.getNameSpace().getUri(), module
-                        .getRevision().getRevDate(), conflictResolver);
-                return modulePkg + PERIOD + getCamelCase(module.getName(), conflictResolver).toLowerCase();
-            } else if (parent instanceof YangJavaSubModule) {
-                YangJavaSubModule submodule = (YangJavaSubModule) parent;
-                String subModulePkg = getRootPackage(submodule.getVersion(),
-                        submodule.getNameSpaceFromModule(submodule.getBelongsTo()),
-                        submodule.getRevision().getRevDate(), conflictResolver);
-                return subModulePkg + PERIOD + getCamelCase(submodule.getName(), conflictResolver).toLowerCase();
-            }
+            updateJavaFileInfo(parent, conflictResolver);
         }
         return parentInfo.getPackage() + PERIOD + parentInfo.getJavaName().toLowerCase();
+    }
+
+    /**
+     * Update the referred data model nodes java file info, this will be called,
+     * when the linked node is yet to translate. Then resolve until the parent hierarchy.
+     *
+     * @param yangNode         node whose java info needs to be updated
+     * @param conflictResolver yang plugin config
+     */
+    public static void updateJavaFileInfo(YangNode yangNode,
+            YangToJavaNamingConflictUtil conflictResolver) {
+        Stack<YangNode> nodesToUpdatePackage = new Stack<YangNode>();
+
+        /*
+         * Add the nodes to be updated for package info in a stack.
+         */
+        while (yangNode != null
+                && ((JavaFileInfoContainer) yangNode)
+                .getJavaFileInfo().getPackage() == null) {
+            nodesToUpdatePackage.push(yangNode);
+            yangNode = yangNode.getParent();
+        }
+
+        /*
+         * If the package is not updated till root node, then root package needs to
+         * be updated.
+         */
+        if (yangNode == null) {
+            yangNode = nodesToUpdatePackage.pop();
+            String pkg;
+            if (yangNode instanceof YangJavaModule) {
+                YangJavaModule module = (YangJavaModule) yangNode;
+                pkg = getRootPackage(module.getVersion(), module.getNameSpace().getUri(), module
+                        .getRevision().getRevDate(), conflictResolver);
+            } else if (yangNode instanceof YangJavaSubModule) {
+                YangJavaSubModule submodule = (YangJavaSubModule) yangNode;
+                pkg = getRootPackage(submodule.getVersion(),
+                        submodule.getNameSpaceFromModule(submodule.getBelongsTo()),
+                        submodule.getRevision().getRevDate(), conflictResolver);
+            } else {
+                throw new TranslatorException("Invalid root node of data model tree");
+            }
+
+            ((JavaCodeGeneratorInfo) yangNode).getJavaFileInfo()
+                    .setJavaName(getCamelCase(yangNode.getName(), conflictResolver));
+            ((JavaCodeGeneratorInfo) yangNode).getJavaFileInfo()
+                    .setPackage(pkg);
+            ((JavaCodeGeneratorInfo) yangNode).getJavaFileInfo()
+                    .setPackageFilePath(getPackageDirPathFromJavaJPackage(
+                            ((JavaCodeGeneratorInfo) yangNode).getJavaFileInfo()
+                                    .getPackage()));
+        }
+
+        /**
+         * Parent of the node in stack is updated with java info,
+         * all the nodes can be popped and updated
+         */
+        while (nodesToUpdatePackage.size() != 0) {
+            yangNode = nodesToUpdatePackage.pop();
+            ((JavaCodeGeneratorInfo) yangNode).getJavaFileInfo()
+                    .setJavaName(getCamelCase(yangNode.getName(), conflictResolver));
+            ((JavaCodeGeneratorInfo) yangNode).getJavaFileInfo()
+                    .setPackage(getCurNodePackage(yangNode));
+            ((JavaCodeGeneratorInfo) yangNode).getJavaFileInfo()
+                    .setPackageFilePath(getPackageDirPathFromJavaJPackage(
+                            ((JavaCodeGeneratorInfo) yangNode).getJavaFileInfo()
+                                    .getPackage()));
+        }
     }
 }

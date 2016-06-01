@@ -113,11 +113,12 @@ public final class LeafListListener {
         leafList.setLeafName(identifier);
 
         Parsable tmpData = listener.getParsedDataStack().peek();
-        YangLeavesHolder leaves;
+        YangLeavesHolder leavesHolder;
 
         if (tmpData instanceof YangLeavesHolder) {
-            leaves = (YangLeavesHolder) tmpData;
-            leaves.addLeafList(leafList);
+            leavesHolder = (YangLeavesHolder) tmpData;
+            leavesHolder.addLeafList(leafList);
+            leafList.setContainedIn(leavesHolder);
         } else {
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, LEAF_LIST_DATA,
                     ctx.identifier().getText(), ENTRY));

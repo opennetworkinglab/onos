@@ -77,7 +77,8 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
 /**
  * Represents data model node to maintain information defined in YANG grouping.
  */
-public class YangGrouping extends YangNode
+public class YangGrouping
+        extends YangNode
         implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector {
 
     /**
@@ -174,7 +175,8 @@ public class YangGrouping extends YangNode
      *
      * @param leafsList the list of leaf to set
      */
-    private void setListOfLeaf(List<YangLeaf> leafsList) {
+    @Override
+    public void setListOfLeaf(List<YangLeaf> leafsList) {
         listOfLeaf = leafsList;
     }
 
@@ -203,7 +205,8 @@ public class YangGrouping extends YangNode
      *
      * @param listOfLeafList the list of leaf-list to set
      */
-    private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
+    @Override
+    public void setListOfLeafList(List<YangLeafList> listOfLeafList) {
         this.listOfLeafList = listOfLeafList;
     }
 
@@ -273,7 +276,8 @@ public class YangGrouping extends YangNode
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnEntry() throws DataModelException {
+    public void validateDataOnEntry()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
@@ -283,7 +287,8 @@ public class YangGrouping extends YangNode
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnExit() throws DataModelException {
+    public void validateDataOnExit()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
@@ -299,13 +304,15 @@ public class YangGrouping extends YangNode
      * module.
      */
     @Override
-    public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectCollidingChild(String identifierName, YangConstructType dataType)
+            throws DataModelException {
         // Asks helper to detect colliding child.
         detectCollidingChildUtil(identifierName, dataType, this);
     }
 
     @Override
-    public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectSelfCollision(String identifierName, YangConstructType dataType)
+            throws DataModelException {
         if (getName().equals(identifierName)) {
             throw new DataModelException("YANG file error: Duplicate input identifier detected, same as grouping \"" +
                     getName() + "\"");

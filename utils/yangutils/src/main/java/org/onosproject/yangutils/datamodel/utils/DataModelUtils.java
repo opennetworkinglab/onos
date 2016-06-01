@@ -18,15 +18,18 @@ package org.onosproject.yangutils.datamodel.utils;
 
 import java.util.List;
 import java.util.Set;
+
 import org.onosproject.yangutils.datamodel.CollisionDetector;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangLeavesHolder;
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.linker.impl.YangReferenceResolver;
-import org.onosproject.yangutils.linker.impl.YangResolutionInfo;
 import org.onosproject.yangutils.datamodel.YangRpc;
+import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.linker.ResolvableType;
+import org.onosproject.yangutils.linker.YangReferenceResolver;
+import org.onosproject.yangutils.linker.impl.YangResolutionInfo;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 import org.onosproject.yangutils.utils.YangConstructType;
@@ -45,8 +48,7 @@ public final class DataModelUtils {
     /**
      * Detects the colliding identifier name in a given YANG node and its child.
      *
-     * @param identifierName name for which collision detection is to be
-     *                       checked
+     * @param identifierName name for which collision detection is to be checked
      * @param dataType       type of YANG node asking for detecting collision
      * @param node           instance of calling node
      * @throws DataModelException a violation of data model rules
@@ -77,8 +79,7 @@ public final class DataModelUtils {
     /**
      * Detects colliding of uses and grouping only with uses and grouping respectively.
      *
-     * @param identifierName name for which collision detection is to be
-     *                       checked
+     * @param identifierName name for which collision detection is to be checked
      * @param dataType       type of YANG node asking for detecting collision
      * @param node           node instance of calling node
      * @throws DataModelException a violation of data model rules
@@ -101,8 +102,7 @@ public final class DataModelUtils {
      * Detects the colliding identifier name in a given leaf node.
      *
      * @param listOfLeaf     List of leaves to detect collision
-     * @param identifierName name for which collision detection is to be
-     *                       checked
+     * @param identifierName name for which collision detection is to be checked
      * @throws DataModelException a violation of data model rules
      */
     private static void detectCollidingLeaf(List<YangLeaf> listOfLeaf, String identifierName)
@@ -123,8 +123,7 @@ public final class DataModelUtils {
      * Detects the colliding identifier name in a given leaf-list node.
      *
      * @param listOfLeafList list of leaf-lists to detect collision
-     * @param identifierName name for which collision detection is to be
-     *                       checked
+     * @param identifierName name for which collision detection is to be checked
      * @throws DataModelException a violation of data model rules
      */
     private static void detectCollidingLeafList(List<YangLeafList> listOfLeafList, String identifierName)
@@ -144,8 +143,7 @@ public final class DataModelUtils {
     /**
      * Add a resolution information.
      *
-     * @param resolutionInfo information about the YANG construct which has to
-     *                       be resolved
+     * @param resolutionInfo information about the YANG construct which has to be resolved
      * @throws DataModelException a violation of data model rules
      */
     public static void addResolutionInfo(YangResolutionInfo resolutionInfo)
@@ -162,7 +160,15 @@ public final class DataModelUtils {
         }
         YangReferenceResolver resolutionNode = (YangReferenceResolver) curNode;
 
-        resolutionNode.addToResolutionList(resolutionInfo);
+        if (resolutionInfo.getEntityToResolveInfo()
+                .getEntityToResolve() instanceof YangType) {
+            resolutionNode.addToResolutionList(resolutionInfo,
+                    ResolvableType.YANG_DERIVED_DATA_TYPE);
+        } else {
+            resolutionNode.addToResolutionList(resolutionInfo,
+                    ResolvableType.YANG_USES);
+        }
+
     }
 
     /**
@@ -173,7 +179,7 @@ public final class DataModelUtils {
      * @throws DataModelException a violation of data model rules
      */
     public static void resolveLinkingForResolutionList(List<YangResolutionInfo> resolutionList,
-                                                       YangReferenceResolver dataModelRootNode)
+            YangReferenceResolver dataModelRootNode)
             throws DataModelException {
 
         for (YangResolutionInfo resolutionInfo : resolutionList) {
@@ -189,7 +195,7 @@ public final class DataModelUtils {
      * @throws DataModelException a violation of data model rules
      */
     public static void linkInterFileReferences(List<YangResolutionInfo> resolutionList,
-                                               YangReferenceResolver dataModelRootNode)
+            YangReferenceResolver dataModelRootNode)
             throws DataModelException {
         /*
          * Run through the resolution list, find type/uses referring to

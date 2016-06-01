@@ -71,11 +71,11 @@ import static org.onosproject.yangutils.utils.UtilConstants.RPC_INPUT_VAR_NAME;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.VOID;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.createPackage;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.generateJavaDocForRpc;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.ENUM_ATTRIBUTE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.GETTER_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.MANAGER_SETTER_METHOD;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.generateJavaDocForRpc;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.insertDataIntoJavaFile;
 
 /**
@@ -119,6 +119,7 @@ public class TempJavaServiceFragmentFiles
      * File name for event subject setter temp file.
      */
     private static final String EVENT_SUBJECT_SETTER_FILE_NAME = "EventSubjectSetter";
+
     /**
      * File name for generated class file for service
      * suffix.
@@ -370,14 +371,13 @@ public class TempJavaServiceFragmentFiles
      * Constructs java code exit.
      *
      * @param fileType generated file type
-     * @param curNode current YANG node
+     * @param curNode  current YANG node
      * @throws IOException when fails to generate java files
      */
     @Override
     public void generateJavaFile(int fileType, YangNode curNode)
             throws IOException {
-        List<String> imports = new ArrayList<>();
-        imports = getJavaImportData().getImports();
+        List<String> imports = getJavaImportData().getImports();
 
         createPackage(curNode);
 
@@ -433,15 +433,16 @@ public class TempJavaServiceFragmentFiles
     /**
      * Adds rpc string information to applicable temp file.
      *
-     * @param javaAttributeInfoOfInput rpc's input node attribute info
+     * @param javaAttributeInfoOfInput  rpc's input node attribute info
      * @param javaAttributeInfoOfOutput rpc's output node attribute info
-     * @param rpcName name of the rpc function
-     * @param pluginConfig plugin configurations
+     * @param rpcName                   name of the rpc function
+     * @param pluginConfig              plugin configurations
      * @throws IOException IO operation fail
      */
     private void addRpcString(JavaAttributeInfo javaAttributeInfoOfInput,
             JavaAttributeInfo javaAttributeInfoOfOutput, YangPluginConfig pluginConfig,
-            String rpcName) throws IOException {
+            String rpcName)
+            throws IOException {
         String rpcInput = EMPTY_STRING;
         String rpcOutput = VOID;
         String rpcInputJavaDoc = EMPTY_STRING;
@@ -464,20 +465,21 @@ public class TempJavaServiceFragmentFiles
     /**
      * Adds rpc string information to applicable temp file.
      *
-     * @param javaAttributeInfoOfInput rpc's input node attribute info
+     * @param javaAttributeInfoOfInput  rpc's input node attribute info
      * @param javaAttributeInfoOfOutput rpc's output node attribute info
-     * @param rpcName name of the rpc function
-     * @param pluginConfig plugin configurations
-     * @param isInputLeafHolder if input node is leaf holder
-     * @param isOutputLeafHolder if output node is leaf holder
-     * @param isInputSingleChildHolder if input node is single child holder
+     * @param rpcName                   name of the rpc function
+     * @param pluginConfig              plugin configurations
+     * @param isInputLeafHolder         if input node is leaf holder
+     * @param isOutputLeafHolder        if output node is leaf holder
+     * @param isInputSingleChildHolder  if input node is single child holder
      * @param isOutputSingleChildHolder if input node is single child holder
      * @throws IOException IO operation fail
      */
     public void addRpcString(JavaAttributeInfo javaAttributeInfoOfInput,
             JavaAttributeInfo javaAttributeInfoOfOutput, YangPluginConfig pluginConfig,
             String rpcName, boolean isInputLeafHolder, boolean isOutputLeafHolder,
-            boolean isInputSingleChildHolder, boolean isOutputSingleChildHolder) throws IOException {
+            boolean isInputSingleChildHolder, boolean isOutputSingleChildHolder)
+            throws IOException {
         String rpcInput = EMPTY_STRING;
         String rpcOutput = VOID;
         String rpcInputJavaDoc = EMPTY_STRING;
@@ -504,10 +506,10 @@ public class TempJavaServiceFragmentFiles
     /**
      * Returns names for input and output.
      *
-     * @param attr attribute info
-     * @param isLeafHolder if leaf holder
+     * @param attr                attribute info
+     * @param isLeafHolder        if leaf holder
      * @param isSinglechildHolder if single child holder
-     * @param pluginConfig plugin configurations
+     * @param pluginConfig        plugin configurations
      * @return names for input and output
      */
     private String getInputOutputNames(JavaAttributeInfo attr, boolean isLeafHolder, boolean isSinglechildHolder,
@@ -550,13 +552,13 @@ public class TempJavaServiceFragmentFiles
     /**
      * Adds the JAVA rpc snippet information.
      *
-     * @param javaAttributeInfoOfInput rpc's input node attribute info
+     * @param javaAttributeInfoOfInput  rpc's input node attribute info
      * @param javaAttributeInfoOfOutput rpc's output node attribute info
-     * @param pluginConfig plugin configurations
-     * @param rpcName name of the rpc function
-     * @param isInputLeafHolder if input node is leaf holder
-     * @param isOutputLeafHolder if output node is leaf holder
-     * @param isInputSingleChildHolder if input node is single child holder
+     * @param pluginConfig              plugin configurations
+     * @param rpcName                   name of the rpc function
+     * @param isInputLeafHolder         if input node is leaf holder
+     * @param isOutputLeafHolder        if output node is leaf holder
+     * @param isInputSingleChildHolder  if input node is single child holder
      * @param isOutputSingleChildHolder if input node is single child holder
      * @throws IOException IO operation fail
      */
@@ -573,7 +575,7 @@ public class TempJavaServiceFragmentFiles
      * Constructs java code exit.
      *
      * @param fileType generated file type
-     * @param curNode current YANG node
+     * @param curNode  current YANG node
      * @throws IOException when fails to generate java files
      */
     public void generateEventJavaFile(int fileType, YangNode curNode)
@@ -604,7 +606,7 @@ public class TempJavaServiceFragmentFiles
      * Constructs java code exit.
      *
      * @param fileType generated file type
-     * @param curNode current YANG node
+     * @param curNode  current YANG node
      * @throws IOException when fails to generate java files
      */
     public void generateEventListenerJavaFile(int fileType, YangNode curNode)
@@ -632,7 +634,7 @@ public class TempJavaServiceFragmentFiles
      * Constructs java code exit.
      *
      * @param fileType generated file type
-     * @param curNode current YANG node
+     * @param curNode  current YANG node
      * @throws IOException when fails to generate java files
      */
     public void generateEventSubjectJavaFile(int fileType, YangNode curNode)
@@ -657,8 +659,8 @@ public class TempJavaServiceFragmentFiles
      * Removes all temporary file handles.
      *
      * @param isErrorOccurred when translator fails to generate java files we
-     * need to close all open file handles include temporary files
-     * and java files.
+     *                        need to close all open file handles include temporary files
+     *                        and java files.
      * @throws IOException when failed to delete the temporary files
      */
     @Override
@@ -782,17 +784,18 @@ public class TempJavaServiceFragmentFiles
     /**
      * Adds java snippet for events to event subject file.
      *
-     * @param curNode current node
+     * @param curNode      current node
      * @param pluginConfig plugin configurations
      * @throws IOException when fails to do IO operations
      */
-    public void addJavaSnippetOfEvent(YangNode curNode, YangPluginConfig pluginConfig) throws IOException {
+    public void addJavaSnippetOfEvent(YangNode curNode, YangPluginConfig pluginConfig)
+            throws IOException {
 
         String currentInfo = getCapitalCase(getCamelCase(((YangNotification) curNode).getName(),
                 pluginConfig.getConflictResolver()));
         String notificationName = ((YangNotification) curNode).getName();
 
-        JavaQualifiedTypeInfo qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(curNode.getParent(),
+        JavaQualifiedTypeInfo qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(curNode,
                 getCapitalCase(currentInfo));
 
         JavaAttributeInfo javaAttributeInfo =
@@ -807,14 +810,16 @@ public class TempJavaServiceFragmentFiles
     }
 
     /*Adds event to enum temp file.*/
-    private void addEventEnum(String notificationName, YangPluginConfig pluginConfig) throws IOException {
+    private void addEventEnum(String notificationName, YangPluginConfig pluginConfig)
+            throws IOException {
         appendToFile(getEventEnumTempFileHandle(),
                 getJavaDoc(ENUM_ATTRIBUTE, notificationName, false, pluginConfig) + FOUR_SPACE_INDENTATION
                         + getEnumJavaAttribute(notificationName).toUpperCase() + COMMA + NEW_LINE);
     }
 
     /*Adds event method in event class*/
-    private void addEnumMethod(String eventClassname, String className) throws IOException {
+    private void addEnumMethod(String eventClassname, String className)
+            throws IOException {
         appendToFile(getEventMethodTempFileHandle(), getEventFileContents(eventClassname, className));
     }
 
@@ -853,7 +858,8 @@ public class TempJavaServiceFragmentFiles
     }
 
     /*Adds getter method for event in event subject class.*/
-    private void addEventSubjectGetter(JavaAttributeInfo attr, YangPluginConfig pluginConfig) throws IOException {
+    private void addEventSubjectGetter(JavaAttributeInfo attr, YangPluginConfig pluginConfig)
+            throws IOException {
         appendToFile(getEventSubjectGetterTempFileHandle(),
                 getJavaDoc(GETTER_METHOD, getCapitalCase(attr.getAttributeName()), false, pluginConfig)
                         + getGetterForClass(attr, GENERATE_EVENT_SUBJECT_CLASS) + NEW_LINE);

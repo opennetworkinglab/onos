@@ -88,10 +88,12 @@ import static org.onosproject.yangutils.utils.YangConstructType.CASE_DATA;
  *                | when         | 7.19.5  | 0..1        |-TODO             |
  *                +--------------+---------+-------------+------------------+
  */
+
 /**
  * Represents data model node to maintain information defined in YANG case.
  */
-public class YangCase extends YangNode
+public class YangCase
+        extends YangNode
         implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector, YangAugmentationHolder {
 
     /**
@@ -188,7 +190,8 @@ public class YangCase extends YangNode
      *
      * @param leafsList the list of leaf to set
      */
-    private void setListOfLeaf(List<YangLeaf> leafsList) {
+    @Override
+    public void setListOfLeaf(List<YangLeaf> leafsList) {
         listOfLeaf = leafsList;
     }
 
@@ -221,7 +224,8 @@ public class YangCase extends YangNode
      *
      * @param listOfLeafList the list of leaf-list to set
      */
-    private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
+    @Override
+    public void setListOfLeafList(List<YangLeafList> listOfLeafList) {
         this.listOfLeafList = listOfLeafList;
     }
 
@@ -295,7 +299,8 @@ public class YangCase extends YangNode
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnEntry() throws DataModelException {
+    public void validateDataOnEntry()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
@@ -305,12 +310,14 @@ public class YangCase extends YangNode
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnExit() throws DataModelException {
+    public void validateDataOnExit()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
     @Override
-    public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectCollidingChild(String identifierName, YangConstructType dataType)
+            throws DataModelException {
         if (!(getParent() instanceof YangChoice)) {
             throw new DataModelException("Internal Data Model Tree Error: Invalid/Missing holder in case " +
                     getName());
@@ -320,7 +327,8 @@ public class YangCase extends YangNode
     }
 
     @Override
-    public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectSelfCollision(String identifierName, YangConstructType dataType)
+            throws DataModelException {
 
         if (dataType == CASE_DATA) {
             if (getName().equals(identifierName)) {

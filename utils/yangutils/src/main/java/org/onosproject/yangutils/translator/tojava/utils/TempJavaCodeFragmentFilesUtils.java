@@ -29,12 +29,7 @@ import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
 import org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaAugment;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaInput;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaOutput;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModule;
-
-import static java.util.Collections.sort;
 
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
@@ -69,6 +64,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.THIS;
 import static org.onosproject.yangutils.utils.UtilConstants.TYPE;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.updateFileHandle;
 
+import static java.util.Collections.sort;
+
 /**
  * Represents utilities for temporary java code fragments.
  */
@@ -83,8 +80,8 @@ public final class TempJavaCodeFragmentFilesUtils {
     /**
      * Adds import for AugmentationHolders class.
      *
-     * @param curNode current YANG node
-     * @param imports list of imports
+     * @param curNode   current YANG node
+     * @param imports   list of imports
      * @param operation add or delete import
      */
     public static void addAugmentationHoldersImport(YangNode curNode, List<String> imports, boolean operation) {
@@ -95,8 +92,8 @@ public final class TempJavaCodeFragmentFilesUtils {
     /**
      * Adds import for AugmentedInfo class.
      *
-     * @param curNode current YANG node
-     * @param imports list of imports
+     * @param curNode   current YANG node
+     * @param imports   list of imports
      * @param operation add or delete import
      */
     public static void addAugmentedInfoImport(YangNode curNode, List<String> imports, boolean operation) {
@@ -126,8 +123,8 @@ public final class TempJavaCodeFragmentFilesUtils {
     /**
      * Updated imports with augmented nodes import.
      *
-     * @param curNode current YANG node
-     * @param imports list of imports
+     * @param curNode   current YANG node
+     * @param imports   list of imports
      * @param operation to add or to delete
      */
     public static void addAugmentedNodesImport(YangNode curNode, List<String> imports, boolean operation) {
@@ -156,7 +153,7 @@ public final class TempJavaCodeFragmentFilesUtils {
     /**
      * Returns imports for augmented node.
      *
-     * @param parent parent YANG node
+     * @param parent      parent YANG node
      * @param targetNodes list of target nodes
      * @param isImplClass if impl class's import required
      * @return imports for augmented node
@@ -204,8 +201,8 @@ public final class TempJavaCodeFragmentFilesUtils {
     /**
      * Adds import for array list.
      *
-     * @param curNode current YANG node
-     * @param imports list of imports
+     * @param curNode   current YANG node
+     * @param imports   list of imports
      * @param operation add or delete import
      */
     public static void addArrayListImport(YangNode curNode, List<String> imports, boolean operation) {
@@ -224,8 +221,8 @@ public final class TempJavaCodeFragmentFilesUtils {
     /**
      * Adds listener's imports.
      *
-     * @param curNode currentYangNode.
-     * @param imports import list
+     * @param curNode   currentYangNode.
+     * @param imports   import list
      * @param operation add or remove
      * @param classInfo class info to be added to import list
      */
@@ -244,7 +241,7 @@ public final class TempJavaCodeFragmentFilesUtils {
     /**
      * Adds annotations imports.
      *
-     * @param imports list if imports
+     * @param imports   list if imports
      * @param operation to add or to delete
      */
     public static void addAnnotationsImports(List<String> imports, boolean operation) {
@@ -269,7 +266,7 @@ public final class TempJavaCodeFragmentFilesUtils {
     /**
      * Performs given operations on import list.
      *
-     * @param imports list of imports
+     * @param imports   list of imports
      * @param curImport current import
      * @param operation add or remove
      * @return import list
@@ -314,7 +311,7 @@ public final class TempJavaCodeFragmentFilesUtils {
     /**
      * Closes the file handle for temporary file.
      *
-     * @param file file to be closed
+     * @param file        file to be closed
      * @param toBeDeleted flag to indicate if file needs to be deleted
      * @throws IOException when failed to close the file handle
      */
@@ -327,33 +324,6 @@ public final class TempJavaCodeFragmentFilesUtils {
                 file.delete();
             }
         }
-    }
-
-    /**
-     * Detects collision between parent and child node which have same name.
-     * When parent and child node both have the same name in that case child node should be used with
-     * qualified name.
-     *
-     * @param curNode current YANG node
-     * @param qualifiedTypeInfo current node's qualified info
-     * @return true if collision is detected
-     */
-    public static boolean detectCollisionBwParentAndChildForImport(YangNode curNode,
-            JavaQualifiedTypeInfo qualifiedTypeInfo) {
-
-        YangNode parent = curNode.getParent();
-        if (parent instanceof YangJavaModule
-                || parent instanceof YangJavaSubModule
-                || parent instanceof YangJavaInput
-                || parent instanceof YangJavaOutput) {
-            return false;
-        }
-        String parentsClassInfo = getCapitalCase(((JavaFileInfoContainer) parent).getJavaFileInfo().getJavaName());
-        String childsClassInfo = qualifiedTypeInfo.getClassInfo();
-        if (childsClassInfo.equals(parentsClassInfo)) {
-            return true;
-        }
-        return false;
     }
 
     /**

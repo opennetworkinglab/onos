@@ -17,6 +17,7 @@
 package org.onosproject.yangutils.linker.impl;
 
 import java.util.Stack;
+
 import org.onosproject.yangutils.datamodel.LocationInfo;
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
@@ -28,12 +29,18 @@ import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.YangUses;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.linker.Resolvable;
+import org.onosproject.yangutils.linker.ResolvableStatus;
+import org.onosproject.yangutils.linker.YangLinkingPhase;
+import org.onosproject.yangutils.linker.YangReferenceResolver;
 
-import static org.onosproject.yangutils.linker.impl.ResolvableStatus.INTER_FILE_LINKED;
-import static org.onosproject.yangutils.linker.impl.ResolvableStatus.INTRA_FILE_RESOLVED;
-import static org.onosproject.yangutils.linker.impl.ResolvableStatus.LINKED;
-import static org.onosproject.yangutils.linker.impl.ResolvableStatus.RESOLVED;
-import static org.onosproject.yangutils.linker.impl.ResolvableStatus.UNRESOLVED;
+import static org.onosproject.yangutils.linker.ResolvableStatus.INTER_FILE_LINKED;
+import static org.onosproject.yangutils.linker.ResolvableStatus.INTRA_FILE_RESOLVED;
+import static org.onosproject.yangutils.linker.ResolvableStatus.LINKED;
+import static org.onosproject.yangutils.linker.ResolvableStatus.RESOLVED;
+import static org.onosproject.yangutils.linker.ResolvableStatus.UNRESOLVED;
+import static org.onosproject.yangutils.linker.YangLinkingPhase.INTER_FILE;
+import static org.onosproject.yangutils.linker.YangLinkingPhase.INTRA_FILE;
 import static org.onosproject.yangutils.utils.UtilConstants.TYPEDEF_LINKER_ERROR;
 import static org.onosproject.yangutils.utils.UtilConstants.GROUPING_LINKER_ERROR;
 
@@ -42,7 +49,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.GROUPING_LINKER_ERRO
  *
  * @param <T> type of resolution entity uses / type
  */
-public class YangResolutionInfo<T> implements LocationInfo {
+public class YangResolutionInfo<T>
+        implements LocationInfo {
 
     /**
      * Information about the entity that needs to be resolved.
@@ -164,7 +172,7 @@ public class YangResolutionInfo<T> implements LocationInfo {
                          * resolve the references and pop the entity and
                          * continue with remaining stack elements to resolve.
                          */
-                        resolveTopOfStack();
+                        resolveTopOfStack(INTRA_FILE);
                         getPartialResolvedStack().pop();
                         break;
                     }
@@ -213,7 +221,7 @@ public class YangResolutionInfo<T> implements LocationInfo {
     /**
      * Resolves the current entity in the stack.
      */
-    private void resolveTopOfStack()
+    private void resolveTopOfStack(YangLinkingPhase linkingPhase)
             throws DataModelException {
         ((Resolvable) getCurrentEntityToResolveFromStack()).resolve();
         if (((Resolvable) getCurrentEntityToResolveFromStack()).getResolvableStatus()
@@ -280,7 +288,8 @@ public class YangResolutionInfo<T> implements LocationInfo {
      * @return true if self file reference, false otherwise
      * @throws DataModelException a violation of data model rules
      */
-    private boolean isCandidateForSelfFileReference() throws DataModelException {
+    private boolean isCandidateForSelfFileReference()
+            throws DataModelException {
         String prefix = getRefPrefix();
         return prefix == null || prefix.contentEquals(getCurReferenceResolver().getPrefix());
     }
@@ -598,7 +607,8 @@ public class YangResolutionInfo<T> implements LocationInfo {
      * @return referenced prefix of entity under resolution
      * @throws DataModelException a violation in data model rule
      */
-    private String getRefPrefix() throws DataModelException {
+    private String getRefPrefix()
+            throws DataModelException {
         String refPrefix;
         if (getCurrentEntityToResolveFromStack() instanceof YangType) {
             refPrefix = ((YangType<?>) getCurrentEntityToResolveFromStack()).getPrefix();
@@ -643,7 +653,7 @@ public class YangResolutionInfo<T> implements LocationInfo {
                          * resolve the references and pop the entity and
                          * continue with remaining stack elements to resolve
                          */
-                        resolveTopOfStack();
+                        resolveTopOfStack(INTER_FILE);
                         getPartialResolvedStack().pop();
                         break;
                     }
@@ -679,7 +689,8 @@ public class YangResolutionInfo<T> implements LocationInfo {
      *
      * @throws DataModelException data model error
      */
-    private void linkInterFileTopOfStackRefUpdateStack() throws DataModelException {
+    private void linkInterFileTopOfStackRefUpdateStack()
+            throws DataModelException {
 
         /*
          * Obtain the referred node of top of stack entity under resolution
@@ -727,7 +738,8 @@ public class YangResolutionInfo<T> implements LocationInfo {
      * @return true if resolved, false otherwise
      * @throws DataModelException a violation in data model rule
      */
-    private boolean resolveWithInclude() throws DataModelException {
+    private boolean resolveWithInclude()
+            throws DataModelException {
         /*
          * Run through all the nodes in include list and search for referred
          * typedef/grouping at the root level.
@@ -762,7 +774,8 @@ public class YangResolutionInfo<T> implements LocationInfo {
      * @return true if resolved, false otherwise
      * @throws DataModelException a violation in data model rule
      */
-    private boolean resolveWithImport() throws DataModelException {
+    private boolean resolveWithImport()
+            throws DataModelException {
         /*
          * Run through import list to find the referred typedef/grouping.
          */
@@ -808,7 +821,8 @@ public class YangResolutionInfo<T> implements LocationInfo {
      * @return referred typedef/grouping node
      * @throws DataModelException a violation in data model rule
      */
-    private T getRefNode() throws DataModelException {
+    private T getRefNode()
+            throws DataModelException {
         if (getCurrentEntityToResolveFromStack() instanceof YangType) {
             YangDerivedInfo<?> derivedInfo = (YangDerivedInfo<?>)
                     ((YangType<?>) getCurrentEntityToResolveFromStack()).getDataTypeExtendedInfo();
