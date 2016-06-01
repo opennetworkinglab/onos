@@ -16,22 +16,22 @@
 package org.onosproject.store.resource.impl;
 
 import com.google.common.annotations.Beta;
-import org.onlab.packet.MplsLabel;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.resource.DiscreteResourceCodec;
 
 /**
- * Codec for MplsLabel.
+ * Codec for Vlan.
  */
 @Beta
-final class MplsCodec implements DiscreteResourceCodec<MplsLabel> {
+final class VlanIdCodec implements DiscreteResourceCodec<VlanId> {
     @Override
-    public int encode(MplsLabel resource) {
-        return resource.toInt();
+    public int encode(VlanId resource) {
+        return resource.toShort();
     }
 
     @Override
-    public MplsLabel decode(int value) {
-        return MplsLabel.mplsLabel(value);
+    public VlanId decode(int value) {
+        return VlanId.vlanId((short) value);
     }
 
     @Override
@@ -49,6 +49,6 @@ final class MplsCodec implements DiscreteResourceCodec<MplsLabel> {
 
     @Override
     public int hashCode() {
-        return MplsCodec.class.hashCode();
+        return VlanIdCodec.class.hashCode();
     }
 }
