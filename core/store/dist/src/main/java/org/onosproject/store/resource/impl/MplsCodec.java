@@ -23,7 +23,7 @@ import org.onosproject.net.resource.DiscreteResourceCodec;
  * Codec for MplsLabel.
  */
 @Beta
-public final class MplsCodec implements DiscreteResourceCodec<MplsLabel> {
+final class MplsCodec implements DiscreteResourceCodec<MplsLabel> {
     @Override
     public int encode(MplsLabel resource) {
         return resource.toInt();
