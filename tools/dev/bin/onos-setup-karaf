@@ -17,7 +17,7 @@ export STAGE=$(dirname $KARAF_ROOT)
 # Validates the specified IP regular expression against existing adapters.
 # Excludes local-loopback.
 function validateIp {
-    ifconfig | sed -ne 's:inet[^6][ adr:]*\([0-9.]*\).*:\1: p' | grep $1
+    ifconfig | sed -ne 's:[[:space:]]*inet[^6][ adr:]*\([0-9.]*\).*:\1: p' | grep $1
 }
 
 # Parse optional arguments
