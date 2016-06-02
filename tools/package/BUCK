@@ -74,6 +74,11 @@ APPS = [
   '//apps/openstacknode:onos-apps-openstacknode-oar',
   '//apps/cpman/app:onos-apps-cpman-app-oar',
   '//apps/xosclient:onos-apps-xosclient-oar',
+  '//apps/events:onos-apps-events-oar',
+  '//apps/test/election:onos-apps-test-election-oar',
+  '//apps/test/distributed-primitives:onos-apps-test-distributed-primitives-oar',
+  '//apps/test/intent-perf:onos-apps-test-intent-perf-oar',
+  '//apps/test/demo:onos-apps-test-demo-oar',
 ]
 
 #TODO move to buck-tools
