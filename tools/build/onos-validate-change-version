@@ -9,8 +9,11 @@ aux=$(mktemp)
 trap "rm -f $aux 2>/dev/null" EXIT
 
 cd $ONOS_ROOT
-grep -r SNAPSHOT . | \
-    egrep -v -f $ONOS_ROOT/tools/build/onos-validate-change-version.excludes >$aux
+find . -type f | \
+    egrep -v -f $ONOS_ROOT/tools/build/onos-validate-change-version.excludes | \
+    xargs grep SNAPSHOT >$aux
+
+    # FIXME: deal properly with files with white-space in them
 
 if [ -s $aux ]; then
     echo "There are files containing SNAPSHOT references:"

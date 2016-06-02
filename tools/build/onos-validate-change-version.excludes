@@ -1,6 +1,13 @@
 \./build.log
 \./.git
-\./target/
+/target/
+\.iml$
+\./buck-out/
+\./lib/BUCK
+\./lib/deps.json
+\./bucklets/maven_jar\.bucklet
+\./tools/build/libgen
+\./utils/osgiwrap/
 \./tools/build/onos-validate-change-version
 \./tools/build/onos-change-version
 \./tools/build/onos-release
@@ -19,3 +26,6 @@
 \./protocols/ospf/
 \./protocols/snmp/
 \./providers/snmp/
+\./providers/bmv2/
+\./drivers/bmv2/
+\./apps/kafka-integration/
