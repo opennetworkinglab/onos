@@ -28,7 +28,6 @@ osgi_feature (
     '//lib:jackson-core',
     '//lib:jackson-annotations',
     '//lib:jackson-databind',
-    '//lib:commons-configuration',
     '//lib:commons-collections',
     '//lib:typesafe-config',
     '//lib:concurrent-trees',
