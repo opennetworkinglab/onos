@@ -144,6 +144,8 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
 
     private ScheduledExecutorService executor;
 
+    private boolean shuttingDown = false;
+
     // TODO: Add sanity checking for the configurable params based on the delays
     private static final long DEVICE_SYNC_DELAY = 5;
     private static final long LINK_PRUNER_DELAY = 3;
@@ -240,6 +242,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
 
     @Activate
     public void activate(ComponentContext context) {
+        shuttingDown = false;
         cfgService.registerProperties(getClass());
         appId = coreService.registerApplication(PROVIDER_NAME);
 
@@ -271,6 +274,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
 
     @Deactivate
     public void deactivate() {
+        shuttingDown = true;
         cfgRegistry.removeListener(cfgListener);
         factories.forEach(cfgRegistry::unregisterConfigFactory);
 
@@ -357,7 +361,6 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
         masterService.removeListener(roleListener);
         deviceService.removeListener(deviceListener);
         packetService.removeProcessor(packetProcessor);
-
 
         if (executor != null) {
             executor.shutdownNow();
@@ -696,7 +699,13 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
 
             } catch (Exception e) {
                 // Catch all exceptions to avoid task being suppressed
-                log.error("Exception thrown during link pruning process", e);
+                if (!shuttingDown) {
+                    // Error condition
+                    log.error("Exception thrown during link pruning process", e);
+                } else {
+                    // Provider is shutting down, the error can be ignored
+                    log.trace("Shutting down, ignoring error", e);
+                }
             }
         }
 
