@@ -99,7 +99,6 @@ APPS = [
     # Apps
     '//apps/dhcp:onos-apps-dhcp-oar',
     '//apps/fwd:onos-apps-fwd-oar',
-    '//apps/aaa:onos-apps-aaa-oar',
     '//apps/acl:onos-apps-acl-oar',
     '//apps/bgprouter:onos-apps-bgprouter-oar',
     '//apps/cip:onos-apps-cip-oar',
@@ -109,10 +108,7 @@ APPS = [
     '//apps/segmentrouting:onos-apps-segmentrouting-oar',
     '//apps/gangliametrics:onos-apps-gangliametrics-oar',
     '//apps/graphitemetrics:onos-apps-graphitemetrics-oar',
-    '//apps/igmp:onos-apps-igmp-oar',
-    '//apps/cordmcast:onos-apps-cordmcast-oar',
     '//apps/flowanalyzer:onos-apps-flowanalyzer-oar',
-    '//apps/olt:onos-apps-olt-oar',
     '//apps/influxdbmetrics:onos-apps-influxdbmetrics-oar',
     '//apps/metrics:onos-apps-metrics-oar',
     '//apps/mfwd:onos-apps-mfwd-oar',
@@ -137,7 +133,6 @@ APPS = [
     '//apps/test/loadtest:onos-apps-test-loadtest-oar',
     '//apps/test/messaging-perf:onos-apps-test-messaging-perf-oar',
     '//apps/virtualbng:onos-apps-virtualbng-oar',
-    '//apps/cordvtn:onos-apps-cordvtn-oar',
     '//apps/vpls:onos-apps-vpls-oar',
     '//apps/vrouter:onos-apps-vrouter-oar',
     '//apps/vtn:onos-apps-vtn-oar',
@@ -145,7 +140,6 @@ APPS = [
     '//apps/openstacknode:onos-apps-openstacknode-oar',
     '//apps/cpman/app:onos-apps-cpman-app-oar',
     '//apps/xosclient:onos-apps-xosclient-oar',
-    '//apps/cordconfig:onos-apps-cordconfig',
 ]
 
 APP_JARS = [
@@ -154,7 +148,6 @@ APP_JARS = [
     '//apps/dhcp/api:onos-apps-dhcp-api',
     '//apps/dhcp/app:onos-apps-dhcp-app',
     '//apps/fwd:onos-apps-fwd',
-    '//apps/olt:onos-apps-olt-api',
     '//apps/iptopology-api:onos-apps-iptopology-api',
     '//apps/openstacknode:onos-apps-openstacknode',
     '//apps/routing:onos-apps-routing',
