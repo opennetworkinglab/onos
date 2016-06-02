@@ -135,7 +135,12 @@ public class AtomixLeaderElector extends AbstractResource<AtomixLeaderElector>
 
     @Override
     public CompletableFuture<Leadership> getLeadership(String topic) {
-        return cache.getUnchecked(topic);
+        return cache.getUnchecked(topic)
+                .whenComplete((r, e) -> {
+                    if (e != null) {
+                        cache.invalidate(topic);
+                    }
+                });
     }
 
     @Override
