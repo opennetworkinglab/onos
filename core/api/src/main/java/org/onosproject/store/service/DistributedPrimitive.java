@@ -100,7 +100,7 @@ public interface DistributedPrimitive {
         INACTIVE
     }
 
-    static final long DEFAULT_OPERTATION_TIMEOUT_MILLIS = 60000L;
+    static final long DEFAULT_OPERTATION_TIMEOUT_MILLIS = 5000L;
 
     /**
      * Returns the name of this primitive.
