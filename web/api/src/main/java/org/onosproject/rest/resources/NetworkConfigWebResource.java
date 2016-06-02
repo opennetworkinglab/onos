@@ -297,10 +297,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     @SuppressWarnings("unchecked")
     public Response delete() {
         NetworkConfigService service = get(NetworkConfigService.class);
-        service.getSubjectClasses()
-                .forEach(subjectClass -> service.getSubjects(subjectClass)
-                        .forEach(subject -> service.getConfigs(subject)
-                                .forEach(config -> service.removeConfig(subject, config.getClass()))));
+        service.removeConfig();
         return Response.ok().build();
     }
 
@@ -315,8 +312,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     public void delete(@PathParam("subjectClassKey") String subjectClassKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
         service.getSubjects(service.getSubjectFactory(subjectClassKey).subjectClass())
-                .forEach(subject -> service.getConfigs(subject)
-                        .forEach(config -> service.removeConfig(subject, config.getClass())));
+                .forEach(subject -> service.removeConfig(subject));
     }
 
     /**
@@ -331,8 +327,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     public void delete(@PathParam("subjectClassKey") String subjectClassKey,
                            @PathParam("subjectKey") String subjectKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
-        Object s = service.getSubjectFactory(subjectClassKey).createSubject(subjectKey);
-        service.getConfigs(s).forEach(c -> service.removeConfig(s, c.getClass()));
+        service.removeConfig(subjectKey);
     }
 
     /**
@@ -349,8 +344,9 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                            @PathParam("subjectKey") String subjectKey,
                            @PathParam("configKey") String configKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
-        service.removeConfig(service.getSubjectFactory(subjectClassKey).createSubject(subjectKey),
-                             service.getConfigClass(subjectClassKey, configKey));
+        service.removeConfig(subjectClassKey,
+                             service.getSubjectFactory(subjectClassKey).createSubject(subjectKey),
+                            configKey);
     }
 
 }

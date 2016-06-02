@@ -31,6 +31,9 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
+import java.util.Set;
+
+
 public class DistributedNetworkConfigStoreTest {
     private DistributedNetworkConfigStore configStore;
 
@@ -202,5 +205,34 @@ public class DistributedNetworkConfigStoreTest {
         assertThat(configStore.getConfigClasses(123), hasSize(1));
         assertThat(configStore.getSubjects(Integer.class, BasicIntConfig.class), hasSize(1));
         assertThat(configStore.getSubjects(Integer.class), hasSize(1));
+    }
+
+    /**
+     * Tests  removal of config including queued.
+     */
+    @Test
+    public void testRemoveConfig() {
+
+        configStore.addConfigFactory(new MockConfigFactory(BasicConfig.class, "config1"));
+        configStore.queueConfig("subject", "config2", new ObjectMapper().createObjectNode());
+        configStore.queueConfig(123, "config2", new ObjectMapper().createObjectNode());
+        configStore.applyConfig("subject1", BasicConfig.class, new ObjectMapper().createObjectNode());
+
+        configStore.clearConfig();
+
+        Set<String> subjects = configStore.getSubjects(String.class);
+        assertThat(subjects.size(), is(0));
+
+        configStore.addConfigFactory(new MockConfigFactory(BasicConfig.class, "config1"));
+        configStore.queueConfig("subject", "config3", new ObjectMapper().createObjectNode());
+        configStore.queueConfig(123, "config3", new ObjectMapper().createObjectNode());
+        configStore.applyConfig("subject1", BasicConfig.class, new ObjectMapper().createObjectNode());
+
+        Set<String> configs = configStore.getSubjects(String.class);
+
+        configs.forEach(c -> configStore.clearConfig(c));
+        Set<String> newConfig1 = configStore.getSubjects(String.class);
+
+        assertThat(newConfig1, notNullValue());
     }
 }

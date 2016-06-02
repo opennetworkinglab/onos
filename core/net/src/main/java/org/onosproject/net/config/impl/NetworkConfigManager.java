@@ -261,6 +261,18 @@ public class NetworkConfigManager
          }
     }
 
+     @Override
+     public <S> void removeConfig(S subject) {
+        checkPermission(CONFIG_WRITE);
+        store.clearConfig(subject);
+     }
+
+     @Override
+     public <S> void removeConfig() {
+         checkPermission(CONFIG_WRITE);
+         store.clearConfig();
+     }
+
     // Auxiliary store delegate to receive notification about changes in
     // the network configuration store state - by the store itself.
     private class InternalStoreDelegate implements NetworkConfigStoreDelegate {

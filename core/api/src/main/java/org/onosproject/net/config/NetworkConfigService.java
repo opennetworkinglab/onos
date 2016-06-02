@@ -177,4 +177,19 @@ public interface NetworkConfigService
      * @param <S>               type of subject
      */
     <S> void removeConfig(String subjectClassKey, S subject, String configKey);
+
+    /**
+     * Clears the  configuration including queued based on the subject.
+     * If does not exists this call has no effect.
+     *
+     * @param subject           configuration subject
+     */
+    <S> void removeConfig(S subject);
+
+    /**
+     * Clears the complete configuration including queued.
+     * If does not exists this call has no effect.
+     *
+     */
+    <S> void removeConfig();
 }
