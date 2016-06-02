@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -60,6 +61,8 @@ import org.onosproject.incubator.net.tunnel.TunnelListener;
 import org.onosproject.incubator.net.tunnel.TunnelName;
 import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultAnnotations.Builder;
@@ -67,12 +70,17 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.link.LinkService;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.pce.pceservice.constraint.CapabilityConstraint;
 import org.onosproject.pce.pceservice.constraint.CapabilityConstraint.CapabilityType;
 import org.onosproject.pce.pceservice.constraint.CostConstraint;
@@ -134,8 +142,14 @@ import org.onosproject.net.packet.PacketService;
 public class PceManager implements PceService {
     private static final Logger log = LoggerFactory.getLogger(PceManager.class);
 
+    public static final long GLOBAL_LABEL_SPACE_MIN = 4097;
+    public static final long GLOBAL_LABEL_SPACE_MAX = 5121;
+    private static final String DEVICE_NULL = "Device-cannot be null";
+    private static final String LINK_NULL = "Link-cannot be null";
     public static final String PCE_SERVICE_APP = "org.onosproject.pce";
     private static final String LOCAL_LSP_ID_GEN_TOPIC = "pcep-local-lsp-id";
+    public static final String DEVICE_TYPE = "type";
+    public static final String L3_DEVICE = "L3";
     private static final int PREFIX_LENGTH = 32;
 
     private static final String TUNNEL_CONSUMER_ID_GEN_TOPIC = "pcep-tunnel-consumer-id";
@@ -149,6 +163,10 @@ public class PceManager implements PceService {
 
     private IdGenerator localLspIdIdGen;
     protected DistributedSet<Short> localLspIdFreeList;
+
+    // LSR-id and device-id mapping for checking capability if L3 device is not
+    // having its capability
+    private Map<String, DeviceId> lsrIdDeviceIdMap = new HashMap<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -178,6 +196,9 @@ public class PceManager implements PceService {
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LinkService linkService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService netCfgService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -196,6 +217,9 @@ public class PceManager implements PceService {
     protected TopologyService topologyService;
 
     private TunnelListener listener = new InnerTunnelListener();
+    private DeviceListener deviceListener = new InternalDeviceListener();
+    private LinkListener linkListener = new InternalLinkListener();
+    private InternalConfigListener cfgListener = new InternalConfigListener();
     private BasicPceccHandler crHandler;
     private PceccSrTeBeHandler srTeHandler;
     private ApplicationId appId;
@@ -220,9 +244,13 @@ public class PceManager implements PceService {
         crHandler.initialize(labelRsrcService, flowObjectiveService, appId, pceStore);
 
         srTeHandler = PceccSrTeBeHandler.getInstance();
-        srTeHandler.initialize(labelRsrcAdminService, labelRsrcService, flowObjectiveService, appId, pceStore);
+        srTeHandler.initialize(labelRsrcAdminService, labelRsrcService, flowObjectiveService, appId, pceStore,
+                               deviceService);
 
         tunnelService.addListener(listener);
+        deviceService.addListener(deviceListener);
+        linkService.addListener(linkListener);
+        netCfgService.addListener(cfgListener);
 
         tunnelConsumerIdGen = coreService.getIdGenerator(TUNNEL_CONSUMER_ID_GEN_TOPIC);
         localLspIdIdGen = coreService.getIdGenerator(LOCAL_LSP_ID_GEN_TOPIC);
@@ -237,15 +265,24 @@ public class PceManager implements PceService {
         executor = Executors.newSingleThreadScheduledExecutor();
         //Start a timer when the component is up, with initial delay of 30min and periodic delays at 30min
         executor.scheduleAtFixedRate(new GlobalOptimizationTimer(), INITIAL_DELAY, PERIODIC_DELAY, TimeUnit.MINUTES);
+
+        // Reserve global node pool
+        if (!srTeHandler.reserveGlobalPool(GLOBAL_LABEL_SPACE_MIN, GLOBAL_LABEL_SPACE_MAX)) {
+            log.debug("Global node pool was already reserved.");
+        }
+
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         tunnelService.removeListener(listener);
+        deviceService.removeListener(deviceListener);
+        linkService.removeListener(linkListener);
+        netCfgService.removeListener(cfgListener);
         packetService.removeProcessor(processor);
         topologyService.removeListener(topologyListener);
-        //Shutdown the thread when component is deactivated
+        // Shutdown the thread when component is deactivated
         executor.shutdown();
         log.info("Stopped");
     }
@@ -819,6 +856,234 @@ public class PceManager implements PceService {
             resource = Resources.continuous(link.src().deviceId(), link.src().port(), Bandwidth.class)
                     .resource(bandwidth);
             resourceService.allocate(consumer, resource); // Reusing new tunnel's TunnelConsumerId intentionally.
+
+        }
+    }
+
+    /**
+     * Allocates node label to specific device.
+     *
+     * @param specificDevice device to which node label needs to be allocated
+     */
+    public void allocateNodeLabel(Device specificDevice) {
+        checkNotNull(specificDevice, DEVICE_NULL);
+
+        DeviceId deviceId = specificDevice.id();
+
+        // Retrieve lsrId of a specific device
+        if (specificDevice.annotations() == null) {
+            log.debug("Device {} does not have annotations.", specificDevice.toString());
+            return;
+        }
+
+        String lsrId = specificDevice.annotations().value(LSRID);
+        if (lsrId == null) {
+            log.debug("Unable to retrieve lsr-id of a device {}.", specificDevice.toString());
+            return;
+        }
+
+        // Get capability config from netconfig
+        DeviceCapability cfg = netCfgService.getConfig(DeviceId.deviceId(lsrId), DeviceCapability.class);
+        if (cfg == null) {
+            log.error("Unable to find corresponding capability for a lsrd {} from NetConfig.", lsrId);
+            // Save info. When PCEP session is comes up then allocate node-label
+            lsrIdDeviceIdMap.put(lsrId, specificDevice.id());
+            return;
+        }
+
+        // Check whether device has SR-TE Capability
+        if (cfg.labelStackCap()) {
+            if (!srTeHandler.allocateNodeLabel(deviceId, lsrId)) {
+                log.error("Node label allocation for a device id {} has failed.", deviceId.toString());
+            }
+        }
+    }
+
+    /**
+     * Releases node label of a specific device.
+     *
+     * @param specificDevice this device label and lsr-id information will be
+     *            released in other existing devices
+     */
+    public void releaseNodeLabel(Device specificDevice) {
+        checkNotNull(specificDevice, DEVICE_NULL);
+
+        DeviceId deviceId = specificDevice.id();
+
+        // Retrieve lsrId of a specific device
+        if (specificDevice.annotations() == null) {
+            log.debug("Device {} does not have annotations.", specificDevice.toString());
+            return;
+        }
+
+        String lsrId = specificDevice.annotations().value(LSRID);
+        if (lsrId == null) {
+            log.debug("Unable to retrieve lsr-id of a device {}.", specificDevice.toString());
+            return;
+        }
+
+        // Get capability config from netconfig
+        DeviceCapability cfg = netCfgService.getConfig(DeviceId.deviceId(lsrId), DeviceCapability.class);
+        if (cfg == null) {
+            log.error("Unable to find corresponding capabilty for a lsrd {} from NetConfig.", lsrId);
+            return;
+        }
+
+        // Check whether device has SR-TE Capability
+        if (cfg.labelStackCap()) {
+            if (!srTeHandler.releaseNodeLabel(deviceId, lsrId)) {
+                log.error("Unable to release node label for a device id {}.", deviceId.toString());
+            }
+        }
+    }
+
+    /**
+     * Allocates adjacency label for a link.
+     *
+     * @param link link
+     */
+    public void allocateAdjacencyLabel(Link link) {
+        checkNotNull(link, LINK_NULL);
+
+        Device specificDevice = deviceService.getDevice(link.src().deviceId());
+        DeviceId deviceId = specificDevice.id();
+
+        // Retrieve lsrId of a specific device
+        if (specificDevice.annotations() == null) {
+            log.debug("Device {} does not have annotations.", specificDevice.toString());
+            return;
+        }
+
+        String lsrId = specificDevice.annotations().value(LSRID);
+        if (lsrId == null) {
+            log.debug("Unable to retrieve lsr-id of a device {}.", specificDevice.toString());
+            return;
+        }
+
+        // Get capability config from netconfig
+        DeviceCapability cfg = netCfgService.getConfig(DeviceId.deviceId(lsrId), DeviceCapability.class);
+        if (cfg == null) {
+            log.error("Unable to find corresponding capabilty for a lsrd {} from NetConfig.", lsrId);
+            // Save info. When PCEP session comes up then allocate adjacency
+            // label
+            if (lsrIdDeviceIdMap.get(lsrId) != null) {
+                lsrIdDeviceIdMap.put(lsrId, specificDevice.id());
+            }
+            return;
+        }
+
+        // Check whether device has SR-TE Capability
+        if (cfg.labelStackCap()) {
+            if (!srTeHandler.allocateAdjacencyLabel(link)) {
+                log.error("Unable to allocate adjacency label for a link {}.", link.toString());
+                return;
+            }
+        }
+
+        return;
+    }
+
+    /**
+     * Releases allocated adjacency label of a link.
+     *
+     * @param link link
+     */
+    public void releaseAdjacencyLabel(Link link) {
+        checkNotNull(link, LINK_NULL);
+
+        Device specificDevice = deviceService.getDevice(link.src().deviceId());
+        DeviceId deviceId = specificDevice.id();
+
+        // Retrieve lsrId of a specific device
+        if (specificDevice.annotations() == null) {
+            log.debug("Device {} does not have annotations.", specificDevice.toString());
+            return;
+        }
+
+        String lsrId = specificDevice.annotations().value(LSRID);
+        if (lsrId == null) {
+            log.debug("Unable to retrieve lsr-id of a device {}.", specificDevice.toString());
+            return;
+        }
+
+        // Get capability config from netconfig
+        DeviceCapability cfg = netCfgService.getConfig(DeviceId.deviceId(lsrId), DeviceCapability.class);
+        if (cfg == null) {
+            log.error("Unable to find corresponding capabilty for a lsrd {} from NetConfig.", lsrId);
+            return;
+        }
+
+        // Check whether device has SR-TE Capability
+        if (cfg.labelStackCap()) {
+            if (!srTeHandler.releaseAdjacencyLabel(link)) {
+                log.error("Unable to release adjacency labels for a link {}.", link.toString());
+                return;
+            }
+        }
+
+        return;
+    }
+
+    /*
+     * Handle device events.
+     */
+    private class InternalDeviceListener implements DeviceListener {
+        @Override
+        public void event(DeviceEvent event) {
+            Device specificDevice = (Device) event.subject();
+            if (specificDevice == null) {
+                log.error("Unable to find device from device event.");
+                return;
+            }
+
+            switch (event.type()) {
+
+            case DEVICE_ADDED:
+                // Node-label allocation is being done during Label DB Sync.
+                // So, when device is detected, no need to do node-label
+                // allocation.
+                break;
+
+            case DEVICE_REMOVED:
+                // Release node-label
+                if (mastershipService.getLocalRole(specificDevice.id()) == MastershipRole.MASTER) {
+                    releaseNodeLabel(specificDevice);
+                }
+                break;
+
+            default:
+                break;
+            }
+        }
+    }
+
+    /*
+     * Handle link events.
+     */
+    private class InternalLinkListener implements LinkListener {
+        @Override
+        public void event(LinkEvent event) {
+            Link link = (Link) event.subject();
+
+            switch (event.type()) {
+
+            case LINK_ADDED:
+                // Allocate adjacency label
+                if (mastershipService.getLocalRole(link.src().deviceId()) == MastershipRole.MASTER) {
+                    allocateAdjacencyLabel(link);
+                }
+                break;
+
+            case LINK_REMOVED:
+                // Release adjacency label
+                if (mastershipService.getLocalRole(link.src().deviceId()) == MastershipRole.MASTER) {
+                    releaseAdjacencyLabel(link);
+                }
+                break;
+
+            default:
+                break;
+            }
         }
     }
 
@@ -851,8 +1116,11 @@ public class PceManager implements PceService {
 
             case TUNNEL_UPDATED:
                 // Allocate/send labels for basic PCECC tunnels.
-                if ((tunnel.state() == ESTABLISHED) && (lspType == WITHOUT_SIGNALLING_AND_WITHOUT_SR)) {
-                    crHandler.allocateLabel(tunnel);
+                if ((tunnel.state() == ESTABLISHED) && (lspType == WITHOUT_SIGNALLING_AND_WITHOUT_SR)
+                        && (mastershipService.getLocalRole(tunnel.path().src().deviceId()) == MastershipRole.MASTER)) {
+                    if (!crHandler.allocateLabel(tunnel)) {
+                        log.error("Unable to allocate labels for a tunnel {}.", tunnel.toString());
+                    }
                 }
 
                 if (tunnel.state() == UNSTABLE) {
@@ -899,7 +1167,9 @@ public class PceManager implements PceService {
                         // Delete stored tunnel consumer id from PCE store (while still retaining label list.)
                         PceccTunnelInfo pceccTunnelInfo = pceStore.getTunnelInfo(tunnel.tunnelId());
                         pceccTunnelInfo.tunnelConsumerId(null);
-                        crHandler.releaseLabel(tunnel);
+                        if (mastershipService.getLocalRole(tunnel.path().src().deviceId()) == MastershipRole.MASTER) {
+                            crHandler.releaseLabel(tunnel);
+                        }
                     } else {
                         pceStore.removeTunnelInfo(tunnel.tunnelId());
                     }
@@ -914,8 +1184,62 @@ public class PceManager implements PceService {
         }
     }
 
+    private class InternalConfigListener implements NetworkConfigListener {
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+
+            if ((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED)
+                    && event.configClass().equals(DeviceCapability.class)) {
+
+                DeviceId deviceIdLsrId = (DeviceId) event.subject();
+                String lsrId = deviceIdLsrId.toString();
+                DeviceId deviceId = lsrIdDeviceIdMap.get(lsrId);
+                if (deviceId == null) {
+                    log.debug("Unable to find device id for a lsr-id {} from lsr-id and device-id map.", lsrId);
+                    return;
+                }
+
+                DeviceCapability cfg = netCfgService.getConfig(DeviceId.deviceId(lsrId), DeviceCapability.class);
+                if (cfg == null) {
+                    log.error("Unable to find corresponding capabilty for a lsrd {}.", lsrId);
+                    return;
+                }
+
+                if (cfg.labelStackCap()) {
+                    if (mastershipService.getLocalRole(deviceId) == MastershipRole.MASTER) {
+                        // Allocate node-label
+                        if (!srTeHandler.allocateNodeLabel(deviceId, lsrId)) {
+                            log.error("Node label allocation for a device id {} has failed.", deviceId.toString());
+                        }
+
+                        // Allocate adjacency label to links which are
+                        // originated from this specific device id
+                        Set<Link> links = linkService.getDeviceEgressLinks(deviceId);
+                        for (Link link : links) {
+                            if (!srTeHandler.allocateAdjacencyLabel(link)) {
+                                log.debug("Unable to allocate adjacency labels for a link {}.", link.toString());
+                                return;
+                            }
+                        }
+                    }
+                }
+
+                // Remove lsrId info from map
+                lsrIdDeviceIdMap.remove(lsrId);
+            }
+        }
+    }
+
     private boolean syncLabelDb(DeviceId deviceId) {
         checkNotNull(deviceId);
+
+        Device specificDevice = deviceService.getDevice(deviceId);
+        if (specificDevice == null) {
+            log.error("Unable to find device for specific device id {}.", deviceId.toString());
+            return false;
+        }
+
         Map<DeviceId, LabelResourceId> globalNodeLabelMap = pceStore.getGlobalNodeLabels();
 
         for (Entry<DeviceId, LabelResourceId> entry : globalNodeLabelMap.entrySet()) {
@@ -957,6 +1281,18 @@ public class PceManager implements PceService {
                                            LabelResourceId.labelResourceId(0),
                                            IpPrefix.valueOf(END_OF_SYNC_IP_PREFIX),
                                            Objective.Operation.ADD, true);
+        if (mastershipService.getLocalRole(specificDevice.id()) == MastershipRole.MASTER) {
+            // Allocate node-label to this specific device.
+            allocateNodeLabel(specificDevice);
+
+            // Allocate adjacency label
+            Set<Link> links = linkService.getDeviceEgressLinks(specificDevice.id());
+            if (links != null) {
+                for (Link link : links) {
+                    allocateAdjacencyLabel(link);
+                }
+            }
+        }
 
         return true;
     }

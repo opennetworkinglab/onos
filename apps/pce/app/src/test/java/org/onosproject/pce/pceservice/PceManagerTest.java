@@ -1,12 +1,15 @@
 package org.onosproject.pce.pceservice;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
+import static org.onosproject.incubator.net.tunnel.Tunnel.State.ESTABLISHED;
+import static org.onosproject.incubator.net.tunnel.Tunnel.State.UNSTABLE;
 import static org.onosproject.net.Link.State.ACTIVE;
 import static org.onosproject.net.Link.Type.DIRECT;
-import static org.onosproject.pce.pceservice.constraint.CostConstraint.Type.COST;
-import static org.onosproject.pce.pceservice.constraint.CostConstraint.Type.TE_COST;
+import static org.onosproject.net.MastershipRole.MASTER;
 import static org.onosproject.net.resource.Resources.continuous;
 import static org.onosproject.pce.pceservice.LspType.SR_WITHOUT_SIGNALLING;
 import static org.onosproject.pce.pceservice.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
@@ -19,11 +22,11 @@ import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE1;
 import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE2;
 import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE3;
 import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE4;
+import static org.onosproject.pce.pceservice.PceManager.PCEP_PORT;
 import static org.onosproject.pce.pceservice.PcepAnnotationKeys.LOCAL_LSP_ID;
 import static org.onosproject.pce.pceservice.PcepAnnotationKeys.PLSP_ID;
-import static org.onosproject.incubator.net.tunnel.Tunnel.State.UNSTABLE;
-import static org.onosproject.incubator.net.tunnel.Tunnel.State.ESTABLISHED;
-import static org.onosproject.net.MastershipRole.MASTER;
+import static org.onosproject.pce.pceservice.constraint.CostConstraint.Type.COST;
+import static org.onosproject.pce.pceservice.constraint.CostConstraint.Type.TE_COST;
 
 import java.net.URISyntaxException;
 import java.util.Collection;
@@ -51,6 +54,7 @@ import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.event.Event;
+import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
 import org.onosproject.incubator.net.resource.label.LabelResourceService;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
@@ -65,23 +69,25 @@ import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultAnnotations.Builder;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.Device;
-import org.onosproject.net.DefaultAnnotations.Builder;
-import org.onosproject.net.MastershipRole;
-import org.onosproject.net.device.DeviceServiceAdapter;
-import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Link;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.packet.DefaultInboundPacket;
 import org.onosproject.net.packet.DefaultPacketContext;
 import org.onosproject.net.packet.InboundPacket;
@@ -106,15 +112,16 @@ import org.onosproject.pce.pceservice.PathComputationTest.MockNetConfigRegistryA
 import org.onosproject.pce.pceservice.PathComputationTest.MockPathResourceService;
 import org.onosproject.pce.pceservice.constraint.CostConstraint;
 import org.onosproject.pce.pcestore.api.PceStore;
+import org.onosproject.pce.util.FlowObjServiceAdapter;
 import org.onosproject.pce.util.LabelResourceAdapter;
+import org.onosproject.pce.util.MockDeviceService;
+import org.onosproject.pce.util.MockLinkService;
 import org.onosproject.pce.util.PceStoreAdapter;
 import org.onosproject.pce.util.TunnelServiceAdapter;
 import org.onosproject.pcep.api.DeviceCapability;
-import org.onosproject.pce.util.FlowObjServiceAdapter;
 import org.onosproject.store.service.TestStorageService;
 
 import com.google.common.collect.ImmutableSet;
-import static org.onosproject.pce.pceservice.PceManager.PCEP_PORT;
 
 /**
  * Tests the functions of PceManager.
@@ -133,16 +140,22 @@ public class PceManagerTest {
     private PacketService packetService = new MockPacketService();
     private MockDeviceService deviceService = new MockDeviceService();
     private MockNetConfigRegistryAdapter netConfigRegistry = new PathComputationTest.MockNetConfigRegistryAdapter();
+    private MockLinkService linkService = new MockLinkService();
     private MockFlowObjService flowObjectiveService = new MockFlowObjService();
     private PceStore pceStore = new PceStoreAdapter();
     private LabelResourceService labelResourceService = new LabelResourceAdapter();
+    private LabelResourceAdminService labelRsrcAdminService = new LabelResourceAdapter();
 
     public static ProviderId providerId = new ProviderId("pce", "foo");
     private static final String L3 = "L3";
     private static final String LSRID = "lsrId";
+    private static final String PCECC_CAPABILITY = "pceccCapability";
+    private static final String SR_CAPABILITY = "srCapability";
+    private static final String LABEL_STACK_CAPABILITY = "labelStackCapability";
 
     private TopologyGraph graph = null;
     private Device deviceD1, deviceD2, deviceD3, deviceD4;
+    private Device pcepDeviceD1, pcepDeviceD2, pcepDeviceD3, pcepDeviceD4;
     private Link link1, link2, link3, link4;
     protected static int flowsDownloaded;
     private TunnelListener tunnelListener;
@@ -162,7 +175,9 @@ public class PceManagerTest {
         pceManager.storageService = storageService;
         pceManager.packetService = packetService;
         pceManager.deviceService = deviceService;
+        pceManager.linkService = linkService;
         pceManager.netCfgService = netConfigRegistry;
+        pceManager.labelRsrcAdminService = labelRsrcAdminService;
         pceManager.labelRsrcService = labelResourceService;
         pceManager.flowObjectiveService = flowObjectiveService;
         pceManager.pceStore = pceStore;
@@ -219,6 +234,7 @@ public class PceManagerTest {
         DefaultAnnotations.Builder builderDev3 = DefaultAnnotations.builder();
         DefaultAnnotations.Builder builderDev4 = DefaultAnnotations.builder();
 
+        // Making L3 devices
         builderDev1.set(AnnotationKeys.TYPE, L3);
         builderDev1.set(LSRID, "1.1.1.1");
 
@@ -1254,6 +1270,86 @@ public class PceManagerTest {
         assertThat(pathService.paths().iterator().next().cost(), is((double) 180));
     }
 
+    /*
+     * Tests node label allocation/removal in SR-TE case based on device event.
+     */
+    @Test
+    public void deviceEventTest() {
+        // Make four router topology with SR-TE capabilities.
+        build4RouterTopo(true, false, true, true, 0);
+
+        // Add new L3 device
+        DefaultAnnotations.Builder builderDev5 = DefaultAnnotations.builder();
+        builderDev5.set(AnnotationKeys.TYPE, L3);
+        builderDev5.set(LSRID, "5.5.5.5");
+
+        Device dev5 = new MockDevice(DeviceId.deviceId("P005"), builderDev5.build());
+        deviceService.addDevice(dev5);
+
+        // Add capability
+        DeviceCapability device5Cap = netConfigRegistry.addConfig(DeviceId.deviceId("5.5.5.5"), DeviceCapability.class);
+        device5Cap.setLabelStackCap(true)
+                .setLocalLabelCap(false)
+                .setSrCap(true)
+                .apply();
+
+        // Get listener
+        DeviceListener listener = deviceService.getListener();
+
+        // Generate Remove events
+        deviceService.removeDevice(dev5);
+        DeviceEvent event = new DeviceEvent(DeviceEvent.Type.DEVICE_REMOVED, dev5);
+        listener.event(event);
+
+        assertThat(pceStore.getGlobalNodeLabel(dev5.id()), is(nullValue()));
+    }
+
+    /**
+     * Tests adjacency label allocation/removal in SR-TE case based on link event.
+     */
+    @Test
+    public void linkEventTest() {
+        // Make four router topology with SR-TE capabilities.
+        build4RouterTopo(true, false, true, true, 0);
+
+        // Get listener
+        LinkListener listener = linkService.getListener();
+
+        // Adding link3
+        linkService.addLink(link3);
+
+        // Generate events
+        LinkEvent event = new LinkEvent(LinkEvent.Type.LINK_ADDED, link3);
+        listener.event(event);
+
+        assertThat(pceStore.getAdjLabel(link3), is(notNullValue()));
+
+        // Adding link4
+        linkService.addLink(link4);
+
+        event = new LinkEvent(LinkEvent.Type.LINK_ADDED, link4);
+        listener.event(event);
+
+        assertThat(pceStore.getAdjLabel(link4), is(notNullValue()));
+
+        // Remove link3
+        linkService.removeLink(link3);
+
+        // Generate events
+        event = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link3);
+        listener.event(event);
+
+        assertThat(pceStore.getAdjLabel(link3), is(nullValue()));
+
+        // Remove link4
+        linkService.removeLink(link4);
+
+        event = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link4);
+        listener.event(event);
+
+        assertThat(pceStore.getAdjLabel(link4), is(nullValue()));
+    }
+
     @After
     public void tearDown() {
         pceManager.deactivate();
@@ -1264,6 +1360,9 @@ public class PceManagerTest {
         pceManager.storageService = null;
         pceManager.packetService = null;
         pceManager.deviceService = null;
+        pceManager.linkService = null;
+        pceManager.netCfgService = null;
+        pceManager.labelRsrcAdminService = null;
         pceManager.labelRsrcService = null;
         pceManager.flowObjectiveService = null;
         pceManager.pceStore = null;
@@ -1441,6 +1540,7 @@ public class PceManagerTest {
 
             return result.size() == 0 ? Collections.emptySet() : ImmutableSet.copyOf(result);
         }
+
         @Override
         public Iterable<Tunnel> getTunnels(DeviceId deviceId) {
             List<Tunnel> tunnelList = new LinkedList<>();
@@ -1480,29 +1580,6 @@ public class PceManagerTest {
     private class MockDevice extends DefaultDevice {
         MockDevice(DeviceId id, Annotations annotations) {
             super(null, id, null, null, null, null, null, null, annotations);
-        }
-    }
-
-    private class MockDeviceService extends DeviceServiceAdapter {
-        List<Device> devices = new LinkedList<>();
-
-        private void addDevice(Device dev) {
-            devices.add(dev);
-        }
-
-        @Override
-        public Device getDevice(DeviceId deviceId) {
-            for (Device dev : devices) {
-                if (dev.id().equals(deviceId)) {
-                    return dev;
-                }
-            }
-            return null;
-        }
-
-        @Override
-        public Iterable<Device> getAvailableDevices() {
-            return devices;
         }
     }
 

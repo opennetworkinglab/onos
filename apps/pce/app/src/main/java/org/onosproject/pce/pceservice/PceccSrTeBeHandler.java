@@ -37,6 +37,8 @@ import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
 import org.onosproject.incubator.net.resource.label.LabelResourceService;
 import org.onosproject.incubator.net.tunnel.DefaultLabelStack;
 import org.onosproject.incubator.net.tunnel.LabelStack;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.pce.pcestore.api.PceStore;
 import org.onosproject.net.Link;
@@ -69,10 +71,8 @@ public final class PceccSrTeBeHandler {
     private static final String LABEL_RESOURCE_ADMIN_SERVICE_NULL = "Label Resource Admin Service cannot be null";
     private static final String LABEL_RESOURCE_SERVICE_NULL = "Label Resource Service cannot be null";
     private static final String PCE_STORE_NULL = "PCE Store cannot be null";
-    private static final String DEVICE_SERVICE_NULL = "Device Service cannot be null";
     private static final String DEVICE_ID_NULL = "Device-Id cannot be null";
     private static final String LSR_ID_NULL = "LSR-Id cannot be null";
-    private static final String DEVICE_ID_LSR_ID_MAP_NULL = "Device-Id and LSR-Id map cannot be null";
     private static final String LINK_NULL = "Link cannot be null";
     private static final String PATH_NULL = "Path cannot be null";
     private static final String LSR_ID = "lsrId";
@@ -81,6 +81,7 @@ public final class PceccSrTeBeHandler {
     private LabelResourceAdminService labelRsrcAdminService;
     private LabelResourceService labelRsrcService;
     private FlowObjectiveService flowObjectiveService;
+    private DeviceService deviceService;
     private PceStore pceStore;
     private ApplicationId appId;
 
@@ -110,16 +111,17 @@ public final class PceccSrTeBeHandler {
      * @param flowObjectiveService flow objective service to push device label information
      * @param appId application id
      * @param pceStore PCE label store
+     * @param deviceService device service
      */
-    public void initialize(LabelResourceAdminService labelRsrcAdminService,
-                           LabelResourceService labelRsrcService,
-                           FlowObjectiveService flowObjectiveService,
-                           ApplicationId appId, PceStore pceStore) {
+    public void initialize(LabelResourceAdminService labelRsrcAdminService, LabelResourceService labelRsrcService,
+                           FlowObjectiveService flowObjectiveService, ApplicationId appId, PceStore pceStore,
+                           DeviceService deviceService) {
         this.labelRsrcAdminService = labelRsrcAdminService;
         this.labelRsrcService = labelRsrcService;
         this.flowObjectiveService = flowObjectiveService;
         this.pceStore = pceStore;
         this.appId = appId;
+        this.deviceService = deviceService;
     }
 
     /**
@@ -136,72 +138,102 @@ public final class PceccSrTeBeHandler {
     }
 
     /**
+     * Retrieve lsr-id from device annotation.
+     *
+     * @param deviceId specific device id from which lsr-id needs to be retrieved
+     * @return lsr-id of a device
+     */
+    public String getLsrId(DeviceId deviceId) {
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        Device device = deviceService.getDevice(deviceId);
+        if (device == null) {
+            log.debug("Device is not available for device id {} in device service.", deviceId.toString());
+            return null;
+        }
+
+        // Retrieve lsr-id from device
+        if (device.annotations() == null) {
+            log.debug("Device {} does not have annotation.", device.toString());
+            return null;
+        }
+
+        String lsrId = device.annotations().value(LSR_ID);
+        if (lsrId == null) {
+            log.debug("The lsr-id of device {} is null.", device.toString());
+            return null;
+        }
+        return lsrId;
+    }
+
+    /**
      * Allocates node label from global node label pool to specific device.
      * Configure this device with labels and lsrid mapping of all other devices and vice versa.
      *
      * @param specificDeviceId node label needs to be allocated to specific device
      * @param specificLsrId lsrid of specific device
-     * @param deviceIdLsrIdMap deviceid and lsrid mapping
      * @return success or failure
      */
-    public boolean allocateNodeLabel(DeviceId specificDeviceId, String specificLsrId,
-                                     Map<DeviceId, String> deviceIdLsrIdMap) {
+    public boolean allocateNodeLabel(DeviceId specificDeviceId, String specificLsrId) {
         long applyNum = 1; // For each node only one node label
         LabelResourceId specificLabelId = null;
 
         checkNotNull(specificDeviceId, DEVICE_ID_NULL);
         checkNotNull(specificLsrId, LSR_ID_NULL);
-        checkNotNull(deviceIdLsrIdMap, DEVICE_ID_LSR_ID_MAP_NULL);
         checkNotNull(labelRsrcService, LABEL_RESOURCE_SERVICE_NULL);
         checkNotNull(pceStore, PCE_STORE_NULL);
 
-        // The specificDeviceId is the new device and is not there in the deviceIdLsrIdMap.
+        // Check whether node-label was already configured for this specific device.
+        if (pceStore.getGlobalNodeLabel(specificDeviceId) != null) {
+            log.error("Node label was already configured for device {}.", specificDeviceId.toString());
+            return false;
+        }
+
+        // The specificDeviceId is the new device and is not there in the pce store.
         // So, first generate its label and configure label and its lsr-id to it.
         Collection<LabelResource> result = labelRsrcService.applyFromGlobalPool(applyNum);
         if (result.size() > 0) {
-           // Only one element (label-id) to retrieve
-           Iterator<LabelResource> iterator = result.iterator();
-           DefaultLabelResource defaultLabelResource = (DefaultLabelResource) iterator.next();
-           specificLabelId = defaultLabelResource.labelResourceId();
-           if (specificLabelId == null) {
-              log.error("Unable to retrieve global node label for a device id {}.", specificDeviceId.toString());
-              return false;
-           }
+            // Only one element (label-id) to retrieve
+            Iterator<LabelResource> iterator = result.iterator();
+            DefaultLabelResource defaultLabelResource = (DefaultLabelResource) iterator.next();
+            specificLabelId = defaultLabelResource.labelResourceId();
+            if (specificLabelId == null) {
+                log.error("Unable to retrieve global node label for a device id {}.", specificDeviceId.toString());
+                return false;
+            }
         } else {
-           log.error("Unable to allocate global node label for a device id {}.", specificDeviceId.toString());
-           return false;
+            log.error("Unable to allocate global node label for a device id {}.", specificDeviceId.toString());
+            return false;
         }
 
+        // store it
         pceStore.addGlobalNodeLabel(specificDeviceId, specificLabelId);
+
         // Push its label information into specificDeviceId
         advertiseNodeLabelRule(specificDeviceId, specificLabelId,
                                IpPrefix.valueOf(IpAddress.valueOf(specificLsrId), PREFIX_LENGTH),
                                Objective.Operation.ADD, false);
 
-        // Configure (node-label, lsr-id) mapping of each devices in list to specific device and vice versa.
-        for (Map.Entry<DeviceId, String> element:deviceIdLsrIdMap.entrySet()) {
-           DeviceId otherDevId = element.getKey();
-           String otherLsrId = element.getValue();
-           if (otherLsrId == null) {
-               log.error("The lsr-id of device id {} is null.", otherDevId.toString());
-               releaseNodeLabel(specificDeviceId, specificLsrId, deviceIdLsrIdMap);
-               return false;
-           }
+        // Configure (node-label, lsr-id) mapping of each devices into specific device and vice versa.
+        for (Map.Entry<DeviceId, LabelResourceId> element : pceStore.getGlobalNodeLabels().entrySet()) {
+            DeviceId otherDevId = element.getKey();
+            LabelResourceId otherLabelId = element.getValue();
 
-           // Label for other device in list should be already allocated.
-           LabelResourceId otherLabelId = pceStore.getGlobalNodeLabel(otherDevId);
-           if (otherLabelId == null) {
-              log.error("Unable to find global node label in store for a device id {}.", otherDevId.toString());
-              releaseNodeLabel(specificDeviceId, specificLsrId, deviceIdLsrIdMap);
-              return false;
-           }
+            // Get lsr-id of a device
+            String otherLsrId = getLsrId(otherDevId);
+            if (otherLsrId == null) {
+                log.error("The lsr-id of device id {} is null.", otherDevId.toString());
+                releaseNodeLabel(specificDeviceId, specificLsrId);
+                return false;
+            }
 
-           // Push to device
-           // Push label information of specificDeviceId to otherDevId in list and vice versa.
-           advertiseNodeLabelRule(otherDevId, specificLabelId, IpPrefix.valueOf(IpAddress.valueOf(specificLsrId),
-                                  PREFIX_LENGTH), Objective.Operation.ADD, false);
-           advertiseNodeLabelRule(specificDeviceId, otherLabelId, IpPrefix.valueOf(IpAddress.valueOf(otherLsrId),
-                                  PREFIX_LENGTH), Objective.Operation.ADD, false);
+            // Push to device
+            // Push label information of specificDeviceId to otherDevId in list and vice versa.
+            advertiseNodeLabelRule(otherDevId, specificLabelId,
+                                   IpPrefix.valueOf(IpAddress.valueOf(specificLsrId), PREFIX_LENGTH),
+                                   Objective.Operation.ADD, false);
+            advertiseNodeLabelRule(specificDeviceId, otherLabelId,
+                                   IpPrefix.valueOf(IpAddress.valueOf(otherLsrId), PREFIX_LENGTH),
+                                   Objective.Operation.ADD, false);
         }
 
         return true;
@@ -213,14 +245,11 @@ public final class PceccSrTeBeHandler {
      *
      * @param specificDeviceId node label needs to be released for specific device
      * @param specificLsrId lsrid of specific device
-     * @param deviceIdLsrIdMap deviceid and lsrid mapping
      * @return success or failure
      */
-    public boolean releaseNodeLabel(DeviceId specificDeviceId, String specificLsrId,
-                                    Map<DeviceId, String> deviceIdLsrIdMap) {
+    public boolean releaseNodeLabel(DeviceId specificDeviceId, String specificLsrId) {
         checkNotNull(specificDeviceId, DEVICE_ID_NULL);
         checkNotNull(specificLsrId, LSR_ID_NULL);
-        checkNotNull(deviceIdLsrIdMap, DEVICE_ID_LSR_ID_MAP_NULL);
         checkNotNull(labelRsrcService, LABEL_RESOURCE_SERVICE_NULL);
         checkNotNull(pceStore, PCE_STORE_NULL);
         boolean retValue = true;
@@ -229,20 +258,21 @@ public final class PceccSrTeBeHandler {
         // Retrieve node label of this specific device from store
         LabelResourceId labelId = pceStore.getGlobalNodeLabel(specificDeviceId);
         if (labelId == null) {
-           log.error("Unable to retrieve label of a device id {} from store.", specificDeviceId.toString());
-           return false;
+            log.error("Unable to retrieve label of a device id {} from store.", specificDeviceId.toString());
+            return false;
         }
 
-        // Go through all devices in the map and remove label entry
-        for (Map.Entry<DeviceId, String> element:deviceIdLsrIdMap.entrySet()) {
-           DeviceId otherDevId = element.getKey();
+        // Go through all devices in the pce store and remove label entry from device
+        for (Map.Entry<DeviceId, LabelResourceId> element : pceStore.getGlobalNodeLabels().entrySet()) {
+            DeviceId otherDevId = element.getKey();
 
-           // Remove this specific device label information from all other nodes except
-           // this specific node where connection already lost.
-           if (!specificDeviceId.equals(otherDevId)) {
-              advertiseNodeLabelRule(otherDevId, labelId, IpPrefix.valueOf(IpAddress.valueOf(specificLsrId),
-                                     PREFIX_LENGTH), Objective.Operation.REMOVE, false);
-           }
+            // Remove this specific device label information from all other nodes except
+            // this specific node where connection already lost.
+            if (!specificDeviceId.equals(otherDevId)) {
+                advertiseNodeLabelRule(otherDevId, labelId,
+                                       IpPrefix.valueOf(IpAddress.valueOf(specificLsrId), PREFIX_LENGTH),
+                                       Objective.Operation.REMOVE, false);
+            }
         }
 
         // Release from label manager
@@ -277,24 +307,30 @@ public final class PceccSrTeBeHandler {
         checkNotNull(labelRsrcService, LABEL_RESOURCE_SERVICE_NULL);
         checkNotNull(pceStore, PCE_STORE_NULL);
 
+        // Checks whether adjacency label was already allocated
+        LabelResourceId labelId = pceStore.getAdjLabel(link);
+        if (labelId != null) {
+            log.debug("Adjacency label {} was already allocated for a link {}.", labelId.toString(), link.toString());
+            return false;
+        }
+
         // Allocate adjacency label to a link from label manager.
         // Take label from source device pool to allocate.
         labelList = labelRsrcService.applyFromDevicePool(srcDeviceId, applyNum);
         if (labelList.size() <= 0) {
-           log.error("Unable to allocate label to a device id {}.", srcDeviceId.toString());
-           return false;
+            log.error("Unable to allocate label to a device id {}.", srcDeviceId.toString());
+            return false;
         }
 
         // Currently only one label to a device. So, no need to iterate through list
         Iterator<LabelResource> iterator = labelList.iterator();
         DefaultLabelResource defaultLabelResource = (DefaultLabelResource) iterator.next();
-        LabelResourceId labelId = defaultLabelResource.labelResourceId();
+        labelId = defaultLabelResource.labelResourceId();
         if (labelId == null) {
-           log.error("Unable to allocate label to a device id {}.", srcDeviceId.toString());
-           return false;
+            log.error("Unable to allocate label to a device id {}.", srcDeviceId.toString());
+            return false;
         }
-        log.debug("Allocated adjacency label {} to a link {}.", labelId.toString(),
-                  link.toString());
+        log.debug("Allocated adjacency label {} to a link {}.", labelId.toString(), link.toString());
 
         // Push adjacency label to device
         installAdjLabelRule(srcDeviceId, labelId, link.src().port(), link.dst().port(), Objective.Operation.ADD);
@@ -304,46 +340,46 @@ public final class PceccSrTeBeHandler {
         return true;
     }
 
-   /**
-     * Releases unused adjacency labels from device pools.
-     *
-     * @param link between devices
-     * @return success or failure
-     */
+    /**
+      * Releases unused adjacency labels from device pools.
+      *
+      * @param link between devices
+      * @return success or failure
+      */
     public boolean releaseAdjacencyLabel(Link link) {
-       checkNotNull(link, LINK_NULL);
-       checkNotNull(labelRsrcService, LABEL_RESOURCE_SERVICE_NULL);
-       checkNotNull(pceStore, PCE_STORE_NULL);
-       boolean retValue = true;
+        checkNotNull(link, LINK_NULL);
+        checkNotNull(labelRsrcService, LABEL_RESOURCE_SERVICE_NULL);
+        checkNotNull(pceStore, PCE_STORE_NULL);
+        boolean retValue = true;
 
-       // Retrieve link label from store
-       LabelResourceId labelId = pceStore.getAdjLabel(link);
-       if (labelId == null) {
-          log.error("Unabel to retrieve label for a link {} from store.", link.toString());
-          return false;
-       }
+        // Retrieve link label from store
+        LabelResourceId labelId = pceStore.getAdjLabel(link);
+        if (labelId == null) {
+            log.error("Unabel to retrieve label for a link {} from store.", link.toString());
+            return false;
+        }
 
-       // Device
-       DeviceId srcDeviceId = link.src().deviceId();
+        // Device
+        DeviceId srcDeviceId = link.src().deviceId();
 
-       // Release adjacency label from device
-       installAdjLabelRule(srcDeviceId, labelId, link.src().port(), link.dst().port(), Objective.Operation.REMOVE);
+        // Release adjacency label from device
+        installAdjLabelRule(srcDeviceId, labelId, link.src().port(), link.dst().port(), Objective.Operation.REMOVE);
 
-       // Release link label from label manager
-       Multimap<DeviceId, LabelResource> release = ArrayListMultimap.create();
-       DefaultLabelResource defaultLabelResource = new DefaultLabelResource(srcDeviceId, labelId);
-       release.put(srcDeviceId, defaultLabelResource);
-       if (!labelRsrcService.releaseToDevicePool(release)) {
-          log.error("Unable to release label id {} from label manager.", labelId.toString());
-          retValue = false;
-       }
+        // Release link label from label manager
+        Multimap<DeviceId, LabelResource> release = ArrayListMultimap.create();
+        DefaultLabelResource defaultLabelResource = new DefaultLabelResource(srcDeviceId, labelId);
+        release.put(srcDeviceId, defaultLabelResource);
+        if (!labelRsrcService.releaseToDevicePool(release)) {
+            log.error("Unable to release label id {} from label manager.", labelId.toString());
+            retValue = false;
+        }
 
-       // Remove adjacency label from store
-       if (!pceStore.removeAdjLabel(link)) {
-          log.error("Unable to remove adjacency label id {} from store.", labelId.toString());
-          retValue = false;
-       }
-       return retValue;
+        // Remove adjacency label from store
+        if (!pceStore.removeAdjLabel(link)) {
+            log.error("Unable to remove adjacency label id {} from store.", labelId.toString());
+            retValue = false;
+        }
+        return retValue;
     }
 
     /**
@@ -372,16 +408,16 @@ public final class PceccSrTeBeHandler {
                 deviceId = link.src().deviceId();
                 nodeLabelId = pceStore.getGlobalNodeLabel(deviceId);
                 if (nodeLabelId == null) {
-                   log.error("Unable to find node label for a device id {} in store.", deviceId.toString());
-                   return null;
+                    log.error("Unable to find node label for a device id {} in store.", deviceId.toString());
+                    return null;
                 }
                 labelStack.add(nodeLabelId);
 
                 // Add adjacency label for this link
                 adjLabelId = pceStore.getAdjLabel(link);
                 if (adjLabelId == null) {
-                   log.error("Adjacency label id is null for a link {}.", link.toString());
-                   return null;
+                    log.error("Adjacency label id is null for a link {}.", link.toString());
+                    return null;
                 }
                 labelStack.add(adjLabelId);
             }
@@ -389,13 +425,13 @@ public final class PceccSrTeBeHandler {
             // This is the last link in path
             // Add destination device label now.
             if (link != null) {
-               deviceId = link.dst().deviceId();
-               nodeLabelId = pceStore.getGlobalNodeLabel(deviceId);
-               if (nodeLabelId == null) {
-                  log.error("Unable to find node label for a device id {} in store.", deviceId.toString());
-                  return null;
-               }
-               labelStack.add(nodeLabelId);
+                deviceId = link.dst().deviceId();
+                nodeLabelId = pceStore.getGlobalNodeLabel(deviceId);
+                if (nodeLabelId == null) {
+                    log.error("Unable to find node label for a device id {} in store.", deviceId.toString());
+                    return null;
+                }
+                labelStack.add(nodeLabelId);
             }
         } else {
             log.debug("Empty link in path.");
@@ -418,15 +454,11 @@ public final class PceccSrTeBeHandler {
 
         selectorBuilder.matchMplsLabel(MplsLabel.mplsLabel(labelId.id().intValue()));
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
 
         ForwardingObjective.Builder forwardingObjective = DefaultForwardingObjective.builder()
-                .withSelector(selectorBuilder.build())
-                .withTreatment(treatment)
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .fromApp(appId)
-                .makePermanent();
+                .withSelector(selectorBuilder.build()).withTreatment(treatment)
+                .withFlag(ForwardingObjective.Flag.VERSATILE).fromApp(appId).makePermanent();
 
         if (type.equals(Objective.Operation.ADD)) {
 
@@ -445,8 +477,8 @@ public final class PceccSrTeBeHandler {
      * @param type type of operation
      * @param bBos is this the end of sync push
      */
-    public void advertiseNodeLabelRule(DeviceId deviceId, LabelResourceId labelId,
-                                        IpPrefix ipPrefix, Objective.Operation type, boolean bBos) {
+    public void advertiseNodeLabelRule(DeviceId deviceId, LabelResourceId labelId, IpPrefix ipPrefix,
+                                       Objective.Operation type, boolean bBos) {
         checkNotNull(flowObjectiveService);
         checkNotNull(appId);
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
@@ -458,15 +490,11 @@ public final class PceccSrTeBeHandler {
             selectorBuilder.matchMplsBos(bBos);
         }
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
 
         ForwardingObjective.Builder forwardingObjective = DefaultForwardingObjective.builder()
-                .withSelector(selectorBuilder.build())
-                .withTreatment(treatment)
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .fromApp(appId)
-                .makePermanent();
+                .withSelector(selectorBuilder.build()).withTreatment(treatment)
+                .withFlag(ForwardingObjective.Flag.VERSATILE).fromApp(appId).makePermanent();
 
         if (type.equals(Objective.Operation.ADD)) {
             flowObjectiveService.forward(deviceId, forwardingObjective.add());
@@ -484,9 +512,8 @@ public final class PceccSrTeBeHandler {
      * @param dstPortNum remote port of the adjacency
      * @param type type of operation
      */
-    public void installAdjLabelRule(DeviceId deviceId, LabelResourceId labelId,
-                                     PortNumber srcPortNum, PortNumber dstPortNum,
-                                     Objective.Operation type) {
+    public void installAdjLabelRule(DeviceId deviceId, LabelResourceId labelId, PortNumber srcPortNum,
+                                    PortNumber dstPortNum, Objective.Operation type) {
         checkNotNull(flowObjectiveService);
         checkNotNull(appId);
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
@@ -495,15 +522,11 @@ public final class PceccSrTeBeHandler {
         selectorBuilder.matchTcpSrc(TpPort.tpPort((int) srcPortNum.toLong()));
         selectorBuilder.matchTcpDst(TpPort.tpPort((int) dstPortNum.toLong()));
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
 
         ForwardingObjective.Builder forwardingObjective = DefaultForwardingObjective.builder()
-                .withSelector(selectorBuilder.build())
-                .withTreatment(treatment)
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .fromApp(appId)
-                .makePermanent();
+                .withSelector(selectorBuilder.build()).withTreatment(treatment)
+                .withFlag(ForwardingObjective.Flag.VERSATILE).fromApp(appId).makePermanent();
 
         if (type.equals(Objective.Operation.ADD)) {
             flowObjectiveService.forward(deviceId, forwardingObjective.add());
