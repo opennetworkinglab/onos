@@ -19,12 +19,13 @@
  */
 
 .light .floatpanel {
-    background-color: rgba(255,255,255,0.8);
-    color: black;
-    box-shadow: 0 2px 12px #777;
+    background-color: white;
+    color: #3c3a3a;
+    border: 1px solid #c7c7c0;
 }
 .dark .floatpanel {
-    background-color: rgba(50,50,50,0.8);
-    color: #ccc;
-    box-shadow: 0 2px 12px #000;
+    /* TODO: dark theme */
+    background-color: white;
+    color: #3c3a3a;
+    border: 1px solid #c7c7c0;
 }

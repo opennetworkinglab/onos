@@ -40,11 +40,13 @@
 }
 
 #application-details-panel.floatpanel {
-    -moz-border-radius: 0;
-    border-radius: 0;
     z-index: 0;
+    font-size: 12pt;
 }
 
+#application-details-panel.floatpanel a {
+    font-weight: bold;
+}
 
 #application-details-panel .container {
     padding: 0 10px;
@@ -66,14 +68,16 @@
 #application-details-panel h2 {
     display: inline-block;
     margin: 8px 0;
-    font-size: 12pt;
+    font-size: 15pt;
+    font-variant: small-caps;
+    text-transform: uppercase;
 }
 
 #application-details-panel .top .app-title {
     width: 90%;
-    height: 45px;
-    font-size: 22pt;
-    font-weight: bold;
+    height: 62px;
+    font-size: 30pt;
+    font-weight: lighter;
     overflow: hidden;
     white-space: nowrap;
     padding: 0 12px 0 0;
@@ -81,7 +85,7 @@
 
 #application-details-panel .top div.left {
     float: left;
-    padding: 0 12px 0 0;
+    padding: 12px 12px 0 4px;
 }
 #application-details-panel .top div.right {
     display: inline-block;
@@ -91,8 +95,11 @@
 
 #application-details-panel td.label,
 #application-details-panel .app-url i {
-    font-style: italic;
-    padding-right: 12px;
+    font-weight: bold;
+    text-align: right;
+    font-size: 12pt;
+
+    padding-right: 6px;
 }
 
 #application-details-panel td.value-bold {
@@ -104,8 +111,12 @@
 }
 
 #application-details-panel hr {
-    width: 95%;
-    margin: 10px auto;
+    width: 100%;
+    margin: 6px auto;
+}
+
+#application-details-panel .container {
+    overflow-y: scroll;
 }
 
 #application-details-panel .bottom table {

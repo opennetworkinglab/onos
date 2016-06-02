@@ -38,7 +38,7 @@
     var INSTALLED = 'INSTALLED',
         ACTIVE = 'ACTIVE',
         appMgmtReq = 'appManagementRequest',
-        topPdg = 50,
+        topPdg = 70,
         panelWidth = 500,
         pName = 'application-details-panel',
         detailsReq = 'appDetailsRequest',
@@ -136,19 +136,18 @@
     }
 
     function addProp(tbody, index, value) {
-        var tr = tbody.append('tr'),
-            vcls = index ? 'value' : 'value-bold';
+        var tr = tbody.append('tr');
 
         function addCell(cls, txt) {
             tr.append('td').attr('class', cls).html(txt);
         }
 
         addCell('label', friendlyProps[index] + ':');
-        addCell(vcls, value);
+        addCell('value', value);
     }
 
     function urlize(u) {
-        return '<i>URL:</i> <a href="' + u + '" target="_blank">' + u + '</a>';
+        return 'Url:<br/> <a href="' + u + '" target="_blank">' + u + '</a>';
     }
 
     function addIcon(elem, value) {
