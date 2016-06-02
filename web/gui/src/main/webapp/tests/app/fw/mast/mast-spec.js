@@ -33,7 +33,7 @@ describe('Controller: MastCtrl', function () {
         fs = FnService;
     }));
 
-    it('should declare height to be 36', function () {
-        expect(ms.mastHeight()).toBe(36);
+    it('should declare height to be 48', function () {
+        expect(ms.mastHeight()).toBe(48);
     })
 });
