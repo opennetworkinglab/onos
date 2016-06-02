@@ -78,6 +78,7 @@ APPS = [
   '//apps/test/election:onos-apps-test-election-oar',
   '//apps/test/distributed-primitives:onos-apps-test-distributed-primitives-oar',
   '//apps/test/intent-perf:onos-apps-test-intent-perf-oar',
+  '//apps/test/loadtest:onos-apps-test-loadtest-oar',
   '//apps/test/demo:onos-apps-test-demo-oar',
 ]
 
