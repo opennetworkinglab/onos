@@ -71,6 +71,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -128,6 +129,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String TOPO_START_DONE = "topoStartDone";
 
     // fields
+    private static final String PAYLOAD = "payload";
+    private static final String EXTRA = "extra";
     private static final String ID = "id";
     private static final String KEY = "key";
     private static final String APP_ID = "appId";
@@ -603,7 +606,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         Collections.sort(nodes, NODE_COMPARATOR);
         for (ControllerNode node : nodes) {
             sendMessage(instanceMessage(new ClusterEvent(INSTANCE_ADDED, node),
-                                        messageType));
+                    messageType));
         }
     }
 
@@ -612,13 +615,13 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         // Send optical first, others later for layered rendering
         for (Device device : deviceService.getDevices()) {
             if ((device.type() == Device.Type.ROADM) ||
-                    (device.type() == Device.Type.OTN))  {
+                    (device.type() == Device.Type.OTN)) {
                 sendMessage(deviceMessage(new DeviceEvent(DEVICE_ADDED, device)));
             }
         }
         for (Device device : deviceService.getDevices()) {
             if ((device.type() != Device.Type.ROADM) &&
-                    (device.type() != Device.Type.OTN))  {
+                    (device.type() != Device.Type.OTN)) {
                 sendMessage(deviceMessage(new DeviceEvent(DEVICE_ADDED, device)));
             }
         }
@@ -629,14 +632,38 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         // Send optical first, others later for layered rendering
         for (Link link : linkService.getLinks()) {
             if (link.type() == Link.Type.OPTICAL) {
-                sendMessage(linkMessage(new LinkEvent(LINK_ADDED, link)));
+                sendMessage(composeLinkMessage(new LinkEvent(LINK_ADDED, link)));
             }
         }
         for (Link link : linkService.getLinks()) {
             if (link.type() != Link.Type.OPTICAL) {
-                sendMessage(linkMessage(new LinkEvent(LINK_ADDED, link)));
+                sendMessage(composeLinkMessage(new LinkEvent(LINK_ADDED, link)));
             }
         }
+    }
+
+    // Temporary mechanism to support topology overlays adding their own
+    // properties to the link events.
+    private ObjectNode composeLinkMessage(LinkEvent event) {
+        // start with base message
+        ObjectNode msg = linkMessage(event);
+        Map<String, String> additional =
+                overlayCache.currentOverlay().additionalLinkData(event);
+
+        if (additional != null) {
+            // attach additional key-value pairs as extra data structure
+            ObjectNode payload = (ObjectNode) msg.get(PAYLOAD);
+            payload.set(EXTRA, createExtra(additional));
+        }
+        return msg;
+    }
+
+    private ObjectNode createExtra(Map<String, String> additional) {
+        ObjectNode extra = objectNode();
+        for (Map.Entry<String, String> entry : additional.entrySet()) {
+            extra.put(entry.getKey(), entry.getValue());
+        }
+        return extra;
     }
 
     // Sends all hosts to the client as host-added messages.
@@ -759,7 +786,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private class InternalLinkListener implements LinkListener {
         @Override
         public void event(LinkEvent event) {
-            msgSender.execute(() -> sendMessage(linkMessage(event)));
+            msgSender.execute(() -> sendMessage(composeLinkMessage(event)));
             msgSender.execute(traffic::pokeIntent);
             eventAccummulator.add(event);
         }
@@ -829,7 +856,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
             String me = this.toString();
             String miniMe = me.replaceAll("^.*@", "me@");
             log.debug("Time: {}; this: {}, processing items ({} events)",
-                      now, miniMe, items.size());
+                    now, miniMe, items.size());
             // End-of-Debugging
 
             try {
