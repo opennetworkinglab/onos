@@ -24,6 +24,8 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.FlowRule;
@@ -45,6 +47,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.ImmutableSet.copyOf;
+import static org.onosproject.net.device.DeviceEvent.Type.*;
 import static org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation.*;
 
 /**
@@ -62,6 +65,7 @@ class FlowRuleDriverProvider extends AbstractProvider implements FlowRuleProvide
     private DeviceService deviceService;
     private MastershipService mastershipService;
 
+    private InternalDeviceListener deviceListener = new InternalDeviceListener();
     private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> poller = null;
 
@@ -86,6 +90,8 @@ class FlowRuleDriverProvider extends AbstractProvider implements FlowRuleProvide
         this.providerService = providerService;
         this.deviceService = deviceService;
         this.mastershipService = mastershipService;
+
+        deviceService.addListener(deviceListener);
 
         if (poller != null && !poller.isCancelled()) {
             poller.cancel(false);
@@ -164,14 +170,33 @@ class FlowRuleDriverProvider extends AbstractProvider implements FlowRuleProvide
         }
     }
 
+    private void pollDeviceFlowEntries(Device device) {
+        providerService.pushFlowMetrics(device.id(), device.as(FlowRuleProgrammable.class).getFlowEntries());
+    }
 
     private void pollFlowEntries() {
         deviceService.getAvailableDevices().forEach(device -> {
             if (mastershipService.isLocalMaster(device.id()) && device.is(FlowRuleProgrammable.class)) {
-                providerService.pushFlowMetrics(device.id(),
-                                                device.as(FlowRuleProgrammable.class).getFlowEntries());
+                pollDeviceFlowEntries(device);
             }
         });
+    }
+
+    private class InternalDeviceListener implements DeviceListener {
+
+        @Override
+        public void event(DeviceEvent event) {
+            executor.schedule(() -> pollDeviceFlowEntries(event.subject()), 0, TimeUnit.SECONDS);
+        }
+
+        @Override
+        public boolean isRelevant(DeviceEvent event) {
+            Device device = event.subject();
+            return mastershipService.isLocalMaster(device.id()) && device.is(FlowRuleProgrammable.class) &&
+                    (event.type() == DEVICE_ADDED ||
+                            event.type() == DEVICE_UPDATED ||
+                            (event.type() == DEVICE_AVAILABILITY_CHANGED && deviceService.isAvailable(device.id())));
+        }
     }
 
 }
