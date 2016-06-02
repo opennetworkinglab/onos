@@ -61,7 +61,10 @@ import static org.easymock.EasyMock.replay;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.NetTestTools.APP_ID;
@@ -257,7 +260,7 @@ public class PathIntentCompilerTest {
                 .get();
         verifyIdAndPriority(rule2, d2p0.deviceId());
         verifyVlanEncapSelector(rule2.selector(), d2p0, vlanToEncap);
-        verifyVlanEncapTreatment(rule2.treatment(), d2p1, false, false);
+        vlanToEncap = verifyVlanEncapTreatment(rule2.treatment(), d2p1, false, false);
 
         FlowRule rule3 = rules.stream()
                 .filter(x -> x.deviceId().equals(d3p0.deviceId()))
@@ -300,7 +303,7 @@ public class PathIntentCompilerTest {
                 .get();
         verifyIdAndPriority(rule2, d2p0.deviceId());
         verifyVlanEncapSelector(rule2.selector(), d2p0, vlanToEncap);
-        verifyVlanEncapTreatment(rule2.treatment(), d2p1, false, false);
+        vlanToEncap = verifyVlanEncapTreatment(rule2.treatment(), d2p1, false, false);
 
         FlowRule rule3 = rules.stream()
                 .filter(x -> x.deviceId().equals(d3p0.deviceId()))
@@ -323,6 +326,66 @@ public class PathIntentCompilerTest {
         sut.deactivate();
     }
 
+    /**
+     * Tests the random selection of VlanIds in the PathCompiler.
+     * It can fail randomly (it is unlikely)
+     */
+    @Test
+    public void testRandomVlanSelection() {
+
+        if (PathCompiler.RANDOM_SELECTION) {
+
+            sut.activate();
+
+            List<Intent> compiled = sut.compile(constraintVlanIntent, Collections.emptyList());
+            assertThat(compiled, hasSize(1));
+
+            Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+            assertThat(rules, hasSize(3));
+
+            FlowRule rule1 = rules.stream()
+                    .filter(x -> x.deviceId().equals(d1p0.deviceId()))
+                    .findFirst()
+                    .get();
+            verifyIdAndPriority(rule1, d1p0.deviceId());
+            assertThat(rule1.selector(), is(DefaultTrafficSelector.builder(selector)
+                    .matchInPort(d1p0.port()).build()));
+
+            VlanId vlanToEncap = verifyVlanEncapTreatment(rule1.treatment(), d1p1, true, false);
+
+            assertTrue(VlanId.NO_VID < vlanToEncap.toShort() && vlanToEncap.toShort() < VlanId.MAX_VLAN);
+
+            /**
+             * This second part is meant to test if the random selection is working properly.
+             * We are compiling the same intent in order to verify if the VLAN ID is different
+             * from the previous one.
+             */
+
+            List<Intent> compiled2 = sut.compile(constraintVlanIntent, Collections.emptyList());
+            assertThat(compiled2, hasSize(1));
+
+            Collection<FlowRule> rules2 = ((FlowRuleIntent) compiled2.get(0)).flowRules();
+            assertThat(rules2, hasSize(3));
+
+            FlowRule rule2 = rules2.stream()
+                    .filter(x -> x.deviceId().equals(d1p0.deviceId()))
+                    .findFirst()
+                    .get();
+            verifyIdAndPriority(rule2, d1p0.deviceId());
+            assertThat(rule2.selector(), is(DefaultTrafficSelector.builder(selector)
+                    .matchInPort(d1p0.port()).build()));
+
+            VlanId vlanToEncap2 = verifyVlanEncapTreatment(rule2.treatment(), d1p1, true, false);
+
+            assertTrue(VlanId.NO_VID < vlanToEncap2.toShort() && vlanToEncap2.toShort() < VlanId.MAX_VLAN);
+            assertNotEquals(vlanToEncap, vlanToEncap2);
+
+            sut.deactivate();
+
+        }
+
+    }
+
     private VlanId verifyVlanEncapTreatment(TrafficTreatment trafficTreatment,
                                         ConnectPoint egress, boolean isIngress, boolean isEgress) {
         Set<Instructions.OutputInstruction> ruleOutput = trafficTreatment.allInstructions().stream()
@@ -339,12 +402,21 @@ public class PathIntentCompilerTest {
                     .collect(Collectors.toSet());
             assertThat(vlanRules, hasSize(1));
             L2ModificationInstruction.ModVlanIdInstruction vlanRule = vlanRules.iterator().next();
-            assertThat(vlanRule.vlanId().toShort(), greaterThan((short) 0));
+            assertThat(vlanRule.vlanId().toShort(), greaterThan((short) VlanId.NO_VID));
+            assertThat(vlanRule.vlanId().toShort(), lessThan((short) VlanId.MAX_VLAN));
             vlanToEncap = vlanRule.vlanId();
         } else if (!isIngress && !isEgress) {
-            assertThat(trafficTreatment.allInstructions().stream()
-                               .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
-                               .collect(Collectors.toSet()), hasSize(0));
+
+            Set<L2ModificationInstruction.ModVlanIdInstruction> vlanRules = trafficTreatment.allInstructions().stream()
+                    .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
+                    .map(x -> (L2ModificationInstruction.ModVlanIdInstruction) x)
+                    .collect(Collectors.toSet());
+            assertThat(vlanRules, hasSize(1));
+            L2ModificationInstruction.ModVlanIdInstruction vlanRule = vlanRules.iterator().next();
+            assertThat(vlanRule.vlanId().toShort(), greaterThan((short) VlanId.NO_VID));
+            assertThat(vlanRule.vlanId().toShort(), lessThan((short) VlanId.MAX_VLAN));
+            vlanToEncap = vlanRule.vlanId();
+
         } else {
             assertThat(trafficTreatment.allInstructions().stream()
                                .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
@@ -385,7 +457,7 @@ public class PathIntentCompilerTest {
                 .get();
         verifyIdAndPriority(rule1, d1p0.deviceId());
         assertThat(rule1.selector(), is(DefaultTrafficSelector.builder(selector)
-                                        .matchInPort(d1p0.port()).build()));
+                .matchInPort(d1p0.port()).build()));
         MplsLabel mplsLabelToEncap = verifyMplsEncapTreatment(rule1.treatment(), d1p1, true, false);
 
         FlowRule rule2 = rules.stream()

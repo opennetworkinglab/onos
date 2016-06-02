@@ -106,10 +106,25 @@ class MockResourceService implements ResourceService {
                 .collect(Collectors.toList());
     }
 
+
+    /**
+     * It adds a number of VLAN ids in order to test the random behavior.
+     *
+     * @param parent the parent resource
+     * @return a set of VLAN ids
+     */
+    private Collection<Resource> addVlanIds(DiscreteResourceId parent) {
+        Collection<Resource> resources = new HashSet<>();
+        for (int i = VlanId.NO_VID + 1; i < VlanId.MAX_VLAN; i++) {
+            resources.add(Resources.discrete(parent).resource().child(VlanId.vlanId((short) i)));
+        }
+        return resources;
+    }
+
     @Override
     public Set<Resource> getAvailableResources(DiscreteResourceId parent) {
         Collection<Resource> resources = new HashSet<>();
-        resources.add(Resources.discrete(parent).resource().child(VlanId.vlanId((short) 10)));
+        resources.addAll(addVlanIds(parent));
         resources.add(Resources.discrete(parent).resource().child(MplsLabel.mplsLabel(10)));
         resources.add(Resources.discrete(parent).resource().child(TributarySlot.of(1)));
         resources.add(Resources.discrete(parent).resource().child(TributarySlot.of(2)));
