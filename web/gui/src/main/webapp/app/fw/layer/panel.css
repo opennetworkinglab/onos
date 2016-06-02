@@ -27,11 +27,8 @@
     right: -220px;
     opacity: 0;
 
-    padding: 10px;
+    padding: 2px;
     font-size: 10pt;
-
-    -moz-border-radius: 6px;
-    border-radius: 6px;
 }
 
 .floatpanel.dialog {

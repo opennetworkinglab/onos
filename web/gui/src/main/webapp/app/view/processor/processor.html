@@ -46,7 +46,7 @@
 
                 <tr ng-repeat="processor in tableData track by $index"
                     ng-repeat-complete row-id="{{processor.id}}">
-                    <td class="number">{{processor.priority}}</td>
+                    <td class="priority">{{processor.priority}}</td>
                     <td>{{processor.type}}</td>
                     <td>{{processor.processor}}</td>
                     <td class="number">{{processor.packets}}</td>

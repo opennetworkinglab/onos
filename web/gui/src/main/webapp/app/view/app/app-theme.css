@@ -43,10 +43,11 @@
 }
 
 .light #application-details-panel.floatpanel {
-    background-color: rgb(229, 234, 237);
+    background-color: white;
 }
 .dark #application-details-panel.floatpanel {
-    background-color: #3A4042;
+    /* TODO: dark theme */
+    background-color: white;
 }
 
 .light .close-btn svg.embeddedIcon .icon.plus .glyph {
@@ -56,31 +57,28 @@
     fill: #ccc;
 }
 
-#application-details-panel td.label,
-#application-details-panel .app-url i {
-    /* works for both light and dark themes ... */
-    color: #777;
-}
-
 .light #application-details-panel hr {
-    opacity: .5;
-    border-color: #FFF;
+    border: 1px solid #c7c7c0;
 }
 .dark #application-details-panel hr {
-    border-color: #666;
+    /* TODO: dark theme */
+    border: 1px solid #c7c7c0;
 }
 
 .light #application-details-panel .bottom tr:nth-child(odd) {
-    background-color: #f9f9f9;
+    background-color: #f4f4f4;
 }
 .light #application-details-panel .bottom tr:nth-child(even) {
-    background-color: #EBEDF2;
+    background-color: #fbfbfb;
 }
+
 .dark #application-details-panel .bottom tr:nth-child(odd) {
-    background-color: #333;
+    /* TODO: dark theme */
+    background-color: #f4f4f4;
 }
 .dark #application-details-panel .bottom tr:nth-child(even) {
-    background-color: #555;
+    /* TODO: dark theme */
+    background-color: #fbfbfb;
 }
 
 .light div.dropping {
