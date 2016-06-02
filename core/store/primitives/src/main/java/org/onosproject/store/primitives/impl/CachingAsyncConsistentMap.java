@@ -95,7 +95,12 @@ public class CachingAsyncConsistentMap<K, V> extends DelegatingAsyncConsistentMa
 
     @Override
     public CompletableFuture<Versioned<V>> get(K key) {
-        return cache.getUnchecked(key);
+        return cache.getUnchecked(key)
+                .whenComplete((r, e) -> {
+                    if (e != null) {
+                        cache.invalidate(key);
+                    }
+                });
     }
 
     @Override
@@ -133,11 +138,11 @@ public class CachingAsyncConsistentMap<K, V> extends DelegatingAsyncConsistentMa
     @Override
     public CompletableFuture<Boolean> remove(K key, V value) {
         return super.remove(key, value)
-                    .whenComplete((r, e) -> {
-                        if (r) {
-                            cache.invalidate(key);
-                        }
-                    });
+                .whenComplete((r, e) -> {
+                    if (r) {
+                        cache.invalidate(key);
+                    }
+                });
     }
 
     @Override
@@ -153,7 +158,7 @@ public class CachingAsyncConsistentMap<K, V> extends DelegatingAsyncConsistentMa
     @Override
     public CompletableFuture<Versioned<V>> replace(K key, V value) {
         return super.replace(key, value)
-                    .whenComplete((r, e) -> cache.invalidate(key));
+                .whenComplete((r, e) -> cache.invalidate(key));
     }
 
     @Override
