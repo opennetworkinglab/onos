@@ -239,4 +239,43 @@ public class NetworkConfigManagerTest {
         assertThat(configService.getSubjectFactory(String.class), notNullValue());
         assertThat(configService.getSubjectFactory("key1"), notNullValue());
     }
+
+    /**
+     * Tests creation, query and removal of a configuration including queued.
+     */
+    @Test
+    public void testRemoveConfig() {
+
+        assertThat(configService.getSubjectFactory(String.class), nullValue());
+        assertThat(configService.getSubjectFactory("key"), nullValue());
+
+        registry.registerConfigFactory(config1Factory);
+        registry.registerConfigFactory(config2Factory);
+        configService.applyConfig("configKey", BasicConfig1.class, new ObjectMapper().createObjectNode());
+
+        configService.applyConfig("key1", "key", "config1", new ObjectMapper().createObjectNode());
+        configService.applyConfig("key1", "keyxx", "config3", new ObjectMapper().createObjectNode());
+        configService.applyConfig("key2", "key1", "config4", new ObjectMapper().createObjectNode());
+
+        configService.removeConfig();
+
+        Set<String> subjects = configService.getSubjects(factory1.subjectClass());
+        assertThat(subjects.size(), is(0));
+
+        Set<String> subjects2 = configService.getSubjects(factory2.subjectClass());
+        assertThat(subjects2.size(), is(0));
+
+        configService.applyConfig("key1", "key", "config1", new ObjectMapper().createObjectNode());
+        configService.applyConfig("key1", "keyxx", "config3", new ObjectMapper().createObjectNode());
+        configService.applyConfig("key1", "key1", "config4", new ObjectMapper().createObjectNode());
+
+        @SuppressWarnings("unchecked")
+        Set<String> configs = configService.getSubjects(
+        configService.getSubjectFactory("key1").subjectClass());
+
+        configs.forEach(c -> configService.removeConfig(c));
+        Set<String> newConfig1 = configService.getSubjects(factory1.subjectClass());
+
+        assertThat(newConfig1, notNullValue());
+    }
 }

@@ -151,4 +151,19 @@ public interface NetworkConfigStore extends Store<NetworkConfigEvent, NetworkCon
      */
     <S> void clearQueuedConfig(S subject, String configKey);
 
+    /**
+     * Clears the  configuration based on the subject including queued.
+     * If does not exists this call has no effect.
+     *
+     * @param subject   configuration subject
+     */
+    <S> void clearConfig(S subject);
+
+    /**
+     * Clears the complete configuration including queued.
+     * If does not exists this call has no effect.
+     *
+     */
+    <S> void clearConfig();
+
 }

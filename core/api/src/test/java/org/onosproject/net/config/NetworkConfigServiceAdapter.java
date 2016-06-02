@@ -95,4 +95,12 @@ public class NetworkConfigServiceAdapter implements NetworkConfigService {
     @Override
     public void removeListener(NetworkConfigListener listener) {
     }
+
+    @Override
+    public <S> void removeConfig(S subject) {
+    }
+
+    @Override
+    public <S> void removeConfig() {
+    }
 }

@@ -294,28 +294,22 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     @SuppressWarnings("unchecked")
     public Response delete() {
         NetworkConfigService service = get(NetworkConfigService.class);
-        service.getSubjectClasses()
-                .forEach(subjectClass -> service.getSubjects(subjectClass)
-                        .forEach(subject -> service.getConfigs(subject)
-                                .forEach(config -> service.removeConfig(subject, config.getClass()))));
-        return Response.noContent().build();
+        service.removeConfig();
+        return Response.ok().build();
     }
 
     /**
      * Clear all network configurations for a subject class.
      *
      * @param subjectClassKey subject class key
-     * @return 204 NO CONTENT
      */
     @DELETE
     @Path("{subjectClassKey}")
     @SuppressWarnings("unchecked")
-    public Response delete(@PathParam("subjectClassKey") String subjectClassKey) {
+    public void delete(@PathParam("subjectClassKey") String subjectClassKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
         service.getSubjects(service.getSubjectFactory(subjectClassKey).subjectClass())
-                .forEach(subject -> service.getConfigs(subject)
-                        .forEach(config -> service.removeConfig(subject, config.getClass())));
-        return Response.noContent().build();
+                .forEach(subject -> service.removeConfig(subject));
     }
 
     /**
@@ -323,17 +317,14 @@ public class NetworkConfigWebResource extends AbstractWebResource {
      *
      * @param subjectClassKey subjectKey class key
      * @param subjectKey      subjectKey key
-     * @return 204 NO CONTENT
      */
     @DELETE
     @Path("{subjectClassKey}/{subjectKey}")
     @SuppressWarnings("unchecked")
-    public Response delete(@PathParam("subjectClassKey") String subjectClassKey,
+    public void delete(@PathParam("subjectClassKey") String subjectClassKey,
                            @PathParam("subjectKey") String subjectKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
-        Object s = service.getSubjectFactory(subjectClassKey).createSubject(subjectKey);
-        service.getConfigs(s).forEach(c -> service.removeConfig(s, c.getClass()));
-        return Response.noContent().build();
+        service.removeConfig(subjectKey);
     }
 
     /**
@@ -342,18 +333,17 @@ public class NetworkConfigWebResource extends AbstractWebResource {
      * @param subjectClassKey subjectKey class key
      * @param subjectKey      subjectKey key
      * @param configKey       configuration class key
-     * @return 204 NO CONTENT
      */
     @DELETE
     @Path("{subjectClassKey}/{subjectKey}/{configKey}")
     @SuppressWarnings("unchecked")
-    public Response delete(@PathParam("subjectClassKey") String subjectClassKey,
+    public void delete(@PathParam("subjectClassKey") String subjectClassKey,
                            @PathParam("subjectKey") String subjectKey,
                            @PathParam("configKey") String configKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
-        service.removeConfig(service.getSubjectFactory(subjectClassKey).createSubject(subjectKey),
-                             service.getConfigClass(subjectClassKey, configKey));
-        return Response.noContent().build();
+        service.removeConfig(subjectClassKey,
+                             service.getSubjectFactory(subjectClassKey).createSubject(subjectKey),
+                            configKey);
     }
 
 }

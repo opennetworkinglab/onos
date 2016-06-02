@@ -284,6 +284,24 @@ public class DistributedNetworkConfigStore
         configs.remove(key(subject, configKey));
     }
 
+    @Override
+    public <S> void clearConfig(S subject) {
+        ImmutableSet.copyOf(configs.keySet()).forEach(k -> {
+            if (Objects.equals(subject, k.subject) && delegate != null) {
+                configs.remove(k);
+            }
+        });
+    }
+
+    @Override
+    public <S> void clearConfig() {
+        ImmutableSet.copyOf(configs.keySet()).forEach(k -> {
+            if (delegate != null) {
+                configs.remove(k);
+            }
+        });
+    }
+
     /**
      * Produces a config from the specified subject, config class and raw JSON.
      *
