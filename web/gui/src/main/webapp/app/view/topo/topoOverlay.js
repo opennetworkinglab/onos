@@ -277,6 +277,13 @@
         cb && cb();
     }
 
+    // Temporary function to allow overlays to modify link detail data
+    // in the client. (In the near future, this will be done on the server).
+    function modifyLinkDataHook(data, extra) {
+        var cb = _hook('modifylinkdata');
+        return cb && extra ? cb(data, extra) : data;
+    }
+
     // === -----------------------------------------------------
     //  Event (from server) Handlers
 
@@ -427,7 +434,8 @@
                     singleSelect: singleSelectHook,
                     multiSelect: multiSelectHook,
                     mouseOver: mouseOverHook,
-                    mouseOut: mouseOutHook
+                    mouseOut: mouseOutHook,
+                    modifyLinkData: modifyLinkDataHook
                 },
 
                 showHighlights: showHighlights

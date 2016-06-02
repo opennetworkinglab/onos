@@ -309,7 +309,7 @@
     var coreOrder = [
             'Type', 'Expected', '-',
             'A_type', 'A_id', 'A_label', 'A_port', '-',
-            'B_type', 'B_id', 'B_label', 'B_port', '-'
+            'B_type', 'B_id', 'B_label', 'B_port'
         ],
         edgeOrder = [
             'Type', '-',
@@ -317,7 +317,7 @@
             'B_type', 'B_id', 'B_label', 'B_port'
         ];
 
-    function displayLink(data) {
+    function displayLink(data, modifyCb) {
         detail.setup();
 
         var svg = detail.appendHeader('div')
@@ -332,9 +332,8 @@
         gs.addGlyph(svg, 'ports', 40);
         title.text('Link');
 
-
-        listProps(tbody, {
-            propOrder: order,
+        var linkData = {
+            propOrder: order.slice(0),      // makes a copy of the array
             props: {
                 Type: linkType(data),
                 Expected: linkExpected(data),
@@ -349,9 +348,11 @@
                 B_label: friendly(data.target),
                 B_port: data.tgtPort
             }
-        });
+        };
+        listProps(tbody, modifyCb(linkData, data.extra));
 
         if (!edgeLink) {
+            addSep(tbody);
             addProp(tbody, 'A &rarr; B', linkSummary(data.fromSource));
             addProp(tbody, 'B &rarr; A', linkSummary(data.fromTarget));
         }
