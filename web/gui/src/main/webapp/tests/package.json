@@ -8,7 +8,11 @@
     "test": "karma start karma.ci.js"
   },
   "author": "ON.Lab",
-  "license": "Apache 2.0",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "opennetworkinglab/onos"
+  },
   "devDependencies": {
     "jasmine-core": "^2.4.1",
     "karma": "^0.13.22",
