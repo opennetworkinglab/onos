@@ -20,6 +20,7 @@ import org.onosproject.net.AbstractDescription;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.Port.Type;
 import com.google.common.base.Objects;
 
@@ -61,7 +62,7 @@ public class DefaultPortDescription extends AbstractDescription
                                   Type type, long portSpeed,
                                   SparseAnnotations...annotations) {
         super(annotations);
-        this.number = number;
+        this.number = checkNotNull(number);
         this.isEnabled = isEnabled;
         this.type = type;
         this.portSpeed = portSpeed;
