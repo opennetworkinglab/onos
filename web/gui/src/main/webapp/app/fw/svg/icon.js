@@ -36,6 +36,8 @@
         minus: 'minus',
         play: 'play',
         stop: 'stop',
+        
+        close: 'xClose',
 
         topo: 'topo',
 
@@ -60,15 +62,18 @@
         hostIcon_router: 'router',
         hostIcon_bgpSpeaker: 'bgpSpeaker',
 
+        // navigation menu icons...
         nav_apps: 'bird',
         nav_settings: 'chain',
         nav_cluster: 'node',
+        nav_processors: 'allTraffic',
+
         nav_topo: 'topo',
         nav_devs: 'switch',
         nav_links: 'ports',
         nav_hosts: 'endstation',
         nav_intents: 'relatedIntents',
-        nav_processors: 'allTraffic'
+        nav_tunnels: 'ports'  // TODO: use tunnel glyph, when available
     };
 
     function ensureIconLibDefs() {

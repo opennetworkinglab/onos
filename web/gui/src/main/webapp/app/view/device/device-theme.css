@@ -18,77 +18,39 @@
  ONOS GUI -- Device View (theme) -- CSS file
  */
 
-.light #ov-device .current-view use {
-    fill: white;
+
+.light .dev-icon svg.embeddedIcon .icon .glyph {
+    fill: #0071bd;
 }
-.dark #ov-device .current-view use {
-    fill: #304860;
+.dark .dev-icon svg.embeddedIcon .icon .glyph {
+    /* TODO: dark theme */
+    fill: #0071bd;
 }
 
-.light #ov-device .current-view rect {
-    fill: deepskyblue;
-}
-.dark #ov-device .current-view rect {
-    fill: #eee;
+.light #device-details-panel .editable {
+    border-bottom: 1px dashed #ca504b;
 }
 
-.light #device-details-panel.floatpanel {
-    background-color: rgb(229, 234, 237);
-}
-.dark #device-details-panel.floatpanel {
-    background-color: #3A4042;
-}
-
-.light .close-btn svg.embeddedIcon .icon.plus .glyph {
-    fill: #aaa;
-}
-.dark .close-btn svg.embeddedIcon .icon.plus .glyph {
-    fill: #ccc;
-}
-
-.light .dev-icon svg.embeddedIcon .glyph {
-    fill: rgb(0, 172, 229);
-}
-.dark .dev-icon svg.embeddedIcon .glyph {
-    fill: #486D91;
-}
-
-#device-details-panel .editable {
-    cursor: pointer;
-    border-bottom: 1px dashed darkgreen;
-}
-
-#device-details-panel td.label {
-    /* works for both light and dark themes ... */
-    color: #777;
-}
-
-.light #device-details-panel hr {
-    opacity: .5;
-    border-color: #FFF;
-}
-.dark #device-details-panel hr {
-    border-color: #666;
-}
 
 .light #device-details-panel .bottom th {
-    background-color: #CCC;
-    /* default text color */
+    background-color: #e5e5e6;
 }
 .dark #device-details-panel .bottom th {
-    background-color: #131313;
-    color: #ccc;
+    /* TODO: dark theme */
+    background-color: #e5e5e6;
 }
 
 .light #device-details-panel .bottom tr:nth-child(odd) {
-    background-color: #f9f9f9;
+    background-color: #fbfbfb;
 }
 .light #device-details-panel .bottom tr:nth-child(even) {
-    background-color: #EBEDF2;
+    background-color: #f4f4f4;
 }
 .dark #device-details-panel .bottom tr:nth-child(odd) {
-    background-color: #333;
+    /* TODO: dark theme */
+    background-color: #fbfbfb;
 }
 .dark #device-details-panel .bottom tr:nth-child(even) {
-    background-color: #555;
+    /* TODO: dark theme */
+    background-color: #f4f4f4;
 }

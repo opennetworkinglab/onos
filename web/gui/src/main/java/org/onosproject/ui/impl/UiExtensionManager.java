@@ -138,8 +138,7 @@ public class UiExtensionManager
                 new UiView(NETWORK, "link", "Links", "nav_links"),
                 new UiView(NETWORK, "host", "Hosts", "nav_hosts"),
                 new UiView(NETWORK, "intent", "Intents", "nav_intents"),
-                //TODO add a new type of icon for tunnel
-                new UiView(NETWORK, "tunnel", "Tunnels", "nav_links")
+                new UiView(NETWORK, "tunnel", "Tunnels", "nav_tunnels")
         );
 
         UiMessageHandlerFactory messageHandlerFactory =
