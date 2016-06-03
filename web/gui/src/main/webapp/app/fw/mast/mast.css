@@ -23,6 +23,10 @@
     padding: 0;
 }
 
+#mast a:hover {
+    text-decoration: none;
+}
+
 html[data-platform='iPad'] #mast {
     padding-top: 16px;
 }

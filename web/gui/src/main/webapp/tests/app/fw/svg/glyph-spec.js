@@ -72,7 +72,7 @@ describe('factory: fw/svg/glyph.js', function() {
 
             // badges
             uiAttached: 'M2,2.5a.5,.5',
-            checkMark: 'M2.6,4.5c0',
+            checkMark: 'M8.6,3.4L4',
             xMark: 'M9.0,7.2C8.2',
             triangleUp: 'M0.5,6.2c0',
             triangleDown: 'M9.5,4.2c0',
