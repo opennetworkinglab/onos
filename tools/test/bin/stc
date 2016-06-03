@@ -3,9 +3,18 @@
 #   System Test Coordinator
 #-------------------------------------------------------------------------------
 
-VER=1.7.0-SNAPSHOT
-JAR=~/.m2/repository/org/onosproject/onlab-stc/$VER/onlab-stc-$VER.jar
+VER=${STC_VERSION:-2.0}
+JAR=~/.m2/repository/org/onosproject/onos-stc/$VER/onos-stc-$VER.jar
 SCENARIOS=$ONOS_ROOT/tools/test/scenarios
+
+# Download the STC binary if needed
+if [ ! -f $JAR ]; then
+    printf "Downloading STC binary..."
+    aux=/tmp/stc-$$.log
+    mvn dependency:get -Dartifact=org.onosproject:onos-stc:$VER -Dtransitive=false -B >$aux || fgrep '[ERROR]' $aux
+    rm -f $aux
+    [ -f $JAR ] && printf "Done.\n"
+fi
 
 DEBUG_OPTS="-agentlib:jdwp=transport=dt_socket,address=5005,server=y,suspend=y"
 
