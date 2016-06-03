@@ -44,6 +44,10 @@ public enum SubTlvType {
      */
     INTERFACEADDRESS(6),
     /**
+     * Represents traffic engineering neighbor address TLV.
+     */
+    NEIGHBORADDRESS(8),
+    /**
      * Represents traffic engineering unreserved bandwidth TLV.
      */
     UNRESERVEDBANDWIDTH(11);

@@ -231,7 +231,6 @@ public class DefaultIsisLsdbAge implements IsisLsdbAge {
         }
     }
 
-
     /**
      * Runnable task which runs every second and calls aging process.
      */

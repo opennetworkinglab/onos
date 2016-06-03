@@ -52,6 +52,15 @@ public class IpExtendedReachabilityTlv extends TlvHeader implements IsisTlv {
     }
 
     /**
+     * Returns list of traffic engineering sub tlvs.
+     *
+     * @return trafEnginSubTlv
+     */
+    public List<TrafficEngineeringSubTlv> teTlvs() {
+        return this.trafEnginSubTlv;
+    }
+
+    /**
      * Returns the prefix of IP external reachability TLV.
      *
      * @return prefix

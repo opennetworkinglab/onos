@@ -16,6 +16,7 @@
 package org.onosproject.isis.controller.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -24,12 +25,18 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.isis.controller.IsisController;
 import org.onosproject.isis.controller.IsisProcess;
+import org.onosproject.isis.controller.topology.IsisAgent;
+import org.onosproject.isis.controller.topology.IsisLink;
+import org.onosproject.isis.controller.topology.IsisLinkListener;
+import org.onosproject.isis.controller.topology.IsisRouter;
 import org.onosproject.isis.controller.topology.IsisRouterListener;
 import org.onosproject.net.driver.DriverService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents ISIS controller implementation.
@@ -42,16 +49,52 @@ public class DefaultIsisController implements IsisController {
     private final Controller controller = new Controller();
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
+    protected Set<IsisRouterListener> isisRouterListener = new HashSet<>();
+    protected Set<IsisLinkListener> isisLinkListener = Sets.newHashSet();
+    protected IsisAgent agent = new InternalDeviceConfig();
 
     @Activate
     public void activate() {
         log.debug("ISISControllerImpl activate");
+        controller.setAgent(agent);
     }
 
     @Deactivate
     public void deactivate() {
         controller.isisDeactivate();
         log.debug("ISISControllerImpl deActivate");
+    }
+
+    @Override
+    public void addRouterListener(IsisRouterListener listener) {
+        if (!isisRouterListener.contains(listener)) {
+            this.isisRouterListener.add(listener);
+        }
+    }
+
+    @Override
+    public void removeRouterListener(IsisRouterListener listener) {
+        this.isisRouterListener.remove(listener);
+    }
+
+    @Override
+    public void addLinkListener(IsisLinkListener listener) {
+        isisLinkListener.add(listener);
+    }
+
+    @Override
+    public void removeLinkListener(IsisLinkListener listener) {
+        isisLinkListener.remove(listener);
+    }
+
+    @Override
+    public Set<IsisRouterListener> listener() {
+        return isisRouterListener;
+    }
+
+    @Override
+    public Set<IsisLinkListener> linkListener() {
+        return isisLinkListener;
     }
 
     @Override
@@ -70,13 +113,37 @@ public class DefaultIsisController implements IsisController {
         }
     }
 
-    @Override
-    public void addRouterListener(IsisRouterListener isisRouterListener) {
-        log.debug("IsisControllerImpl::addRouterListener...");
-    }
+    /**
+     * Notifier for internal ISIS device and link changes.
+     */
+    private class InternalDeviceConfig implements IsisAgent {
+        @Override
+        public boolean addConnectedRouter(IsisRouter isisRouter) {
+            for (IsisRouterListener l : listener()) {
+                l.routerAdded(isisRouter);
+            }
+            return true;
+        }
 
-    @Override
-    public void removeRouterListener(IsisRouterListener isisRouterListener) {
-        log.debug("IsisControllerImpl::removeRouterListener...");
+        @Override
+        public void removeConnectedRouter(IsisRouter isisRouter) {
+            for (IsisRouterListener l : listener()) {
+                l.routerRemoved(isisRouter);
+            }
+        }
+
+        @Override
+        public void addLink(IsisLink isisLink) {
+            for (IsisLinkListener l : linkListener()) {
+                l.addLink(isisLink);
+            }
+        }
+
+        @Override
+        public void deleteLink(IsisLink isisLink) {
+            for (IsisLinkListener l : linkListener()) {
+                l.deleteLink(isisLink);
+            }
+        }
     }
 }

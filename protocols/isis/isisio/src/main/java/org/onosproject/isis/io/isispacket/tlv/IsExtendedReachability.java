@@ -41,6 +41,15 @@ public class IsExtendedReachability extends TlvHeader implements IsisTlv {
     }
 
     /**
+     * Returns neighbor list.
+     *
+     * @return neighbor list
+     */
+    public List<NeighborForExtendedIs> neighbours() {
+        return neighbors;
+    }
+
+    /**
      * Adds the neighbor for extended IS instance to IS extended reachability TLV.
      *
      * @param neighbor neighbor for extended IS instance

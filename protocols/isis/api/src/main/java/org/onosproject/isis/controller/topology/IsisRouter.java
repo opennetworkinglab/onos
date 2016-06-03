@@ -23,11 +23,11 @@ import org.onlab.packet.Ip4Address;
 public interface IsisRouter {
 
     /**
-     * Returns IP address of the router.
+     * Returns system ID for the router.
      *
-     * @return IP address of the router
+     * @return system ID of the router
      */
-    Ip4Address routerIp();
+    String systemId();
 
     /**
      * Returns IP address of the interface.
@@ -37,9 +37,44 @@ public interface IsisRouter {
     Ip4Address interfaceId();
 
     /**
-     * Sets IP address of the Router.
+     * Gets IP address of the interface.
      *
-     * @param routerIp IP address of the router
+     * @param interfaceId IP address of the interface
      */
-    void setRouterIp(Ip4Address routerIp);
+    void setInterfaceId(Ip4Address interfaceId);
+
+    /**
+     * Sets system ID of the Router.
+     *
+     * @param systemId system ID of the router
+     */
+    void setSystemId(String systemId);
+
+    /**
+     * Gets neighbours ID.
+     *
+     * @return neighbour ID
+     */
+    Ip4Address neighborRouterId();
+
+    /**
+     * Sets the neighbour Id.
+     *
+     * @param neighbourId neighbour Id
+     */
+    void setNeighborRouterId(Ip4Address neighbourId);
+
+    /**
+     * Gets if the router id DIS or not.
+     *
+     * @return true if the router is DIS else false
+     */
+    boolean isDis();
+
+    /**
+     * Sets if the router id DIS or not.
+     *
+     * @param dis true if the router is DIS else false
+     */
+    void setDis(boolean dis);
 }

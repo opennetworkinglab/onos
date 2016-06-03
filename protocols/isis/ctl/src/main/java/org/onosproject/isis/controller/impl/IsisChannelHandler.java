@@ -68,6 +68,16 @@ public class IsisChannelHandler extends IdleStateAwareChannelHandler {
     public IsisChannelHandler(Controller controller, List<IsisProcess> processes) {
         this.controller = controller;
         this.processes = processes;
+        ((DefaultIsisLsdb) isisLsdb).setController(this.controller);
+        ((DefaultIsisLsdb) isisLsdb).setIsisInterface(isisInterfaceList());
+    }
+
+    private List<IsisInterface> isisInterfaceList() {
+        List<IsisInterface> isisInterfaceList = new ArrayList<>();
+        for (Integer key : isisInterfaceMap.keySet()) {
+            isisInterfaceList.add(isisInterfaceMap.get(key));
+        }
+        return isisInterfaceList;
     }
 
     /**
@@ -178,30 +188,25 @@ public class IsisChannelHandler extends IdleStateAwareChannelHandler {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
-        log.info("[exceptionCaught]: " + e.toString());
         if (e.getCause() instanceof ReadTimeoutException) {
-            log.error("Disconnecting device {} due to read timeout", e.getChannel().getRemoteAddress());
+            log.debug("Disconnecting device {} due to read timeout", e.getChannel().getRemoteAddress());
             return;
         } else if (e.getCause() instanceof ClosedChannelException) {
             log.debug("Channel for ISIS {} already closed", e.getChannel().getRemoteAddress());
         } else if (e.getCause() instanceof IOException) {
-            log.error("Disconnecting ISIS {} due to IO Error: {}", e.getChannel().getRemoteAddress(),
+            log.debug("Disconnecting ISIS {} due to IO Error: {}", e.getChannel().getRemoteAddress(),
                       e.getCause().getMessage());
-            if (log.isDebugEnabled()) {
-                log.debug("StackTrace for previous Exception: {}", e.getCause());
-            }
         } else if (e.getCause() instanceof IsisParseException) {
             IsisParseException errMsg = (IsisParseException) e.getCause();
             byte errorCode = errMsg.errorCode();
             byte errorSubCode = errMsg.errorSubCode();
-            log.error("Error while parsing message from ISIS {}, ErrorCode {}",
+            log.debug("Error while parsing message from ISIS {}, ErrorCode {}",
                       e.getChannel().getRemoteAddress(), errorCode);
         } else if (e.getCause() instanceof RejectedExecutionException) {
-            log.warn("Could not process message: queue full");
+            log.debug("Could not process message: queue full");
         } else {
-            log.error("Error while processing message from ISIS {}, {}",
+            log.debug("Error while processing message from ISIS {}, {}",
                       e.getChannel().getRemoteAddress(), e.getCause().getMessage());
-            e.getCause().printStackTrace();
         }
     }
 
@@ -274,7 +279,7 @@ public class IsisChannelHandler extends IdleStateAwareChannelHandler {
      * @param configPacket interface configuration
      */
     public void sentConfigPacket(byte[] configPacket) {
-        if (channel != null) {
+        if (channel != null && channel.isConnected() && channel.isOpen()) {
             channel.write(configPacket);
             log.debug("IsisChannelHandler sentConfigPacket packet sent..!!!");
         } else {

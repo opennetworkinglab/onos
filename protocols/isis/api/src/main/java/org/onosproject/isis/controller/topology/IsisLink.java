@@ -15,9 +15,7 @@
  */
 package org.onosproject.isis.controller.topology;
 
-import org.onlab.packet.IpAddress;
-
-import java.util.List;
+import org.onlab.packet.Ip4Address;
 
 /**
  * Abstraction of an ISIS Link.
@@ -25,58 +23,72 @@ import java.util.List;
 public interface IsisLink {
 
     /**
-     * Returns IP address of the Router.
+     * Returns the remote system ID.
      *
-     * @return IP address of router
+     * @return remote system ID
      */
-    IpAddress remoteRouterId();
+    String remoteSystemId();
 
     /**
-     * Returns the area ID for this device.
+     * Returns the local system ID.
      *
-     * @return the area ID
+     * @return local system ID
      */
-    int areaIdOfInterface();
+    String localSystemId();
 
     /**
      * Returns IP address of the interface.
      *
      * @return IP address of the interface
      */
-    IpAddress interfaceIp();
+    Ip4Address interfaceIp();
 
     /**
-     * Returns the list of link TED details.
+     * Returns IP address of the neighbor.
      *
-     * @return linkTed list of link TED
+     * @return IP address of the neighbor
      */
-    List<IsisLinkTed> linkTed();
+    Ip4Address neighborIp();
 
     /**
-     * Sets IP address of the router.
+     * Returns the link TED details.
      *
-     * @param routerIp router's IP address
+     * @return linkTed link TED
      */
-    void setRouterIp(IpAddress routerIp);
+    IsisLinkTed linkTed();
 
     /**
-     * Sets the area ID for this device.
+     * Sets remote system ID.
      *
-     * @param areaIdOfInterface area ID
+     * @param remoteSystemId remote system ID
      */
-    void setAreaIdOfInterface(int areaIdOfInterface);
+    void setRemoteSystemId(String remoteSystemId);
+
+    /**
+     * Sets local system ID.
+     *
+     * @param localSystemId remote system ID
+     */
+    void setLocalSystemId(String localSystemId);
 
     /**
      * Sets IP address of the interface.
      *
      * @param interfaceIp IP address of the interface
      */
-    void setInterfaceIp(IpAddress interfaceIp);
+    void setInterfaceIp(Ip4Address interfaceIp);
 
     /**
-     * Sets the list of link TED.
+     * Sets IP address of the neighbor.
      *
-     * @param linkTed list of link TED
+     * @param neighborIp IP address of the neighbor
      */
-    void setLinkTed(List<IsisLinkTed> linkTed);
+    void setNeighborIp(Ip4Address neighborIp);
+
+    /**
+     * Sets the link TED information.
+     *
+     * @param linkTed link TED
+     */
+    void setLinkTed(IsisLinkTed linkTed);
 }

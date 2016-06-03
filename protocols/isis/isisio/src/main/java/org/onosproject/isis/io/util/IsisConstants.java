@@ -65,6 +65,9 @@ public final class IsisConstants {
     public static final String AREAADDRESS = "areaAddress";
     public static final String HOLDINGTIME = "holdingTime";
     public static final String HELLOINTERVAL = "helloInterval";
+    public static final int PORT = 7000;
+    public static final String LSPADDED = "LSP_ADDED";
+    public static final String LSPREMOVED = "LSP_REMOVED";
 
     /**
      * Non parameterized constructor.

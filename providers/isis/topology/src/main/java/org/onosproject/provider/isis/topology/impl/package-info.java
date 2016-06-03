@@ -17,4 +17,4 @@
 /**
  * Provider that uses ISIS request as a means of infrastructure device discovery.
  */
-package org.onosproject.provider.isis.device.impl;
+package org.onosproject.provider.isis.topology.impl;

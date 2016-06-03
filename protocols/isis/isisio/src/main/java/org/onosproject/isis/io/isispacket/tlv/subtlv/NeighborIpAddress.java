@@ -16,6 +16,7 @@
 package org.onosproject.isis.io.isispacket.tlv.subtlv;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import com.google.common.primitives.Bytes;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.Ip4Address;
@@ -28,39 +29,39 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Representation of interface ip address TE value.
+ * Representation of neighbor ip address TE value.
  */
-public class InterfaceIpAddress extends TlvHeader implements TrafficEngineeringSubTlv {
+public class NeighborIpAddress extends TlvHeader implements TrafficEngineeringSubTlv {
     private static final Logger log =
             LoggerFactory.getLogger(NeighborIpAddress.class);
-    private Ip4Address localInterfaceIPAddress;
+    private Ip4Address neighborIPAddress;
 
     /**
-     * Creates an instance of local interface ip address.
+     * Creates an instance of neighbor ip address.
      *
      * @param header tlv header instance
      */
-    public InterfaceIpAddress(TlvHeader header) {
+    public NeighborIpAddress(TlvHeader header) {
         this.setTlvType(header.tlvType());
         this.setTlvLength(header.tlvLength());
     }
 
     /**
-     * Adds local interface ip address.
+     * Sets the neighbor ip address.
      *
-     * @param localAddress ip address
+     * @param neighborIPAddress ip address
      */
-    public void setIpAddress(Ip4Address localAddress) {
-        this.localInterfaceIPAddress = localAddress;
+    public void setIpAddress(Ip4Address neighborIPAddress) {
+        this.neighborIPAddress = neighborIPAddress;
     }
 
     /**
-     * Gets local interface ip address.
+     * Gets the neighbor ip address.
      *
-     * @return localAddress ip address
+     * @return neighbor ip address
      */
-    public Ip4Address localInterfaceIPAddress() {
-        return localInterfaceIPAddress;
+    public Ip4Address neighborIPAddress() {
+        return neighborIPAddress;
     }
 
     /**
@@ -78,9 +79,9 @@ public class InterfaceIpAddress extends TlvHeader implements TrafficEngineeringS
     }
 
     /**
-     * Gets local interface ip address as byte array.
+     * Gets the neighbor ip address as byte array.
      *
-     * @return local interface ip address as byte array
+     * @return neighbor ip address as byte array
      */
     public byte[] asBytes() {
         byte[] linkSubType = null;
@@ -93,25 +94,42 @@ public class InterfaceIpAddress extends TlvHeader implements TrafficEngineeringS
     }
 
     /**
-     * Gets byte array of local interface ip address.
+     * Gets byte array of neighborIPAddress.
      *
-     * @return byte array of local interface ip address
+     * @return byte array of neighborIPAddress
      */
     public byte[] tlvBodyAsBytes() {
 
         List<Byte> linkSubTypeBody = new ArrayList<>();
 
-        linkSubTypeBody.addAll(Bytes.asList(this.localInterfaceIPAddress.toOctets()));
+        linkSubTypeBody.addAll(Bytes.asList(this.neighborIPAddress.toOctets()));
 
 
         return Bytes.toArray(linkSubTypeBody);
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        NeighborIpAddress that = (NeighborIpAddress) o;
+        return Objects.equal(neighborIPAddress, that.neighborIPAddress);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(neighborIPAddress);
+    }
+
+    @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .omitNullValues()
-                .add("localInterfaceIPAddress", localInterfaceIPAddress)
+                .add("localInterfaceIPAddress", neighborIPAddress)
                 .toString();
     }
 }

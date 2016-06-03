@@ -26,7 +26,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-isis-provider-device</artifactId>
+    <artifactId>onos-isis-provider-topology</artifactId>
     <packaging>bundle</packaging>
 
     <description>ONOS ISIS Providers</description>

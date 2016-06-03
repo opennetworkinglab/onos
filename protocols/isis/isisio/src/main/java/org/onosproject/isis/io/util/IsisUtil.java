@@ -726,4 +726,37 @@ public final class IsisUtil {
         }
         return Bytes.toArray(byteList);
     }
+
+    /**
+     * Return the DIS value from the systemId.
+     *
+     * @param systemId system Id.
+     * @return return true if DIS else false
+     */
+    public static boolean checkIsDis(String systemId) {
+        StringTokenizer stringTokenizer = new StringTokenizer(systemId, "." + "-");
+        int count = 0;
+        while (stringTokenizer.hasMoreTokens()) {
+            String str = stringTokenizer.nextToken();
+            if (count == 3) {
+                int x = Integer.parseInt(str);
+                if (x > 0) {
+                    return true;
+                }
+            }
+            count++;
+        }
+        return false;
+    }
+
+    /**
+     * Return the systemId.
+     *
+     * @param systemId system Id.
+     * @return return system ID
+     */
+    public static String removeTailingZeros(String systemId) {
+        StringTokenizer stringTokenizer = new StringTokenizer(systemId, "-");
+        return stringTokenizer.nextToken();
+    }
 }

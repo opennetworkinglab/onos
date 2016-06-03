@@ -13,24 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.isis.controller.topology;
 
 /**
- * Abstraction of an ISIS link listener.
+ * Implementation of the ISIS controller topology.
  */
-public interface IsisLinkListener {
-
-    /**
-     * Notifies that we got a link from network.
-     *
-     * @param isisLink link instance
-     */
-    void addLink(IsisLink isisLink);
-
-    /**
-     * Notifies that a link got removed from network.
-     *
-     * @param isisLink link instance
-     */
-    void deleteLink(IsisLink isisLink);
-}
+package org.onosproject.isis.controller.impl.topology;

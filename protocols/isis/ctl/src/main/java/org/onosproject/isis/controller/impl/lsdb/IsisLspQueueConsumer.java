@@ -58,12 +58,12 @@ public class IsisLspQueueConsumer implements Runnable {
                     switch (lspProcessing) {
                         case IsisConstants.REFRESHLSP:
                             log.debug("LSPQueueConsumer: Message - " + IsisConstants.REFRESHLSP +
-                                              " consumed.");
+                                    " consumed.");
                             processRefreshLsp(wrapper);
                             break;
                         case IsisConstants.MAXAGELSP:
                             log.debug("LSPQueueConsumer: Message - " + IsisConstants.MAXAGELSP +
-                                              " consumed.");
+                                    " consumed.");
                             processMaxAgeLsa(wrapper);
                             break;
                         default:
@@ -72,7 +72,6 @@ public class IsisLspQueueConsumer implements Runnable {
                     }
                 }
             }
-
         } catch (Exception e) {
             log.debug("Error::LSPQueueConsumer::{}", e.getMessage());
         }
@@ -94,19 +93,18 @@ public class IsisLspQueueConsumer implements Runnable {
                 lsPdu.setRemainingLifeTime(IsisConstants.LSPMAXAGE);
                 byte[] lspBytes = lsPdu.asBytes();
                 lspBytes = IsisUtil.addLengthAndMarkItInReserved(lspBytes, IsisConstants.LENGTHPOSITION,
-                                                                 IsisConstants.LENGTHPOSITION + 1,
-                                                                 IsisConstants.RESERVEDPOSITION);
+                        IsisConstants.LENGTHPOSITION + 1,
+                        IsisConstants.RESERVEDPOSITION);
                 lspBytes = IsisUtil.addChecksum(lspBytes, IsisConstants.CHECKSUMPOSITION,
-                                                IsisConstants.CHECKSUMPOSITION + 1);
+                        IsisConstants.CHECKSUMPOSITION + 1);
                 //write to the channel
                 channel.write(IsisUtil.framePacket(lspBytes, isisInterface.interfaceIndex()));
                 // Updating the database with resetting remaining life time to default.
                 IsisLsdb isisDb = isisInterface.isisLsdb();
                 isisDb.addLsp(lsPdu, true, isisInterface);
                 log.debug("LSPQueueConsumer: processRefreshLsp - Flooded SelfOriginated LSP {}",
-                          wrapper.lsPdu());
+                        wrapper.lsPdu());
             }
-
         }
     }
 
@@ -124,7 +122,7 @@ public class IsisLspQueueConsumer implements Runnable {
             IsisLsdb isisDb = isisInterface.isisLsdb();
             isisDb.deleteLsp(lsPdu);
             log.debug("LSPQueueConsumer: processMaxAgeLsp - Removed-Max Age LSP {}",
-                      wrapper.lsPdu());
+                    wrapper.lsPdu());
         }
     }
 }
