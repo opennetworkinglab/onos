@@ -127,8 +127,6 @@ public class SingleSwitchFibInstaller {
             label = "Install a /32 route to each next hop")
     private boolean routeToNextHop = false;
 
-    private InternalDeviceListener deviceListener;
-
     // Device id of data-plane switch - should be learned from config
     private DeviceId deviceId;
 
@@ -149,9 +147,10 @@ public class SingleSwitchFibInstaller {
     // Mapping from next hop IP to next hop object containing group info
     private final Map<IpAddress, Integer> nextHops = Maps.newHashMap();
 
-    //interface object for event
-    private InternalInterfaceListener internalInterfaceList = new InternalInterfaceListener();
-    private InternalRouteListener routeListener = new InternalRouteListener();
+    private final InternalDeviceListener deviceListener = new InternalDeviceListener();
+    private final InternalInterfaceListener internalInterfaceList = new InternalInterfaceListener();
+    private final InternalRouteListener routeListener = new InternalRouteListener();
+    private final InternalNetworkConfigListener configListener = new InternalNetworkConfigListener();
 
     private ConfigFactory<ApplicationId, McastConfig> mcastConfigFactory =
             new ConfigFactory<ApplicationId, McastConfig>(SubjectFactories.APP_SUBJECT_FACTORY,
@@ -173,9 +172,8 @@ public class SingleSwitchFibInstaller {
 
         networkConfigRegistry.registerConfigFactory(mcastConfigFactory);
 
-        deviceListener = new InternalDeviceListener();
+        networkConfigService.addListener(configListener);
         deviceService.addListener(deviceListener);
-
         interfaceService.addListener(internalInterfaceList);
 
         updateConfig();
@@ -192,6 +190,7 @@ public class SingleSwitchFibInstaller {
         routeService.removeListener(routeListener);
         deviceService.removeListener(deviceListener);
         interfaceService.removeListener(internalInterfaceList);
+        networkConfigService.removeListener(configListener);
 
         //processIntfFilters(false, configService.getInterfaces()); //TODO necessary?
 
@@ -557,7 +556,7 @@ public class SingleSwitchFibInstaller {
     private class InternalNetworkConfigListener implements NetworkConfigListener {
         @Override
         public void event(NetworkConfigEvent event) {
-            if (event.subject().equals(RoutingService.ROUTER_CONFIG_CLASS)) {
+            if (event.configClass().equals(RoutingService.ROUTER_CONFIG_CLASS)) {
                 switch (event.type()) {
                 case CONFIG_ADDED:
                 case CONFIG_UPDATED:

@@ -41,6 +41,7 @@ import org.onosproject.incubator.net.routing.RouteServiceAdapter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.device.DeviceListener;
@@ -131,6 +132,8 @@ public class SingleSwitchFibInstallerTest {
         interfaceService = createMock(InterfaceService.class);
 
         networkConfigService = createMock(NetworkConfigService.class);
+        networkConfigService.addListener(anyObject(NetworkConfigListener.class));
+        expectLastCall().anyTimes();
         networkConfigRegistry = createMock(NetworkConfigRegistry.class);
         flowObjectiveService = createMock(FlowObjectiveService.class);
         applicationService = createNiceMock(ApplicationService.class);
