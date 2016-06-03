@@ -1,4 +1,4 @@
-FROM debian
+FROM debian:jessie
 MAINTAINER Ali Al-Shabibi <ali@onlab.us>
 
 # Add Java 8 repository
