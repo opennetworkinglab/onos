@@ -49,6 +49,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Tests the {@link AsyncConsistentSetMultimap}.
  */
+@Ignore
 public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
     private final File testDir = Files.createTempDir();
     private final String keyOne = "hello";
@@ -75,7 +76,6 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
      * Test that size behaves correctly (This includes testing of the empty
      * check).
      */
-    @Ignore
     @Test
     public void testSize() throws Throwable {
         clearTests();
@@ -127,7 +127,6 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
     /**
      * Contains tests for value, key and entry.
      */
-    @Ignore
     @Test
     public void containsTest() throws Throwable {
         clearTests();
@@ -189,7 +188,6 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
      * Contains tests for put, putAll, remove, removeAll and replace.
      * @throws Exception
      */
-    @Ignore
     @Test
     public void addAndRemoveTest() throws Exception {
         clearTests();
@@ -326,7 +324,6 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
      * as a trivial test of the asMap functionality (throws error).
      * @throws Exception
      */
-    @Ignore
     @Test
     public void testAccessors() throws Exception {
         clearTests();
