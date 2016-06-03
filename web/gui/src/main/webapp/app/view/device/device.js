@@ -35,7 +35,7 @@
         editingName = false;
 
     // constants
-    var topPdg = 13,
+    var topPdg = 28,
         ctnrPdg = 24,
         scrollSize = 17,
         portsTblPdg = 50,
@@ -71,14 +71,13 @@
     }
 
     function addCloseBtn(div) {
-        is.loadEmbeddedIcon(div, 'plus', 30);
-        div.select('g').attr('transform', 'translate(25, 0) rotate(45)');
+        is.loadEmbeddedIcon(div, 'close', 20);
         div.on('click', closePanel);
     }
 
     function exitEditMode(nameH2, name) {
         nameH2.html(name);
-        nameH2.classed('editable', true);
+        nameH2.classed('editable clickable', true);
         editingName = false;
         ks.enableGlobalKeys(true);
     }
@@ -112,7 +111,7 @@
             tf, el;
 
         if (!editingName) {
-            nameH2.classed('editable', false);
+            nameH2.classed('editable clickable', false);
             nameH2.html('');
             tf = nameH2.append('input').classed('name-input', true)
                 .attr('type', 'text')
@@ -139,7 +138,7 @@
         closeBtn = top.append('div').classed('close-btn', true);
         addCloseBtn(closeBtn);
         iconDiv = top.append('div').classed('dev-icon', true);
-        top.append('h2').classed('editable', true).on('click', editName);
+        top.append('h2').classed('editable clickable', true).on('click', editName);
 
         tblDiv = top.append('div').classed('top-tables', true);
         tblDiv.append('div').classed('left', true).append('table');

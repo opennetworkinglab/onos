@@ -18,22 +18,25 @@
  ONOS GUI -- Icon Service (theme) -- CSS file
  */
 
-.light svg.embeddedIcon g.icon .glyph {
-    fill: white;
+.light div.close-btn svg.embeddedIcon g.icon .glyph {
+    fill: #9fa296;
 }
-.dark svg.embeddedIcon g.icon .glyph {
-    fill: white;
+.dark div.close-btn svg.embeddedIcon g.icon .glyph {
+    /* TODO: dark theme */
+    fill: #9fa296;
 }
 
 
 /* Sortable table headers */
 .light div.tableColSort svg.embeddedIcon .icon .glyph {
-    fill: black;
+    fill: #353333;
 }
 .dark div.tableColSort svg.embeddedIcon .icon .glyph {
-    fill: #ccc;
+    /* TODO: dark theme */
+    fill: #353333;
 }
 
+/* active / inactive (check/xmark) icons */
 .light svg.embeddedIcon .icon.active .glyph {
     fill: #04bf34;
 }
@@ -43,25 +46,19 @@
 }
 
 .light svg.embeddedIcon .icon.inactive .glyph {
-    /* TODO: */
-    fill: darkred;
+    fill: #c0242b;
 }
 .dark svg.embeddedIcon .icon.inactive .glyph {
     /* TODO: dark theme */
-    fill: darkred;
+    fill: #c0242b;
 }
 
-.light table svg.embeddedIcon {
-    fill: #ccc;
-}
-.dark table svg.embeddedIcon {
-    fill: #222;
-}
-.light table svg.embeddedIcon .glyph {
-    fill: #333;
+.light table svg.embeddedIcon .icon .glyph {
+    fill: #3c3a3a;
 }
 .dark table svg.embeddedIcon .glyph {
-    fill: #ccc;
+    /* TODO: dark theme */
+    fill: #3c3a3a;
 }
 
 

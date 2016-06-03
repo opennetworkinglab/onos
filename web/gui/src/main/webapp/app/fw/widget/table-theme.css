@@ -72,11 +72,14 @@
 
 /* TODO: dark theme */
 
+/* INACTIVE */
 .light .ctrl-btns div svg.embeddedIcon g.icon use {
-    fill: #e4eef2;
+    fill: #e0dfd6;
 }
 /* note: no change for inactive buttons when hovered */
 
+
+/* ACTIVE */
 .light .ctrl-btns div.active svg.embeddedIcon g.icon use {
     fill: #939598;
 }
@@ -84,7 +87,15 @@
     fill: #ce5b58;
 }
 
-/* Refresh button specific */
+/* CURRENT-VIEW */
+.light .ctrl-btns div.current-view svg.embeddedIcon g.icon rect {
+    fill: #518ecc;
+}
+.light .ctrl-btns div.current-view svg.embeddedIcon g.icon use {
+    fill: white;
+}
+
+/* REFRESH */
 .light .ctrl-btns div.refresh svg.embeddedIcon g.icon use {
     fill: #cdeff2;
 }
