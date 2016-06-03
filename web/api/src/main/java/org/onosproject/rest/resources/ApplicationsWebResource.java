@@ -15,6 +15,7 @@
  */
 package org.onosproject.rest.resources;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.app.ApplicationAdminService;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
@@ -32,7 +33,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Set;
 
 import static org.onlab.util.Tools.nullIsNotFound;
@@ -45,6 +48,9 @@ public class ApplicationsWebResource extends AbstractWebResource {
 
     private static final String APP_ID_NOT_FOUND = "Application ID is not found";
     private static final String APP_NOT_FOUND = "Application is not found";
+
+    private static final String URL = "url";
+    private static final String ACTIVATE = "activate";
 
     /**
      * Get all installed applications.
@@ -74,6 +80,38 @@ public class ApplicationsWebResource extends AbstractWebResource {
         ApplicationAdminService service = get(ApplicationAdminService.class);
         ApplicationId appId = service.getId(name);
         return response(service, appId);
+    }
+
+    /**
+     * Install a new application.
+     * Uploads application archive stream and optionally activates the
+     * application.
+
+     * @param raw   json object containing location (url) of application oar
+     * @return 200 OK; 404; 401
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response installApp(InputStream raw) {
+        Application app;
+        try {
+            ObjectNode jsonTree = (ObjectNode) mapper().readTree(raw);
+            URL url = new URL(jsonTree.get(URL).asText());
+            boolean activate = false;
+            if (jsonTree.has(ACTIVATE)) {
+              activate = jsonTree.get(ACTIVATE).asBoolean();
+            }
+
+            ApplicationAdminService service = get(ApplicationAdminService.class);
+            app = service.install(url.openStream());
+            if (activate) {
+                service.activate(app.id());
+            }
+        } catch (IOException ex) {
+            throw new IllegalArgumentException(ex);
+        }
+        return ok(codec(Application.class).encode(app, this)).build();
     }
 
     /**
