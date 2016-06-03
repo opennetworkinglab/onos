@@ -102,50 +102,64 @@ public final class OpticalPortOperator implements ConfigOperator {
     }
 
     // updates a port description whose port type has not changed.
-    private static PortDescription updateDescription(
-            PortNumber port, SparseAnnotations sa, PortDescription descr) {
+    /**
+     * Updates {@link PortDescription} using specified number and annotations.
+     *
+     * @param port {@link PortNumber} to use in updated description
+     * @param sa   annotations to use in updated description
+     * @param descr base {@link PortDescription}
+     * @return updated {@link PortDescription}
+     */
+    private static PortDescription updateDescription(PortNumber port,
+                                                     SparseAnnotations sa,
+                                                     PortDescription descr) {
+
+        // TODO This switch can go away once deprecation is complete.
         switch (descr.type()) {
             case OMS:
                 if (descr instanceof OmsPortDescription) {
-                    // TODO This block can go away once deprecation is complete.
                     OmsPortDescription oms = (OmsPortDescription) descr;
                     return omsPortDescription(port, oms.isEnabled(), oms.minFrequency(),
                                                   oms.maxFrequency(), oms.grid(), sa);
                 }
-                return descr;
+                break;
             case OCH:
                 // We might need to update lambda below with STATIC_LAMBDA.
                 if (descr instanceof OchPortDescription) {
-                    // TODO This block can go away once deprecation is complete.
                     OchPortDescription och = (OchPortDescription) descr;
                     return ochPortDescription(port, och.isEnabled(), och.signalType(),
                             och.isTunable(), och.lambda(), sa);
                 }
-                return descr;
+                break;
             case ODUCLT:
                 if (descr instanceof OduCltPortDescription) {
-                    // TODO This block can go away once deprecation is complete.
                     OduCltPortDescription odu = (OduCltPortDescription) descr;
                     return oduCltPortDescription(port, odu.isEnabled(), odu.signalType(), sa);
                 }
-                return descr;
+                break;
             case PACKET:
             case FIBER:
             case COPPER:
-                // TODO: it should be safe to just return descr. confirm and fix
-                return new DefaultPortDescription(port, descr.isEnabled(), descr.type(),
-                        descr.portSpeed(), sa);
+                break;
             case OTU:
                 if (descr instanceof OtuPortDescription) {
-                    // TODO This block can go away once deprecation is complete.
                     OtuPortDescription otu = (OtuPortDescription) descr;
                     return otuPortDescription(port, otu.isEnabled(), otu.signalType(), sa);
                 }
-                return descr;
+                break;
             default:
                 log.warn("Unsupported optical port type {} - can't update", descr.type());
                 return descr;
         }
+        if (port.exactlyEquals(descr.portNumber()) && sa.equals(descr.annotations())) {
+            // result is no-op
+            return descr;
+        }
+        return new DefaultPortDescription(port,
+                                          descr.isEnabled(),
+                                          descr.type(),
+                                          descr.portSpeed(),
+                                          sa);
     }
 
     /**
