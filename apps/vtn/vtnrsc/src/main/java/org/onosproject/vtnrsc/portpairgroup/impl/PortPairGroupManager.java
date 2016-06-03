@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collections;
+import java.util.UUID;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -35,8 +36,11 @@ import org.onosproject.store.service.EventuallyConsistentMapListener;
 import org.onosproject.store.service.MultiValuedTimestamp;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
+import org.onosproject.vtnrsc.DefaultPortPairGroup;
 import org.onosproject.vtnrsc.PortPairGroup;
 import org.onosproject.vtnrsc.PortPairGroupId;
+import org.onosproject.vtnrsc.PortPairId;
+import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.portpairgroup.PortPairGroupEvent;
 import org.onosproject.vtnrsc.portpairgroup.PortPairGroupListener;
 import org.onosproject.vtnrsc.portpairgroup.PortPairGroupService;
@@ -71,7 +75,8 @@ public class PortPairGroupManager extends AbstractListenerManager<PortPairGroupE
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
                 .register(MultiValuedTimestamp.class)
-                .register(PortPairGroup.class);
+                .register(PortPairGroup.class, PortPairGroupId.class, UUID.class, DefaultPortPairGroup.class,
+                          TenantId.class, PortPairId.class);
 
         portPairGroupStore = storageService
                 .<PortPairGroupId, PortPairGroup>eventuallyConsistentMapBuilder()

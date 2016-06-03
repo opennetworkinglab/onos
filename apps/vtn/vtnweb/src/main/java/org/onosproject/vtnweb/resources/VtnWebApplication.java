@@ -35,7 +35,9 @@ public class VtnWebApplication extends AbstractWebApplication {
                           PortPairWebResource.class,
                           FloatingIpWebResource.class,
                           RouterWebResource.class,
-                          ClassifierWebResource.class);
+                          ClassifierWebResource.class,
+                          PortChainSfMapWebResource.class,
+                          PortChainDeviceMapWebResource.class);
     }
 }
 

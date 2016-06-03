@@ -18,13 +18,22 @@ package org.onosproject.driver.extensions;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
+import org.onosproject.net.NshServiceIndex;
+import org.onosproject.net.NshServicePathId;
 import org.onosproject.net.behaviour.ExtensionSelectorResolver;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.criteria.ExtensionSelector;
 import org.onosproject.net.flow.criteria.ExtensionSelectorType;
 import org.onosproject.openflow.controller.ExtensionSelectorInterpreter;
 import org.projectfloodlight.openflow.protocol.OFFactory;
+import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxmEncapEthType;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxmNsi;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxmNsp;
+import org.projectfloodlight.openflow.types.U16;
+import org.projectfloodlight.openflow.types.U32;
+import org.projectfloodlight.openflow.types.U8;
 
 /**
  * Interpreter for Nicira OpenFlow selector extensions.
@@ -53,17 +62,28 @@ public class NiciraExtensionSelectorInterpreter
         if (extensionSelectorType.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_NSH_CH4.type())) {
             return true;
         }
+        if (extensionSelectorType.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_ENCAP_ETH_TYPE
+                                         .type())) {
+            return true;
+        }
         return false;
     }
 
     @Override
     public OFOxm<?> mapSelector(OFFactory factory, ExtensionSelector extensionSelector) {
         ExtensionSelectorType type = extensionSelector.type();
+
         if (type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_NSH_SPI.type())) {
-            // TODO
+            NiciraMatchNshSpi niciraNshSpi = (NiciraMatchNshSpi) extensionSelector;
+            return factory.oxms().nsp(U32.of(niciraNshSpi.nshSpi().servicePathId()));
         }
         if (type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_NSH_SI.type())) {
-            // TODO
+            NiciraMatchNshSi niciraNshSi = (NiciraMatchNshSi) extensionSelector;
+            return factory.oxms().nsi(U8.of(niciraNshSi.nshSi().serviceIndex()));
+        }
+        if (type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_ENCAP_ETH_TYPE.type())) {
+            NiciraMatchEncapEthType niciraEncapEthType = (NiciraMatchEncapEthType) extensionSelector;
+            return factory.oxms().encapEthType(U16.of(niciraEncapEthType.encapEthType()));
         }
         if (type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_NSH_CH1.type())) {
             // TODO
@@ -82,6 +102,20 @@ public class NiciraExtensionSelectorInterpreter
 
     @Override
     public ExtensionSelector mapOxm(OFOxm<?> oxm) {
+
+        if (oxm.getMatchField() == MatchField.NSP) {
+            OFOxmNsp oxmField = (OFOxmNsp) oxm;
+            return new NiciraMatchNshSpi(NshServicePathId.of(oxmField.getValue().getRaw()));
+        }
+        if (oxm.getMatchField() == MatchField.NSI) {
+            OFOxmNsi oxmField = (OFOxmNsi) oxm;
+            return new NiciraMatchNshSi(NshServiceIndex.of(oxmField.getValue().getRaw()));
+        }
+        if (oxm.getMatchField() == MatchField.ENCAP_ETH_TYPE) {
+            OFOxmEncapEthType oxmField = (OFOxmEncapEthType) oxm;
+            return new NiciraMatchEncapEthType(oxmField.getValue().getRaw());
+        }
+
         return null;
     }
 
@@ -92,6 +126,9 @@ public class NiciraExtensionSelectorInterpreter
         }
         if (type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_NSH_SI.type())) {
             return new NiciraMatchNshSi();
+        }
+        if (type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_ENCAP_ETH_TYPE.type())) {
+            return new NiciraMatchEncapEthType();
         }
         if (type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_NSH_CH1.type())
                 || type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_NSH_CH2.type())

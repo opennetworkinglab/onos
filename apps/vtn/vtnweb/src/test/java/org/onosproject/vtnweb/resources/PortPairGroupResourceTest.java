@@ -136,6 +136,10 @@ public class PortPairGroupResourceTest extends VtnResourceTest {
                     Objects.equals(this.portPairGroupId, portPairGroup.portPairGroupId()) &&
                     Objects.equals(this.tenantId, portPairGroup.tenantId());
         }
+
+        @Override
+        public void resetLoad() {
+        }
     }
 
     /**

@@ -80,8 +80,10 @@ public final class FlowClassifierCodec extends JsonCodec<FlowClassifier> {
             resultBuilder.setProtocol(protocol);
         }
 
-        int priority = (json.get(PRIORITY)).asInt();
-        resultBuilder.setPriority(priority);
+        if (json.get(PRIORITY) != null && !(json.get(PRIORITY)).asText().equals("null")) {
+            int priority = (json.get(PRIORITY)).asInt();
+            resultBuilder.setPriority(priority);
+        }
 
         int minSrcPortRange = (json.get(MIN_SRC_PORT_RANGE)).asInt();
         resultBuilder.setMinSrcPortRange(minSrcPortRange);

@@ -16,7 +16,6 @@
 package org.onosproject.vtnrsc;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import org.onosproject.net.DeviceId;
@@ -72,6 +71,13 @@ public interface PortChain {
      * @return list of flow classifiers
      */
     List<FlowClassifierId> flowClassifiers();
+
+    /**
+     * Returns the old port chain.
+     *
+     * @return old port chain
+     */
+    PortChain oldPortChain();
 
     /**
      * Adds a new load balanced path.
@@ -182,7 +188,7 @@ public interface PortChain {
      * @param path load balanced path
      * @return load balance id if the path matches, null otherwise.
      */
-    Optional<LoadBalanceId> matchPath(List<PortPairId> path);
+    LoadBalanceId matchPath(List<PortPairId> path);
 
     /**
      * Returns whether this port chain is an exact match to the port chain given

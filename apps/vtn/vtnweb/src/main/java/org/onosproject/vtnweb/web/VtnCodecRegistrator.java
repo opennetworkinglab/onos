@@ -25,6 +25,7 @@ import org.onosproject.vtnrsc.FlowClassifier;
 import org.onosproject.vtnrsc.PortChain;
 import org.onosproject.vtnrsc.PortPair;
 import org.onosproject.vtnrsc.PortPairGroup;
+import org.onosproject.vtnrsc.ServiceFunctionGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +46,7 @@ public class VtnCodecRegistrator {
         codecService.registerCodec(PortPairGroup.class, new PortPairGroupCodec());
         codecService.registerCodec(FlowClassifier.class, new FlowClassifierCodec());
         codecService.registerCodec(PortChain.class, new PortChainCodec());
-
+        codecService.registerCodec(ServiceFunctionGroup.class, new ServiceFunctionCodec());
         log.info("Started");
     }
 

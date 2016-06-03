@@ -38,6 +38,7 @@ public class ExtensionSelectorType {
         NICIRA_MATCH_NSH_CH2(3),
         NICIRA_MATCH_NSH_CH3(4),
         NICIRA_MATCH_NSH_CH4(5),
+        NICIRA_MATCH_ENCAP_ETH_TYPE(6),
         OFDPA_MATCH_VLAN_VID(16),
         BMV2_MATCH_PARAMS(128);
 

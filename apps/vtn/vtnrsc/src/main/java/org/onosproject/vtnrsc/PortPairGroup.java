@@ -67,6 +67,11 @@ public interface PortPairGroup {
     void addLoad(PortPairId portPairId);
 
     /**
+     * Reset the load for all the port pairs in the group.
+     */
+    void resetLoad();
+
+    /**
      * Get the load on the given port pair id.
      *
      * @param portPairId port pair id
