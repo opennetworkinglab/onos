@@ -45,6 +45,7 @@ import org.onosproject.pcep.controller.PcepClient;
 import org.onosproject.pcep.controller.PcepClientController;
 import org.onosproject.pcep.controller.PcepClientListener;
 import org.onosproject.pcep.controller.PcepEventListener;
+import org.onosproject.pcep.controller.PcepLspStatus;
 import org.onosproject.pcep.controller.PcepNodeListener;
 import org.onosproject.pcep.controller.PcepPacketListener;
 import org.onosproject.pcep.controller.PcepSyncStatus;
