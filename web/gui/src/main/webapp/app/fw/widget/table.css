@@ -57,6 +57,7 @@ div.summary-list td {
 
 div.summary-list td.table-icon {
     padding-left: 4px;
+    text-align: center;
 }
 
 div.summary-list .table-header td {
@@ -93,7 +94,8 @@ div.ctrl-btns div {
 }
 
 div.ctrl-btns div.separator  {
-    cursor: auto;
-    width: 24px;
-    border: none;
+    width: 0;
+    height: 32px;
+    padding: 0;
+    border-right: 1px solid #c7c7c0;
 }

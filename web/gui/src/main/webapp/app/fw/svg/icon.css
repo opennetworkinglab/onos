@@ -41,5 +41,5 @@ svg.embeddedIcon g.icon .glyph {
 }
 
 svg.embeddedIcon .icon.appInactive .glyph {
-    fill: none;
+    fill: none !important;
 }

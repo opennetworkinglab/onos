@@ -16,6 +16,24 @@
 
 /* ------ for summary-list tables (theme) ------ */
 
+.light div.summary-list .table-header td {
+    background-color: #e5e5e6;
+    color: #3c3a3a;
+}
+.dark div.summary-list .table-header td {
+    /* TODO: dark theme */
+    background-color: #e5e5e6;
+    color: #3c3a3a;
+}
+
+.light div.summary-list td {
+    color: #3c3a3a;
+}
+.dark div.summary-list td {
+    /* TODO: dark theme */
+    color: #3c3a3a;
+}
+
 .light div.summary-list tr:nth-child(even) {
     background-color: #f4f4f4;
 }
@@ -40,86 +58,42 @@
     background-color: #dbeffc;
 }
 
-/* highlighting */
 .light div.summary-list tr.data-change {
+    /* todo - theme color */
     background-color: #FDFFDC;
 }
 .dark div.summary-list tr.data-change {
-    background-color: #5A5600;
-}
-
-.light div.summary-list .table-header td {
-    background-color: #e5e5e6;
-    color: #3c3a3a;
-}
-.dark div.summary-list .table-header td {
     /* TODO: dark theme */
-    background-color: #e5e5e6;
-    color: #3c3a3a;
+    background-color: #FDFFDC;
 }
 
-.light div.summary-list td {
-    color: #3c3a3a;
-}
-.dark div.summary-list td {
-    /* TODO: dark theme */
-    color: #3c3a3a;
-}
 
-/* Inactive */
-.light .ctrl-btns div g.icon rect,
-.light .ctrl-btns div:hover g.icon rect {
-    fill: #eee;
-}
-.dark .ctrl-btns div g.icon rect,
-.dark .ctrl-btns div:hover g.icon rect {
-    fill: #222;
-}
+/* --- Control Buttons --- */
 
-.light .ctrl-btns div g.icon use {
-    fill: #ddd;
-}
-.dark .ctrl-btns div g.icon use {
-    fill: #333;
-}
+/* TODO: dark theme */
 
-/* Active hover */
-.light .ctrl-btns div.active:hover g.icon rect {
-    fill: #800;
+.light .ctrl-btns div svg.embeddedIcon g.icon use {
+    fill: #e4eef2;
 }
+/* note: no change for inactive buttons when hovered */
 
-.dark .ctrl-btns div.active:hover g.icon rect {
-    fill: #CE5650;
+.light .ctrl-btns div.active svg.embeddedIcon g.icon use {
+    fill: #939598;
 }
-
-/* Active */
-.light .ctrl-btns div.active g.icon use {
-    fill: #fff;
-}
-.dark .ctrl-btns div.active g.icon use {
-    fill: #eee;
-}
-
-.light .ctrl-btns div.active g.icon rect {
-    fill: #bbb;
-}
-.dark .ctrl-btns div.active g.icon rect {
-    fill: #444;
+.light .ctrl-btns div.active:hover svg.embeddedIcon g.icon use {
+    fill: #ce5b58;
 }
 
 /* Refresh button specific */
-.light .ctrl-btns div.refresh.active g.icon rect {
-    fill: #964949;
+.light .ctrl-btns div.refresh svg.embeddedIcon g.icon use {
+    fill: #cdeff2;
 }
-
-.dark .ctrl-btns div.refresh.active g.icon rect {
-    fill: #9B4641;
+.light .ctrl-btns div.refresh:hover svg.embeddedIcon g.icon use {
+    fill: #ce5b58;
 }
-.light .ctrl-btns div.refresh:hover g.icon rect {
-    fill: #964949;
+.light .ctrl-btns div.refresh.active svg.embeddedIcon g.icon use {
+    fill: #009fdb;
 }
-
-.dark .ctrl-btns div.refresh:hover g.icon rect {
-    fill: #9B4641;
+.light .ctrl-btns div.refresh.active:hover svg.embeddedIcon g.icon use {
+    fill: #ce5b58;
 }
-
