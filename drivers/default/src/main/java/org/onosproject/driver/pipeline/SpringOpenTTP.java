@@ -58,6 +58,7 @@ import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveStore;
@@ -849,7 +850,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
 
     protected List<FlowRule> processVlanIdFilter(VlanIdCriterion vlanIdCriterion,
                                                  FilteringObjective filt,
-                                                 VlanId assignedVlan,
+                                                 VlanId assignedVlan, VlanId explicitlyAssignedVlan, VlanId pushedVlan,
+                                                 boolean pushVlan, boolean popVlan,
                                                  ApplicationId applicationId) {
         List<FlowRule> rules = new ArrayList<>();
         log.debug("adding rule for VLAN: {}", vlanIdCriterion.vlanId());
@@ -861,6 +863,19 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         if (vlanIdCriterion.vlanId() != VlanId.NONE) {
             selector.matchVlanId(vlanIdCriterion.vlanId());
             selector.matchInPort(p.port());
+            if (popVlan) {
+                // Pop outer tag
+                treatment.immediate().popVlan();
+            }
+            if (explicitlyAssignedVlan != null && (!popVlan || !vlanIdCriterion.vlanId().equals(assignedVlan))) {
+                // Modify VLAN ID on single tagged packet or modify remaining tag after popping
+                // In the first case, do not set VLAN ID again to the already existing value
+                treatment.immediate().setVlanId(explicitlyAssignedVlan);
+            }
+            if (pushVlan) {
+                // Push new tag
+                treatment.immediate().pushVlan().setVlanId(pushedVlan);
+            }
         } else {
             selector.matchInPort(p.port());
             treatment.immediate().pushVlan().setVlanId(assignedVlan);
@@ -910,11 +925,61 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         }
 
         VlanId assignedVlan = null;
+        VlanId modifiedVlan = null;
+        VlanId pushedVlan = null;
+        boolean pushVlan = false;
+        boolean popVlan = false;
         if (vlanIdCriterion != null) {
-            // For VLAN cross-connect packets, use the configured VLAN
-            if (vlanIdCriterion.vlanId() != VlanId.NONE) {
-                assignedVlan = vlanIdCriterion.vlanId();
+            if (filt.meta() != null) {
+                for (Instruction i : filt.meta().allInstructions()) {
+                    if (i instanceof L2ModificationInstruction) {
+                        if (((L2ModificationInstruction) i).subtype()
+                                .equals(L2ModificationInstruction.L2SubType.VLAN_PUSH)) {
+                            pushVlan = true;
+                        } else if (((L2ModificationInstruction) i).subtype()
+                                .equals(L2ModificationInstruction.L2SubType.VLAN_POP)) {
+                            if (modifiedVlan != null) {
+                                log.error("Pop tag is not allowed after modify VLAN operation " +
+                                        "in filtering objective", deviceId);
+                                fail(filt, ObjectiveError.BADPARAMS);
+                                return;
+                            }
+                            popVlan = true;
+                        }
+                    }
+                    if (i instanceof ModVlanIdInstruction) {
+                        if (pushVlan && vlanIdCriterion.vlanId() != VlanId.NONE) {
+                            // Modify VLAN should not appear after pushing a new tag
+                            if (pushedVlan != null) {
+                                log.error("Modify VLAN not allowed after push tag operation " +
+                                        "in filtering objective", deviceId);
+                                fail(filt, ObjectiveError.BADPARAMS);
+                                return;
+                            }
+                            pushedVlan = ((ModVlanIdInstruction) i).vlanId();
+                        } else if (vlanIdCriterion.vlanId() == VlanId.NONE) {
+                            // For untagged packets the pushed VLAN ID will be saved in assignedVlan
+                            // just to ensure the driver works as designed for the fabric use case
+                            assignedVlan = ((ModVlanIdInstruction) i).vlanId();
+                        } else {
+                            // For tagged packets modifiedVlan will contain the modified value of existing tag
+                            if (modifiedVlan != null) {
+                                log.error("Driver does not allow multiple modify VLAN operations " +
+                                        "in the same filtering objective", deviceId);
+                                fail(filt, ObjectiveError.BADPARAMS);
+                                return;
+                            }
+                            modifiedVlan = ((ModVlanIdInstruction) i).vlanId();
+                        }
+                    }
+                }
+            }
 
+            // For VLAN cross-connect packets, use the configured VLAN unless there is an explicitly provided VLAN ID
+            if (vlanIdCriterion.vlanId() != VlanId.NONE) {
+                if (assignedVlan == null) {
+                    assignedVlan = vlanIdCriterion.vlanId();
+                }
             // For untagged packets, assign a VLAN ID
             } else {
                 if (filt.meta() == null) {
@@ -923,11 +988,6 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                     fail(filt, ObjectiveError.BADPARAMS);
                     return;
                 }
-                for (Instruction i : filt.meta().allInstructions()) {
-                    if (i instanceof ModVlanIdInstruction) {
-                        assignedVlan = ((ModVlanIdInstruction) i).vlanId();
-                    }
-                }
                 if (assignedVlan == null) {
                     log.error("Driver requires an assigned vlan-id to tag incoming "
                             + "untagged packets. Not processing vlan filters on "
@@ -935,6 +995,21 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                     fail(filt, ObjectiveError.BADPARAMS);
                     return;
                 }
+            }
+            if (pushVlan && popVlan) {
+                log.error("Cannot push and pop vlan in the same filtering objective");
+                fail(filt, ObjectiveError.BADPARAMS);
+                return;
+            }
+            if (popVlan && vlanIdCriterion.vlanId() == VlanId.NONE) {
+                log.error("Cannot pop vlan for untagged packets");
+                fail(filt, ObjectiveError.BADPARAMS);
+                return;
+            }
+            if ((pushVlan && pushedVlan == null) && vlanIdCriterion.vlanId() != VlanId.NONE) {
+                log.error("No VLAN ID provided for push tag operation");
+                fail(filt, ObjectiveError.BADPARAMS);
+                return;
             }
         }
 
@@ -958,7 +1033,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         } else {
             for (FlowRule vlanRule : processVlanIdFilter(vlanIdCriterion,
                                                          filt,
-                                                         assignedVlan,
+                                                         assignedVlan, modifiedVlan, pushedVlan,
+                                                         pushVlan, popVlan,
                                                          applicationId)) {
                 log.debug("adding VLAN filtering rule in VLAN table: {} for dev: {}",
                           vlanRule, deviceId);

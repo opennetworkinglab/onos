@@ -205,7 +205,8 @@ public class SpringOpenTTPDell extends SpringOpenTTP {
     @Override
     protected List<FlowRule> processVlanIdFilter(VlanIdCriterion vlanIdCriterion,
                                                  FilteringObjective filt,
-                                                 VlanId assignedVlan,
+                                                 VlanId assignedVlan, VlanId modifiedVlan, VlanId pushedVlan,
+                                                 boolean popVlan, boolean pushVlan,
                                                  ApplicationId applicationId) {
         log.debug("For now not adding any VLAN rules "
                 + "into Dell switches as it is ignoring");
