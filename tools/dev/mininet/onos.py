@@ -199,9 +199,10 @@ class ONOSNode( Controller ):
 
     # pylint: disable=arguments-differ
 
-    def start( self, env ):
+    def start( self, env, nodes=() ):
         """Start ONOS on node
-           env: environment var dict"""
+           env: environment var dict
+           nodes: all nodes in cluster"""
         env = dict( env )
         self.cmd( 'rm -rf', self.dir )
         self.ONOS_HOME = unpackONOS( self.dir, run=self.ucmd )
@@ -212,7 +213,8 @@ class ONOSNode( Controller ):
         self.cmd( 'export PATH=%s:%s:$PATH' % ( onosbin, karafbin ) )
         self.cmd( 'cd', self.ONOS_HOME )
         self.ucmd( 'mkdir -p config && '
-                   'onos-gen-partitions config/cluster.json' )
+                   'onos-gen-partitions config/cluster.json',
+                   ' '.join( node.IP() for node in nodes ) )
         info( '(starting %s)' % self )
         service = join( self.ONOS_HOME, 'bin/onos-service' )
         self.ucmd( service, 'server 1>../onos.log 2>../onos.log'
@@ -261,7 +263,8 @@ class ONOSNode( Controller ):
 
     def updateEnv( self, envDict ):
         "Update environment variables"
-        cmd = ';'.join( 'export %s="%s"' % ( var, val )
+        cmd = ';'.join( ( 'export %s="%s"' % ( var, val )
+                          if val else 'unset %s' % var )
                         for var, val in envDict.iteritems() )
         self.cmd( cmd )
 
@@ -312,7 +315,7 @@ class ONOSCluster( Controller ):
         info( '*** ONOS_APPS = %s\n' % ONOS_APPS )
         self.net.start()
         for node in self.nodes():
-            node.start( self.env )
+            node.start( self.env, self.nodes() )
         info( '\n' )
         self.configPortForwarding( ports=self.forward, action='A' )
         self.waitStarted()
