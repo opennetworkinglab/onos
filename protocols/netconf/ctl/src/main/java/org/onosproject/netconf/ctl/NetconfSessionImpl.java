@@ -55,7 +55,6 @@ public class NetconfSessionImpl implements NetconfSession {
     private static final String MESSAGE_ID_STRING = "message-id";
     private static final String HELLO = "<hello";
     private static final String NEW_LINE = "\n";
-    private static final String ERROR = "ERROR ";
     private static final String END_OF_RPC_OPEN_TAG = "\">";
     private static final String EQUAL = "=";
     private static final String NUMBER_BETWEEN_QUOTES_MATCHER = "\"+([0-9]+)+\"";
@@ -179,7 +178,8 @@ public class NetconfSessionImpl implements NetconfSession {
             request = request + NEW_LINE + ENDPATTERN;
         }
         String reply = sendRequest(request);
-        return checkReply(reply) ? reply : ERROR + reply;
+        checkReply(reply);
+        return reply;
     }
 
     @Override
