@@ -36,7 +36,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
-import org.onlab.util.Tools;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
 import org.onosproject.net.config.ConfigFactory;
@@ -46,7 +45,6 @@ import org.onosproject.net.config.NetworkConfigStoreDelegate;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
@@ -78,7 +76,6 @@ public class DistributedNetworkConfigStore
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final int MAX_BACKOFF = 10;
     private static final String INVALID_CONFIG_JSON =
             "JSON node does not contain valid configuration";
     private static final String INVALID_JSON_LIST =
@@ -232,9 +229,7 @@ public class DistributedNetworkConfigStore
 
     @Override
     public <S, T extends Config<S>> T getConfig(S subject, Class<T> configClass) {
-        // TODO: need to identify and address the root cause for timeouts.
-        Versioned<JsonNode> json = Tools.retryable(configs::get, ConsistentMapException.class, 1, MAX_BACKOFF)
-                .apply(key(subject, configClass));
+        Versioned<JsonNode> json = configs.get(key(subject, configClass));
         return json != null ? createConfig(subject, configClass, json.value()) : null;
     }
 

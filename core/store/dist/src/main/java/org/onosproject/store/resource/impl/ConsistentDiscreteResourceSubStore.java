@@ -17,7 +17,6 @@ package org.onosproject.store.resource.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.onlab.util.Tools;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.Resource;
@@ -25,7 +24,6 @@ import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceConsumerId;
 import org.onosproject.net.resource.Resources;
 import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TransactionContext;
 import org.onosproject.store.service.Versioned;
@@ -35,8 +33,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static org.onosproject.store.resource.impl.ConsistentResourceStore.MAX_RETRIES;
-import static org.onosproject.store.resource.impl.ConsistentResourceStore.RETRY_DELAY;
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
 
 class ConsistentDiscreteResourceSubStore {
@@ -53,8 +49,7 @@ class ConsistentDiscreteResourceSubStore {
                 .withSerializer(SERIALIZER)
                 .build();
 
-        Tools.retryable(() -> childMap.put(Resource.ROOT.id(), DiscreteResources.empty()),
-                ConsistentMapException.class, MAX_RETRIES, RETRY_DELAY);
+        childMap.put(Resource.ROOT.id(), DiscreteResources.empty());
     }
 
     TransactionalDiscreteResourceSubStore transactional(TransactionContext tx) {

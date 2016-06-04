@@ -42,7 +42,6 @@ import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.StoreSerializer;
 import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.osgi.service.component.ComponentContext;
@@ -60,7 +59,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onlab.util.Tools.retryable;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -206,9 +204,7 @@ public class DistributedPacketStore
         }
 
         private void add(PacketRequest request) {
-            AtomicBoolean firstRequest =
-                    retryable(this::addInternal, ConsistentMapException.ConcurrentModification.class,
-                              Integer.MAX_VALUE, MAX_BACKOFF).apply(request);
+            AtomicBoolean firstRequest = addInternal(request);
             if (firstRequest.get() && delegate != null) {
                 // The instance that makes the first request will push to all devices
                 delegate.requestPackets(request);
@@ -234,9 +230,7 @@ public class DistributedPacketStore
         }
 
         private void remove(PacketRequest request) {
-            AtomicBoolean removedLast =
-                    retryable(this::removeInternal, ConsistentMapException.ConcurrentModification.class,
-                              Integer.MAX_VALUE, MAX_BACKOFF).apply(request);
+            AtomicBoolean removedLast = removeInternal(request);
             if (removedLast.get() && delegate != null) {
                 // The instance that removes the last request will remove from all devices
                 delegate.cancelPackets(request);
