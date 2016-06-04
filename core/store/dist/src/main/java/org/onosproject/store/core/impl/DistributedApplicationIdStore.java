@@ -17,27 +17,30 @@ package org.onosproject.store.core.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+
 import java.util.Map;
 import java.util.Set;
+
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.KryoNamespace;
-import org.onlab.util.Tools;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.ApplicationIdStore;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.MapEvent;
+import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
-import org.onosproject.store.service.StorageException;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
+
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -48,7 +51,7 @@ import com.google.common.collect.Maps;
  */
 @Component(immediate = true, enabled = true)
 @Service
-public class ConsistentApplicationIdStore implements ApplicationIdStore {
+public class DistributedApplicationIdStore implements ApplicationIdStore {
 
     private final Logger log = getLogger(getClass());
 
@@ -57,13 +60,12 @@ public class ConsistentApplicationIdStore implements ApplicationIdStore {
 
     private AtomicCounter appIdCounter;
     private ConsistentMap<String, ApplicationId> registeredIds;
-    private Map<String, ApplicationId> nameToAppIdCache = Maps.newConcurrentMap();
     private Map<Short, ApplicationId> idToAppIdCache = Maps.newConcurrentMap();
-
-    private static final Serializer SERIALIZER = Serializer.using(new KryoNamespace.Builder()
-                                                                        .register(KryoNamespaces.API)
-                                                                        .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
-                                                                        .build());
+    private MapEventListener<String, ApplicationId> mapEventListener = event -> {
+        if (event.type() == MapEvent.Type.INSERT) {
+            idToAppIdCache.put(event.newValue().value().id(), event.newValue().value());
+        }
+    };
 
     @Activate
     public void activate() {
@@ -71,75 +73,50 @@ public class ConsistentApplicationIdStore implements ApplicationIdStore {
 
         registeredIds = storageService.<String, ApplicationId>consistentMapBuilder()
                 .withName("onos-app-ids")
-                .withSerializer(SERIALIZER)
+                .withSerializer(Serializer.using(KryoNamespaces.API))
+                .withRelaxedReadConsistency()
                 .build();
 
-        primeAppIds();
+        primeIdToAppIdCache();
+        registeredIds.addListener(mapEventListener);
 
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        registeredIds.removeListener(mapEventListener);
         log.info("Stopped");
     }
 
     @Override
     public Set<ApplicationId> getAppIds() {
-        // TODO: Rework this when we have notification support in ConsistentMap.
-        primeAppIds();
-        return ImmutableSet.copyOf(nameToAppIdCache.values());
+        return ImmutableSet.copyOf(registeredIds.asJavaMap().values());
     }
 
     @Override
     public ApplicationId getAppId(Short id) {
         if (!idToAppIdCache.containsKey(id)) {
-            primeAppIds();
+            primeIdToAppIdCache();
         }
         return idToAppIdCache.get(id);
     }
 
     @Override
     public ApplicationId getAppId(String name) {
-        ApplicationId appId = nameToAppIdCache.computeIfAbsent(name, key -> {
-            Versioned<ApplicationId> existingAppId = registeredIds.get(key);
-            return existingAppId != null ? existingAppId.value() : null;
-        });
-        if (appId != null) {
-            idToAppIdCache.putIfAbsent(appId.id(), appId);
-        }
-        return appId;
+        return registeredIds.asJavaMap().get(name);
     }
 
     @Override
     public ApplicationId registerApplication(String name) {
-        ApplicationId appId = nameToAppIdCache.computeIfAbsent(name, key -> {
-            Versioned<ApplicationId> existingAppId = registeredIds.get(name);
-            if (existingAppId == null) {
-                int id = Tools.retryable(appIdCounter::incrementAndGet, StorageException.class, 1, 2000)
-                              .get()
-                              .intValue();
-                DefaultApplicationId newAppId = new DefaultApplicationId(id, name);
-                existingAppId = registeredIds.putIfAbsent(name, newAppId);
-                if (existingAppId != null) {
-                    return existingAppId.value();
-                } else {
-                    return newAppId;
-                }
-            } else {
-                return existingAppId.value();
-            }
-        });
-        idToAppIdCache.putIfAbsent(appId.id(), appId);
-        return appId;
+        return Versioned.valueOrNull(registeredIds.computeIfAbsent(name,
+                key -> new DefaultApplicationId((int) appIdCounter.incrementAndGet(), name)));
     }
 
-    private void primeAppIds() {
-        registeredIds.values()
-                     .stream()
-                     .map(Versioned::value)
+    private void primeIdToAppIdCache() {
+        registeredIds.asJavaMap()
+                     .values()
                      .forEach(appId -> {
-                         nameToAppIdCache.putIfAbsent(appId.name(), appId);
                          idToAppIdCache.putIfAbsent(appId.id(), appId);
                      });
     }

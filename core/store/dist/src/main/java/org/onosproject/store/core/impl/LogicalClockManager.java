@@ -34,7 +34,7 @@ import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.CLOCK_WRITE;
 
 /**
- * LogicalClockService implementation based on a AtomicCounter.
+ * LogicalClockService implementation based on a {@link AtomicCounter}.
  */
 @Component(immediate = true, enabled = true)
 @Service

@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementation of a distributed mastership store using Hazelcast.
+ * Implementation of a distributed mastership store.
  */
 package org.onosproject.store.mastership.impl;

@@ -15,8 +15,6 @@
  */
 
 /**
- * Cluster messaging and distributed store serializers.
+ * Distributed store serializers.
  */
-//FIXME what is the right name for this package?
-//FIXME can this be moved to onos-core-serializers?
 package org.onosproject.store.serializers.custom;

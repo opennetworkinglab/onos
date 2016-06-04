@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementation of a distributed cluster node store using Hazelcast.
+ * Implementation of a distributed cluster membership store and failure detector.
  */
 package org.onosproject.store.cluster.impl;

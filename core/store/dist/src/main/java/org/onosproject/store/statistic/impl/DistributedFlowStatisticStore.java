@@ -17,6 +17,7 @@
 package org.onosproject.store.statistic.impl;
 
 import com.google.common.base.Objects;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -38,6 +39,7 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.statistic.FlowStatisticStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.StoreSerializer;
 import org.osgi.service.component.ComponentContext;
@@ -59,8 +61,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.store.statistic.impl.StatisticStoreMessageSubjects.GET_CURRENT;
-import static org.onosproject.store.statistic.impl.StatisticStoreMessageSubjects.GET_PREVIOUS;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -88,6 +88,9 @@ public class DistributedFlowStatisticStore implements FlowStatisticStore {
 
     private Map<ConnectPoint, Set<FlowEntry>> current =
             new ConcurrentHashMap<>();
+
+    public static final MessageSubject GET_CURRENT = new MessageSubject("peer-return-current");
+    public static final MessageSubject GET_PREVIOUS = new MessageSubject("peer-return-previous");
 
     protected static final StoreSerializer SERIALIZER = StoreSerializer.using(KryoNamespaces.API);
 

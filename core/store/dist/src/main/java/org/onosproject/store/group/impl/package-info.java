@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 /**
- * Implementation of the group store.
+ * Implementation of a distributed group store.
  */
 package org.onosproject.store.group.impl;
