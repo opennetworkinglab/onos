@@ -70,7 +70,7 @@ public final class BgpDpid {
     /*
      * Get iso node ID in specified string format.
      */
-    private String isoNodeIdString(byte[] isoNodeId) {
+    public String isoNodeIdString(byte[] isoNodeId) {
         if (isoNodeId != null) {
             return String.format("%02x%02x.%02x%02x.%02x%02x", isoNodeId[0], isoNodeId[1],
                                  isoNodeId[2], isoNodeId[3],

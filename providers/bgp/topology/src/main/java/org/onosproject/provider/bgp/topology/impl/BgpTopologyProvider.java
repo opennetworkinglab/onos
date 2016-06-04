@@ -243,13 +243,15 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
                 if (tlv.getType() == NodeDescriptors.IGP_ROUTERID_TYPE) {
                     if (tlv instanceof IsIsPseudonode) {
                         deviceType = VIRTUAL;
-                        newBuilder.set(AnnotationKeys.ROUTER_ID, new String(((IsIsPseudonode) tlv).getIsoNodeId()));
+                        newBuilder.set(AnnotationKeys.ROUTER_ID, nodeUri.isoNodeIdString(((IsIsPseudonode) tlv)
+                                .getIsoNodeId()));
                     } else if (tlv instanceof OspfPseudonode) {
                         deviceType = VIRTUAL;
                         newBuilder
                                 .set(AnnotationKeys.ROUTER_ID, Integer.toString(((OspfPseudonode) tlv).getrouterID()));
                     } else if (tlv instanceof IsIsNonPseudonode) {
-                        newBuilder.set(AnnotationKeys.ROUTER_ID, new String(((IsIsNonPseudonode) tlv).getIsoNodeId()));
+                        newBuilder.set(AnnotationKeys.ROUTER_ID, nodeUri.isoNodeIdString(((IsIsNonPseudonode) tlv)
+                                .getIsoNodeId()));
                     } else if (tlv instanceof OspfNonPseudonode) {
                         newBuilder.set(AnnotationKeys.ROUTER_ID,
                                 Integer.toString(((OspfNonPseudonode) tlv).getrouterID()));
