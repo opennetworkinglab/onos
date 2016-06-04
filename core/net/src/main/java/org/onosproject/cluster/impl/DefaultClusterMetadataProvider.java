@@ -71,14 +71,12 @@ public class DefaultClusterMetadataProvider implements ClusterMetadataProvider {
         String localIp = getSiteLocalAddress();
         ControllerNode localNode =
                 new DefaultControllerNode(new NodeId(localIp), IpAddress.valueOf(localIp), DEFAULT_ONOS_PORT);
-        // p0 partition
-        Partition basePartition = new DefaultPartition(PartitionId.from(0), ImmutableSet.of(localNode.id()));
-        // p1 partition
-        Partition extendedPartition = new DefaultPartition(PartitionId.from(1), ImmutableSet.of(localNode.id()));
+        // partition 1
+        Partition partition = new DefaultPartition(PartitionId.from(1), ImmutableSet.of(localNode.id()));
         ClusterMetadata metadata = new ClusterMetadata(PROVIDER_ID,
                                         "default",
                                         ImmutableSet.of(localNode),
-                                        ImmutableSet.of(basePartition, extendedPartition));
+                                        ImmutableSet.of(partition));
         long version = System.currentTimeMillis();
         cachedMetadata.set(new Versioned<>(metadata, version));
         providerRegistry.register(this);
