@@ -55,7 +55,7 @@ if __name__ == '__main__':
          }
   output = json.dumps(data, indent=4)
 
-  if len(sys.argv) == 2:
+  if len(sys.argv) >= 2 and sys.argv[1] != '-':
     filename = sys.argv[1]
     with open(filename, 'w') as f:
       f.write(output)
