@@ -151,7 +151,7 @@ cat > $STAGE/config/cluster.json <<EOF
 {
   "name": "default",
   "nodes": [ {"id": "$IP", "ip": "$IP", "port": 9876 } ],
-  "partitions": [ { "id": 0, "members": [ "$IP" ] }, { "id": 1, "members": [ "$IP" ] } ]
+  "partitions": [ { "id": 1, "members": [ "$IP" ] } ]
 }
 EOF
 

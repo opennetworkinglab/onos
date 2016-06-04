@@ -90,7 +90,6 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
         currentClusterMetadata.get()
                        .getPartitions()
                        .stream()
-                       .filter(partition -> !partition.getId().equals(PartitionId.from(0))) // exclude p0
                        .forEach(partition -> partitions.put(partition.getId(), new StoragePartition(partition,
                                messagingService,
                                clusterService,
