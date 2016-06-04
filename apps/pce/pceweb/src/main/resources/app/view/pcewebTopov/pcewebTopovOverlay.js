@@ -168,6 +168,29 @@
             },
             multi: function (selectOrder) {
                 selectionCallback(selectOrder);
+            },
+            modifylinkdata: function (data, extra) {
+                $log.debug("Modify link data", data, extra);
+
+                function sep() {
+                    data.propOrder.push('-');
+                }
+
+                function add(key) {
+                    var val = extra[key];
+                    if (val !== undefined) {
+                        data.propOrder.push(key);
+                        data.props[key] = val;
+                    }
+                }
+
+                sep();
+                add('Src port');
+                add('Dst port');
+                add('Te metric');
+                add('Bandwidth');
+
+                return data;
             }
         }
     };
