@@ -236,8 +236,10 @@ public class PcepClientControllerImpl implements PcepClientController {
                 ListIterator<PcepStateReport> listIterator = ((PcepReportMsg) msg).getStateReportList().listIterator();
                 while (listIterator.hasNext()) {
                     PcepStateReport stateRpt = listIterator.next();
-                    if (stateRpt.getLspObject().getSFlag()) {
+                    PcepLspObject lspObj = stateRpt.getLspObject();
+                    if (lspObj.getSFlag()) {
                         if (pc.lspDbSyncStatus() != PcepSyncStatus.IN_SYNC) {
+                            log.debug("LSP DB sync started for PCC {}", pc.getPccId().id().toString());
                             // Initialize LSP DB sync and temporary cache.
                             pc.setLspDbSyncStatus(PcepSyncStatus.IN_SYNC);
                             pc.initializeSyncMsgList(pccId);
@@ -247,13 +249,16 @@ public class PcepClientControllerImpl implements PcepClientController {
 
                         // Don't send to provider as of now.
                         continue;
-                    } else {
-                        if (pc.lspDbSyncStatus() == PcepSyncStatus.IN_SYNC) {
+                    } else if (lspObj.getPlspId() == 0) {
+                        if (pc.lspDbSyncStatus() == PcepSyncStatus.IN_SYNC
+                                || pc.lspDbSyncStatus() == PcepSyncStatus.NOT_SYNCED) {
                             // Set end of LSPDB sync.
+                            log.debug("LSP DB sync completed for PCC {}", pc.getPccId().id().toString());
                             pc.setLspDbSyncStatus(PcepSyncStatus.SYNCED);
 
                             // Call packet provider to initiate label DB sync (only if PCECC capable).
                             if (pc.capability().pceccCapability()) {
+                                log.debug("Trigger label DB sync for PCC {}", pc.getPccId().id().toString());
                                 pc.setLabelDbSyncStatus(IN_SYNC);
                                 for (PcepPacketListener l : pcepPacketListener) {
                                     l.sendPacketIn(pccId);

@@ -1281,6 +1281,9 @@ public class PceManager implements PceService {
                                            LabelResourceId.labelResourceId(0),
                                            IpPrefix.valueOf(END_OF_SYNC_IP_PREFIX),
                                            Objective.Operation.ADD, true);
+
+        log.debug("End of label DB sync for device {}", deviceId);
+
         if (mastershipService.getLocalRole(specificDevice.id()) == MastershipRole.MASTER) {
             // Allocate node-label to this specific device.
             allocateNodeLabel(specificDevice);
@@ -1304,6 +1307,7 @@ public class PceManager implements PceService {
         public void process(PacketContext context) {
             // Stop processing if the packet has been handled, since we
             // can't do any more to it.
+            log.debug("Received trigger for label DB sync.");
             if (context.isHandled()) {
                 return;
             }

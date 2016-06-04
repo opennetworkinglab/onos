@@ -177,18 +177,23 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
                          * The socket IP is stored in channel.
                          */
                         LinkedList<PcepValueType> optionalTlvs = pOpenmsg.getPcepOpenObject().getOptionalTlv();
-                        for (PcepValueType optionalTlv : optionalTlvs) {
-                            if (optionalTlv instanceof NodeAttributesTlv) {
-                                List<PcepValueType> subTlvs = ((NodeAttributesTlv) optionalTlv)
-                                        .getllNodeAttributesSubTLVs();
-                                for (PcepValueType subTlv : subTlvs) {
-                                    if (subTlv instanceof IPv4RouterIdOfLocalNodeSubTlv) {
-                                        h.thispccId = PccId.pccId(IpAddress
-                                                .valueOf(((IPv4RouterIdOfLocalNodeSubTlv) subTlv).getInt()));
+                        if (optionalTlvs != null) {
+                            for (PcepValueType optionalTlv : optionalTlvs) {
+                                if (optionalTlv instanceof NodeAttributesTlv) {
+                                    List<PcepValueType> subTlvs = ((NodeAttributesTlv) optionalTlv)
+                                            .getllNodeAttributesSubTLVs();
+                                    if (subTlvs == null) {
                                         break;
                                     }
+                                    for (PcepValueType subTlv : subTlvs) {
+                                        if (subTlv instanceof IPv4RouterIdOfLocalNodeSubTlv) {
+                                            h.thispccId = PccId.pccId(IpAddress
+                                                    .valueOf(((IPv4RouterIdOfLocalNodeSubTlv) subTlv).getInt()));
+                                            break;
+                                        }
+                                    }
+                                    break;
                                 }
-                                break;
                             }
                         }
 

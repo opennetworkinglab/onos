@@ -107,6 +107,7 @@ public class PcepPacketProvider extends AbstractProvider implements PacketProvid
             }
 
             if (pccDeviceId == null) {
+                log.error("Device not found to perform label DB sync.");
                 return;
             }
 

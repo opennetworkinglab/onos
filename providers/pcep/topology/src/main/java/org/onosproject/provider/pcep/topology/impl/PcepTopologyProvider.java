@@ -141,7 +141,7 @@ public class PcepTopologyProvider extends AbstractProvider
 
     private final ConfigFactory<DeviceId, DeviceCapability> configFactory =
             new ConfigFactory<DeviceId, DeviceCapability>(SubjectFactories.DEVICE_SUBJECT_FACTORY,
-                    DeviceCapability.class, "deviceCapability", true) {
+                    DeviceCapability.class, "deviceCapability", false) {
                 @Override
                 public DeviceCapability createConfig() {
                     return new DeviceCapability();
