@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementation of the distributed host store using p2p synchronization protocol.
+ * Implementation of a distributed host store.
  */
 package org.onosproject.store.host.impl;

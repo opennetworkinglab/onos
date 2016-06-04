@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementation of distributed link store using p2p synchronization protocol.
+ * Implementation of distributed link store using eventually consistent map primitive.
  */
 package org.onosproject.store.link.impl;

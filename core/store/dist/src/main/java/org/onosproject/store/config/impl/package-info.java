@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementation of the network configuration distributed store.
+ * Implementation of the distributed network configuration store.
  */
 package org.onosproject.store.config.impl;

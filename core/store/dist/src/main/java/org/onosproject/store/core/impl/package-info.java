@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementation of a distributed application ID registry store using Hazelcast.
+ * Implementation of a distributed application registry.
  */
 package org.onosproject.store.core.impl;

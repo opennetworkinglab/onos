@@ -38,6 +38,7 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.statistic.StatisticStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.StoreSerializer;
 import org.osgi.service.component.ComponentContext;
@@ -59,8 +60,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.store.statistic.impl.StatisticStoreMessageSubjects.GET_CURRENT;
-import static org.onosproject.store.statistic.impl.StatisticStoreMessageSubjects.GET_PREVIOUS;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -84,6 +83,9 @@ public class DistributedStatisticStore implements StatisticStore {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
+
+    public static final MessageSubject GET_CURRENT = new MessageSubject("peer-return-current");
+    public static final MessageSubject GET_PREVIOUS = new MessageSubject("peer-return-previous");
 
     private Map<ConnectPoint, InternalStatisticRepresentation> representations =
             new ConcurrentHashMap<>();

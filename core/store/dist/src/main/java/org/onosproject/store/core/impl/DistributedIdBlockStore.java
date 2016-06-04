@@ -38,7 +38,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true, enabled = true)
 @Service
-public class ConsistentIdBlockStore implements IdBlockStore {
+public class DistributedIdBlockStore implements IdBlockStore {
 
     private final Logger log = getLogger(getClass());
     private final Map<String, AtomicCounter> topicCounters = Maps.newConcurrentMap();
