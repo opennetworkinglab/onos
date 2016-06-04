@@ -33,7 +33,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
-import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ClusterService;
@@ -70,7 +69,6 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.provider.lldpcommon.LinkDiscovery;
 import org.onosproject.provider.lldpcommon.LinkDiscoveryContext;
-import org.onosproject.store.service.ConsistentMapException;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -252,14 +250,10 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
         cfgRegistry.addListener(cfgListener);
         factories.forEach(cfgRegistry::registerConfigFactory);
 
-        SuppressionConfig cfg =
-                Tools.retryable(() -> cfgRegistry.getConfig(appId, SuppressionConfig.class),
-                                ConsistentMapException.class, MAX_RETRIES, RETRY_DELAY).get();
+        SuppressionConfig cfg = cfgRegistry.getConfig(appId, SuppressionConfig.class);
         if (cfg == null) {
             // If no configuration is found, register default.
-            cfg = Tools.retryable(this::setDefaultSuppressionConfig,
-                                  ConsistentMapException.class,
-                                  MAX_RETRIES, RETRY_DELAY).get();
+            cfg = this.setDefaultSuppressionConfig();
         }
         cfgListener.reconfigureSuppressionRules(cfg);
 
