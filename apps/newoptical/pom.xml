@@ -34,8 +34,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <onos.app.name>org.onosproject.newoptical</onos.app.name>
         <onos.app.category>Traffic Steering</onos.app.category>
-        <onos.app.url>http://onosproject.org</onos.app.url>
-        <onos.app.origin>Open Networking Lab</onos.app.origin>
+        <onos.app.url>https://wiki.onosproject.org/display/ONOS/Packet+Optical+Convergence</onos.app.url>
+        <onos.app.origin>ON.Lab</onos.app.origin>
     </properties>
 
     <dependencies>
