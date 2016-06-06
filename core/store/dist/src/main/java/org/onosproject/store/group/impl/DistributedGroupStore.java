@@ -755,6 +755,9 @@ public class DistributedGroupStore
                 existing.state());
         synchronized (existing) {
             existing.setState(GroupState.PENDING_DELETE);
+            getGroupStoreKeyMap().
+                    put(new GroupStoreKeyMapKey(existing.deviceId(), existing.appCookie()),
+                        existing);
         }
         log.debug("deleteGroupDescriptionInternal: in device {} issuing GROUP_REMOVE_REQUESTED",
                   deviceId);
