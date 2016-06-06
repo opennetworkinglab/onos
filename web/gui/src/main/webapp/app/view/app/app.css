@@ -49,7 +49,8 @@
 }
 
 #application-details-panel .container {
-    padding: 0 10px;
+    padding: 0 30px;
+    overflow-y: scroll;
 }
 
 #application-details-panel .close-btn {
@@ -67,11 +68,12 @@
 
 #application-details-panel h2 {
     display: inline-block;
-    margin: 8px 0;
+    margin: 12px 0 6px 0;
     font-size: 15pt;
     font-variant: small-caps;
     text-transform: uppercase;
 }
+
 
 #application-details-panel .top .app-title {
     width: 90%;
@@ -80,12 +82,14 @@
     font-weight: lighter;
     overflow: hidden;
     white-space: nowrap;
-    padding: 0 12px 0 0;
+    padding: 0 12px 0 2px;
+    margin-top: 19px;
+    margin-bottom: 5px;
 }
 
 #application-details-panel .top div.left {
     float: left;
-    padding: 12px 12px 0 4px;
+    padding: 12px 12px 0 3px;
 }
 #application-details-panel .top div.right {
     display: inline-block;
@@ -112,11 +116,15 @@
 
 #application-details-panel hr {
     width: 100%;
-    margin: 6px auto;
+    margin: 12px auto;
 }
 
-#application-details-panel .container {
-    overflow-y: scroll;
+#application-details-panel .middle {
+    padding: 7px 0 7px 6px;
+}
+
+#application-details-panel .bottom {
+    padding: 12px 0 0 6px;
 }
 
 #application-details-panel .bottom table {
@@ -125,7 +133,8 @@
 }
 
 #application-details-panel .bottom td {
-    padding: 6px 12px;
+    margin-left: -6px;
+    padding: 6px 6px;
     text-align: left;
 }
 
