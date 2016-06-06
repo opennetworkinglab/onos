@@ -34,7 +34,7 @@ import static org.onosproject.net.PortNumber.portNumber;
  */
 @Command(scope = "onos", name = "get-stats",
          description = "Fetches stats for a connection point")
-public class GetStatistics extends AbstractShellCommand {
+public class GetStatisticsCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "connectPoint",
               description = "Device/Port Description",

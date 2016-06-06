@@ -186,13 +186,13 @@
             </completers>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.AddMeter"/>
+            <action class="org.onosproject.cli.net.AddMeterCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
             </completers>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.Meters"/>
+            <action class="org.onosproject.cli.net.MetersListCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
             </completers>
@@ -298,13 +298,13 @@
             </optional-completers>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.GetStatistics"/>
+            <action class="org.onosproject.cli.net.GetStatisticsCommand"/>
             <completers>
                 <ref component-id="connectPointCompleter"/>
             </completers>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.GetFlowStatistics"/>
+            <action class="org.onosproject.cli.net.GetFlowStatisticsCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
             </completers>

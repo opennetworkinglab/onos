@@ -30,11 +30,11 @@ import org.onosproject.net.meter.MeterService;
 import java.util.Collections;
 
 /**
- * Add a meter.
+ * Add a meter to a device.
  */
 @Command(scope = "onos", name = "add-meter",
         description = "Adds a meter to a device (currently for testing)")
-public class AddMeter extends AbstractShellCommand {
+public class AddMeterCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = true, multiValued = false)

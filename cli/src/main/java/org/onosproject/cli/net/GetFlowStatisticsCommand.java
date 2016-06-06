@@ -43,7 +43,7 @@ import static org.onosproject.net.PortNumber.portNumber;
  */
 @Command(scope = "onos", name = "get-flow-stats",
         description = "Fetches flow stats for a connection point with given flow type and instruction type")
-public class GetFlowStatistics extends AbstractShellCommand {
+public class GetFlowStatisticsCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "devicePort",
             description = "Device[/Port] connectPoint Description",
             required = true, multiValued = false)
