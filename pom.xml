@@ -53,6 +53,8 @@
     </licenses>
 
     <modules>
+        <module>lib</module>
+
         <module>utils</module>
         <module>core</module>
         <module>web</module>
