@@ -19,39 +19,28 @@
  */
 
 
-.light #ov-flow .current-view use {
-    fill: white;
-}
-.dark #ov-flow .current-view use {
-    fill: #304860;
-}
-
-.light #ov-flow .current-view rect {
-    fill: deepskyblue;
-}
-.dark #ov-flow .current-view rect {
-    fill: #eee;
-}
-
+/* a "logical" row is made up of 3 "physical" rows -- color as such */
 .light #ov-flow tr:nth-child(6n + 1),
 .light #ov-flow tr:nth-child(6n + 2),
 .light #ov-flow tr:nth-child(6n + 3) {
-    background-color: #eee;
+    background-color: #fbfbfb;
 }
 .light #ov-flow tr:nth-child(6n + 4),
 .light #ov-flow tr:nth-child(6n + 5),
 .light #ov-flow tr:nth-child(6n) {
-    background-color: #ddd;
+    background-color: #f4f4f4;
 }
 .dark #ov-flow tr:nth-child(6n + 1),
 .dark #ov-flow tr:nth-child(6n + 2),
 .dark #ov-flow tr:nth-child(6n + 3) {
-    background-color: #444;
+    /* TODO: dark theme */
+    background-color: #fbfbfb;
 }
 .dark #ov-flow tr:nth-child(6n + 4),
 .dark #ov-flow tr:nth-child(6n + 5),
 .dark #ov-flow tr:nth-child(6n) {
-    background-color: #333;
+    /* TODO: dark theme */
+    background-color: #f4f4f4;
 }
 
 /* highlighted color */
@@ -61,7 +50,8 @@
 .light #ov-flow tr:nth-child(6n + 4).data-change,
 .light #ov-flow tr:nth-child(6n + 5).data-change,
 .light #ov-flow tr:nth-child(6n).data-change {
-    background-color: #FDFFDC;
+    /* TODO: theme */
+    background-color: #fdffdc;
 }
 .dark #ov-flow tr:nth-child(6n + 1).data-change,
 .dark #ov-flow tr:nth-child(6n + 2).data-change,
@@ -69,7 +59,8 @@
 .dark #ov-flow tr:nth-child(6n + 4).data-change,
 .dark #ov-flow tr:nth-child(6n + 5).data-change,
 .dark #ov-flow tr:nth-child(6n).data-change {
-    background-color: #5A5600;
+    /* TODO: dark theme */
+    background-color: #fdffdc;
 }
 
 #ov-flow td.selector,

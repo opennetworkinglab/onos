@@ -18,35 +18,25 @@
  ONOS GUI -- Group View (theme) -- CSS file
  */
 
-.light #ov-group .current-view use {
-    fill: white;
-}
-.dark #ov-group .current-view use {
-    fill: #304860;
-}
-
-.light #ov-group .current-view rect {
-    fill: deepskyblue;
-}
-.dark #ov-group .current-view rect {
-    fill: #eee;
-}
-
+/* a "logical" row is made up of 2 "physical" rows -- color as such */
 .light #ov-group tr:nth-child(4n + 1),
 .light #ov-group tr:nth-child(4n + 2) {
-    background-color: #eee;
+    background-color: #fbfbfb;
 }
 .light #ov-group tr:nth-child(4n + 3),
 .light #ov-group tr:nth-child(4n) {
-    background-color: #ddd;
+    background-color: #f4f4f4;
 }
+
 .dark #ov-group tr:nth-child(4n + 1),
 .dark #ov-group tr:nth-child(4n + 2) {
-    background-color: #444;
+    /* TODO: dark theme */
+    background-color: #fbfbfb;
 }
 .dark #ov-group tr:nth-child(4n + 3),
 .dark #ov-group tr:nth-child(4n) {
-    background-color: #333;
+    /* TODO: dark theme */
+    background-color: #f4f4f4;
 }
 
 /* highlighted color */
@@ -54,11 +44,13 @@
 .light #ov-group tr:nth-child(4n + 2).data-change,
 .light #ov-group tr:nth-child(4n + 3).data-change,
 .light #ov-group tr:nth-child(4n).data-change {
-    background-color: #FDFFDC;
+    /* TODO: theme */
+    background-color: #fdffdc;
 }
 .dark #ov-group tr:nth-child(4n + 1).data-change,
 .dark #ov-group tr:nth-child(4n + 2).data-change,
 .dark #ov-group tr:nth-child(4n + 3).data-change,
 .dark #ov-group tr:nth-child(4n).data-change {
-    background-color: #5A5600;
+    /* TODO: dark theme */
+    background-color: #fdffdc;
 }

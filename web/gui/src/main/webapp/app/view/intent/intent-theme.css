@@ -18,25 +18,28 @@
  ONOS GUI -- Intent View (theme) -- CSS file
  */
 
+/* a "logical" row is made up of 3 "physical" rows -- color as such */
 .light #ov-intent tr:nth-child(6n + 1),
 .light #ov-intent tr:nth-child(6n + 2),
 .light #ov-intent tr:nth-child(6n + 3) {
-    background-color: #eee;
+    background-color: #fbfbfb;
 }
 .light #ov-intent tr:nth-child(6n + 4),
 .light #ov-intent tr:nth-child(6n + 5),
 .light #ov-intent tr:nth-child(6n) {
-    background-color: #ddd;
+    background-color: #f4f4f4;
 }
 .dark #ov-intent tr:nth-child(6n + 1),
 .dark #ov-intent tr:nth-child(6n + 2),
 .dark #ov-intent tr:nth-child(6n + 3) {
-    background-color: #444;
+    /* TODO: dark theme */
+    background-color: #fbfbfb;
 }
 .dark #ov-intent tr:nth-child(6n + 4),
 .dark #ov-intent tr:nth-child(6n + 5),
 .dark #ov-intent tr:nth-child(6n) {
-    background-color: #333;
+    /* TODO: dark theme */
+    background-color: #f4f4f4;
 }
 
 .light #ov-intent tr:nth-child(6n + 1).data-change,
@@ -45,7 +48,8 @@
 .light #ov-intent tr:nth-child(6n + 4).data-change,
 .light #ov-intent tr:nth-child(6n + 5).data-change,
 .light #ov-intent tr:nth-child(6n).data-change {
-    background-color: #FDFFDC;
+    /* TODO: theme */
+    background-color: #fdffdc;
 }
 .dark #ov-intent tr:nth-child(6n + 1).data-change,
 .dark #ov-intent tr:nth-child(6n + 2).data-change,
@@ -53,7 +57,8 @@
 .dark #ov-intent tr:nth-child(6n + 4).data-change,
 .dark #ov-intent tr:nth-child(6n + 5).data-change,
 .dark #ov-intent tr:nth-child(6n).data-change {
-    background-color: #5A5600;
+    /* TODO: dark theme */
+    background-color: #fdffdc;
 }
 
 #ov-intent td.resources,

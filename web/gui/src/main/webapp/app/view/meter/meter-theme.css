@@ -18,35 +18,24 @@
  ONOS GUI -- Meter View (theme) -- CSS file
  */
 
-.light #ov-meter .current-view use {
-    fill: white;
-}
-.dark #ov-meter .current-view use {
-    fill: #304860;
-}
-
-.light #ov-meter .current-view rect {
-    fill: deepskyblue;
-}
-.dark #ov-meter .current-view rect {
-    fill: #eee;
-}
-
+/* a "logical" row is made up of 2 "physical" rows -- color as such */
 .light #ov-meter tr:nth-child(4n + 1),
 .light #ov-meter tr:nth-child(4n + 2) {
-    background-color: #eee;
+    background-color: #fbfbfb;
 }
 .light #ov-meter tr:nth-child(4n + 3),
 .light #ov-meter tr:nth-child(4n) {
-    background-color: #ddd;
+    background-color: #f4f4f4;
 }
 .dark #ov-meter tr:nth-child(4n + 1),
 .dark #ov-meter tr:nth-child(4n + 2) {
-    background-color: #444;
+    /* TODO: dark theme */
+    background-color: #fbfbfb;
 }
 .dark #ov-meter tr:nth-child(4n + 3),
 .dark #ov-meter tr:nth-child(4n) {
-    background-color: #333;
+    /* TODO: dark theme */
+    background-color: #f4f4f4;
 }
 
 /* highlighted color */
@@ -54,11 +43,13 @@
 .light #ov-meter tr:nth-child(4n + 2).data-change,
 .light #ov-meter tr:nth-child(4n + 3).data-change,
 .light #ov-meter tr:nth-child(4n).data-change {
-    background-color: #FDFFDC;
+    /* TODO: theme */
+    background-color: #fdffdc;
 }
 .dark #ov-meter tr:nth-child(4n + 1).data-change,
 .dark #ov-meter tr:nth-child(4n + 2).data-change,
 .dark #ov-meter tr:nth-child(4n + 3).data-change,
 .dark #ov-meter tr:nth-child(4n).data-change {
-    background-color: #5A5600;
+    /* TODO: dark theme */
+    background-color: #fdffdc;
 }
