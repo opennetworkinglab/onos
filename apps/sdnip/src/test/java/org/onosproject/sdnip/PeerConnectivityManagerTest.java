@@ -15,6 +15,7 @@
  */
 package org.onosproject.sdnip;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
@@ -216,10 +217,11 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         InterfaceIpAddress ia4 =
                 new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"),
                                        IpPrefix.valueOf("192.168.40.0/24"));
-        Interface intfsw3eth1 = new Interface(s3Eth1,
-                                              Collections.singleton(ia4),
-                                              MacAddress.valueOf("00:00:00:00:00:04"),
-                                              VLAN10);
+        Interface intfsw3eth1 = new Interface(Interface.NO_INTERFACE_NAME,
+                s3Eth1,
+                ImmutableList.of(ia4),
+                MacAddress.valueOf("00:00:00:00:00:04"),
+                VLAN10);
 
         configuredInterfaces.put(interfaceSw3Eth1, intfsw3eth1);
 
@@ -227,10 +229,11 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         InterfaceIpAddress ia5 =
                 new InterfaceIpAddress(IpAddress.valueOf("192.168.50.101"),
                                        IpPrefix.valueOf("192.168.50.0/24"));
-        Interface intfsw3eth1intf2 = new Interface(s3Eth1,
-                                                   Collections.singleton(ia5),
-                                                   MacAddress.valueOf("00:00:00:00:00:05"),
-                                                   VLAN20);
+        Interface intfsw3eth1intf2 = new Interface(Interface.NO_INTERFACE_NAME,
+                s3Eth1,
+                ImmutableList.of(ia5),
+                MacAddress.valueOf("00:00:00:00:00:05"),
+                VLAN20);
 
         configuredInterfaces.put(interfaceSw3Eth1intf2, intfsw3eth1intf2);
 

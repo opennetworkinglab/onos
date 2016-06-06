@@ -88,7 +88,7 @@ public class InterfaceManagerTest {
 
         InterfaceIpAddress ia = InterfaceIpAddress.valueOf("192.168." + i + ".1/24");
 
-        Interface intf = new Interface(cp,
+        Interface intf = new Interface(Interface.NO_INTERFACE_NAME, cp,
                 Collections.singletonList(ia),
                 MacAddress.valueOf(i),
                 VlanId.vlanId((short) i));
@@ -151,7 +151,7 @@ public class InterfaceManagerTest {
         // Create a new InterfaceConfig which will get added
         VlanId vlanId = VlanId.vlanId((short) 1);
         ConnectPoint cp = ConnectPoint.deviceConnectPoint("of:0000000000000001/2");
-        Interface newIntf = new Interface(cp,
+        Interface newIntf = new Interface(Interface.NO_INTERFACE_NAME, cp,
                 Collections.emptyList(),
                 MacAddress.valueOf(100),
                 vlanId);
@@ -188,11 +188,11 @@ public class InterfaceManagerTest {
         Interface intf = createInterface(1);
         List<InterfaceIpAddress> addresses = Lists.newArrayList(intf.ipAddresses());
         addresses.add(InterfaceIpAddress.valueOf("192.168.100.1/24"));
-        intf = new Interface(intf.connectPoint(), addresses, intf.mac(), intf.vlan());
+        intf = new Interface(Interface.NO_INTERFACE_NAME, intf.connectPoint(), addresses, intf.mac(), intf.vlan());
 
         // Create a new interface on the same connect point as the existing one
         InterfaceIpAddress newAddr = InterfaceIpAddress.valueOf("192.168.101.1/24");
-        Interface newIntf = new Interface(cp,
+        Interface newIntf = new Interface(Interface.NO_INTERFACE_NAME, cp,
                 Collections.singletonList(newAddr),
                 MacAddress.valueOf(101),
                 VlanId.vlanId((short) 101));

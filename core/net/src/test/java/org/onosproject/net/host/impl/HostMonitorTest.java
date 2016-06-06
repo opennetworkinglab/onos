@@ -185,7 +185,8 @@ public class HostMonitorTest {
 
         InterfaceService interfaceService = createMock(InterfaceService.class);
         expect(interfaceService.getMatchingInterface(TARGET_IPV4_ADDR))
-                .andReturn(new Interface(cp, Collections.singletonList(IA1), sourceMac, VlanId.NONE))
+                .andReturn(new Interface(Interface.NO_INTERFACE_NAME,
+                        cp, Collections.singletonList(IA1), sourceMac, VlanId.NONE))
                 .anyTimes();
         replay(interfaceService);
 
@@ -253,7 +254,8 @@ public class HostMonitorTest {
 
         InterfaceService interfaceService = createMock(InterfaceService.class);
         expect(interfaceService.getMatchingInterface(TARGET_IPV6_ADDR))
-                .andReturn(new Interface(cp, Collections.singletonList(IA2), sourceMac2, VlanId.NONE))
+                .andReturn(new Interface(Interface.NO_INTERFACE_NAME, cp,
+                        Collections.singletonList(IA2), sourceMac2, VlanId.NONE))
                 .anyTimes();
         replay(interfaceService);
 
@@ -323,7 +325,8 @@ public class HostMonitorTest {
 
         InterfaceService interfaceService = createMock(InterfaceService.class);
         expect(interfaceService.getMatchingInterface(TARGET_IPV4_ADDR))
-                .andReturn(new Interface(cp, Collections.singletonList(IA1), sourceMac, VlanId.vlanId(vlan)))
+                .andReturn(new Interface(Interface.NO_INTERFACE_NAME, cp,
+                        Collections.singletonList(IA1), sourceMac, VlanId.vlanId(vlan)))
                 .anyTimes();
         replay(interfaceService);
 
@@ -392,7 +395,8 @@ public class HostMonitorTest {
 
         InterfaceService interfaceService = createMock(InterfaceService.class);
         expect(interfaceService.getMatchingInterface(TARGET_IPV6_ADDR))
-                .andReturn(new Interface(cp, Collections.singletonList(IA2), sourceMac2, VlanId.vlanId(vlan)))
+                .andReturn(new Interface(Interface.NO_INTERFACE_NAME, cp,
+                        Collections.singletonList(IA2), sourceMac2, VlanId.vlanId(vlan)))
                 .anyTimes();
         replay(interfaceService);
 

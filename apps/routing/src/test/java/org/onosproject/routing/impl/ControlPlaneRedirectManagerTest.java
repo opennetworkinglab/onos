@@ -149,7 +149,7 @@ public class ControlPlaneRedirectManagerTest {
     @Test
     public void testAddDevice() {
         ConnectPoint sw1eth4 = new ConnectPoint(DEVICE_ID, PortNumber.portNumber(4));
-        Set<InterfaceIpAddress> interfaceIpAddresses4 = Sets.newHashSet();
+        List<InterfaceIpAddress> interfaceIpAddresses4 = new ArrayList<>();
         interfaceIpAddresses4
                 .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
 
@@ -168,7 +168,7 @@ public class ControlPlaneRedirectManagerTest {
     @Test
     public void testUpdateNetworkConfig() {
         ConnectPoint sw1eth4 = new ConnectPoint(DEVICE_ID, PortNumber.portNumber(4));
-        Set<InterfaceIpAddress> interfaceIpAddresses4 = Sets.newHashSet();
+        List<InterfaceIpAddress> interfaceIpAddresses4 = new ArrayList<>();
         interfaceIpAddresses4
                 .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
 
@@ -189,7 +189,7 @@ public class ControlPlaneRedirectManagerTest {
     @Test
     public void testAddInterface() {
         ConnectPoint sw1eth4 = new ConnectPoint(DEVICE_ID, PortNumber.portNumber(4));
-        Set<InterfaceIpAddress> interfaceIpAddresses4 = Sets.newHashSet();
+        List<InterfaceIpAddress> interfaceIpAddresses4 = new ArrayList<>();
         interfaceIpAddresses4
                 .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
 
@@ -209,7 +209,7 @@ public class ControlPlaneRedirectManagerTest {
     @Test
     public void testRemoveInterface() {
         ConnectPoint sw1eth4 = new ConnectPoint(DEVICE_ID, PortNumber.portNumber(4));
-        Set<InterfaceIpAddress> interfaceIpAddresses4 = Sets.newHashSet();
+        List<InterfaceIpAddress> interfaceIpAddresses4 = new ArrayList<>();
         interfaceIpAddresses4
                 .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
 
@@ -329,21 +329,21 @@ public class ControlPlaneRedirectManagerTest {
      * Setup Interface expectation for all Testcases.
      **/
     private void setUpInterfaceService() {
-        Set<InterfaceIpAddress> interfaceIpAddresses1 = Sets.newHashSet();
+        List<InterfaceIpAddress> interfaceIpAddresses1 = new ArrayList<>();
         interfaceIpAddresses1
                 .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.10.101"), IpPrefix.valueOf("192.168.10.0/24")));
         Interface sw1Eth1 = new Interface(SW1_ETH1.deviceId().toString(), SW1_ETH1, interfaceIpAddresses1,
                 MacAddress.valueOf("00:00:00:00:00:01"), VlanId.NONE);
         interfaces.add(sw1Eth1);
 
-        Set<InterfaceIpAddress> interfaceIpAddresses2 = Sets.newHashSet();
+        List<InterfaceIpAddress> interfaceIpAddresses2 = new ArrayList<>();
         interfaceIpAddresses2
                 .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.20.101"), IpPrefix.valueOf("192.168.20.0/24")));
         Interface sw1Eth2 = new Interface(SW1_ETH1.deviceId().toString(), SW1_ETH2, interfaceIpAddresses2,
                 MacAddress.valueOf("00:00:00:00:00:02"), VlanId.NONE);
         interfaces.add(sw1Eth2);
 
-        Set<InterfaceIpAddress> interfaceIpAddresses3 = Sets.newHashSet();
+        List<InterfaceIpAddress> interfaceIpAddresses3 = new ArrayList<>();
         interfaceIpAddresses3
                 .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.30.101"), IpPrefix.valueOf("192.168.30.0/24")));
         Interface sw1Eth3 = new Interface(SW1_ETH1.deviceId().toString(), SW1_ETH3, interfaceIpAddresses3,
