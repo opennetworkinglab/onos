@@ -22,11 +22,11 @@
         <step name="Check-Vnet-Link" requires="^"
               exec="onos ${OCI} vnet-links ${networkId}"/>
 
-        <step name="Remove-Link-1" requires="^"
-              exec="onos ${OCI} vnet-remove-link ${networkId} device1 1 device2 2"/>
+        <step name="Remove-Bidirectional-Link" requires="^"
+              exec="onos -f ${OCI} vnet-remove-link --bidirectional ${networkId} device2 2 device1 1"/>
 
-        <step name="Remove-Link-2" requires="^"
-              exec="onos ${OCI} vnet-remove-link ${networkId} device2 2 device1 1"/>
+        <step name="Check-intents-removed" requires="^"
+              exec="onos-check-intent ${OCI} networkId=${networkId} IGNORE_STATE 0"/>
 
         <step name="Ping-hosts-2" requires="^"
               exec="onos-mininet sendAndExpect h4 ping -c1 h9 --expect \ 100% packet loss"/>
