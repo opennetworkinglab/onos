@@ -13,17 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.ospf.protocol.util;
+package org.onosproject.ospf.controller;
 
 /**
  * Representation of different OSPF packet types.
  */
 public enum OspfPacketType {
 
+    /**
+     * OSPF hello packet.
+     */
     HELLO(1),
+    /**
+     * OSPF device description packet.
+     */
     DD(2),
+    /**
+     * OSPF link state request packet.
+     */
     LSREQUEST(3),
+    /**
+     * OSPF link state update packet.
+     */
     LSUPDATE(4),
+    /**
+     * OSPF link state acknowledge packet.
+     */
     LSAACK(5);
 
     private int value;

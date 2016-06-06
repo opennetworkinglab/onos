@@ -38,6 +38,7 @@ import org.onosproject.ospf.protocol.lsa.types.NetworkLsa;
 import org.onosproject.ospf.protocol.lsa.types.OpaqueLsa10;
 import org.onosproject.ospf.protocol.lsa.types.RouterLsa;
 import org.onosproject.ospf.protocol.lsa.types.TopLevelTlv;
+import org.onosproject.ospf.protocol.util.OspfUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +50,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Represents device and link topology information.
@@ -56,7 +58,11 @@ import java.util.Set;
 public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
 
     private static final Logger log = LoggerFactory.getLogger(TopologyForDeviceAndLinkImpl.class);
+    Set<Ip4Address> routerSet = new TreeSet<Ip4Address>();
+    Ip4Address firstValue = Ip4Address.valueOf("0.0.0.0");
     private Map<String, DeviceInformation> deviceInformationMap = new LinkedHashMap();
+    private Map<Ip4Address, List<Ip4Address>> networkLsaMap = new LinkedHashMap();
+    private Map<String, DeviceInformation> deviceInformationMapForPointToPoint = new LinkedHashMap();
     private Map<String, DeviceInformation> deviceInformationMapToDelete = new LinkedHashMap();
     private HashMap<String, Set<OspfLsaLink>> deviceAndLinkInformation = new HashMap();
     private HashMap<String, OspfLinkTed> ospfLinkTedHashMap = new LinkedHashMap();
@@ -64,6 +70,7 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
     private Ip4Address drRouterOld = Ip4Address.valueOf("0.0.0.0");
     private Ip4Address adRouterId = Ip4Address.valueOf("0.0.0.0");
     private Map<String, LinkInformation> linkInformationMap = new LinkedHashMap();
+    private Map<String, LinkInformation> linkInformationMapForPointToPoint = new LinkedHashMap();
     private List<String> toRemove = new ArrayList<>();
 
     /**
@@ -89,9 +96,31 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
     }
 
     /**
-     * Gets device information.
+     * Gets deviceInformation as map for Point-To-Point.
      *
-     * @return device information to delete from core
+     * @return deviceInformationMap
+     */
+    public Map<String, DeviceInformation> deviceInformationMapForPointToPoint() {
+        return deviceInformationMapForPointToPoint;
+    }
+
+    /**
+     * Sets deviceInformation as map for Point-To-Point..
+     *
+     * @param key                  key to store device information
+     * @param deviceInformationMap device information instance
+     */
+    public void setDeviceInformationMapForPointToPoint(String key, DeviceInformation deviceInformationMap) {
+        if (deviceInformationMap != null) {
+            this.deviceInformationMapForPointToPoint.put(key, deviceInformationMap);
+        }
+
+    }
+
+    /**
+     * Gets deviceInformation as map.
+     *
+     * @return deviceInformationMap to delete from core
      */
     public Map<String, DeviceInformation> deviceInformationMapToDelete() {
         return deviceInformationMapToDelete;
@@ -103,8 +132,7 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
      * @param key                          ket used to add in map
      * @param deviceInformationMapToDelete map from device information to remove
      */
-    public void setDeviceInformationMapToDelete(String key,
-                                                DeviceInformation deviceInformationMapToDelete) {
+    public void setDeviceInformationMapToDelete(String key, DeviceInformation deviceInformationMapToDelete) {
         if (deviceInformationMapToDelete != null) {
             this.deviceInformationMapToDelete.put(key, deviceInformationMapToDelete);
         }
@@ -153,6 +181,11 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
         return linkInformationMap;
     }
 
+    private LinkInformation getLinkInformation(String key) {
+        LinkInformation linkInformation = this.linkInformationMap.get(key);
+        return linkInformation;
+    }
+
     /**
      * Sets link information in map.
      *
@@ -166,9 +199,30 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
     }
 
     /**
-     * Removes Link Information from map.
+     * Gets linkInformation as map for PointToPoint.
      *
-     * @param key key used to remove from map
+     * @return linkInformationMap
+     */
+    public Map<String, LinkInformation> linkInformationMapForPointToPoint() {
+        return linkInformationMap;
+    }
+
+    /**
+     * Sets linkInformation as map for PointToPoint.
+     *
+     * @param key                key to store link information
+     * @param linkInformationMap link information instance
+     */
+    public void setLinkInformationMapForPointToPoint(String key, LinkInformation linkInformationMap) {
+        if (!this.linkInformationMap.containsKey(key)) {
+            this.linkInformationMap.put(key, linkInformationMap);
+        }
+    }
+
+    /**
+     * Removes Link Information from linkInformationMap.
+     *
+     * @param key key to remove link information
      */
     public void removeLinkInformationMap(String key) {
         if (this.linkInformationMap.containsKey(key)) {
@@ -242,108 +296,136 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
         List<OspfLsaLink> ospfLsaLinkList = routerLsa.routerLink();
         Iterator iterator = ospfLsaLinkList.iterator();
         Ip4Address advertisingRouterId = routerLsa.advertisingRouter();
-        adRouterId = advertisingRouterId;
         while (iterator.hasNext()) {
             OspfLsaLink ospfLsaLink = (OspfLsaLink) iterator.next();
             Ip4Address linkId = Ip4Address.valueOf(ospfLsaLink.linkId());
             Ip4Address linkData = Ip4Address.valueOf(ospfLsaLink.linkData());
             if (ospfLsaLink.linkType() == 1) {
                 if ((advertisingRouterId.equals(ospfArea.routerId())) || (linkId.equals(ospfArea.routerId()))) {
-                    System.out.println("OspfInterface information will not display in web ");
-                } else {
-                    removeDevice(advertisingRouterId);
-                    removeLinks(advertisingRouterId);
-                    DeviceInformation deviceInformationPointToPoint =
-                            createDeviceInformation(false, linkId, linkId, advertisingRouterId, linkData,
-                                                    ospfArea.areaId(), false);
-                    String key = "device:" + advertisingRouterId;
-                    setDeviceInformationMap(key, deviceInformationPointToPoint);
-                    String linkIdKey = "linkId:" + advertisingRouterId + "-" + linkId;
-                    addLocalLink(linkIdKey, linkData, advertisingRouterId, linkId, true, false);
-                }
-            } else if (ospfLsaLink.linkType() == 2) {
-
-                if ((advertisingRouterId.equals(ospfArea.routerId())) || (linkId.equals(ospfArea.routerId()))) {
-                    log.debug("OspfInterface information will not display in web ");
-                } else {
-                    if (linkId.equals(linkData)) {
-                        if (drRouter.equals(Ip4Address.valueOf("0.0.0.0"))) {
-                            log.debug("drRouter not elected {} ", drRouter.toString());
-                        } else {
-                            if (drRouterOld.equals(linkId)) {
-                                log.debug("drRouterOld same as link id {} ", drRouterOld.toString());
-                            } else {
-                                String key = "device:" + drRouterOld;
-                                DeviceInformation deviceInformation1 = deviceInformation(key);
-                                if (deviceInformation1 != null) {
-                                    deviceInformation1.setAlreadyCreated(true);
-                                    setDeviceInformationMapToDelete(key, deviceInformation1);
-                                    String linkIdKey = "linkId:" + linkId + "-" + deviceInformation1.neighborId();
-                                    addLocalLink(linkIdKey, linkData, linkId, deviceInformation1.neighborId(),
-                                                 true, false);
-                                    String linkIdKey1 = "linkId:" + linkId + "-" + advertisingRouterId;
-                                    addLocalLink(linkIdKey1, linkData, linkId, advertisingRouterId, true, false);
-                                } else {
-                                    DeviceInformation deviceInformationToDelete =
-                                            createDeviceInformation(true, drRouterOld, drRouterOld,
-                                                                    drRouterOld, drRouterOld,
-                                                                    drRouterOld, true);
-                                    setDeviceInformationMapToDelete(key, deviceInformationToDelete);
-                                    String linkIdKey1 = "linkId:" + linkId + "-" + advertisingRouterId;
-                                    addLocalLink(linkIdKey1, linkData, linkId, advertisingRouterId, true, false);
-                                }
-                            }
-                        }
-                        drRouter = linkId;
-                        drRouterOld = linkId;
-                        DeviceInformation deviceInformationForDr =
-                                createDeviceInformation(false, linkId, advertisingRouterId, linkId, linkData,
-                                                        ospfArea.areaId(), true);
-                        String key = "device:" + linkId;
-                        setDeviceInformationMap(key, deviceInformationForDr);
-                        DeviceInformation deviceInformationForAdvertisingRouter =
-                                createDeviceInformation(false, linkId, advertisingRouterId, advertisingRouterId,
-                                                        linkData, ospfArea.areaId(), false);
-                        String key1 = "device:" + advertisingRouterId;
-                        setDeviceInformationMap(key1, deviceInformationForAdvertisingRouter);
-                        if (drRouter.equals(Ip4Address.valueOf("0.0.0.0"))) {
-                            System.out.println("Link will not get create since dr is not valid");
-                            //Need to analysis since this place will not get Dr information
-                            String linkIdKey = "linkId:" + linkId + "-" + advertisingRouterId;
-                            addLocalLink(linkIdKey, linkData, linkId, advertisingRouterId, true, false);
-                        } else {
-                            String linkIdKey = "linkId:" + drRouter + "-" + advertisingRouterId;
-                            addLocalLink(linkIdKey, linkData, drRouter, advertisingRouterId, true, false);
-                        }
-                    } else {
-                        DeviceInformation deviceInformationDrOther =
-                                createDeviceInformation(false, linkId, linkId, advertisingRouterId,
-                                                        linkData, ospfArea.areaId(), false);
+                    if (!advertisingRouterId.equals(ospfArea.routerId())) {
+                        DeviceInformation deviceInformationPointToPoint =
+                                createDeviceInformation(false, linkId, linkId, advertisingRouterId, linkData,
+                                                        ospfArea.areaId(), false);
                         String key = "device:" + advertisingRouterId;
-                        setDeviceInformationMap(key, deviceInformationDrOther);
-                        if (drRouter.equals(Ip4Address.valueOf("0.0.0.0"))) {
-                            String linkIdKey = "linkId:" + linkId + "-" + advertisingRouterId;
-                            addLocalLink(linkIdKey, linkData, linkId, advertisingRouterId, true, false);
-                        } else {
-                            String linkIdKey = "linkId:" + drRouter + "-" + advertisingRouterId;
-                            addLocalLink(linkIdKey, linkData, drRouter, advertisingRouterId, true, false);
-                        }
+                        setDeviceInformationMapForPointToPoint(key, deviceInformationPointToPoint);
                     }
+                } else {
+                    DeviceInformation deviceInformationPointToPoint =
+                            createDeviceInformation(false, linkId, linkId, advertisingRouterId,
+                                                    linkData, ospfArea.areaId(), false);
+                    String key = "device:" + advertisingRouterId;
+                    setDeviceInformationMapForPointToPoint(key, deviceInformationPointToPoint);
+                    String linkIdKey = "linkId:" + advertisingRouterId + "-" + linkId;
+                    addLocalLinkForPointToPoint(linkIdKey, linkData, advertisingRouterId, linkId, true, false);
                 }
             }
         }
     }
 
     /**
-     * Creates Device and Link instance from the NetworkLsa parameters.
+     * Creates device and link instance from the network LSA parameters.
      *
      * @param ospfLsa  OSPF LSA instance
      * @param ospfArea OSPF area instance
      */
     private void createDeviceAndLinkFromNetworkLsa(OspfLsa ospfLsa, OspfArea ospfArea) {
         NetworkLsa networkLsa = (NetworkLsa) ospfLsa;
-        Ip4Address advertisingRouterId = networkLsa.networkMask();
-        System.out.println("AdvertisingRouterId is : " + advertisingRouterId);
+        Ip4Address linkStateId = Ip4Address.valueOf(networkLsa.linkStateId());
+        Set<Ip4Address> drList = networkLsaMap.keySet();
+        try {
+            Ip4Address drToReplace = null;
+            for (Ip4Address drIp : drList) {
+                if (!drIp.equals(linkStateId)) {
+                    if (OspfUtil.sameNetwork(drIp, linkStateId, networkLsa.networkMask())) {
+                        drToReplace = drIp;
+                        String key = "device:" + drToReplace;
+                        DeviceInformation deleteDr = deviceInformation(key);
+                        if (deleteDr != null) {
+                            deleteDr.setAlreadyCreated(true);
+                            setDeviceInformationMapToDelete(key, deleteDr);
+                        }
+
+                        networkLsaMap.remove(drToReplace);
+                        break;
+                    }
+                }
+            }
+            networkLsaMap.put(linkStateId, networkLsa.attachedRouters());
+
+        } catch (Exception e) {
+            log.debug("Error::TopologyForDeviceAndLinkImpl:: {}", e.getMessage());
+        }
+        constructDeviceForBroadCastTopology(ospfArea);
+        disp();
+
+    }
+
+    private void constructDeviceForBroadCastTopology(OspfArea ospfArea) {
+
+        for (Map.Entry<Ip4Address, List<Ip4Address>> entry : networkLsaMap.entrySet()) {
+            Ip4Address key = entry.getKey();
+            DeviceInformation deviceInformationForDr = createDeviceInformation(false, key, key, key,
+                                                                               key, ospfArea.areaId(), true);
+            String dr = "device:" + key;
+            setDeviceInformationMap(dr, deviceInformationForDr);
+            List<Ip4Address> value = entry.getValue();
+            for (Ip4Address connectedRouter : value) {
+                if (!connectedRouter.equals(ospfArea.routerId())) {
+                    DeviceInformation deviceInformationAttachedRouters =
+                            createDeviceInformation(false, connectedRouter, key, connectedRouter,
+                                                    key, ospfArea.areaId(), false);
+                    String attachedRouters = "device:" + connectedRouter;
+                    setDeviceInformationMap(attachedRouters, deviceInformationAttachedRouters);
+                    String linkIdKey = "linkId:" + key + "-" + connectedRouter;
+                    addLocalLink(linkIdKey, key, key, connectedRouter, true, false);
+                }
+            }
+        }
+
+    }
+
+    private void disp() {
+        for (String key : deviceInformationMap.keySet()) {
+            DeviceInformation deviceInformation = deviceInformationMap.get(key);
+            log.debug("************************************************************************");
+            log.debug("DeviceInfoList RouterId is : {} and neighbour is  {} and linkdata {}",
+                      deviceInformation.routerId(), deviceInformation.neighborId(), deviceInformation.interfaceId());
+        }
+
+        for (Map.Entry<String, LinkInformation> entry : linkInformationMap.entrySet()) {
+            String linkDetail = entry.getKey();
+            log.debug("Link From and to is  " + linkDetail);
+        }
+        log.debug("Devices Needs to delete from Core are  : " + deviceInformationMapToDelete.size());
+        for (String key : deviceInformationMapToDelete.keySet()) {
+            DeviceInformation value = deviceInformationMapToDelete.get(key);
+            if (value.isAlreadyCreated()) {
+                log.debug("Device is deleted from list " + value.routerId());
+            }
+        }
+    }
+
+    private void getLinksToDelete(Set<Ip4Address> list, Ip4Address value, OspfArea ospfArea) {
+
+        Iterator iterator = list.iterator();
+
+        while (iterator.hasNext()) {
+            Ip4Address secondValue = (Ip4Address) iterator.next();
+            if (!value.equals("0.0.0.0")) {
+                if ((!value.equals(secondValue))) {
+                    if ((!secondValue.equals(ospfArea.routerId()))) {
+                        String key = "link:" + value.toString() + "-" + secondValue.toString();
+                        String key1 = "link:" + secondValue.toString() + "-" + value.toString();
+                        LinkInformation linkDetails = getLinkInformation(key);
+                        LinkInformation linkDetailsOther = getLinkInformation(key1);
+                        linkInformationMapForPointToPoint.put(key, linkDetails);
+                        linkInformationMapForPointToPoint.put(key1, linkDetailsOther);
+                    }
+                }
+            }
+
+        }
+
     }
 
     /**
@@ -444,13 +526,40 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
     }
 
     /**
+     * Adds link information to LinkInformationMap for PointToPoint.
+     *
+     * @param advertisingRouter    advertising router
+     * @param linkData             link data
+     * @param linkSrc              link source
+     * @param linkDest             link destination
+     * @param opaqueEnabled        whether opaque is enabled or not
+     * @param linkSrcIdNotRouterId whether link is source id or router id
+     */
+    public void addLocalLinkForPointToPoint(String advertisingRouter, Ip4Address linkData, Ip4Address linkSrc,
+                                            Ip4Address linkDest, boolean opaqueEnabled, boolean linkSrcIdNotRouterId) {
+        String linkKey = "link:";
+        LinkInformation linkInformation = new LinkInformationImpl();
+        linkInformation.setLinkId(advertisingRouter);
+        linkInformation.setLinkSourceId(linkSrc);
+        linkInformation.setLinkDestinationId(linkDest);
+        linkInformation.setAlreadyCreated(false);
+        linkInformation.setLinkSrcIdNotRouterId(linkSrcIdNotRouterId);
+        linkInformation.setInterfaceIp(linkData);
+        if (linkDest != null) {
+            linkInformation.setLinkSrcIdNotRouterId(false);
+        }
+        linkKey = linkKey + "-" + linkSrc + "-" + linkDest;
+        setLinkInformationMapForPointToPoint(linkKey, linkInformation);
+    }
+
+    /**
      * Removes links from LinkInformationMap.
      *
      * @param routerId router id
      */
     public void removeLinks(Ip4Address routerId) {
-        Map<String, LinkInformation> linkInformationMaplocal = linkInformationMap;
-        if (linkInformationMaplocal != null) {
+        Map<String, LinkInformation> linkInformationMapLocal = linkInformationMap;
+        if (linkInformationMapLocal != null) {
             for (Map.Entry<String, LinkInformation> entry : linkInformationMap.entrySet()) {
                 String key = entry.getKey();
                 boolean check = key.contains(routerId.toString());

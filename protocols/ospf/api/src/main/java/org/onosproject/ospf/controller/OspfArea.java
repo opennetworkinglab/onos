@@ -59,7 +59,7 @@ public interface OspfArea {
      *
      * @return LSDB instance for this area
      */
-    public OspfLsdb database();
+    OspfLsdb database();
 
     /**
      * Checks whether an instance of the given LSA exists in the database.
@@ -67,19 +67,12 @@ public interface OspfArea {
      * @param lookupLsa LSA instance to lookup
      * @return LSA wrapper instance which contains the LSA
      */
-    public LsaWrapper lsaLookup(OspfLsa lookupLsa);
+    LsaWrapper lsaLookup(OspfLsa lookupLsa);
 
     /**
      * Initializes link state database, this acts as a place holder for storing the received LSA.
      */
-    public void initializeDb();
-
-    /**
-     * Sets the stub cost.
-     *
-     * @param stubCost stub cost
-     */
-    void setStubCost(int stubCost);
+    void initializeDb();
 
     /**
      * Sets the options value.
@@ -87,38 +80,6 @@ public interface OspfArea {
      * @param options integer value
      */
     void setOptions(int options);
-
-    /**
-     * Gets area address ranges to which this area belongs to.
-     *
-     * @return list of area address ranges
-     */
-    List<OspfAreaAddressRange> addressRanges();
-
-    /**
-     * Sets the area address ranges to which this area belongs to.
-     *
-     * @param addrRangeList list of area address ranges
-     */
-    void setAddressRanges(List<OspfAreaAddressRange> addrRangeList);
-
-    /**
-     * Gets whether the area is transit capable or not.
-     * This indicates whether the area can carry data traffic that neither originates
-     * nor terminates in the area itself.
-     *
-     * @return true if transit capable, else false
-     */
-    boolean isTransitCapability();
-
-    /**
-     * Sets whether the area is transit capable or not.
-     * This indicates whether the area can carry data traffic that neither originates
-     * nor terminates in the area itself.
-     *
-     * @param transitCapability true if transit capable, else false
-     */
-    void setTransitCapability(boolean transitCapability);
 
     /**
      * Gets external routing capability.
@@ -137,13 +98,6 @@ public interface OspfArea {
     void setExternalRoutingCapability(boolean externalRoutingCapability);
 
     /**
-     * Gets the stub cost, which indicates if the area has been configured as a stub area.
-     *
-     * @return stub cost
-     */
-    int stubCost();
-
-    /**
      * Gets if the router is opaque enabled or not.
      * This indicates whether the router accepts opaque LSA.
      *
@@ -156,14 +110,14 @@ public interface OspfArea {
      *
      * @return list of interfaces
      */
-    List<OspfInterface> getInterfacesLst();
+    List<OspfInterface> ospfInterfaceList();
 
     /**
      * Sets the list of interfaces attached to this area.
      *
      * @param interfacesLst list of interface instances
      */
-    void setInterfacesLst(List<OspfInterface> interfacesLst);
+    void setOspfInterfaceList(List<OspfInterface> interfacesLst);
 
     /**
      * Gets the options value, which indicates the supported optional capabilities.

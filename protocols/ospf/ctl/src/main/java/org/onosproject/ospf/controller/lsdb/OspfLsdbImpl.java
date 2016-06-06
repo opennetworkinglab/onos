@@ -267,6 +267,7 @@ public class OspfLsdbImpl implements OspfLsdb {
         lsaWrapper.setLsaHeader(newLsa);
         lsaWrapper.setLsaAgeReceived(newLsa.age());
         lsaWrapper.setAgeCounterWhenReceived(lsdbAge.getAgeCounter());
+        lsaWrapper.setAgeCounterRollOverWhenAdded(lsdbAge.getAgeCounterRollOver());
         lsaWrapper.setIsSelfOriginated(isSelfOriginated);
         lsaWrapper.setIsSelfOriginated(isSelfOriginated);
         lsaWrapper.setOspfInterface(ospfInterface);

@@ -18,8 +18,9 @@ package org.onosproject.ospf.protocol.ospfpacket;
 import com.google.common.base.MoreObjects;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.Ip4Address;
+import org.onosproject.ospf.controller.OspfMessage;
+import org.onosproject.ospf.controller.OspfPacketType;
 import org.onosproject.ospf.exceptions.OspfParseException;
-import org.onosproject.ospf.protocol.util.OspfPacketType;
 
 /**
  * Defines the OSPF Packet Header, fields and access methods.
@@ -57,6 +58,7 @@ public class OspfPacketHeader implements OspfMessage {
     private int authentication;
     private Ip4Address destinationIp;
     private Ip4Address sourceIp;
+    private int interfaceIndex;
 
     /**
      * Gets the source IP.
@@ -256,11 +258,30 @@ public class OspfPacketHeader implements OspfMessage {
     }
 
     /**
+     * Returns the interface index on which the message received.
+     *
+     * @return interface index on which the message received
+     */
+    public int interfaceIndex() {
+        return interfaceIndex;
+    }
+
+    /**
+     * Sets the interface index on which the message received.
+     *
+     * @param interfaceIndex interface index on which the message received
+     */
+    public void setInterfaceIndex(int interfaceIndex) {
+        this.interfaceIndex = interfaceIndex;
+    }
+
+    /**
      * Populates the header from the packetHeader instance.
      *
      * @param ospfPacketHeader packet header instance.
      */
     public void populateHeader(OspfPacketHeader ospfPacketHeader) {
+        this.setInterfaceIndex(ospfPacketHeader.interfaceIndex());
         this.setSourceIp(ospfPacketHeader.sourceIp());
         this.setOspfVer(ospfPacketHeader.ospfVersion());
         this.setOspftype(ospfPacketHeader.ospfType());

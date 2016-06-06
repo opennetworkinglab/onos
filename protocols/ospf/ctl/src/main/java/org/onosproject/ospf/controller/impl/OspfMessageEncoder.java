@@ -17,15 +17,10 @@
 package org.onosproject.ospf.controller.impl;
 
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
-import org.onosproject.ospf.controller.OspfInterface;
-import org.onosproject.ospf.controller.area.OspfInterfaceImpl;
-import org.onosproject.ospf.protocol.ospfpacket.OspfMessage;
-import org.onosproject.ospf.protocol.ospfpacket.OspfMessageWriter;
-import org.onosproject.ospf.protocol.util.OspfInterfaceState;
-import org.onosproject.ospf.protocol.util.OspfUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,46 +30,15 @@ import org.slf4j.LoggerFactory;
 public class OspfMessageEncoder extends OneToOneEncoder {
 
     private static final Logger log = LoggerFactory.getLogger(OspfMessageEncoder.class);
-    private OspfInterface ospfInterface;
-
-
-    /**
-     * Creates an instance of OSPF message encoder.
-     */
-    OspfMessageEncoder() {
-    }
-
-    /**
-     * Creates an instance of OSPF message encoder.
-     *
-     * @param ospfInterface OSPF interface instance
-     */
-    OspfMessageEncoder(OspfInterface ospfInterface) {
-        this.ospfInterface = ospfInterface;
-    }
 
     @Override
     protected Object encode(ChannelHandlerContext ctx, Channel channel, Object msg) throws Exception {
 
-        log.debug("Encoding ospfMessage...!!!");
-        if (!(msg instanceof OspfMessage)) {
-            log.debug("Invalid msg.");
-            return msg;
-        }
+        byte[] byteMsg = (byte[]) msg;
+        log.debug("Encoding ospfMessage of length {}", byteMsg.length);
+        ChannelBuffer channelBuffer = ChannelBuffers.buffer(byteMsg.length);
+        channelBuffer.writeBytes(byteMsg);
 
-        OspfMessage ospfMessage = (OspfMessage) msg;
-        OspfMessageWriter messageWriter = new OspfMessageWriter();
-        if (((OspfInterfaceImpl) ospfInterface).state().equals(OspfInterfaceState.POINT2POINT)) {
-            ospfMessage.setDestinationIp(OspfUtil.ALL_SPF_ROUTERS);
-        }
-        ChannelBuffer buf = messageWriter.writeToBuffer(ospfMessage,
-                                                        ((OspfInterfaceImpl) ospfInterface).state().value(),
-                                                        ospfInterface.interfaceType());
-        log.info("OspfMessageEncoder sending packet of lenght {}", buf.readableBytes());
-        log.debug("OspfMessageEncoder sending packet of lenght {}", buf.readableBytes());
-        log.debug("Sending {} Message to {}, Length :: {}, <=> {}", ospfMessage.ospfMessageType(),
-                  ospfMessage.destinationIp(), buf.readableBytes(), buf.array());
-
-        return buf;
+        return channelBuffer;
     }
 }

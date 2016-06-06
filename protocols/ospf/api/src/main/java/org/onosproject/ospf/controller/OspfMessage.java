@@ -13,17 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.ospf.protocol.ospfpacket;
+package org.onosproject.ospf.controller;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.Ip4Address;
-import org.onosproject.ospf.exceptions.OspfParseException;
-import org.onosproject.ospf.protocol.util.OspfPacketType;
 
 /**
  * Representation of an OSPF message.
  */
 public interface OspfMessage {
+
+    /**
+     * Returns the interface index on which the message received.
+     *
+     * @return interface index on which the message received
+     */
+    int interfaceIndex();
+
+    /**
+     * Sets the interface index on which the message received.
+     *
+     * @param interfaceIndex interface index on which the message received
+     */
+    void setInterfaceIndex(int interfaceIndex);
 
     /**
      * Returns the type of OSPF message.
@@ -36,9 +48,9 @@ public interface OspfMessage {
      * Reads from ChannelBuffer and initializes the type of LSA.
      *
      * @param channelBuffer channel buffer instance
-     * @throws OspfParseException might throws exception while parsing buffer
+     * @throws Exception might throws exception while parsing buffer
      */
-    void readFrom(ChannelBuffer channelBuffer) throws OspfParseException;
+    void readFrom(ChannelBuffer channelBuffer) throws Exception;
 
     /**
      * Returns OSPFMessage as byte array.

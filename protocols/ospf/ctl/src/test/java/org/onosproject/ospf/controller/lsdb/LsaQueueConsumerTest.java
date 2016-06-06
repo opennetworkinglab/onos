@@ -74,8 +74,9 @@ public class LsaQueueConsumerTest {
     @Test
     public void testRun() throws Exception {
         blockingQueue = new ArrayBlockingQueue(5);
-        channel = EasyMock.createMock(Channel.class);
         ospfArea = new OspfAreaImpl();
+        lsdbAge = new LsdbAgeImpl(ospfArea);
+        channel = EasyMock.createMock(Channel.class);
         lsaWrapper = new LsaWrapperImpl();
         lsaWrapper.setLsaProcessing("verifyChecksum");
         blockingQueue.add(lsaWrapper);
@@ -104,7 +105,7 @@ public class LsaQueueConsumerTest {
         lsaHeader.setLsType(1);
         lsaWrapper.setLsaHeader(lsaHeader);
         lsaWrapper.setLsaProcessing("refreshLsa");
-        lsaWrapper.setLsdbAge(new LsdbAgeImpl(new OspfAreaImpl()));
+        lsaWrapper.setLsdbAge(new LsdbAgeImpl(ospfArea));
         blockingQueue.add(lsaWrapper);
         lsaQueueConsumer = new LsaQueueConsumer(blockingQueue, channel, ospfArea);
         lsaQueueConsumer.run();
@@ -128,7 +129,7 @@ public class LsaQueueConsumerTest {
         lsaHeader.setLsType(2);
         lsaWrapper.setLsaHeader(lsaHeader);
         lsaWrapper.setLsaProcessing("refreshLsa");
-        lsaWrapper.setLsdbAge(new LsdbAgeImpl(new OspfAreaImpl()));
+        lsaWrapper.setLsdbAge(new LsdbAgeImpl(ospfArea));
         blockingQueue.add(lsaWrapper);
         lsaQueueConsumer = new LsaQueueConsumer(blockingQueue, channel, ospfArea);
         lsaQueueConsumer.run();
@@ -155,7 +156,7 @@ public class LsaQueueConsumerTest {
         lsaHeader.setLsType(2);
         lsaWrapper.setLsaHeader(lsaHeader);
         lsaWrapper.setLsaProcessing("maxAgeLsa");
-        lsaWrapper.setLsdbAge(new LsdbAgeImpl(new OspfAreaImpl()));
+        lsaWrapper.setLsdbAge(new LsdbAgeImpl(ospfArea));
         blockingQueue.add(lsaWrapper);
         lsaQueueConsumer = new LsaQueueConsumer(blockingQueue, channel, ospfArea);
         lsaQueueConsumer.run();
@@ -168,7 +169,7 @@ public class LsaQueueConsumerTest {
     @Test
     public void testSetChannel() throws Exception {
         channel = EasyMock.createMock(Channel.class);
-        lsdbAge = new LsdbAgeImpl(new OspfAreaImpl());
+        lsdbAge = new LsdbAgeImpl(ospfArea);
         lsdbAge.startDbAging();
         lsdbAge.setChannel(channel);
         assertThat(lsaQueueConsumer, is(notNullValue()));

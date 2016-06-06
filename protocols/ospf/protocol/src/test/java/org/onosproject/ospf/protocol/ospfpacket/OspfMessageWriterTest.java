@@ -57,10 +57,10 @@ public class OspfMessageWriterTest {
     }
 
     /**
-     * Tests writeToBuffer() method.
+     * Tests getMessage() method.
      */
     @Test
-    public void testWriteToBuffer() throws Exception {
+    public void testGetMessage() throws Exception {
         helloPacket = new HelloPacket();
         helloPacket.setAuthType(1);
         helloPacket.setOspftype(1);
@@ -79,12 +79,12 @@ public class OspfMessageWriterTest {
         helloPacket.setBdr(Ip4Address.valueOf("2.2.2.2"));
         helloPacket.addNeighbor(Ip4Address.valueOf("8.8.8.8"));
         helloPacket.setDestinationIp(Ip4Address.valueOf("5.5.5.5"));
-        ospfMessageWriter.writeToBuffer(helloPacket, 7, 1);
+        ospfMessageWriter.getMessage(helloPacket, 7, 1);
         assertThat(ospfMessageWriter, is(notNullValue()));
     }
 
     @Test(expected = Exception.class)
-    public void testWriteToBuffer1() throws Exception {
+    public void testGetMessage1() throws Exception {
 
         ddPacket = new DdPacket();
         ddPacket.setAuthType(1);
@@ -95,12 +95,12 @@ public class OspfMessageWriterTest {
         ddPacket.setAuthentication(2);
         ddPacket.setOspfPacLength(48);
         ddPacket.setOspfVer(2);
-        ospfMessageWriter.writeToBuffer(ddPacket, 1, 1);
+        ospfMessageWriter.getMessage(ddPacket, 1, 1);
         assertThat(ospfMessageWriter, is(notNullValue()));
     }
 
     @Test(expected = Exception.class)
-    public void testWriteToBuffer2() throws Exception {
+    public void testGetMessage2() throws Exception {
 
         lsAck = new LsAcknowledge();
         lsAck.setAuthType(1);
@@ -111,12 +111,12 @@ public class OspfMessageWriterTest {
         lsAck.setAuthentication(2);
         lsAck.setOspfPacLength(48);
         lsAck.setOspfVer(2);
-        ospfMessageWriter.writeToBuffer(lsAck, 1, 1);
+        ospfMessageWriter.getMessage(lsAck, 1, 1);
         assertThat(ospfMessageWriter, is(notNullValue()));
     }
 
     @Test(expected = Exception.class)
-    public void testWriteToBuffer3() throws Exception {
+    public void testGetMessage3() throws Exception {
         lsReq = new LsRequest();
         lsReq.setAuthType(1);
         lsReq.setOspftype(3);
@@ -126,12 +126,15 @@ public class OspfMessageWriterTest {
         lsReq.setAuthentication(2);
         lsReq.setOspfPacLength(48);
         lsReq.setOspfVer(2);
-        ospfMessageWriter.writeToBuffer(lsReq, 1, 1);
+        ospfMessageWriter.getMessage(lsReq, 1, 1);
         assertThat(ospfMessageWriter, is(notNullValue()));
     }
 
+    /**
+     * Tests getMessage() method.
+     */
     @Test(expected = Exception.class)
-    public void testWriteToBuffer4() throws Exception {
+    public void testGetMessage4() throws Exception {
         lsUpdate = new LsUpdate();
         lsUpdate.setAuthType(1);
         lsUpdate.setOspftype(3);
@@ -141,15 +144,15 @@ public class OspfMessageWriterTest {
         lsUpdate.setAuthentication(2);
         lsUpdate.setOspfPacLength(48);
         lsUpdate.setOspfVer(2);
-        ospfMessageWriter.writeToBuffer(lsUpdate, 1, 1);
+        ospfMessageWriter.getMessage(lsUpdate, 1, 1);
         assertThat(ospfMessageWriter, is(notNullValue()));
     }
 
     /**
-     * Tests writeToBuffer() method.
+     * Tests getMessage() method.
      */
     @Test(expected = Exception.class)
-    public void testWriteToBuffer5() throws Exception {
+    public void testGetMessage5() throws Exception {
         lsAck = new LsAcknowledge();
         lsAck.setAuthType(1);
         lsAck.setOspftype(5);
@@ -159,6 +162,6 @@ public class OspfMessageWriterTest {
         lsAck.setAuthentication(2);
         lsAck.setOspfPacLength(48);
         lsAck.setOspfVer(2);
-        ospfMessageWriter.writeToBuffer(lsAck, 1, 1);
+        ospfMessageWriter.getMessage(lsAck, 1, 1);
     }
 }

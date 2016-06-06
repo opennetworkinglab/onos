@@ -31,7 +31,8 @@ public interface OspfLinkListener {
     /**
      * Notifies that a link got removed from network.
      *
-     * @param ospfRouter router instance
+     * @param ospfRouter  router instance
+     * @param ospfLinkTed link TED information of router
      */
-    void deleteLink(OspfRouter ospfRouter);
+    void deleteLink(OspfRouter ospfRouter, OspfLinkTed ospfLinkTed);
 }

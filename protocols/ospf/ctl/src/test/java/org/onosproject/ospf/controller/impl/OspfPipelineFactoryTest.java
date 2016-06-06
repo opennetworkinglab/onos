@@ -18,12 +18,6 @@ package org.onosproject.ospf.controller.impl;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
-import org.onosproject.ospf.controller.area.OspfAreaImpl;
-import org.onosproject.ospf.controller.area.OspfInterfaceImpl;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Unit test class for OspfPipelineFactory.
@@ -35,31 +29,11 @@ public class OspfPipelineFactoryTest {
 
     @Before
     public void setUp() throws Exception {
-        ospfPipelineFactory = new OspfPipelineFactory(new Controller(), new OspfAreaImpl(), new OspfInterfaceImpl());
-
     }
 
     @After
     public void tearDown() throws Exception {
         ospfPipelineFactory = null;
         channelPipeline = null;
-    }
-
-    /**
-     * Tests getPipeline() method.
-     */
-    @Test
-    public void testGetPipeline() throws Exception {
-        channelPipeline = ospfPipelineFactory.getPipeline();
-        assertThat(channelPipeline, is(notNullValue()));
-    }
-
-    /**
-     * Tests releaseExternalResources() method.
-     */
-    @Test
-    public void testReleaseExternalResources() throws Exception {
-        ospfPipelineFactory.releaseExternalResources();
-        assertThat(channelPipeline, is(nullValue()));
     }
 }

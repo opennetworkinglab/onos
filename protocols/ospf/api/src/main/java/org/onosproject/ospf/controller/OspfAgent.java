@@ -48,7 +48,8 @@ public interface OspfAgent {
     /**
      * Notifies that got a packet of link from network and need do processing.
      *
-     * @param ospfRouter router instance
+     * @param ospfRouter  router instance
+     * @param ospfLinkTed link ted instance
      */
-    void deleteLink(OspfRouter ospfRouter);
+    void deleteLink(OspfRouter ospfRouter, OspfLinkTed ospfLinkTed);
 }

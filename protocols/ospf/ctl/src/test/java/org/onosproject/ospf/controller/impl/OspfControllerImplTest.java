@@ -46,10 +46,8 @@ public class OspfControllerImplTest {
     private OspfControllerImpl ospfController;
     private OspfRouterListener ospfRouterListener;
     private OspfLinkListener ospfLinkListener;
-    private Controller controller;
     private List<OspfProcess> ospfProcesses;
     private OspfProcess process1;
-    private OspfProcess process2;
     private List<OspfArea> areas;
     private OspfAreaImpl ospfArea;
     private List<OspfInterface> ospfInterfaces;
@@ -61,7 +59,6 @@ public class OspfControllerImplTest {
     @Before
     public void setUp() throws Exception {
         ospfController = new OspfControllerImpl();
-        controller = new Controller();
     }
 
     @After
@@ -69,7 +66,6 @@ public class OspfControllerImplTest {
         ospfController = null;
         ospfRouterListener = null;
         ospfLinkListener = null;
-        controller = null;
         ospfProcesses = null;
         areas = null;
         ospfArea = null;
@@ -140,38 +136,6 @@ public class OspfControllerImplTest {
     }
 
     /**
-     * Tests updateConfig() method.
-     */
-    @Test
-    public void testUpdateConfig() throws Exception {
-        ospfProcess = new OspfProcessImpl();
-        ospfArea = new OspfAreaImpl();
-        ospfInterface = new OspfInterfaceImpl();
-        ospfInterfaces = new ArrayList();
-        ospfInterface.setIpAddress(Ip4Address.valueOf("11.11.11.11"));
-        ospfInterfaces.add(ospfInterface);
-        ospfArea.setAreaId(Ip4Address.valueOf("2.2.2.2"));
-        ospfArea.setInterfacesLst(ospfInterfaces);
-        ospfProcess.setProcessId("10.10.10.10");
-        areas = new ArrayList();
-        areas.add(ospfArea);
-        ospfProcess.setAreas(areas);
-        ospfProcesses = new ArrayList();
-        ospfProcesses.add(ospfProcess);
-        process1 = new OspfProcessImpl();
-        process1.setProcessId("11.11.11.11");
-        ospfArea1 = new OspfAreaImpl();
-        ospfArea1.setAreaId(Ip4Address.valueOf("2.2.2.2"));
-        ospfArea1.setInterfacesLst(ospfInterfaces);
-        areas.add(ospfArea1);
-        process1.setAreas(areas);
-        ospfProcesses.add(process1);
-        ospfController.updateConfig(ospfProcesses);
-        assertThat(ospfController, is(notNullValue()));
-
-    }
-
-    /**
      * Tests deleteConfig() method.
      */
     @Test
@@ -183,7 +147,7 @@ public class OspfControllerImplTest {
         ospfInterface.setIpAddress(Ip4Address.valueOf("10.10.10.5"));
         ospfInterfaces.add(ospfInterface);
         ospfArea.setAreaId(Ip4Address.valueOf("2.2.2.2"));
-        ospfArea.setInterfacesLst(ospfInterfaces);
+        ospfArea.setOspfInterfaceList(ospfInterfaces);
         ospfProcess.setProcessId("10.10.10.10");
         areas = new ArrayList();
         areas.add(ospfArea);
@@ -194,7 +158,7 @@ public class OspfControllerImplTest {
         process1.setProcessId("11.11.11.11");
         ospfArea1 = new OspfAreaImpl();
         ospfArea1.setAreaId(Ip4Address.valueOf("2.2.2.2"));
-        ospfArea1.setInterfacesLst(ospfInterfaces);
+        ospfArea1.setOspfInterfaceList(ospfInterfaces);
         areas.add(ospfArea1);
         process1.setAreas(areas);
         ospfProcesses.add(process1);
@@ -221,7 +185,7 @@ public class OspfControllerImplTest {
         ospfRouter = new OspfRouterImpl();
 
         ospfController.agent.addLink(ospfRouter, new OspfLinkTedImpl());
-        ospfController.agent.deleteLink(ospfRouter);
+        ospfController.agent.deleteLink(ospfRouter, new OspfLinkTedImpl());
         assertThat(ospfController, is(notNullValue()));
     }
 

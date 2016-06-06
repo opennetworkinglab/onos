@@ -21,7 +21,6 @@ import com.google.common.base.Objects;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.ospf.controller.LsaWrapper;
 import org.onosproject.ospf.controller.OspfArea;
-import org.onosproject.ospf.controller.OspfAreaAddressRange;
 import org.onosproject.ospf.controller.OspfInterface;
 import org.onosproject.ospf.controller.OspfLsa;
 import org.onosproject.ospf.controller.OspfLsaType;
@@ -54,28 +53,14 @@ import java.util.Map;
 public class OspfAreaImpl implements OspfArea {
     private static final Logger log = LoggerFactory.getLogger(OspfAreaImpl.class);
     /**
-     * Address ranges in order to aggregate routing information at area.
-     * boundaries. Each address range is specified by an [address,mask] pair and
-     * a status indication of either Advertise or DoNotAdvertise
-     */
-    private List<OspfAreaAddressRange> addressRanges;
-    /**
-     * This parameter indicates whether the area can carry data traffic that.
-     * neither originates nor terminates in the area itself.
-     */
-    private boolean transitCapability;
-    /**
      * Whether AS-external-LSAs will be flooded into/throughout the area.
      */
     private boolean externalRoutingCapability;
-    /**
-     * Indicates the cost of the default summary-LSA.
-     */
-    private int stubCost;
+
     /**
      * Represents a list of all router's interfaces associated with this area.
      */
-    private List<OspfInterface> interfacesLst;
+    private List<OspfInterface> ospfInterfaceList;
     /**
      * The LS Database for this area. It includes router-LSAs, network-LSAs and.
      * summary-LSAs. AS-external-LSAs are hold in the OSPF class itself.
@@ -116,18 +101,15 @@ public class OspfAreaImpl implements OspfArea {
         OspfAreaImpl that = (OspfAreaImpl) o;
         return Objects.equal(areaId, that.areaId) &&
                 Objects.equal(routerId, that.routerId) &&
-                Objects.equal(addressRanges.size(), that.addressRanges.size()) &&
-                Objects.equal(transitCapability, that.transitCapability) &&
                 Objects.equal(externalRoutingCapability, that.externalRoutingCapability) &&
-                Objects.equal(stubCost, that.stubCost) &&
-                Objects.equal(interfacesLst.size(), that.interfacesLst.size()) &&
+                Objects.equal(ospfInterfaceList.size(), that.ospfInterfaceList.size()) &&
                 Objects.equal(database, that.database);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(areaId, routerId, addressRanges, transitCapability, externalRoutingCapability,
-                                stubCost, interfacesLst, database);
+        return Objects.hashCode(areaId, routerId, externalRoutingCapability,
+                                ospfInterfaceList, database);
     }
 
     /**
@@ -234,7 +216,7 @@ public class OspfAreaImpl implements OspfArea {
         networkLsa.setNetworkMask(mask);
         //Adding our own router.
         networkLsa.addAttachedRouter(routerId());
-        Iterator iter = interfacesLst.iterator();
+        Iterator iter = ospfInterfaceList.iterator();
         OspfInterfaceImpl ospfInterface = null;
         while (iter.hasNext()) {
             ospfInterface = (OspfInterfaceImpl) iter.next();
@@ -310,7 +292,7 @@ public class OspfAreaImpl implements OspfArea {
      */
     private void buildLinkForRouterLsa(RouterLsa routerLsa, OspfInterface ospfInterface) {
         OspfInterfaceImpl nextInterface;
-        Iterator interfaces = interfacesLst.iterator();
+        Iterator interfaces = ospfInterfaceList.iterator();
         while (interfaces.hasNext()) {
             nextInterface = (OspfInterfaceImpl) interfaces.next();
             if (nextInterface.state() == OspfInterfaceState.DOWN) {
@@ -418,44 +400,6 @@ public class OspfAreaImpl implements OspfArea {
     }
 
     /**
-     * Gets address range.
-     *
-     * @return list of area address ranges
-     */
-    public List<OspfAreaAddressRange> addressRanges() {
-        return addressRanges;
-    }
-
-    /**
-     * Sets the area address ranges.
-     *
-     * @param addressRanges list of area address range
-     */
-    @JsonProperty("addressRange")
-    public void setAddressRanges(List<OspfAreaAddressRange> addressRanges) {
-        this.addressRanges = addressRanges;
-    }
-
-    /**
-     * Gets is transit capable or not.
-     *
-     * @return true if transit capable, else false
-     */
-    public boolean isTransitCapability() {
-        return transitCapability;
-    }
-
-    /**
-     * Sets transit capability.
-     *
-     * @param transitCapability true if transit capable, else false
-     */
-    @JsonProperty("transitCapability")
-    public void setTransitCapability(boolean transitCapability) {
-        this.transitCapability = transitCapability;
-    }
-
-    /**
      * Gets external routing capability.
      *
      * @return true if external routing capable, else false
@@ -475,41 +419,22 @@ public class OspfAreaImpl implements OspfArea {
     }
 
     /**
-     * Gets the stub cost.
-     *
-     * @return stub cost
-     */
-    public int stubCost() {
-        return stubCost;
-    }
-
-    /**
-     * Sets the stub cost.
-     *
-     * @param stubCost stub cost
-     */
-    @JsonProperty("stubCost")
-    public void setStubCost(int stubCost) {
-        this.stubCost = stubCost;
-    }
-
-    /**
      * Gets the list of interfaces in this area.
      *
      * @return list of interfaces
      */
-    public List<OspfInterface> getInterfacesLst() {
-        return interfacesLst;
+    public List<OspfInterface> ospfInterfaceList() {
+        return ospfInterfaceList;
     }
 
     /**
      * Sets the list of interfaces attached to the area.
      *
-     * @param interfacesLst list of OspfInterface instances
+     * @param ospfInterfaceList list of OspfInterface instances
      */
     @JsonProperty("interface")
-    public void setInterfacesLst(List<OspfInterface> interfacesLst) {
-        this.interfacesLst = interfacesLst;
+    public void setOspfInterfaceList(List<OspfInterface> ospfInterfaceList) {
+        this.ospfInterfaceList = ospfInterfaceList;
     }
 
     /**
@@ -522,7 +447,7 @@ public class OspfAreaImpl implements OspfArea {
     public boolean noNeighborInLsaExchangeProcess() {
         OspfInterfaceImpl nextInterface;
         OspfNeighborState nextNeighborState;
-        Iterator interfaces = interfacesLst.iterator();
+        Iterator interfaces = ospfInterfaceList.iterator();
         while (interfaces.hasNext()) {
             nextInterface = (OspfInterfaceImpl) interfaces.next();
             Iterator neighbors = nextInterface.listOfNeighbors().values().iterator();
@@ -659,19 +584,14 @@ public class OspfAreaImpl implements OspfArea {
         return MoreObjects.toStringHelper(getClass())
                 .omitNullValues()
                 .add("areaID", areaId)
-                .add("stubCost", stubCost)
-                .add("addressRanges", addressRanges)
-                .add("interfacesLst", interfacesLst)
-                .add("transitCapability", transitCapability)
+                .add("ospfInterfaceList", ospfInterfaceList)
                 .add("externalRoutingCapability", externalRoutingCapability)
                 .toString();
     }
 
     /**
      * Checks all Neighbors belonging to this Area whether they are in state lesser than the EXCHANGE.
-     * <p>
      * Creates list of such neighbors
-     * <p>
      * Returns list of neighbors who satisfy the conditions
      *
      * @param ospfInterface OSPF interface instance
@@ -716,7 +636,7 @@ public class OspfAreaImpl implements OspfArea {
     public void addToOtherNeighborLsaTxList(LsaHeader recLsa) {
         //Add the received LSA in other neighbors retransmission list.
         log.debug("OspfAreaImpl: addToOtherNeighborLsaTxList");
-        List<OspfInterface> ospfInterfaces = getInterfacesLst();
+        List<OspfInterface> ospfInterfaces = ospfInterfaceList();
         for (OspfInterface ospfInterfaceFromArea : ospfInterfaces) {
             Map neighbors = ospfInterfaceFromArea.listOfNeighbors();
             for (Object neighborIP : neighbors.keySet()) {

@@ -18,6 +18,7 @@ package org.onosproject.ospf.protocol.ospfpacket;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.Ip4Address;
+import org.onosproject.ospf.controller.OspfMessage;
 import org.onosproject.ospf.exceptions.OspfErrorType;
 import org.onosproject.ospf.exceptions.OspfParseException;
 import org.onosproject.ospf.protocol.ospfpacket.types.DdPacket;
@@ -46,15 +47,8 @@ public class OspfMessageReader {
     public OspfMessage readFromBuffer(ChannelBuffer channelBuffer)
             throws Exception {
 
-        if (channelBuffer.readableBytes() < OspfUtil.PACKET_MINIMUM_LENGTH) {
-            log.error("Packet should have minimum length...");
-            throw new OspfParseException(OspfErrorType.MESSAGE_HEADER_ERROR, OspfErrorType.BAD_MESSAGE_LENGTH);
-        }
-
         try {
             OspfPacketHeader ospfHeader = getOspfHeader(channelBuffer);
-            int len = ospfHeader.ospfPacLength() - OspfUtil.OSPF_HEADER_LENGTH;
-
             OspfMessage ospfMessage = null;
             switch (ospfHeader.ospfType()) {
                 case OspfParameters.HELLO:
@@ -81,7 +75,8 @@ public class OspfMessageReader {
                 try {
                     log.debug("{} Received::Message Length :: {} ", ospfMessage.ospfMessageType(),
                               ospfHeader.ospfPacLength());
-                    ospfMessage.readFrom(channelBuffer.readBytes(len));
+                    ospfMessage.readFrom(channelBuffer.readBytes(ospfHeader.ospfPacLength() -
+                                                                         OspfUtil.OSPF_HEADER_LENGTH));
                 } catch (Exception e) {
                     throw new OspfParseException(OspfErrorType.OSPF_MESSAGE_ERROR,
                                                  OspfErrorType.BAD_MESSAGE);
@@ -105,21 +100,12 @@ public class OspfMessageReader {
     private OspfPacketHeader getOspfHeader(ChannelBuffer channelBuffer) throws Exception {
         OspfPacketHeader ospfPacketHeader = new OspfPacketHeader();
 
-        byte[] sourceIpBytes = new byte[OspfUtil.FOUR_BYTES];
-        channelBuffer.readBytes(sourceIpBytes, 0, OspfUtil.FOUR_BYTES);
-        Ip4Address sourceIP = Ip4Address.valueOf(sourceIpBytes);
-
-        // Determine ospf version & Packet Type
+        // Determine OSPF version & Packet Type
         int version = channelBuffer.readByte(); //byte 1 is ospf version
         int packetType = channelBuffer.readByte(); //byte 2 is ospf packet type
 
         // byte 3 & 4 combine is packet length.
         int packetLength = channelBuffer.readShort();
-
-        if (packetLength > channelBuffer.readableBytes() + OspfUtil.FOUR_BYTES) {
-            log.error("Packet should have minimum length...");
-            throw new OspfParseException(OspfErrorType.MESSAGE_HEADER_ERROR, OspfErrorType.BAD_MESSAGE_LENGTH);
-        }
 
         byte[] tempByteArray = new byte[OspfUtil.FOUR_BYTES];
         channelBuffer.readBytes(tempByteArray, 0, OspfUtil.FOUR_BYTES);
@@ -133,7 +119,6 @@ public class OspfMessageReader {
         int auType = channelBuffer.readUnsignedShort();
         int authentication = (int) channelBuffer.readLong();
 
-        ospfPacketHeader.setSourceIp(sourceIP);
         ospfPacketHeader.setOspfVer(version);
         ospfPacketHeader.setOspftype(packetType);
         ospfPacketHeader.setOspfPacLength(packetLength);

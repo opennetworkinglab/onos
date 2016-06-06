@@ -18,57 +18,29 @@ package org.onosproject.ospf.controller.impl;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
-import org.jboss.netty.handler.timeout.ReadTimeoutHandler;
-import org.jboss.netty.util.ExternalResourceReleasable;
-import org.jboss.netty.util.HashedWheelTimer;
-import org.jboss.netty.util.Timer;
-import org.onosproject.ospf.controller.OspfArea;
-import org.onosproject.ospf.controller.OspfInterface;
 
 /**
- * Creates a ChannelPipeline for a server-side OSPF channel.
+ * Creates a ChannelPipeline for a client-side OSPF channel.
  */
-public class OspfPipelineFactory implements ChannelPipelineFactory, ExternalResourceReleasable {
-
-    private static final Timer TIMER = new HashedWheelTimer();
-    private Controller controller;
-    private ReadTimeoutHandler readTimeoutHandler;
-    private OspfArea ospfArea;
-    private OspfInterface ospfInterface;
-    private int holdTime = 120 * 1000;
+public class OspfPipelineFactory implements ChannelPipelineFactory {
+    private OspfInterfaceChannelHandler ospfChannelHandler;
 
     /**
-     * Creates an instance of OSPF pipeline factory.
+     * Creates an instance of OSPF channel pipeline factory.
      *
-     * @param controller    controller instance.
-     * @param ospfArea      OSPF area instance.
-     * @param ospfInterface OSPF interface instance.
+     * @param ospfChannelHandler OSPF channel handler instance
      */
-    public OspfPipelineFactory(Controller controller, OspfArea ospfArea, OspfInterface ospfInterface) {
-        super();
-        this.controller = controller;
-        this.ospfArea = ospfArea;
-        this.ospfInterface = ospfInterface;
-        readTimeoutHandler = new ReadTimeoutHandler(TIMER, holdTime);
+    public OspfPipelineFactory(OspfInterfaceChannelHandler ospfChannelHandler) {
+        this.ospfChannelHandler = ospfChannelHandler;
     }
 
     @Override
     public ChannelPipeline getPipeline() throws Exception {
-        OspfInterfaceChannelHandler interfaceHandler = new OspfInterfaceChannelHandler(
-                controller, ospfArea, ospfInterface);
-
         ChannelPipeline pipeline = Channels.pipeline();
-        pipeline.addLast("encoder", new OspfMessageEncoder(ospfInterface));
-        pipeline.addLast("decoder", new OspfMessageDecoder());
-        pipeline.addLast("holdTime", readTimeoutHandler);
-        pipeline.addLast("interfacehandler", interfaceHandler);
+        pipeline.addLast("encoder", new OspfMessageDecoder());
+        pipeline.addLast("decoder", new OspfMessageEncoder());
+        pipeline.addLast("handler", ospfChannelHandler);
 
         return pipeline;
     }
-
-    @Override
-    public void releaseExternalResources() {
-        TIMER.stop();
-    }
-
 }

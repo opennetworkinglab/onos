@@ -189,4 +189,36 @@ public interface OspfNbr {
      * @return neighbor's state
      */
     OspfNeighborState getState();
+
+    /**
+     * Starts the inactivity timer.
+     */
+    void startInactivityTimeCheck();
+
+    /**
+     * Stops the inactivity timer.
+     */
+    void stopInactivityTimeCheck();
+
+    /**
+     * Sets router dead interval.
+     *
+     * @param routerDeadInterval router dead interval
+     */
+    void setRouterDeadInterval(int routerDeadInterval);
+
+    /**
+     * Stops the flooding timer.
+     */
+    void stopFloodingTimer();
+
+    /**
+     * Stops the Dd Retransmission executor task.
+     */
+    void stopRxMtDdTimer();
+
+    /**
+     * Stops Ls request retransmission executor task.
+     */
+    void stopRxMtLsrTimer();
 }
