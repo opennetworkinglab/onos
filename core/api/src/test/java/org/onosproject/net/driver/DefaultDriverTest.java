@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.driver;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
@@ -35,7 +36,7 @@ public class DefaultDriverTest {
                                                               TestBehaviourTwoImpl.class),
                                               ImmutableMap.of("foo", "bar"));
 
-        DefaultDriver ddc = new DefaultDriver("foo.bar", ddp, "Circus", "lux", "1.2a",
+        DefaultDriver ddc = new DefaultDriver("foo.bar", ImmutableList.of(ddp), "Circus", "lux", "1.2a",
                                               ImmutableMap.of(),
                                               ImmutableMap.of("foo", "bar"));
         assertEquals("incorrect name", "foo.bar", ddc.name());

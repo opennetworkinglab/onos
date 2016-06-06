@@ -53,32 +53,6 @@ public class DefaultDriver implements Driver {
      * Creates a driver with the specified name.
      *
      * @param name         driver name
-     * @param parent       optional parent driver
-     * @param manufacturer device manufacturer
-     * @param hwVersion    device hardware version
-     * @param swVersion    device software version
-     * @param behaviours   device behaviour classes
-     * @param properties   properties for configuration of device behaviour classes
-     * @deprecated 1.5.0 Falcon Release
-     */
-    @Deprecated
-    public DefaultDriver(String name, Driver parent, String manufacturer,
-                         String hwVersion, String swVersion,
-                         Map<Class<? extends Behaviour>, Class<? extends Behaviour>> behaviours,
-                         Map<String, String> properties) {
-        this.name = checkNotNull(name, "Name cannot be null");
-        this.parents = parent == null ? null : Lists.newArrayList(parent);
-        this.manufacturer = checkNotNull(manufacturer, "Manufacturer cannot be null");
-        this.hwVersion = checkNotNull(hwVersion, "HW version cannot be null");
-        this.swVersion = checkNotNull(swVersion, "SW version cannot be null");
-        this.behaviours = copyOf(checkNotNull(behaviours, "Behaviours cannot be null"));
-        this.properties = copyOf(checkNotNull(properties, "Properties cannot be null"));
-    }
-
-    /**
-     * Creates a driver with the specified name.
-     *
-     * @param name         driver name
      * @param parents      optional parent drivers
      * @param manufacturer device manufacturer
      * @param hwVersion    device hardware version
