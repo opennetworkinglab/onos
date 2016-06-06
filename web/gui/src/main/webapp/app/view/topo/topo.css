@@ -102,7 +102,8 @@ html[data-platform='iPad'] #topo-p-detail {
     left: 50px;
 }
 
-.topo-p p, table {
+.topo-p p,
+.topo-p table {
     padding: 4px;
     margin: 0;
 }
