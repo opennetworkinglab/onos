@@ -164,8 +164,6 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
         diffExaminer.partitionDiffs()
                     .values()
                     .stream()
-                    // TODO: Remove after partition 0 is removed from cluster metadata.
-                    .filter(diff -> !diff.partitionId().equals(PartitionId.from(0)))
                     .filter(PartitionDiff::hasChanged)
                     .forEach(diff -> partitions.get(diff.partitionId()).onUpdate(diff.newValue()));
     }
