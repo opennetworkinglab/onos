@@ -83,19 +83,18 @@ div.ctrl-btns {
     display: inline-block;
     float: right;
     height: 44px;
-    margin-right: 24px;
-    margin-top: 7px;
+    margin-top: 24px;
+    margin-right: 20px;
 }
 
 div.ctrl-btns div {
     display: inline-block;
-    padding: 4px;
     cursor: pointer;
 }
 
 div.ctrl-btns div.separator  {
     width: 0;
-    height: 32px;
+    height: 40px;
     padding: 0;
     border-right: 1px solid #c7c7c0;
 }
