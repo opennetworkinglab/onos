@@ -20,9 +20,10 @@ import static org.onosproject.net.Device.Type.VIRTUAL;
 import static org.onosproject.incubator.net.resource.label.LabelResourceId.labelResourceId;
 import static java.util.stream.Collectors.toList;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.HashMap;
 
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.Ip4Address;
@@ -160,6 +161,7 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
     public static final int DELAY = 2;
     private LabelResourceId beginLabel = labelResourceId(5122);
     private LabelResourceId endLabel = labelResourceId(9217);
+    private HashMap<DeviceId, List<PortDescription>> portMap = new HashMap<>();
 
     @Activate
     public void activate() {
@@ -286,14 +288,35 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
             deviceProviderService.deviceDisconnected(deviceId);
         }
 
+        private List<PortDescription> buildPortDescriptions(DeviceId deviceId,
+                                                            PortNumber portNumber) {
+
+            List<PortDescription> portList;
+
+            if (portMap.containsKey(deviceId)) {
+                portList = portMap.get(deviceId);
+            } else {
+                portList = new ArrayList<>();
+            }
+            if (portNumber != null) {
+                PortDescription portDescriptions = new DefaultPortDescription(portNumber, true);
+                portList.add(portDescriptions);
+            }
+
+            portMap.put(deviceId, portList);
+            return portList;
+        }
+
         @Override
         public void addLink(BgpLinkLsNlriVer4 linkNlri, PathAttrNlriDetails details) throws BgpParseException {
             log.debug("Addlink {}", linkNlri.toString());
 
-            if (linkProviderService == null) {
+            LinkDescription linkDes = buildLinkDes(linkNlri, details, true);
+
+            //If already link exists, return
+            if (linkService.getLink(linkDes.src(), linkDes.dst()) != null || linkProviderService == null) {
                 return;
             }
-            LinkDescription linkDes = buildLinkDes(linkNlri, details, true);
 
             /*
              * Update link ports and configure bandwidth on source and destination port using networkConfig service
@@ -304,13 +327,11 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
             }
 
             //Updating ports of the link
-            List<PortDescription> srcPortDescriptions = new LinkedList<>();
-            srcPortDescriptions.add(new DefaultPortDescription(linkDes.src().port(), true));
-            deviceProviderService.updatePorts(linkDes.src().deviceId(), srcPortDescriptions);
+            deviceProviderService.updatePorts(linkDes.src().deviceId(), buildPortDescriptions(linkDes.src().deviceId(),
+                    linkDes.src().port()));
 
-            List<PortDescription> dstPortDescriptions = new LinkedList<>();
-            dstPortDescriptions.add(new DefaultPortDescription(linkDes.dst().port(), true));
-            deviceProviderService.updatePorts(linkDes.dst().deviceId(), dstPortDescriptions);
+            deviceProviderService.updatePorts(linkDes.dst().deviceId(), buildPortDescriptions(linkDes.dst().deviceId(),
+                    linkDes.dst().port()));
 
             linkProviderService.linkDetected(linkDes);
         }
