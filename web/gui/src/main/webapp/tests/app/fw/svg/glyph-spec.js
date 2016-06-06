@@ -78,7 +78,7 @@ describe('factory: fw/svg/glyph.js', function() {
             triangleDown: 'M9.5,4.2c0',
             plus: 'M4,2h2v2h2v2',
             minus: 'M2,4h6v2',
-            play: 'M2.5,2l5.5,3',
+            play: 'M3,1.5l3.5,3.5',
             stop: 'M2.5,2.5h5',
             xClose: 'M8.6,6.8L6.8,8.6',
 
