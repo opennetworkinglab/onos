@@ -77,7 +77,6 @@ public class ObjectiveCodecHelper {
 
         if (permanent) {
             builder.makePermanent()
-                    .makeTemporary(timeoutInt)
                     .withPriority(priorityInt);
         } else {
             builder.makeTemporary(timeoutInt)
