@@ -16,12 +16,16 @@
 
 package org.onosproject.ui.impl.topo.model;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterService;
@@ -117,6 +121,8 @@ public final class UiSharedTopologyModel
     private final FlowRuleListener flowRuleListener =
             new InternalFlowRuleListener();
 
+    private ExecutorService eventHandler;
+
 
     private ModelCache cache;
 
@@ -124,6 +130,7 @@ public final class UiSharedTopologyModel
     @Activate
     protected void activate() {
         cache = new ModelCache(new DefaultServiceBundle(), eventDispatcher);
+        eventHandler = Executors.newSingleThreadExecutor(Tools.groupedThreads("onos/ui/topo", "event-handler"));
 
         eventDispatcher.addSink(UiModelEvent.class, listenerRegistry);
 
@@ -153,6 +160,8 @@ public final class UiSharedTopologyModel
         hostService.removeListener(hostListener);
         intentService.removeListener(intentListener);
         flowService.removeListener(flowRuleListener);
+
+        eventHandler.shutdown();
 
         cache.clear();
         cache = null;
@@ -231,6 +240,10 @@ public final class UiSharedTopologyModel
     private class InternalClusterListener implements ClusterEventListener {
         @Override
         public void event(ClusterEvent event) {
+            eventHandler.execute(() -> handleEvent(event));
+        }
+
+        private void handleEvent(ClusterEvent event) {
             ControllerNode cnode = event.subject();
 
             switch (event.type()) {
