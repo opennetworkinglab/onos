@@ -15,9 +15,7 @@
  */
 package org.onosproject.provider.netcfglinks;
 
-import java.nio.ByteBuffer;
-import java.util.List;
-
+import com.google.common.collect.ImmutableList;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +51,8 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketServiceAdapter;
 
-import com.google.common.collect.ImmutableList;
+import java.nio.ByteBuffer;
+import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
@@ -153,7 +152,7 @@ public class NetworkConfigLinksProviderTest {
 
             Ethernet ethPacket = new Ethernet();
             ethPacket.setEtherType(Ethernet.TYPE_LLDP);
-            ethPacket.setDestinationMACAddress(ONOSLLDP.LLDP_NICIRA);
+            ethPacket.setDestinationMACAddress(ONOSLLDP.LLDP_ONLAB);
             ethPacket.setPayload(lldp);
             ethPacket.setPad(true);
 

@@ -81,7 +81,7 @@ public class LinkDiscovery implements TimerTask {
 
         ethPacket = new Ethernet();
         ethPacket.setEtherType(Ethernet.TYPE_LLDP);
-        ethPacket.setDestinationMACAddress(ONOSLLDP.LLDP_NICIRA);
+        ethPacket.setDestinationMACAddress(ONOSLLDP.LLDP_ONLAB);
         ethPacket.setPad(true);
 
         bddpEth = new Ethernet();
