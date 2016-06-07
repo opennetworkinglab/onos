@@ -51,7 +51,6 @@ import org.onosproject.store.service.DistributedPrimitive.Status;
 import org.onosproject.store.service.DistributedQueue;
 import org.onosproject.store.service.PartitionClientInfo;
 import org.onosproject.store.service.Serializer;
-import org.onosproject.store.service.StorageException;
 import org.slf4j.Logger;
 
 import com.google.common.base.Supplier;
@@ -120,7 +119,6 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
 
     @Override
     public <K, V> AsyncConsistentMap<K, V> newAsyncConsistentMap(String name, Serializer serializer) {
-        checkAvailability();
         AtomixConsistentMap atomixConsistentMap = client.getResource(name, AtomixConsistentMap.class).join();
         Consumer<State> statusListener = state -> {
             atomixConsistentMap.statusChangeListeners()
@@ -145,13 +143,11 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
 
     @Override
     public <E> AsyncDistributedSet<E> newAsyncDistributedSet(String name, Serializer serializer) {
-        checkAvailability();
         return DistributedPrimitives.newSetFromMap(this.<E, Boolean>newAsyncConsistentMap(name, serializer));
     }
 
     @Override
     public AsyncAtomicCounter newAsyncCounter(String name) {
-        checkAvailability();
         DistributedLong distributedLong = client.getLong(name).join();
         return new AtomixCounter(name, distributedLong);
     }
@@ -169,7 +165,6 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
 
     @Override
     public AsyncLeaderElector newAsyncLeaderElector(String name) {
-        checkAvailability();
         AtomixLeaderElector leaderElector = client.getResource(name, AtomixLeaderElector.class)
                                                   .thenCompose(AtomixLeaderElector::setupCache)
                                                   .join();
@@ -183,13 +178,11 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
 
     @Override
     public Set<String> getAsyncConsistentMapNames() {
-        checkAvailability();
         return client.keys(AtomixConsistentMap.class).join();
     }
 
     @Override
     public Set<String> getAsyncAtomicCounterNames() {
-        checkAvailability();
         return client.keys(DistributedLong.class).join();
     }
 
@@ -232,12 +225,6 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 throw new ResourceManagerException(e);
             }
         }
-        return new ResourceClient(new QueryRetryingCopycatClient(copycatClient, 2, 100));
-    }
-
-    private void checkAvailability() {
-        if (resourceClient.client().state() == State.SUSPENDED || resourceClient.client().state() == State.CLOSED) {
-            throw new StorageException.Unavailable();
-        }
+        return new ResourceClient(new OnosCopycatClient(copycatClient, 2, 100));
     }
 }
