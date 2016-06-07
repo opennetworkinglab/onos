@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.DefaultGroupId;
@@ -306,18 +307,13 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             return;
         }
 
-        if (!(srcElement instanceof IpElementId)) {
-            log.error("Element id is not valid");
-            return;
-        }
-
         // check for tunnel end points
         if (!(tunnel.src() instanceof IpTunnelEndPoint) || !(tunnel.dst() instanceof IpTunnelEndPoint)) {
             log.error("Tunnel source or destination is not valid");
             return;
         }
 
-        PcepClient pc = pcepClientController.getClient(PccId.pccId(((IpElementId) srcElement).ipAddress()));
+        PcepClient pc = pcepClientController.getClient(PccId.pccId(((IpTunnelEndPoint) tunnel.src()).ip()));
 
         if (!(pc instanceof PcepClient)) {
             log.error("There is no PCC connected with ip addresss {}"
@@ -822,21 +818,27 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         IpAddress ipDstAddress = null;
         IpAddress ipSrcAddress = null;
         PcepValueType subObj = null;
+        long portNo;
 
         for (Link link : listLink) {
             source = link.src();
             if (!(source.equals(destination))) {
                 //set IPv4SubObject for ERO object
-                ipSrcAddress = source.ipElementId().ipAddress();
+                portNo = source.port().toLong();
+                portNo = ((portNo & IDENTIFIER_SET) == IDENTIFIER_SET) ? portNo & SET : portNo;
+                ipSrcAddress = Ip4Address.valueOf((int) portNo);
                 subObj = new IPv4SubObject(ipSrcAddress.getIp4Address().toInt());
                 llSubObjects.add(subObj);
             }
 
             destination = link.dst();
-            ipDstAddress = destination.ipElementId().ipAddress();
+            portNo = destination.port().toLong();
+            portNo = ((portNo & IDENTIFIER_SET) == IDENTIFIER_SET) ? portNo & SET : portNo;
+            ipDstAddress = Ip4Address.valueOf((int) portNo);
             subObj = new IPv4SubObject(ipDstAddress.getIp4Address().toInt());
             llSubObjects.add(subObj);
         }
+
         return llSubObjects;
     }
 
@@ -904,9 +906,9 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         //build ERO object
         PcepEroObject eroobj = pc.factory().buildEroObject().setSubObjects(llSubObjects).build();
 
-        int iBandwidth = DEFAULT_BANDWIDTH_VALUE;
+        float iBandwidth = DEFAULT_BANDWIDTH_VALUE;
         if (tunnel.annotations().value(BANDWIDTH) != null) {
-            iBandwidth = Integer.parseInt(tunnel.annotations().value(BANDWIDTH));
+            iBandwidth = Float.parseFloat(tunnel.annotations().value(BANDWIDTH));
         }
         // build bandwidth object
         PcepBandwidthObject bandwidthObject = pc.factory().buildBandwidthObject().setBandwidth(iBandwidth).build();

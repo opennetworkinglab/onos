@@ -80,7 +80,7 @@ public interface PcepBandwidthObject {
          *
          * @return bandwidth
          */
-        int getBandwidth();
+        float getBandwidth();
 
         /**
          * Sets bandwidth value and return its builder.
@@ -88,7 +88,7 @@ public interface PcepBandwidthObject {
          * @param iBandwidth bandwidth value
          * @return Builder by setting bandwidth
          */
-        Builder setBandwidth(int iBandwidth);
+        Builder setBandwidth(float iBandwidth);
 
         /**
          * Sets P flag in Bandwidth object header and returns its builder.

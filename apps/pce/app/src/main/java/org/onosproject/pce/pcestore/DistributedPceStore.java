@@ -38,6 +38,7 @@ import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.resource.ResourceConsumer;
+import org.onosproject.pce.pceservice.constraint.CapabilityConstraint;
 import org.onosproject.pce.pceservice.constraint.CostConstraint;
 import org.onosproject.pce.pceservice.TunnelConsumerId;
 import org.onosproject.pce.pceservice.LspType;
@@ -132,6 +133,8 @@ public class DistributedPceStore implements PceStore {
                                           CostConstraint.class,
                                           CostConstraint.Type.class,
                                           BandwidthConstraint.class,
+                                          CapabilityConstraint.class,
+                                          CapabilityConstraint.CapabilityType.class,
                                           LspType.class)
                                 .build()))
 
