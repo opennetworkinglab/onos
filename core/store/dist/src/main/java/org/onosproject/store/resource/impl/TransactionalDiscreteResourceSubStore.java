@@ -24,9 +24,8 @@ import org.onosproject.store.service.TransactionalMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
 
@@ -54,13 +53,13 @@ class TransactionalDiscreteResourceSubStore {
         return values.lookup(id);
     }
 
-    boolean register(DiscreteResourceId key, List<DiscreteResource> values) {
+    boolean register(DiscreteResourceId key, Set<DiscreteResource> values) {
         // short-circuit: receiving empty resource is regarded as success
         if (values.isEmpty()) {
             return true;
         }
 
-        DiscreteResources requested = DiscreteResources.of(new LinkedHashSet<>(values));
+        DiscreteResources requested = DiscreteResources.of(values);
         DiscreteResources oldValues = childMap.putIfAbsent(key, requested);
         if (oldValues == null) {
             return true;
@@ -77,7 +76,7 @@ class TransactionalDiscreteResourceSubStore {
         return childMap.replace(key, oldValues, newValues);
     }
 
-    boolean unregister(DiscreteResourceId key, List<DiscreteResource> values) {
+    boolean unregister(DiscreteResourceId key, Set<DiscreteResource> values) {
         // short-circuit: receiving empty resource is regarded as success
         if (values.isEmpty()) {
             return true;

@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -333,14 +334,14 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         // it's assumed that the passed "values" is non-empty
 
         // This is 2-pass scan. Nicer to have 1-pass scan
-        List<DiscreteResource> discreteValues = values.stream()
+        Set<DiscreteResource> discreteValues = values.stream()
                 .filter(x -> x instanceof DiscreteResource)
                 .map(x -> (DiscreteResource) x)
-                .collect(Collectors.toList());
-        List<ContinuousResource> continuousValues = values.stream()
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        Set<ContinuousResource> continuousValues = values.stream()
                 .filter(x -> x instanceof ContinuousResource)
                 .map(x -> (ContinuousResource) x)
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         return discreteTxStore.register(key, discreteValues)
                 && continuousTxStore.register(key, continuousValues);
@@ -362,14 +363,14 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         // it's assumed that the passed "values" is non-empty
 
         // This is 2-pass scan. Nicer to have 1-pass scan
-        List<DiscreteResource> discreteValues = values.stream()
+        Set<DiscreteResource> discreteValues = values.stream()
                 .filter(x -> x instanceof DiscreteResource)
                 .map(x -> (DiscreteResource) x)
-                .collect(Collectors.toList());
-        List<ContinuousResource> continuousValues = values.stream()
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        Set<ContinuousResource> continuousValues = values.stream()
                 .filter(x -> x instanceof ContinuousResource)
                 .map(x -> (ContinuousResource) x)
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         return discreteTxStore.unregister(key, discreteValues)
                 && continuousTxStore.unregister(key, continuousValues);

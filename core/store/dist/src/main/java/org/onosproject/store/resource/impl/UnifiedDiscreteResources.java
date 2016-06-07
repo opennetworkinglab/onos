@@ -21,7 +21,6 @@ import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.Resources;
 
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -75,9 +74,9 @@ final class UnifiedDiscreteResources implements DiscreteResources {
     }
 
     @Override
-    public boolean containsAny(List<DiscreteResource> other) {
-        Map<Boolean, List<DiscreteResource>> partitioned = other.stream()
-                .collect(Collectors.partitioningBy(CODECS::isEncodable));
+    public boolean containsAny(Set<DiscreteResource> other) {
+        Map<Boolean, Set<DiscreteResource>> partitioned = other.stream()
+                .collect(Collectors.partitioningBy(CODECS::isEncodable, Collectors.toCollection(LinkedHashSet::new)));
         return generics.containsAny(partitioned.get(false)) || encodables.containsAny(partitioned.get(true));
     }
 
@@ -87,8 +86,8 @@ final class UnifiedDiscreteResources implements DiscreteResources {
     }
 
     @Override
-    public DiscreteResources remove(List<DiscreteResource> removed) {
-        return of(Sets.difference(values(), new LinkedHashSet<>(removed)));
+    public DiscreteResources remove(Set<DiscreteResource> removed) {
+        return of(Sets.difference(values(), removed));
     }
 
     @Override

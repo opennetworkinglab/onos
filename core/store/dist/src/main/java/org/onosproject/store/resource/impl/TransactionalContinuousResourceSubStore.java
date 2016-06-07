@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -61,13 +60,12 @@ class TransactionalContinuousResourceSubStore {
                 .findFirst();
     }
 
-    boolean register(DiscreteResourceId key, List<ContinuousResource> values) {
+    boolean register(DiscreteResourceId key, Set<ContinuousResource> requested) {
         // short-circuit: receiving empty resource is regarded as success
-        if (values.isEmpty()) {
+        if (requested.isEmpty()) {
             return true;
         }
 
-        Set<ContinuousResource> requested = new LinkedHashSet<>(values);
         Set<ContinuousResource> oldValues = childMap.putIfAbsent(key, requested);
         if (oldValues == null) {
             return true;
@@ -94,7 +92,7 @@ class TransactionalContinuousResourceSubStore {
         return childMap.replace(key, oldValues, newValues);
     }
 
-    boolean unregister(DiscreteResourceId key, List<ContinuousResource> values) {
+    boolean unregister(DiscreteResourceId key, Set<ContinuousResource> values) {
         // short-circuit: receiving empty resource is regarded as success
         if (values.isEmpty()) {
             return true;

@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceId;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -48,7 +47,7 @@ final class EmptyDiscreteResources implements DiscreteResources {
     }
 
     @Override
-    public boolean containsAny(List<DiscreteResource> other) {
+    public boolean containsAny(Set<DiscreteResource> other) {
         return false;
     }
 
@@ -58,7 +57,7 @@ final class EmptyDiscreteResources implements DiscreteResources {
     }
 
     @Override
-    public DiscreteResources remove(List<DiscreteResource> removed) {
+    public DiscreteResources remove(Set<DiscreteResource> removed) {
         return this;
     }
 

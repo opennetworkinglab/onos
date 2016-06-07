@@ -22,7 +22,6 @@ import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.Resources;
 
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -68,7 +67,7 @@ final class GenericDiscreteResources implements DiscreteResources {
     }
 
     @Override
-    public boolean containsAny(List<DiscreteResource> other) {
+    public boolean containsAny(Set<DiscreteResource> other) {
         return other.stream().anyMatch(values::contains);
     }
 
@@ -82,10 +81,8 @@ final class GenericDiscreteResources implements DiscreteResources {
 
     // returns a new instance, not mutate the current instance
     @Override
-    public DiscreteResources remove(List<DiscreteResource> removed) {
-        Set<DiscreteResource> newValues = new LinkedHashSet<>(this.values);
-        newValues.removeAll(removed);
-        return new GenericDiscreteResources(newValues);
+    public DiscreteResources remove(Set<DiscreteResource> removed) {
+        return of(Sets.difference(this.values, removed));
     }
 
     @Override

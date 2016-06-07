@@ -23,7 +23,6 @@ import org.onosproject.net.resource.Resources;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -97,7 +96,7 @@ final class EncodableDiscreteResources implements DiscreteResources {
     }
 
     @Override
-    public boolean containsAny(List<DiscreteResource> other) {
+    public boolean containsAny(Set<DiscreteResource> other) {
         return other.stream()
                 .anyMatch(x -> values().contains(x));
     }
@@ -110,8 +109,8 @@ final class EncodableDiscreteResources implements DiscreteResources {
     }
 
     @Override
-    public DiscreteResources remove(List<DiscreteResource> removed) {
-        return of(parent, Sets.difference(values(), new LinkedHashSet<>(removed)));
+    public DiscreteResources remove(Set<DiscreteResource> removed) {
+        return of(parent, Sets.difference(values(), removed));
     }
 
     @Override
