@@ -109,9 +109,13 @@ final class EncodableDiscreteResources implements DiscreteResources {
 
     @Override
     public DiscreteResources add(DiscreteResources other) {
-        Set<DiscreteResource> union = Sets.union(values(), other.values());
+        if (other instanceof EncodableDiscreteResources) {
+            return of(parent, Sets.union(this.values(), other.values()));
+        } else if (other instanceof EmptyDiscreteResources) {
+            return this;
+        }
 
-        return of(parent, union);
+        return DiscreteResources.of(Sets.union(this.values(), other.values()));
     }
 
     @Override

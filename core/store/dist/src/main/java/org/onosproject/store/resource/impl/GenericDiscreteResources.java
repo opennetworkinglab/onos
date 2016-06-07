@@ -81,9 +81,13 @@ final class GenericDiscreteResources implements DiscreteResources {
     // returns a new instance, not mutate the current instance
     @Override
     public DiscreteResources add(DiscreteResources other) {
-        Set<DiscreteResource> newValues = new LinkedHashSet<>(this.values);
-        newValues.addAll(other.values());
-        return new GenericDiscreteResources(newValues);
+        if (other instanceof GenericDiscreteResources) {
+            return new GenericDiscreteResources(Sets.union(this.values(), other.values()));
+        } else if (other instanceof EmptyDiscreteResources) {
+            return this;
+        }
+
+        return DiscreteResources.of(Sets.union(this.values(), other.values()));
     }
 
     @Override
