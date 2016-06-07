@@ -1,5 +1,5 @@
-/*
- * Copyright 2016-present Open Networking Laboratory
+/*-
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.linker;
-
 /**
- * Type of the resolvable info.
+ * Utilities for YANG built in data types.
  */
-public enum ResolvableType {
-
-    /**
-     * Identifies the derived data type.
-     */
-    YANG_DERIVED_DATA_TYPE,
-
-    /**
-     * Identifies the uses.
-     */
-    YANG_USES
-}
+package org.onosproject.yangutils.datamodel.utils.builtindatatype;

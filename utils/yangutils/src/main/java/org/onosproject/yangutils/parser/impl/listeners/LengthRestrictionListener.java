@@ -20,6 +20,7 @@ import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangRangeRestriction;
 import org.onosproject.yangutils.datamodel.YangStringRestriction;
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
@@ -29,6 +30,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.BINARY;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
+import static org.onosproject.yangutils.datamodel.utils.RestrictionResolver.processLengthRestriction;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
@@ -36,7 +38,6 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
-import static org.onosproject.yangutils.utils.RestrictionResolver.processLengthRestriction;
 import static org.onosproject.yangutils.utils.YangConstructType.LENGTH_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.TYPE_DATA;
 
@@ -125,8 +126,16 @@ public final class LengthRestrictionListener {
             throw parserException;
         }
 
-        YangRangeRestriction lengthRestriction = processLengthRestriction(null, ctx.getStart().getLine(),
-                ctx.getStart().getCharPositionInLine(), false, ctx.length().getText());
+        YangRangeRestriction lengthRestriction = null;
+        try {
+            lengthRestriction = processLengthRestriction(null, ctx.getStart().getLine(),
+                    ctx.getStart().getCharPositionInLine(), false, ctx.length().getText());
+        } catch (DataModelException e) {
+            ParserException parserException = new ParserException(e.getMessage());
+            parserException.setCharPosition(e.getCharPositionInLine());
+            parserException.setLine(e.getLineNumber());
+            throw parserException;
+        }
 
         if (type.getDataType() == STRING) {
             YangStringRestriction stringRestriction = (YangStringRestriction) type.getDataTypeExtendedInfo();
@@ -151,7 +160,7 @@ public final class LengthRestrictionListener {
      * @param ctx      context object of the grammar rule
      */
     public static void processLengthRestrictionExit(TreeWalkListener listener,
-                                                   GeneratedYangParser.LengthStatementContext ctx) {
+                                                    GeneratedYangParser.LengthStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, LENGTH_DATA, ctx.length().getText(), EXIT);

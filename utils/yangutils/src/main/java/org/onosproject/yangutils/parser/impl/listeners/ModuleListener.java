@@ -16,11 +16,12 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.ResolvableType;
 import org.onosproject.yangutils.datamodel.YangModule;
+import org.onosproject.yangutils.datamodel.YangReferenceResolver;
 import org.onosproject.yangutils.datamodel.YangRevision;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
-import org.onosproject.yangutils.linker.ResolvableType;
-import org.onosproject.yangutils.linker.YangReferenceResolver;
+import org.onosproject.yangutils.linker.exceptions.LinkerException;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
@@ -29,8 +30,7 @@ import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_G
 import static org.onosproject.yangutils.datamodel.utils.YangDataModelFactory.getYangModuleNode;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction
-        .constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
@@ -75,7 +75,7 @@ public final class ModuleListener {
      * (module), perform validations and update the data model tree.
      *
      * @param listener Listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processModuleEntry(TreeWalkListener listener, GeneratedYangParser.ModuleStatementContext ctx) {
 
@@ -106,7 +106,7 @@ public final class ModuleListener {
      * validations and update the data model tree.
      *
      * @param listener Listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processModuleExit(TreeWalkListener listener, GeneratedYangParser.ModuleStatementContext ctx) {
 
@@ -123,10 +123,10 @@ public final class ModuleListener {
             ((YangReferenceResolver) listener.getParsedDataStack()
                     .peek()).resolveSelfFileLinking(ResolvableType.YANG_DERIVED_DATA_TYPE);
         } catch (DataModelException e) {
-            ParserException parserException = new ParserException(e.getMessage());
-            parserException.setLine(e.getLineNumber());
-            parserException.setCharPosition(e.getCharPositionInLine());
-            throw parserException;
+            LinkerException linkerException = new LinkerException(e.getMessage());
+            linkerException.setLine(e.getLineNumber());
+            linkerException.setCharPosition(e.getCharPositionInLine());
+            throw linkerException;
         }
     }
 }

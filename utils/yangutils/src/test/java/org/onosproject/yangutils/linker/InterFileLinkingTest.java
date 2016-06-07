@@ -19,7 +19,6 @@ package org.onosproject.yangutils.linker;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.ListIterator;
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangDataTypes;
@@ -70,6 +69,9 @@ public class InterFileLinkingTest {
 
         YangNode refNode = null;
         YangNode selfNode = null;
+
+        // Create YANG node set
+        yangLinkerManager.createYangNodeSet(utilManager.getYangFileInfoSet());
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangFileInfoSet());
@@ -136,6 +138,9 @@ public class InterFileLinkingTest {
 
         YangNode refNode = null;
         YangNode selfNode = null;
+
+        // Create YANG node set
+        yangLinkerManager.createYangNodeSet(utilManager.getYangFileInfoSet());
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangFileInfoSet());
@@ -211,6 +216,9 @@ public class InterFileLinkingTest {
         YangNode refNode = null;
         YangNode selfNode = null;
 
+        // Create YANG node set
+        yangLinkerManager.createYangNodeSet(utilManager.getYangFileInfoSet());
+
         // Carry out linking of sub module with module.
         yangLinkerManager.linkSubModulesToParentModule(utilManager.getYangFileInfoSet());
 
@@ -279,6 +287,9 @@ public class InterFileLinkingTest {
 
         YangNode refNode = null;
         YangNode selfNode = null;
+
+        // Create YANG node set
+        yangLinkerManager.createYangNodeSet(utilManager.getYangFileInfoSet());
 
         // Carry out linking of sub module with module.
         yangLinkerManager.linkSubModulesToParentModule(utilManager.getYangFileInfoSet());
@@ -357,6 +368,9 @@ public class InterFileLinkingTest {
         YangNode refNode = null;
         YangNode selfNode = null;
 
+        // Create YANG node set
+        yangLinkerManager.createYangNodeSet(utilManager.getYangFileInfoSet());
+
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangFileInfoSet());
 
@@ -422,6 +436,9 @@ public class InterFileLinkingTest {
 
         YangNode refNode = null;
         YangNode selfNode = null;
+
+        // Create YANG node set
+        yangLinkerManager.createYangNodeSet(utilManager.getYangFileInfoSet());
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangFileInfoSet());
@@ -490,6 +507,9 @@ public class InterFileLinkingTest {
         YangNode refNode2 = null;
         YangNode selfNode = null;
 
+        // Create YANG node set
+        yangLinkerManager.createYangNodeSet(utilManager.getYangFileInfoSet());
+
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangFileInfoSet());
 
@@ -553,6 +573,9 @@ public class InterFileLinkingTest {
 
         YangNode refNode1 = null;
         YangNode selfNode = null;
+
+        // Create YANG node set
+        yangLinkerManager.createYangNodeSet(utilManager.getYangFileInfoSet());
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangFileInfoSet());

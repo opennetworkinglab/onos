@@ -14,48 +14,34 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.utils.builtindatatype;
+package org.onosproject.yangutils.datamodel.utils.builtindatatype;
 
-import java.math.BigInteger;
-import java.util.regex.Pattern;
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 
 /**
- * Handles the YANG's Uint16 data type processing.
+ * Handles the YANG's Uint32 data type processing.
  *
- * Uint64 represents integer values between 0 and 18446744073709551615, inclusively.
+ * Uint32 represents integer values between 0 and 4294967295, inclusively.
  */
-public class YangUint64 implements YangBuiltInDataTypeInfo<YangUint64> {
+public class YangUint32 implements YangBuiltInDataTypeInfo<YangUint32> {
 
-    /**
-     * YANG's min keyword.
-     */
     private static final String MIN_KEYWORD = "min";
-
-    /**
-     * YANG's max keyword.
-     */
     private static final String MAX_KEYWORD = "max";
 
     /**
-     * YANG's Integer value pattern.
+     * Valid minimum value of YANG's Uint32.
      */
-    private static final Pattern NON_NEGATIVE_INTEGER_PATTERN = Pattern.compile("[0-9]+");
+    public static final long MIN_VALUE = 0;
 
     /**
-     * Valid minimum value of YANG's Uint64.
+     * Valid maximum value of YANG's Uint32.
      */
-    public static final BigInteger MIN_VALUE = BigInteger.valueOf(0);
-
-    /**
-     * Valid maximum value of YANG's Uint64.
-     */
-    public static final BigInteger MAX_VALUE = new BigInteger("18446744073709551615");
+    public static final long MAX_VALUE = 4294967295L;
 
     /**
      * Value of the object.
      */
-    private BigInteger value;
+    private long value;
 
     /**
      * Creates an object with the value initialized with value represented in
@@ -63,45 +49,47 @@ public class YangUint64 implements YangBuiltInDataTypeInfo<YangUint64> {
      *
      * @param valueInString value of the object in string
      */
-    YangUint64(String valueInString) {
+    YangUint32(String valueInString) {
 
         if (valueInString.matches(MIN_KEYWORD)) {
             value = MIN_VALUE;
         } else if (valueInString.matches(MAX_KEYWORD)) {
             value = MAX_VALUE;
-        } else if (NON_NEGATIVE_INTEGER_PATTERN.matcher(valueInString).matches()) {
-            value = new BigInteger(valueInString);
         } else {
-            throw new DataTypeException("YANG file error : Input value \"" + valueInString + "\" is not a valid " +
-                    "uint64.");
+            try {
+                value = Long.parseLong(valueInString);
+            } catch (Exception e) {
+                throw new DataTypeException("YANG file error : Input value \"" + valueInString + "\" is not a valid " +
+                        "uint32.");
+            }
         }
 
-        if (value.compareTo(MIN_VALUE) < 0) {
+        if (value < MIN_VALUE) {
             throw new DataTypeException("YANG file error : " + valueInString + " is lesser than minimum value "
                     + MIN_VALUE + ".");
-        } else if (value.compareTo(MAX_VALUE) > 0) {
+        } else if (value > MAX_VALUE) {
             throw new DataTypeException("YANG file error : " + valueInString + " is greater than maximum value "
                     + MAX_VALUE + ".");
         }
     }
 
     /**
-     * Returns YANG's uint64 value.
+     * Returns YANG's uint32 value.
      *
-     * @return value of YANG's uint64
+     * @return value of YANG's uint32
      */
-    public BigInteger getValue() {
+    public long getValue() {
         return value;
     }
 
     @Override
-    public int compareTo(YangUint64 another) {
-        return value.compareTo(another.value);
+    public int compareTo(YangUint32 another) {
+        return Long.compare(value, another.value);
     }
 
     @Override
     public YangDataTypes getYangType() {
-        return YangDataTypes.UINT64;
+        return YangDataTypes.UINT32;
     }
 
 }

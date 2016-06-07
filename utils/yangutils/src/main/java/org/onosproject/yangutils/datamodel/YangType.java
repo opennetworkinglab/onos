@@ -19,7 +19,6 @@ package org.onosproject.yangutils.datamodel;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.linker.Resolvable;
 import org.onosproject.yangutils.linker.ResolvableStatus;
-import org.onosproject.yangutils.linker.exceptions.LinkerException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
 
@@ -248,25 +247,25 @@ public class YangType<T>
 
     @Override
     public void resolve()
-            throws LinkerException {
+            throws DataModelException {
        /*
         * Check whether the data type is derived.
         */
         if (getDataType() != DERIVED) {
-            throw new LinkerException("Linker Error: Resolve should only be called for derived data types.");
+            throw new DataModelException("Linker Error: Resolve should only be called for derived data types.");
         }
 
         // Check if the derived info is present.
         YangDerivedInfo<?> derivedInfo = (YangDerivedInfo<?>) getDataTypeExtendedInfo();
         if (derivedInfo == null) {
-            throw new LinkerException("Linker Error: Derived information is missing.");
+            throw new DataModelException("Linker Error: Derived information is missing.");
         }
 
         // Initiate the resolution
         try {
             setResolvableStatus(derivedInfo.resolve());
         } catch (DataModelException e) {
-            throw new LinkerException(e.getMessage());
+            throw new DataModelException(e.getMessage());
         }
     }
 }

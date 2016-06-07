@@ -19,7 +19,6 @@ package org.onosproject.yangutils.linker;
 import java.io.IOException;
 import java.util.List;
 import java.util.ListIterator;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -581,9 +580,9 @@ public class IntraFileUsesLinkingTest {
      */
     @Test
     public void processSelfResolutionNestedGroupingWithUnresolvedUses()
-            throws IOException, ParserException {
+            throws IOException, LinkerException {
 
-        thrown.expect(ParserException.class);
+        thrown.expect(LinkerException.class);
         thrown.expectMessage(
                 "YANG file error: Unable to find base grouping for given uses");
 

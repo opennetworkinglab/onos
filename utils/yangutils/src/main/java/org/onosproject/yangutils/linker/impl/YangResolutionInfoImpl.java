@@ -17,14 +17,14 @@
 package org.onosproject.yangutils.linker.impl;
 
 import java.util.Stack;
-
-import org.onosproject.yangutils.datamodel.LocationInfo;
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangGrouping;
 import org.onosproject.yangutils.datamodel.YangImport;
 import org.onosproject.yangutils.datamodel.YangInclude;
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangReferenceResolver;
+import org.onosproject.yangutils.datamodel.YangResolutionInfo;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.YangUses;
@@ -32,7 +32,6 @@ import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.linker.Resolvable;
 import org.onosproject.yangutils.linker.ResolvableStatus;
 import org.onosproject.yangutils.linker.YangLinkingPhase;
-import org.onosproject.yangutils.linker.YangReferenceResolver;
 
 import static org.onosproject.yangutils.linker.ResolvableStatus.INTER_FILE_LINKED;
 import static org.onosproject.yangutils.linker.ResolvableStatus.INTRA_FILE_RESOLVED;
@@ -41,21 +40,22 @@ import static org.onosproject.yangutils.linker.ResolvableStatus.RESOLVED;
 import static org.onosproject.yangutils.linker.ResolvableStatus.UNRESOLVED;
 import static org.onosproject.yangutils.linker.YangLinkingPhase.INTER_FILE;
 import static org.onosproject.yangutils.linker.YangLinkingPhase.INTRA_FILE;
-import static org.onosproject.yangutils.utils.UtilConstants.TYPEDEF_LINKER_ERROR;
 import static org.onosproject.yangutils.utils.UtilConstants.GROUPING_LINKER_ERROR;
+import static org.onosproject.yangutils.utils.UtilConstants.TYPEDEF_LINKER_ERROR;
 
 /**
- * Represents resolution object which will be resolved by linker.
+ * Represents implementation of resolution object which will be resolved by
+ * linker.
  *
  * @param <T> type of resolution entity uses / type
  */
-public class YangResolutionInfo<T>
-        implements LocationInfo {
+public class YangResolutionInfoImpl<T>
+        implements YangResolutionInfo<T> {
 
     /**
      * Information about the entity that needs to be resolved.
      */
-    private YangEntityToResolveInfo<T> entityToResolveInfo;
+    private YangEntityToResolveInfoImpl<T> entityToResolveInfo;
 
     /**
      * Error line number.
@@ -77,14 +77,14 @@ public class YangResolutionInfo<T>
      * Stack for type/uses is maintained for hierarchical references, this is
      * used during resolution.
      */
-    private Stack<YangEntityToResolveInfo<T>> partialResolvedStack;
+    private Stack<YangEntityToResolveInfoImpl<T>> partialResolvedStack;
 
     /**
      * It is private to ensure the overloaded method be invoked to create an
      * object.
      */
     @SuppressWarnings("unused")
-    private YangResolutionInfo() {
+    private YangResolutionInfoImpl() {
 
     }
 
@@ -96,8 +96,8 @@ public class YangResolutionInfo<T>
      * @param lineNumber         error line number
      * @param charPositionInLine error character position in line
      */
-    public YangResolutionInfo(T dataNode, YangNode holderNode, int lineNumber, int charPositionInLine) {
-        setEntityToResolveInfo(new YangEntityToResolveInfo<>());
+    public YangResolutionInfoImpl(T dataNode, YangNode holderNode, int lineNumber, int charPositionInLine) {
+        setEntityToResolveInfo(new YangEntityToResolveInfoImpl<>());
         getEntityToResolveInfo().setEntityToResolve(dataNode);
         getEntityToResolveInfo().setHolderOfEntityToResolve(holderNode);
         this.setLineNumber(lineNumber);
@@ -105,13 +105,7 @@ public class YangResolutionInfo<T>
         setPartialResolvedStack(new Stack<>());
     }
 
-    /**
-     * Resolves linking with all the ancestors node for a resolution info.
-     *
-     * @param dataModelRootNode module/sub-module node
-     * @throws DataModelException DataModelException a violation of data model
-     *                            rules
-     */
+    @Override
     public void resolveLinkingForResolutionInfo(YangReferenceResolver dataModelRootNode)
             throws DataModelException {
 
@@ -431,11 +425,12 @@ public class YangResolutionInfo<T>
             if (((YangTypeDef) referredNode).getTypeDefBaseType().getDataType()
                     == YangDataTypes.DERIVED) {
 
-                YangEntityToResolveInfo<YangType<?>> unResolvedEntityInfo = new YangEntityToResolveInfo<>();
+                YangEntityToResolveInfoImpl<YangType<?>> unResolvedEntityInfo
+                        = new YangEntityToResolveInfoImpl<>();
                 unResolvedEntityInfo.setEntityToResolve(((YangTypeDef) referredNode)
                         .getTypeDefBaseType());
                 unResolvedEntityInfo.setHolderOfEntityToResolve(referredNode);
-                addInPartialResolvedStack((YangEntityToResolveInfo<T>) unResolvedEntityInfo);
+                addInPartialResolvedStack((YangEntityToResolveInfoImpl<T>) unResolvedEntityInfo);
             }
 
         } else if (getCurrentEntityToResolveFromStack() instanceof YangUses) {
@@ -462,10 +457,10 @@ public class YangResolutionInfo<T>
         YangNode curNode = node.getChild();
         while (curNode != null) {
             if (curNode instanceof YangUses) {
-                YangEntityToResolveInfo<YangUses> unResolvedEntityInfo = new YangEntityToResolveInfo<>();
+                YangEntityToResolveInfoImpl<YangUses> unResolvedEntityInfo = new YangEntityToResolveInfoImpl<>();
                 unResolvedEntityInfo.setEntityToResolve((YangUses) curNode);
                 unResolvedEntityInfo.setHolderOfEntityToResolve(node);
-                addInPartialResolvedStack((YangEntityToResolveInfo<T>) unResolvedEntityInfo);
+                addInPartialResolvedStack((YangEntityToResolveInfoImpl<T>) unResolvedEntityInfo);
 
             }
             curNode = curNode.getNextSibling();
@@ -478,7 +473,7 @@ public class YangResolutionInfo<T>
      *
      * @return partial resolved YANG construct stack
      */
-    private Stack<YangEntityToResolveInfo<T>> getPartialResolvedStack() {
+    private Stack<YangEntityToResolveInfoImpl<T>> getPartialResolvedStack() {
         return partialResolvedStack;
     }
 
@@ -487,7 +482,7 @@ public class YangResolutionInfo<T>
      *
      * @param partialResolvedStack partial resolved YANG construct stack
      */
-    private void setPartialResolvedStack(Stack<YangEntityToResolveInfo<T>> partialResolvedStack) {
+    private void setPartialResolvedStack(Stack<YangEntityToResolveInfoImpl<T>> partialResolvedStack) {
         this.partialResolvedStack = partialResolvedStack;
     }
 
@@ -496,7 +491,7 @@ public class YangResolutionInfo<T>
      *
      * @param partialResolvedInfo partial resolved YANG construct stack
      */
-    private void addInPartialResolvedStack(YangEntityToResolveInfo<T> partialResolvedInfo) {
+    private void addInPartialResolvedStack(YangEntityToResolveInfoImpl<T> partialResolvedInfo) {
         getPartialResolvedStack().push(partialResolvedInfo);
     }
 
@@ -510,12 +505,8 @@ public class YangResolutionInfo<T>
         return getPartialResolvedStack().peek().getEntityToResolve();
     }
 
-    /**
-     * Retrieves information about the entity that needs to be resolved.
-     *
-     * @return information about the entity that needs to be resolved
-     */
-    public YangEntityToResolveInfo<T> getEntityToResolveInfo() {
+    @Override
+    public YangEntityToResolveInfoImpl<T> getEntityToResolveInfo() {
         return entityToResolveInfo;
     }
 
@@ -525,7 +516,7 @@ public class YangResolutionInfo<T>
      * @param entityToResolveInfo information about the entity that needs to be
      *                            resolved
      */
-    private void setEntityToResolveInfo(YangEntityToResolveInfo<T> entityToResolveInfo) {
+    private void setEntityToResolveInfo(YangEntityToResolveInfoImpl<T> entityToResolveInfo) {
         this.entityToResolveInfo = entityToResolveInfo;
     }
 
@@ -569,13 +560,7 @@ public class YangResolutionInfo<T>
         this.curReferenceResolver = curReferenceResolver;
     }
 
-    /**
-     * Performs inter file linking of uses/type referring to typedef/grouping
-     * of other YANG file.
-     *
-     * @param dataModelRootNode module/sub-module node
-     * @throws DataModelException a violation in data model rule
-     */
+    @Override
     public void linkInterFile(YangReferenceResolver dataModelRootNode)
             throws DataModelException {
 

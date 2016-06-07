@@ -26,10 +26,10 @@ import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
 import org.onosproject.yangutils.datamodel.YangNotification;
 import org.onosproject.yangutils.datamodel.YangOutput;
-import org.onosproject.yangutils.linker.impl.YangResolutionInfo;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.YangUses;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.linker.impl.YangResolutionInfoImpl;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
@@ -110,7 +110,7 @@ public final class UsesListener {
      * validations and updates the data model tree.
      *
      * @param listener listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processUsesEntry(TreeWalkListener listener, GeneratedYangParser.UsesStatementContext ctx) {
 
@@ -160,7 +160,7 @@ public final class UsesListener {
      * @param ctx      context object of the grammar rule
      */
     public static void processUsesExit(TreeWalkListener listener,
-                                           GeneratedYangParser.UsesStatementContext ctx) {
+                                       GeneratedYangParser.UsesStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, USES_DATA, ctx.string().getText(), EXIT);
@@ -184,7 +184,7 @@ public final class UsesListener {
         }
 
         // Add resolution information to the list
-        YangResolutionInfo resolutionInfo = new YangResolutionInfo<YangUses>(uses,
+        YangResolutionInfoImpl resolutionInfo = new YangResolutionInfoImpl<YangUses>(uses,
                 (YangNode) parentNode, errorLine,
                 errorPosition);
         addToResolutionList(resolutionInfo, ctx);
@@ -208,10 +208,10 @@ public final class UsesListener {
      * Add to resolution list.
      *
      * @param resolutionInfo resolution information.
-     * @param ctx context object of the grammar rule
+     * @param ctx            context object of the grammar rule
      */
-    private static void addToResolutionList(YangResolutionInfo<YangUses> resolutionInfo,
-            GeneratedYangParser.UsesStatementContext ctx) {
+    private static void addToResolutionList(YangResolutionInfoImpl<YangUses> resolutionInfo,
+                                            GeneratedYangParser.UsesStatementContext ctx) {
 
         try {
             addResolutionInfo(resolutionInfo);

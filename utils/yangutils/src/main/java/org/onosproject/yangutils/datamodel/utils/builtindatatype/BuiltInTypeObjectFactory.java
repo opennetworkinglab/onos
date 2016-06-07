@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.yangutils.utils.builtindatatype;
+package org.onosproject.yangutils.datamodel.utils.builtindatatype;
 
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 
@@ -32,13 +32,13 @@ public final class BuiltInTypeObjectFactory {
      * Given the value represented in string return the corresponding types
      * object with the value initialized.
      *
-     * @param valueInStr value represented in string
+     * @param valueInStr  value represented in string
      * @param builtInType built in data type
+     * @param <T>         the data type of the target object
      * @return the target data type object with the value initialized
-     * @param <T> the data type of the target object
      */
     public static <T extends YangBuiltInDataTypeInfo<?>> T getDataObjectFromString(String valueInStr,
-            YangDataTypes builtInType) {
+                                                                                   YangDataTypes builtInType) {
 
         switch (builtInType) {
             case INT8: {

@@ -18,7 +18,6 @@ package org.onosproject.yangutils.datamodel;
 import java.util.Set;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 import org.onosproject.yangutils.utils.YangConstructType;
 
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.findReferredNode;
@@ -237,10 +236,10 @@ public class YangImport
     /**
      * Adds reference to an import.
      *
-     * @param yangFileInfoSet YANG file info set
+     * @param yangNodeSet YANG file info set
      * @throws DataModelException a violation of data model rules
      */
-    public void addReferenceToImport(Set<YangFileInfo> yangFileInfoSet) throws DataModelException {
+    public void addReferenceToImport(Set<YangNode> yangNodeSet) throws DataModelException {
         String importedModuleName = getModuleName();
         String importedModuleRevision = getRevision();
         YangNode moduleNode = null;
@@ -250,7 +249,7 @@ public class YangImport
          */
         if (importedModuleRevision != null) {
             String importedModuleNameWithRevision = importedModuleName + "@" + importedModuleRevision;
-            moduleNode = findReferredNode(yangFileInfoSet, importedModuleNameWithRevision);
+            moduleNode = findReferredNode(yangNodeSet, importedModuleNameWithRevision);
         }
 
         /*
@@ -258,7 +257,7 @@ public class YangImport
          * without revision if can't find with revision.
          */
         if (moduleNode == null) {
-            moduleNode = findReferredNode(yangFileInfoSet, importedModuleName);
+            moduleNode = findReferredNode(yangNodeSet, importedModuleName);
         }
 
         if (moduleNode != null) {

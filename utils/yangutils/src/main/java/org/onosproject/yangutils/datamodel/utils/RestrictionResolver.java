@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.utils;
+package org.onosproject.yangutils.datamodel.utils;
 
 import java.util.regex.Pattern;
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangRangeInterval;
 import org.onosproject.yangutils.datamodel.YangRangeRestriction;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
-import org.onosproject.yangutils.parser.exceptions.ParserException;
-import org.onosproject.yangutils.utils.builtindatatype.DataTypeException;
-import org.onosproject.yangutils.utils.builtindatatype.YangBuiltInDataTypeInfo;
+import org.onosproject.yangutils.utils.YangConstructType;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangBuiltInDataTypeInfo;
 
 import static org.onosproject.yangutils.datamodel.YangDataTypes.DECIMAL64;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.INT16;
@@ -34,13 +33,11 @@ import static org.onosproject.yangutils.datamodel.YangDataTypes.UINT16;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.UINT32;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.UINT64;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.UINT8;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.removeQuotesAndHandleConcat;
+import static org.onosproject.yangutils.utils.UtilConstants.ADD;
+import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.YangConstructType.LENGTH_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.RANGE_DATA;
-import static org.onosproject.yangutils.utils.builtindatatype.BuiltInTypeObjectFactory.getDataObjectFromString;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.BuiltInTypeObjectFactory.getDataObjectFromString;
 
 /**
  * Represents restriction resolver which provide common utility used by parser
@@ -71,11 +68,13 @@ public final class RestrictionResolver {
      * @param curRangeString         caller type's range string
      * @param effectiveType          effective type, when called from linker
      * @return YANG range restriction
+     * @throws DataModelException a violation in data model rule
      */
     public static YangRangeRestriction processRangeRestriction(YangRangeRestriction refRangeRestriction,
                                                                int lineNumber, int charPositionInLine,
                                                                boolean hasReferredRestriction,
-                                                               String curRangeString, YangDataTypes effectiveType) {
+                                                               String curRangeString, YangDataTypes effectiveType)
+            throws DataModelException {
         YangBuiltInDataTypeInfo<?> startValue;
         YangBuiltInDataTypeInfo<?> endValue;
         YangRangeRestriction rangeRestriction = new YangRangeRestriction();
@@ -90,12 +89,12 @@ public final class RestrictionResolver {
             String[] rangeBoundary = rangePart.trim().split(Pattern.quote(INTERVAL));
 
             if (rangeBoundary.length > MAX_RANGE_BOUNDARY) {
-                ParserException parserException = new ParserException("YANG file error : " +
+                DataModelException dataModelException = new DataModelException("YANG file error : " +
                         YangConstructType.getYangConstructType(RANGE_DATA) + " " + rangeArgument +
                         " is not valid.");
-                parserException.setLine(lineNumber);
-                parserException.setCharPosition(charPositionInLine);
-                throw parserException;
+                dataModelException.setLine(lineNumber);
+                dataModelException.setCharPosition(charPositionInLine);
+                throw dataModelException;
             }
 
             if (rangeBoundary.length == MIN_RANGE_BOUNDARY) {
@@ -125,11 +124,11 @@ public final class RestrictionResolver {
                 } else {
                     endValue = getDataObjectFromString(endInterval, effectiveType);
                 }
-            } catch (DataTypeException | DataModelException e) {
-                ParserException parserException = new ParserException(e.getMessage());
-                parserException.setLine(lineNumber);
-                parserException.setCharPosition(charPositionInLine);
-                throw parserException;
+            } catch (Exception e) {
+                DataModelException dataModelException = new DataModelException(e.getMessage());
+                dataModelException.setLine(lineNumber);
+                dataModelException.setCharPosition(charPositionInLine);
+                throw dataModelException;
             }
 
             rangeInterval.setStartValue(startValue);
@@ -137,12 +136,10 @@ public final class RestrictionResolver {
 
             try {
                 rangeRestriction.addRangeRestrictionInterval(rangeInterval);
-            } catch (DataModelException e) {
-                ParserException parserException = new ParserException(constructExtendedListenerErrorMessage(
-                        UNHANDLED_PARSED_DATA, RANGE_DATA, rangeArgument, ENTRY, e.getMessage()));
-                parserException.setLine(lineNumber);
-                parserException.setCharPosition(charPositionInLine);
-                throw parserException;
+            } catch (DataModelException dataModelException) {
+                dataModelException.setLine(lineNumber);
+                dataModelException.setCharPosition(charPositionInLine);
+                throw dataModelException;
             }
         }
         return rangeRestriction;
@@ -157,11 +154,12 @@ public final class RestrictionResolver {
      * @param hasReferredRestriction whether has referred restriction
      * @param curLengthString        caller type's length string
      * @return YANG range restriction
+     * @throws DataModelException a violation in data model rule
      */
     public static YangRangeRestriction processLengthRestriction(YangRangeRestriction refLengthRestriction,
                                                                 int lineNumber, int charPositionInLine,
                                                                 boolean hasReferredRestriction,
-                                                                String curLengthString) {
+                                                                String curLengthString) throws DataModelException {
 
         YangBuiltInDataTypeInfo<?> startValue;
         YangBuiltInDataTypeInfo<?> endValue;
@@ -177,12 +175,12 @@ public final class RestrictionResolver {
             String[] rangeBoundary = rangePart.trim().split(Pattern.quote(INTERVAL));
 
             if (rangeBoundary.length > MAX_RANGE_BOUNDARY) {
-                ParserException parserException = new ParserException("YANG file error : " +
+                DataModelException dataModelException = new DataModelException("YANG file error : " +
                         YangConstructType.getYangConstructType(LENGTH_DATA) + " " + rangeArgument +
                         " is not valid.");
-                parserException.setLine(lineNumber);
-                parserException.setCharPosition(charPositionInLine);
-                throw parserException;
+                dataModelException.setLine(lineNumber);
+                dataModelException.setCharPosition(charPositionInLine);
+                throw dataModelException;
             }
 
             if (rangeBoundary.length == MIN_RANGE_BOUNDARY) {
@@ -212,11 +210,11 @@ public final class RestrictionResolver {
                 } else {
                     endValue = getDataObjectFromString(endInterval, YangDataTypes.UINT64);
                 }
-            } catch (DataTypeException | DataModelException e) {
-                ParserException parserException = new ParserException(e.getMessage());
-                parserException.setLine(lineNumber);
-                parserException.setCharPosition(charPositionInLine);
-                throw parserException;
+            } catch (Exception e) {
+                DataModelException dataModelException = new DataModelException(e.getMessage());
+                dataModelException.setLine(lineNumber);
+                dataModelException.setCharPosition(charPositionInLine);
+                throw dataModelException;
             }
 
             rangeInterval.setStartValue(startValue);
@@ -224,12 +222,10 @@ public final class RestrictionResolver {
 
             try {
                 lengthRestriction.addRangeRestrictionInterval(rangeInterval);
-            } catch (DataModelException e) {
-                ParserException parserException = new ParserException(constructExtendedListenerErrorMessage(
-                        UNHANDLED_PARSED_DATA, LENGTH_DATA, rangeArgument, ENTRY, e.getMessage()));
-                parserException.setLine(lineNumber);
-                parserException.setCharPosition(charPositionInLine);
-                throw parserException;
+            } catch (DataModelException dataModelException) {
+                dataModelException.setLine(lineNumber);
+                dataModelException.setCharPosition(charPositionInLine);
+                throw dataModelException;
             }
         }
         return lengthRestriction;
@@ -251,5 +247,22 @@ public final class RestrictionResolver {
                 || dataType == UINT32
                 || dataType == UINT64
                 || dataType == DECIMAL64);
+    }
+
+    /**
+     * Removes doubles quotes and concatenates if string has plus symbol.
+     *
+     * @param yangStringData string from yang file
+     * @return concatenated string after removing double quotes
+     */
+    private static String removeQuotesAndHandleConcat(String yangStringData) {
+
+        yangStringData = yangStringData.replace("\"", EMPTY_STRING);
+        String[] tmpData = yangStringData.split(Pattern.quote(ADD));
+        StringBuilder builder = new StringBuilder();
+        for (String yangString : tmpData) {
+            builder.append(yangString);
+        }
+        return builder.toString();
     }
 }

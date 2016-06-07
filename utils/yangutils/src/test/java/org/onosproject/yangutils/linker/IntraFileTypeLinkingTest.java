@@ -26,6 +26,7 @@ import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
+import org.onosproject.yangutils.linker.exceptions.LinkerException;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 
@@ -33,12 +34,12 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.BINARY;
-import static org.onosproject.yangutils.linker.ResolvableStatus.INTRA_FILE_RESOLVED;
-import static org.onosproject.yangutils.linker.ResolvableStatus.RESOLVED;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.INT32;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
 import static org.onosproject.yangutils.datamodel.YangNodeType.MODULE_NODE;
+import static org.onosproject.yangutils.linker.ResolvableStatus.INTRA_FILE_RESOLVED;
+import static org.onosproject.yangutils.linker.ResolvableStatus.RESOLVED;
 
 /**
  * Test cases for testing "type" intra file linking.
@@ -488,9 +489,9 @@ public class IntraFileTypeLinkingTest {
      * Check self resolution when type referred typedef is not available in
      * file.
      */
-    @Test(expected = ParserException.class)
+    @Test(expected = LinkerException.class)
     public void processSelfResolutionWhenTypeReferredTypedefNotDefined()
-            throws IOException, ParserException {
+            throws IOException, LinkerException {
 
         YangNode node =
                 manager.getDataModel("src/test/resources/SelfResolutionWhenTypeReferredTypedefNotDefined.yang");
@@ -500,9 +501,9 @@ public class IntraFileTypeLinkingTest {
      * Checks self resolution when typedef and leaf using type are at different
      * level where typedef is is not an ancestor of type.
      */
-    @Test(expected = ParserException.class)
+    @Test(expected = LinkerException.class)
     public void processSelfFileLinkingTypedefNotFound()
-            throws IOException, ParserException {
+            throws IOException, LinkerException {
 
         YangNode node = manager.getDataModel("src/test/resources/SelfFileLinkingTypedefNotFound.yang");
     }
@@ -510,9 +511,9 @@ public class IntraFileTypeLinkingTest {
     /**
      * Checks hierarchical self resolution with self resolution failure scenario.
      */
-    @Test(expected = ParserException.class)
+    @Test(expected = LinkerException.class)
     public void processSelfFileLinkingWithHierarchicalTypeFailureScenario()
-            throws IOException, ParserException {
+            throws IOException, LinkerException {
 
         YangNode node =
                 manager.getDataModel("src/test/resources/SelfFileLinkingWithHierarchicalTypeFailureScenario.yang");

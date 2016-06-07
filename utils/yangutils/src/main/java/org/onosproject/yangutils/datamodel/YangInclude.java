@@ -18,7 +18,6 @@ package org.onosproject.yangutils.datamodel;
 import java.util.Set;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 import org.onosproject.yangutils.utils.YangConstructType;
 
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.findReferredNode;
@@ -173,11 +172,11 @@ public class YangInclude
     /**
      * Adds reference to an include.
      *
-     * @param yangFileInfoSet YANG file info set
+     * @param yangNodeSet YANG node set
      * @return YANG sub module node
      * @throws DataModelException a violation of data model rules
      */
-    public YangSubModule addReferenceToInclude(Set<YangFileInfo> yangFileInfoSet) throws DataModelException {
+    public YangSubModule addReferenceToInclude(Set<YangNode> yangNodeSet) throws DataModelException {
         String includedSubModuleName = getSubModuleName();
         String includedSubModuleRevision = getRevision();
         YangNode subModuleNode = null;
@@ -188,7 +187,7 @@ public class YangInclude
          */
         if (includedSubModuleRevision != null) {
             String includedSubModuleNameWithRevision = includedSubModuleName + "@" + includedSubModuleRevision;
-            subModuleNode = findReferredNode(yangFileInfoSet, includedSubModuleNameWithRevision);
+            subModuleNode = findReferredNode(yangNodeSet, includedSubModuleNameWithRevision);
         }
 
         /*
@@ -196,7 +195,7 @@ public class YangInclude
          * without revision if can't find with revision.
          */
         if (subModuleNode == null) {
-            subModuleNode = findReferredNode(yangFileInfoSet, includedSubModuleName);
+            subModuleNode = findReferredNode(yangNodeSet, includedSubModuleName);
         }
 
         if (subModuleNode != null) {

@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.utils.builtindatatype;
+package org.onosproject.yangutils.datamodel.utils.builtindatatype;
 
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 
 /**
- * Handles the YANG's Uint16 data type processing.
+ * Handles the YANG's int32 data type processing.
  *
- * Uint16 represents integer values between 0 and 65535, inclusively.
+ * int32 represents integer values between -2147483648 and 2147483647, inclusively.
  */
-public class YangUint16 implements YangBuiltInDataTypeInfo<YangUint16> {
+public class YangInt32 implements YangBuiltInDataTypeInfo<YangInt32> {
 
     /**
      * YANG's min keyword.
@@ -36,19 +36,19 @@ public class YangUint16 implements YangBuiltInDataTypeInfo<YangUint16> {
     private static final String MAX_KEYWORD = "max";
 
     /**
-     * Valid minimum value of YANG's Uint16.
+     * Valid minimum value of YANG's int32.
      */
-    public static final int MIN_VALUE = 0;
+    public static final int MIN_VALUE = -2147483648;
 
     /**
-     * Valid maximum value of YANG's Uint16.
+     * Valid maximum value of YANG's int32.
      */
-    public static final int MAX_VALUE = 65535;
+    public static final int MAX_VALUE = 2147483647;
 
     /**
-     * Value of the object.
+     * The value of YANG's int32.
      */
-    private int value;
+    private final int value;
 
     /**
      * Creates an object with the value initialized with value represented in
@@ -56,7 +56,7 @@ public class YangUint16 implements YangBuiltInDataTypeInfo<YangUint16> {
      *
      * @param valueInString value of the object in string
      */
-    YangUint16(String valueInString) {
+    public YangInt32(String valueInString) {
 
         if (valueInString.matches(MIN_KEYWORD)) {
             value = MIN_VALUE;
@@ -67,37 +67,29 @@ public class YangUint16 implements YangBuiltInDataTypeInfo<YangUint16> {
                 value = Integer.parseInt(valueInString);
             } catch (Exception e) {
                 throw new DataTypeException("YANG file error : Input value \"" + valueInString + "\" is not a valid " +
-                        "uint16.");
+                        "int32.");
             }
-        }
-
-        if (value < MIN_VALUE) {
-            throw new DataTypeException("YANG file error : " + valueInString + " is lesser than minimum value "
-                    + MIN_VALUE + ".");
-        } else if (value > MAX_VALUE) {
-            throw new DataTypeException("YANG file error : " + valueInString + " is greater than maximum value "
-                    + MAX_VALUE + ".");
         }
     }
 
+
     /**
-     * Returns YANG's uint16 value.
+     * Returns YANG's int32 value.
      *
-     * @return value of YANG's uint16
+     * @return value of YANG's int32
      */
     public int getValue() {
         return value;
     }
 
     @Override
-    public int compareTo(YangUint16 another) {
-        return Integer.compare(value, another.value);
+    public int compareTo(YangInt32 anotherYangInt32) {
+        return Integer.compare(value, anotherYangInt32.value);
     }
 
     @Override
     public YangDataTypes getYangType() {
-        return YangDataTypes.UINT16;
+        return YangDataTypes.INT32;
     }
 
 }
-
