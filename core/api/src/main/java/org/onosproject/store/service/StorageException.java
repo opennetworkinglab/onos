@@ -33,6 +33,12 @@ public class StorageException extends RuntimeException {
     }
 
     /**
+     * Store is temporarily unavailable.
+     */
+    public static class Unavailable extends StorageException {
+    }
+
+    /**
      * Store operation timeout.
      */
     public static class Timeout extends StorageException {
