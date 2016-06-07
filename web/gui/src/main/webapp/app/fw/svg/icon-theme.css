@@ -19,11 +19,11 @@
  */
 
 .light div.close-btn svg.embeddedIcon g.icon .glyph {
-    fill: #9fa296;
+    fill: #333333;
 }
 .dark div.close-btn svg.embeddedIcon g.icon .glyph {
     /* TODO: dark theme */
-    fill: #9fa296;
+    fill: #333333;
 }
 
 

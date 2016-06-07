@@ -55,8 +55,8 @@
 
 #application-details-panel .close-btn {
     position: absolute;
-    right: 10px;
-    top: 0;
+    right: 26px;
+    top: 26px;
     cursor: pointer;
 }
 
