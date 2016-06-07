@@ -16,19 +16,20 @@
 package org.onosproject.cli.net;
 
 import java.util.List;
-import org.onlab.osgi.ServiceNotFoundException;
 
 import org.apache.karaf.shell.commands.Command;
+import org.onlab.osgi.ServiceNotFoundException;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 
 /**
- * Returns a mapping of FlowObjective next-ids to the groups that get created
- * by a device driver. These mappings are controller instance specific.
+ * Returns a list of FlowObjective next-ids waiting to get created by device-drivers.
+ * Also returns the forwarding objectives waiting on the pending next-objectives.
+ * These lists are controller instance specific.
  */
-@Command(scope = "onos", name = "obj-next-ids",
-        description = "flow-objectives next-ids to group-ids mapping")
-public class FlowObjectiveNextListCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "obj-pending-nexts",
+        description = "flow-objectives pending next-objectives")
+public class FlowObjectivePendingNextCommand extends AbstractShellCommand {
 
     private static final String FORMAT_MAPPING = "  %s";
 
@@ -36,13 +37,14 @@ public class FlowObjectiveNextListCommand extends AbstractShellCommand {
     protected void execute() {
         try {
             FlowObjectiveService service = get(FlowObjectiveService.class);
-            printNexts(service.getNextMappings());
+            printNexts(service.getPendingNexts());
         } catch (ServiceNotFoundException e) {
             print(FORMAT_MAPPING, "FlowObjectiveService unavailable");
         }
     }
 
-    private void printNexts(List<String> nextGroupMappings) {
-        nextGroupMappings.forEach(str -> print(FORMAT_MAPPING, str));
+    private void printNexts(List<String> pendingNexts) {
+        pendingNexts.forEach(str -> print(FORMAT_MAPPING, str));
     }
+
 }

@@ -170,12 +170,18 @@ public class DefaultRoutingHandler {
             log.trace("populateRoutingRulesForLinkStatusChange: "
                     + "populationStatus is STARTED");
             populationStatus = Status.STARTED;
+            // optimized re-routing
             if (linkFail == null) {
                 // Compare all routes of existing ECMP SPG with the new ones
                 routeChanges = computeRouteChange();
             } else {
                 // Compare existing ECMP SPG only with the link removed
                 routeChanges = computeDamagedRoutes(linkFail);
+            }
+
+            // null routeChanges indicates that full re-routing is required
+            if (routeChanges == null) {
+                return populateAllRoutingRules();
             }
 
             if (routeChanges.isEmpty()) {
@@ -276,6 +282,15 @@ public class DefaultRoutingHandler {
         return true;
     }
 
+    /**
+     * Computes set of affected ECMP routes due to failed link. Assumes
+     * previous ecmp shortest-path graph exists for a switch in order to compute
+     * affected routes. If such a graph does not exist, the method returns null.
+     *
+     * @param linkFail the failed link
+     * @return the set of affected routes which may be empty if no routes were
+     *         affected, or null if no previous ecmp spg was found for comparison
+     */
     private Set<ArrayList<DeviceId>> computeDamagedRoutes(Link linkFail) {
 
         Set<ArrayList<DeviceId>> routes = new HashSet<>();
@@ -284,20 +299,31 @@ public class DefaultRoutingHandler {
             log.debug("Computing the impacted routes for device {} due to link fail",
                       sw.id());
             if (!srManager.mastershipService.isLocalMaster(sw.id())) {
+                log.debug("No mastership for {} .. skipping route optimization",
+                          sw.id());
                 continue;
             }
             EcmpShortestPathGraph ecmpSpg = currentEcmpSpgMap.get(sw.id());
             if (ecmpSpg == null) {
-                log.error("No existing ECMP graph for switch {}", sw.id());
-                continue;
+                log.warn("No existing ECMP graph for switch {}. Aborting optimized"
+                        + " rerouting and opting for full-reroute", sw.id());
+                return null;
             }
             HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia =
                     ecmpSpg.getAllLearnedSwitchesAndVia();
             for (Integer itrIdx : switchVia.keySet()) {
+                log.trace("Iterindex# {}", itrIdx);
                 HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> swViaMap =
                         switchVia.get(itrIdx);
                 for (DeviceId targetSw : swViaMap.keySet()) {
                     DeviceId destSw = sw.id();
+                    if (log.isTraceEnabled()) {
+                        log.trace("TargetSwitch {} --> RootSwitch {}", targetSw, destSw);
+                        for (ArrayList<DeviceId> via : swViaMap.get(targetSw)) {
+                            log.trace(" Via:");
+                            via.forEach(e -> { log.trace("  {}", e); });
+                        }
+                    }
                     Set<ArrayList<DeviceId>> subLinks =
                             computeLinks(targetSw, destSw, swViaMap);
                     for (ArrayList<DeviceId> alink: subLinks) {
@@ -327,20 +353,18 @@ public class DefaultRoutingHandler {
         Set<ArrayList<DeviceId>> routes = new HashSet<>();
 
         for (Device sw : srManager.deviceService.getDevices()) {
-            log.debug("Computing the impacted routes for device {}",
-                      sw.id());
+            log.debug("Computing the impacted routes for device {}", sw.id());
             if (!srManager.mastershipService.isLocalMaster(sw.id())) {
-                log.debug("No mastership for {} and skip route optimization",
+                log.debug("No mastership for {} ... skipping route optimization",
                           sw.id());
                 continue;
             }
-
-            log.trace("link of {} - ", sw.id());
-            for (Link link: srManager.linkService.getDeviceLinks(sw.id())) {
-                log.trace("{} -> {} ", link.src().deviceId(), link.dst().deviceId());
+            if (log.isTraceEnabled()) {
+                log.trace("link of {} - ", sw.id());
+                for (Link link: srManager.linkService.getDeviceLinks(sw.id())) {
+                    log.trace("{} -> {} ", link.src().deviceId(), link.dst().deviceId());
+                }
             }
-
-            log.debug("Checking route change for switch {}", sw.id());
             EcmpShortestPathGraph ecmpSpg = currentEcmpSpgMap.get(sw.id());
             if (ecmpSpg == null) {
                 log.debug("No existing ECMP graph for device {}", sw.id());
@@ -363,7 +387,7 @@ public class DefaultRoutingHandler {
                     ArrayList<ArrayList<DeviceId>> viaUpdated = swViaMapUpdated.get(srcSw);
                     ArrayList<ArrayList<DeviceId>> via = getVia(switchVia, srcSw);
                     if ((via == null) || !viaUpdated.equals(via)) {
-                        log.debug("Impacted route:{}->{}", srcSw, sw.id());
+                        log.debug("Impacted route:{} -> {}", srcSw, sw.id());
                         ArrayList<DeviceId> route = new ArrayList<>();
                         route.add(srcSw);
                         route.add(sw.id());
@@ -373,15 +397,16 @@ public class DefaultRoutingHandler {
             }
         }
 
-        for (ArrayList<DeviceId> link: routes) {
-            log.trace("Route changes - ");
-            if (link.size() == 1) {
-                log.trace(" : {} - all", link.get(0));
-            } else {
-                log.trace(" : {} - {}", link.get(0), link.get(1));
+        if (log.isTraceEnabled()) {
+            for (ArrayList<DeviceId> link: routes) {
+                log.trace("Route changes - ");
+                if (link.size() == 1) {
+                    log.trace(" : all -> {}", link.get(0));
+                } else {
+                    log.trace(" : {} -> {}", link.get(0), link.get(1));
+                }
             }
         }
-
         return routes;
     }
 

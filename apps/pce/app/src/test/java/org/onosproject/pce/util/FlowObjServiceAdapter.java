@@ -16,7 +16,7 @@
 package org.onosproject.pce.util;
 
 import java.util.List;
-
+import com.google.common.collect.ImmutableList;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
@@ -60,6 +60,11 @@ public class FlowObjServiceAdapter implements FlowObjectiveService {
 
     @Override
     public List<String> getNextMappings() {
-        return null;
+        return ImmutableList.of();
+    }
+
+    @Override
+    public List<String> getPendingNexts() {
+        return ImmutableList.of();
     }
 }

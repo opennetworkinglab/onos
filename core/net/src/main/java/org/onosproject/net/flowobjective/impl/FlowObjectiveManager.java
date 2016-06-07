@@ -482,4 +482,21 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         }
         return mappings;
     }
+
+    @Override
+    public List<String> getPendingNexts() {
+        List<String> pendingNexts = new ArrayList<>();
+        for (Integer nextId : pendingForwards.keySet()) {
+            Set<PendingNext> pnext = pendingForwards.get(nextId);
+            StringBuffer pend = new StringBuffer();
+            pend.append("Next Id: ").append(Integer.toString(nextId))
+                .append(" :: ");
+            for (PendingNext pn : pnext) {
+                pend.append(Integer.toString(pn.forwardingObjective().id()))
+                    .append(" ");
+            }
+            pendingNexts.add(pend.toString());
+        }
+        return pendingNexts;
+    }
 }
