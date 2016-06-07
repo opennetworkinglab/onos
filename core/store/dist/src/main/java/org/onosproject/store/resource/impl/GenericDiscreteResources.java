@@ -68,7 +68,7 @@ final class GenericDiscreteResources implements DiscreteResources {
 
     @Override
     public boolean containsAny(Set<DiscreteResource> other) {
-        return other.stream().anyMatch(values::contains);
+        return !Sets.intersection(this.values(), other).isEmpty();
     }
 
     // returns a new instance, not mutate the current instance
