@@ -59,7 +59,13 @@ final class GenericDiscreteResources implements DiscreteResources {
 
     @Override
     public DiscreteResources difference(DiscreteResources other) {
-        return of(Sets.difference(this.values(), other.values()));
+        if (other instanceof GenericDiscreteResources) {
+            return of(Sets.difference(this.values(), other.values()));
+        } else if (other instanceof EmptyDiscreteResources) {
+            return this;
+        }
+
+        return DiscreteResources.of(Sets.difference(this.values(), other.values()));
     }
 
     @Override

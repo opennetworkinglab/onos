@@ -67,6 +67,15 @@ final class UnifiedDiscreteResources implements DiscreteResources {
 
     @Override
     public DiscreteResources difference(DiscreteResources other) {
+        if (other instanceof UnifiedDiscreteResources) {
+            UnifiedDiscreteResources cast = (UnifiedDiscreteResources) other;
+            return new UnifiedDiscreteResources(
+                    this.generics.difference(cast.generics),
+                    this.encodables.difference(cast.encodables));
+        } else if (other instanceof EmptyDiscreteResources) {
+            return this;
+        }
+
         return of(Sets.difference(this.values(), other.values()));
     }
 
