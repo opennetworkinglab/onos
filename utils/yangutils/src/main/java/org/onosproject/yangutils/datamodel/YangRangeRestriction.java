@@ -21,9 +21,9 @@ import java.util.List;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
-import org.onosproject.yangutils.utils.builtindatatype.YangBuiltInDataTypeInfo;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangBuiltInDataTypeInfo;
 
-import static org.onosproject.yangutils.utils.builtindatatype.BuiltInTypeObjectFactory.getDataObjectFromString;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.BuiltInTypeObjectFactory.getDataObjectFromString;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /*-

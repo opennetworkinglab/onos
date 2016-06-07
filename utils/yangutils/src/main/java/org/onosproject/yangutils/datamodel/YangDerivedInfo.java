@@ -33,9 +33,9 @@ import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.UNION;
 import static org.onosproject.yangutils.linker.ResolvableStatus.INTRA_FILE_RESOLVED;
 import static org.onosproject.yangutils.linker.ResolvableStatus.RESOLVED;
-import static org.onosproject.yangutils.utils.RestrictionResolver.isOfRangeRestrictedType;
-import static org.onosproject.yangutils.utils.RestrictionResolver.processLengthRestriction;
-import static org.onosproject.yangutils.utils.RestrictionResolver.processRangeRestriction;
+import static org.onosproject.yangutils.datamodel.utils.RestrictionResolver.isOfRangeRestrictedType;
+import static org.onosproject.yangutils.datamodel.utils.RestrictionResolver.processLengthRestriction;
+import static org.onosproject.yangutils.datamodel.utils.RestrictionResolver.processRangeRestriction;
 
 /**
  * Represents the derived information.

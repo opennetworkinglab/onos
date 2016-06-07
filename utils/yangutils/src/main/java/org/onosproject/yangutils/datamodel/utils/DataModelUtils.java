@@ -18,20 +18,18 @@ package org.onosproject.yangutils.datamodel.utils;
 
 import java.util.List;
 import java.util.Set;
-
 import org.onosproject.yangutils.datamodel.CollisionDetector;
+import org.onosproject.yangutils.datamodel.ResolvableType;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangLeavesHolder;
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangReferenceResolver;
+import org.onosproject.yangutils.datamodel.YangResolutionInfo;
 import org.onosproject.yangutils.datamodel.YangRpc;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
-import org.onosproject.yangutils.linker.ResolvableType;
-import org.onosproject.yangutils.linker.YangReferenceResolver;
-import org.onosproject.yangutils.linker.impl.YangResolutionInfo;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 import org.onosproject.yangutils.utils.YangConstructType;
 
 /**
@@ -179,7 +177,7 @@ public final class DataModelUtils {
      * @throws DataModelException a violation of data model rules
      */
     public static void resolveLinkingForResolutionList(List<YangResolutionInfo> resolutionList,
-            YangReferenceResolver dataModelRootNode)
+                                                       YangReferenceResolver dataModelRootNode)
             throws DataModelException {
 
         for (YangResolutionInfo resolutionInfo : resolutionList) {
@@ -195,7 +193,7 @@ public final class DataModelUtils {
      * @throws DataModelException a violation of data model rules
      */
     public static void linkInterFileReferences(List<YangResolutionInfo> resolutionList,
-            YangReferenceResolver dataModelRootNode)
+                                               YangReferenceResolver dataModelRootNode)
             throws DataModelException {
         /*
          * Run through the resolution list, find type/uses referring to
@@ -226,19 +224,18 @@ public final class DataModelUtils {
     /**
      * Returns referred node in a given set.
      *
-     * @param yangFileInfoSet YANG file info set
-     * @param refNodeName     name of the node which is referred
+     * @param yangNodeSet YANG node set
+     * @param refNodeName name of the node which is referred
      * @return referred node's reference
      */
-    public static YangNode findReferredNode(Set<YangFileInfo> yangFileInfoSet, String refNodeName) {
+    public static YangNode findReferredNode(Set<YangNode> yangNodeSet, String refNodeName) {
         /*
          * Run through the YANG files to see which YANG file matches the
          * referred node name.
          */
-        for (YangFileInfo yangFileInfo : yangFileInfoSet) {
-            YangNode yangNode = yangFileInfo.getRootNode();
+        for (YangNode yangNode : yangNodeSet) {
             if (yangNode.getName().equals(refNodeName)) {
-                return yangFileInfo.getRootNode();
+                return yangNode;
             }
         }
         return null;

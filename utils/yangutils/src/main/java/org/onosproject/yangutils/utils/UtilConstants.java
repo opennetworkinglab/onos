@@ -1098,7 +1098,7 @@ public final class UtilConstants {
     /**
      * Static attribute for YANG types package.
      */
-    public static final String YANG_TYPES_PKG = "org.onosproject.yangutils.utils.builtindatatype";
+    public static final String YANG_TYPES_PKG = "org.onosproject.yangutils.datamodel.utils.builtindatatype";
 
     /**
      * Static attribute for MathContext class.

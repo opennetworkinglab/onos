@@ -17,11 +17,9 @@ package org.onosproject.yangutils.datamodel;
 
 import java.util.LinkedList;
 import java.util.List;
-
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.linker.Resolvable;
 import org.onosproject.yangutils.linker.ResolvableStatus;
-import org.onosproject.yangutils.linker.exceptions.LinkerException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
 
@@ -283,18 +281,18 @@ public class YangUses
 
     @Override
     public void resolve()
-            throws LinkerException {
+            throws DataModelException {
 
         YangGrouping referredGrouping = getRefGroup();
 
         if (referredGrouping == null) {
-            throw new LinkerException("Linker Exception: YANG uses linker error, cannot resolve uses");
+            throw new DataModelException("YANG uses linker error, cannot resolve uses");
         }
 
         YangNode usesParentNode = getParentNodeInGenCode(this);
         if (!(usesParentNode instanceof YangLeavesHolder)
                 || !(usesParentNode instanceof CollisionDetector)) {
-            throw new LinkerException("Linker Exception: YANG uses holder construct is wrong");
+            throw new DataModelException("YANG uses holder construct is wrong");
         }
 
         YangLeavesHolder usesParentLeavesHolder = (YangLeavesHolder) usesParentNode;
@@ -343,7 +341,7 @@ public class YangUses
      * @param usesHolder     holder of uses
      */
     private void addResolvedUsesInfoOfGrouping(YangUses usesInGrouping,
-            YangLeavesHolder usesHolder) {
+                                               YangLeavesHolder usesHolder) throws DataModelException {
         for (YangNode usesResolvedNode :
                 usesInGrouping.getUsesResolvedNodeList()) {
             addNodeOfGrouping(usesResolvedNode);
@@ -367,11 +365,12 @@ public class YangUses
      * @param listOfLeaves   list of leaves to be cloned
      * @param usesParentNode parent of the cloned location
      * @return cloned list of leaves
+     * @throws DataModelException a violation in data model rule
      */
     private List<YangLeaf> cloneLeavesList(List<YangLeaf> listOfLeaves,
-            YangLeavesHolder usesParentNode) {
+                                           YangLeavesHolder usesParentNode) throws DataModelException {
         if ((listOfLeaves == null) || listOfLeaves.size() == 0) {
-            throw new LinkerException("No leaves to clone");
+            throw new DataModelException("No leaves to clone");
         }
 
         List<YangLeaf> newLeavesList = new LinkedList<YangLeaf>();
@@ -382,7 +381,7 @@ public class YangUses
                         YangConstructType.LEAF_DATA);
                 clonedLeaf = leaf.clone();
             } catch (CloneNotSupportedException | DataModelException e) {
-                throw new LinkerException(e.getMessage());
+                throw new DataModelException(e.getMessage());
             }
 
             clonedLeaf.setContainedIn(usesParentNode);
@@ -400,9 +399,9 @@ public class YangUses
      * @return cloned list of leaf list
      */
     private List<YangLeafList> cloneListOfLeafList(List<YangLeafList> listOfLeafList,
-            YangLeavesHolder usesParentNode) {
+                                                   YangLeavesHolder usesParentNode) throws DataModelException {
         if ((listOfLeafList == null) || listOfLeafList.size() == 0) {
-            throw new LinkerException("No leaf lists to clone");
+            throw new DataModelException("No leaf lists to clone");
         }
 
         List<YangLeafList> newListOfLeafList = new LinkedList<YangLeafList>();
@@ -413,7 +412,7 @@ public class YangUses
                         YangConstructType.LEAF_LIST_DATA);
                 clonedLeafList = leafList.clone();
             } catch (CloneNotSupportedException | DataModelException e) {
-                throw new LinkerException(e.getMessage());
+                throw new DataModelException(e.getMessage());
             }
 
             clonedLeafList.setContainedIn(usesParentNode);

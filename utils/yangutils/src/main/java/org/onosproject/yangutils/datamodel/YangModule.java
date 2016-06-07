@@ -19,14 +19,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
-import org.onosproject.yangutils.linker.exceptions.LinkerException;
-import org.onosproject.yangutils.linker.ResolvableType;
-import org.onosproject.yangutils.linker.YangReferenceResolver;
-import org.onosproject.yangutils.linker.impl.YangResolutionInfo;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 import org.onosproject.yangutils.utils.YangConstructType;
 
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
@@ -88,7 +82,7 @@ public class YangModule
 
     /**
      * Reference:RFC 6020.
-     *
+     * <p>
      * The "contact" statement provides contact information for the module. The
      * argument is a string that is used to specify contact information for the
      * person or persons to whom technical queries concerning this module should
@@ -99,7 +93,7 @@ public class YangModule
 
     /**
      * Reference:RFC 6020.
-     *
+     * <p>
      * The "description" statement takes as an argument a string that contains a
      * human-readable textual description of this definition. The text is
      * provided in a language (or languages) chosen by the module developer; for
@@ -134,7 +128,7 @@ public class YangModule
 
     /**
      * Reference:RFC 6020.
-     *
+     * <p>
      * The "organization" statement defines the party responsible for this
      * module. The argument is a string that is used to specify a textual
      * description of the organization(s) under whose auspices this module was
@@ -209,8 +203,8 @@ public class YangModule
     public YangModule() {
 
         super(YangNodeType.MODULE_NODE);
-        derivedTypeResolutionList = new LinkedList<YangResolutionInfo>();
-        usesResolutionList = new LinkedList<YangResolutionInfo>();
+        derivedTypeResolutionList = new LinkedList<>();
+        usesResolutionList = new LinkedList<>();
         importList = new LinkedList<YangImport>();
         includeList = new LinkedList<YangInclude>();
         listOfLeaf = new LinkedList<YangLeaf>();
@@ -569,7 +563,7 @@ public class YangModule
 
     @Override
     public void addToResolutionList(YangResolutionInfo resolutionInfo,
-            ResolvableType type) {
+                                    ResolvableType type) {
         if (type == ResolvableType.YANG_DERIVED_DATA_TYPE) {
             derivedTypeResolutionList.add(resolutionInfo);
         } else if (type == ResolvableType.YANG_USES) {
@@ -579,7 +573,7 @@ public class YangModule
 
     @Override
     public void setResolutionList(List<YangResolutionInfo> resolutionList,
-            ResolvableType type) {
+                                  ResolvableType type) {
         if (type == ResolvableType.YANG_DERIVED_DATA_TYPE) {
             derivedTypeResolutionList = resolutionList;
         } else if (type == ResolvableType.YANG_USES) {
@@ -589,40 +583,32 @@ public class YangModule
     }
 
     @Override
-    public void addReferencesToImportList(Set<YangFileInfo> yangFileInfoSet)
-            throws LinkerException {
+    public void addReferencesToImportList(Set<YangNode> yangNodeSet)
+            throws DataModelException {
         Iterator<YangImport> importInfoIterator = getImportList().iterator();
         // Run through the imported list to add references.
         while (importInfoIterator.hasNext()) {
             YangImport yangImport = importInfoIterator.next();
-            try {
-                yangImport.addReferenceToImport(yangFileInfoSet);
-            } catch (DataModelException e) {
-                throw new LinkerException(e.getMessage());
-            }
+            yangImport.addReferenceToImport(yangNodeSet);
         }
     }
 
     @Override
-    public void addReferencesToIncludeList(Set<YangFileInfo> yangFileInfoSet)
-            throws LinkerException {
+    public void addReferencesToIncludeList(Set<YangNode> yangNodeSet)
+            throws DataModelException {
         Iterator<YangInclude> includeInfoIterator = getIncludeList().iterator();
         // Run through the included list to add references.
         while (includeInfoIterator.hasNext()) {
             YangInclude yangInclude = includeInfoIterator.next();
             YangSubModule subModule = null;
             try {
-                subModule = yangInclude.addReferenceToInclude(yangFileInfoSet);
+                subModule = yangInclude.addReferenceToInclude(yangNodeSet);
             } catch (DataModelException e) {
-                throw new LinkerException(e.getMessage());
+                throw e;
             }
             // Check if the referred sub-modules parent is self
             if (!(subModule.getBelongsTo().getModuleNode() == this)) {
-                try {
-                    yangInclude.reportIncludeError();
-                } catch (DataModelException e) {
-                    throw new LinkerException(e.getMessage());
-                }
+                yangInclude.reportIncludeError();
             }
         }
     }

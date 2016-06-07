@@ -16,14 +16,14 @@
 
 package org.onosproject.yangutils.linker.impl;
 
+import java.util.HashSet;
 import java.util.Set;
-
+import org.onosproject.yangutils.datamodel.ResolvableType;
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangReferenceResolver;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
-import org.onosproject.yangutils.linker.ResolvableType;
 import org.onosproject.yangutils.linker.YangLinker;
-import org.onosproject.yangutils.linker.YangReferenceResolver;
 import org.onosproject.yangutils.linker.exceptions.LinkerException;
 import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 
@@ -34,8 +34,38 @@ import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
  */
 public class YangLinkerManager
         implements YangLinker {
+
+    /*
+     * Set of all the YANG nodes, corresponding to the YANG files parsed by
+     * parser.
+     */
+    Set<YangNode> yangNodeSet = new HashSet<>();
+
+    /**
+     * Returns set of YANG node.
+     *
+     * @return set of YANG node
+     */
+    public Set<YangNode> getYangNodeSet() {
+        return yangNodeSet;
+    }
+
+    /**
+     * Creates YANG nodes set.
+     *
+     * @param yangFileInfoSet YANG file information set
+     */
+    public void createYangNodeSet(Set<YangFileInfo> yangFileInfoSet) {
+        for (YangFileInfo yangFileInfo : yangFileInfoSet) {
+            getYangNodeSet().add(yangFileInfo.getRootNode());
+        }
+    }
+
     @Override
     public void resolveDependencies(Set<YangFileInfo> yangFileInfoSet) {
+
+        // Create YANG node set.
+        createYangNodeSet(yangFileInfoSet);
 
         // Carry out linking of sub module with module.
         linkSubModulesToParentModule(yangFileInfoSet);
@@ -64,7 +94,7 @@ public class YangLinkerManager
             YangNode yangNode = yangFileInfo.getRootNode();
             if (yangNode instanceof YangSubModule) {
                 try {
-                    ((YangSubModule) yangNode).linkWithModule(yangFileInfoSet);
+                    ((YangSubModule) yangNode).linkWithModule(getYangNodeSet());
                 } catch (DataModelException e) {
                     String errorInfo = "YANG file error: " + yangFileInfo.getYangFileName() + " at line: "
                             + e.getLineNumber() + " at position: " + e.getCharPositionInLine() + NEW_LINE
@@ -85,7 +115,14 @@ public class YangLinkerManager
         for (YangFileInfo yangFileInfo : yangFileInfoSet) {
             YangNode yangNode = yangFileInfo.getRootNode();
             if (yangNode instanceof YangReferenceResolver) {
-                ((YangReferenceResolver) yangNode).addReferencesToImportList(yangFileInfoSet);
+                try {
+                    ((YangReferenceResolver) yangNode).addReferencesToImportList(getYangNodeSet());
+                } catch (DataModelException e) {
+                    String errorInfo = "Error in file: " + yangFileInfo.getYangFileName() + " at line: "
+                            + e.getLineNumber() + " at position: " + e.getCharPositionInLine() + NEW_LINE
+                            + e.getMessage();
+                    throw new LinkerException(errorInfo);
+                }
             }
         }
     }
@@ -100,7 +137,14 @@ public class YangLinkerManager
         for (YangFileInfo yangFileInfo : yangFileInfoSet) {
             YangNode yangNode = yangFileInfo.getRootNode();
             if (yangNode instanceof YangReferenceResolver) {
-                ((YangReferenceResolver) yangNode).addReferencesToIncludeList(yangFileInfoSet);
+                try {
+                    ((YangReferenceResolver) yangNode).addReferencesToIncludeList(getYangNodeSet());
+                } catch (DataModelException e) {
+                    String errorInfo = "Error in file: " + yangFileInfo.getYangFileName() + " at line: "
+                            + e.getLineNumber() + " at position: " + e.getCharPositionInLine() + NEW_LINE
+                            + e.getMessage();
+                    throw new LinkerException(errorInfo);
+                }
             }
         }
     }

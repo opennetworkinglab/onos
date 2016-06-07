@@ -19,12 +19,15 @@ package org.onosproject.yangutils.parser.impl.listeners;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangRangeRestriction;
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
 import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
+import static org.onosproject.yangutils.datamodel.utils.RestrictionResolver.isOfRangeRestrictedType;
+import static org.onosproject.yangutils.datamodel.utils.RestrictionResolver.processRangeRestriction;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
@@ -32,8 +35,6 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
-import static org.onosproject.yangutils.utils.RestrictionResolver.isOfRangeRestrictedType;
-import static org.onosproject.yangutils.utils.RestrictionResolver.processRangeRestriction;
 import static org.onosproject.yangutils.utils.YangConstructType.RANGE_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.TYPE_DATA;
 
@@ -95,8 +96,8 @@ public final class RangeRestrictionListener {
      * Sets the range restriction to type.
      *
      * @param listener listener's object
-     * @param type YANG type for which range restriction to be added
-     * @param ctx  context object of the grammar rule
+     * @param type     YANG type for which range restriction to be added
+     * @param ctx      context object of the grammar rule
      */
     private static void setRangeRestriction(TreeWalkListener listener, YangType type,
                                             GeneratedYangParser.RangeStatementContext ctx) {
@@ -119,8 +120,16 @@ public final class RangeRestrictionListener {
             throw parserException;
         }
 
-        YangRangeRestriction rangeRestriction = processRangeRestriction(null, ctx.getStart().getLine(),
-                ctx.getStart().getCharPositionInLine(), false, ctx.range().getText(), type.getDataType());
+        YangRangeRestriction rangeRestriction = null;
+        try {
+            rangeRestriction = processRangeRestriction(null, ctx.getStart().getLine(),
+                    ctx.getStart().getCharPositionInLine(), false, ctx.range().getText(), type.getDataType());
+        } catch (DataModelException e) {
+            ParserException parserException = new ParserException(e.getMessage());
+            parserException.setCharPosition(e.getCharPositionInLine());
+            parserException.setLine(e.getLineNumber());
+            throw parserException;
+        }
 
         if (rangeRestriction != null) {
             type.setDataTypeExtendedInfo(rangeRestriction);
@@ -133,10 +142,10 @@ public final class RangeRestrictionListener {
      * It is called when parser exits from grammar rule (range).
      *
      * @param listener listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processRangeRestrictionExit(TreeWalkListener listener,
-                                       GeneratedYangParser.RangeStatementContext ctx) {
+                                                   GeneratedYangParser.RangeStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, RANGE_DATA, ctx.range().getText(), EXIT);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.utils.builtindatatype;
+package org.onosproject.yangutils.datamodel.utils.builtindatatype;
 
 /**
  * Base class for exceptions in data type.
@@ -43,7 +43,7 @@ public class DataTypeException extends RuntimeException {
      * Creates a new data type exception from given message and cause.
      *
      * @param message the detail of exception in string
-     * @param cause underlying cause of the error
+     * @param cause   underlying cause of the error
      */
     public DataTypeException(final String message, final Throwable cause) {
         super(message, cause);

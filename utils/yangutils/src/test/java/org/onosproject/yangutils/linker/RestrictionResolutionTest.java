@@ -30,21 +30,21 @@ import org.onosproject.yangutils.datamodel.YangRangeRestriction;
 import org.onosproject.yangutils.datamodel.YangStringRestriction;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangInt32;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangUint64;
 import org.onosproject.yangutils.linker.exceptions.LinkerException;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-import org.onosproject.yangutils.utils.builtindatatype.YangInt32;
-import org.onosproject.yangutils.utils.builtindatatype.YangUint64;
 
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.notNullValue;
-import static org.onosproject.yangutils.linker.ResolvableStatus.RESOLVED;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.INT32;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
 import static org.onosproject.yangutils.datamodel.YangNodeType.MODULE_NODE;
+import static org.onosproject.yangutils.linker.ResolvableStatus.RESOLVED;
 
 /**
  * Test cases for testing restriction resolution.
@@ -412,7 +412,7 @@ public final class RestrictionResolutionTest {
     /**
      * Checks range restriction in typedef and not stricter in referred type.
      */
-    @Test(expected = ParserException.class)
+    @Test(expected = LinkerException.class)
     public void processRangeRestrictionInRefTypeAndTypedefInValid()
             throws IOException, ParserException, DataModelException {
         YangNode node = manager.getDataModel("src/test/resources/RangeRestrictionInRefTypeAndTypedefInValid.yang");

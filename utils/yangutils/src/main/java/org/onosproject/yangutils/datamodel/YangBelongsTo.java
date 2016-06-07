@@ -18,7 +18,6 @@ package org.onosproject.yangutils.datamodel;
 import java.util.Set;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 import org.onosproject.yangutils.utils.YangConstructType;
 
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.findReferredNode;
@@ -194,13 +193,13 @@ public class YangBelongsTo implements Parsable, LocationInfo {
     /**
      * Links the belongs to with a module.
      *
-     * @param yangFileInfoSet YANG file information set
+     * @param yangNodeSet YANG file information set
      * @throws DataModelException a violation in data model rule
      */
-    public void linkWithModule(Set<YangFileInfo> yangFileInfoSet)
+    public void linkWithModule(Set<YangNode> yangNodeSet)
             throws DataModelException {
         String belongsToModuleName = getBelongsToModuleName();
-        YangNode moduleNode = findReferredNode(yangFileInfoSet, belongsToModuleName);
+        YangNode moduleNode = findReferredNode(yangNodeSet, belongsToModuleName);
         if (moduleNode != null) {
             if (moduleNode instanceof YangModule) {
                 setModuleNode(moduleNode);

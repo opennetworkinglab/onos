@@ -19,7 +19,7 @@ package org.onosproject.yangutils.datamodel;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
-import org.onosproject.yangutils.utils.builtindatatype.YangUint64;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangUint64;
 
 /*-
  * Reference RFC 6020.

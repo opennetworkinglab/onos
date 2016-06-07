@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.linker;
+package org.onosproject.yangutils.datamodel;
 
 import java.util.List;
 import java.util.Set;
-
-import org.onosproject.yangutils.datamodel.YangImport;
-import org.onosproject.yangutils.datamodel.YangInclude;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
-import org.onosproject.yangutils.linker.exceptions.LinkerException;
-import org.onosproject.yangutils.linker.impl.YangResolutionInfo;
-import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 
 /**
  * Abstraction of YANG dependency resolution information. Abstracted to obtain the
@@ -133,18 +127,18 @@ public interface YangReferenceResolver {
     /**
      * Adds references to include.
      *
-     * @param yangFileInfoSet YANG file info set
-     * @throws LinkerException a violation of linker rules
+     * @param yangNodeSet YANG node info set
+     * @throws DataModelException a violation of data model rules
      */
-    void addReferencesToIncludeList(Set<YangFileInfo> yangFileInfoSet)
-            throws LinkerException;
+    void addReferencesToIncludeList(Set<YangNode> yangNodeSet)
+            throws DataModelException;
 
     /**
      * Adds references to import.
      *
-     * @param yangFileInfoSet YANG file info set
-     * @throws LinkerException a violation of linker rules
+     * @param yangNodeSet YANG node info set
+     * @throws DataModelException a violation of data model rules
      */
-    void addReferencesToImportList(Set<YangFileInfo> yangFileInfoSet)
-            throws LinkerException;
+    void addReferencesToImportList(Set<YangNode> yangNodeSet)
+            throws DataModelException;
 }

@@ -31,7 +31,7 @@ import org.onosproject.yangutils.datamodel.YangRangeInterval;
 import org.onosproject.yangutils.datamodel.YangRangeRestriction;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-import org.onosproject.yangutils.utils.builtindatatype.YangInt32;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangInt32;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;

@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.utils.builtindatatype;
+package org.onosproject.yangutils.datamodel.utils.builtindatatype;
 
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 
-
 /**
- * Handles the YANG's int16 data type processing.
+ * Handles the YANG's int8 data type processing.
  *
- * int16 represents integer values between -32768 and 32767, inclusively.
+ * int8 represents integer values between -128 and 127, inclusively.
  */
-public class YangInt16 implements YangBuiltInDataTypeInfo<YangInt16> {
+public class YangInt8 implements YangBuiltInDataTypeInfo<YangInt8> {
 
     /**
      * YANG's min keyword.
@@ -37,19 +36,19 @@ public class YangInt16 implements YangBuiltInDataTypeInfo<YangInt16> {
     private static final String MAX_KEYWORD = "max";
 
     /**
-     * Valid minimum value of YANG's int16.
+     * Valid minimum value of YANG's int8.
      */
-    public static final short MIN_VALUE = -32768;
+    public static final byte MIN_VALUE = -128;
 
     /**
-     * Valid maximum value of YANG's int16.
+     * Valid maximum value of YANG's int8.
      */
-    public static final short MAX_VALUE = 32767;
+    public static final byte MAX_VALUE = 127;
 
     /**
-     * The value of YANG's int16.
+     * The value of YANG's int8.
      */
-    private final short value;
+    private final byte value;
 
     /**
      * Creates an object with the value initialized with value represented in
@@ -57,7 +56,7 @@ public class YangInt16 implements YangBuiltInDataTypeInfo<YangInt16> {
      *
      * @param valueInString value of the object in string
      */
-    public YangInt16(String valueInString) {
+    public YangInt8(String valueInString) {
 
         if (valueInString.matches(MIN_KEYWORD)) {
             value = MIN_VALUE;
@@ -65,31 +64,31 @@ public class YangInt16 implements YangBuiltInDataTypeInfo<YangInt16> {
             value = MAX_VALUE;
         } else {
             try {
-                value = Short.parseShort(valueInString);
+                value = Byte.parseByte(valueInString);
             } catch (Exception e) {
                 throw new DataTypeException("YANG file error : Input value \"" + valueInString + "\" is not a valid " +
-                        "int16.");
+                        "int8.");
             }
         }
     }
 
     /**
-     * Returns YANG's int16 value.
+     * Returns YANG's int8 value.
      *
-     * @return value of YANG's int16
+     * @return value of YANG's int8
      */
-    public short getValue() {
+    public byte getValue() {
         return value;
     }
 
     @Override
-    public int compareTo(YangInt16 anotherYangInt16) {
-        return Short.compare(value, anotherYangInt16.value);
+    public int compareTo(YangInt8 anotherYangInt8) {
+        return Byte.compare(value, anotherYangInt8.value);
     }
 
     @Override
     public YangDataTypes getYangType() {
-        return YangDataTypes.INT16;
+        return YangDataTypes.INT8;
     }
 
 }

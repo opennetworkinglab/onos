@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.utils.builtindatatype;
+package org.onosproject.yangutils.datamodel.utils.builtindatatype;
 
 import java.util.Objects;
-
 import com.google.common.base.MoreObjects;
 
 /**

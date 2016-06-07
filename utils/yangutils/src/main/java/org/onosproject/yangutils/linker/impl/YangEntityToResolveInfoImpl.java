@@ -15,17 +15,18 @@
  */
 package org.onosproject.yangutils.linker.impl;
 
+import org.onosproject.yangutils.datamodel.YangEntityToResolveInfo;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangUses;
 import org.onosproject.yangutils.linker.exceptions.LinkerException;
 
 /**
- * Represents information about entity being resolved.
+ * Represents implementation of information about entity being resolved.
  *
  * @param <T> type of entity being resolved, uses / grouping
  */
-public class YangEntityToResolveInfo<T> {
+public class YangEntityToResolveInfoImpl<T> implements YangEntityToResolveInfo<T> {
 
     // Parsable node for which resolution is to be performed.
     private T entityToResolve;
@@ -33,39 +34,22 @@ public class YangEntityToResolveInfo<T> {
     // Holder of the YANG construct for which resolution has to be carried out.
     private YangNode holderOfEntityToResolve;
 
-    /**
-     * Retrieves the entity to be resolved.
-     *
-     * @return entity to be resolved
-     */
+    @Override
     public T getEntityToResolve() {
         return entityToResolve;
     }
 
-    /**
-     * Sets entity to be resolved.
-     *
-     * @param entityToResolve entity to be resolved
-     */
+    @Override
     public void setEntityToResolve(T entityToResolve) {
         this.entityToResolve = entityToResolve;
     }
 
-    /**
-     * Retrieves the parent node which contains the entity to be resolved.
-     *
-     * @return parent node which contains the entity to be resolved
-     */
+    @Override
     public YangNode getHolderOfEntityToResolve() {
         return holderOfEntityToResolve;
     }
 
-    /**
-     * Sets parent node which contains the entity to be resolved.
-     *
-     * @param holderOfEntityToResolve parent node which contains the entity to
-     *                                be resolved
-     */
+    @Override
     public void setHolderOfEntityToResolve(YangNode holderOfEntityToResolve) {
         this.holderOfEntityToResolve = holderOfEntityToResolve;
     }
