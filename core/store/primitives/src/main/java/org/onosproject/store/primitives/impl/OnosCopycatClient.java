@@ -26,6 +26,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 
+import org.onlab.util.Tools;
+import org.onosproject.store.service.StorageException;
 import org.slf4j.Logger;
 
 import com.google.common.base.Throwables;
@@ -38,9 +40,9 @@ import io.atomix.copycat.error.UnknownSessionException;
 import io.atomix.copycat.session.ClosedSessionException;
 
 /**
- * {@code CopycatClient} that can retry when certain recoverable errors are encoutered.
+ * Custom {@code CopycatClient} for injecting additional logic that runs before/after operation submission.
  */
-public class QueryRetryingCopycatClient extends DelegatingCopycatClient {
+public class OnosCopycatClient extends DelegatingCopycatClient {
 
     private final int maxRetries;
     private final long delayBetweenRetriesMillis;
@@ -55,7 +57,7 @@ public class QueryRetryingCopycatClient extends DelegatingCopycatClient {
             || e instanceof UnknownSessionException
             || e instanceof ClosedSessionException;
 
-    QueryRetryingCopycatClient(CopycatClient client, int maxRetries, long delayBetweenRetriesMillis) {
+    OnosCopycatClient(CopycatClient client, int maxRetries, long delayBetweenRetriesMillis) {
         super(client);
         this.maxRetries = maxRetries;
         this.delayBetweenRetriesMillis = delayBetweenRetriesMillis;
@@ -70,6 +72,9 @@ public class QueryRetryingCopycatClient extends DelegatingCopycatClient {
 
     @Override
     public <T> CompletableFuture<T> submit(Query<T> query) {
+        if (state() == State.SUSPENDED || state() == State.CLOSED) {
+            return Tools.exceptionalFuture(new StorageException.Unavailable());
+        }
         CompletableFuture<T> future = new CompletableFuture<>();
         executor.submit(() -> submit(query, 1, future));
         return future;
