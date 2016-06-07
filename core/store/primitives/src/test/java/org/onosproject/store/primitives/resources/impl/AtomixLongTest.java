@@ -15,19 +15,18 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
-import static org.junit.Assert.*;
-
-import org.junit.Ignore;
-import org.junit.Test;
-
 import io.atomix.Atomix;
 import io.atomix.resource.ResourceType;
 import io.atomix.variables.DistributedLong;
+import org.junit.Test;
 
-/**
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+/**git s
  * Unit tests for {@link AtomixCounter}.
  */
-@Ignore
 public class AtomixLongTest extends AtomixTestBase {
 
     @Override

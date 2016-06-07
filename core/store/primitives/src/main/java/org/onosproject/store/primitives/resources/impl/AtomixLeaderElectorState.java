@@ -16,6 +16,8 @@
 package org.onosproject.store.primitives.resources.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
+
+import com.google.common.collect.ImmutableSet;
 import io.atomix.copycat.server.session.ServerSession;
 import io.atomix.copycat.server.Commit;
 import io.atomix.copycat.server.Snapshottable;
@@ -287,10 +289,10 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
     public Set<String> electedTopics(Commit<? extends GetElectedTopics> commit) {
         try {
             NodeId nodeId = commit.operation().nodeId();
-            return Maps.filterEntries(elections, e -> {
+            return ImmutableSet.copyOf(Maps.filterEntries(elections, e -> {
                 Leader leader = leadership(e.getKey()).leader();
                 return leader != null && leader.nodeId().equals(nodeId);
-            }).keySet();
+            }).keySet());
         } finally {
             commit.close();
         }

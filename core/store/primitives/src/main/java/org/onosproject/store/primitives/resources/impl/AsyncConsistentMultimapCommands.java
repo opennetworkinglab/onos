@@ -166,11 +166,13 @@ public final class AsyncConsistentMultimapCommands {
         public void writeObject(BufferOutput<?> buffer,
                                 Serializer serializer) {
             super.writeObject(buffer, serializer);
+            serializer.writeObject(value, buffer);
         }
 
         @Override
         public void readObject(BufferInput<?> buffer, Serializer serializer) {
             super.readObject(buffer, serializer);
+            value = serializer.readObject(buffer);
         }
     }
 
@@ -548,6 +550,9 @@ public final class AsyncConsistentMultimapCommands {
      */
     public static class Get extends
             KeyQuery<Versioned<Collection<? extends byte[]>>> {
+        public Get() {
+        }
+
         public Get(String key) {
             super(key);
         }

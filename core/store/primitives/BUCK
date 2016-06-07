@@ -9,6 +9,12 @@ COMPILE_DEPS = [
 TEST_DEPS = [
     '//lib:TEST',
     '//core/api:onos-api-tests',
+    '//lib:netty-transport',
+    '//lib:catalyst-transport',
+    '//lib:netty-handler',
+    '//lib:netty-buffer',
+    '//lib:netty-codec',
+
 ]
 
 osgi_jar_with_tests (

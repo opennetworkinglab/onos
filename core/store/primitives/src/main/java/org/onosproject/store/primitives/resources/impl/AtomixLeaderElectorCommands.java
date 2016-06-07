@@ -182,6 +182,18 @@ public final class AtomixLeaderElectorCommands {
                     .add("nodeId", nodeId)
                     .toString();
         }
+
+        @Override
+        public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
+            super.writeObject(buffer, serializer);
+            serializer.writeObject(nodeId, buffer);
+        }
+
+        @Override
+        public void readObject(BufferInput<?> buffer, Serializer serializer) {
+            super.readObject(buffer, serializer);
+            nodeId = serializer.readObject(buffer);
+        }
     }
 
     /**

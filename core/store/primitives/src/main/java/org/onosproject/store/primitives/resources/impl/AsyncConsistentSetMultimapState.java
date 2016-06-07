@@ -19,6 +19,7 @@ package org.onosproject.store.primitives.resources.impl;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
@@ -170,16 +171,19 @@ public class AsyncConsistentSetMultimapState extends ResourceStateMachine
      */
     protected boolean containsValue(Commit<? extends ContainsValue> commit) {
         try {
+            if (backingMap.values().isEmpty()) {
+                return false;
+            }
             Match<byte[]> match = Match.ifValue(commit.operation().value());
             return backingMap
                     .values()
                     .stream()
                     .anyMatch(valueList ->
-                          valueList
-                              .values()
-                              .stream()
-                              .anyMatch(byteValue ->
-                                    match.matches(byteValue)));
+                                      valueList
+                                              .values()
+                                              .stream()
+                                              .anyMatch(byteValue ->
+                                                    match.matches(byteValue)));
         } finally {
             commit.close();
         }
@@ -230,7 +234,7 @@ public class AsyncConsistentSetMultimapState extends ResourceStateMachine
      */
     protected Set<String> keySet(Commit<? extends KeySet> commit) {
         try {
-            return backingMap.keySet();
+            return ImmutableSet.copyOf(backingMap.keySet());
         } finally {
             commit.close();
         }
@@ -444,7 +448,7 @@ public class AsyncConsistentSetMultimapState extends ResourceStateMachine
 
         @Override
         public Collection<? extends byte[]> values() {
-            return valueCountdownMap.keySet();
+            return ImmutableSet.copyOf(valueCountdownMap.keySet());
         }
 
         @Override
@@ -747,4 +751,4 @@ public class AsyncConsistentSetMultimapState extends ResourceStateMachine
             }
         }
     }
-}
+ }
