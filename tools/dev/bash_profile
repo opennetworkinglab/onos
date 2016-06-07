@@ -99,6 +99,7 @@ alias sshnet='onos-ssh $OCN'
 
 # Sets the primary instance to the specified instance number.
 function setPrimaryInstance {
+    export ONOS_INSTANCES=$(env | grep 'OC[0-9]*=' | sort | cut -d= -f2)
     export OCI=$(env | egrep "OC[0-9]+" | sort | egrep OC${1:-1} | cut -d= -f2)
     echo $OCI
 }
@@ -129,7 +130,6 @@ function cell {
         curl -sS -X POST "http://$CELL_WARDEN:4321/?$query" -d "$(cat ~/.ssh/id_rsa.pub)" > $aux
         . $aux
         rm -f $aux
-        export ONOS_INSTANCES=$(env | grep 'OC[0-9]*=' | sort | cut -d= -f2)
         setPrimaryInstance 1 >/dev/null
         onos-verify-cell
         ;;
@@ -159,7 +159,6 @@ function cell {
         export ONOS_WEB_PASS=${ONOS_WEB_PASS:-rocks}
         export ONOS_CELL=$1
         . $ONOS_ROOT/tools/test/cells/$1
-        export ONOS_INSTANCES=$(env | grep 'OC[0-9]*=' | sort | cut -d= -f2)
         setPrimaryInstance 1 >/dev/null
         cell
     esac
