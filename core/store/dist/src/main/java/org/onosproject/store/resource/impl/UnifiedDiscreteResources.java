@@ -65,7 +65,7 @@ final class UnifiedDiscreteResources implements DiscreteResources {
 
     @Override
     public DiscreteResources difference(DiscreteResources other) {
-        return of(Sets.difference(values(), other.values()));
+        return of(Sets.difference(this.values(), other.values()));
     }
 
     @Override

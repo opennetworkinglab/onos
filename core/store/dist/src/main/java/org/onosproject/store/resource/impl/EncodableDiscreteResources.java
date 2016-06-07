@@ -84,9 +84,7 @@ final class EncodableDiscreteResources implements DiscreteResources {
 
     @Override
     public DiscreteResources difference(DiscreteResources other) {
-        Set<DiscreteResource> diff = Sets.difference(values(), other.values());
-
-        return of(parent, diff);
+        return of(parent, Sets.difference(values(), other.values()));
     }
 
     @Override
