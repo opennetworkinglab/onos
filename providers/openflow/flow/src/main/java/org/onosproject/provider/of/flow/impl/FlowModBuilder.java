@@ -271,30 +271,28 @@ public abstract class FlowModBuilder {
                 IPProtocolCriterion p = (IPProtocolCriterion) c;
                 mBuilder.setExact(MatchField.IP_PROTO, IpProtocol.of(p.protocol()));
                 break;
-            case IPV4_SRC:
+            case IPV4_SRC: {
                 ipCriterion = (IPCriterion) c;
                 ip4Prefix = ipCriterion.ip().getIp4Prefix();
+                Ip4Address maskAddr = null;
+
                 if (ipCriterion.getIpv4SuffixLength() != null) {
-                    Ip4Address maskAddr =
-                        Ip4Address.makeMaskSuffix(ipCriterion.getIpv4SuffixLength());
+                    maskAddr = Ip4Address.makeMaskSuffix(ipCriterion.getIpv4SuffixLength());
+                } else if (ip4Prefix.prefixLength() != Ip4Prefix.MAX_MASK_LENGTH) {
+                    maskAddr = Ip4Address.makeMaskPrefix(ip4Prefix.prefixLength());
+                }
+
+                if (maskAddr != null) {
                     Masked<IPv4Address> maskedIp =
-                        Masked.of(IPv4Address.of(ip4Prefix.address().toInt()),
-                                  IPv4Address.of(maskAddr.toInt()));
+                            Masked.of(IPv4Address.of(ip4Prefix.address().toInt()),
+                                    IPv4Address.of(maskAddr.toInt()));
                     mBuilder.setMasked(MatchField.IPV4_SRC, maskedIp);
                 } else {
-                    if (ip4Prefix.prefixLength() != Ip4Prefix.MAX_MASK_LENGTH) {
-                        Ip4Address maskAddr =
-                                Ip4Address.makeMaskPrefix(ip4Prefix.prefixLength());
-                        Masked<IPv4Address> maskedIp =
-                                Masked.of(IPv4Address.of(ip4Prefix.address().toInt()),
-                                        IPv4Address.of(maskAddr.toInt()));
-                        mBuilder.setMasked(MatchField.IPV4_SRC, maskedIp);
-                    } else {
-                        mBuilder.setExact(MatchField.IPV4_SRC,
-                                IPv4Address.of(ip4Prefix.address().toInt()));
-                    }
+                    mBuilder.setExact(MatchField.IPV4_SRC,
+                            IPv4Address.of(ip4Prefix.address().toInt()));
                 }
                 break;
+            }
             case IPV4_DST:
                 ipCriterion = (IPCriterion) c;
                 ip4Prefix = ipCriterion.ip().getIp4Prefix();
