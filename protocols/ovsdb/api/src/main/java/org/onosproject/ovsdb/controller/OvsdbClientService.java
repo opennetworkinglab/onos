@@ -72,29 +72,43 @@ public interface OvsdbClientService extends OvsdbRpc {
     /**
      * Creates a bridge.
      *
+     * @deprecated version 1.7.0 - Hummingbird
      * @param bridgeName bridge name
      */
+    @Deprecated
     void createBridge(String bridgeName);
 
     /**
      * Creates a bridge.
      *
+     * @deprecated version 1.7.0 - Hummingbird
      * @param bridgeName bridge name
      * @param dpid data path id
      * @param exPortName external port name
      */
+    @Deprecated
     void createBridge(String bridgeName, String dpid, String exPortName);
 
     /**
      * Creates a bridge with given name and dpid.
      * Sets the bridge's controller with given controllers.
      *
+     * @deprecated version 1.7.0 - Hummingbird
      * @param bridgeName bridge name
      * @param dpid data path id
      * @param controllers controllers
      * @return true if bridge creation is successful, false otherwise
      */
+    @Deprecated
     boolean createBridge(String bridgeName, String dpid, List<ControllerInfo> controllers);
+
+    /**
+     * Creates a bridge with a given bridge description.
+     *
+     * @param ovsdbBridge ovsdb bridge description
+     * @return true if bridge creation is successful, otherwise false
+     */
+    boolean createBridge(OvsdbBridge ovsdbBridge);
 
     /**
      * Drops a bridge.
@@ -117,6 +131,15 @@ public interface OvsdbClientService extends OvsdbRpc {
      * @return set of controllers; empty if no controller is find
      */
     Set<ControllerInfo> getControllers(DeviceId openflowDeviceId);
+
+    /**
+     * Returns local controller information.
+     * The connection is a TCP connection to the local ONOS instance's IP
+     * and the default OpenFlow port.
+     *
+     * @return local controller
+     */
+    ControllerInfo localController();
 
     /**
      * Sets the Controllers for the specified bridge.

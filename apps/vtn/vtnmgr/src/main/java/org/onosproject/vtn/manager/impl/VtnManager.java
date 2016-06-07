@@ -715,24 +715,17 @@ public class VtnManager implements VtnService {
                 .filter(d -> !("ovsdb:" + ipAddress).equals(d.id().toString()))
                 .forEach(d -> {
                     DriverHandler handler = driverService.createHandler(d.id());
-                    BridgeConfig bridgeConfig = handler
-                            .behaviour(BridgeConfig.class);
-                    Collection<BridgeDescription> bridgeDescriptions = bridgeConfig
-                            .getBridges();
-                    Iterator<BridgeDescription> it = bridgeDescriptions
-                            .iterator();
-                    while (it.hasNext()) {
-                        BridgeDescription sw = it.next();
-                        if (sw.bridgeName().name().equals(VtnConfig.DEFAULT_BRIDGE_NAME)) {
-                            List<Port> ports = deviceService.getPorts(sw.deviceId());
-                            ports.stream()
-                                    .filter(p -> p.annotations().value(AnnotationKeys.PORT_NAME)
-                                            .equalsIgnoreCase(tunnelName))
-                                    .forEach(p -> {
-                                l2ForwardService.programTunnelOut(sw.deviceId(),
-                                                                  segmentationId, p.number(),
-                                                                  dstMac, type, ipAddress);
-                            });
+                    BridgeConfig bridgeConfig = handler.behaviour(BridgeConfig.class);
+                    Collection<BridgeDescription> bridgeDescriptions = bridgeConfig.getBridges();
+                    for (BridgeDescription sw : bridgeDescriptions) {
+                        if (sw.name().equals(VtnConfig.DEFAULT_BRIDGE_NAME) &&
+                                sw.deviceId().isPresent()) {
+                            List<Port> ports = deviceService.getPorts(sw.deviceId().get());
+                            ports.stream().filter(p -> p.annotations().value(AnnotationKeys.PORT_NAME)
+                                    .equalsIgnoreCase(tunnelName))
+                                    .forEach(p -> l2ForwardService.programTunnelOut(
+                                            sw.deviceId().get(), segmentationId, p.number(),
+                                            dstMac, type, ipAddress));
                             break;
                         }
                     }

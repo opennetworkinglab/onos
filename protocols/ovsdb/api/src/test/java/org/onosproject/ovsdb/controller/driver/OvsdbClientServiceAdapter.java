@@ -74,6 +74,11 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
     }
 
     @Override
+    public boolean createBridge(OvsdbBridge ovsdbBridge) {
+        return true;
+    }
+
+    @Override
     public void dropBridge(String bridgeName) {
 
     }
@@ -85,6 +90,11 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
 
     @Override
     public Set<ControllerInfo> getControllers(DeviceId openflowDeviceId) {
+        return null;
+    }
+
+    @Override
+    public ControllerInfo localController() {
         return null;
     }
 

@@ -29,40 +29,46 @@ public final class OvsdbConstant {
     private OvsdbConstant() {
     }
 
+    /** Common column names. */
+    public static final String UUID = "_uuid";
+
     /** Ovsdb database Open_vSwitch. */
     public static final String DATABASENAME = "Open_vSwitch";
 
-    /** Ovsdb table Bridge. */
+    /** Open_vSwitch table. */
+    public static final String BRIDGES = "bridges";
+
+    /** Bridge table. */
     public static final String BRIDGE = "Bridge";
+    public static final String PORTS = "ports";
+    // other configs
+    public static final String DATAPATH_ID = "datapath-id";
+    public static final String DISABLE_INBAND = "disable-in-band";
 
-    /** Ovsdb table Interface. */
+    /** Interface table. */
     public static final String INTERFACE = "Interface";
+    // type
+    public static final String TYPEVXLAN = "vxlan";
+    // virtual machine identifiers
+    public static final String EXTERNAL_ID_INTERFACE_ID = "iface-id";
+    public static final String EXTERNAL_ID_VM_MAC = "attached-mac";
 
-    /** Ovsdb table Controller. */
+    /** Controller table. */
     public static final String CONTROLLER = "Controller";
 
-    /** Ovsdb table Port. */
+    /** Port table. */
     public static final String PORT = "Port";
 
     /** Ovsdb bridge name. */
+    // TODO remove this particular bridge name from OVSDB provider
     public static final String INTEGRATION_BRIDGE = "br-int";
-
-    /** Ovsdb vxlan tunnel type. */
-    public static final String TYPEVXLAN = "vxlan";
 
     /** Openflow version. */
     public static final String OPENFLOW13 = "OpenFlow13";
-
-    /** Ovsdb external_id_interface_id.. */
-    public static final String EXTERNAL_ID_INTERFACE_ID = "iface-id";
-
-    /** Ovsdb external_id_vm_mac. */
-    public static final String EXTERNAL_ID_VM_MAC = "attached-mac";
 
     /** Openflow port. */
     public static final int OFPORT = 6653;
 
     /** Ovsdb port. */
     public static final int OVSDBPORT = 6640;
-
 }

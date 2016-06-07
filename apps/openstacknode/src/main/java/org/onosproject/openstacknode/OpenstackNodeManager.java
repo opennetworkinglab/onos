@@ -35,8 +35,10 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.behaviour.BridgeConfig;
+import org.onosproject.net.behaviour.BridgeDescription;
 import org.onosproject.net.behaviour.BridgeName;
 import org.onosproject.net.behaviour.ControllerInfo;
+import org.onosproject.net.behaviour.DefaultBridgeDescription;
 import org.onosproject.net.behaviour.DefaultTunnelDescription;
 import org.onosproject.net.behaviour.TunnelConfig;
 import org.onosproject.net.behaviour.TunnelDescription;
@@ -399,7 +401,16 @@ public class OpenstackNodeManager implements OpenstackNodeService {
         try {
             DriverHandler handler = driverService.createHandler(node.ovsdbId());
             BridgeConfig bridgeConfig =  handler.behaviour(BridgeConfig.class);
-            bridgeConfig.addBridge(BridgeName.bridgeName(DEFAULT_BRIDGE), dpid, controllers);
+
+            BridgeDescription bridgeDesc = DefaultBridgeDescription.builder()
+                    .name(DEFAULT_BRIDGE)
+                    .failMode(BridgeDescription.FailMode.SECURE)
+                    .datapathId(dpid)
+                    .disableInBand()
+                    .controllers(controllers)
+                    .build();
+
+            bridgeConfig.addBridge(bridgeDesc);
         } catch (ItemNotFoundException e) {
             log.warn("Failed to create integration bridge on {}", node.ovsdbId());
         }

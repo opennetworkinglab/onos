@@ -23,7 +23,9 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.BridgeConfig;
+import org.onosproject.net.behaviour.BridgeDescription;
 import org.onosproject.net.behaviour.BridgeName;
+import org.onosproject.net.behaviour.DefaultBridgeDescription;
 import org.onosproject.net.behaviour.DefaultTunnelDescription;
 import org.onosproject.net.behaviour.IpTunnelEndPoint;
 import org.onosproject.net.behaviour.TunnelConfig;
@@ -62,7 +64,16 @@ public final class VtnConfig {
      */
     public static void applyBridgeConfig(DriverHandler handler, String dpid, String exPortName) {
         BridgeConfig bridgeConfig = handler.behaviour(BridgeConfig.class);
-        bridgeConfig.addBridge(BridgeName.bridgeName(DEFAULT_BRIDGE_NAME), dpid, exPortName);
+        BridgeDescription bridgeDesc = DefaultBridgeDescription.builder()
+                .name(DEFAULT_BRIDGE_NAME)
+                .failMode(BridgeDescription.FailMode.SECURE)
+                .datapathId(dpid)
+                .disableInBand()
+                .enableLocalController()
+                .build();
+
+        bridgeConfig.addBridge(bridgeDesc);
+        bridgeConfig.addPort(BridgeName.bridgeName(DEFAULT_BRIDGE_NAME), exPortName);
     }
 
     /**
