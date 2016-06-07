@@ -718,6 +718,17 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     } else if (event.type() == DeviceEvent.Type.PORT_REMOVED) {
                         processPortRemoved((Device) event.subject(),
                                            ((DeviceEvent) event).port());
+                    } else if (event.type() == DeviceEvent.Type.PORT_ADDED ||
+                            event.type() == DeviceEvent.Type.PORT_UPDATED) {
+                        log.info("** PORT ADDED OR UPDATED {}/{} -> {}",
+                                 (Device) event.subject(),
+                                 ((DeviceEvent) event).port(),
+                                 event.type());
+                        /* XXX create method for single port filtering rules
+                        if (defaultRoutingHandler != null) {
+                            defaultRoutingHandler.populatePortAddressingRules(
+                                ((Device) event.subject()).id());
+                        }*/
                     } else {
                         log.warn("Unhandled event type: {}", event.type());
                     }
@@ -730,7 +741,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     private void processLinkAdded(Link link) {
-        log.debug("A new link {} was added", link.toString());
+        log.info("** LINK ADDED {}", link.toString());
         if (!deviceConfiguration.isConfigured(link.src().deviceId())) {
             log.warn("Source device of this link is not configured.");
             return;
@@ -767,7 +778,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     private void processLinkRemoved(Link link) {
-        log.debug("A link {} was removed", link.toString());
+        log.info("** LINK REMOVED {}", link.toString());
         DefaultGroupHandler groupHandler = groupHandlerMap.get(link.src().deviceId());
         if (groupHandler != null) {
             groupHandler.portDown(link.src().port(),
@@ -782,7 +793,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     private void processDeviceAdded(Device device) {
-        log.debug("A new device with ID {} was added", device.id());
+        log.info("** DEVICE ADDED with ID {}", device.id());
         if (deviceConfiguration == null || !deviceConfiguration.isConfigured(device.id())) {
             log.warn("Device configuration uploading. Device {} will be "
                     + "processed after config completes.", device.id());
@@ -816,12 +827,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             log.debug("updating groupHandlerMap with new config for device: {}",
                     deviceId);
             groupHandlerMap.put(deviceId, groupHandler);
-            // Also, in some cases, drivers may need extra
-            // information to process rules (eg. Router IP/MAC); and so, we send
-            // port addressing rules to the driver as well irrespective of whether
-            // this instance is the master or not.
-            defaultRoutingHandler.populatePortAddressingRules(deviceId);
         }
+        // Also, in some cases, drivers may need extra
+        // information to process rules (eg. Router IP/MAC); and so, we send
+        // port addressing rules to the driver as well irrespective of whether
+        // this instance is the master or not.
+        defaultRoutingHandler.populatePortAddressingRules(deviceId);
+
         if (mastershipService.isLocalMaster(deviceId)) {
             hostHandler.readInitialHosts(deviceId);
             DefaultGroupHandler groupHandler = groupHandlerMap.get(deviceId);
@@ -866,7 +878,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     private void processPortRemoved(Device device, Port port) {
-        log.debug("Port {} was removed", port.toString());
+        log.info("Port {} was removed", port.toString());
         DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
         if (groupHandler != null) {
             groupHandler.portDown(port.number(),

@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flowobjective.impl.composition;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
@@ -440,6 +441,12 @@ public class FlowObjectiveCompositionManager implements FlowObjectiveService {
     @Override
     public List<String> getNextMappings() {
         // TODO Implementation deferred as this is an experimental component.
-        return null;
+        return ImmutableList.of();
+    }
+
+    @Override
+    public List<String> getPendingNexts() {
+        // TODO Implementation deferred as this is an experimental component.
+        return ImmutableList.of();
     }
 }

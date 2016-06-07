@@ -95,7 +95,18 @@ public interface FlowObjectiveService {
      *
      * @return a list of strings preformatted by the device-drivers to provide
      *         information on next-id to group-id mapping. Consumed by the
-     *         "next-ids" command on the CLI.
+     *         "obj-next-ids" command on the CLI.
      */
     List<String> getNextMappings();
+
+    /**
+     * Retrieve all nextObjectives that are waiting to hear back from device
+     * drivers, and the forwarding-objectives that are waiting on the
+     * successful completion of the next-objectives. Consumed by the
+     * "obj-pending-nexts" command on the CLI.
+     *
+     * @return a list of strings preformatted to provide information on the
+     *          next-ids awaiting confirmation from the device-drivers.
+     */
+    List<String> getPendingNexts();
 }

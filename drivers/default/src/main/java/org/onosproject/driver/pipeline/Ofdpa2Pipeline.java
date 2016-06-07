@@ -1083,7 +1083,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             }
             // add port information for last group in group-chain
             List<Instruction> lastGroupIns = new ArrayList<Instruction>();
-            if (gchain != null) {
+            if (lastGroup != null) {
                 lastGroupIns = lastGroup.buckets().buckets().get(0)
                                     .treatment().allInstructions();
             }

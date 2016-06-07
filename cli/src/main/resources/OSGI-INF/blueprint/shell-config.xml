@@ -31,6 +31,10 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.net.FlowObjectivePendingNextCommand"/>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.net.FlowObjectiveCompositionCommand"/>
         </command>
 
