@@ -19,6 +19,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.kafkaintegration.api.dto.OnosEvent.Type.DEVICE;
 import static org.onosproject.kafkaintegration.api.dto.OnosEvent.Type.LINK;
 
+import org.onosproject.kafkaintegration.api.dto.DefaultEventSubscriber;
+import org.onosproject.kafkaintegration.api.dto.EventSubscriber;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,8 +36,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.kafkaintegration.api.EventExporterService;
-import org.onosproject.kafkaintegration.api.dto.EventSubscriber;
 import org.onosproject.kafkaintegration.api.dto.EventSubscriberGroupId;
+import org.onosproject.kafkaintegration.api.dto.OnosEvent;
 import org.onosproject.kafkaintegration.api.dto.OnosEvent.Type;
 import org.onosproject.kafkaintegration.errors.InvalidApplicationException;
 import org.onosproject.kafkaintegration.errors.InvalidGroupIdException;
@@ -98,7 +101,12 @@ public class EventExporterManager implements EventExporterService {
                 .<Type, List<EventSubscriber>>consistentMapBuilder()
                 .withName(SUBSCRIBED_APPS)
                 .withSerializer(Serializer.using(KryoNamespaces.API,
-                                                 EventSubscriber.class))
+                                                 EventSubscriber.class,
+                                                 OnosEvent.class,
+                                                 OnosEvent.Type.class,
+                                                 DefaultEventSubscriber.class,
+                                                 EventSubscriberGroupId.class,
+                                                 UUID.class))
                 .build().asJavaMap();
 
         log.info("Started");
@@ -119,7 +127,6 @@ public class EventExporterManager implements EventExporterService {
         return registeredApps.computeIfAbsent(externalAppId,
                                               (key) -> new EventSubscriberGroupId(UUID
                                                       .randomUUID()));
-
     }
 
     @Override

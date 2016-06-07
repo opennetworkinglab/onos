@@ -166,6 +166,7 @@
                         com.fasterxml.jackson.core,
                         org.onlab.packet.*,
                         org.onosproject.*,
+                        org.onlab.util.*,
                         com.google.common.*
                     </Import-Package>
                     <Web-ContextPath>${web.context}</Web-ContextPath>

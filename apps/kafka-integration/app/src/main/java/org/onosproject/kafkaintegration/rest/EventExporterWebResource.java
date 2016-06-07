@@ -28,7 +28,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.onosproject.codec.JsonCodec;
 import org.onosproject.kafkaintegration.api.EventExporterService;
 import org.onosproject.kafkaintegration.api.dto.EventSubscriber;
 import org.onosproject.kafkaintegration.api.dto.EventSubscriberGroupId;
@@ -54,9 +53,10 @@ public class EventExporterWebResource extends AbstractWebResource {
             "De-Registered Listener successfully";
     public static final String EVENT_SUBSCRIPTION_SUCCESSFUL =
             "Event Registration successfull";
+    public static final String EVENT_SUBSCRIPTION_UNSUCCESSFUL =
+            "Event subscription unsuccessful";
     public static final String EVENT_SUBSCRIPTION_REMOVED =
             "Event De-Registration successfull";
-
     /**
      * Registers a listener for ONOS Events.
      *
@@ -95,7 +95,7 @@ public class EventExporterWebResource extends AbstractWebResource {
         EventExporterService service = get(EventExporterService.class);
 
         service.unregisterListener(appName);
-
+        log.info("Unregistered app {}", appName);
         return ok(DEREGISTRATION_SUCCESSFUL).build();
     }
 
@@ -107,6 +107,7 @@ public class EventExporterWebResource extends AbstractWebResource {
      * @onos.rsModel KafkaSubscription
      */
     @POST
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("subscribe")
     public Response subscribe(InputStream input) {
@@ -136,11 +137,10 @@ public class EventExporterWebResource extends AbstractWebResource {
 
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode node = (ObjectNode) mapper.readTree(input);
-
         checkNotNull(node, JSON_NOT_NULL);
-
-        JsonCodec<EventSubscriber> codec = codec(EventSubscriber.class);
-        return codec.decode(node, this);
+        EventSubscriber codec = codec(EventSubscriber.class).decode(node, this);
+        checkNotNull(codec, JSON_NOT_NULL);
+        return codec;
     }
 
     /**

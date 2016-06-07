@@ -13,87 +13,42 @@
  * limitations under the License.
  */
 package org.onosproject.kafkaintegration.api.dto;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Objects;
-
 import org.onosproject.kafkaintegration.api.dto.OnosEvent.Type;
 
 /**
- * Representation of a subscription to an event type.
- *
+ * Abstraction of subscription to an event type.
  */
-public final class EventSubscriber {
-    private final String appName;
-    private final EventSubscriberGroupId subscriberGroupId;
-    private final Type eventType;
+public interface EventSubscriber {
+    /**
+     * Returns the application name.
+     *
+     * @return application name.
+     */
+    String appName();
 
     /**
-     * Creates a new Event Subscriber.
-     *
-     * @param name Application Name
-     * @param groupId Subscriber group id of the application
-     * @param eventType ONOS event type
+     * Returns the subscriber group ID.
+     * @return subscriber group ID.
      */
-    public EventSubscriber(String name, EventSubscriberGroupId groupId,
-                           Type eventType) {
-        this.appName = checkNotNull(name);
-        this.subscriberGroupId = checkNotNull(groupId);
-        this.eventType = checkNotNull(eventType);
-    }
-
-    /**
-     * Returns the Application Name.
-     *
-     * @return application name
-     */
-    public String appName() {
-        return appName;
-    }
-
-    /**
-     * Returns the Subscriber Group Id.
-     *
-     * @return Subscriber Group Id
-     */
-    public EventSubscriberGroupId subscriberGroupId() {
-        return subscriberGroupId;
-    }
+    EventSubscriberGroupId subscriberGroupId();
 
     /**
      * Returns the Event type.
      *
      * @return ONOS Event Type
      */
-    public Type eventType() {
-        return eventType;
-    }
+    Type eventType();
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(appName, subscriberGroupId, eventType);
-    }
+    /**
+     * An event subscriber builder.
+     */
+    interface Builder {
+        Builder setAppName(String appName);
 
-    @Override
-    public boolean equals(Object o) {
-        if (o instanceof EventSubscriber) {
-            EventSubscriber sub = (EventSubscriber) o;
-            if (sub.appName.equals(appName)
-                    && sub.subscriberGroupId.equals(subscriberGroupId)
-                    && sub.eventType.equals(eventType)) {
-                return true;
-            }
-        }
+        Builder setSubscriberGroupId(EventSubscriberGroupId subscriberGroupId);
 
-        return false;
-    }
+        Builder setEventType(Type eventType);
 
-    @Override
-    public String toString() {
-        return toStringHelper(this).add("appName", appName)
-                .addValue(subscriberGroupId.toString())
-                .add("eventType", eventType).toString();
+        EventSubscriber build();
     }
 }

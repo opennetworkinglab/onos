@@ -20,10 +20,10 @@ import java.util.UUID;
 
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.kafkaintegration.api.dto.DefaultEventSubscriber;
 import org.onosproject.kafkaintegration.api.dto.EventSubscriber;
 import org.onosproject.kafkaintegration.api.dto.EventSubscriberGroupId;
 import org.onosproject.kafkaintegration.api.dto.OnosEvent.Type;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -47,13 +47,18 @@ public final class SubscriberCodec extends JsonCodec<EventSubscriber> {
 
     @Override
     public EventSubscriber decode(ObjectNode json, CodecContext context) {
-        String name = json.path(NAME).asText();
-        String groupId = json.path(GROUP_ID).asText();
-        EventSubscriberGroupId subscriberGroupId = new EventSubscriberGroupId(UUID
-                .fromString(groupId));
-        String eventType = json.path(EVENT_TYPE).asText();
 
-        return new EventSubscriber(name, subscriberGroupId,
-                                   Type.valueOf(eventType));
+        EventSubscriber.Builder resultBuilder = new DefaultEventSubscriber
+                .Builder();
+        String appName = json.get(NAME).asText();
+        resultBuilder.setAppName(appName);
+
+        String subscriberGroupId = json.get(GROUP_ID).asText();
+        resultBuilder.setSubscriberGroupId(new EventSubscriberGroupId(UUID.
+                fromString(subscriberGroupId)));
+
+        String eventType = json.get(EVENT_TYPE).asText();
+        resultBuilder.setEventType(Type.valueOf(eventType));
+        return resultBuilder.build();
     }
 }
