@@ -43,12 +43,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-optical-model</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.servicemix.bundles</groupId>
             <artifactId>org.apache.servicemix.bundles.snmp4j</artifactId>
             <version>2.3.4_1</version>

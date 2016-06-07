@@ -120,7 +120,6 @@ APPS = [
     '//apps/mobility:onos-apps-mobility-oar',
     '//apps/optical:onos-apps-optical-oar',
     '//apps/newoptical:onos-apps-newoptical-oar',
-    '//apps/optical-model:onos-apps-optical-model-oar',
     '//apps/pathpainter:onos-apps-pathpainter-oar',
     '//apps/pcep-api:onos-apps-pcep-api-oar',
     '//apps/pim:onos-apps-pim-oar',

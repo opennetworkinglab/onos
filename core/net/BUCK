@@ -1,8 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//incubator/api:onos-incubator-api',
-    # TODO Remove after decoupling optical
-    '//apps/optical-model:onos-apps-optical-model',
 ]
 
 TEST_DEPS = [
