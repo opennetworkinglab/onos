@@ -7,11 +7,12 @@ COMPILE_DEPS = [
     '//core/store/serializers:onos-core-serializers',
 ]
 
-osgi_jar_with_tests (
+osgi_jar (
     deps = COMPILE_DEPS,
 )
 
 onos_app (
+    app_name = 'org.onosproject.distributedprimitives',
     title = 'Distributed Primitives Test App',
     category = 'Test',
     url = 'http://onosproject.org',
