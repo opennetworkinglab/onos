@@ -86,15 +86,6 @@ interface DiscreteResources {
     DiscreteResources add(DiscreteResources other);
 
     /**
-     * Returns a difference set of this instance and the given resources.
-     * Note: This method returns a new instance, not mutate the current intance.
-     *
-     * @param removed resources
-     * @return a new DiscreteResources instance representing a difference set
-     */
-    DiscreteResources remove(Set<DiscreteResource> removed);
-
-    /**
      * Returns all of resources this instance holds.
      *
      * @return all resources

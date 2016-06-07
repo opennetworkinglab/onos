@@ -58,11 +58,6 @@ final class EmptyDiscreteResources implements DiscreteResources {
     }
 
     @Override
-    public DiscreteResources remove(Set<DiscreteResource> removed) {
-        return this;
-    }
-
-    @Override
     public Set<DiscreteResource> values() {
         return ImmutableSet.of();
     }

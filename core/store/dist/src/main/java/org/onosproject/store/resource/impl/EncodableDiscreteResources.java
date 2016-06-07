@@ -108,11 +108,6 @@ final class EncodableDiscreteResources implements DiscreteResources {
     }
 
     @Override
-    public DiscreteResources remove(Set<DiscreteResource> removed) {
-        return of(parent, Sets.difference(values(), removed));
-    }
-
-    @Override
     public Set<DiscreteResource> values() {
         return values.values().stream()
                 .flatMap(x -> x.values(parent.id()).stream())

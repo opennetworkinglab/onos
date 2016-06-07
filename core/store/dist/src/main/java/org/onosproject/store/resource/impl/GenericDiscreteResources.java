@@ -79,12 +79,6 @@ final class GenericDiscreteResources implements DiscreteResources {
         return new GenericDiscreteResources(newValues);
     }
 
-    // returns a new instance, not mutate the current instance
-    @Override
-    public DiscreteResources remove(Set<DiscreteResource> removed) {
-        return of(Sets.difference(this.values, removed));
-    }
-
     @Override
     public Set<DiscreteResource> values() {
         // breaks immutability, but intentionally returns the field

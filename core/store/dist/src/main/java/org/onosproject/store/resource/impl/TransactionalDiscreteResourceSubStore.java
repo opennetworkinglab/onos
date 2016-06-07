@@ -102,7 +102,8 @@ class TransactionalDiscreteResourceSubStore {
             return true;
         }
 
-        DiscreteResources newValues = oldValues.remove(values);
+        DiscreteResources requested = DiscreteResources.of(values);
+        DiscreteResources newValues = oldValues.difference(requested);
         return childMap.replace(key, oldValues, newValues);
     }
 

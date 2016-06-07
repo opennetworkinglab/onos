@@ -88,11 +88,6 @@ final class UnifiedDiscreteResources implements DiscreteResources {
     }
 
     @Override
-    public DiscreteResources remove(Set<DiscreteResource> removed) {
-        return of(Sets.difference(values(), removed));
-    }
-
-    @Override
     public Set<DiscreteResource> values() {
         return Stream.concat(encodables.values().stream(), generics.values().stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
