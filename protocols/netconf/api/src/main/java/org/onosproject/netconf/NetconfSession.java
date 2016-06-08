@@ -48,6 +48,18 @@ public interface NetconfSession {
     String get(String request) throws NetconfException;
 
     /**
+     * Retrives the requested data.
+     *
+     * @param filterSchema XML subtrees to include in the reply
+     * @param withDefaultsMode with-defaults mode
+     * @return Server response
+     * @throws NetconfException when there is a problem in the communication process on
+     * the underlying connection
+     */
+    String get(String filterSchema, String withDefaultsMode)
+            throws NetconfException;
+
+    /**
      * Executes an synchronous RPC to the server.
      *
      * @param request the XML containing the RPC for the server.

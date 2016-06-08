@@ -58,8 +58,20 @@ public class NetconfSessionImpl implements NetconfSession {
     private static final String END_OF_RPC_OPEN_TAG = "\">";
     private static final String EQUAL = "=";
     private static final String NUMBER_BETWEEN_QUOTES_MATCHER = "\"+([0-9]+)+\"";
+    private static final String RPC_OPEN = "<rpc ";
+    private static final String RPC_CLOSE = "</rpc>";
+    private static final String GET_OPEN = "<get>";
+    private static final String GET_CLOSE = "</get>";
+    private static final String WITH_DEFAULT_OPEN = "<with-defaults ";
+    private static final String WITH_DEFAULT_CLOSE = "</with-defaults>";
+    private static final String FILTER_OPEN = "<filter type=\"subtree\">";
+    private static final String FILTER_CLOSE = "</filter>";
     private static final String XML_HEADER =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+    private static final String NETCONF_BASE_NAMESPACE =
+            "xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\"";
+    private static final String NETCONF_WITH_DEFAULTS_NAMESPACE =
+            "xmlns=\"urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults\"";
 
     private final AtomicInteger messageIdInteger = new AtomicInteger(0);
     private Connection netconfConnection;
@@ -76,12 +88,13 @@ public class NetconfSessionImpl implements NetconfSession {
 
     public NetconfSessionImpl(NetconfDeviceInfo deviceInfo) throws NetconfException {
         this.deviceInfo = deviceInfo;
+        this.netconfConnection = null;
+        this.sshSession = null;
         connectionActive = false;
         replies = new HashMap<>();
         errorReplies = new ArrayList<>();
         startConnection();
     }
-
 
     private void startConnection() throws NetconfException {
         if (!connectionActive) {
@@ -105,7 +118,7 @@ public class NetconfSessionImpl implements NetconfSession {
                 }
             } catch (IOException e) {
                 log.error("Authentication connection to device {} failed: {} ",
-                                  deviceInfo.getDeviceId(), e.getMessage());
+                          deviceInfo.getDeviceId(), e.getMessage());
                 throw new NetconfException("Authentication connection to device " +
                                                    deviceInfo.getDeviceId() + " failed", e);
             }
@@ -230,6 +243,34 @@ public class NetconfSessionImpl implements NetconfSession {
     @Override
     public String get(String request) throws NetconfException {
         return requestSync(request);
+    }
+
+    @Override
+    public String get(String filterSchema, String withDefaultsMode) throws NetconfException {
+        StringBuilder rpc = new StringBuilder(XML_HEADER);
+        rpc.append(RPC_OPEN);
+        rpc.append(MESSAGE_ID_STRING);
+        rpc.append(EQUAL);
+        rpc.append("\"");
+        rpc.append(messageIdInteger.get());
+        rpc.append("\"  ");
+        rpc.append(NETCONF_BASE_NAMESPACE).append(">\n");
+        rpc.append(GET_OPEN).append(NEW_LINE);
+        if (filterSchema != null) {
+            rpc.append(FILTER_OPEN).append(NEW_LINE);
+            rpc.append(filterSchema).append(NEW_LINE);
+            rpc.append(FILTER_CLOSE).append(NEW_LINE);
+        }
+        if (withDefaultsMode != null) {
+            rpc.append(WITH_DEFAULT_OPEN).append(NETCONF_WITH_DEFAULTS_NAMESPACE).append(">");
+            rpc.append(withDefaultsMode).append(WITH_DEFAULT_CLOSE).append(NEW_LINE);
+        }
+        rpc.append(GET_CLOSE).append(NEW_LINE);
+        rpc.append(RPC_CLOSE).append(NEW_LINE);
+        rpc.append(ENDPATTERN);
+        String reply = sendRequest(rpc.toString());
+        checkReply(reply);
+        return reply;
     }
 
     @Override

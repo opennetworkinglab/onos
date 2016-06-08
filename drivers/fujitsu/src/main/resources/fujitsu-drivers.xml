@@ -21,5 +21,8 @@
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.fujitsu.FujitsuT100DeviceDescription"/>
     </driver>
+    <driver name="fujitsu-volt-netconf" manufacturer="Fujitsu" hwVersion="svkOLT" swVersion="v1.0">
+        <behaviour api="org.onosproject.net.behaviour.ControllerConfig"
+                   impl="org.onosproject.drivers.fujitsu.FujitsuVoltControllerConfig"/>
+    </driver>
 </drivers>
-
