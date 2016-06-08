@@ -31,10 +31,10 @@ import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.store.virtual.impl.DistributedVirtualNetworkStore;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.TestDeviceParams;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.store.service.TestStorageService;
 
@@ -47,12 +47,9 @@ import static org.junit.Assert.assertNotEquals;
 /**
  * Junit tests for VirtualNetworkLinkService.
  */
-public class VirtualNetworkLinkServiceTest {
+public class VirtualNetworkLinkServiceTest extends TestDeviceParams {
 
     private final String tenantIdValue1 = "TENANT_ID1";
-    private final String deviceIdValue1 = "DEVICE_ID1";
-    private final String deviceIdValue2 = "DEVICE_ID2";
-    private final String deviceIdValue3 = "DEVICE_ID3";
 
     private VirtualNetworkManager manager;
     private DistributedVirtualNetworkStore virtualNetworkManagerStore;
@@ -92,9 +89,9 @@ public class VirtualNetworkLinkServiceTest {
         manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
         VirtualNetwork virtualNetwork = manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
         VirtualDevice srcVirtualDevice =
-                manager.createVirtualDevice(virtualNetwork.id(), DeviceId.deviceId(deviceIdValue1));
+                manager.createVirtualDevice(virtualNetwork.id(), DID1);
         VirtualDevice dstVirtualDevice =
-                manager.createVirtualDevice(virtualNetwork.id(), DeviceId.deviceId(deviceIdValue2));
+                manager.createVirtualDevice(virtualNetwork.id(), DID2);
         ConnectPoint src = new ConnectPoint(srcVirtualDevice.id(), PortNumber.portNumber(1));
         ConnectPoint dst = new ConnectPoint(dstVirtualDevice.id(), PortNumber.portNumber(2));
         VirtualLink link1 = manager.createVirtualLink(virtualNetwork.id(), src, dst);
@@ -134,27 +131,27 @@ public class VirtualNetworkLinkServiceTest {
 
         // test the getDeviceLinks() method
         assertEquals("The link set size did not match.", 2,
-                     linkService.getDeviceLinks(DeviceId.deviceId(deviceIdValue1)).size());
+                     linkService.getDeviceLinks(DID1).size());
         assertEquals("The link set size did not match.", 2,
-                     linkService.getDeviceLinks(DeviceId.deviceId(deviceIdValue2)).size());
+                     linkService.getDeviceLinks(DID2).size());
         assertEquals("The link set size did not match.", 0,
-                     linkService.getDeviceLinks(DeviceId.deviceId(deviceIdValue3)).size());
+                     linkService.getDeviceLinks(DID3).size());
 
         // test the getDeviceEgressLinks() method
         assertEquals("The link set size did not match.", 1,
-                     linkService.getDeviceEgressLinks(DeviceId.deviceId(deviceIdValue1)).size());
+                     linkService.getDeviceEgressLinks(DID1).size());
         assertEquals("The link set size did not match.", 1,
-                     linkService.getDeviceEgressLinks(DeviceId.deviceId(deviceIdValue2)).size());
+                     linkService.getDeviceEgressLinks(DID2).size());
         assertEquals("The link set size did not match.", 0,
-                     linkService.getDeviceEgressLinks(DeviceId.deviceId(deviceIdValue3)).size());
+                     linkService.getDeviceEgressLinks(DID3).size());
 
         // test the getDeviceIngressLinks() method
         assertEquals("The link set size did not match.", 1,
-                     linkService.getDeviceIngressLinks(DeviceId.deviceId(deviceIdValue1)).size());
+                     linkService.getDeviceIngressLinks(DID1).size());
         assertEquals("The link set size did not match.", 1,
-                     linkService.getDeviceIngressLinks(DeviceId.deviceId(deviceIdValue2)).size());
+                     linkService.getDeviceIngressLinks(DID2).size());
         assertEquals("The link set size did not match.", 0,
-                     linkService.getDeviceIngressLinks(DeviceId.deviceId(deviceIdValue3)).size());
+                     linkService.getDeviceIngressLinks(DID3).size());
 
         // test the getEgressLinks() method
         assertEquals("The link set size did not match.", 1,
@@ -182,9 +179,9 @@ public class VirtualNetworkLinkServiceTest {
         manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
         VirtualNetwork virtualNetwork = manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
         VirtualDevice srcVirtualDevice =
-                manager.createVirtualDevice(virtualNetwork.id(), DeviceId.deviceId(deviceIdValue1));
+                manager.createVirtualDevice(virtualNetwork.id(), DID1);
         VirtualDevice dstVirtualDevice =
-                manager.createVirtualDevice(virtualNetwork.id(), DeviceId.deviceId(deviceIdValue2));
+                manager.createVirtualDevice(virtualNetwork.id(), DID2);
         ConnectPoint src = new ConnectPoint(srcVirtualDevice.id(), PortNumber.portNumber(1));
         ConnectPoint dst = new ConnectPoint(dstVirtualDevice.id(), PortNumber.portNumber(2));
         manager.createVirtualLink(virtualNetwork.id(), src, dst);
@@ -205,9 +202,9 @@ public class VirtualNetworkLinkServiceTest {
         manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
         VirtualNetwork virtualNetwork = manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
         VirtualDevice srcVirtualDevice =
-                manager.createVirtualDevice(virtualNetwork.id(), DeviceId.deviceId(deviceIdValue1));
+                manager.createVirtualDevice(virtualNetwork.id(), DID1);
         VirtualDevice dstVirtualDevice =
-                manager.createVirtualDevice(virtualNetwork.id(), DeviceId.deviceId(deviceIdValue2));
+                manager.createVirtualDevice(virtualNetwork.id(), DID2);
         ConnectPoint src = new ConnectPoint(srcVirtualDevice.id(), PortNumber.portNumber(1));
         ConnectPoint dst = new ConnectPoint(dstVirtualDevice.id(), PortNumber.portNumber(2));
         manager.createVirtualLink(virtualNetwork.id(), src, dst);

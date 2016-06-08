@@ -47,6 +47,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -287,6 +288,8 @@ public class VirtualNetworkManager
             service = new VirtualNetworkDeviceService(this, network);
         } else if (serviceKey.serviceClass.equals(LinkService.class)) {
             service = new VirtualNetworkLinkService(this, network);
+        } else if (serviceKey.serviceClass.equals(TopologyService.class)) {
+            service = new VirtualNetworkTopologyService(this, network);
         } else {
             return null;
         }

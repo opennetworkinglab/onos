@@ -32,11 +32,11 @@ import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.incubator.store.virtual.impl.DistributedVirtualNetworkStore;
 import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.TestDeviceParams;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.store.service.TestStorageService;
 
@@ -48,11 +48,8 @@ import static org.junit.Assert.*;
 /**
  * Junit tests for VirtualNetworkDeviceService.
  */
-public class VirtualNetworkDeviceServiceTest {
+public class VirtualNetworkDeviceServiceTest extends TestDeviceParams {
     private final String tenantIdValue1 = "TENANT_ID1";
-    private final String deviceIdValue1 = "DEVICE_ID1";
-    private final String deviceIdValue2 = "DEVICE_ID2";
-    private final String deviceIdValue3 = "DEVICE_ID3";
 
     private VirtualNetworkManager manager;
     private DistributedVirtualNetworkStore virtualNetworkManagerStore;
@@ -88,8 +85,8 @@ public class VirtualNetworkDeviceServiceTest {
     public void testGetDevices() {
         manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
         VirtualNetwork virtualNetwork = manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
-        VirtualDevice device1 = manager.createVirtualDevice(virtualNetwork.id(), DeviceId.deviceId(deviceIdValue1));
-        VirtualDevice device2 = manager.createVirtualDevice(virtualNetwork.id(), DeviceId.deviceId(deviceIdValue2));
+        VirtualDevice device1 = manager.createVirtualDevice(virtualNetwork.id(), DID1);
+        VirtualDevice device2 = manager.createVirtualDevice(virtualNetwork.id(), DID2);
 
         DeviceService deviceService = manager.get(virtualNetwork.id(), DeviceService.class);
 
@@ -106,15 +103,15 @@ public class VirtualNetworkDeviceServiceTest {
 
         // test the getDevice() method
         assertEquals("The expect device did not match.", device1,
-                     deviceService.getDevice(DeviceId.deviceId(deviceIdValue1)));
+                     deviceService.getDevice(DID1));
         assertNotEquals("The expect device should not have matched.", device1,
-                        deviceService.getDevice(DeviceId.deviceId(deviceIdValue2)));
+                        deviceService.getDevice(DID2));
 
         // test the isAvailable() method
         assertTrue("The expect device availability did not match.",
-                   deviceService.isAvailable(DeviceId.deviceId(deviceIdValue1)));
+                   deviceService.isAvailable(DID1));
         assertFalse("The expect device availability did not match.",
-                    deviceService.isAvailable(DeviceId.deviceId(deviceIdValue3)));
+                    deviceService.isAvailable(DID3));
     }
 
     /**
@@ -163,8 +160,8 @@ public class VirtualNetworkDeviceServiceTest {
     public void testGetDeviceType() {
         manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
         VirtualNetwork virtualNetwork = manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
-        manager.createVirtualDevice(virtualNetwork.id(), DeviceId.deviceId(deviceIdValue1));
-        manager.createVirtualDevice(virtualNetwork.id(), DeviceId.deviceId(deviceIdValue2));
+        manager.createVirtualDevice(virtualNetwork.id(), DID1);
+        manager.createVirtualDevice(virtualNetwork.id(), DID2);
 
         DeviceService deviceService = manager.get(virtualNetwork.id(), DeviceService.class);
 
@@ -203,7 +200,7 @@ public class VirtualNetworkDeviceServiceTest {
 
         // test the getRole() method
         assertEquals("The expect device role did not match.", MastershipRole.MASTER,
-                     deviceService.getRole(DeviceId.deviceId(deviceIdValue1)));
+                     deviceService.getRole(DID1));
     }
 
     /**
@@ -226,9 +223,8 @@ public class VirtualNetworkDeviceServiceTest {
     public void testGetPorts() {
         manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
         VirtualNetwork virtualNetwork = manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
-        VirtualDevice virtualDevice = manager.createVirtualDevice(virtualNetwork.id(),
-                                                                  DeviceId.deviceId(deviceIdValue1));
-        manager.createVirtualDevice(virtualNetwork.id(), DeviceId.deviceId(deviceIdValue2));
+        VirtualDevice virtualDevice = manager.createVirtualDevice(virtualNetwork.id(), DID1);
+        manager.createVirtualDevice(virtualNetwork.id(), DID2);
 
         DeviceService deviceService = manager.get(virtualNetwork.id(), DeviceService.class);
 
@@ -239,9 +235,9 @@ public class VirtualNetworkDeviceServiceTest {
 
         // test the getPorts() method
         assertEquals("The port set size did not match.", 2,
-                     deviceService.getPorts(DeviceId.deviceId(deviceIdValue1)).size());
+                     deviceService.getPorts(DID1).size());
         assertEquals("The port set size did not match.", 0,
-                     deviceService.getPorts(DeviceId.deviceId(deviceIdValue2)).size());
+                     deviceService.getPorts(DID2).size());
     }
 
     /**
@@ -251,9 +247,8 @@ public class VirtualNetworkDeviceServiceTest {
     public void testGetPort() {
         manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
         VirtualNetwork virtualNetwork = manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
-        VirtualDevice virtualDevice = manager.createVirtualDevice(virtualNetwork.id(),
-                                                                  DeviceId.deviceId(deviceIdValue1));
-        manager.createVirtualDevice(virtualNetwork.id(), DeviceId.deviceId(deviceIdValue2));
+        VirtualDevice virtualDevice = manager.createVirtualDevice(virtualNetwork.id(), DID1);
+        manager.createVirtualDevice(virtualNetwork.id(), DID2);
 
         DeviceService deviceService = manager.get(virtualNetwork.id(), DeviceService.class);
 
@@ -265,9 +260,9 @@ public class VirtualNetworkDeviceServiceTest {
 
         // test the getPort() method
         assertEquals("The port did not match as expected.", virtualPort1,
-                     deviceService.getPort(DeviceId.deviceId(deviceIdValue1), PortNumber.portNumber(1)));
+                     deviceService.getPort(DID1, PortNumber.portNumber(1)));
         assertNotEquals("The port did not match as expected.", virtualPort1,
-                        deviceService.getPort(DeviceId.deviceId(deviceIdValue1), PortNumber.portNumber(3)));
+                        deviceService.getPort(DID1, PortNumber.portNumber(3)));
     }
 
     /**
@@ -290,15 +285,14 @@ public class VirtualNetworkDeviceServiceTest {
     public void testGetPortStatistics() {
         manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
         VirtualNetwork virtualNetwork = manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
-        VirtualDevice virtualDevice = manager.createVirtualDevice(virtualNetwork.id(),
-                                                                  DeviceId.deviceId(deviceIdValue1));
-        manager.createVirtualDevice(virtualNetwork.id(), DeviceId.deviceId(deviceIdValue2));
+        VirtualDevice virtualDevice = manager.createVirtualDevice(virtualNetwork.id(), DID1);
+        manager.createVirtualDevice(virtualNetwork.id(), DID2);
 
         DeviceService deviceService = manager.get(virtualNetwork.id(), DeviceService.class);
 
         // test the getPortStatistics() method
         assertEquals("The port statistics set size did not match.", 0,
-                     deviceService.getPortStatistics(DeviceId.deviceId(deviceIdValue1)).size());
+                     deviceService.getPortStatistics(DID1).size());
     }
 
     /**
@@ -321,15 +315,14 @@ public class VirtualNetworkDeviceServiceTest {
     public void testGetPortDeltaStatistics() {
         manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
         VirtualNetwork virtualNetwork = manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
-        VirtualDevice virtualDevice = manager.createVirtualDevice(virtualNetwork.id(),
-                                                                  DeviceId.deviceId(deviceIdValue1));
-        manager.createVirtualDevice(virtualNetwork.id(), DeviceId.deviceId(deviceIdValue2));
+        VirtualDevice virtualDevice = manager.createVirtualDevice(virtualNetwork.id(), DID1);
+        manager.createVirtualDevice(virtualNetwork.id(), DID2);
 
         DeviceService deviceService = manager.get(virtualNetwork.id(), DeviceService.class);
 
         // test the getPortDeltaStatistics() method
         assertEquals("The port delta statistics set size did not match.", 0,
-                     deviceService.getPortDeltaStatistics(DeviceId.deviceId(deviceIdValue1)).size());
+                     deviceService.getPortDeltaStatistics(DID1).size());
     }
 
     /**
