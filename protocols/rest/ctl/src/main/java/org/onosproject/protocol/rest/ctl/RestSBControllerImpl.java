@@ -134,6 +134,22 @@ public class RestSBControllerImpl implements RestSBController {
 
     @Override
     public boolean post(DeviceId device, String request, InputStream payload, String mediaType) {
+        Response response = getResponse(device, request, payload, mediaType);
+        return checkReply(response);
+    }
+
+    @Override
+    public <T> T post(DeviceId device, String request, InputStream payload,
+                      String mediaType, Class<T> responseClass) {
+        Response response = getResponse(device, request, payload, mediaType);
+        if (response.hasEntity()) {
+            return response.readEntity(responseClass);
+        }
+        log.error("Response from device {} for request {} contains no entity", device, request);
+        return null;
+    }
+
+    private Response getResponse(DeviceId device, String request, InputStream payload, String mediaType) {
         WebTarget wt = getWebTarget(device, request);
 
         Response response = null;
@@ -148,7 +164,7 @@ public class RestSBControllerImpl implements RestSBController {
         } else {
             response = wt.request(mediaType).post(Entity.entity(null, mediaType));
         }
-        return checkReply(response);
+        return response;
     }
 
     @Override
@@ -189,7 +205,7 @@ public class RestSBControllerImpl implements RestSBController {
         Response s = wt.request(type).get();
         if (checkReply(s)) {
             return new ByteArrayInputStream(wt.request(type)
-                    .get(String.class).getBytes(StandardCharsets.UTF_8));
+                                                    .get(String.class).getBytes(StandardCharsets.UTF_8));
         }
         return null;
     }
@@ -305,7 +321,6 @@ public class RestSBControllerImpl implements RestSBController {
                 public X509Certificate[] getAcceptedIssuers() {
                     return new X509Certificate[0];
                 }
-
             } }, new java.security.SecureRandom());
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             e.printStackTrace();

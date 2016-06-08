@@ -78,6 +78,20 @@ public interface RestSBController {
     boolean post(DeviceId device, String request, InputStream payload, String mediaType);
 
     /**
+     * Does a REST POST request with specified parameters to the device.
+     *
+     * @param device        device to make the request to
+     * @param request       url of the request
+     * @param payload       payload of the request as an InputStream
+     * @param mediaType     type of content in the payload i.e. application/json
+     * @param responseClass the type of response object we are interested in,
+     *                      such as String, InputStream.
+     * @return Object of type requested via responseClass.
+     */
+    <T> T post(DeviceId device, String request, InputStream payload,
+               String mediaType, Class<T> responseClass);
+
+    /**
      * Does a REST PUT request with specified parameters to the device.
      *
      * @param device    device to make the request to
