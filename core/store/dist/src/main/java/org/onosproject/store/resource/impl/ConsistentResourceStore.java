@@ -83,10 +83,6 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
             .register(MplsLabelCodec.class)
             .build());
 
-    // TODO: We should provide centralized values for this
-    static final int MAX_RETRIES = 5;
-    static final int RETRY_DELAY = 1_000; // millis
-
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService service;
 
