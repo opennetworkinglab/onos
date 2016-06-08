@@ -31,6 +31,7 @@
     <artifact>mvn:${project.groupId}/onos-pcep-provider-topology/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcep-provider-tunnel/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcep-provider-packet/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-pce/${project.version}</artifact>b
+    <artifact>mvn:${project.groupId}/onos-bgpcep-provider-flow/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-app-pce/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-pceweb/${project.version}</artifact>
 </app>

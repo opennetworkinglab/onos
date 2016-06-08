@@ -99,5 +99,10 @@
             <artifactId>onos-pcep-provider-packet</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-bgpcep-provider-flow</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>
