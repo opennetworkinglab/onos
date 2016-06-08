@@ -27,7 +27,7 @@ import java.util.Set;
  * Represents an empty set of discrete resource.
  */
 final class EmptyDiscreteResources implements DiscreteResources {
-    static final DiscreteResources INSTANCE = new EmptyDiscreteResources();
+    static final EmptyDiscreteResources INSTANCE = new EmptyDiscreteResources();
 
     // for serializer
     private EmptyDiscreteResources() {}
