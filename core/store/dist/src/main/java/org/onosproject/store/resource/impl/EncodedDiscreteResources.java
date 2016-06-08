@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.resource.impl;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
@@ -26,6 +27,7 @@ import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.Resources;
 
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -82,5 +84,31 @@ final class EncodedDiscreteResources {
 
     boolean isEmpty() {
         return rangeSet.isEmpty();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(rangeSet, codec);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final EncodedDiscreteResources other = (EncodedDiscreteResources) obj;
+        return Objects.equals(this.rangeSet, other.rangeSet)
+                && Objects.equals(this.codec, other.codec);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("rangeSet", rangeSet)
+                .add("codec", codec)
+                .toString();
     }
 }

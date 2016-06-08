@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.resource.impl;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceCodec;
@@ -24,6 +25,7 @@ import org.onosproject.net.resource.Resources;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -124,5 +126,30 @@ final class EncodableDiscreteResources implements DiscreteResources {
 
     Map<Class<?>, EncodedDiscreteResources> rawValues() {
         return values;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(parent, values);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final EncodableDiscreteResources other = (EncodableDiscreteResources) obj;
+        return Objects.equals(this.parent, other.parent)
+                && Objects.equals(this.values, other.values);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("values", values())
+                .toString();
     }
 }

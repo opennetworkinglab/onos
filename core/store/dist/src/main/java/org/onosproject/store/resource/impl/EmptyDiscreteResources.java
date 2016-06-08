@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.resource.impl;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceId;
@@ -64,5 +65,12 @@ final class EmptyDiscreteResources implements DiscreteResources {
     @Override
     public Set<DiscreteResource> values() {
         return ImmutableSet.of();
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("values", ImmutableSet.of())
+                .toString();
     }
 }

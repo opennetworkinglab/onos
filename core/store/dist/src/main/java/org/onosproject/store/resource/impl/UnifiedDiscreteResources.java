@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.resource.impl;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceId;
@@ -22,6 +23,7 @@ import org.onosproject.net.resource.Resources;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -94,5 +96,30 @@ final class UnifiedDiscreteResources implements DiscreteResources {
     public Set<DiscreteResource> values() {
         return Stream.concat(encodables.values().stream(), generics.values().stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(generics, encodables);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final UnifiedDiscreteResources other = (UnifiedDiscreteResources) obj;
+        return Objects.equals(this.generics, other.generics)
+                && Objects.equals(this.encodables, other.encodables);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("values", values())
+                .toString();
     }
 }
