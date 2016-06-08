@@ -77,7 +77,7 @@ public final class Version {
      * @return version descriptor
      */
     public static Version version(String string) {
-        String[] fields = string.split("[.-]");
+        String[] fields = string.split("[.-]", 4);
         checkArgument(fields.length >= 2, TOO_SHORT);
         return new Version(parseInt(fields[0]), parseInt(fields[1]),
                            fields.length >= 3 ? fields[2] : null,
