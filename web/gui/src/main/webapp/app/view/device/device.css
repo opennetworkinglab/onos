@@ -34,13 +34,13 @@
 
 
 #device-details-panel .container {
-    padding: 0 12px;
+    padding: 8px 12px;
 }
 
 #device-details-panel .close-btn {
     position: absolute;
-    right: 6px;
-    top: 6px;
+    right: 12px;
+    top: 12px;
     cursor: pointer;
 }
 
@@ -59,6 +59,10 @@
 #device-details-panel h2 input {
     font-size: 0.90em;
     width: 106%;
+}
+
+#device-details-panel .top-tables {
+    font-size: 12pt;
 }
 
 #device-details-panel .top div.left {

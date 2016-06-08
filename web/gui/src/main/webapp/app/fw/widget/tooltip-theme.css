@@ -20,13 +20,14 @@
 
 
 .light #tooltip {
-    background-color: #ddd;
-    color: #444;
-    border-color: #ccc;
+    background-color: #dbeffc;
+    color: #3c3a3a;
+    border-color: #c7c7c0;
 }
 
 .dark #tooltip {
-    background-color: #151515;
-    color: #B2B2B2;
-    border-color: #252525;
+    /* TODO: dark theme */
+    background-color: #dbeffc;
+    color: #3c3a3a;
+    border-color: #c7c7c0;
 }

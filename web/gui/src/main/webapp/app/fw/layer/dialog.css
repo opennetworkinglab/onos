@@ -19,7 +19,6 @@
  */
 
 .dialog h2 {
-    padding: 0 4px;
     margin: 0;
     word-wrap: break-word;
     display: inline-block;
@@ -28,7 +27,6 @@
 }
 
 .dialog .dialog-button {
-    border-radius: 3px;
     display: inline-block;
     cursor: pointer;
     height: 20px;
