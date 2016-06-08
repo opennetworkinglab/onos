@@ -18,6 +18,39 @@ def _get_name():
     base_path = get_base_path()
     return ONOS_ARTIFACT_BASE + base_path.replace('/', '-') #TODO Unix-separator
 
+def checkstyle(
+    name,
+    srcs = None,
+    jar_target = None,
+    ):
+
+    if srcs and jar_target:
+        base = get_base_path()
+        files = '%s\n%s\n' % (name, base) + '\n'.join(['%s/%s' % (base, s) for s in srcs])
+
+        genrule(
+                name = name + '-checkstyle-files',
+                bash = "echo '%s' > $OUT" % files,
+                srcs = srcs,
+                out = 'checkstyle-files.txt',
+        )
+
+        sh_test(
+                name = name + '-checkstyle',
+                test = '//tools/build/conf:start-checkstyle',
+                deps = [ jar_target ],
+                args = [
+                    '$(location //tools/build/conf:checkstyle-jar)',
+                    '$(location :' + name + '-checkstyle-files)',
+                    '$(location //tools/build/conf:checkstyle-xml)',
+                    '$(location //tools/build/conf:suppressions-xml)',
+                    ],
+                test_rule_timeout_ms = 20000,
+                labels = [ 'checkstyle' ],
+        )
+    else:
+        print 'Not generating checkstyle rule for %s because there are no sources.' % name
+
 def osgi_jar(
     name = None,
     srcs = None,
@@ -109,34 +142,11 @@ def osgi_jar(
   )
 
   ### Checkstyle
-  if srcs:
-    base = get_base_path()
-    files = '%s\n%s\n' % (name, base) + '\n'.join(['%s/%s' % (base, s) for s in srcs])
-
-    genrule(
+  checkstyle(
       name = name + '-checkstyle-files',
-      bash = "echo '%s' > $OUT" % files,
       srcs = srcs,
-      out = 'checkstyle-files.txt',
-    )
-
-    sh_test(
-      name = name + '-checkstyle',
-      test = '//tools/build/conf:start-checkstyle',
-      deps = [
-               ':'+ bare_jar_name,
-             ],
-      args = [
-                '$(location //tools/build/conf:checkstyle-jar)',
-                '$(location :' + name + '-checkstyle-files)',
-                '$(location //tools/build/conf:checkstyle-xml)',
-                '$(location //tools/build/conf:suppressions-xml)',
-             ],
-      test_rule_timeout_ms = 20000,
-      labels = [ 'checkstyle' ],
-    )
-  else:
-    print 'Not generating checkstyle rule for %s because there are no sources.' % name
+      jar_target = ':'+ bare_jar_name,
+  )
 
   # TODO add project config for intellij
   # project_config(
@@ -209,6 +219,12 @@ def osgi_jar_with_tests(
     resources = test_resources,
     resources_root = test_resources_root,
     visibility = visibility
+  )
+
+  checkstyle(
+      name = name + '-tests',
+      srcs = test_srcs,
+      jar_target = ':' + name + '-tests',
   )
 
   #FIXME need to run checkstyle on test sources
