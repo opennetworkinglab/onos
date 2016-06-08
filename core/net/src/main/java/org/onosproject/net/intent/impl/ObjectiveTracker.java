@@ -16,8 +16,8 @@
 package org.onosproject.net.intent.impl;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -25,8 +25,9 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.AbstractAccumulator;
+import org.onlab.util.Accumulator;
 import org.onosproject.event.Event;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
@@ -34,18 +35,17 @@ import org.onosproject.net.LinkKey;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
-import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
-import org.onosproject.net.intent.IntentService;
-import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.IntentPartitionEvent;
 import org.onosproject.net.intent.IntentPartitionEventListener;
 import org.onosproject.net.intent.IntentPartitionService;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.Key;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.resource.ResourceEvent;
 import org.onosproject.net.resource.ResourceListener;
@@ -57,26 +57,22 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.onlab.util.Tools.groupedThreads;
 import static org.onlab.util.Tools.isNullOrEmpty;
 import static org.onosproject.net.LinkKey.linkKey;
 import static org.onosproject.net.intent.IntentState.INSTALLED;
 import static org.onosproject.net.intent.IntentState.INSTALLING;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_UPDATED;
+import static org.onosproject.net.resource.ResourceEvent.Type.RESOURCE_ADDED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -86,14 +82,16 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 @Service
 public class ObjectiveTracker implements ObjectiveTrackerService {
-
     private final Logger log = getLogger(getClass());
+
+    //TODO make this configurable via component config
+    private static final long RECOMPILE_ALL_DELAY = 25; //ms
 
     private final SetMultimap<LinkKey, Key> intentsByLink =
             //TODO this could be slow as a point of synchronization
             synchronizedSetMultimap(HashMultimap.<LinkKey, Key>create());
 
-    private final SetMultimap<ElementId, Key> intentsByDevice =
+    private final SetMultimap<ElementId, Key> intentsByElement =
             synchronizedSetMultimap(HashMultimap.<ElementId, Key>create());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -109,31 +107,28 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     protected HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY,
-               policy = ReferencePolicy.DYNAMIC)
+            policy = ReferencePolicy.DYNAMIC)
     protected IntentService intentService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentPartitionService partitionService;
 
-    private ExecutorService executorService =
-            newSingleThreadExecutor(groupedThreads("onos/intent", "objectivetracker", log));
-    private ScheduledExecutorService executor = Executors
-            .newScheduledThreadPool(1);
+    private final Timer timer = new Timer("onos/intent-objective-tracker", true);
+    private final Accumulator<WorkMessage> workMessageAccumulator = new InternalWorkAccumulator();
 
     private TopologyListener listener = new InternalTopologyListener();
     private ResourceListener resourceListener = new InternalResourceListener();
-    private DeviceListener deviceListener = new InternalDeviceListener();
     private HostListener hostListener = new InternalHostListener();
     private IntentPartitionEventListener partitionListener = new InternalPartitionListener();
     private TopologyChangeDelegate delegate;
 
     protected final AtomicBoolean updateScheduled = new AtomicBoolean(false);
+    protected final AtomicBoolean recompileAllScheduled = new AtomicBoolean(false);
 
     @Activate
     public void activate() {
         topologyService.addListener(listener);
         resourceService.addListener(resourceListener);
-        deviceService.addListener(deviceListener);
         hostService.addListener(hostListener);
         partitionService.addListener(partitionListener);
         log.info("Started");
@@ -143,7 +138,6 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     public void deactivate() {
         topologyService.removeListener(listener);
         resourceService.removeListener(resourceListener);
-        deviceService.removeListener(deviceListener);
         hostService.removeListener(hostListener);
         partitionService.removeListener(partitionListener);
         log.info("Stopped");
@@ -153,7 +147,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         if (intentService == null) {
             intentService = service;
         }
-     }
+    }
 
     protected void unbindIntentService(IntentService service) {
         if (intentService == service) {
@@ -182,7 +176,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
             if (resource instanceof Link) {
                 intentsByLink.put(linkKey((Link) resource), intentKey);
             } else if (resource instanceof ElementId) {
-                intentsByDevice.put((ElementId) resource, intentKey);
+                intentsByElement.put((ElementId) resource, intentKey);
             }
         }
     }
@@ -194,7 +188,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
             if (resource instanceof Link) {
                 intentsByLink.remove(linkKey((Link) resource), intentKey);
             } else if (resource instanceof ElementId) {
-                intentsByDevice.remove(resource, intentKey);
+                intentsByElement.remove(resource, intentKey);
             }
         }
     }
@@ -209,18 +203,18 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         Intent intent = intentData.intent();
         boolean isLocal = intentService.isLocal(key);
         boolean isInstalled = intentData.state() == INSTALLING ||
-                              intentData.state() == INSTALLED;
+                intentData.state() == INSTALLED;
         List<Intent> installables = intentData.installables();
 
         if (log.isTraceEnabled()) {
             log.trace("intent {}, old: {}, new: {}, installableCount: {}, resourceCount: {}",
                       key,
-                      intentsByDevice.values().contains(key),
+                      intentsByElement.values().contains(key),
                       isLocal && isInstalled,
                       installables.size(),
                       intent.resources().size() +
-                          installables.stream()
-                              .mapToLong(i -> i.resources().size()).sum());
+                              installables.stream()
+                                      .mapToLong(i -> i.resources().size()).sum());
         }
 
         if (isNullOrEmpty(installables) && intentData.state() == INSTALLED) {
@@ -247,52 +241,39 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     private class InternalTopologyListener implements TopologyListener {
         @Override
         public void event(TopologyEvent event) {
-            executorService.execute(new TopologyChangeHandler(event));
-        }
-    }
-
-    // Re-dispatcher of topology change events.
-    private class TopologyChangeHandler implements Runnable {
-
-        private final TopologyEvent event;
-
-        TopologyChangeHandler(TopologyEvent event) {
-            this.event = event;
-        }
-
-        @Override
-        public void run() {
-            // If there is no delegate, why bother? Just bail.
-            if (delegate == null) {
-                return;
-            }
+            boolean recompileAllFailedIntents = false;
 
             if (event.reasons() == null || event.reasons().isEmpty()) {
-                delegate.triggerCompile(Collections.emptySet(), true);
+                recompileAllFailedIntents = true;
 
             } else {
-                Set<Key> intentsToRecompile = new HashSet<>();
-                boolean dontRecompileAllFailedIntents = true;
-
                 // Scan through the list of reasons and keep accruing all
                 // intents that need to be recompiled.
                 for (Event reason : event.reasons()) {
+                    WorkMessage wi = new WorkMessage();
                     if (reason instanceof LinkEvent) {
                         LinkEvent linkEvent = (LinkEvent) reason;
-                        final LinkKey linkKey = linkKey(linkEvent.subject());
-                        synchronized (intentsByLink) {
-                            Set<Key> intentKeys = intentsByLink.get(linkKey);
-                            log.debug("recompile triggered by LinkEvent {} ({}) for {}",
-                                    linkKey, linkEvent.type(), intentKeys);
-                            intentsToRecompile.addAll(intentKeys);
-                        }
-                        dontRecompileAllFailedIntents = dontRecompileAllFailedIntents &&
-                                (linkEvent.type() == LINK_REMOVED ||
-                                (linkEvent.type() == LINK_UPDATED &&
-                                linkEvent.subject().isDurable()));
+                        wi.linkKey = linkKey(linkEvent.subject());
+                        recompileAllFailedIntents |=
+                                !(linkEvent.type() == LINK_REMOVED ||
+                                        (linkEvent.type() == LINK_UPDATED &&
+                                                linkEvent.subject().isDurable()));
+                    } else if (reason instanceof DeviceEvent) {
+                        DeviceEvent deviceEvent = (DeviceEvent) reason;
+                        wi.elementId = deviceEvent.subject().id();
+                        recompileAllFailedIntents |=
+                                (deviceEvent.type() == DeviceEvent.Type.DEVICE_ADDED ||
+                                        deviceEvent.type() == DeviceEvent.Type.DEVICE_UPDATED ||
+                                        deviceEvent.isAvailable().orElse(false));
+                    } else {
+                        continue;
                     }
+                    workMessageAccumulator.add(wi);
                 }
-                delegate.triggerCompile(intentsToRecompile, !dontRecompileAllFailedIntents);
+            }
+
+            if (recompileAllFailedIntents) {
+                scheduleRecompileAll();
             }
         }
     }
@@ -300,78 +281,15 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     private class InternalResourceListener implements ResourceListener {
         @Override
         public void event(ResourceEvent event) {
-            if (event.subject().isSubTypeOf(PortNumber.class)) {
-                executorService.execute(() -> {
-                    if (delegate == null) {
-                        return;
-                    }
-
-                    delegate.triggerCompile(Collections.emptySet(), true);
-                });
+            if (event.type() == RESOURCE_ADDED &&
+                event.subject().isSubTypeOf(PortNumber.class)) {
+                scheduleRecompileAll();
             }
+            //TODO we should probably track resources and trigger removal
         }
     }
 
     //TODO consider adding flow rule event tracking
-
-    /*
-     * Re-dispatcher of device and host events.
-     */
-    private class DeviceAvailabilityHandler implements Runnable {
-
-        private final ElementId id;
-        private final boolean available;
-
-        DeviceAvailabilityHandler(ElementId id, boolean available) {
-            this.id = checkNotNull(id);
-            this.available = available;
-        }
-
-        @Override
-        public void run() {
-            // If there is no delegate, why bother? Just bail.
-            if (delegate == null) {
-                return;
-            }
-
-            // TODO should we recompile on available==true?
-
-            final ImmutableSet<Key> snapshot;
-            synchronized (intentsByDevice) {
-                snapshot = ImmutableSet.copyOf(intentsByDevice.get(id));
-            }
-            delegate.triggerCompile(snapshot, available);
-        }
-    }
-
-
-    private class InternalDeviceListener implements DeviceListener {
-        @Override
-        public void event(DeviceEvent event) {
-            DeviceEvent.Type type = event.type();
-            switch (type) {
-            case DEVICE_ADDED:
-            case DEVICE_AVAILABILITY_CHANGED:
-            case DEVICE_REMOVED:
-            case DEVICE_SUSPENDED:
-            case DEVICE_UPDATED:
-                DeviceId id = event.subject().id();
-                // TODO we need to check whether AVAILABILITY_CHANGED means up or down
-                boolean available = (type == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED ||
-                        type == DeviceEvent.Type.DEVICE_ADDED ||
-                        type == DeviceEvent.Type.DEVICE_UPDATED);
-                executorService.execute(new DeviceAvailabilityHandler(id, available));
-                break;
-            case PORT_ADDED:
-            case PORT_REMOVED:
-            case PORT_UPDATED:
-            case PORT_STATS_UPDATED:
-            default:
-                // Don't handle port events for now
-                break;
-            }
-        }
-    }
 
     private class InternalHostListener implements HostListener {
         @Override
@@ -381,7 +299,10 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
                 case HOST_ADDED:
                 case HOST_MOVED:
                 case HOST_REMOVED:
-                    executorService.execute(new DeviceAvailabilityHandler(id, false));
+                    WorkMessage wi = new WorkMessage();
+                    wi.elementId = id;
+                    workMessageAccumulator.add(wi);
+                    scheduleRecompileAll();
                     break;
                 case HOST_UPDATED:
                 default:
@@ -413,7 +334,31 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
 
     private void scheduleIntentUpdate(int afterDelaySec) {
         if (updateScheduled.compareAndSet(false, true)) {
-            executor.schedule(this::doIntentUpdate, afterDelaySec, TimeUnit.SECONDS);
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    ObjectiveTracker.this.doIntentUpdate();
+                }
+            }, afterDelaySec * 1_000);
+        }
+    }
+
+    private void doRecompileAll() {
+        recompileAllScheduled.set(false);
+        if (delegate != null) {
+            delegate.triggerCompile(Collections.emptySet(), true);
+        }
+    }
+
+    private void scheduleRecompileAll() {
+        if (recompileAllScheduled.compareAndSet(false, true)) {
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    ObjectiveTracker.this.doRecompileAll();
+                }
+            }, RECOMPILE_ALL_DELAY);
+
         }
     }
 
@@ -422,6 +367,49 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         public void event(IntentPartitionEvent event) {
             log.debug("got message {}", event.subject());
             scheduleIntentUpdate(1);
+        }
+    }
+
+    private static class WorkMessage {
+        ElementId elementId;
+        LinkKey linkKey;
+    }
+
+    private class InternalWorkAccumulator extends AbstractAccumulator<WorkMessage> {
+        private static final int MAX_WORK = 100_000;
+        private static final int MAX_WORK_TIME = 500;
+        private static final int MAX_WORK_IDLE_TIME = 20;
+
+        InternalWorkAccumulator() {
+            super(timer, MAX_WORK, MAX_WORK_TIME, MAX_WORK_IDLE_TIME);
+        }
+
+        @Override
+        public void processItems(List<WorkMessage> items) {
+            // If there is no delegate, why bother? Just bail.
+            if (delegate == null) {
+                return;
+            }
+
+            Set<Key> keys = Sets.newHashSet();
+
+            items.forEach(wi -> {
+                if (wi.elementId != null) {
+                    synchronized (intentsByElement) {
+                        keys.addAll(intentsByElement.get(wi.elementId));
+                    }
+                }
+
+                if (wi.linkKey != null) {
+                    synchronized (intentsByLink) {
+                        keys.addAll(intentsByLink.get(wi.linkKey));
+                    }
+                }
+            });
+
+            if (!keys.isEmpty()) {
+                delegate.triggerCompile(keys, false);
+            }
         }
     }
 }

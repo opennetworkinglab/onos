@@ -15,12 +15,8 @@
  */
 package org.onosproject.net.intent.impl;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,11 +26,13 @@ import org.onosproject.core.IdGenerator;
 import org.onosproject.event.Event;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
-import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostListener;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
@@ -46,18 +44,17 @@ import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyListener;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.easymock.EasyMock.createMock;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.onosproject.net.resource.ResourceEvent.Type.*;
-import static org.onosproject.net.NetTestTools.APP_ID;
-import static org.onosproject.net.NetTestTools.device;
-import static org.onosproject.net.NetTestTools.link;
+import static org.hamcrest.Matchers.*;
+import static org.onosproject.net.NetTestTools.*;
+import static org.onosproject.net.resource.ResourceEvent.Type.RESOURCE_ADDED;
 
 /**
  * Tests for the objective tracker.
@@ -69,7 +66,7 @@ public class ObjectiveTrackerTest {
     private TestTopologyChangeDelegate delegate;
     private List<Event> reasons;
     private TopologyListener listener;
-    private DeviceListener deviceListener;
+    private HostListener hostListener;
     private ResourceListener resourceListener;
     private IdGenerator mockGenerator;
 
@@ -86,7 +83,7 @@ public class ObjectiveTrackerTest {
         tracker.setDelegate(delegate);
         reasons = new LinkedList<>();
         listener = TestUtils.getField(tracker, "listener");
-        deviceListener = TestUtils.getField(tracker, "deviceListener");
+        hostListener = TestUtils.getField(tracker, "hostListener");
         resourceListener = TestUtils.getField(tracker, "resourceListener");
         mockGenerator = new MockIdGenerator();
         Intent.bindIdGenerator(mockGenerator);
@@ -107,16 +104,14 @@ public class ObjectiveTrackerTest {
      * to be generated.
      */
     static class TestTopologyChangeDelegate implements TopologyChangeDelegate {
-
         CountDownLatch latch = new CountDownLatch(1);
-        List<Key> intentIdsFromEvent;
-        boolean compileAllFailedFromEvent;
+        List<Key> intentIdsFromEvent = Lists.newArrayList();
+        boolean compileAllFailedFromEvent = false;
 
         @Override
-        public void triggerCompile(Iterable<Key> intentKeys,
-                                   boolean compileAllFailed) {
-            intentIdsFromEvent = Lists.newArrayList(intentKeys);
-            compileAllFailedFromEvent = compileAllFailed;
+        public void triggerCompile(Iterable<Key> intentKeys, boolean compileAllFailed) {
+            intentKeys.forEach(intentIdsFromEvent::add);
+            compileAllFailedFromEvent |= compileAllFailed;
             latch.countDown();
         }
     }
@@ -128,16 +123,10 @@ public class ObjectiveTrackerTest {
      */
     @Test
     public void testEventNoReasons() throws InterruptedException {
-        final TopologyEvent event = new TopologyEvent(
-                TopologyEvent.Type.TOPOLOGY_CHANGED,
-                topology,
-                null);
-
+        TopologyEvent event = new TopologyEvent(TopologyEvent.Type.TOPOLOGY_CHANGED, topology, null);
         listener.event(event);
-        assertThat(
-                delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS),
-                is(true));
 
+        assertThat(delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS), is(true));
         assertThat(delegate.intentIdsFromEvent, hasSize(0));
         assertThat(delegate.compileAllFailedFromEvent, is(true));
     }
@@ -150,20 +139,15 @@ public class ObjectiveTrackerTest {
      */
     @Test
     public void testEventLinkDownNoMatches() throws InterruptedException {
-        final Link link = link("src", 1, "dst", 2);
-        final LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link);
+        Link link = link("src", 1, "dst", 2);
+        LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link);
         reasons.add(linkEvent);
 
-        final TopologyEvent event = new TopologyEvent(
-                TopologyEvent.Type.TOPOLOGY_CHANGED,
-                topology,
-                reasons);
-
+        TopologyEvent event = new TopologyEvent(TopologyEvent.Type.TOPOLOGY_CHANGED, topology, reasons);
         listener.event(event);
-        assertThat(
-                delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS),
-                is(true));
 
+        // we expect no message, latch should never fire
+        assertThat(delegate.latch.await(25, TimeUnit.MILLISECONDS), is(false));
         assertThat(delegate.intentIdsFromEvent, hasSize(0));
         assertThat(delegate.compileAllFailedFromEvent, is(false));
     }
@@ -175,20 +159,14 @@ public class ObjectiveTrackerTest {
      */
     @Test
     public void testEventLinkAdded() throws InterruptedException {
-        final Link link = link("src", 1, "dst", 2);
-        final LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_ADDED, link);
+        Link link = link("src", 1, "dst", 2);
+        LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_ADDED, link);
         reasons.add(linkEvent);
 
-        final TopologyEvent event = new TopologyEvent(
-                TopologyEvent.Type.TOPOLOGY_CHANGED,
-                topology,
-                reasons);
+        TopologyEvent event = new TopologyEvent(TopologyEvent.Type.TOPOLOGY_CHANGED, topology, reasons);
 
         listener.event(event);
-        assertThat(
-                delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS),
-                is(true));
-
+        assertThat(delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS), is(true));
         assertThat(delegate.intentIdsFromEvent, hasSize(0));
         assertThat(delegate.compileAllFailedFromEvent, is(true));
     }
@@ -200,24 +178,18 @@ public class ObjectiveTrackerTest {
      */
     @Test
     public void testEventLinkDownMatch() throws Exception {
-        final Link link = link("src", 1, "dst", 2);
-        final LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link);
+        Link link = link("src", 1, "dst", 2);
+        LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link);
         reasons.add(linkEvent);
 
-        final TopologyEvent event = new TopologyEvent(
-                TopologyEvent.Type.TOPOLOGY_CHANGED,
-                topology,
-                reasons);
+        TopologyEvent event = new TopologyEvent(TopologyEvent.Type.TOPOLOGY_CHANGED, topology, reasons);
 
-        final Key key = Key.of(0x333L, APP_ID);
+        Key key = Key.of(0x333L, APP_ID);
         Collection<NetworkResource> resources = ImmutableSet.of(link);
         tracker.addTrackedResources(key, resources);
 
         listener.event(event);
-        assertThat(
-                delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS),
-                is(true));
-
+        assertThat(delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS), is(true));
         assertThat(delegate.intentIdsFromEvent, hasSize(1));
         assertThat(delegate.compileAllFailedFromEvent, is(false));
         assertThat(delegate.intentIdsFromEvent.get(0).toString(),
@@ -232,13 +204,11 @@ public class ObjectiveTrackerTest {
     @Test
     public void testResourceEvent() throws Exception {
         ResourceEvent event = new ResourceEvent(RESOURCE_ADDED,
-                Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)).resource());
+                                                Resources.discrete(DeviceId.deviceId("a"),
+                                                                   PortNumber.portNumber(1)).resource());
         resourceListener.event(event);
 
-        assertThat(
-                delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS),
-                is(true));
-
+        assertThat(delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS), is(true));
         assertThat(delegate.intentIdsFromEvent, hasSize(0));
         assertThat(delegate.compileAllFailedFromEvent, is(true));
     }
@@ -251,25 +221,27 @@ public class ObjectiveTrackerTest {
 
     @Test
     public void testEventHostAvailableMatch() throws Exception {
-        final Device host = device("host1");
+        // we will expect 2 delegate calls
+        delegate.latch = new CountDownLatch(2);
 
-        final DeviceEvent deviceEvent =
-                new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, host);
+        Device host = device("host1");
+        DeviceEvent deviceEvent = new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, host);
         reasons.add(deviceEvent);
 
-        final Key key = Key.of(0x333L, APP_ID);
+        Key key = Key.of(0x333L, APP_ID);
         Collection<NetworkResource> resources = ImmutableSet.of(host.id());
         tracker.addTrackedResources(key, resources);
 
-        deviceListener.event(deviceEvent);
-        assertThat(
-                delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS),
-                is(true));
+        reasons.add(deviceEvent);
 
+        TopologyEvent event = new TopologyEvent(TopologyEvent.Type.TOPOLOGY_CHANGED, topology, reasons);
+
+        listener.event(event);
+        assertThat(delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS), is(true));
         assertThat(delegate.intentIdsFromEvent, hasSize(1));
         assertThat(delegate.compileAllFailedFromEvent, is(true));
         assertThat(delegate.intentIdsFromEvent.get(0).toString(),
-                equalTo("0x333"));
+                   equalTo("0x333"));
     }
 
     /**
@@ -280,25 +252,21 @@ public class ObjectiveTrackerTest {
 
     @Test
     public void testEventHostUnavailableMatch() throws Exception {
-        final Device host = device("host1");
-
-        final DeviceEvent deviceEvent =
-                new DeviceEvent(DeviceEvent.Type.DEVICE_REMOVED, host);
+        Device host = device("host1");
+        DeviceEvent deviceEvent = new DeviceEvent(DeviceEvent.Type.DEVICE_REMOVED, host);
         reasons.add(deviceEvent);
 
-        final Key key = Key.of(0x333L, APP_ID);
+        Key key = Key.of(0x333L, APP_ID);
         Collection<NetworkResource> resources = ImmutableSet.of(host.id());
         tracker.addTrackedResources(key, resources);
 
-        deviceListener.event(deviceEvent);
-        assertThat(
-                delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS),
-                is(true));
+        TopologyEvent event = new TopologyEvent(TopologyEvent.Type.TOPOLOGY_CHANGED, topology, reasons);
 
+        listener.event(event);
+        assertThat(delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS), is(true));
         assertThat(delegate.intentIdsFromEvent, hasSize(1));
         assertThat(delegate.compileAllFailedFromEvent, is(false));
-        assertThat(delegate.intentIdsFromEvent.get(0).toString(),
-                equalTo("0x333"));
+        assertThat(delegate.intentIdsFromEvent.get(0).toString(), equalTo("0x333"));
     }
 
     /**
@@ -309,20 +277,12 @@ public class ObjectiveTrackerTest {
 
     @Test
     public void testEventHostAvailableNoMatch() throws Exception {
-        final Device host = device("host1");
-
-        final DeviceEvent deviceEvent =
-                new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, host);
-        reasons.add(deviceEvent);
-
-        deviceListener.event(deviceEvent);
-        assertThat(
-                delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS),
-                is(true));
-
+        Host host = host("00:11:22:33:44:55/6", "device1");
+        HostEvent hostEvent = new HostEvent(HostEvent.Type.HOST_ADDED, host);
+        hostListener.event(hostEvent);
+        assertThat(delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS), is(true));
         assertThat(delegate.intentIdsFromEvent, hasSize(0));
         assertThat(delegate.compileAllFailedFromEvent, is(true));
     }
-
 
 }
