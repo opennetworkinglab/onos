@@ -16,8 +16,6 @@
   -->
 <drivers>
     <driver name="fujitsu-netconf" manufacturer="Fujitsu" hwVersion="T100" swVersion="01-01-X">
-        <behaviour api="org.onosproject.net.behaviour.PortDiscovery"
-                   impl="org.onosproject.drivers.fujitsu.PortGetterFujitsuImpl"/>
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
