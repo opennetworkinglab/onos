@@ -26,9 +26,20 @@
     width: 250px;
 }
 
+/* -- Drag-n-Drop oar file upload -- */
 #ov-app form#inputFileForm,
 #ov-app input#uploadFile {
     display: none;
+}
+
+.dropping {
+
+}
+
+/* -- Confirmation Dialog -- */
+#app-dialog {
+    top: 140px;
+    padding: 12px;
 }
 
 #app-dialog p {
@@ -37,8 +48,11 @@
 
 #app-dialog p.strong {
     font-weight: bold;
+    padding: 8px;
+    text-align: center;
 }
 
+/* -- Details Panel -- */
 #application-details-panel.floatpanel {
     z-index: 0;
     font-size: 12pt;
@@ -74,7 +88,6 @@
     text-transform: uppercase;
 }
 
-
 #application-details-panel .top .app-title {
     width: 90%;
     height: 62px;
@@ -91,6 +104,7 @@
     float: left;
     padding: 12px 12px 0 3px;
 }
+
 #application-details-panel .top div.right {
     display: inline-block;
     overflow: hidden;
@@ -112,6 +126,7 @@
 
 #application-details-panel .app-url {
     padding: 10px 6px 6px;
+    overflow: hidden;
 }
 
 #application-details-panel hr {
@@ -136,10 +151,5 @@
     margin-left: -6px;
     padding: 6px 6px;
     text-align: left;
-}
-
-
-.dropping {
-
 }
 

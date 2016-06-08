@@ -49,13 +49,14 @@
         iconUrlSuffix = '/icon',
         dialogId = 'app-dialog',
         dialogOpts = {
-            edge: 'right'
+            edge: 'right',
+            width: 400
         },
         strongWarning = {
             'org.onosproject.drivers': true
         },
         discouragement = 'Deactivating or uninstalling this component can' +
-        ' have serious negative consequences! Do so at your own risk!!',
+        ' have serious negative consequences! <br> = DO SO AT YOUR OWN RISK =',
         propOrder = ['id', 'state', 'category', 'version', 'origin', 'role'],
         friendlyProps = ['App ID', 'State', 'Category', 'Version', 'Origin', 'Role'];
         // note: url is handled separately
@@ -287,7 +288,7 @@
             var content = ds.createDiv();
             content.append('p').text(fs.cap(action) + ' ' + itemId);
             if (strongWarning[itemId]) {
-                content.append('p').text(discouragement).classed('strong', true);
+                content.append('p').html(discouragement).classed('strong', true);
             }
             return content;
         }
@@ -359,6 +360,7 @@
         $scope.$on('$destroy', function () {
             ks.unbindKeys();
             wss.unbindHandlers(handlers);
+            ds.closeDialog();
         });
 
         $log.log('OvAppCtrl has been created');

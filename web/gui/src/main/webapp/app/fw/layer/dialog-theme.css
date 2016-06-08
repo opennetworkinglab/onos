@@ -18,15 +18,12 @@
  ONOS GUI -- Dialog Service (theme) -- CSS file
  */
 
-.light .dialog h2 {
-    color: black;
+.light .dialog .dialog-button {
+    background-color: #518ecc;
+    color: white;
 }
-.dark .dialog h2 {
-    color: #ddd;
-}
-
-.dialog .dialog-button {
-    /* color works for both light and dark themes */
-    background-color: #c55;
+.dark .dialog .dialog-button {
+    /* TODO: dark theme */
+    background-color: #518ecc;
     color: white;
 }
