@@ -289,6 +289,9 @@ public class DistributedApplicationStore extends ApplicationArchive
         if (hasPrerequisites(appDesc)) {
             return create(appDesc, true);
         }
+        // Purge bits off disk if we don't have prerequisites to allow app to be
+        // reinstalled later
+        purgeApplication(appDesc.name());
         throw new ApplicationException("Missing dependencies for app " + appDesc.name());
     }
 
