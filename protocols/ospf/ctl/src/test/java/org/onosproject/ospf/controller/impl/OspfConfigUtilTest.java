@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onosproject.ospf.controller.OspfProcess;
 
@@ -33,7 +32,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 /**
  * Unit test class for OspfJsonParsingUtilTest.
  */
-@Ignore
 public class OspfConfigUtilTest {
     private ObjectMapper mapper;
     private JsonNode jsonNode;

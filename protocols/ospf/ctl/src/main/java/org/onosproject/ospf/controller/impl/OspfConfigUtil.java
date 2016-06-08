@@ -60,7 +60,7 @@ public final class OspfConfigUtil {
     /**
      * Returns list of OSPF process from the json nodes.
      *
-     * @param jsonNodes json node instance
+     * @param jsonNodes represents one or more OSPF process configuration
      * @return list of OSPF processes.
      */
     public static List<OspfProcess> processes(JsonNode jsonNodes) {
@@ -68,82 +68,24 @@ public final class OspfConfigUtil {
         if (jsonNodes == null) {
             return ospfProcesses;
         }
+        //From each Process nodes, get area and related interface details.
         jsonNodes.forEach(jsonNode -> {
             List<OspfArea> areas = new ArrayList<>();
+            //Get configured areas for the process.
             for (JsonNode areaNode : jsonNode.path(AREAS)) {
                 List<OspfInterface> interfaceList = new ArrayList<>();
                 for (JsonNode interfaceNode : areaNode.path(INTERFACE)) {
-                    OspfInterface ospfInterface = new OspfInterfaceImpl();
-                    String index = interfaceNode.path(INTERFACEINDEX).asText();
-                    if (isValidDigit(index)) {
-                        ospfInterface.setInterfaceIndex(Integer.parseInt(index));
-                    } else {
-                        log.debug("Wrong interface index: {}", index);
-                        continue;
+                    OspfInterface ospfInterface = interfaceDetails(interfaceNode);
+                    if (ospfInterface != null) {
+                        interfaceList.add(ospfInterface);
                     }
-                    ospfInterface.setIpAddress(getInterfaceIp(ospfInterface.interfaceIndex()));
-                    ospfInterface.setIpNetworkMask(Ip4Address.valueOf(getInterfaceMask(
-                            ospfInterface.interfaceIndex())));
-                    ospfInterface.setBdr(OspfUtil.DEFAULTIP);
-                    ospfInterface.setDr(OspfUtil.DEFAULTIP);
-                    String helloInterval = interfaceNode.path(HELLOINTERVAL).asText();
-                    if (isValidDigit(helloInterval)) {
-                        ospfInterface.setHelloIntervalTime(Integer.parseInt(helloInterval));
-                    } else {
-                        log.debug("Wrong hello interval: {}", helloInterval);
-                        continue;
-                    }
-                    String routerDeadInterval = interfaceNode.path(ROUTERDEADINTERVAL).asText();
-                    if (isValidDigit(routerDeadInterval)) {
-                        ospfInterface.setRouterDeadIntervalTime(Integer.parseInt(routerDeadInterval));
-                    } else {
-                        log.debug("Wrong routerDeadInterval: {}", routerDeadInterval);
-                        continue;
-                    }
-                    String interfaceType = interfaceNode.path(INTERFACETYPE).asText();
-                    if (isValidDigit(interfaceType)) {
-                        ospfInterface.setInterfaceType(Integer.parseInt(interfaceType));
-                    } else {
-                        log.debug("Wrong interfaceType: {}", interfaceType);
-                        continue;
-                    }
-                    ospfInterface.setReTransmitInterval(OspfUtil.RETRANSMITINTERVAL);
-                    ospfInterface.setMtu(OspfUtil.MTU);
-                    ospfInterface.setRouterPriority(OspfUtil.ROUTER_PRIORITY);
-                    interfaceList.add(ospfInterface);
                 }
-                OspfArea area = new OspfAreaImpl();
-                String areaId = areaNode.path(AREAID).asText();
-                if (isValidIpAddress(areaId)) {
-                    area.setAreaId(Ip4Address.valueOf(areaId));
-                } else {
-                    log.debug("Wrong areaId: {}", areaId);
-                    continue;
+                //Get the area details
+                OspfArea area = areaDetails(areaNode);
+                if (area != null) {
+                    area.setOspfInterfaceList(interfaceList);
+                    areas.add(area);
                 }
-                String routerId = areaNode.path(ROUTERID).asText();
-                if (isValidIpAddress(routerId)) {
-                    area.setRouterId(Ip4Address.valueOf(routerId));
-                } else {
-                    log.debug("Wrong routerId: {}", routerId);
-                    continue;
-                }
-                String routingCapability = areaNode.path(EXTERNALROUTINGCAPABILITY).asText();
-                if (isBoolean(routingCapability)) {
-                    area.setExternalRoutingCapability(Boolean.valueOf(routingCapability));
-                } else {
-                    log.debug("Wrong routingCapability: {}", routingCapability);
-                    continue;
-                }
-                String isOpaqueEnabled = areaNode.path(ISOPAQUE).asText();
-                if (isBoolean(isOpaqueEnabled)) {
-                    area.setIsOpaqueEnabled(Boolean.valueOf(isOpaqueEnabled));
-                } else {
-                    log.debug("Wrong isOpaqueEnabled: {}", isOpaqueEnabled);
-                    continue;
-                }
-                area.setOptions(OspfUtil.HELLO_PACKET_OPTIONS);
-                area.setOspfInterfaceList(interfaceList);
-                areas.add(area);
             }
             OspfProcess process = new OspfProcessImpl();
             process.setProcessId(jsonNode.path(PROCESSID).asText());
@@ -293,5 +235,98 @@ public final class OspfConfigUtil {
         }
 
         return status;
+    }
+
+    /**
+     * Returns OSPF area instance from configuration.
+     *
+     * @param areaNode area configuration
+     * @return OSPF area instance
+     */
+    private static OspfArea areaDetails(JsonNode areaNode) {
+        OspfArea area = new OspfAreaImpl();
+        String areaId = areaNode.path(AREAID).asText();
+        if (isValidIpAddress(areaId)) {
+            area.setAreaId(Ip4Address.valueOf(areaId));
+        } else {
+            log.debug("Wrong areaId: {}", areaId);
+            return null;
+        }
+        String routerId = areaNode.path(ROUTERID).asText();
+        if (isValidIpAddress(routerId)) {
+            area.setRouterId(Ip4Address.valueOf(routerId));
+        } else {
+            log.debug("Wrong routerId: {}", routerId);
+            return null;
+        }
+        String routingCapability = areaNode.path(EXTERNALROUTINGCAPABILITY).asText();
+        if (isBoolean(routingCapability)) {
+            area.setExternalRoutingCapability(Boolean.valueOf(routingCapability));
+        } else {
+            log.debug("Wrong routingCapability: {}", routingCapability);
+            return null;
+        }
+        String isOpaqueEnabled = areaNode.path(ISOPAQUE).asText();
+        if (isBoolean(isOpaqueEnabled)) {
+            area.setIsOpaqueEnabled(Boolean.valueOf(isOpaqueEnabled));
+        } else {
+            log.debug("Wrong isOpaqueEnabled: {}", isOpaqueEnabled);
+            return null;
+        }
+        area.setOptions(OspfUtil.HELLO_PACKET_OPTIONS);
+
+        return area;
+    }
+
+    /**
+     * Returns OSPF interface instance from configuration.
+     *
+     * @param interfaceNode interface configuration
+     * @return OSPF interface instance
+     */
+    private static OspfInterface interfaceDetails(JsonNode interfaceNode) {
+        OspfInterface ospfInterface = new OspfInterfaceImpl();
+        String index = interfaceNode.path(INTERFACEINDEX).asText();
+        if (isValidDigit(index)) {
+            ospfInterface.setInterfaceIndex(Integer.parseInt(index));
+        } else {
+            log.debug("Wrong interface index: {}", index);
+            return null;
+        }
+        Ip4Address interfaceIp = getInterfaceIp(ospfInterface.interfaceIndex());
+        if (interfaceIp.equals(OspfUtil.DEFAULTIP)) {
+            return null;
+        }
+        ospfInterface.setIpAddress(interfaceIp);
+        ospfInterface.setIpNetworkMask(Ip4Address.valueOf(getInterfaceMask(
+                ospfInterface.interfaceIndex())));
+        ospfInterface.setBdr(OspfUtil.DEFAULTIP);
+        ospfInterface.setDr(OspfUtil.DEFAULTIP);
+        String helloInterval = interfaceNode.path(HELLOINTERVAL).asText();
+        if (isValidDigit(helloInterval)) {
+            ospfInterface.setHelloIntervalTime(Integer.parseInt(helloInterval));
+        } else {
+            log.debug("Wrong hello interval: {}", helloInterval);
+            return null;
+        }
+        String routerDeadInterval = interfaceNode.path(ROUTERDEADINTERVAL).asText();
+        if (isValidDigit(routerDeadInterval)) {
+            ospfInterface.setRouterDeadIntervalTime(Integer.parseInt(routerDeadInterval));
+        } else {
+            log.debug("Wrong routerDeadInterval: {}", routerDeadInterval);
+            return null;
+        }
+        String interfaceType = interfaceNode.path(INTERFACETYPE).asText();
+        if (isValidDigit(interfaceType)) {
+            ospfInterface.setInterfaceType(Integer.parseInt(interfaceType));
+        } else {
+            log.debug("Wrong interfaceType: {}", interfaceType);
+            return null;
+        }
+        ospfInterface.setReTransmitInterval(OspfUtil.RETRANSMITINTERVAL);
+        ospfInterface.setMtu(OspfUtil.MTU);
+        ospfInterface.setRouterPriority(OspfUtil.ROUTER_PRIORITY);
+
+        return ospfInterface;
     }
 }
