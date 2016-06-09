@@ -16,27 +16,25 @@
 
 package org.onosproject.net.behaviour;
 
-import java.util.Objects;
-
 import com.google.common.annotations.Beta;
-import org.onlab.packet.IpAddress;
-
 import com.google.common.base.MoreObjects;
+import org.onlab.packet.IpAddress;
 
 /**
  * Represent for a tunnel point using ip address.
+ *
+ * @deprecated version 1.7.0 - Hummingbird; use {@code TunnelEndPoint<IpAddress>}
  */
+@Deprecated
 @Beta
-public final class IpTunnelEndPoint implements TunnelEndPoint {
-
-    private final IpAddress ip;
+public final class IpTunnelEndPoint extends TunnelEndPoint<IpAddress> {
 
     /**
      * Public construction is prohibited.
      * @param ip ip address
      */
     private IpTunnelEndPoint(IpAddress ip) {
-        this.ip = ip;
+        super(ip);
     }
 
     /**
@@ -53,28 +51,11 @@ public final class IpTunnelEndPoint implements TunnelEndPoint {
      * @return IP address
      */
     public IpAddress ip() {
-        return ip;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(ip);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof IpTunnelEndPoint) {
-            final IpTunnelEndPoint other = (IpTunnelEndPoint) obj;
-            return Objects.equals(this.ip, other.ip);
-        }
-        return false;
+        return value;
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("ip", ip).toString();
+        return MoreObjects.toStringHelper(getClass()).add("ip", value).toString();
     }
 }

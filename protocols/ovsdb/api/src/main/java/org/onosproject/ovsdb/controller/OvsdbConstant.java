@@ -45,6 +45,10 @@ public final class OvsdbConstant {
     public static final String DATAPATH_ID = "datapath-id";
     public static final String DISABLE_INBAND = "disable-in-band";
 
+    /** Port table. */
+    public static final String PORT = "Port";
+    public static final String INTERFACES = "interfaces";
+
     /** Interface table. */
     public static final String INTERFACE = "Interface";
     // type
@@ -52,12 +56,13 @@ public final class OvsdbConstant {
     // virtual machine identifiers
     public static final String EXTERNAL_ID_INTERFACE_ID = "iface-id";
     public static final String EXTERNAL_ID_VM_MAC = "attached-mac";
+    // tunnel interface options
+    public static final String TUNNEL_LOCAL_IP = "local_ip";
+    public static final String TUNNEL_REMOTE_IP = "remote_ip";
+    public static final String TUNNEL_KEY = "key";
 
     /** Controller table. */
     public static final String CONTROLLER = "Controller";
-
-    /** Port table. */
-    public static final String PORT = "Port";
 
     /** Ovsdb bridge name. */
     // TODO remove this particular bridge name from OVSDB provider

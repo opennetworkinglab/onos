@@ -27,11 +27,10 @@ import org.onosproject.net.behaviour.BridgeDescription;
 import org.onosproject.net.behaviour.BridgeName;
 import org.onosproject.net.behaviour.DefaultBridgeDescription;
 import org.onosproject.net.behaviour.DefaultTunnelDescription;
-import org.onosproject.net.behaviour.IpTunnelEndPoint;
-import org.onosproject.net.behaviour.TunnelConfig;
+import org.onosproject.net.behaviour.InterfaceConfig;
 import org.onosproject.net.behaviour.TunnelDescription;
-import org.onosproject.net.behaviour.TunnelEndPoint;
-import org.onosproject.net.behaviour.TunnelName;
+import org.onosproject.net.behaviour.TunnelEndPoints;
+import org.onosproject.net.behaviour.TunnelKeys;
 import org.onosproject.net.driver.DriverHandler;
 
 /**
@@ -95,43 +94,34 @@ public final class VtnConfig {
      *
      * @param handler DriverHandler
      * @param srcIp the ipAddress of the local controller device
-     * @param dstIp the ipAddress of the remote controller device
      */
-    public static void applyTunnelConfig(DriverHandler handler, IpAddress srcIp,
-                                  IpAddress dstIp) {
+    public static void applyTunnelConfig(DriverHandler handler, IpAddress srcIp) {
         DefaultAnnotations.Builder optionBuilder = DefaultAnnotations.builder();
         for (String key : DEFAULT_TUNNEL_OPTIONS.keySet()) {
             optionBuilder.set(key, DEFAULT_TUNNEL_OPTIONS.get(key));
         }
-        TunnelConfig tunnelConfig = handler.behaviour(TunnelConfig.class);
-        TunnelEndPoint tunnelAsSrc = IpTunnelEndPoint.ipTunnelPoint(srcIp);
-        TunnelDescription tunnel = new DefaultTunnelDescription(
-                                                                tunnelAsSrc,
-                                                                null,
-                                                                TunnelDescription.Type.VXLAN,
-                                                                TunnelName.tunnelName(DEFAULT_TUNNEL),
-                                                                optionBuilder.build());
-        tunnelConfig.createTunnelInterface(BridgeName.bridgeName(DEFAULT_BRIDGE_NAME), tunnel);
+
+        InterfaceConfig interfaceConfig = handler.behaviour(InterfaceConfig.class);
+        TunnelDescription tunnel = DefaultTunnelDescription.builder()
+                .deviceId(DEFAULT_BRIDGE_NAME)
+                .ifaceName(DEFAULT_TUNNEL)
+                .type(TunnelDescription.Type.VXLAN)
+                .local(TunnelEndPoints.ipTunnelEndpoint(srcIp))
+                .remote(TunnelEndPoints.flowTunnelEndpoint())
+                .key(TunnelKeys.flowTunnelKey())
+                .otherConfigs(optionBuilder.build())
+                .build();
+        interfaceConfig.addTunnelMode(DEFAULT_TUNNEL, tunnel);
     }
 
     /**
      * Creates or update tunnel in the controller device.
      *
      * @param handler DriverHandler
-     * @param srcIp the ipAddress of the local controller device
-     * @param dstIp the ipAddress of the remote controller device
      */
-    public static void removeTunnelConfig(DriverHandler handler, IpAddress srcIp,
-                                   IpAddress dstIp) {
-        TunnelConfig tunnelConfig = handler.behaviour(TunnelConfig.class);
-        TunnelEndPoint tunnelAsSrc = IpTunnelEndPoint.ipTunnelPoint(srcIp);
-        TunnelEndPoint tunnelAsDst = IpTunnelEndPoint.ipTunnelPoint(dstIp);
-        TunnelDescription tunnel = new DefaultTunnelDescription(
-                                                                tunnelAsSrc,
-                                                                tunnelAsDst,
-                                                                TunnelDescription.Type.VXLAN,
-                                                                null);
-        tunnelConfig.removeTunnel(tunnel);
+    public static void removeTunnelConfig(DriverHandler handler) {
+        InterfaceConfig interfaceConfig = handler.behaviour(InterfaceConfig.class);
+        interfaceConfig.removeTunnelMode(DEFAULT_TUNNEL);
     }
 
     /**

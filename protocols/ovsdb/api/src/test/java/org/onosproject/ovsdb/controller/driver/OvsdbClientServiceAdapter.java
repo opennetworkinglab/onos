@@ -24,13 +24,11 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.ovsdb.controller.OvsdbBridge;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
+import org.onosproject.ovsdb.controller.OvsdbInterface;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.onosproject.ovsdb.controller.OvsdbPort;
-import org.onosproject.ovsdb.controller.OvsdbTunnel;
-import org.onosproject.ovsdb.rfc.message.OperationResult;
 import org.onosproject.ovsdb.rfc.message.TableUpdates;
 import org.onosproject.ovsdb.rfc.notation.Row;
-import org.onosproject.ovsdb.rfc.notation.Uuid;
 import org.onosproject.ovsdb.rfc.operations.Operation;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 
@@ -55,17 +53,20 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
 
     @Override
     public void dropTunnel(IpAddress srcIp, IpAddress dstIp) {
-
     }
 
     @Override
-    public Set<OvsdbTunnel> getTunnels() {
-        return null;
+    public boolean createInterface(String bridgeName, OvsdbInterface ovsdbIface) {
+        return true;
+    }
+
+    @Override
+    public boolean dropInterface(String name) {
+        return true;
     }
 
     @Override
     public void createBridge(String bridgeName) {
-
     }
 
     @Override
@@ -80,7 +81,6 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
 
     @Override
     public void dropBridge(String bridgeName) {
-
     }
 
     @Override
@@ -96,11 +96,6 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
     @Override
     public ControllerInfo localController() {
         return null;
-    }
-
-    @Override
-    public void setControllersWithUuid(Uuid bridgeUuid, List<ControllerInfo> controllers) {
-
     }
 
     @Override
@@ -139,32 +134,12 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
     }
 
     @Override
-    public String getInterfaceUuid(String portUuid, String portName) {
-        return null;
-    }
-
-    @Override
-    public String getControllerUuid(String controllerName, String controllerTarget) {
-        return null;
-    }
-
-    @Override
-    public String getOvsUuid(String dbName) {
-        return null;
-    }
-
-    @Override
     public ListenableFuture<DatabaseSchema> getOvsdbSchema(String dbName) {
         return null;
     }
 
     @Override
     public ListenableFuture<TableUpdates> monitorTables(String dbName, String id) {
-        return null;
-    }
-
-    @Override
-    public ListenableFuture<List<OperationResult>> transactConfig(String dbName, List<Operation> operations) {
         return null;
     }
 

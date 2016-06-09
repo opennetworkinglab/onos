@@ -22,6 +22,7 @@ import org.onlab.packet.VlanId;
 import org.onosproject.drivers.utilities.XmlConfigParser;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.InterfaceConfig;
+import org.onosproject.net.behaviour.TunnelDescription;
 import org.onosproject.net.device.DeviceInterfaceDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.netconf.NetconfController;
@@ -480,5 +481,14 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
         return rpc.toString();
     }
 
+    @Override
+    public boolean addTunnelMode(String ifaceName, TunnelDescription tunnelDesc) {
+        throw new UnsupportedOperationException("Add tunnel mode is not supported");
+    }
+
+    @Override
+    public boolean removeTunnelMode(String ifaceName) {
+        throw new UnsupportedOperationException("Remove tunnel mode is not supported");
+    }
 }
 

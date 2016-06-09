@@ -21,6 +21,8 @@
                    impl="org.onosproject.drivers.ovsdb.OvsdbTunnelConfig"/>
         <behaviour api="org.onosproject.net.behaviour.BridgeConfig"
                    impl="org.onosproject.drivers.ovsdb.OvsdbBridgeConfig"/>
+        <behaviour api="org.onosproject.net.behaviour.InterfaceConfig"
+                   impl="org.onosproject.drivers.ovsdb.OvsdbInterfaceConfig"/>
     </driver>
     <driver name="ovs" extends="default"
             manufacturer="Nicira, Inc\." hwVersion="Open vSwitch" swVersion="2\..*">

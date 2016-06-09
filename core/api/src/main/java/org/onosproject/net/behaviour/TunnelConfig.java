@@ -21,7 +21,10 @@ import org.onosproject.net.driver.HandlerBehaviour;
 
 /**
  * Behaviour for handling various drivers for tunnel configuration.
+ *
+ * @deprecated version 1.7.0 - Hummingbird; use interface config tunnel mode
  */
+@Deprecated
 public interface TunnelConfig extends HandlerBehaviour {
 
     /**

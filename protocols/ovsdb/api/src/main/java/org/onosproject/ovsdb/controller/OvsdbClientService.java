@@ -16,16 +16,12 @@
 package org.onosproject.ovsdb.controller;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.ovsdb.rfc.jsonrpc.OvsdbRpc;
-import org.onosproject.ovsdb.rfc.message.OperationResult;
 import org.onosproject.ovsdb.rfc.message.TableUpdates;
 import org.onosproject.ovsdb.rfc.notation.Row;
-import org.onosproject.ovsdb.rfc.notation.Uuid;
-import org.onosproject.ovsdb.rfc.operations.Operation;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 
 import java.util.List;
@@ -46,28 +42,43 @@ public interface OvsdbClientService extends OvsdbRpc {
     /**
      * Creates a tunnel port with given options.
      *
+     * @deprecated version 1.7.0 - Hummingbird
      * @param bridgeName bridge name
      * @param portName port name
      * @param tunnelType tunnel type
      * @param options tunnel options
      * @return true if tunnel creation is successful, false otherwise
      */
-    boolean createTunnel(String bridgeName, String portName, String tunnelType, Map<String, String> options);
+    @Deprecated
+    boolean createTunnel(String bridgeName, String portName, String tunnelType,
+                         Map<String, String> options);
 
     /**
      * Drops the configuration for tunnel.
      *
+     * @deprecated version 1.7.0 - Hummingbird
      * @param srcIp source IP address
      * @param dstIp destination IP address
      */
+    @Deprecated
     void dropTunnel(IpAddress srcIp, IpAddress dstIp);
 
     /**
-     * Gets tunnels of node.
+     * Creates an interface with a given OVSDB interface description.
      *
-     * @return set of tunnels; empty if no tunnel is find
+     * @param bridgeName bridge name
+     * @param ovsdbIface ovsdb interface description
+     * @return true if interface creation is successful, false otherwise
      */
-    Set<OvsdbTunnel> getTunnels();
+    boolean createInterface(String bridgeName, OvsdbInterface ovsdbIface);
+
+    /**
+     * Removes an interface with the supplied interface name.
+     *
+     * @param ifaceName interface name
+     * @return true if interface creation is successful, false otherwise
+     */
+    boolean dropInterface(String ifaceName);
 
     /**
      * Creates a bridge.
@@ -142,17 +153,6 @@ public interface OvsdbClientService extends OvsdbRpc {
     ControllerInfo localController();
 
     /**
-     * Sets the Controllers for the specified bridge.
-     * <p>
-     * This method will replace the existing controller list with the new controller
-     * list.
-     *
-     * @param bridgeUuid bridge uuid
-     * @param controllers list of controllers
-     */
-    void setControllersWithUuid(Uuid bridgeUuid, List<ControllerInfo> controllers);
-
-    /**
      * Sets the Controllers for the specified device.
      * <p>
      * This method will replace the existing controller list with the new controller
@@ -211,32 +211,6 @@ public interface OvsdbClientService extends OvsdbRpc {
     String getPortUuid(String portName, String bridgeUuid);
 
     /**
-     * Gets the Interface uuid.
-     *
-     * @param portUuid port uuid
-     * @param portName port name
-     * @return interface uuid, empty if no uuid is find
-     */
-    String getInterfaceUuid(String portUuid, String portName);
-
-    /**
-     * Gets the Controller uuid.
-     *
-     * @param controllerName   controller name
-     * @param controllerTarget controller target
-     * @return controller uuid, empty if no uuid is find
-     */
-    String getControllerUuid(String controllerName, String controllerTarget);
-
-    /**
-     * Gets the OVS uuid.
-     *
-     * @param dbName database name
-     * @return ovs uuid, empty if no uuid is find
-     */
-    String getOvsUuid(String dbName);
-
-    /**
      * Gets the OVSDB database schema.
      *
      * @param dbName database name
@@ -252,16 +226,6 @@ public interface OvsdbClientService extends OvsdbRpc {
      * @return table updates
      */
     ListenableFuture<TableUpdates> monitorTables(String dbName, String id);
-
-    /**
-     * Gets the OVSDB config operation result.
-     *
-     * @param dbName     database name
-     * @param operations the list of operations
-     * @return operation results
-     */
-    ListenableFuture<List<OperationResult>> transactConfig(String dbName,
-                                                           List<Operation> operations);
 
     /**
      * Gets the OVSDB database schema from local.

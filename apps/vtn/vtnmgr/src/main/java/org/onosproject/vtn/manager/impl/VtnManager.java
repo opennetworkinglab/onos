@@ -487,7 +487,7 @@ public class VtnManager implements VtnService {
     private void programTunnelConfig(DeviceId localDeviceId, IpAddress localIp,
                                      DriverHandler localHandler) {
         if (mastershipService.isLocalMaster(localDeviceId)) {
-            VtnConfig.applyTunnelConfig(localHandler, localIp, IpAddress.valueOf(DEFAULT_IP));
+            VtnConfig.applyTunnelConfig(localHandler, localIp);
             log.info("Add tunnel on {}", localIp);
         }
     }

@@ -17,68 +17,43 @@
 package org.onosproject.drivers.ovsdb;
 
 import org.onlab.packet.IpAddress;
-import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.BridgeName;
-import org.onosproject.net.behaviour.DefaultTunnelDescription;
-import org.onosproject.net.behaviour.IpTunnelEndPoint;
 import org.onosproject.net.behaviour.TunnelConfig;
 import org.onosproject.net.behaviour.TunnelDescription;
-import org.onosproject.net.behaviour.TunnelName;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbController;
+import org.onosproject.ovsdb.controller.OvsdbInterface;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
-import org.onosproject.ovsdb.controller.OvsdbTunnel;
 
 import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Collections;
 
 /**
  * OVSDB-based implementation of tunnel config behaviour.
+ *
+ * @deprecated version 1.7.0 - Hummingbird; use interface config instead
  */
+@Deprecated
 public class OvsdbTunnelConfig extends AbstractHandlerBehaviour
         implements TunnelConfig {
 
-    private static final String DEFAULT_ADDRESS = "0.0.0.0";
-    private static final String OPTION_LOCAL_IP = "local_ip";
-    private static final String OPTION_REMOTE_IP = "remote_ip";
-
     @Override
     public boolean createTunnelInterface(BridgeName bridgeName, TunnelDescription tunnel) {
-        Map<String, String> options = ((DefaultAnnotations) tunnel.annotations()).asMap();
-        if (tunnel.src() != null) {
-            options.put(OPTION_LOCAL_IP, ((IpTunnelEndPoint) tunnel.src()).ip().toString());
-        }
-        if (tunnel.dst() != null) {
-            options.put(OPTION_REMOTE_IP, ((IpTunnelEndPoint) tunnel.dst()).ip().toString());
-        }
-
         DriverHandler handler = handler();
-        OvsdbClientService ovsdbClient = getOvsdbNode(handler);
-        return ovsdbClient.createTunnel(bridgeName.name(), tunnel.tunnelName().toString(),
-                                        tunnel.type().toString().toLowerCase(), options);
+        OvsdbClientService ovsdbNode = getOvsdbNode(handler);
+
+        OvsdbInterface ovsdbIface = OvsdbInterface.builder(tunnel).build();
+        return ovsdbNode.createInterface(bridgeName.name(), ovsdbIface);
     }
 
     @Override
     public void removeTunnel(TunnelDescription tunnel) {
         DriverHandler handler = handler();
         OvsdbClientService ovsdbNode = getOvsdbNode(handler);
-        IpTunnelEndPoint ipSrc = IpTunnelEndPoint.ipTunnelPoint(IpAddress
-                .valueOf(DEFAULT_ADDRESS));
-        IpTunnelEndPoint ipDst = IpTunnelEndPoint.ipTunnelPoint(IpAddress
-                .valueOf(DEFAULT_ADDRESS));
-        if (tunnel.src() instanceof IpTunnelEndPoint) {
-            ipSrc = (IpTunnelEndPoint) tunnel.src();
-        }
-        if (tunnel.dst() instanceof IpTunnelEndPoint) {
-            ipDst = (IpTunnelEndPoint) tunnel.dst();
-        }
-      //Even if source point ip or destination point ip equals 0:0:0:0, it is still work-in-progress.
-        ovsdbNode.dropTunnel(ipSrc.ip(), ipDst.ip());
+        ovsdbNode.dropInterface(tunnel.ifaceName());
     }
 
     @Override
@@ -89,20 +64,7 @@ public class OvsdbTunnelConfig extends AbstractHandlerBehaviour
 
     @Override
     public Collection<TunnelDescription> getTunnels() {
-        DriverHandler handler = handler();
-        OvsdbClientService ovsdbNode = getOvsdbNode(handler);
-        Set<OvsdbTunnel> tunnels = ovsdbNode.getTunnels();
-
-        return tunnels.stream()
-                .map(x ->
-                        new DefaultTunnelDescription(
-                                IpTunnelEndPoint.ipTunnelPoint(x.localIp()),
-                                IpTunnelEndPoint.ipTunnelPoint(x.remoteIp()),
-                                TunnelDescription.Type.VXLAN,
-                                TunnelName.tunnelName(x.tunnelName().toString())
-                        )
-                )
-                .collect(Collectors.toSet());
+        return Collections.emptyList();
     }
 
     // OvsdbNodeId(IP) is used in the adaptor while DeviceId(ovsdb:IP)

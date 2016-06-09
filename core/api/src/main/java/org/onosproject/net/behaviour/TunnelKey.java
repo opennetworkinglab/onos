@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,26 +19,28 @@ package org.onosproject.net.behaviour;
 import java.util.Objects;
 
 /**
- * Represents for source end point or destination end point of a tunnel. Maybe a tunnel
- * based on ConnectPoint, IpAddress, MacAddress and so on is built.
+ * Represent for a tunnel key. The tunnel accepts packets with the tunnel key.
+ * A positive 24-bit (for Geneve, VXLAN, and LISP), 32-bit (for GRE) or 64-bit (for
+ * GRE64) number value is used for example. Open vSwitch allows "flow" as the key
+ * to set this value with matching in the flow table.
  */
-public class TunnelEndPoint<T> {
+public final class TunnelKey<T> {
 
-    protected final T value;
+    private final T value;
 
     /**
      * Default constructor.
      *
-     * @param value value of the tunnel endpoint
+     * @param value value of the tunnel key
      */
-    public TunnelEndPoint(T value) {
+    public TunnelKey(T value) {
         this.value = value;
     }
 
     /**
      * Returns the value.
      *
-     * @return tunnel endpoint value
+     * @return tunnel key value
      */
     public T value() {
         return value;
@@ -58,8 +60,8 @@ public class TunnelEndPoint<T> {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof TunnelEndPoint) {
-            final TunnelEndPoint that = (TunnelEndPoint) obj;
+        if (obj instanceof TunnelKey) {
+            final TunnelKey that = (TunnelKey) obj;
             return this.getClass() == that.getClass() &&
                     Objects.equals(this.value, that.value);
         }

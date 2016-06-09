@@ -125,6 +125,23 @@ public interface InterfaceConfig extends HandlerBehaviour {
     boolean removeRateLimit(String intf);
 
     /**
+     * Adds a tunnel mode to supplied interface.
+     *
+     * @param intf the name of the interface
+     * @param tunnelDesc tunnel interface description
+     * @return true if the operation succeeds
+     */
+    boolean addTunnelMode(String intf, TunnelDescription tunnelDesc);
+
+    /**
+     * Removes a tunnel interface.
+     *
+     * @param intf tunnel interface name
+     * @return true if the operation succeeds
+     */
+    boolean removeTunnelMode(String intf);
+
+    /**
      * Provides the interfaces configured on a device.
      *
      * @param deviceId the device ID
@@ -148,5 +165,4 @@ public interface InterfaceConfig extends HandlerBehaviour {
      *  getTrunkVlans(Interface), getAccessVlan(Interface) should be added to
      *  complete the behavior.
      */
-
 }

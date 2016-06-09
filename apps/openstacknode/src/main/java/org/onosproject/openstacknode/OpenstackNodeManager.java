@@ -15,8 +15,6 @@
  */
 package org.onosproject.openstacknode;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -30,19 +28,18 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.behaviour.BridgeConfig;
 import org.onosproject.net.behaviour.BridgeDescription;
-import org.onosproject.net.behaviour.BridgeName;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.behaviour.DefaultBridgeDescription;
 import org.onosproject.net.behaviour.DefaultTunnelDescription;
-import org.onosproject.net.behaviour.TunnelConfig;
+import org.onosproject.net.behaviour.InterfaceConfig;
 import org.onosproject.net.behaviour.TunnelDescription;
-import org.onosproject.net.behaviour.TunnelName;
+import org.onosproject.net.behaviour.TunnelEndPoints;
+import org.onosproject.net.behaviour.TunnelKeys;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -72,7 +69,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
@@ -96,9 +92,6 @@ public class OpenstackNodeManager implements OpenstackNodeService {
     private static final String PORT_NAME = "portName";
     private static final String OPENSTACK_NODESTORE = "openstacknode-nodestore";
     private static final String OPENSTACK_NODEMANAGER_ID = "org.onosproject.openstacknode";
-
-    private static final Map<String, String> DEFAULT_TUNNEL_OPTIONS
-            = ImmutableMap.of("key", "flow", "remote_ip", "flow");
 
     private static final int DPID_BEGIN = 3;
     private static final int OFPORT = 6653;
@@ -390,26 +383,22 @@ public class OpenstackNodeManager implements OpenstackNodeService {
             return;
         }
 
-        List<ControllerInfo> controllers = new ArrayList<>();
-        Sets.newHashSet(clusterService.getNodes()).stream()
-                .forEach(controller -> {
-                    ControllerInfo ctrlInfo = new ControllerInfo(controller.ip(), OFPORT, "tcp");
-                    controllers.add(ctrlInfo);
-                });
+        List<ControllerInfo> controllers = clusterService.getNodes().stream()
+                .map(controller -> new ControllerInfo(controller.ip(), OFPORT, "tcp"))
+                .collect(Collectors.toList());
         String dpid = node.intBrId().toString().substring(DPID_BEGIN);
+
+        BridgeDescription bridgeDesc = DefaultBridgeDescription.builder()
+                .name(DEFAULT_BRIDGE)
+                .failMode(BridgeDescription.FailMode.SECURE)
+                .datapathId(dpid)
+                .disableInBand()
+                .controllers(controllers)
+                .build();
 
         try {
             DriverHandler handler = driverService.createHandler(node.ovsdbId());
             BridgeConfig bridgeConfig =  handler.behaviour(BridgeConfig.class);
-
-            BridgeDescription bridgeDesc = DefaultBridgeDescription.builder()
-                    .name(DEFAULT_BRIDGE)
-                    .failMode(BridgeDescription.FailMode.SECURE)
-                    .datapathId(dpid)
-                    .disableInBand()
-                    .controllers(controllers)
-                    .build();
-
             bridgeConfig.addBridge(bridgeDesc);
         } catch (ItemNotFoundException e) {
             log.warn("Failed to create integration bridge on {}", node.ovsdbId());
@@ -426,17 +415,17 @@ public class OpenstackNodeManager implements OpenstackNodeService {
             return;
         }
 
-        DefaultAnnotations.Builder optionBuilder = DefaultAnnotations.builder();
-        for (String key : DEFAULT_TUNNEL_OPTIONS.keySet()) {
-            optionBuilder.set(key, DEFAULT_TUNNEL_OPTIONS.get(key));
-        }
-        TunnelDescription description =
-                new DefaultTunnelDescription(null, null, VXLAN, TunnelName.tunnelName(DEFAULT_TUNNEL),
-                        optionBuilder.build());
+        TunnelDescription description = DefaultTunnelDescription.builder()
+                .deviceId(DEFAULT_BRIDGE)
+                .ifaceName(DEFAULT_TUNNEL)
+                .type(VXLAN)
+                .remote(TunnelEndPoints.flowTunnelEndpoint())
+                .key(TunnelKeys.flowTunnelKey())
+                .build();
         try {
             DriverHandler handler = driverService.createHandler(node.ovsdbId());
-            TunnelConfig tunnelConfig =  handler.behaviour(TunnelConfig.class);
-            tunnelConfig.createTunnelInterface(BridgeName.bridgeName(DEFAULT_BRIDGE), description);
+            InterfaceConfig ifaceConfig =  handler.behaviour(InterfaceConfig.class);
+            ifaceConfig.addTunnelMode(DEFAULT_TUNNEL, description);
         } catch (ItemNotFoundException e) {
             log.warn("Failed to create tunnel interface on {}", node.ovsdbId());
         }
