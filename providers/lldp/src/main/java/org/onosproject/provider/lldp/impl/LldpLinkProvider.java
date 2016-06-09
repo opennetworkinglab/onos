@@ -15,9 +15,16 @@
  */
 package org.onosproject.provider.lldp.impl;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
+import java.util.Dictionary;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -26,7 +33,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
-import org.onlab.util.SharedExecutors;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterMetadataService;
@@ -52,30 +58,25 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.link.DefaultLinkDescription;
-import org.onosproject.net.link.ProbedLinkProvider;
 import org.onosproject.net.link.LinkProviderRegistry;
 import org.onosproject.net.link.LinkProviderService;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.net.link.ProbedLinkProvider;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.provider.lldpcommon.LinkDiscoveryContext;
 import org.onosproject.provider.lldpcommon.LinkDiscovery;
+import org.onosproject.provider.lldpcommon.LinkDiscoveryContext;
 import org.onosproject.store.service.ConsistentMapException;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import java.util.Dictionary;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
@@ -143,6 +144,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
     private LinkProviderService providerService;
 
     private ScheduledExecutorService executor;
+    protected ExecutorService eventExecutor;
 
     private boolean shuttingDown = false;
 
@@ -242,6 +244,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
 
     @Activate
     public void activate(ComponentContext context) {
+        eventExecutor = newSingleThreadScheduledExecutor(groupedThreads("onos/linkevents", "events-%d", log));
         shuttingDown = false;
         cfgService.registerProperties(getClass());
         appId = coreService.registerApplication(PROVIDER_NAME);
@@ -280,6 +283,8 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
 
         cfgService.unregisterProperties(getClass(), false);
         disable();
+        eventExecutor.shutdownNow();
+        eventExecutor = null;
         log.info("Stopped");
     }
 
@@ -548,27 +553,30 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
                 return;
             }
 
-            DeviceId deviceId = event.subject();
-            Device device = deviceService.getDevice(deviceId);
-            if (device == null) {
-                log.debug("Device {} doesn't exist, or isn't there yet", deviceId);
-                return;
-            }
-            if (clusterService.getLocalNode().id().equals(event.roleInfo().master())) {
-                updateDevice(device).ifPresent(ld -> updatePorts(ld, device.id()));
-            }
+            eventExecutor.execute(() -> {
+                DeviceId deviceId = event.subject();
+                Device device = deviceService.getDevice(deviceId);
+                if (device == null) {
+                    log.debug("Device {} doesn't exist, or isn't there yet", deviceId);
+                    return;
+                }
+                if (clusterService.getLocalNode().id().equals(event.roleInfo().master())) {
+                    updateDevice(device).ifPresent(ld -> updatePorts(ld, device.id()));
+                }
+            });
         }
     }
 
-    /**
-     * Processes device events.
-     */
-    private class InternalDeviceListener implements DeviceListener {
+    private class DeviceEventProcessor implements Runnable {
+
+        DeviceEvent event;
+
+        DeviceEventProcessor(DeviceEvent event) {
+            this.event = event;
+        }
+
         @Override
-        public void event(DeviceEvent event) {
-            if (event.type() == Type.PORT_STATS_UPDATED) {
-                return;
-            }
+        public void run() {
             Device device = event.subject();
             Port port = event.port();
             if (device == null) {
@@ -620,6 +628,22 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
                 default:
                     log.debug("Unknown event {}", event);
             }
+        }
+    }
+
+    /**
+     * Processes device events.
+     */
+    private class InternalDeviceListener implements DeviceListener {
+        @Override
+        public void event(DeviceEvent event) {
+            if (event.type() == Type.PORT_STATS_UPDATED) {
+                return;
+            }
+
+            Runnable deviceEventProcessor = new DeviceEventProcessor(event);
+
+            eventExecutor.execute(deviceEventProcessor);
         }
     }
 
@@ -780,7 +804,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
 
         @Override
         public void event(NetworkConfigEvent event) {
-            SharedExecutors.getPoolThreadExecutor().execute(() -> {
+            eventExecutor.execute(() -> {
                 if (event.configClass() == LinkDiscoveryFromDevice.class &&
                         CONFIG_CHANGED.contains(event.type())) {
 
