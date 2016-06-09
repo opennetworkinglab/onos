@@ -25,9 +25,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProvider;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderService;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmService;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderRegistry;
-import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
@@ -41,8 +39,10 @@ import org.onosproject.netconf.NetconfSession;
 import org.onosproject.netconf.ctl.NetconfDeviceOutputEventListenerImpl;
 import org.slf4j.Logger;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -61,9 +61,6 @@ public class NetconfAlarmProvider extends AbstractProvider implements AlarmProvi
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetconfController controller;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected AlarmService alarmService;
 
     protected AlarmProviderService providerService;
 
@@ -94,8 +91,8 @@ public class NetconfAlarmProvider extends AbstractProvider implements AlarmProvi
         providerRegistry.unregister(this);
         idNotificationListenerMap.forEach((id, listener) -> {
             controller.getNetconfDevice(id)
-                      .getSession()
-                      .removeDeviceOutputListener(listener);
+                    .getSession()
+                    .removeDeviceOutputListener(listener);
         });
         controller.removeDeviceListener(deviceListener);
         providerService = null;
@@ -123,10 +120,11 @@ public class NetconfAlarmProvider extends AbstractProvider implements AlarmProvi
         public void event(NetconfDeviceOutputEvent event) {
             if (event.type() == NetconfDeviceOutputEvent.Type.DEVICE_NOTIFICATION) {
                 DeviceId deviceId = event.getDeviceInfo().getDeviceId();
-                Alarm newAlarm = new DefaultAlarm.Builder(deviceId, event.getMessagePayload(),
-                                                          Alarm.SeverityLevel.WARNING, 0).build();
-                Collection<Alarm> alarms = Collections.singleton(newAlarm);
-                triggerProbe(deviceId, alarms);
+                NetconfAlarmTranslator translator = new NetconfAlarmTranslator();
+                String message = event.getMessagePayload();
+                InputStream in = new ByteArrayInputStream(message.getBytes(StandardCharsets.UTF_8));
+                Collection<Alarm> newAlarms = translator.translateToAlarm(deviceId, in);
+                triggerProbe(deviceId, newAlarms);
             }
         }
     }
