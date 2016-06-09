@@ -104,7 +104,9 @@ final class EncodableDiscreteResources implements DiscreteResources {
 
     @Override
     public boolean containsAny(Set<DiscreteResource> other) {
-        return !Sets.intersection(this.values(), other).isEmpty();
+        return other.stream()
+                .filter(x -> !map.containsKey(x))
+                .anyMatch(x -> map.get(getClass(x)).contains(x));
     }
 
     @Override
