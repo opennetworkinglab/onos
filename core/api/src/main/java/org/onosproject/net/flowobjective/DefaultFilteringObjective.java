@@ -272,6 +272,8 @@ public final class DefaultFilteringObjective implements FilteringObjective {
             checkNotNull(type, "Must have a type.");
             checkArgument(!conditions.isEmpty(), "Must have at least one condition.");
             checkNotNull(appId, "Must supply an application id");
+            checkArgument(priority <= MAX_PRIORITY && priority >= MIN_PRIORITY, "Priority " +
+                    "out of range");
 
             return new DefaultFilteringObjective(this);
         }
