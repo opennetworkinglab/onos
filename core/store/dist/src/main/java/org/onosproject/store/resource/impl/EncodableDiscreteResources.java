@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 final class EncodableDiscreteResources implements DiscreteResources {
     private static final Codecs CODECS = Codecs.getInstance();
     private final DiscreteResource parent;
-    private final Map<Class<?>, EncodedDiscreteResources> values;
+    private final Map<Class<?>, EncodedDiscreteResources> map;
 
     private static Class<?> getClass(DiscreteResource resource) {
         return resource.valueAs(Object.class).map(Object::getClass).get();
@@ -65,22 +65,22 @@ final class EncodableDiscreteResources implements DiscreteResources {
         return new EncodableDiscreteResources(parent, values);
     }
 
-    private EncodableDiscreteResources(DiscreteResource parent, Map<Class<?>, EncodedDiscreteResources> values) {
+    private EncodableDiscreteResources(DiscreteResource parent, Map<Class<?>, EncodedDiscreteResources> map) {
         this.parent = parent;
-        this.values = values;
+        this.map = map;
     }
 
     // for serializer
     private EncodableDiscreteResources() {
         this.parent = null;
-        this.values = null;
+        this.map = null;
     }
 
     @Override
     public Optional<DiscreteResource> lookup(DiscreteResourceId id) {
         DiscreteResource resource = Resources.discrete(id).resource();
         Class<?> cls = getClass(resource);
-        return Optional.ofNullable(values.get(cls))
+        return Optional.ofNullable(map.get(cls))
                 .filter(x -> x.contains(resource))
                 .map(x -> resource);
     }
@@ -98,7 +98,7 @@ final class EncodableDiscreteResources implements DiscreteResources {
 
     @Override
     public boolean isEmpty() {
-        return values.values().stream()
+        return map.values().stream()
                 .allMatch(x -> x.isEmpty());
     }
 
@@ -120,14 +120,14 @@ final class EncodableDiscreteResources implements DiscreteResources {
 
     @Override
     public Set<DiscreteResource> values() {
-        return values.values().stream()
+        return map.values().stream()
                 .flatMap(x -> x.values(parent.id()).stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Override
     public <T> Set<DiscreteResource> valuesOf(Class<T> cls) {
-        return Optional.ofNullable(values.get(cls))
+        return Optional.ofNullable(map.get(cls))
                 .map(x -> x.values(parent.id()))
                 .orElse(ImmutableSet.of());
     }
@@ -137,12 +137,12 @@ final class EncodableDiscreteResources implements DiscreteResources {
     }
 
     Map<Class<?>, EncodedDiscreteResources> rawValues() {
-        return values;
+        return map;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(parent, values);
+        return Objects.hash(parent, map);
     }
 
     @Override
@@ -155,7 +155,7 @@ final class EncodableDiscreteResources implements DiscreteResources {
         }
         final EncodableDiscreteResources other = (EncodableDiscreteResources) obj;
         return Objects.equals(this.parent, other.parent)
-                && Objects.equals(this.values, other.values);
+                && Objects.equals(this.map, other.map);
     }
 
     @Override
