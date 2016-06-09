@@ -16,6 +16,7 @@
 
 package org.onosproject.newoptical;
 
+import com.google.common.collect.ImmutableSet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +40,9 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.newoptical.api.OpticalConnectivityId;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -94,10 +97,9 @@ public class OpticalConnectivityTest {
         Link link2 = createLink(cp22, cp31);
         List<Link> links = Stream.of(link1, link2).collect(Collectors.toList());
 
-        Path path = new MockPath(cp12, cp31, links);
-
         OpticalConnectivityId cid = OpticalConnectivityId.of(1L);
-        OpticalConnectivity oc = new OpticalConnectivity(cid, path, bandwidth, latency);
+        OpticalConnectivity oc = new OpticalConnectivity(cid, links, bandwidth, latency,
+                Collections.emptySet(), Collections.emptySet());
 
         assertNotNull(oc);
         assertEquals(oc.id(), cid);
@@ -133,8 +135,6 @@ public class OpticalConnectivityTest {
         Link link6 = createLink(cp62, cp71);
         List<Link> links = Stream.of(link1, link2, link3, link4, link5, link6).collect(Collectors.toList());
 
-        Path path = new MockPath(cp12, cp71, links);
-
         // Mocks 2 intents to create OduCtl connectivity
         OpticalConnectivityIntent connIntent1 = createConnectivityIntent(cp21, cp32);
         PacketLinkRealizedByOptical oduLink1 = PacketLinkRealizedByOptical.create(cp12, cp41,
@@ -144,29 +144,29 @@ public class OpticalConnectivityTest {
         PacketLinkRealizedByOptical oduLink2 = PacketLinkRealizedByOptical.create(cp42, cp71,
                 connIntent2);
 
+        Set<PacketLinkRealizedByOptical> plinks = ImmutableSet.of(oduLink1, oduLink2);
+
         Bandwidth bandwidth = Bandwidth.bps(100);
         Duration latency = Duration.ofMillis(10);
 
         OpticalConnectivityId cid = OpticalConnectivityId.of(1L);
-        OpticalConnectivity oc = new OpticalConnectivity(cid, path, bandwidth, latency);
+        OpticalConnectivity oc1 = new OpticalConnectivity(cid, links, bandwidth, latency,
+                plinks, Collections.emptySet());
 
-        oc.addRealizingLink(oduLink1);
-        oc.addRealizingLink(oduLink2);
-
-        assertTrue(oc.isAllRealizingLinkNotEstablished());
-        assertFalse(oc.isAllRealizingLinkEstablished());
+        assertTrue(oc1.isAllRealizingLinkNotEstablished());
+        assertFalse(oc1.isAllRealizingLinkEstablished());
 
         // Sets link realized by connIntent1 to be established
-        oc.setLinkEstablished(cp12, cp41);
+        OpticalConnectivity oc2 = oc1.setLinkEstablished(cp12, cp41, true);
 
-        assertFalse(oc.isAllRealizingLinkNotEstablished());
-        assertFalse(oc.isAllRealizingLinkEstablished());
+        assertFalse(oc2.isAllRealizingLinkNotEstablished());
+        assertFalse(oc2.isAllRealizingLinkEstablished());
 
         // Sets link realized by connIntent2 to be established
-        oc.setLinkEstablished(cp42, cp71);
+        OpticalConnectivity oc3 = oc2.setLinkEstablished(cp42, cp71, true);
 
-        assertFalse(oc.isAllRealizingLinkNotEstablished());
-        assertTrue(oc.isAllRealizingLinkEstablished());
+        assertFalse(oc3.isAllRealizingLinkNotEstablished());
+        assertTrue(oc3.isAllRealizingLinkEstablished());
     }
 
     /**
@@ -196,8 +196,6 @@ public class OpticalConnectivityTest {
         Link link6 = createLink(cp62, cp71);
         List<Link> links = Stream.of(link1, link2, link3, link4, link5, link6).collect(Collectors.toList());
 
-        Path path = new MockPath(cp12, cp71, links);
-
         // Mocks 2 intents to create Och connectivity
         OpticalCircuitIntent circuitIntent1 = createCircuitIntent(cp21, cp32);
         PacketLinkRealizedByOptical ochLink1 = PacketLinkRealizedByOptical.create(cp12, cp41,
@@ -207,29 +205,29 @@ public class OpticalConnectivityTest {
         PacketLinkRealizedByOptical ochLink2 = PacketLinkRealizedByOptical.create(cp42, cp71,
                 circuitIntent2);
 
+        Set<PacketLinkRealizedByOptical> plinks = ImmutableSet.of(ochLink1, ochLink2);
+
         Bandwidth bandwidth = Bandwidth.bps(100);
         Duration latency = Duration.ofMillis(10);
 
         OpticalConnectivityId cid = OpticalConnectivityId.of(1L);
-        OpticalConnectivity oc = new OpticalConnectivity(cid, path, bandwidth, latency);
+        OpticalConnectivity oc1 = new OpticalConnectivity(cid, links, bandwidth, latency,
+                plinks, Collections.emptySet());
 
-        oc.addRealizingLink(ochLink1);
-        oc.addRealizingLink(ochLink2);
-
-        assertTrue(oc.isAllRealizingLinkNotEstablished());
-        assertFalse(oc.isAllRealizingLinkEstablished());
+        assertTrue(oc1.isAllRealizingLinkNotEstablished());
+        assertFalse(oc1.isAllRealizingLinkEstablished());
 
         // Sets link realized by circuitIntent1 to be established
-        oc.setLinkEstablished(cp12, cp41);
+        OpticalConnectivity oc2 = oc1.setLinkEstablished(cp12, cp41, true);
 
-        assertFalse(oc.isAllRealizingLinkNotEstablished());
-        assertFalse(oc.isAllRealizingLinkEstablished());
+        assertFalse(oc2.isAllRealizingLinkNotEstablished());
+        assertFalse(oc2.isAllRealizingLinkEstablished());
 
         // Sets link realized by circuitIntent2 to be established
-        oc.setLinkEstablished(cp42, cp71);
+        OpticalConnectivity oc3 = oc2.setLinkEstablished(cp42, cp71, true);
 
-        assertFalse(oc.isAllRealizingLinkNotEstablished());
-        assertTrue(oc.isAllRealizingLinkEstablished());
+        assertFalse(oc3.isAllRealizingLinkNotEstablished());
+        assertTrue(oc3.isAllRealizingLinkEstablished());
     }
 
     private ConnectPoint createConnectPoint(long devIdNum, long portIdNum) {

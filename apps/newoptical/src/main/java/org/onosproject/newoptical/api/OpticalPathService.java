@@ -33,7 +33,7 @@ import java.util.Optional;
 public interface OpticalPathService extends ListenerService<OpticalPathEvent, OpticalPathListener> {
 
     /**
-     * Calculates optical path between connect points and sets up connectivity.
+     * Calculates multi-layer path between connect points and sets up connectivity.
      *
      * @param ingress   ingress port
      * @param egress    egress port
@@ -45,9 +45,9 @@ public interface OpticalPathService extends ListenerService<OpticalPathEvent, Op
                                             Bandwidth bandwidth, Duration latency);
 
     /**
-     * Sets up connectivity along given optical path.
+     * Sets up connectivity along given multi-layer path including cross-connect links.
      *
-     * @param path      path along which connectivity will be set up
+     * @param path      multi-layer path along which connectivity will be set up
      * @param bandwidth required bandwidth. No bandwidth is assured if null.
      * @param latency   required latency. No latency is assured if null.
      * @return true if successful. false otherwise.

@@ -33,9 +33,6 @@ public class PacketLinkRealizedByOptical {
     private final Bandwidth bandwidth;
     // TODO should be list of Intent Key?
     private final Key realizingIntentKey;
-    // established=false represents that this (packet) link is expected to be
-    // discovered after underlying (optical) path has been provisioned.
-    private boolean established;
 
     /**
      * Creates instance with specified parameters.
@@ -51,7 +48,6 @@ public class PacketLinkRealizedByOptical {
         this.dst = dst;
         this.realizingIntentKey = realizingIntentKey;
         this.bandwidth = bandwidth;
-        this.established = false;
     }
 
     /**
@@ -129,24 +125,6 @@ public class PacketLinkRealizedByOptical {
     }
 
     /**
-     * Returns whether packet link is realized or not.
-     *
-     * @return true if packet link is realized.  false if not.
-     */
-    public boolean isEstablished() {
-        return established;
-    }
-
-    /**
-     * Sets packet link to be established.
-     *
-     * @param established status of packet link
-     */
-    public void setEstablished(boolean established) {
-        this.established = established;
-    }
-
-    /**
      * Check if packet link is between specified two connect points.
      *
      * @param src source connect point
@@ -157,4 +135,36 @@ public class PacketLinkRealizedByOptical {
         return (this.src.equals(src) && this.dst.equals(dst));
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        PacketLinkRealizedByOptical that = (PacketLinkRealizedByOptical) o;
+
+        if (!src.equals(that.src)) {
+            return false;
+        }
+        if (!dst.equals(that.dst)) {
+            return false;
+        }
+        if (!bandwidth.equals(that.bandwidth)) {
+            return false;
+        }
+        return realizingIntentKey.equals(that.realizingIntentKey);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = src.hashCode();
+        result = 31 * result + dst.hashCode();
+        result = 31 * result + bandwidth.hashCode();
+        result = 31 * result + realizingIntentKey.hashCode();
+        return result;
+    }
 }

@@ -22,14 +22,14 @@ import org.onlab.util.Bandwidth;
 import org.onosproject.newoptical.api.OpticalConnectivityId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
-import org.onosproject.net.Path;
 
 import java.time.Duration;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Entity to store optical connectivity request and related information.
@@ -42,48 +42,48 @@ public class OpticalConnectivity {
     private final Bandwidth requestBandwidth;
     private final Duration requestLatency;
 
-    // Bandwidth capacity of optical layer
-    private Bandwidth opticalCapacity;
+    /**
+     * Set of packet link that is not yet established.
+     * Packet links in this set are expected to be discovered after underlying (optical) path has been provisioned.
+     */
+    private final ImmutableSet<PacketLinkRealizedByOptical> unestablishedLinks;
 
-    private final Set<PacketLinkRealizedByOptical> realizingLinks = new HashSet<>();
+    /**
+     * Set of packet link that is already established.
+     */
+    private final ImmutableSet<PacketLinkRealizedByOptical> establishedLinks;
 
-    private State state = State.CREATED;
-
-    public enum State {
-        CREATED,
-        INSTALLING,
-        INSTALLED,
-        WITHDRAWING,
-        WITHDRAWN,
-        FAILED
-    }
-
-    public OpticalConnectivity(OpticalConnectivityId id, Path path, Bandwidth requestBandwidth,
-                               Duration requestLatency) {
+    public OpticalConnectivity(OpticalConnectivityId id,
+                               List<Link> links,
+                               Bandwidth requestBandwidth,
+                               Duration requestLatency,
+                               Set<PacketLinkRealizedByOptical> unestablishedLinks,
+                               Set<PacketLinkRealizedByOptical> establishedLinks) {
         this.id = id;
-        this.links = ImmutableList.copyOf(path.links());
+        this.links = ImmutableList.copyOf(links);
         this.requestBandwidth = requestBandwidth;
         this.requestLatency = requestLatency;
+        this.unestablishedLinks = ImmutableSet.copyOf(unestablishedLinks);
+        this.establishedLinks = ImmutableSet.copyOf(establishedLinks);
     }
 
-    public void setLinkEstablished(ConnectPoint src, ConnectPoint dst) {
-        realizingLinks.stream().filter(l -> l.isBetween(src, dst))
-                .findAny()
-                .ifPresent(l -> l.setEstablished(true));
-    }
-
-    public void setLinkRemoved(ConnectPoint src, ConnectPoint dst) {
-        realizingLinks.stream().filter(l -> l.isBetween(src, dst))
-                .findAny()
-                .ifPresent(l -> l.setEstablished(false));
+    private OpticalConnectivity(OpticalConnectivity connectivity) {
+        this.id = connectivity.id;
+        this.links = ImmutableList.copyOf(connectivity.links);
+        this.requestBandwidth = connectivity.requestBandwidth;
+        this.requestLatency = connectivity.requestLatency;
+        this.unestablishedLinks = ImmutableSet.copyOf(connectivity.unestablishedLinks);
+        this.establishedLinks = ImmutableSet.copyOf(connectivity.establishedLinks);
     }
 
     public boolean isAllRealizingLinkEstablished() {
-        return realizingLinks.stream().allMatch(PacketLinkRealizedByOptical::isEstablished);
+        // Check if all links are established
+        return unestablishedLinks.isEmpty();
     }
 
     public boolean isAllRealizingLinkNotEstablished() {
-        return !realizingLinks.stream().anyMatch(PacketLinkRealizedByOptical::isEstablished);
+        // Check if any link is not established
+        return establishedLinks.isEmpty();
     }
 
     public OpticalConnectivityId id() {
@@ -102,59 +102,64 @@ public class OpticalConnectivity {
         return requestLatency;
     }
 
-    public State state() {
-        return state;
+    public Set<PacketLinkRealizedByOptical> getEstablishedLinks() {
+        return establishedLinks;
     }
 
-    public boolean state(State state) {
-        boolean valid = true;
-        // reject invalid state transition
-        switch (this.state) {
-            case CREATED:
-                valid = (state == State.INSTALLING || state == State.FAILED);
-                break;
-            case INSTALLING:
-                valid = (state == State.INSTALLED || state == State.FAILED);
-                break;
-            case INSTALLED:
-                valid = (state == State.WITHDRAWING || state == State.FAILED);
-                break;
-            case WITHDRAWING:
-                valid = (state == State.WITHDRAWN || state == State.FAILED);
-                break;
-            case FAILED:
-                valid = (state == State.INSTALLING || state == State.WITHDRAWING || state == State.FAILED);
-                break;
-            default:
-                break;
+    public Set<PacketLinkRealizedByOptical> getUnestablishedLinks() {
+        return unestablishedLinks;
+    }
+
+    public OpticalConnectivity setLinkEstablished(ConnectPoint src,
+                                                  ConnectPoint dst,
+                                                  boolean established) {
+        Set<PacketLinkRealizedByOptical> newEstablishedLinks;
+        Set<PacketLinkRealizedByOptical> newUnestablishedLinks;
+
+        if (established) {
+            // move PacketLink from unestablished set to established set
+            Optional<PacketLinkRealizedByOptical> link = this.unestablishedLinks.stream()
+                    .filter(l -> l.isBetween(src, dst)).findAny();
+            checkState(link.isPresent());
+
+            newUnestablishedLinks = this.unestablishedLinks.stream()
+                    .filter(l -> !l.isBetween(src, dst))
+                    .collect(Collectors.toSet());
+            newEstablishedLinks = ImmutableSet.<PacketLinkRealizedByOptical>builder()
+                    .addAll(this.establishedLinks)
+                    .add(link.get())
+                    .build();
+        } else {
+            // move PacketLink from established set to unestablished set
+            Optional<PacketLinkRealizedByOptical> link = this.establishedLinks.stream()
+                    .filter(l -> l.isBetween(src, dst)).findAny();
+            checkState(link.isPresent());
+
+            newEstablishedLinks = this.establishedLinks.stream()
+                    .filter(l -> !l.isBetween(src, dst))
+                    .collect(Collectors.toSet());
+            newUnestablishedLinks = ImmutableSet.<PacketLinkRealizedByOptical>builder()
+                    .addAll(this.unestablishedLinks)
+                    .add(link.get())
+                    .build();
         }
 
-        if (valid) {
-            this.state = state;
-        }
-
-        return valid;
-    }
-
-    public Bandwidth getOpticalCapacity() {
-        return opticalCapacity;
-    }
-
-    public void setOpticalCapacity(Bandwidth opticalCapacity) {
-        this.opticalCapacity = opticalCapacity;
-    }
-
-    public void addRealizingLink(PacketLinkRealizedByOptical link) {
-        checkNotNull(link);
-        realizingLinks.add(link);
-    }
-
-    public void removeRealizingLink(PacketLinkRealizedByOptical link) {
-        checkNotNull(link);
-        realizingLinks.remove(link);
+        return new OpticalConnectivity(this.id,
+                this.links,
+                this.requestBandwidth,
+                this.requestLatency,
+                newUnestablishedLinks,
+                newEstablishedLinks);
     }
 
     public Set<PacketLinkRealizedByOptical> getRealizingLinks() {
-        return ImmutableSet.copyOf(realizingLinks);
+        return ImmutableSet.<PacketLinkRealizedByOptical>builder()
+                .addAll(unestablishedLinks)
+                .addAll(establishedLinks)
+                .build();
+    }
+
+    public static OpticalConnectivity copyOf(OpticalConnectivity connectivity) {
+        return new OpticalConnectivity(connectivity);
     }
 }
