@@ -50,4 +50,16 @@ public class EncodedDiscreteResourcesTest {
         assertThat(sut.contains(res3), is(false));
     }
 
+    @Test
+    public void testDifference() {
+        DiscreteResource res1 = Resources.discrete(DID, PN, VID1).resource();
+        DiscreteResource res2 = Resources.discrete(DID, PN, VID2).resource();
+        DiscreteResource res3 = Resources.discrete(DID, PN, VID3).resource();
+
+        EncodedDiscreteResources sut = EncodedDiscreteResources.of(ImmutableSet.of(res1, res2), new VlanIdCodec());
+        EncodedDiscreteResources other = EncodedDiscreteResources.of(ImmutableSet.of(res1, res3), new VlanIdCodec());
+
+        assertThat(sut.difference(other), is(EncodedDiscreteResources.of(ImmutableSet.of(res2), new VlanIdCodec())));
+    }
+
 }

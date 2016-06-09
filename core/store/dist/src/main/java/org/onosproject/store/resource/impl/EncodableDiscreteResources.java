@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A set of discrete resources that can be encoded as integers.
@@ -88,7 +89,16 @@ final class EncodableDiscreteResources implements DiscreteResources {
     @Override
     public DiscreteResources difference(DiscreteResources other) {
         if (other instanceof EncodableDiscreteResources) {
-            return of(parent, Sets.difference(this.values(), other.values()));
+            EncodableDiscreteResources cast = (EncodableDiscreteResources) other;
+            Map<Class<?>, EncodedDiscreteResources> newMap =
+                    Stream.concat(this.map.entrySet().stream(), cast.map.entrySet().stream())
+                            .filter(entry -> this.map.containsKey(entry.getKey()))
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    Map.Entry::getValue,
+                                    EncodedDiscreteResources::difference,
+                                    LinkedHashMap::new));
+            return new EncodableDiscreteResources(parent, newMap);
         } else if (other instanceof EmptyDiscreteResources) {
             return this;
         }

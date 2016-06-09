@@ -32,6 +32,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * Represents discrete resources encoded by a codec.
  */
@@ -80,6 +82,15 @@ final class EncodedDiscreteResources {
                 .map(x -> codec.encode(x))
                 .map(rangeSet::contains)
                 .orElse(false);
+    }
+
+    EncodedDiscreteResources difference(EncodedDiscreteResources other) {
+        checkArgument(this.codec.getClass() == other.codec.getClass());
+
+        RangeSet<Integer> newRangeSet = TreeRangeSet.create(this.rangeSet);
+        newRangeSet.removeAll(other.rangeSet);
+
+        return new EncodedDiscreteResources(newRangeSet, this.codec);
     }
 
     boolean isEmpty() {
