@@ -93,6 +93,15 @@ final class EncodedDiscreteResources {
         return new EncodedDiscreteResources(newRangeSet, this.codec);
     }
 
+    EncodedDiscreteResources add(EncodedDiscreteResources other) {
+        checkArgument(this.codec.getClass() == other.codec.getClass());
+
+        RangeSet<Integer> newRangeSet = TreeRangeSet.create(this.rangeSet);
+        newRangeSet.addAll(other.rangeSet);
+
+        return new EncodedDiscreteResources(newRangeSet, this.codec);
+    }
+
     boolean isEmpty() {
         return rangeSet.isEmpty();
     }

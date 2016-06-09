@@ -122,7 +122,16 @@ final class EncodableDiscreteResources implements DiscreteResources {
     @Override
     public DiscreteResources add(DiscreteResources other) {
         if (other instanceof EncodableDiscreteResources) {
-            return of(parent, Sets.union(this.values(), other.values()));
+            EncodableDiscreteResources cast = (EncodableDiscreteResources) other;
+            LinkedHashMap<Class<?>, EncodedDiscreteResources> newMap =
+                    Stream.concat(this.map.entrySet().stream(), cast.map.entrySet().stream())
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    Map.Entry::getValue,
+                                    EncodedDiscreteResources::add,
+                                    LinkedHashMap::new
+                            ));
+            return new EncodableDiscreteResources(parent, newMap);
         } else if (other instanceof EmptyDiscreteResources) {
             return this;
         }
