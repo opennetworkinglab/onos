@@ -17,11 +17,13 @@
 <app name="org.onosproject.netconf" origin="ON.Lab" version="${project.version}"
      category="Provider" url="https://wiki.onosproject.org/display/ONOS/NETCONF" title="NETCONF Provider"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
+     apps="org.onosproject.faultmanagement"
      features="${project.artifactId}">
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/onos-netconf-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-netconf-ctl/${project.version}</artifact>
 
     <artifact>mvn:${project.groupId}/onos-netconf-provider-device/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-netconf-provider-alarm/${project.version}</artifact>
 
 </app>

@@ -33,6 +33,7 @@
     <modules>
         <module>device</module>
         <module>app</module>
+        <module>alarm</module>
     </modules>
 
     <dependencies>

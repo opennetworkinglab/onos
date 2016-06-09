@@ -302,8 +302,6 @@ public class NetconfDeviceProvider extends AbstractProvider
                                     DeviceKeyId.deviceKeyId(deviceId.toString()),
                                     null, addr.name(), addr.password()));
                     providerService.deviceConnected(deviceId, deviceDescription);
-
-
                 });
             } catch (ConfigException e) {
                 log.error("Cannot read config error " + e);

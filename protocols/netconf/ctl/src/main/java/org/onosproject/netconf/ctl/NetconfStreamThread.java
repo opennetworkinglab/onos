@@ -57,8 +57,9 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
     private NetconfDeviceInfo netconfDeviceInfo;
     private NetconfSessionDelegate sessionDelegate;
     private NetconfMessageState state;
-    private  List<NetconfDeviceOutputEventListener> netconfDeviceEventListeners
-            = Lists.newArrayList();
+    private List<NetconfDeviceOutputEventListener> netconfDeviceEventListeners
+            = Lists.newCopyOnWriteArrayList();
+    private boolean enableNotifications = true;
 
     public NetconfStreamThread(final InputStream in, final OutputStream out,
                                final InputStream err, NetconfDeviceInfo deviceInfo,
@@ -195,12 +196,14 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
                                 netconfDeviceEventListeners.forEach(
                                         listener -> listener.event(event));
                             } else if (deviceReply.contains(NOTIFICATION_LABEL)) {
-                                final String finalDeviceReply = deviceReply;
-                                netconfDeviceEventListeners.forEach(
-                                        listener -> listener.event(new NetconfDeviceOutputEvent(
-                                                NetconfDeviceOutputEvent.Type.DEVICE_NOTIFICATION,
-                                                null, finalDeviceReply, getMsgId(finalDeviceReply),
-                                                netconfDeviceInfo)));
+                                if (enableNotifications) {
+                                    final String finalDeviceReply = deviceReply;
+                                    netconfDeviceEventListeners.forEach(
+                                            listener -> listener.event(new NetconfDeviceOutputEvent(
+                                                    NetconfDeviceOutputEvent.Type.DEVICE_NOTIFICATION,
+                                                    null, finalDeviceReply, getMsgId(finalDeviceReply),
+                                                    netconfDeviceInfo)));
+                                }
                             } else {
                                 log.info("Error on replay from device {} ", deviceReply);
                             }
@@ -239,5 +242,9 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
 
     public void removeDeviceEventListener(NetconfDeviceOutputEventListener listener) {
         netconfDeviceEventListeners.remove(listener);
+    }
+
+    public void setEnableNotifications(boolean enableNotifications) {
+        this.enableNotifications = enableNotifications;
     }
 }

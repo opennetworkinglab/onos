@@ -16,7 +16,7 @@
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -26,7 +26,19 @@
     </parent>
 
     <artifactId>onos-netconf-app</artifactId>
-    <packaging>pom</packaging>
+    <packaging>bundle</packaging>
+
+    <properties>
+        <onos.app.name>org.onosproject.netconf</onos.app.name>
+        <onos.app.title>Netconf Meta App</onos.app.title>
+        <onos.app.category>Provider</onos.app.category>
+        <onos.app.requires>
+            org.onosproject.incubator.net.faultmanagement
+        </onos.app.requires>
+        <onos.app.url>
+            https://wiki.onosproject.org/display/ONOS/Application+Subsystem
+        </onos.app.url>
+    </properties>
 
     <description>NETCONF protocol southbound providers</description>
 
@@ -34,6 +46,11 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-netconf-provider-device</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-netconf-provider-alarm</artifactId>
             <version>${project.version}</version>
         </dependency>
         <!-- Add other dependencies here as more bundles are added to the app -->

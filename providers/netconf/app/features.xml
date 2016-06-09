@@ -23,6 +23,7 @@
         <bundle>mvn:${project.groupId}/onos-netconf-ctl/${project.version}</bundle>
 
         <bundle>mvn:${project.groupId}/onos-netconf-provider-device/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-netconf-provider-alarm/${project.version}</bundle>
     </feature>
 </features>
 
