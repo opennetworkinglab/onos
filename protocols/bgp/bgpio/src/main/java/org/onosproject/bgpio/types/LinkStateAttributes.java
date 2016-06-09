@@ -106,7 +106,7 @@ public class LinkStateAttributes implements BgpValueType {
      *
      * @param linkStateAttribList Linked list of Link, Node and Prefix TLVs
      */
-    LinkStateAttributes(List<BgpValueType> linkStateAttribList) {
+    public LinkStateAttributes(List<BgpValueType> linkStateAttribList) {
         this.linkStateAttribList = linkStateAttribList;
         this.isLinkStateAttribute = true;
     }

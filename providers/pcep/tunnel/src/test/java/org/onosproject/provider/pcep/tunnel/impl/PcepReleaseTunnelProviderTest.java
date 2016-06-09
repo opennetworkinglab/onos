@@ -40,6 +40,7 @@ import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelName;
+import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
@@ -49,7 +50,10 @@ import org.onosproject.net.IpElementId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.pcep.controller.ClientCapability;
+import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcepio.types.StatefulIPv4LspIdentifiersTlv;
 
 /**
@@ -64,12 +68,16 @@ public class PcepReleaseTunnelProviderTest {
     private final PcepControllerAdapter ctl = new PcepControllerAdapter();
     private final PcepTunnelApiMapper pcepTunnelAPIMapper = new PcepTunnelApiMapper();
     private final TunnelServiceAdapter  tunnelService = new TunnelServiceAdapter();
+    private final DeviceServiceAdapter  deviceService = new DeviceServiceAdapter();
+    private final MastershipServiceAdapter  mastershipService = new MastershipServiceAdapter();
 
     @Before
     public void setUp() throws IOException {
         tunnelProvider.tunnelProviderRegistry = registry;
         tunnelProvider.pcepClientController = controller;
         tunnelProvider.controller = ctl;
+        tunnelProvider.deviceService = deviceService;
+        tunnelProvider.mastershipService = mastershipService;
         tunnelProvider.tunnelService = tunnelService;
         tunnelProvider.pcepTunnelApiMapper = pcepTunnelAPIMapper;
         tunnelProvider.cfgService = new ComponentConfigAdapter();
@@ -125,6 +133,8 @@ public class PcepReleaseTunnelProviderTest {
         tunnelProvider.pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
 
         tunnelProvider.pcepTunnelApiMapper.handleCreateTunnelRequestQueue(1, pcepTunnelData);
+        controller.getClient(PccId.pccId(IpAddress.valueOf(0xB6024E20))).setCapability(
+                new ClientCapability(true, true, true, true, true));
 
         tunnelProvider.releaseTunnel(tunnel);
         assertThat(tunnelProvider.pcepTunnelApiMapper, not(nullValue()));
@@ -179,6 +189,8 @@ public class PcepReleaseTunnelProviderTest {
         tunnelProvider.pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
 
         tunnelProvider.pcepTunnelApiMapper.handleCreateTunnelRequestQueue(1, pcepTunnelData);
+        controller.getClient(PccId.pccId(IpAddress.valueOf(0xB6024E22))).setCapability(
+                new ClientCapability(true, false, false, true, true));
 
         tunnelProvider.releaseTunnel(tunnel);
         assertThat(tunnelProvider.pcepTunnelApiMapper.checkFromTunnelRequestQueue(1), is(false));
@@ -233,6 +245,8 @@ public class PcepReleaseTunnelProviderTest {
         tunnelProvider.pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
 
         tunnelProvider.pcepTunnelApiMapper.handleCreateTunnelRequestQueue(1, pcepTunnelData);
+        controller.getClient(PccId.pccId(IpAddress.valueOf(0xB6024E20))).setCapability(
+                new ClientCapability(true, true, true, true, true));
 
         tunnelProvider.releaseTunnel(tunnel);
         assertThat(tunnelProvider.pcepTunnelApiMapper, not(nullValue()));
@@ -287,6 +301,8 @@ public class PcepReleaseTunnelProviderTest {
         tunnelProvider.pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
 
         tunnelProvider.pcepTunnelApiMapper.handleCreateTunnelRequestQueue(1, pcepTunnelData);
+        controller.getClient(PccId.pccId(IpAddress.valueOf(0xB6024E20))).setCapability(
+                new ClientCapability(true, true, true, true, true));
 
         tunnelProvider.releaseTunnel(tunnel);
         assertThat(tunnelProvider.pcepTunnelApiMapper, not(nullValue()));
@@ -298,5 +314,7 @@ public class PcepReleaseTunnelProviderTest {
         tunnelProvider.controller = null;
         tunnelProvider.pcepClientController = null;
         tunnelProvider.tunnelProviderRegistry = null;
+        tunnelProvider.deviceService = null;
+        tunnelProvider.mastershipService = null;
     }
 }

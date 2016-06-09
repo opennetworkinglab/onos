@@ -57,6 +57,10 @@ public class PcepMetricObjectVer1 implements PcepMetricObject {
     public static final int BFLAG_RESET = 0;
     public static final byte CFLAG_CHECK = 0x02;
 
+    public static final byte IGP_METRIC = 0x01;
+    public static final byte TE_METRIC = 0x02;
+    public static final byte HOP_COUNT_METRIC = 0x03;
+
     static final PcepObjectHeader DEFAULT_METRIC_OBJECT_HEADER = new PcepObjectHeader(METRIC_OBJ_CLASS,
             METRIC_OBJ_TYPE, PcepObjectHeader.REQ_OBJ_OPTIONAL_PROCESS, PcepObjectHeader.RSP_OBJ_PROCESSED,
             METRIC_OBJ_MINIMUM_LENGTH);

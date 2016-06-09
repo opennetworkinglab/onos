@@ -15,6 +15,7 @@
  */
 package org.onosproject.pcep.controller;
 
+import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.pcepio.protocol.PcepMessage;
 /**
  * Notifies providers about PCEP message events.
@@ -28,4 +29,21 @@ public interface PcepEventListener {
      * @param msg the message
      */
     void handleMessage(PccId pccId, PcepMessage msg);
+
+    /**
+     * Handles end of LSPDB sync actions.
+     *
+     * @param tunnel the tunnel on which action needs to be taken
+     * @param endOfSyncAction the action that needs to be taken for the tunnel
+     */
+    void handleEndOfSyncAction(Tunnel tunnel, PcepLspSyncAction endOfSyncAction);
+
+    /**
+     * Handles sending PCEP message to client on end of LSPDB sync.
+     *
+     * @param pccId id of the pcc
+     * @param msg the message to be sent
+     * @param endOfSyncAction the action that needs to be taken in the message
+     */
+    void handleEndOfSyncAction(PccId pccId, PcepMessage msg, PcepLspSyncAction endOfSyncAction);
 }

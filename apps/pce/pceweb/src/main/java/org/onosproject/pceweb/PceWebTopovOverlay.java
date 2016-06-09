@@ -63,7 +63,6 @@ public class PceWebTopovOverlay extends UiTopoOverlay {
     public void modifyDeviceDetails(PropertyPanel pp, DeviceId deviceId) {
 
          pp.title(MY_TITLE);
-         log.info("Modify device details called.");
 
          DeviceService deviceService = AbstractShellCommand.get(DeviceService.class);
 

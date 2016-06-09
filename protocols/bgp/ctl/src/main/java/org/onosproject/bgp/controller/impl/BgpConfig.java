@@ -205,7 +205,7 @@ public class BgpConfig implements BgpCfg {
             lspeer.setSelfInnitConnection(true);
 
             if (lspeer.connectPeer() == null) {
-                connectPeer = new BgpConnectPeerImpl(bgpController, routerid, Controller.getBgpPortNum());
+                connectPeer = new BgpConnectPeerImpl(bgpController, routerid, Controller.BGP_PORT_NUM);
                 lspeer.setConnectPeer(connectPeer);
                 connectPeer.connectPeer();
             }

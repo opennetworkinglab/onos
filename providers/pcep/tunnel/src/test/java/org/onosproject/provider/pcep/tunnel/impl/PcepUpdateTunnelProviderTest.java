@@ -47,6 +47,10 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.pcep.controller.ClientCapability;
+import org.onosproject.pcep.controller.LspKey;
+import org.onosproject.pcep.controller.PccId;
+import org.onosproject.pcepio.protocol.PcepVersion;
 import org.onosproject.pcepio.types.StatefulIPv4LspIdentifiersTlv;
 
 import static org.onosproject.provider.pcep.tunnel.impl.LspType.WITH_SIGNALLING;
@@ -99,7 +103,7 @@ public class PcepUpdateTunnelProviderTest {
 
         ConnectPoint src = new ConnectPoint(srcElementId, PortNumber.portNumber(10023));
 
-        ConnectPoint dst = new ConnectPoint(dstElementId, PortNumber.portNumber(10023));
+        ConnectPoint dst = new ConnectPoint(dstElementId, PortNumber.portNumber(10024));
 
         Link link = DefaultLink.builder().providerId(pid).src(src).dst(dst)
                 .type(Link.Type.DIRECT).build();
@@ -108,6 +112,8 @@ public class PcepUpdateTunnelProviderTest {
         path = new DefaultPath(pid, links, 20, EMPTY);
 
         Annotations annotations = DefaultAnnotations.builder()
+                .set(PcepAnnotationKeys.PLSP_ID, "1")
+                .set(PcepAnnotationKeys.LOCAL_LSP_ID, "1")
                 .set(LSP_SIG_TYPE, WITH_SIGNALLING.name())
                 .build();
 
@@ -123,6 +129,12 @@ public class PcepUpdateTunnelProviderTest {
         tunnelProvider.pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
 
         tunnelProvider.pcepTunnelApiMapper.handleCreateTunnelRequestQueue(1, pcepTunnelData);
+
+        PccId pccId = PccId.pccId(IpAddress.valueOf(0xD010101));
+        PcepClientAdapter pc = new PcepClientAdapter();
+        pc.init(pccId, PcepVersion.PCEP_1);
+        controller.getClient(pccId).setLspAndDelegationInfo(new LspKey(1, (short) 1), true);
+        controller.getClient(pccId).setCapability(new ClientCapability(true, true, true, true, true));
 
         tunnelProvider.updateTunnel(tunnel, path);
         assertThat(tunnelProvider.pcepTunnelApiMapper, not(nullValue()));
@@ -137,7 +149,7 @@ public class PcepUpdateTunnelProviderTest {
         Path path;
         ProviderId pid = new ProviderId("pcep", PROVIDER_ID);
         List<Link> links = new ArrayList<>();
-        IpAddress srcIp = IpAddress.valueOf(0xC010103);
+        IpAddress srcIp = IpAddress.valueOf(0xD010101);
         IpElementId srcElementId = IpElementId.ipElement(srcIp);
 
         IpAddress dstIp = IpAddress.valueOf(0xD010102);
@@ -151,7 +163,7 @@ public class PcepUpdateTunnelProviderTest {
 
         ConnectPoint src = new ConnectPoint(srcElementId, PortNumber.portNumber(10023));
 
-        ConnectPoint dst = new ConnectPoint(dstElementId, PortNumber.portNumber(10023));
+        ConnectPoint dst = new ConnectPoint(dstElementId, PortNumber.portNumber(10024));
 
         Link link = DefaultLink.builder().providerId(pid).src(src).dst(dst)
                 .type(Link.Type.DIRECT).build();
@@ -161,6 +173,8 @@ public class PcepUpdateTunnelProviderTest {
 
         Annotations annotations = DefaultAnnotations.builder()
                 .set(LSP_SIG_TYPE, WITH_SIGNALLING.name())
+                .set(PcepAnnotationKeys.PLSP_ID, "1")
+                .set(PcepAnnotationKeys.LOCAL_LSP_ID, "1")
                 .build();
 
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
@@ -175,6 +189,12 @@ public class PcepUpdateTunnelProviderTest {
         tunnelProvider.pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
 
         tunnelProvider.pcepTunnelApiMapper.handleCreateTunnelRequestQueue(1, pcepTunnelData);
+
+        PccId pccId = PccId.pccId(IpAddress.valueOf(0xD010101));
+        PcepClientAdapter pc = new PcepClientAdapter();
+        pc.init(pccId, PcepVersion.PCEP_1);
+        controller.getClient(pccId).setLspAndDelegationInfo(new LspKey(1, (short) 1), true);
+        controller.getClient(pccId).setCapability(new ClientCapability(true, true, true, true, true));
 
         tunnelProvider.updateTunnel(tunnel, path);
         assertThat(tunnelProvider.pcepTunnelApiMapper.checkFromTunnelRequestQueue(1), is(false));
@@ -203,7 +223,7 @@ public class PcepUpdateTunnelProviderTest {
 
         ConnectPoint src = new ConnectPoint(srcElementId, PortNumber.portNumber(10023));
 
-        ConnectPoint dst = new ConnectPoint(dstElementId, PortNumber.portNumber(10023));
+        ConnectPoint dst = new ConnectPoint(dstElementId, PortNumber.portNumber(10024));
 
         Link link = DefaultLink.builder().providerId(pid).src(src).dst(dst)
                 .type(Link.Type.DIRECT).build();
@@ -213,6 +233,8 @@ public class PcepUpdateTunnelProviderTest {
 
         Annotations annotations = DefaultAnnotations.builder()
                 .set(LSP_SIG_TYPE, SR_WITHOUT_SIGNALLING.name())
+                .set(PcepAnnotationKeys.PLSP_ID, "1")
+                .set(PcepAnnotationKeys.LOCAL_LSP_ID, "1")
                 .build();
 
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
@@ -227,6 +249,12 @@ public class PcepUpdateTunnelProviderTest {
         tunnelProvider.pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
 
         tunnelProvider.pcepTunnelApiMapper.handleCreateTunnelRequestQueue(1, pcepTunnelData);
+
+        PccId pccId = PccId.pccId(IpAddress.valueOf(0xD010101));
+        PcepClientAdapter pc = new PcepClientAdapter();
+        pc.init(pccId, PcepVersion.PCEP_1);
+        controller.getClient(pccId).setLspAndDelegationInfo(new LspKey(1, (short) 1), true);
+        controller.getClient(pccId).setCapability(new ClientCapability(true, true, true, true, true));
 
         tunnelProvider.updateTunnel(tunnel, path);
         assertThat(tunnelProvider.pcepTunnelApiMapper, not(nullValue()));
@@ -255,7 +283,7 @@ public class PcepUpdateTunnelProviderTest {
 
         ConnectPoint src = new ConnectPoint(srcElementId, PortNumber.portNumber(10023));
 
-        ConnectPoint dst = new ConnectPoint(dstElementId, PortNumber.portNumber(10023));
+        ConnectPoint dst = new ConnectPoint(dstElementId, PortNumber.portNumber(10024));
 
         Link link = DefaultLink.builder().providerId(pid).src(src).dst(dst)
                 .type(Link.Type.DIRECT).build();
@@ -265,6 +293,8 @@ public class PcepUpdateTunnelProviderTest {
 
         Annotations annotations = DefaultAnnotations.builder()
                 .set(LSP_SIG_TYPE, WITHOUT_SIGNALLING_AND_WITHOUT_SR.name())
+                .set(PcepAnnotationKeys.PLSP_ID, "1")
+                .set(PcepAnnotationKeys.LOCAL_LSP_ID, "1")
                 .build();
 
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
@@ -279,6 +309,12 @@ public class PcepUpdateTunnelProviderTest {
         tunnelProvider.pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
 
         tunnelProvider.pcepTunnelApiMapper.handleCreateTunnelRequestQueue(1, pcepTunnelData);
+
+        PccId pccId = PccId.pccId(IpAddress.valueOf(0xD010101));
+        PcepClientAdapter pc = new PcepClientAdapter();
+        pc.init(pccId, PcepVersion.PCEP_1);
+        controller.getClient(pccId).setLspAndDelegationInfo(new LspKey(1, (short) 1), true);
+        controller.getClient(pccId).setCapability(new ClientCapability(true, true, true, true, true));
 
         tunnelProvider.updateTunnel(tunnel, path);
         assertThat(tunnelProvider.pcepTunnelApiMapper, not(nullValue()));

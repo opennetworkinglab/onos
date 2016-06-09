@@ -35,6 +35,7 @@ import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelName;
+import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
@@ -44,7 +45,10 @@ import org.onosproject.net.IpElementId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.pcep.controller.ClientCapability;
+import org.onosproject.pcep.controller.PccId;
 import org.onosproject.cfg.ComponentConfigAdapter;
 
 public class PcepTunnelProviderTest {
@@ -55,6 +59,8 @@ public class PcepTunnelProviderTest {
     private final PcepClientControllerAdapter controller = new PcepClientControllerAdapter();
     private final PcepControllerAdapter ctl = new PcepControllerAdapter();
     private final TunnelServiceAdapter  tunnelService = new TunnelServiceAdapter();
+    private final DeviceServiceAdapter  deviceService = new DeviceServiceAdapter();
+    private final MastershipServiceAdapter  mastershipService = new MastershipServiceAdapter();
 
     @Test
     public void testCasePcepSetupTunnel() {
@@ -62,6 +68,8 @@ public class PcepTunnelProviderTest {
         tunnelProvider.tunnelProviderRegistry = registry;
         tunnelProvider.pcepClientController = controller;
         tunnelProvider.controller = ctl;
+        tunnelProvider.deviceService = deviceService;
+        tunnelProvider.mastershipService = mastershipService;
         tunnelProvider.cfgService = new ComponentConfigAdapter();
         tunnelProvider.tunnelService = tunnelService;
         tunnelProvider.activate();
@@ -99,6 +107,8 @@ public class PcepTunnelProviderTest {
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
                                    new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
                                    path, annotations);
+        controller.getClient(PccId.pccId(IpAddress.valueOf(0xC010101))).setCapability(
+                new ClientCapability(true, true, true, true, true));
 
         tunnelProvider.setupTunnel(tunnel, path);
 
@@ -109,6 +119,8 @@ public class PcepTunnelProviderTest {
     public void tearDown() throws IOException {
         tunnelProvider.deactivate();
         tunnelProvider.controller = null;
+        tunnelProvider.deviceService = null;
+        tunnelProvider.mastershipService = null;
         tunnelProvider.pcepClientController = null;
         tunnelProvider.tunnelProviderRegistry = null;
     }

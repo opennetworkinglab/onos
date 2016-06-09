@@ -163,7 +163,6 @@ public class WideCommunityAttrHeader implements BgpValueType {
         c.writeShort(TYPE);
         c.writeByte(flag);
         c.writeByte(hopCount);
-        c.writeShort(length);
         return c.writerIndex() - iLenStartIndex;
     }
 

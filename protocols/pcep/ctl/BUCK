@@ -2,6 +2,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//protocols/pcep/pcepio:onos-protocols-pcep-pcepio',
     '//protocols/pcep/api:onos-protocols-pcep-api',
+    '//incubator/api:onos-incubator-api',
 ]
 
 osgi_jar_with_tests (

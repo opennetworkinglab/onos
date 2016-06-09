@@ -15,13 +15,17 @@ import static org.onosproject.pce.pceservice.PathComputationTest.D1;
 import static org.onosproject.pce.pceservice.PathComputationTest.D2;
 import static org.onosproject.pce.pceservice.PathComputationTest.D3;
 import static org.onosproject.pce.pceservice.PathComputationTest.D4;
+import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE1;
+import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE2;
+import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE3;
+import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE4;
 import static org.onosproject.pce.pceservice.PcepAnnotationKeys.LOCAL_LSP_ID;
 import static org.onosproject.pce.pceservice.PcepAnnotationKeys.PLSP_ID;
 import static org.onosproject.incubator.net.tunnel.Tunnel.State.UNSTABLE;
 import static org.onosproject.incubator.net.tunnel.Tunnel.State.ESTABLISHED;
+import static org.onosproject.net.MastershipRole.MASTER;
 
 import java.net.URISyntaxException;
-import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,14 +39,18 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.graph.GraphPathSearch;
+import org.onlab.junit.TestUtils;
+import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.TCP;
 import org.onlab.util.Bandwidth;
 import org.onosproject.common.DefaultTopologyGraph;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.IdGenerator;
+import org.onosproject.event.Event;
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
 import org.onosproject.incubator.net.resource.label.LabelResourceService;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
@@ -52,6 +60,7 @@ import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.TunnelEvent;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelListener;
+import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
@@ -60,6 +69,7 @@ import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.Device;
 import org.onosproject.net.DefaultAnnotations.Builder;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.DeviceId;
@@ -71,6 +81,7 @@ import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.packet.DefaultInboundPacket;
 import org.onosproject.net.packet.DefaultPacketContext;
 import org.onosproject.net.packet.InboundPacket;
@@ -86,7 +97,9 @@ import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathServiceAdapter;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyEdge;
+import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyGraph;
+import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyServiceAdapter;
 import org.onosproject.net.topology.TopologyVertex;
 import org.onosproject.pce.pceservice.PathComputationTest.MockPathResourceService;
@@ -97,7 +110,9 @@ import org.onosproject.pce.util.PceStoreAdapter;
 import org.onosproject.pce.util.TunnelServiceAdapter;
 import org.onosproject.pce.util.FlowObjServiceAdapter;
 import org.onosproject.store.service.TestStorageService;
+
 import com.google.common.collect.ImmutableSet;
+import static org.onosproject.pce.pceservice.PceManager.PCEP_PORT;
 
 /**
  * Tests the functions of PceManager.
@@ -107,6 +122,7 @@ public class PceManagerTest {
     private PathComputationTest pathCompTest = new PathComputationTest();
     private MockPathResourceService resourceService = pathCompTest.new MockPathResourceService();
     private MockTopologyService topologyService = new MockTopologyService();
+    private MockMastershipService mastershipService = new MockMastershipService();
     private MockPathService pathService = new MockPathService();
     private PceManager pceManager = new PceManager();
     private MockCoreService coreService = new MockCoreService();
@@ -129,13 +145,19 @@ public class PceManagerTest {
     private Device deviceD1, deviceD2, deviceD3, deviceD4;
     private Device pcepDeviceD1, pcepDeviceD2, pcepDeviceD3, pcepDeviceD4;
     private Link link1, link2, link3, link4;
-    private static int flowsDownloaded;
+    protected static int flowsDownloaded;
     private TunnelListener tunnelListener;
+    private TopologyListener listener;
+    private Topology topology;
+    private Set<TopologyEdge> edges;
+    private Set<TopologyVertex> vertexes;
 
     @Before
-    public void startUp() {
+    public void startUp() throws TestUtilsException {
+        listener = TestUtils.getField(pceManager, "topologyListener");
         pceManager.pathService = pathService;
         pceManager.resourceService = resourceService;
+        pceManager.topologyService = topologyService;
         pceManager.tunnelService = tunnelService;
         pceManager.coreService = coreService;
         pceManager.storageService = storageService;
@@ -144,33 +166,51 @@ public class PceManagerTest {
         pceManager.labelRsrcService = labelResourceService;
         pceManager.flowObjectiveService = flowObjectiveService;
         pceManager.pceStore = pceStore;
+        pceManager.mastershipService = mastershipService;
         pceManager.activate();
+    }
+
+    private class MockMastershipService extends MastershipServiceAdapter {
+        @Override
+        public MastershipRole getLocalRole(DeviceId deviceId) {
+            return MASTER;
+        }
+
+        @Override
+        public boolean isLocalMaster(DeviceId deviceId) {
+            return getLocalRole(deviceId) == MASTER;
+        }
     }
 
     private void build4RouterTopo(boolean setCost, boolean setPceccCap, boolean setSrCap,
                                  boolean setLabelStackCap, int bandwidth) {
+        link1 = PathComputationTest.addLink(DEVICE1, 10, DEVICE2, 20, setCost, 50);
+        link2 = PathComputationTest.addLink(DEVICE2, 30, DEVICE4, 40, setCost, 20);
+        link3 = PathComputationTest.addLink(DEVICE1, 80, DEVICE3, 70, setCost, 100);
+        link4 = PathComputationTest.addLink(DEVICE3, 60, DEVICE4, 50, setCost, 80);
+
         Set<TopologyVertex> vertexes = new HashSet<TopologyVertex>();
         vertexes.add(D1);
         vertexes.add(D2);
         vertexes.add(D3);
         vertexes.add(D4);
 
+        this.vertexes = vertexes;
+
         Set<TopologyEdge> edges = new HashSet<TopologyEdge>();
-        link1 = PathComputationTest.addLink(D1.deviceId().toString(), 10, D2.deviceId().toString(), 20, setCost, 50);
         TopologyEdge edge1 = new DefaultTopologyEdge(D1, D2, link1);
         edges.add(edge1);
 
-        link2 = PathComputationTest.addLink(D2.deviceId().toString(), 30, D4.deviceId().toString(), 40, setCost, 20);
         TopologyEdge edge2 = new DefaultTopologyEdge(D2, D4, link2);
         edges.add(edge2);
 
-        link3 = PathComputationTest.addLink(D1.deviceId().toString(), 80, D3.deviceId().toString(), 70, setCost, 100);
         TopologyEdge edge3 = new DefaultTopologyEdge(D1, D3, link3);
         edges.add(edge3);
 
-        link4 = PathComputationTest.addLink(D3.deviceId().toString(), 60, D4.deviceId().toString(), 50, setCost, 80);
         TopologyEdge edge4 = new DefaultTopologyEdge(D3, D4, link4);
         edges.add(edge4);
+
+        this.edges = edges;
 
         graph = new DefaultTopologyGraph(vertexes, edges);
 
@@ -636,12 +676,9 @@ public class PceManagerTest {
      * Tests packet in to trigger label DB sync.
      */
     @Test
-    public void packetProcessingTest() throws URISyntaxException {
+    public void packetProcessingTest1() throws URISyntaxException {
 
         build4RouterTopo(false, true, true, true, 0); // This also initializes devices etc.
-
-        final int srcHost = 2;
-        final int dstHost = 5;
 
         LabelResourceId node1Label = LabelResourceId.labelResourceId(5200);
         LabelResourceId node2Label = LabelResourceId.labelResourceId(5201);
@@ -649,8 +686,8 @@ public class PceManagerTest {
         pceManager.pceStore.addGlobalNodeLabel(D1.deviceId(), node1Label);
         pceManager.pceStore.addGlobalNodeLabel(D2.deviceId(), node2Label);
 
-        ConnectPoint src = new ConnectPoint(D1.deviceId(), PortNumber.portNumber(srcHost));
-        ConnectPoint dst = new ConnectPoint(D2.deviceId(), PortNumber.portNumber(dstHost));
+        ConnectPoint src = new ConnectPoint(D1.deviceId(), PortNumber.portNumber(1));
+        ConnectPoint dst = new ConnectPoint(D2.deviceId(), PortNumber.portNumber(2));
 
         Link link1 = DefaultLink.builder().src(src).dst(dst).state(ACTIVE).type(DIRECT)
                 .providerId(new ProviderId("eth", "1")).build();
@@ -658,21 +695,63 @@ public class PceManagerTest {
         LabelResourceId link1Label = LabelResourceId.labelResourceId(5204);
         pceManager.pceStore.addAdjLabel(link1, link1Label);
 
-        Ethernet eth;
-        IPv4 ipv4;
+        TCP tcp = new TCP();
+        tcp.setDestinationPort(PCEP_PORT);
 
-        ipv4 = new IPv4();
-        eth = new Ethernet();
+        IPv4 ipv4 = new IPv4();
+        ipv4.setProtocol(IPv4.PROTOCOL_TCP);
+        ipv4.setPayload(tcp);
+
+        Ethernet eth = new Ethernet();
         eth.setEtherType(Ethernet.TYPE_IPV4);
         eth.setPayload(ipv4);
 
-        eth.setSourceMACAddress("00:00:00:10:00:0" + srcHost).setDestinationMACAddress("00:00:00:10:00:0" + dstHost);
-
-        InboundPacket inPkt = new DefaultInboundPacket(new ConnectPoint(D1.deviceId(), PortNumber.portNumber(srcHost)),
-                                                       eth, ByteBuffer.wrap(eth.serialize()));
+        InboundPacket inPkt = new DefaultInboundPacket(new ConnectPoint(D1.deviceId(),
+                                                                        PortNumber.portNumber(PCEP_PORT)),
+                                                       eth, null);
 
         pktProcessor.process(new MockPcepPacketContext(inPkt, null));
         assertThat(flowsDownloaded, is(4));
+    }
+
+    /**
+     * Tests faulty packet in to trigger label DB sync.
+     */
+    @Test
+    public void packetProcessingTest2() throws URISyntaxException {
+
+        build4RouterTopo(false, true, true, true, 0); // This also initializes devices etc.
+
+        LabelResourceId node1Label = LabelResourceId.labelResourceId(5200);
+        LabelResourceId node2Label = LabelResourceId.labelResourceId(5201);
+
+        pceManager.pceStore.addGlobalNodeLabel(D1.deviceId(), node1Label);
+        pceManager.pceStore.addGlobalNodeLabel(D2.deviceId(), node2Label);
+
+        ConnectPoint src = new ConnectPoint(D1.deviceId(), PortNumber.portNumber(1));
+        ConnectPoint dst = new ConnectPoint(D2.deviceId(), PortNumber.portNumber(2));
+
+        Link link1 = DefaultLink.builder().src(src).dst(dst).state(ACTIVE).type(DIRECT)
+                .providerId(new ProviderId("eth", "1")).build();
+
+        LabelResourceId link1Label = LabelResourceId.labelResourceId(5204);
+        pceManager.pceStore.addAdjLabel(link1, link1Label);
+
+        TCP tcp = new TCP(); // Not set the pcep port.
+        IPv4 ipv4 = new IPv4();
+        ipv4.setProtocol(IPv4.PROTOCOL_TCP);
+        ipv4.setPayload(tcp);
+
+        Ethernet eth = new Ethernet();
+        eth.setEtherType(Ethernet.TYPE_IPV4);
+        eth.setPayload(ipv4);
+
+        InboundPacket inPkt = new DefaultInboundPacket(new ConnectPoint(D1.deviceId(),
+                                                                        PortNumber.portNumber(PCEP_PORT)),
+                                                       eth, null);
+
+        pktProcessor.process(new MockPcepPacketContext(inPkt, null));
+        assertThat(flowsDownloaded, is(0));
     }
 
     /**
@@ -800,6 +879,390 @@ public class PceManagerTest {
         assertThat(pceStore.getFailedPathInfoCount(), is(1));
     }
 
+    /**
+     * Tests resilency when L2 link is down.
+     */
+    @Test
+    public void resilencyTest1() {
+        build4RouterTopo(true, false, false, false, 10);
+
+
+        List<Constraint> constraints = new LinkedList<Constraint>();
+        CostConstraint costConstraint = new CostConstraint(COST);
+        constraints.add(costConstraint);
+        BandwidthConstraint localBwConst = new BandwidthConstraint(Bandwidth.bps(10));
+        constraints.add(localBwConst);
+
+        //Setup the path , tunnel created
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123", constraints, WITH_SIGNALLING);
+        assertThat(result, is(true));
+        assertThat(pceStore.getTunnelInfoCount(), is(1));
+        assertThat(pceStore.getFailedPathInfoCount(), is(0));
+
+        List<Event> reasons = new LinkedList<>();
+        final LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link2);
+        reasons.add(linkEvent);
+        final TopologyEvent event = new TopologyEvent(
+                TopologyEvent.Type.TOPOLOGY_CHANGED,
+                topology,
+                reasons);
+
+        //Change Topology : remove link2
+        Set<TopologyEdge> tempEdges = new HashSet<>();
+        tempEdges.add(new DefaultTopologyEdge(D2, D4, link2));
+        topologyService.changeInTopology(getGraph(null,  tempEdges));
+        listener.event(event);
+
+        List<Link> links = new LinkedList<>();
+        links.add(link3);
+        links.add(link4);
+
+        //Path is D1-D3-D4
+        assertThat(pathService.paths().iterator().next().links(), is(links));
+        assertThat(pathService.paths().iterator().next().cost(), is((double) 180));
+    }
+
+    /**
+     * Tests resilency when L2 and L4 link is down.
+     */
+    @Test
+    public void resilencyTest2() {
+        build4RouterTopo(true, false, false, false, 10);
+
+        List<Constraint> constraints = new LinkedList<Constraint>();
+        CostConstraint costConstraint = new CostConstraint(COST);
+        constraints.add(costConstraint);
+        BandwidthConstraint localBwConst = new BandwidthConstraint(Bandwidth.bps(10));
+        constraints.add(localBwConst);
+
+        //Setup the path , tunnel created
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123", constraints, WITH_SIGNALLING);
+        assertThat(result, is(true));
+
+        List<Event> reasons = new LinkedList<>();
+        LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link2);
+        reasons.add(linkEvent);
+        linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link4);
+        reasons.add(linkEvent);
+        final TopologyEvent event = new TopologyEvent(
+                TopologyEvent.Type.TOPOLOGY_CHANGED,
+                topology,
+                reasons);
+
+        //Change Topology : remove link2 and link4
+        Set<TopologyEdge> tempEdges = new HashSet<>();
+        tempEdges.add(new DefaultTopologyEdge(D2, D4, link2));
+        tempEdges.add(new DefaultTopologyEdge(D3, D4, link4));
+        topologyService.changeInTopology(getGraph(null,  tempEdges));
+        listener.event(event);
+
+        //No Path
+        assertThat(pathService.paths().size(), is(0));
+    }
+
+    /**
+     * Tests resilency when D2 device is down.
+     */
+    @Test
+    public void resilencyTest3() {
+        build4RouterTopo(true, false, false, false, 10);
+
+        List<Constraint> constraints = new LinkedList<Constraint>();
+        CostConstraint costConstraint = new CostConstraint(COST);
+        constraints.add(costConstraint);
+        BandwidthConstraint localBwConst = new BandwidthConstraint(Bandwidth.bps(10));
+        constraints.add(localBwConst);
+
+        //Setup the path , tunnel created
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123", constraints, WITH_SIGNALLING);
+        assertThat(result, is(true));
+
+        List<Event> reasons = new LinkedList<>();
+        LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link2);
+        reasons.add(linkEvent);
+        linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link1);
+        reasons.add(linkEvent);
+        final TopologyEvent event = new TopologyEvent(
+                TopologyEvent.Type.TOPOLOGY_CHANGED,
+                topology,
+                reasons);
+
+        //Change Topology : remove link2 and link1
+        Set<TopologyEdge> tempEdges = new HashSet<>();
+        tempEdges.add(new DefaultTopologyEdge(D2, D4, link2));
+        tempEdges.add(new DefaultTopologyEdge(D1, D2, link1));
+        topologyService.changeInTopology(getGraph(null,  tempEdges));
+        listener.event(event);
+
+        List<Link> links = new LinkedList<>();
+        links.add(link3);
+        links.add(link4);
+
+        //Path is D1-D3-D4
+        assertThat(pathService.paths().iterator().next().links(), is(links));
+        assertThat(pathService.paths().iterator().next().cost(), is((double) 180));
+    }
+
+    /**
+     * Tests resilency when ingress device is down.
+     */
+    @Test
+    public void resilencyTest4() {
+        build4RouterTopo(true, false, false, false, 10);
+
+        List<Constraint> constraints = new LinkedList<Constraint>();
+        CostConstraint costConstraint = new CostConstraint(COST);
+        constraints.add(costConstraint);
+        BandwidthConstraint localBwConst = new BandwidthConstraint(Bandwidth.bps(10));
+        constraints.add(localBwConst);
+
+        //Setup the path , tunnel created
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123", constraints, WITH_SIGNALLING);
+        assertThat(result, is(true));
+
+        List<Event> reasons = new LinkedList<>();
+        LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link3);
+        reasons.add(linkEvent);
+        linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link1);
+        reasons.add(linkEvent);
+        final TopologyEvent event = new TopologyEvent(
+                TopologyEvent.Type.TOPOLOGY_CHANGED,
+                topology,
+                reasons);
+
+        //Change Topology : remove link2 and link1
+        Set<TopologyEdge> tempEdges = new HashSet<>();
+        tempEdges.add(new DefaultTopologyEdge(D1, D3, link3));
+        tempEdges.add(new DefaultTopologyEdge(D1, D2, link1));
+        topologyService.changeInTopology(getGraph(null,  tempEdges));
+        listener.event(event);
+
+        //No path
+        assertThat(pathService.paths().size(), is(0));
+    }
+
+    /**
+     * Tests resilency when D2 and D3 devices are down.
+     */
+    @Test
+    public void resilencyTest5() {
+        build4RouterTopo(true, false, false, false, 10);
+
+        List<Constraint> constraints = new LinkedList<Constraint>();
+        CostConstraint costConstraint = new CostConstraint(COST);
+        constraints.add(costConstraint);
+        BandwidthConstraint localBwConst = new BandwidthConstraint(Bandwidth.bps(10));
+        constraints.add(localBwConst);
+
+        //Setup the path , tunnel created
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123", constraints, WITH_SIGNALLING);
+        assertThat(result, is(true));
+
+        List<Event> reasons = new LinkedList<>();
+        LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link2);
+        reasons.add(linkEvent);
+        linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link1);
+        reasons.add(linkEvent);
+        linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link3);
+        reasons.add(linkEvent);
+        linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link4);
+        reasons.add(linkEvent);
+
+        final TopologyEvent event = new TopologyEvent(
+                TopologyEvent.Type.TOPOLOGY_CHANGED,
+                topology,
+                reasons);
+
+        //Change Topology : remove device2, device3 and all links
+        Set<TopologyEdge> tempEdges = new HashSet<>();
+        tempEdges.add(new DefaultTopologyEdge(D1, D2, link1));
+        tempEdges.add(new DefaultTopologyEdge(D2, D4, link2));
+        tempEdges.add(new DefaultTopologyEdge(D1, D3, link3));
+        tempEdges.add(new DefaultTopologyEdge(D3, D4, link4));
+        Set<TopologyVertex> tempVertexes = new HashSet<>();
+        tempVertexes.add(D2);
+        tempVertexes.add(D3);
+        topologyService.changeInTopology(getGraph(tempVertexes, tempEdges));
+        listener.event(event);
+
+        //No path
+        assertThat(pathService.paths().size(), is(0));
+    }
+
+    /**
+     * Tests resilency when egress device is down.
+     */
+    @Test
+    public void resilencyTest6() {
+        build4RouterTopo(true, false, false, false, 10);
+
+        List<Constraint> constraints = new LinkedList<Constraint>();
+        CostConstraint costConstraint = new CostConstraint(COST);
+        constraints.add(costConstraint);
+        BandwidthConstraint localBwConst = new BandwidthConstraint(Bandwidth.bps(10));
+        constraints.add(localBwConst);
+
+        //Setup the path , tunnel created
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123", constraints, WITH_SIGNALLING);
+        assertThat(result, is(true));
+
+        List<Event> reasons = new LinkedList<>();
+        LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link2);
+        reasons.add(linkEvent);
+        linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link4);
+        reasons.add(linkEvent);
+
+        final TopologyEvent event = new TopologyEvent(
+                TopologyEvent.Type.TOPOLOGY_CHANGED,
+                topology,
+                reasons);
+
+        //Change Topology : remove device4 , link2 and link4
+        Set<TopologyEdge> tempEdges = new HashSet<>();
+        tempEdges.add(new DefaultTopologyEdge(D2, D4, link2));
+        tempEdges.add(new DefaultTopologyEdge(D3, D4, link4));
+        Set<TopologyVertex> tempVertexes = new HashSet<>();
+        tempVertexes.add(D4);
+        topologyService.changeInTopology(getGraph(tempVertexes, tempEdges));
+        listener.event(event);
+
+        //No path
+        assertThat(pathService.paths().size(), is(0));
+    }
+
+    /**
+     * Tests resilency when egress device is down.
+     */
+    @Test
+    public void resilencyTest7() {
+        build4RouterTopo(true, false, false, false, 10);
+
+        List<Constraint> constraints = new LinkedList<Constraint>();
+        CostConstraint costConstraint = new CostConstraint(COST);
+        constraints.add(costConstraint);
+        BandwidthConstraint localBwConst = new BandwidthConstraint(Bandwidth.bps(10));
+        constraints.add(localBwConst);
+
+        //Setup the path , tunnel created
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123", constraints, WITH_SIGNALLING);
+        assertThat(result, is(true));
+
+        List<Event> reasons = new LinkedList<>();
+        LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link2);
+        reasons.add(linkEvent);
+        linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link4);
+        reasons.add(linkEvent);
+
+        final TopologyEvent event = new TopologyEvent(
+                TopologyEvent.Type.TOPOLOGY_CHANGED,
+                topology,
+                reasons);
+
+        //Change Topology : remove device4 , link2 and link4
+        Set<TopologyEdge> tempEdges = new HashSet<>();
+        tempEdges.add(new DefaultTopologyEdge(D2, D4, link2));
+        tempEdges.add(new DefaultTopologyEdge(D3, D4, link4));
+        Set<TopologyVertex> tempVertexes = new HashSet<>();
+        tempVertexes.add(D4);
+        topologyService.changeInTopology(getGraph(tempVertexes, tempEdges));
+        listener.event(event);
+
+        //No path
+        assertThat(pathService.paths().size(), is(0));
+    }
+
+    /**
+     * Tests resilency when D2 device is suspended.
+     */
+    @Test
+    public void resilencyTest8() {
+        build4RouterTopo(true, false, false, false, 10);
+
+        List<Constraint> constraints = new LinkedList<Constraint>();
+        CostConstraint costConstraint = new CostConstraint(COST);
+        constraints.add(costConstraint);
+        BandwidthConstraint localBwConst = new BandwidthConstraint(Bandwidth.bps(10));
+        constraints.add(localBwConst);
+
+        //Setup the path , tunnel created
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123", constraints, WITH_SIGNALLING);
+        assertThat(result, is(true));
+
+        List<Event> reasons = new LinkedList<>();
+        LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link1);
+        reasons.add(linkEvent);
+        linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link2);
+        reasons.add(linkEvent);
+
+        final TopologyEvent event = new TopologyEvent(
+                TopologyEvent.Type.TOPOLOGY_CHANGED,
+                topology,
+                reasons);
+
+        //Change Topology : remove device2 , link1 and link2
+        Set<TopologyEdge> tempEdges = new HashSet<>();
+        tempEdges.add(new DefaultTopologyEdge(D1, D2, link1));
+        tempEdges.add(new DefaultTopologyEdge(D2, D4, link2));
+        Set<TopologyVertex> tempVertexes = new HashSet<>();
+        tempVertexes.add(D2);
+        topologyService.changeInTopology(getGraph(tempVertexes, tempEdges));
+        listener.event(event);
+
+        List<Link> links = new LinkedList<>();
+        links.add(link3);
+        links.add(link4);
+
+        //Path is D1-D3-D4
+        assertThat(pathService.paths().iterator().next().links(), is(links));
+        assertThat(pathService.paths().iterator().next().cost(), is((double) 180));
+    }
+
+    /**
+     * Tests resilency when D2 device availability is changed.
+     */
+    @Test
+    public void resilencyTest11() {
+        build4RouterTopo(true, false, false, false, 10);
+
+        List<Constraint> constraints = new LinkedList<Constraint>();
+        CostConstraint costConstraint = new CostConstraint(COST);
+        constraints.add(costConstraint);
+        BandwidthConstraint localBwConst = new BandwidthConstraint(Bandwidth.bps(10));
+        constraints.add(localBwConst);
+
+        //Setup the path , tunnel created
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123", constraints, WITH_SIGNALLING);
+        assertThat(result, is(true));
+
+        List<Event> reasons = new LinkedList<>();
+        LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link1);
+        reasons.add(linkEvent);
+        linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link2);
+        reasons.add(linkEvent);
+
+        final TopologyEvent event = new TopologyEvent(
+                TopologyEvent.Type.TOPOLOGY_CHANGED,
+                topology,
+                reasons);
+
+        //Change Topology : remove device2 , link1 and link2
+        Set<TopologyEdge> tempEdges = new HashSet<>();
+        tempEdges.add(new DefaultTopologyEdge(D1, D2, link1));
+        tempEdges.add(new DefaultTopologyEdge(D2, D4, link2));
+        Set<TopologyVertex> tempVertexes = new HashSet<>();
+        tempVertexes.add(D2);
+        topologyService.changeInTopology(getGraph(tempVertexes, tempEdges));
+        listener.event(event);
+
+        List<Link> links = new LinkedList<>();
+        links.add(link3);
+        links.add(link4);
+
+        //Path is D1-D3-D4
+        assertThat(pathService.paths().iterator().next().links(), is(links));
+        assertThat(pathService.paths().iterator().next().cost(), is((double) 180));
+    }
+
     @After
     public void tearDown() {
         pceManager.deactivate();
@@ -813,10 +1276,16 @@ public class PceManagerTest {
         pceManager.labelRsrcService = null;
         pceManager.flowObjectiveService = null;
         pceManager.pceStore = null;
+        pceManager.topologyService = null;
+        pceManager.mastershipService = null;
         flowsDownloaded = 0;
     }
 
     private class MockTopologyService extends TopologyServiceAdapter {
+        private void changeInTopology(TopologyGraph graphModified) {
+            graph = graphModified;
+        }
+
         @Override
         public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight) {
             DefaultTopologyVertex srcV = new DefaultTopologyVertex(src);
@@ -837,8 +1306,27 @@ public class PceManagerTest {
         }
     }
 
-    private class MockPathService extends PathServiceAdapter {
+    private TopologyGraph getGraph(Set<TopologyVertex> removedVertex, Set<TopologyEdge> removedEdges) {
+        if (removedVertex != null) {
+            vertexes.remove(removedVertex);
+            removedVertex.forEach(v ->
+            {
+                vertexes.remove(v);
+            });
+        }
 
+        if (removedEdges != null) {
+            removedEdges.forEach(e ->
+            {
+                edges.remove(e);
+            });
+        }
+
+        return new DefaultTopologyGraph(vertexes, edges);
+    }
+
+    private class MockPathService extends PathServiceAdapter {
+        Set<Path> computedPaths;
         @Override
         public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight) {
             // If either edge is null, bail with no paths.
@@ -848,7 +1336,12 @@ public class PceManagerTest {
 
             // Otherwise get all paths between the source and destination edge
             // devices.
-            return topologyService.getPaths(null, (DeviceId) src, (DeviceId) dst, weight);
+            computedPaths = topologyService.getPaths(null, (DeviceId) src, (DeviceId) dst, weight);
+            return computedPaths;
+        }
+
+        private Set<Path> paths() {
+            return computedPaths;
         }
     }
 
@@ -945,6 +1438,31 @@ public class PceManagerTest {
             }
 
             return result.size() == 0 ? Collections.emptySet() : ImmutableSet.copyOf(result);
+        }
+
+        @Override
+        public Collection<Tunnel> queryAllTunnels() {
+            Collection<Tunnel> result = new HashSet<Tunnel>();
+
+            for (TunnelId tunnelId : tunnelIdAsKeyStore.keySet()) {
+                result.add(tunnelIdAsKeyStore.get(tunnelId));
+            }
+
+            return result.size() == 0 ? Collections.emptySet() : ImmutableSet.copyOf(result);
+        }
+        @Override
+        public Iterable<Tunnel> getTunnels(DeviceId deviceId) {
+            List<Tunnel> tunnelList = new LinkedList<>();
+
+            for (Tunnel t : tunnelIdAsKeyStore.values()) {
+                for (Link l : t.path().links()) {
+                    if (l.src().deviceId().equals(deviceId) || l.dst().deviceId().equals(deviceId)) {
+                        tunnelList.add(t);
+                        break;
+                    }
+                }
+            }
+            return tunnelList;
         }
     }
 

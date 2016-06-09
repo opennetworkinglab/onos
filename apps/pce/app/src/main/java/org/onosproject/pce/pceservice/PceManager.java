@@ -26,6 +26,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv4;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -35,6 +41,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.TCP;
 import org.onlab.util.Bandwidth;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -52,6 +59,7 @@ import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelListener;
 import org.onosproject.incubator.net.tunnel.TunnelName;
 import org.onosproject.incubator.net.tunnel.TunnelService;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultAnnotations.Builder;
 import org.onosproject.net.Device;
@@ -63,6 +71,7 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import org.onosproject.net.link.LinkEvent;
 import org.onosproject.pce.pceservice.constraint.CapabilityConstraint;
 import org.onosproject.pce.pceservice.constraint.CapabilityConstraint.CapabilityType;
 import org.onosproject.pce.pceservice.constraint.CostConstraint;
@@ -76,6 +85,9 @@ import org.onosproject.net.resource.Resources;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyEdge;
+import org.onosproject.net.topology.TopologyEvent;
+import org.onosproject.net.topology.TopologyListener;
+import org.onosproject.net.topology.TopologyService;
 import org.onosproject.pce.pceservice.api.PceService;
 import org.onosproject.pce.pcestore.PcePathInfo;
 import org.onosproject.pce.pcestore.PceccTunnelInfo;
@@ -131,6 +143,7 @@ public class PceManager implements PceService {
     private static final String TRUE = "true";
     private static final String FALSE = "false";
     private static final String END_OF_SYNC_IP_PREFIX = "0.0.0.0/32";
+    public static final int PCEP_PORT = 4189;
 
     private IdGenerator localLspIdIdGen;
     protected DistributedSet<Short> localLspIdFreeList;
@@ -171,12 +184,23 @@ public class PceManager implements PceService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveService flowObjectiveService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected TopologyService topologyService;
+
     private TunnelListener listener = new InnerTunnelListener();
     private BasicPceccHandler crHandler;
     private PceccSrTeBeHandler srTeHandler;
     private ApplicationId appId;
 
     private final PcepPacketProcessor processor = new PcepPacketProcessor();
+    private final TopologyListener topologyListener = new InternalTopologyListener();
+    private ScheduledExecutorService executor;
+
+    public static final int INITIAL_DELAY = 30;
+    public static final int PERIODIC_DELAY = 30;
 
     /**
      * Creates new instance of PceManager.
@@ -204,6 +228,10 @@ public class PceManager implements PceService {
                 .asDistributedSet();
 
         packetService.addProcessor(processor, PacketProcessor.director(4));
+        topologyService.addListener(topologyListener);
+        executor = Executors.newSingleThreadScheduledExecutor();
+        //Start a timer when the component is up, with initial delay of 30min and periodic delays at 30min
+        executor.scheduleAtFixedRate(new GlobalOptimizationTimer(), INITIAL_DELAY, PERIODIC_DELAY, TimeUnit.MINUTES);
         log.info("Started");
     }
 
@@ -211,6 +239,9 @@ public class PceManager implements PceService {
     protected void deactivate() {
         tunnelService.removeListener(listener);
         packetService.removeProcessor(processor);
+        topologyService.removeListener(topologyListener);
+        //Shutdown the thread when component is deactivated
+        executor.shutdown();
         log.info("Stopped");
     }
 
@@ -395,6 +426,7 @@ public class PceManager implements PceService {
         List<Link> links = tunnel.path().links();
         String lspSigType = tunnel.annotations().value(LSP_SIG_TYPE);
         double bwConstraintValue = 0;
+        String costType = null;
         SharedBandwidthConstraint shBwConstraint = null;
         BandwidthConstraint bwConstraint = null;
         CostConstraint costConstraint = null;
@@ -409,6 +441,7 @@ public class PceManager implements PceService {
                     bwConstraintValue = bwConstraint.bandwidth().bps();
                 } else if (constraint instanceof CostConstraint) {
                     costConstraint = (CostConstraint) constraint;
+                costType = costConstraint.type().name();
                 }
             }
 
@@ -454,6 +487,9 @@ public class PceManager implements PceService {
 
         Builder annotationBuilder = DefaultAnnotations.builder();
         annotationBuilder.set(BANDWIDTH, String.valueOf(bwConstraintValue));
+        if (costType != null) {
+            annotationBuilder.set(COST_TYPE, costType);
+        }
         annotationBuilder.set(LSP_SIG_TYPE, lspSigType);
         annotationBuilder.set(PCE_INIT, TRUE);
         annotationBuilder.set(DELEGATE, TRUE);
@@ -594,8 +630,66 @@ public class PceManager implements PceService {
         }
     }
 
+    //TODO: annotations used for temporarily later projection/network config will be used
+    private class InternalTopologyListener implements TopologyListener {
+       @Override
+        public void event(TopologyEvent event) {
+             event.reasons().forEach(e -> {
+                //If event type is link removed, get the impacted tunnel
+                if (e instanceof LinkEvent) {
+                    LinkEvent linkEvent = (LinkEvent) e;
+                    if (linkEvent.type() == LinkEvent.Type.LINK_REMOVED) {
+                        tunnelService.queryTunnel(MPLS).forEach(t -> {
+                                if (t.path().links().contains((e.subject()))) {
+                                    // Check whether this ONOS instance is master for ingress device if yes,
+                                    // recompute and send update
+                                    checkForMasterAndUpdateTunnel(t.path().src().deviceId(), t);
+                                }
+                        });
+                    }
+                }
+                });
+        }
+    }
 
-    // Allocates the bandwidth locally for PCECC tunnels.
+    private boolean checkForMasterAndUpdateTunnel(DeviceId src, Tunnel tunnel) {
+        /**
+         * Master of ingress node will recompute and also delegation flag must be set.
+         */
+        if (mastershipService.isLocalMaster(src)
+                && Boolean.valueOf(tunnel.annotations().value(DELEGATE)) != null) {
+            LinkedList<Constraint> constraintList = new LinkedList<>();
+
+            if (tunnel.annotations().value(BANDWIDTH) != null) {
+                //Requested bandwidth will be same as previous allocated bandwidth for the tunnel
+                BandwidthConstraint localConst = new BandwidthConstraint(Bandwidth.bps(Double.parseDouble(tunnel
+                        .annotations().value(BANDWIDTH))));
+                constraintList.add(localConst);
+            }
+            if (tunnel.annotations().value(COST_TYPE) != null) {
+                constraintList.add(CostConstraint.of(CostConstraint.Type.valueOf(tunnel.annotations().value(
+                        COST_TYPE))));
+            }
+
+            /*
+             * If tunnel was UP after recomputation failed then store failed path in PCE store send PCIntiate(remove)
+             * and If tunnel is failed and computation fails nothing to do because tunnel status will be same[Failed]
+             */
+            if (!updatePath(tunnel.tunnelId(), constraintList) && !tunnel.state().equals(Tunnel.State.FAILED)) {
+                // If updation fails store in PCE store as failed path
+                // then PCInitiate (Remove)
+                pceStore.addFailedPathInfo(new PcePathInfo(tunnel.path().src().deviceId(), tunnel
+                        .path().dst().deviceId(), tunnel.tunnelName().value(), constraintList,
+                        LspType.valueOf(tunnel.annotations().value(LSP_SIG_TYPE))));
+                //Release that tunnel calling PCInitiate
+                releasePath(tunnel.tunnelId());
+            }
+        }
+
+        return false;
+    }
+
+     // Allocates the bandwidth locally for PCECC tunnels.
     private TunnelConsumerId reserveBandwidth(Path computedPath, double bandwidthConstraint,
                                   SharedBandwidthConstraint shBwConstraint) {
         checkNotNull(computedPath);
@@ -860,14 +954,72 @@ public class PceManager implements PceService {
         public void process(PacketContext context) {
             // Stop processing if the packet has been handled, since we
             // can't do any more to it.
-
             if (context.isHandled()) {
                 return;
             }
 
             InboundPacket pkt = context.inPacket();
+            if (pkt == null) {
+                return;
+            }
+
+            Ethernet ethernet = pkt.parsed();
+            if (ethernet == null || ethernet.getEtherType() != Ethernet.TYPE_IPV4) {
+                return;
+            }
+
+            IPv4 ipPacket = (IPv4) ethernet.getPayload();
+            if (ipPacket == null || ipPacket.getProtocol() != IPv4.PROTOCOL_TCP) {
+                return;
+            }
+
+            TCP tcp = (TCP) ipPacket.getPayload();
+            if (tcp == null || tcp.getDestinationPort() != PCEP_PORT) {
+                return;
+            }
+
             syncLabelDb(pkt.receivedFrom().deviceId());
         }
     }
 
+    //Computes path from tunnel store and also path failed to setup.
+    private void callForOptimization() {
+        //Recompute the LSPs which it was delegated [LSPs stored in PCE store (failed paths)]
+        for (PcePathInfo failedPathInfo : pceStore.getFailedPathInfos()) {
+            checkForMasterAndSetupPath(failedPathInfo);
+        }
+
+        //Recompute the LSPs for which it was delegated [LSPs stored in tunnel store]
+        tunnelService.queryTunnel(MPLS).forEach(t -> {
+        checkForMasterAndUpdateTunnel(t.path().src().deviceId(), t);
+        });
+    }
+
+    private boolean checkForMasterAndSetupPath(PcePathInfo failedPathInfo) {
+        /**
+         * Master of ingress node will setup the path failed stored in PCE store.
+         */
+        if (mastershipService.isLocalMaster(failedPathInfo.src())) {
+            if (setupPath(failedPathInfo.src(), failedPathInfo.dst(), failedPathInfo.name(),
+                    failedPathInfo.constraints(), failedPathInfo.lspType())) {
+                // If computation is success remove that path
+                pceStore.removeFailedPathInfo(failedPathInfo);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    //Timer to call global optimization
+    private class GlobalOptimizationTimer implements Runnable {
+
+        public GlobalOptimizationTimer() {
+        }
+
+        @Override
+        public void run() {
+            callForOptimization();
+        }
+    }
 }

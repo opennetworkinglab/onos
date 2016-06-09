@@ -159,15 +159,16 @@ public class BgpPeerImpl implements BgpPeer {
      * Send flow specification update message to peer.
      *
      * @param operType operation type
+     * @param routeKey flow rule key
      * @param flowSpec flow specification details
-      * @param wideCommunity for route policy
+     * @param wideCommunity for route policy
      */
     public final void sendFlowSpecUpdateMessageToPeer(FlowSpecOperation operType, BgpFlowSpecRouteKey routeKey,
                                                       BgpFlowSpecNlri flowSpec, WideCommunity wideCommunity) {
 
         List<BgpValueType> attributesList = new LinkedList<>();
         byte sessionType = sessionInfo.isIbgpSession() ? (byte) 0 : (byte) 1;
-        byte sAfi = Constants.VPN_SAFI_FLOWSPEC_VALUE;
+        byte sAfi = Constants.SAFI_FLOWSPEC_VALUE;
 
         boolean isFsCapabilitySet = isCapabilitySupported(MultiProtocolExtnCapabilityTlv.TYPE,
                                                         Constants.AFI_FLOWSPEC_VALUE,
@@ -190,10 +191,10 @@ public class BgpPeerImpl implements BgpPeer {
             return;
         }
 
-        if ((wideCommunity != null) && (isVpnRpdCapabilitySet)) {
-            sAfi = Constants.VPN_SAFI_FLOWSPEC_RDP_VALUE;
-        } else if (isVpnFsCapabilitySet) {
+        if (isVpnFsCapabilitySet) {
             sAfi = Constants.VPN_SAFI_FLOWSPEC_VALUE;
+        } else if (isVpnRpdCapabilitySet) {
+            sAfi = Constants.VPN_SAFI_FLOWSPEC_RDP_VALUE;
         }
         attributesList.add(new Origin((byte) 0));
 
@@ -222,7 +223,9 @@ public class BgpPeerImpl implements BgpPeer {
         }
 
         attributesList.add(new BgpExtendedCommunity(flowSpec.fsActionTlv()));
-        attributesList.add(wideCommunity);
+        if (wideCommunity != null) {
+            attributesList.add(wideCommunity);
+        }
 
         if (operType == FlowSpecOperation.ADD) {
             attributesList.add(new MpReachNlri(flowSpec, Constants.AFI_FLOWSPEC_VALUE, sAfi));

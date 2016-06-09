@@ -97,8 +97,8 @@ public class WideCommunityIpV4Neighbour implements BgpValueType {
         while (listIterator.hasNext()) {
             IpV4Neighbour speaker = listIterator.next();
             if (speaker instanceof IpV4Neighbour) {
-                c.writeInt(Integer.valueOf(speaker.localSpeaker.toString()));
-                c.writeInt(Integer.valueOf(speaker.remoteSpeaker.toString()));
+                c.writeBytes(speaker.localSpeaker().toOctets());
+                c.writeBytes(speaker.remoteSpeaker().toOctets());
             }
         }
 

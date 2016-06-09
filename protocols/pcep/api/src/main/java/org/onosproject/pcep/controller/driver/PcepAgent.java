@@ -60,4 +60,25 @@ public interface PcepAgent {
      */
     void processPcepMessage(PccId pccId, PcepMessage m);
 
+    /**
+     * Adds PCEP device when session is successfully established.
+     *
+     * @param pc PCEP client details
+     */
+    void addNode(PcepClient pc);
+
+    /**
+     * Removes PCEP device when session is disconnected.
+     *
+     * @param pccId PCEP client ID
+     */
+    void deleteNode(PccId pccId);
+
+    /**
+     * Analyzes report messages received during LSP DB sync again tunnel store and takes necessary actions.
+     *
+     * @param pccId the id of pcc client
+     * @return success or failure
+     */
+    boolean analyzeSyncMsgList(PccId pccId);
 }

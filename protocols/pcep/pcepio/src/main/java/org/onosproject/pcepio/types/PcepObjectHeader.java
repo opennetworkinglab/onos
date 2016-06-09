@@ -16,6 +16,8 @@
 
 package org.onosproject.pcepio.types;
 
+import java.util.Objects;
+
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -209,6 +211,27 @@ public class PcepObjectHeader {
         objType = (byte) (temp >> OBJECT_TYPE_SHIFT_VALUE);
         objLen = cb.readShort();
         return new PcepObjectHeader(objClass, objType, bPFlag, bIFlag, objLen);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(objClass, objType, bPFlag, bIFlag, objLen);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof PcepObjectHeader) {
+            PcepObjectHeader other = (PcepObjectHeader) obj;
+            return Objects.equals(objClass, other.objClass)
+                    && Objects.equals(objType, other.objType)
+                    && Objects.equals(bPFlag, other.bPFlag)
+                    && Objects.equals(bIFlag, other.bIFlag)
+                    && Objects.equals(objLen, other.objLen);
+        }
+        return false;
     }
 
     @Override

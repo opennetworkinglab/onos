@@ -34,7 +34,6 @@
         glyphId: 'topo',
         tooltip: 'PCE web Topo Overlay',
 
-
         activate: function () {
             $log.debug("PCE web topology overlay ACTIVATED");
         },
@@ -112,10 +111,31 @@
             },
             1: {
                 cb: function () {
-                    pps.setMode("shortest");
+                    pps.setMode();
                 },
-                tt: 'Select constraints for LSP',
+                tt: 'Setup path',
+                gid: 'plus'
+            },
+            2: {
+                cb: function () {
+                    pps.updatePath(selection);
+                },
+                tt: 'Update path',
                 gid: '*jp'
+            },
+            3: {
+                cb: function () {
+                    pps.remPath(selection);
+                },
+                tt: 'Remove path',
+                gid: 'minus'
+            },
+            4: {
+                cb: function () {
+                    pps.queryTunnelDisplay();
+                },
+                tt: 'Show Tunnels',
+                gid: 'checkMark'
             },
             0: {
                 cb: function () {
@@ -126,7 +146,7 @@
             },
 
             _keyOrder: [
-                'openBracket', 'closeBracket', '1', '0'
+                'openBracket', 'closeBracket', '1', '2', '3', '4', '0'
             ]
         },
         hooks: {
@@ -145,6 +165,9 @@
             },
             single: function (data) {
                 selectionCallback(data);
+            },
+            multi: function (selectOrder) {
+                selectionCallback(selectOrder);
             }
         }
     };

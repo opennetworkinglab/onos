@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.onosproject.pcepio.protocol.PcepFactory;
 import org.onosproject.pcepio.protocol.PcepMessage;
+import org.onosproject.pcepio.protocol.PcepStateReport;
 
 /**
  * Represents to provider facing side of a path computation client(pcc).
@@ -135,4 +136,64 @@ public interface PcepClient {
      * @return capability supported by client
      */
     ClientCapability capability();
+
+    /**
+     * Adds PCEP device when session is successfully established.
+     *
+     * @param pc PCEP client details
+     */
+    void addNode(PcepClient pc);
+
+    /**
+     * Removes PCEP device when session is disconnected.
+     *
+     * @param pccId PCEP client ID
+     */
+    void deleteNode(PccId pccId);
+
+     /**
+     * Sets D flag for the given LSP and its LSP info.
+     *
+     * @param lspKey contains LSP info
+     * @param dFlag delegation flag in LSP object
+     */
+    void setLspAndDelegationInfo(LspKey lspKey, boolean dFlag);
+
+    /**
+     * Returns delegation flag for the given LSP info.
+     *
+     * @param lspKey contains LSP info
+     * @return delegation flag
+     */
+    Boolean delegationInfo(LspKey lspKey);
+
+    /**
+     * Creates a temporary cache to hold report messages received during LSPDB sync.
+     *
+     * @param pccId PCC id which is the key to store report messages
+     */
+    void initializeSyncMsgList(PccId pccId);
+
+    /**
+     * Returns the list of report messages received during LSPDB sync.
+     *
+     * @param pccId PCC id which is the key for all the report messages
+     * @return list of report messages received during LSPDB sync
+     */
+    List<PcepStateReport> getSyncMsgList(PccId pccId);
+
+    /**
+     * Removes the list of report messages received during LSPDB sync.
+     *
+     * @param pccId PCC id which is the key for all the report messages
+     */
+    void removeSyncMsgList(PccId pccId);
+
+    /**
+     * Adds report message received during LSPDB sync into temporary cache.
+     *
+     * @param pccId PCC id which is the key to store report messages
+     * @param rptMsg the report message to be stored
+     */
+    void addSyncMsgToList(PccId pccId, PcepStateReport rptMsg);
 }

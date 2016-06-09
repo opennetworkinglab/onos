@@ -6,6 +6,7 @@ COMPILE_DEPS = [
     '//incubator/api:onos-incubator-api',
     '//protocols/pcep/pcepio:onos-protocols-pcep-pcepio',
     '//protocols/pcep/api:onos-protocols-pcep-api',
+    '//protocols/pcep/ctl:onos-protocols-pcep-ctl',
 ]
 
 TEST_DEPS = [
