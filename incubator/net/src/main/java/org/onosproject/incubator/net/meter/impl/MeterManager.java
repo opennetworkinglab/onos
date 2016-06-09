@@ -50,6 +50,7 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -209,7 +210,7 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
             //FIXME: FOLLOWING CODE CANNOT BE TESTED UNTIL SOMETHING THAT
             //FIXME: IMPLEMENTS METERS EXISTS
             Map<Pair<DeviceId, MeterId>, Meter> storedMeterMap = store.getAllMeters().stream()
-                    .collect(Collectors.toMap(m -> Pair.of(m.deviceId(), m.id()), m -> m));
+                    .collect(Collectors.toMap(m -> Pair.of(m.deviceId(), m.id()), Function.identity()));
 
             meterEntries.stream()
                     .filter(m -> storedMeterMap.remove(Pair.of(m.deviceId(), m.id())) != null)

@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 class MockResourceService implements ResourceService {
@@ -49,7 +50,7 @@ class MockResourceService implements ResourceService {
     @Override
     public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<Resource> resources) {
         assignment.putAll(
-                resources.stream().collect(Collectors.toMap(x -> x, x -> consumer))
+                resources.stream().collect(Collectors.toMap(Function.identity(), x -> consumer))
         );
 
         return resources.stream()
