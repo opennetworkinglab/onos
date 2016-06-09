@@ -29,6 +29,8 @@ public interface Objective {
     boolean DEFAULT_PERMANENT = true;
     int DEFAULT_TIMEOUT = 0;
     int DEFAULT_PRIORITY = 32768;
+    int MIN_PRIORITY = 0;
+    int MAX_PRIORITY = 65535;
 
     /**
      * Type of operation.
