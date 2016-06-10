@@ -1,0 +1,51 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.mcast";
+
+package Multicast;
+
+// TODO move model objects to common protobuf package
+
+message ConnectPoint {
+  string deviceId = 1;
+  uint64 portNumber = 2;
+}
+
+enum MulticastRouteType {
+  PIM = 0;
+  IGMP = 1;
+  STATIC = 2;
+}
+
+enum MulticastOperationResult {
+  SUCCESS = 0;
+  FAIL = 1;
+}
+
+enum MulticastOperation {
+  ADD_ROUTE = 0;
+  ADD_SOURCE = 1;
+  ADD_SINK = 2;
+  REMOVE_ROUTE = 3;
+  REMOVE_SOURCE = 4;
+  REMOVE_SINK = 5;
+}
+
+message MulticastRoute {
+  fixed32 source = 1; // TODO assumes ipv4
+  fixed32 group = 2;
+  MulticastRouteType type = 3;
+}
+
+message MulticastReply {
+  MulticastOperationResult result = 1;
+}
+
+message MulticastRequest {
+  MulticastOperation operation = 1;
+  MulticastRoute route = 2;
+  ConnectPoint connectPoint = 3;
+}
+
+service MulticastRouteService {
+  rpc operation(stream MulticastRequest) returns (stream MulticastReply) {}
+}
