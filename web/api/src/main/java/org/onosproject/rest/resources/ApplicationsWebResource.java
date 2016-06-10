@@ -165,7 +165,7 @@ public class ApplicationsWebResource extends AbstractWebResource {
     @Path("{name}/active")
     public Response activateApp(@PathParam("name") String name) {
         ApplicationAdminService service = get(ApplicationAdminService.class);
-        ApplicationId appId = service.getId(name);
+        ApplicationId appId = nullIsNotFound(service.getId(name), APP_NOT_FOUND);
         service.activate(appId);
         return response(service, appId);
     }
