@@ -23,6 +23,7 @@ import java.util.Objects;
 
 import com.google.common.collect.Maps;
 import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.behaviour.PatchDescription;
 import org.onosproject.net.behaviour.TunnelDescription;
 
 /**
@@ -154,6 +155,16 @@ public final class OvsdbInterface {
     }
 
     /**
+     * Returns new OVSDB interface builder with patch interface description.
+     *
+     * @param patchDesc patch interface description
+     * @return ovsdb interface builder
+     */
+    public static OvsdbInterface.Builder builder(PatchDescription patchDesc) {
+        return new Builder(patchDesc);
+    }
+
+    /**
      * Builder of OVSDB interface entities.
      */
     public static final class Builder {
@@ -173,18 +184,34 @@ public final class OvsdbInterface {
             this.name = tunnelDesc.ifaceName();
             this.type = Type.valueOf(tunnelDesc.type().name());
 
+            Map<String, String> tunOptions = Maps.newHashMap();
             if (tunnelDesc.local().isPresent()) {
-                options.put(TUNNEL_LOCAL_IP, tunnelDesc.local().get().strValue());
+                tunOptions.put(TUNNEL_LOCAL_IP, tunnelDesc.local().get().strValue());
             }
             if (tunnelDesc.remote().isPresent()) {
-                options.put(TUNNEL_REMOTE_IP, tunnelDesc.remote().get().strValue());
+                tunOptions.put(TUNNEL_REMOTE_IP, tunnelDesc.remote().get().strValue());
             }
             if (tunnelDesc.key().isPresent()) {
-                options.put(TUNNEL_KEY, tunnelDesc.key().get().strValue());
+                tunOptions.put(TUNNEL_KEY, tunnelDesc.key().get().strValue());
             }
 
             // set other configurations if there are any
-            options.putAll(((DefaultAnnotations) tunnelDesc.annotations()).asMap());
+            tunOptions.putAll(((DefaultAnnotations) tunnelDesc.annotations()).asMap());
+            options = tunOptions;
+        }
+
+        /**
+         * Constructs a builder with a given patch interface description.
+         *
+         * @param patchDesc patch interface description
+         */
+        private Builder(PatchDescription patchDesc) {
+            this.name = patchDesc.ifaceName();
+            this.type = Type.PATCH;
+
+            Map<String, String> patchOptions = Maps.newHashMap();
+            patchOptions.put(PATCH_PEER, patchDesc.peer());
+            options = patchOptions;
         }
 
         /**

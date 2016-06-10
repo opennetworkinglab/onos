@@ -20,6 +20,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.InterfaceConfig;
+import org.onosproject.net.behaviour.PatchDescription;
 import org.onosproject.net.behaviour.TunnelDescription;
 import org.onosproject.net.device.DeviceInterfaceDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
@@ -67,8 +68,25 @@ public class OvsdbInterfaceConfig extends AbstractHandlerBehaviour implements In
 
     @Override
     public boolean removeAccessMode(String ifaceName) {
-        // TODO implement
         throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public boolean addPatchMode(String ifaceName, PatchDescription patchDesc) {
+        OvsdbInterface ovsdbIface = OvsdbInterface.builder(patchDesc).build();
+        OvsdbClientService ovsdbClient = getOvsdbClient(handler());
+
+        if (!patchDesc.deviceId().isPresent()) {
+            log.warn("Device ID is required {}", patchDesc);
+            return false;
+        }
+        return ovsdbClient.createInterface(patchDesc.deviceId().get(), ovsdbIface);
+    }
+
+    @Override
+    public boolean removePatchMode(String ifaceName) {
+        OvsdbClientService ovsdbClient = getOvsdbClient(handler());
+        return ovsdbClient.dropInterface(ifaceName);
     }
 
     @Override

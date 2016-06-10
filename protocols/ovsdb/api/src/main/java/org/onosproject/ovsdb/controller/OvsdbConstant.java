@@ -60,6 +60,8 @@ public final class OvsdbConstant {
     public static final String TUNNEL_LOCAL_IP = "local_ip";
     public static final String TUNNEL_REMOTE_IP = "remote_ip";
     public static final String TUNNEL_KEY = "key";
+    // patch interface options
+    public static final String PATCH_PEER = "peer";
 
     /** Controller table. */
     public static final String CONTROLLER = "Controller";

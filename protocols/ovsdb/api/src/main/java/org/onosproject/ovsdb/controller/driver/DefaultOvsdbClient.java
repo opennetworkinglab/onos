@@ -537,21 +537,21 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         ArrayList<Operation> operations = Lists.newArrayList();
         DatabaseSchema dbSchema = schema.get(DATABASENAME);
 
-        // insert a new port to the port table
+        // insert a new port with the interface name
         Port port = (Port) TableGenerator.createTable(dbSchema, OvsdbTable.PORT);
         port.setName(ovsdbIface.name());
         Insert portInsert = new Insert(dbSchema.getTableSchema(PORT), PORT, port.getRow());
         portInsert.getRow().put(INTERFACES, Uuid.uuid(INTERFACE));
         operations.add(portInsert);
 
-        // update the bridge table
+        // update the bridge table with the new port
         Condition condition = ConditionUtil.isEqual(UUID, Uuid.uuid(bridgeUuid));
         Mutation mutation = MutationUtil.insert(PORTS, Uuid.uuid(PORT));
         List<Condition> conditions = Lists.newArrayList(condition);
         List<Mutation> mutations = Lists.newArrayList(mutation);
         operations.add(new Mutate(dbSchema.getTableSchema(BRIDGE), conditions, mutations));
 
-        // insert a tunnel interface
+        // insert an interface
         Interface intf = (Interface) TableGenerator.createTable(dbSchema, OvsdbTable.INTERFACE);
         intf.setName(ovsdbIface.name());
         intf.setType(ovsdbIface.typeToString());
@@ -560,7 +560,7 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         operations.add(intfInsert);
 
         transactConfig(DATABASENAME, operations);
-        log.info("Created interface {}", ovsdbIface.name());
+        log.info("Created interface {}", ovsdbIface);
         return true;
     }
 

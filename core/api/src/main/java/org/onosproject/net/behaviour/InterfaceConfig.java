@@ -142,6 +142,23 @@ public interface InterfaceConfig extends HandlerBehaviour {
     boolean removeTunnelMode(String intf);
 
     /**
+     * Adds a patch mode to the supplied interface.
+     *
+     * @param ifaceName interface name to set patch mode
+     * @param patchInterface interface description
+     * @return true if the operation succeeds
+     */
+    boolean addPatchMode(String ifaceName, PatchDescription patchInterface);
+
+    /**
+     * Removes a patch mode from the supplied interface.
+     *
+     * @param ifaceName interface name
+     * @return true if the operation succeeds
+     */
+    boolean removePatchMode(String ifaceName);
+
+    /**
      * Provides the interfaces configured on a device.
      *
      * @param deviceId the device ID
