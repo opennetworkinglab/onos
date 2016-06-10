@@ -22,8 +22,6 @@ import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.xosclient.api.OpenStackAccess;
-import org.onosproject.xosclient.api.VtnService.NetworkType;
-import org.onosproject.xosclient.api.VtnService.ServiceType;
 import org.onosproject.xosclient.api.VtnServiceApi;
 import org.onosproject.xosclient.api.XosAccess;
 import org.onosproject.xosclient.api.VtnService;
@@ -41,8 +39,12 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.onosproject.xosclient.api.VtnService.NetworkType.*;
-import static org.onosproject.xosclient.api.VtnService.ServiceType.*;
+import static org.onosproject.xosclient.api.VtnServiceApi.NetworkType.PRIVATE;
+import static org.onosproject.xosclient.api.VtnServiceApi.NetworkType.PUBLIC;
+import static org.onosproject.xosclient.api.VtnServiceApi.NetworkType.MANAGEMENT;
+import static org.onosproject.xosclient.api.VtnServiceApi.ServiceType.DEFAULT;
+import static org.onosproject.xosclient.api.VtnServiceApi.ServiceType.OLT_AGENT;
+import static org.onosproject.xosclient.api.VtnServiceApi.ServiceType.VSG;
 
 /**
  * Provides CORD VTN service and service dependency APIs.
@@ -176,9 +178,9 @@ public final class DefaultVtnServiceApi extends XosApi implements VtnServiceApi 
         checkArgument(!Strings.isNullOrEmpty(netName));
 
         String name = netName.toUpperCase();
-        if (name.contains(PUBLIC.toString())) {
+        if (name.contains(PUBLIC.name())) {
             return PUBLIC;
-        } else if (name.contains(MANAGEMENT.toString())) {
+        } else if (name.contains(MANAGEMENT.name())) {
             return MANAGEMENT;
         } else {
             return PRIVATE;
@@ -190,12 +192,14 @@ public final class DefaultVtnServiceApi extends XosApi implements VtnServiceApi 
         checkArgument(!Strings.isNullOrEmpty(netName));
 
         String name = netName.toUpperCase();
-        if (name.contains(VSG.toString())) {
+        if (name.contains(VSG.name())) {
             return VSG;
-        } else if (name.contains(OLT_AGENT.toString())) {
+        } else if (name.contains(OLT_AGENT.name())) {
             return OLT_AGENT;
+        } else if (name.contains(ServiceType.MANAGEMENT.name())) {
+            return ServiceType.MANAGEMENT;
         } else {
-            return DUMMY;
+            return DEFAULT;
         }
     }
 }
