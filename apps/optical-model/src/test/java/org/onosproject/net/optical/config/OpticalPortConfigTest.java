@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.config.basics;
+package org.onosproject.net.optical.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.onosproject.net.config.basics.OpticalPortConfig.TYPE;
-import static org.onosproject.net.config.basics.OpticalPortConfig.NAME;
-import static org.onosproject.net.config.basics.OpticalPortConfig.PORT;
-import static org.onosproject.net.config.basics.OpticalPortConfig.STATIC_LAMBDA;
-import static org.onosproject.net.config.basics.OpticalPortConfig.STATIC_PORT;
+import static org.onosproject.net.optical.config.OpticalPortConfig.NAME;
+import static org.onosproject.net.optical.config.OpticalPortConfig.PORT;
+import static org.onosproject.net.optical.config.OpticalPortConfig.STATIC_LAMBDA;
+import static org.onosproject.net.optical.config.OpticalPortConfig.STATIC_PORT;
+import static org.onosproject.net.optical.config.OpticalPortConfig.TYPE;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -41,7 +41,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
-import org.onosproject.net.config.basics.OpticalPortConfig;
 
 public class OpticalPortConfigTest {
     private static final String FIELD = "ports";

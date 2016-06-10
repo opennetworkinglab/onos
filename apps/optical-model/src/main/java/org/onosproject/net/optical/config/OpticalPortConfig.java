@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.config.basics;
+package org.onosproject.net.optical.config;
 
 import java.util.Optional;
 
@@ -30,6 +30,7 @@ import static org.onosproject.net.config.Config.FieldPresence.OPTIONAL;
  * Configurations for an optical port on a device.
  */
 public final class OpticalPortConfig extends Config<ConnectPoint> {
+
     // optical type {OMS, OCH, ODUClt, fiber}
     public static final String TYPE = "type";
 

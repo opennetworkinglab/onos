@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.device.impl;
+package org.onosproject.net.optical.config;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.net.CltSignalType;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
-import org.onosproject.net.config.basics.OpticalPortConfig;
+import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
@@ -29,6 +29,7 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.PortDescription;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
@@ -62,27 +63,33 @@ public class OpticalPortOperatorTest {
 
     private static final ConnectPoint CP = new ConnectPoint(DID, UNNAMED);
 
-    private static final OpticalPortConfig OPC = new OpticalPortConfig();
+    private OpticalPortConfig opc;
+
+    private OpticalPortOperator oper;
 
     @Before
     public void setUp() {
-        OPC.init(CP, CFG_KEY, JsonNodeFactory.instance.objectNode(), mapper, delegate);
+        opc = new OpticalPortConfig();
+        opc.init(CP, CFG_KEY, JsonNodeFactory.instance.objectNode(), mapper, delegate);
+
+        oper = new OpticalPortOperator();
+        oper.bindService(new MockNetworkConfigService());
     }
 
     @Test
     public void testConfigPortName() {
-        OPC.portType(Port.Type.ODUCLT)
+        opc.portType(Port.Type.ODUCLT)
             .portNumberName(PORT_NUMBER)
             .portName(CFG_PORT_NAME);
 
         PortDescription res;
         // full desc + opc with name
-        res = OpticalPortOperator.combine(OPC, N_DESC);
+        res = oper.combine(CP, N_DESC);
         assertEquals("Configured port name expected",
                      CFG_PORT_NAME, res.portNumber().name());
         assertEquals(DESC_STATIC_PORT, res.annotations().value(AnnotationKeys.STATIC_PORT));
 
-        res = OpticalPortOperator.combine(OPC, U_DESC);
+        res = oper.combine(CP, U_DESC);
         assertEquals("Configured port name expected",
                      CFG_PORT_NAME, res.portNumber().name());
         assertEquals(DESC_STATIC_PORT, res.annotations().value(AnnotationKeys.STATIC_PORT));
@@ -90,12 +97,12 @@ public class OpticalPortOperatorTest {
 
     @Test
     public void testConfigAddStaticLambda() {
-        OPC.portType(Port.Type.ODUCLT)
+        opc.portType(Port.Type.ODUCLT)
             .portNumberName(PORT_NUMBER)
             .staticLambda(CFG_STATIC_LAMBDA);
 
         PortDescription res;
-        res = OpticalPortOperator.combine(OPC, N_DESC);
+        res = oper.combine(CP, N_DESC);
         assertEquals("Original port name expected",
                      DESC_PORT_NAME, res.portNumber().name());
         assertEquals(DESC_STATIC_PORT, res.annotations().value(AnnotationKeys.STATIC_PORT));
@@ -105,14 +112,28 @@ public class OpticalPortOperatorTest {
 
     @Test
     public void testEmptyConfig() {
-        OPC.portType(Port.Type.ODUCLT)
+        opc.portType(Port.Type.ODUCLT)
             .portNumberName(PORT_NUMBER);
 
         PortDescription res;
-        res = OpticalPortOperator.combine(OPC, N_DESC);
+        res = oper.combine(CP, N_DESC);
         assertEquals("Configured port name expected",
                      DESC_PORT_NAME, res.portNumber().name());
         assertEquals(DESC_STATIC_PORT, res.annotations().value(AnnotationKeys.STATIC_PORT));
+    }
+
+
+    private class MockNetworkConfigService
+            extends NetworkConfigServiceAdapter {
+
+        @Override
+        public <S, C extends Config<S>> C getConfig(S subject,
+                                                    Class<C> configClass) {
+            if (configClass == OpticalPortConfig.class) {
+                return (C) opc;
+            }
+            return null;
+        }
     }
 
 

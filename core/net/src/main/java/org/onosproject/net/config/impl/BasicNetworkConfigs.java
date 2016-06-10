@@ -34,7 +34,6 @@ import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.net.config.basics.BasicLinkConfig;
-import org.onosproject.net.config.basics.OpticalPortConfig;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,15 +83,6 @@ public class BasicNetworkConfigs implements BasicNetworkConfigService {
                 @Override
                 public BasicLinkConfig createConfig() {
                     return new BasicLinkConfig();
-                }
-            },
-            // TODO move this optical specific configuration out to optical app
-            new ConfigFactory<ConnectPoint, OpticalPortConfig>(CONNECT_POINT_SUBJECT_FACTORY,
-                                                               OpticalPortConfig.class,
-                                                               "optical") {
-                @Override
-                public OpticalPortConfig createConfig() {
-                    return new OpticalPortConfig();
                 }
             }
     );

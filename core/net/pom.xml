@@ -105,9 +105,7 @@
         </dependency>
 
         <!-- TODO Remove after decoupling optical -->
-        <!-- - DeviceManager.InternalDeviceProviderService#ensureGeneric -->
         <!-- - OpticalCompilers x4 -->
-        <!-- - OpticalPortOperator -->
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-optical-model</artifactId>

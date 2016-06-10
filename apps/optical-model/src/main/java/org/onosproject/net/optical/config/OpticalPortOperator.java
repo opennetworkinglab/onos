@@ -13,17 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.device.impl;
+package org.onosproject.net.optical.config;
 
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
 import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
 import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
 import static org.onosproject.net.optical.device.OtuPortHelper.otuPortDescription;
 import static org.slf4j.LoggerFactory.getLogger;
-import org.onosproject.net.config.ConfigOperator;
-import org.onosproject.net.config.basics.OpticalPortConfig;
+
+import java.util.Set;
+
+import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.PortConfigOperator;
 import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.Port;
+import org.onosproject.net.Port.Type;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultPortDescription;
@@ -34,63 +43,85 @@ import org.onosproject.net.device.OtuPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.slf4j.Logger;
 
+import com.google.common.collect.Sets;
+
 /**
  * Implementations of merge policies for various sources of optical port
  * configuration information. This includes applications, provides, and network
  * configurations.
  */
-public final class OpticalPortOperator implements ConfigOperator {
+public final class OpticalPortOperator implements PortConfigOperator {
 
     private static final Logger log = getLogger(OpticalPortOperator.class);
 
-    private OpticalPortOperator() {
+    /**
+     * Port.Type this PortConfigOperator reacts on.
+     */
+    private final Set<Port.Type> optical = Sets.immutableEnumSet(Port.Type.ODUCLT,
+                                                                 Port.Type.OMS,
+                                                                 Port.Type.OCH,
+                                                                 Port.Type.OTU,
+                                                                 Port.Type.FIBER,
+                                                                 Port.Type.PACKET);
+
+    private NetworkConfigService networkConfigService;
+
+
+    public OpticalPortOperator() {
+    }
+
+    @Override
+    public void bindService(NetworkConfigService networkConfigService) {
+        this.networkConfigService = networkConfigService;
+    }
+
+    private OpticalPortConfig lookupConfig(ConnectPoint cp) {
+        if (networkConfigService == null) {
+            return null;
+        }
+        return networkConfigService.getConfig(cp, OpticalPortConfig.class);
     }
 
     /**
      * Generates a PortDescription containing fields from a PortDescription and
      * an OpticalPortConfig.
      *
-     * @param opc the port config entity from network config
-     * @param descr a PortDescription
-     * @return PortDescription based on both sources
+     * @param cp {@link ConnectPoint} representing the port.
+     * @param descr input {@link PortDescription}
+     * @return Combined {@link PortDescription}
      */
-    public static PortDescription combine(OpticalPortConfig opc, PortDescription descr) {
+    @Override
+    public PortDescription combine(ConnectPoint cp, PortDescription descr) {
+        checkNotNull(cp);
+
+        // short-circuit for non-optical ports
+        // must be removed if we need type override
+        if (descr != null && !optical.contains(descr.type())) {
+            return descr;
+        }
+
+        OpticalPortConfig opc = lookupConfig(cp);
         if (opc == null) {
             return descr;
         }
 
-        PortNumber port = descr.portNumber();
-        final String name = opc.name();
-        final String numName = opc.numberName();
-        // if the description is null, or the current description port name != config name,
-        // create a new PortNumber.
-        PortNumber newPort = null;
-        if (port == null) {
-            // try to get the portNumber from the numName.
-            if (!numName.isEmpty()) {
-                final long pn = Long.parseLong(numName);
-                newPort = (!name.isEmpty()) ? PortNumber.portNumber(pn, name) : PortNumber.portNumber(pn);
-            } else {
-                // we don't have defining info (a port number value)
-                throw new RuntimeException("Possible misconfig, bailing on handling for: \n\t" + descr);
-            }
-        } else if ((!name.isEmpty()) && !name.equals(port.name())) {
-            final long pn = (numName.isEmpty()) ? port.toLong() : Long.parseLong(numName);
-            newPort = PortNumber.portNumber(pn, name);
+        PortNumber number = descr.portNumber();
+        // handle PortNumber "name" portion
+        if (!opc.name().isEmpty()) {
+            number = PortNumber.portNumber(descr.portNumber().toLong(), opc.name());
         }
 
-        // Port type won't change unless we're overwriting a port completely.
-        // Watch out for overwrites to avoid class cast craziness.
-        boolean noOwrite = opc.type() == descr.type();
+        // handle additional annotations
+        SparseAnnotations annotations = combine(opc, descr.annotations());
 
-        SparseAnnotations sa = combine(opc, descr.annotations());
-        if (noOwrite) {
-            return updateDescription((newPort == null) ? port : newPort, sa, descr);
-        } else {
-            // TODO: must reconstruct a different type of PortDescription.
-            log.info("Type rewrite from {} to {} required", descr.type(), opc.type());
+        // (Future work) handle type overwrite?
+        Type type = firstNonNull(opc.type(), descr.type());
+        if (type != descr.type()) {
+            // TODO: Do we need to be able to overwrite Port.Type?
+            log.warn("Port type overwrite requested for {}. Ignoring.", cp);
         }
-        return descr;
+
+        return updateDescription(number, annotations, descr);
     }
 
     // updates a port description whose port type has not changed.
@@ -161,8 +192,9 @@ public final class OpticalPortOperator implements ConfigOperator {
      * @param an the annotation
      * @return annotation combining both sources
      */
-    public static SparseAnnotations combine(OpticalPortConfig opc, SparseAnnotations an) {
+    private static SparseAnnotations combine(OpticalPortConfig opc, SparseAnnotations an) {
         DefaultAnnotations.Builder b = DefaultAnnotations.builder();
+        b.putAll(an);
         if (!opc.staticPort().isEmpty()) {
             b.set(AnnotationKeys.STATIC_PORT, opc.staticPort());
         }
@@ -173,7 +205,8 @@ public final class OpticalPortOperator implements ConfigOperator {
         if (!opc.name().isEmpty()) {
             b.set(AnnotationKeys.PORT_NAME, opc.name());
         }
-        return DefaultAnnotations.union(an, b.build());
+        return b.build();
     }
+
 
 }
