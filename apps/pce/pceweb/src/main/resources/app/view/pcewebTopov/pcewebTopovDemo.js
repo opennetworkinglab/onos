@@ -96,9 +96,9 @@
         addAttribute('pce-cost-type-valname', 'pce-cost-type-te', 'TE', 'radio');
         //Add the LSP type related inputs.
         addAttribute('pce-lsp-type-name', 'pce-lsp-type', 'Lsp Type', 'checkbox');
-        addAttribute('pce-lsp-type-valname', 'pce-lsp-type-cr', 'WITH SIGNALLING', 'radio');
-        addAttribute('pce-lsp-type-valname', 'pce-lsp-type-srbe', 'WITHOUT SR WITHOUT SIGNALLING', 'radio');
-        addAttribute('pce-lsp-type-valname', 'pce-lsp-type-srte', 'WITH SR WITHOUT SIGNALLING', 'radio');
+        addAttribute('pce-lsp-type-valname', 'pce-lsp-type-cr', 'With signalling', 'radio');
+        addAttribute('pce-lsp-type-valname', 'pce-lsp-type-srbe', 'Without SR without signalling', 'radio');
+        addAttribute('pce-lsp-type-valname', 'pce-lsp-type-srte', 'With SR without signalling', 'radio');
         //Add the tunnel name
         addAttribute('pce-tunnel-name', 'pce-tunnel-name-id', 'Tunnel Name', 'text');
 
@@ -182,12 +182,12 @@
         return content;
     }
 
-    function isChecked(viewId) {
-        return d3.select('#' + viewId).property('checked');
+    function isChecked(cboxId) {
+        return d3.select('#' + cboxId).property('checked');
     }
 
-    function getCheckedValue(viewId) {
-        return d3.select('#' + viewId).property('value');
+    function getCheckedValue(cboxId) {
+        return d3.select('#' + cboxId).property('value');
     }
 
     function showTunnelInformation(data) {
@@ -198,25 +198,19 @@
             var tdString = '' ;
             tunnelNameData.a.forEach( function (val, idx) {
                 var tunnelName = isChecked('tunnel-id-'+idx);
-                if (tunnelName)
-                {
+                if (tunnelName) {
                     tdString = val;
                 }
             } );
 
-            if (tdString) {
-                constraintsUpdateDialog(tdString);
-            } else {
-                $log.debug("No tunnel id is selected.");
-            }
-
+            constraintsUpdateDialog(tdString);
             $log.debug('Dialog OK button clicked');
         }
 
         tds.openDialog()
             .setTitle('Available LSPs with selected device')
             .addContent(createUserTextUpdate(data))
-            .addOkChained(dOkUpdate, 'GOTO Selection of constraints')
+            .addOkChained(dOkUpdate, 'OK')
             .addCancel(dClose, 'Close')
             .bindKeys();
     }
@@ -266,7 +260,7 @@
             .setTitle('Select constraints for update path')
             .addContent(createUserTextUpdatePathEvent())
             .addCancel()
-            .addOk(dOkUpdateEvent, 'Update Path')     // NOTE: NOT the "chained" version!
+            .addOk(dOkUpdateEvent, 'OK')     // NOTE: NOT the "chained" version!
             .bindKeys();
 
     }
@@ -278,7 +272,7 @@
         tds.openDialog()
             .setTitle('Available Tunnels for remove')
             .addContent(createUserTextRemove(data))
-            .addOk(dOkRemove, 'Remove')
+            .addOk(dOkRemove, 'OK')
             .addCancel(dClose, 'Close')
             .bindKeys();
     }

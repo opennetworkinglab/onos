@@ -169,7 +169,7 @@ public class PcepBandwidthObjectVer1 implements PcepBandwidthObject {
         private PcepObjectHeader bandwidthObjHeader;
         private boolean bIsHeaderSet = false;
 
-        private int iBandwidth;
+        private float iBandwidth;
         private boolean bIsBandwidthSet = false;
 
         private boolean bPFlag;
@@ -200,7 +200,7 @@ public class PcepBandwidthObjectVer1 implements PcepBandwidthObject {
         }
 
         @Override
-        public int getBandwidth() {
+        public float getBandwidth() {
             return this.iBandwidth;
         }
 
@@ -216,7 +216,7 @@ public class PcepBandwidthObjectVer1 implements PcepBandwidthObject {
         }
 
         @Override
-        public Builder setBandwidth(int iBandwidth) {
+        public Builder setBandwidth(float iBandwidth) {
             this.iBandwidth = iBandwidth;
             this.bIsBandwidthSet = true;
             return this;

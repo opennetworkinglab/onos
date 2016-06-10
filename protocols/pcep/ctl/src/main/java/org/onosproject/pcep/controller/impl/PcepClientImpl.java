@@ -73,7 +73,7 @@ public class PcepClientImpl implements PcepClientDriver {
     private byte sessionId;
     private PcepPacketStatsImpl pktStats;
     private Map<LspKey, Boolean> lspDelegationInfo;
-    private Map<PccId, List<PcepStateReport>> sycRptCache = new HashMap<>();
+    private Map<PccId, List<PcepStateReport>> syncRptCache = new HashMap<>();
 
     @Override
     public void init(PccId pccId, PcepVersion pcepVersion, PcepPacketStats pktStats) {
@@ -267,24 +267,24 @@ public class PcepClientImpl implements PcepClientDriver {
     @Override
     public void initializeSyncMsgList(PccId pccId) {
         List<PcepStateReport> rptMsgList = new LinkedList<>();
-        sycRptCache.put(pccId, rptMsgList);
+        syncRptCache.put(pccId, rptMsgList);
     }
 
     @Override
     public List<PcepStateReport> getSyncMsgList(PccId pccId) {
-        return sycRptCache.get(pccId);
+        return syncRptCache.get(pccId);
     }
 
     @Override
     public void removeSyncMsgList(PccId pccId) {
-        sycRptCache.remove(pccId);
+        syncRptCache.remove(pccId);
     }
 
     @Override
     public void addSyncMsgToList(PccId pccId, PcepStateReport rptMsg) {
-        List<PcepStateReport> rptMsgList = sycRptCache.get(pccId);
+        List<PcepStateReport> rptMsgList = syncRptCache.get(pccId);
         rptMsgList.add(rptMsg);
-        sycRptCache.put(pccId, rptMsgList);
+        syncRptCache.put(pccId, rptMsgList);
     }
 
     @Override

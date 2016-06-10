@@ -62,6 +62,8 @@ import org.onosproject.pcepio.types.PcepValueType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.onosproject.pcep.controller.PcepSyncStatus.NOT_SYNCED;
+
 /**
  * Channel handler deals with the pcc client connection and dispatches
  * messages from client to the appropriate locations.
@@ -177,18 +179,23 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
                          * The socket IP is stored in channel.
                          */
                         LinkedList<PcepValueType> optionalTlvs = pOpenmsg.getPcepOpenObject().getOptionalTlv();
-                        for (PcepValueType optionalTlv : optionalTlvs) {
-                            if (optionalTlv instanceof NodeAttributesTlv) {
-                                List<PcepValueType> subTlvs = ((NodeAttributesTlv) optionalTlv)
-                                        .getllNodeAttributesSubTLVs();
-                                for (PcepValueType subTlv : subTlvs) {
-                                    if (subTlv instanceof IPv4RouterIdOfLocalNodeSubTlv) {
-                                        h.thispccId = PccId.pccId(IpAddress
-                                                .valueOf(((IPv4RouterIdOfLocalNodeSubTlv) subTlv).getInt()));
+                        if (optionalTlvs != null) {
+                            for (PcepValueType optionalTlv : optionalTlvs) {
+                                if (optionalTlv instanceof NodeAttributesTlv) {
+                                    List<PcepValueType> subTlvs = ((NodeAttributesTlv) optionalTlv)
+                                            .getllNodeAttributesSubTLVs();
+                                    if (subTlvs == null) {
                                         break;
                                     }
+                                    for (PcepValueType subTlv : subTlvs) {
+                                        if (subTlv instanceof IPv4RouterIdOfLocalNodeSubTlv) {
+                                            h.thispccId = PccId.pccId(IpAddress
+                                                    .valueOf(((IPv4RouterIdOfLocalNodeSubTlv) subTlv).getInt()));
+                                            break;
+                                        }
+                                    }
+                                    break;
                                 }
-                                break;
                             }
                         }
 
@@ -228,6 +235,11 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
                             h.pcepPacketStats);
                     //Get pc instance and set capabilities
                     h.pc.setCapability(h.capability);
+
+                    // Initilialize DB sync status.
+                    h.pc.setLspDbSyncStatus(NOT_SYNCED);
+                    h.pc.setLabelDbSyncStatus(NOT_SYNCED);
+
                     // set the status of pcc as connected
                     h.pc.setConnected(true);
                     h.pc.setChannel(h.channel);
@@ -253,6 +265,7 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
                     log.debug("Keep alive time : " + keepAliveTimer);
 
                     //set the state handshake completion.
+
                     h.sendKeepAliveMessage();
                     h.pcepPacketStats.addOutPacket();
                     h.setHandshakeComplete(true);

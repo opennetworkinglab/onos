@@ -35,6 +35,7 @@ import org.slf4j.Logger;
         description = "Supports querying PCE path.")
 public class PceQueryPathCommand extends AbstractShellCommand {
     private final Logger log = getLogger(getClass());
+    public static final String COST_TYPE = "costType";
 
     @Option(name = "-i", aliases = "--id", description = "path-id", required = false,
             multiValued = false)
@@ -71,16 +72,16 @@ public class PceQueryPathCommand extends AbstractShellCommand {
      * @param tunnel pce tunnel
      */
     void display(Tunnel tunnel) {
-        print("\npath-id            : %d \n" +
+        print("\npath-id            : %s \n" +
                 "source             : %s \n" +
                 "destination        : %s \n" +
-                "path-type          : %d \n" +
+                "path-type          : %s \n" +
                 "symbolic-path-name : %s \n" +
                 "constraints:            \n" +
-                "   cost            : %d \n" +
-                "   bandwidth       : %.2f",
+                "   cost            : %s \n" +
+                "   bandwidth       : %s",
                 tunnel.tunnelId().id(), tunnel.src().toString(), tunnel.dst().toString(),
-                tunnel.type(), tunnel.tunnelName(), tunnel.path().cost(),
+                tunnel.type().name(), tunnel.tunnelName(), tunnel.annotations().value(COST_TYPE),
                 tunnel.annotations().value(AnnotationKeys.BANDWIDTH));
     }
 }

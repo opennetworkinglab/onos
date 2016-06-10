@@ -893,9 +893,7 @@ public class PceManager implements PceService {
 
         // Check whether device has SR-TE Capability
         if (cfg.labelStackCap()) {
-            if (!srTeHandler.allocateNodeLabel(deviceId, lsrId)) {
-                log.error("Node label allocation for a device id {} has failed.", deviceId.toString());
-            }
+            srTeHandler.allocateNodeLabel(deviceId, lsrId);
         }
     }
 
@@ -974,10 +972,7 @@ public class PceManager implements PceService {
 
         // Check whether device has SR-TE Capability
         if (cfg.labelStackCap()) {
-            if (!srTeHandler.allocateAdjacencyLabel(link)) {
-                log.error("Unable to allocate adjacency label for a link {}.", link.toString());
-                return;
-            }
+            srTeHandler.allocateAdjacencyLabel(link);
         }
 
         return;
@@ -1209,16 +1204,13 @@ public class PceManager implements PceService {
                 if (cfg.labelStackCap()) {
                     if (mastershipService.getLocalRole(deviceId) == MastershipRole.MASTER) {
                         // Allocate node-label
-                        if (!srTeHandler.allocateNodeLabel(deviceId, lsrId)) {
-                            log.error("Node label allocation for a device id {} has failed.", deviceId.toString());
-                        }
+                        srTeHandler.allocateNodeLabel(deviceId, lsrId);
 
                         // Allocate adjacency label to links which are
                         // originated from this specific device id
                         Set<Link> links = linkService.getDeviceEgressLinks(deviceId);
                         for (Link link : links) {
                             if (!srTeHandler.allocateAdjacencyLabel(link)) {
-                                log.debug("Unable to allocate adjacency labels for a link {}.", link.toString());
                                 return;
                             }
                         }
@@ -1240,40 +1232,42 @@ public class PceManager implements PceService {
             return false;
         }
 
-        Map<DeviceId, LabelResourceId> globalNodeLabelMap = pceStore.getGlobalNodeLabels();
+        if (pceStore.getGlobalNodeLabel(deviceId) != null) {
+            Map<DeviceId, LabelResourceId> globalNodeLabelMap = pceStore.getGlobalNodeLabels();
 
-        for (Entry<DeviceId, LabelResourceId> entry : globalNodeLabelMap.entrySet()) {
+            for (Entry<DeviceId, LabelResourceId> entry : globalNodeLabelMap.entrySet()) {
 
-            // Convert from DeviceId to TunnelEndPoint
-            Device srcDevice = deviceService.getDevice(entry.getKey());
+                // Convert from DeviceId to TunnelEndPoint
+                Device srcDevice = deviceService.getDevice(entry.getKey());
 
-            /*
-             * If there is a slight difference in timing such that if device subsystem has removed the device but PCE
-             * store still has it, just ignore such devices.
-             */
-            if (srcDevice == null) {
-                continue;
+                /*
+                 * If there is a slight difference in timing such that if device subsystem has removed the device but
+                 * PCE store still has it, just ignore such devices.
+                 */
+                if (srcDevice == null) {
+                    continue;
+                }
+
+                String srcLsrId = srcDevice.annotations().value(LSRID);
+                if (srcLsrId == null) {
+                    continue;
+                }
+
+                srTeHandler.advertiseNodeLabelRule(deviceId,
+                                                   entry.getValue(),
+                                                   IpPrefix.valueOf(IpAddress.valueOf(srcLsrId), PREFIX_LENGTH),
+                                                   Objective.Operation.ADD, false);
             }
 
-            String srcLsrId = srcDevice.annotations().value(LSRID);
-            if (srcLsrId == null) {
-                continue;
-            }
-
-            srTeHandler.advertiseNodeLabelRule(deviceId,
-                                               entry.getValue(),
-                                               IpPrefix.valueOf(IpAddress.valueOf(srcLsrId), PREFIX_LENGTH),
-                                               Objective.Operation.ADD, false);
-        }
-
-        Map<Link, LabelResourceId> adjLabelMap = pceStore.getAdjLabels();
-        for (Entry<Link, LabelResourceId> entry : adjLabelMap.entrySet()) {
-            if (entry.getKey().src().deviceId().equals(deviceId)) {
-                srTeHandler.installAdjLabelRule(deviceId,
-                                                entry.getValue(),
-                                                entry.getKey().src().port(),
-                                                entry.getKey().dst().port(),
-                                                Objective.Operation.ADD);
+            Map<Link, LabelResourceId> adjLabelMap = pceStore.getAdjLabels();
+            for (Entry<Link, LabelResourceId> entry : adjLabelMap.entrySet()) {
+                if (entry.getKey().src().deviceId().equals(deviceId)) {
+                    srTeHandler.installAdjLabelRule(deviceId,
+                                                    entry.getValue(),
+                                                    entry.getKey().src().port(),
+                                                    entry.getKey().dst().port(),
+                                                    Objective.Operation.ADD);
+                }
             }
         }
 
@@ -1281,6 +1275,9 @@ public class PceManager implements PceService {
                                            LabelResourceId.labelResourceId(0),
                                            IpPrefix.valueOf(END_OF_SYNC_IP_PREFIX),
                                            Objective.Operation.ADD, true);
+
+        log.debug("End of label DB sync for device {}", deviceId);
+
         if (mastershipService.getLocalRole(specificDevice.id()) == MastershipRole.MASTER) {
             // Allocate node-label to this specific device.
             allocateNodeLabel(specificDevice);
@@ -1304,6 +1301,7 @@ public class PceManager implements PceService {
         public void process(PacketContext context) {
             // Stop processing if the packet has been handled, since we
             // can't do any more to it.
+            log.debug("Received trigger for label DB sync.");
             if (context.isHandled()) {
                 return;
             }

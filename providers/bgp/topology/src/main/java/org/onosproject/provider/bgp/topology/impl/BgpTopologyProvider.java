@@ -20,9 +20,10 @@ import static org.onosproject.net.Device.Type.VIRTUAL;
 import static org.onosproject.incubator.net.resource.label.LabelResourceId.labelResourceId;
 import static java.util.stream.Collectors.toList;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.HashMap;
 
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.Ip4Address;
@@ -74,6 +75,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BandwidthCapacity;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceDescription;
@@ -90,7 +92,6 @@ import org.onosproject.net.link.LinkProviderService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.config.basics.BandwidthCapacity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -160,6 +161,7 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
     public static final int DELAY = 2;
     private LabelResourceId beginLabel = labelResourceId(5122);
     private LabelResourceId endLabel = labelResourceId(9217);
+    private HashMap<DeviceId, List<PortDescription>> portMap = new HashMap<>();
 
     @Activate
     public void activate() {
@@ -243,13 +245,15 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
                 if (tlv.getType() == NodeDescriptors.IGP_ROUTERID_TYPE) {
                     if (tlv instanceof IsIsPseudonode) {
                         deviceType = VIRTUAL;
-                        newBuilder.set(AnnotationKeys.ROUTER_ID, new String(((IsIsPseudonode) tlv).getIsoNodeId()));
+                        newBuilder.set(AnnotationKeys.ROUTER_ID, nodeUri.isoNodeIdString(((IsIsPseudonode) tlv)
+                                .getIsoNodeId()));
                     } else if (tlv instanceof OspfPseudonode) {
                         deviceType = VIRTUAL;
                         newBuilder
                                 .set(AnnotationKeys.ROUTER_ID, Integer.toString(((OspfPseudonode) tlv).getrouterID()));
                     } else if (tlv instanceof IsIsNonPseudonode) {
-                        newBuilder.set(AnnotationKeys.ROUTER_ID, new String(((IsIsNonPseudonode) tlv).getIsoNodeId()));
+                        newBuilder.set(AnnotationKeys.ROUTER_ID, nodeUri.isoNodeIdString(((IsIsNonPseudonode) tlv)
+                                .getIsoNodeId()));
                     } else if (tlv instanceof OspfNonPseudonode) {
                         newBuilder.set(AnnotationKeys.ROUTER_ID,
                                 Integer.toString(((OspfNonPseudonode) tlv).getrouterID()));
@@ -284,14 +288,35 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
             deviceProviderService.deviceDisconnected(deviceId);
         }
 
+        private List<PortDescription> buildPortDescriptions(DeviceId deviceId,
+                                                            PortNumber portNumber) {
+
+            List<PortDescription> portList;
+
+            if (portMap.containsKey(deviceId)) {
+                portList = portMap.get(deviceId);
+            } else {
+                portList = new ArrayList<>();
+            }
+            if (portNumber != null) {
+                PortDescription portDescriptions = new DefaultPortDescription(portNumber, true);
+                portList.add(portDescriptions);
+            }
+
+            portMap.put(deviceId, portList);
+            return portList;
+        }
+
         @Override
         public void addLink(BgpLinkLsNlriVer4 linkNlri, PathAttrNlriDetails details) throws BgpParseException {
             log.debug("Addlink {}", linkNlri.toString());
 
-            if (linkProviderService == null) {
+            LinkDescription linkDes = buildLinkDes(linkNlri, details, true);
+
+            //If already link exists, return
+            if (linkService.getLink(linkDes.src(), linkDes.dst()) != null || linkProviderService == null) {
                 return;
             }
-            LinkDescription linkDes = buildLinkDes(linkNlri, details, true);
 
             /*
              * Update link ports and configure bandwidth on source and destination port using networkConfig service
@@ -302,13 +327,11 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
             }
 
             //Updating ports of the link
-            List<PortDescription> srcPortDescriptions = new LinkedList<>();
-            srcPortDescriptions.add(new DefaultPortDescription(linkDes.src().port(), true));
-            deviceProviderService.updatePorts(linkDes.src().deviceId(), srcPortDescriptions);
+            deviceProviderService.updatePorts(linkDes.src().deviceId(), buildPortDescriptions(linkDes.src().deviceId(),
+                    linkDes.src().port()));
 
-            List<PortDescription> dstPortDescriptions = new LinkedList<>();
-            dstPortDescriptions.add(new DefaultPortDescription(linkDes.dst().port(), true));
-            deviceProviderService.updatePorts(linkDes.dst().deviceId(), dstPortDescriptions);
+            deviceProviderService.updatePorts(linkDes.dst().deviceId(), buildPortDescriptions(linkDes.dst().deviceId(),
+                    linkDes.dst().port()));
 
             linkProviderService.linkDetected(linkDes);
         }

@@ -15,6 +15,9 @@
  */
 package org.onosproject.provider.bgpcep.flow.impl;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,7 +31,6 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MplsLabel;
 import org.onosproject.bgp.controller.BgpController;
-import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
 import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
@@ -42,21 +44,24 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.CompletedBatchOperation;
+import org.onosproject.net.flow.DefaultFlowEntry;
+import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleProvider;
 import org.onosproject.net.flow.FlowRuleProviderRegistry;
 import org.onosproject.net.flow.FlowRuleProviderService;
 import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.FlowEntry.FlowEntryState;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsBosCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
-import org.onosproject.net.flow.criteria.TcpPortCriterion;
 import org.onosproject.net.flow.criteria.TunnelIdCriterion;
-import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.ResourceService;
@@ -81,13 +86,14 @@ import org.onosproject.pcepio.types.PcepLabelDownload;
 import org.onosproject.pcepio.types.PcepLabelMap;
 import org.onosproject.pcepio.types.PcepValueType;
 import org.onosproject.pcepio.types.StatefulIPv4LspIdentifiersTlv;
-import org.onosproject.provider.pcep.tunnel.impl.SrpIdGenerators;
-import org.onosproject.provider.pcep.tunnel.impl.PcepAnnotationKeys;
+import org.onosproject.pcep.controller.SrpIdGenerators;
+import org.onosproject.pcep.controller.PcepAnnotationKeys;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import static org.onosproject.pcep.controller.PcepSyncStatus.IN_SYNC;
 import static org.onosproject.pcep.controller.PcepSyncStatus.SYNCED;
+import static org.onosproject.net.flow.criteria.Criterion.Type.EXTENSION;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -102,9 +108,6 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleProviderRegistry providerRegistry;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ComponentConfigService cfgService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected BgpController bgpController;
@@ -129,6 +132,12 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
     public static final long SET = 0xFFFFFFFFL;
     private static final String LSRID = "lsrId";
 
+    private enum PcepFlowType {
+        ADD,
+        MODIFY,
+        REMOVE
+    }
+
     /**
      * Creates a BgpFlow host provider.
      */
@@ -138,14 +147,12 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
 
     @Activate
     public void activate(ComponentContext context) {
-        cfgService.registerProperties(getClass());
         providerService = providerRegistry.register(this);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate(ComponentContext context) {
-        cfgService.unregisterProperties(getClass(), false);
         providerRegistry.unregister(this);
         providerService = null;
         log.info("Stopped");
@@ -154,26 +161,25 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
     @Override
     public void applyFlowRule(FlowRule... flowRules) {
         for (FlowRule flowRule : flowRules) {
-            processRule(flowRule, Objective.Operation.ADD);
+            processRule(flowRule, PcepFlowType.ADD);
         }
     }
 
     @Override
     public void removeFlowRule(FlowRule... flowRules) {
         for (FlowRule flowRule : flowRules) {
-            processRule(flowRule, Objective.Operation.REMOVE);
+            processRule(flowRule, PcepFlowType.REMOVE);
         }
     }
 
-    private void processRule(FlowRule flowRule, Objective.Operation type) {
+    private void processRule(FlowRule flowRule, PcepFlowType type) {
         MplsLabel mplsLabel = null;
-        IpPrefix ip4Prefix = null;
+        IpPrefix ip4PrefixSrc = null;
+        IpPrefix ip4PrefixDst = null;
         PortNumber port = null;
         TunnelId tunnelId = null;
         long labelType = 0;
         boolean bottomOfStack = false;
-        int srcPort = 0;
-        int dstPort = 0;
 
         TrafficSelector selector = flowRule.selector();
         for (Criterion c : selector.criteria()) {
@@ -184,19 +190,15 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
                 break;
             case IPV4_SRC:
                 IPCriterion ipCriterion = (IPCriterion) c;
-                ip4Prefix = ipCriterion.ip().getIp4Prefix();
+                ip4PrefixSrc = ipCriterion.ip().getIp4Prefix();
+                break;
+            case IPV4_DST:
+                ipCriterion = (IPCriterion) c;
+                ip4PrefixDst = ipCriterion.ip().getIp4Prefix();
                 break;
             case IN_PORT:
                 PortCriterion inPort = (PortCriterion) c;
                 port = inPort.port();
-                break;
-            case TCP_SRC:
-                TcpPortCriterion srcTcpPort = (TcpPortCriterion) c;
-                srcPort = srcTcpPort.tcpPort().toInt();
-                break;
-            case TCP_DST:
-                TcpPortCriterion dstTcpPort = (TcpPortCriterion) c;
-                dstPort = dstTcpPort.tcpPort().toInt();
                 break;
             case TUNNEL_ID:
                 TunnelIdCriterion tc = (TunnelIdCriterion) c;
@@ -224,13 +226,12 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
                 return;
             }
 
-            if (srcPort != 0 && dstPort != 0) {
-                pushAdjacencyLabel(flowRule.deviceId(), label, PortNumber.portNumber(srcPort),
-                                   PortNumber.portNumber(dstPort), type);
+            if (ip4PrefixDst != null) {
+                pushAdjacencyLabel(flowRule.deviceId(), label, ip4PrefixSrc, ip4PrefixDst, type);
                 return;
             }
 
-            pushGlobalNodeLabel(flowRule.deviceId(), label, ip4Prefix, type, bottomOfStack);
+            pushGlobalNodeLabel(flowRule.deviceId(), label, ip4PrefixSrc, type, bottomOfStack);
 
         } catch (PcepParseException e) {
             log.error("Exception occured while sending label message to PCC {}", e.getMessage());
@@ -255,7 +256,7 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
 
     //Pushes node labels to the specified device.
     private void pushGlobalNodeLabel(DeviceId deviceId, LabelResourceId labelId,
-            IpPrefix ipPrefix, Objective.Operation type, boolean isBos) throws PcepParseException {
+            IpPrefix ipPrefix, PcepFlowType type, boolean isBos) throws PcepParseException {
 
         checkNotNull(deviceId);
         checkNotNull(labelId);
@@ -271,7 +272,7 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
 
         if (ipPrefix == null) {
             // Pushing self node label to device.
-            IpPrefix.valueOf(pc.getPccId().ipAddress(), 32);
+            ipPrefix = IpPrefix.valueOf(pc.getPccId().ipAddress(), 32);
         }
 
         PcepFecObjectIPv4 fecObject = pc.factory().buildFecObjectIpv4()
@@ -279,16 +280,9 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
                                       .build();
 
         boolean bSFlag = false;
-        if (pc.labelDbSyncStatus() == IN_SYNC) {
-            if (isBos) {
-                /*
-                 * Now the sync is completed.
-                 * Need to send label DB end-of-sync msg, i.e. S flag in SRP id is reset.
-                 */
-                pc.setLabelDbSyncStatus(SYNCED);
-            } else {
-                bSFlag = true;
-            }
+        if (pc.labelDbSyncStatus() == IN_SYNC && !isBos) {
+            // Need to set sync flag in all messages till sync completes.
+            bSFlag = true;
         }
 
         PcepSrpObject srpObj = getSrpObject(pc, type, bSFlag);
@@ -312,14 +306,19 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
                                       .build();
 
         pc.sendMessage(labelMsg);
+
+        if (isBos) {
+            // Sync is completed.
+            pc.setLabelDbSyncStatus(SYNCED);
+        }
     }
 
-    private PcepSrpObject getSrpObject(PcepClient pc, Objective.Operation type, boolean bSFlag)
+    private PcepSrpObject getSrpObject(PcepClient pc, PcepFlowType type, boolean bSFlag)
             throws PcepParseException {
         PcepSrpObject srpObj;
         boolean bRFlag = false;
 
-        if (!type.equals(Objective.Operation.ADD)) {
+        if (!type.equals(PcepFlowType.ADD)) {
             // To cleanup labels, R bit is set
             bRFlag = true;
         }
@@ -334,13 +333,14 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
     }
 
     //Pushes adjacency labels to the specified device.
-    private void pushAdjacencyLabel(DeviceId deviceId, LabelResourceId labelId,
-            PortNumber srcPortNum, PortNumber dstPortNum, Objective.Operation type) throws PcepParseException {
+    private void pushAdjacencyLabel(DeviceId deviceId, LabelResourceId labelId, IpPrefix ip4PrefixSrc,
+                                    IpPrefix ip4PrefixDst, PcepFlowType type)
+            throws PcepParseException {
 
         checkNotNull(deviceId);
         checkNotNull(labelId);
-        checkNotNull(srcPortNum);
-        checkNotNull(dstPortNum);
+        checkNotNull(ip4PrefixSrc);
+        checkNotNull(ip4PrefixDst);
         checkNotNull(type);
 
         PcepClient pc = getPcepClient(deviceId);
@@ -351,17 +351,21 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
 
         LinkedList<PcepLabelUpdate> labelUpdateList = new LinkedList<>();
 
-        long srcPortNo = srcPortNum.toLong();
-        long dstPortNo = dstPortNum.toLong();
-        srcPortNo = ((srcPortNo & IDENTIFIER_SET) == IDENTIFIER_SET) ? srcPortNo & SET : srcPortNo;
-        dstPortNo = ((dstPortNo & IDENTIFIER_SET) == IDENTIFIER_SET) ? dstPortNo & SET : dstPortNo;
+        int srcPortNo = ip4PrefixSrc.address().getIp4Address().toInt();
+        int dstPortNo = ip4PrefixDst.address().getIp4Address().toInt();
 
         PcepFecObjectIPv4Adjacency fecAdjObject = pc.factory().buildFecIpv4Adjacency()
-                                                  .seRemoteIPv4Address((int) dstPortNo)
-                                                  .seLocalIPv4Address((int) srcPortNo)
+                                                  .seRemoteIPv4Address(dstPortNo)
+                                                  .seLocalIPv4Address(srcPortNo)
                                                   .build();
 
-        PcepSrpObject srpObj = getSrpObject(pc, type, false);
+        boolean bSFlag = false;
+        if (pc.labelDbSyncStatus() == IN_SYNC) {
+            // Need to set sync flag in all messages till sync completes.
+            bSFlag = true;
+        }
+
+        PcepSrpObject srpObj = getSrpObject(pc, type, bSFlag);
 
         //Adjacency label object
         PcepLabelObject labelObject = pc.factory().buildLabelObject()
@@ -387,7 +391,7 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
     //Pushes local labels to the device which is specific to path [CR-case].
     private void pushLocalLabels(DeviceId deviceId, LabelResourceId labelId,
             PortNumber portNum, TunnelId tunnelId,
-            Boolean isBos, Long labelType, Objective.Operation type) throws PcepParseException {
+            Boolean isBos, Long labelType, PcepFlowType type) throws PcepParseException {
 
         checkNotNull(deviceId);
         checkNotNull(labelId);
@@ -559,6 +563,31 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
 
     @Override
     public void executeBatch(FlowRuleBatchOperation batch) {
-    //TODO
+        Collection<FlowEntry> flowEntries = new ArrayList<>();
+
+        for (FlowRuleBatchEntry fbe : batch.getOperations()) {
+            Criterion criteria = fbe.target().selector().getCriterion(EXTENSION);
+
+            switch (fbe.operator()) {
+            case ADD:
+                if (criteria == null) {
+                    processRule(fbe.target(), PcepFlowType.ADD);
+                    flowEntries.add(new DefaultFlowEntry(fbe.target(), FlowEntryState.ADDED, 0, 0, 0));
+                }
+                break;
+            case REMOVE:
+                if (criteria == null) {
+                    processRule(fbe.target(), PcepFlowType.REMOVE);
+                    flowEntries.add(new DefaultFlowEntry(fbe.target(), FlowEntryState.REMOVED, 0, 0, 0));
+                }
+                break;
+            default:
+                log.error("Unknown flow operation: {}", fbe);
+            }
+        }
+
+        CompletedBatchOperation status = new CompletedBatchOperation(true, Collections.emptySet(), batch.deviceId());
+        providerService.batchOperationCompleted(batch.id(), status);
+        providerService.pushFlowMetrics(batch.deviceId(), flowEntries);
     }
 }

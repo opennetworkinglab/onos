@@ -28,6 +28,7 @@
 
   <modules>
         <module>flow</module>
+        <module>app</module>
   </modules>
 
   <dependencies>

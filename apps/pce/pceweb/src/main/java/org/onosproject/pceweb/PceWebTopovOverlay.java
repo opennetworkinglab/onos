@@ -17,18 +17,28 @@
 package org.onosproject.pceweb;
 
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import org.onlab.util.Bandwidth;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
 import org.onosproject.ui.UiTopoOverlay;
 import org.onosproject.ui.topo.ButtonId;
 import org.onosproject.ui.topo.PropertyPanel;
 import org.onosproject.net.HostId;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.resource.ContinuousResource;
+import org.onosproject.net.resource.DiscreteResource;
+import org.onosproject.net.resource.Resource;
+import org.onosproject.net.resource.ResourceService;
+import org.onosproject.net.resource.Resources;
 import org.onosproject.ui.topo.TopoConstants.CoreButtons;
-
-import static org.onosproject.ui.topo.TopoConstants.Properties.*;
 import org.onosproject.cli.AbstractShellCommand;
 
 /**
@@ -42,7 +52,9 @@ public class PceWebTopovOverlay extends UiTopoOverlay {
 
     public static final String AS_NUMBER = "asNumber";
     public static final String DOMAIN_IDENTIFIER = "domainIdentifier";
-    public static final String ROUTING_UNIVERSE = "routingUniverse";
+    public static final String ABR_BIT = "abrBit";
+    public static final String ASBR_BIT = "externalBit";
+    public static final String TE_METRIC = "teCost";
 
     private static final ButtonId SRC_BUTTON = new ButtonId("src");
     private static final ButtonId DST_BUTTON = new ButtonId("dst");
@@ -77,31 +89,72 @@ public class PceWebTopovOverlay extends UiTopoOverlay {
          if (deviceService != null) {
 
             Device device = deviceService.getDevice(deviceId);
-            Annotations annot = device.annotations();
+            Annotations annots = device.annotations();
 
-            String routerId = annot.value(AnnotationKeys.ROUTER_ID);
-            String type = annot.value(AnnotationKeys.TYPE);
-            String asNumber = annot.value(AS_NUMBER);
-            String domain = annot.value(DOMAIN_IDENTIFIER);
-            String routingUnverse = annot.value(ROUTING_UNIVERSE);
+            String routerId = annots.value(AnnotationKeys.ROUTER_ID);
+            String type = annots.value(AnnotationKeys.TYPE);
+            String asNumber = annots.value(AS_NUMBER);
+            String domain = annots.value(DOMAIN_IDENTIFIER);
+            String abrStatus = annots.value(ABR_BIT);
+            String asbrStatus = annots.value(ASBR_BIT);
 
             if (type != null) {
                 pp.addProp("Type", type);
             }
-            /* TBD: Router ID need to print
+
             if (routerId != null) {
                 pp.addProp("Router-ID", routerId);
-            } */
-            if (routingUnverse != null) {
-                pp.addProp("Routing Universe", routingUnverse);
             }
+
             if (asNumber != null) {
                 pp.addProp("AS Number", asNumber);
             }
+
             if (domain != null) {
                 pp.addProp("Domain ID", domain);
             }
+
+            if (abrStatus != null) {
+                pp.addProp("ABR Role", abrStatus);
+            }
+
+            if (asbrStatus != null) {
+                pp.addProp("ASBR Role", asbrStatus);
+            }
         }
+    }
+
+    @Override
+    public Map<String, String> additionalLinkData(LinkEvent event) {
+        Map<String, String> map = new HashMap<>();
+        Link link = event.subject();
+
+        map.put("Src port", link.src().port().toString());
+        map.put("Dst port", link.dst().port().toString());
+        map.put("Te metric", link.annotations().value(TE_METRIC));
+
+        ResourceService resService = AbstractShellCommand.get(ResourceService.class);
+        DiscreteResource devResource = Resources.discrete(link.src().deviceId(), link.src().port()).resource();
+        if (resService == null) {
+            log.warn("resource service does not exist ");
+            return map;
+        }
+
+        if (devResource == null) {
+            log.warn("Device resources does not exist ");
+            return map;
+        }
+        Set<Resource> resources = resService.getAvailableResources(devResource.id(), Bandwidth.class);
+        if (resources.isEmpty()) {
+            log.warn("Bandwidth resources does not exist ");
+            return map;
+        }
+
+        if (resources.iterator().next() instanceof ContinuousResource) {
+            map.put("Bandwidth", ((ContinuousResource) resources.iterator().next()).toString());
+        }
+
+        return map;
     }
 
     @Override

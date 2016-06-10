@@ -21,9 +21,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
-import org.onosproject.cluster.ClusterService;
-import org.onosproject.mastership.MastershipAdminService;
-import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
@@ -55,7 +52,6 @@ import org.onosproject.net.link.LinkDescription;
 import org.onosproject.net.link.LinkProvider;
 import org.onosproject.net.link.LinkProviderRegistry;
 import org.onosproject.net.link.LinkProviderService;
-import org.onosproject.net.link.LinkService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.pcep.api.DeviceCapability;
@@ -94,7 +90,9 @@ public class PcepTopologyProvider extends AbstractProvider
      * Creates instance of PCEP topology provider.
      */
     public PcepTopologyProvider() {
-        super(new ProviderId("l3", "org.onosproject.provider.pcep"));
+        //In BGP-PCEP app, since both BGP and PCEP topology provider have same scheme
+        //so BGP will be primary and PCEP topology provider will be ancillary.
+        super(new ProviderId("l3", "org.onosproject.provider.pcep", true));
     }
 
     private static final Logger log = LoggerFactory
@@ -113,18 +111,6 @@ public class PcepTopologyProvider extends AbstractProvider
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LinkService linkService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected MastershipAdminService mastershipAdminService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected MastershipService mastershipService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterService clusterService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PcepClientController pcepClientController;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -141,7 +127,7 @@ public class PcepTopologyProvider extends AbstractProvider
 
     private final ConfigFactory<DeviceId, DeviceCapability> configFactory =
             new ConfigFactory<DeviceId, DeviceCapability>(SubjectFactories.DEVICE_SUBJECT_FACTORY,
-                    DeviceCapability.class, "deviceCapability", true) {
+                    DeviceCapability.class, "deviceCapability", false) {
                 @Override
                 public DeviceCapability createConfig() {
                     return new DeviceCapability();
@@ -156,6 +142,7 @@ public class PcepTopologyProvider extends AbstractProvider
         controller.addLinkListener(listener);
         pcepClientController.addNodeListener(listener);
         netConfigRegistry.registerConfigFactory(configFactory);
+        log.info("Started");
     }
 
     @Deactivate
@@ -166,6 +153,7 @@ public class PcepTopologyProvider extends AbstractProvider
         controller.removeLinkListener(listener);
         pcepClientController.removeNodeListener(listener);
         netConfigRegistry.unregisterConfigFactory(configFactory);
+        log.info("Stopped");
     }
 
     private List<PortDescription> buildPortDescriptions(PcepDpid dpid,

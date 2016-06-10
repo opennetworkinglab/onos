@@ -431,7 +431,6 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
                 lspTypeVal = LspType.SR_WITHOUT_SIGNALLING;
                 break;
             default:
-                log.error("Invalid LSP type");
                 break;
         }
 
@@ -539,7 +538,6 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
             costTypeVal = CostConstraint.Type.TE_COST;
             break;
         default:
-            log.error("Invalid cost type");
             break;
         }
 
@@ -660,10 +658,15 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         tunnelSet = tunnelService.queryTunnel(MPLS);
         for (Tunnel tunnel : tunnelSet) {
             if (tunnel.path() == null) {
-                log.info("path does not exist");
+                log.error("path does not exist");
                 return;
             }
             paths.add(tunnel.path());
+        }
+
+        if (tunnelSet.size() == 0) {
+            log.warn("Tunnel does not exist");
+            return;
         }
 
         ImmutableSet.Builder<Link> builder = ImmutableSet.builder();
