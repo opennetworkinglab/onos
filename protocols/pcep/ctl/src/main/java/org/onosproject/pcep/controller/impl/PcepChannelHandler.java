@@ -62,6 +62,8 @@ import org.onosproject.pcepio.types.PcepValueType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.onosproject.pcep.controller.PcepSyncStatus.NOT_SYNCED;
+
 /**
  * Channel handler deals with the pcc client connection and dispatches
  * messages from client to the appropriate locations.
@@ -233,6 +235,11 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
                             h.pcepPacketStats);
                     //Get pc instance and set capabilities
                     h.pc.setCapability(h.capability);
+
+                    // Initilialize DB sync status.
+                    h.pc.setLspDbSyncStatus(NOT_SYNCED);
+                    h.pc.setLabelDbSyncStatus(NOT_SYNCED);
+
                     // set the status of pcc as connected
                     h.pc.setConnected(true);
                     h.pc.setChannel(h.channel);
@@ -258,6 +265,7 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
                     log.debug("Keep alive time : " + keepAliveTimer);
 
                     //set the state handshake completion.
+
                     h.sendKeepAliveMessage();
                     h.pcepPacketStats.addOutPacket();
                     h.setHandshakeComplete(true);

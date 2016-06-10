@@ -219,19 +219,19 @@ public class DistributedPceStore implements PceStore {
     @Override
     public LabelResourceId getGlobalNodeLabel(DeviceId id) {
         checkNotNull(id, DEVICE_ID_NULL);
-        return globalNodeLabelMap.get(id).value();
+        return globalNodeLabelMap.get(id) == null ? null : globalNodeLabelMap.get(id).value();
     }
 
     @Override
     public LabelResourceId getAdjLabel(Link link) {
         checkNotNull(link, LINK_NULL);
-        return adjLabelMap.get(link).value();
+        return adjLabelMap.get(link) == null ? null : adjLabelMap.get(link).value();
     }
 
     @Override
     public PceccTunnelInfo getTunnelInfo(TunnelId tunnelId) {
         checkNotNull(tunnelId, TUNNEL_ID_NULL);
-        return tunnelInfoMap.get(tunnelId).value();
+        return tunnelInfoMap.get(tunnelId) == null ? null : tunnelInfoMap.get(tunnelId).value();
     }
 
     @Override

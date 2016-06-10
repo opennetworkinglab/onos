@@ -20,7 +20,9 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.onosproject.net.DefaultAnnotations.EMPTY;
-import static org.onosproject.provider.pcep.tunnel.impl.PcepAnnotationKeys.LSP_SIG_TYPE;
+import static org.onosproject.pcep.controller.PcepAnnotationKeys.LSP_SIG_TYPE;
+import static org.onosproject.pcep.controller.PcepAnnotationKeys.LOCAL_LSP_ID;
+import static org.onosproject.pcep.controller.PcepAnnotationKeys.PLSP_ID;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -112,8 +114,8 @@ public class PcepUpdateTunnelProviderTest {
         path = new DefaultPath(pid, links, 20, EMPTY);
 
         Annotations annotations = DefaultAnnotations.builder()
-                .set(PcepAnnotationKeys.PLSP_ID, "1")
-                .set(PcepAnnotationKeys.LOCAL_LSP_ID, "1")
+                .set(PLSP_ID, "1")
+                .set(LOCAL_LSP_ID, "1")
                 .set(LSP_SIG_TYPE, WITH_SIGNALLING.name())
                 .build();
 
@@ -173,8 +175,8 @@ public class PcepUpdateTunnelProviderTest {
 
         Annotations annotations = DefaultAnnotations.builder()
                 .set(LSP_SIG_TYPE, WITH_SIGNALLING.name())
-                .set(PcepAnnotationKeys.PLSP_ID, "1")
-                .set(PcepAnnotationKeys.LOCAL_LSP_ID, "1")
+                .set(PLSP_ID, "1")
+                .set(LOCAL_LSP_ID, "1")
                 .build();
 
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
@@ -233,8 +235,8 @@ public class PcepUpdateTunnelProviderTest {
 
         Annotations annotations = DefaultAnnotations.builder()
                 .set(LSP_SIG_TYPE, SR_WITHOUT_SIGNALLING.name())
-                .set(PcepAnnotationKeys.PLSP_ID, "1")
-                .set(PcepAnnotationKeys.LOCAL_LSP_ID, "1")
+                .set(PLSP_ID, "1")
+                .set(LOCAL_LSP_ID, "1")
                 .build();
 
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
@@ -293,8 +295,8 @@ public class PcepUpdateTunnelProviderTest {
 
         Annotations annotations = DefaultAnnotations.builder()
                 .set(LSP_SIG_TYPE, WITHOUT_SIGNALLING_AND_WITHOUT_SR.name())
-                .set(PcepAnnotationKeys.PLSP_ID, "1")
-                .set(PcepAnnotationKeys.LOCAL_LSP_ID, "1")
+                .set(PLSP_ID, "1")
+                .set(LOCAL_LSP_ID, "1")
                 .build();
 
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,

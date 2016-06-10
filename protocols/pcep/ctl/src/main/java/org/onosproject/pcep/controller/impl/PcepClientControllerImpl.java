@@ -434,10 +434,16 @@ public class PcepClientControllerImpl implements PcepClientController {
             }
 
             List<PcepStateReport> syncStateRptList = pc.getSyncMsgList(pccId);
+            if (syncStateRptList == null) {
+                // When there are no LSPs to sync, directly end-of-sync PCRpt will come and the
+                // list will be null.
+                syncStateRptList = Collections.EMPTY_LIST;
+            }
+
             Iterator<PcepStateReport> stateRptListIterator = syncStateRptList.iterator();
 
             // For every report, fetch PLSP id, local LSP id and symbolic path name from the message.
-            while (syncStateRptList.iterator().hasNext()) {
+            while (stateRptListIterator.hasNext()) {
                 PcepStateReport stateRpt = stateRptListIterator.next();
                 Tunnel tunnel = null;
 
