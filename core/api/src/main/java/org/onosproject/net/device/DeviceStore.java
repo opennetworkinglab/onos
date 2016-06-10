@@ -24,6 +24,7 @@ import org.onosproject.store.Store;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Manages inventory of infrastructure devices; not intended for direct use.
@@ -115,6 +116,15 @@ public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
     List<Port> getPorts(DeviceId deviceId);
 
     /**
+     * Returns the stream of port descriptions that belong to the specified device.
+     *
+     * @param providerId  provider identifier
+     * @param deviceId    device identifier
+     * @return stream of device portdescriptions
+     */
+    Stream<PortDescription> getPortDescriptions(ProviderId providerId, DeviceId deviceId);
+
+    /**
      * Updates the port statistics of the specified device using the give port
      * statistics.
      *
@@ -150,6 +160,16 @@ public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
      * @return device port
      */
     Port getPort(DeviceId deviceId, PortNumber portNumber);
+
+    /**
+     * Returns the specified device port description.
+     *
+     * @param providerId provider identifier
+     * @param deviceId   device identifier
+     * @param portNumber port number
+     * @return device port description
+     */
+    PortDescription getPortDescription(ProviderId providerId, DeviceId deviceId, PortNumber portNumber);
 
     /**
      * Indicates whether the specified device is available/online.

@@ -20,13 +20,10 @@ import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDesc
 import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
 import static org.onosproject.net.optical.device.OtuPortHelper.otuPortDescription;
 import static org.slf4j.LoggerFactory.getLogger;
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import org.onosproject.net.config.ConfigOperator;
 import org.onosproject.net.config.basics.OpticalPortConfig;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
-import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultPortDescription;
@@ -35,11 +32,6 @@ import org.onosproject.net.device.OduCltPortDescription;
 import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.OtuPortDescription;
 import org.onosproject.net.device.PortDescription;
-import org.onosproject.net.optical.OchPort;
-import org.onosproject.net.optical.OduCltPort;
-import org.onosproject.net.optical.OmsPort;
-import org.onosproject.net.optical.OpticalDevice;
-import org.onosproject.net.optical.OtuPort;
 import org.slf4j.Logger;
 
 /**
@@ -184,98 +176,4 @@ public final class OpticalPortOperator implements ConfigOperator {
         return DefaultAnnotations.union(an, b.build());
     }
 
-    /**
-     * Returns a description built from an existing port.
-     *
-     * @param port the device port
-     * @return a PortDescription based on the port
-     */
-    public static PortDescription descriptionOf(Port port) {
-        checkNotNull(port, "Must supply non-null Port");
-        final boolean isUp = port.isEnabled();
-        return descriptionOfPort(port, isUp);
-    }
-
-    /**
-     * Returns a description built from an existing port and reported status.
-     *
-     * @param port port
-     * @param isEnabled true if enabled
-     * @return a PortDescription based on the port
-     */
-    static PortDescription descriptionOf(Port port, boolean isEnabled) {
-        checkNotNull(port, "Must supply non-null Port");
-        final boolean isup = isEnabled;
-        return descriptionOfPort(port, isup);
-    }
-
-    private static PortDescription descriptionOfPort(Port port, final boolean isup) {
-        final PortNumber ptn = port.number();
-        final SparseAnnotations an = (SparseAnnotations) port.annotations();
-        switch (port.type()) {
-            case OMS:
-                if (port instanceof org.onosproject.net.OmsPort) {
-                    // remove if-block once deprecation is complete
-                    org.onosproject.net.OmsPort oms = (org.onosproject.net.OmsPort) port;
-                    return omsPortDescription(ptn, isup, oms.minFrequency(),
-                                              oms.maxFrequency(), oms.grid(), an);
-                }
-                if (port.element().is(OpticalDevice.class)) {
-                    OpticalDevice optDevice = port.element().as(OpticalDevice.class);
-                    if (optDevice.portIs(port, OmsPort.class)) {
-                        OmsPort oms = optDevice.portAs(port, OmsPort.class).get();
-                        return omsPortDescription(ptn, isup, oms.minFrequency(),
-                                                  oms.maxFrequency(), oms.grid(), an);
-                    }
-                }
-                return new DefaultPortDescription(ptn, isup, port.type(), port.portSpeed(), an);
-            case OCH:
-                if (port instanceof org.onosproject.net.OchPort) {
-                    // remove if-block once old OchPort deprecation is complete
-                    org.onosproject.net.OchPort och = (org.onosproject.net.OchPort) port;
-                    return ochPortDescription(ptn, isup, och.signalType(),
-                                              och.isTunable(), och.lambda(), an);
-                }
-                if (port.element().is(OpticalDevice.class)) {
-                    OpticalDevice optDevice = port.element().as(OpticalDevice.class);
-                    if (optDevice.portIs(port, OchPort.class)) {
-                        OchPort och = optDevice.portAs(port, OchPort.class).get();
-                        return ochPortDescription(ptn, isup, och.signalType(),
-                                                  och.isTunable(), och.lambda(), an);
-                    }
-                }
-                return new DefaultPortDescription(ptn, isup, port.type(), port.portSpeed(), an);
-
-            case ODUCLT:
-                if (port instanceof org.onosproject.net.OduCltPort) {
-                    // remove if-block once deprecation is complete
-                    org.onosproject.net.OduCltPort odu = (org.onosproject.net.OduCltPort) port;
-                    return oduCltPortDescription(ptn, isup, odu.signalType(), an);
-                }
-                if (port.element().is(OpticalDevice.class)) {
-                    OpticalDevice optDevice = port.element().as(OpticalDevice.class);
-                    if (optDevice.portIs(port, OduCltPort.class)) {
-                        OduCltPort odu = (OduCltPort) port;
-                        return oduCltPortDescription(ptn, isup, odu.signalType(), an);
-                    }
-                }
-                return new DefaultPortDescription(ptn, isup, port.type(), port.portSpeed(), an);
-            case OTU:
-                if (port instanceof org.onosproject.net.OtuPort) {
-                    // remove if-block once deprecation is complete
-                    org.onosproject.net.OtuPort otu = (org.onosproject.net.OtuPort) port;
-                    return otuPortDescription(ptn, isup, otu.signalType(), an);
-                }
-                if (port.element().is(OpticalDevice.class)) {
-                    OpticalDevice optDevice = port.element().as(OpticalDevice.class);
-                    if (optDevice.portIs(port, OtuPort.class)) {
-                        OtuPort otu = (OtuPort) port;
-                        return otuPortDescription(ptn, isup, otu.signalType(), an);
-                    }
-                }
-                return new DefaultPortDescription(ptn, isup, port.type(), port.portSpeed(), an);
-            default:
-                return new DefaultPortDescription(ptn, isup, port.type(), port.portSpeed(), an);
-        }
-    }
 }

@@ -86,6 +86,7 @@ import org.onosproject.net.optical.device.OmsPortHelper;
 import org.onosproject.net.optical.device.OtuPortHelper;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.onosproject.net.provider.Provider;
 import org.slf4j.Logger;
 
 import com.google.common.util.concurrent.Futures;
@@ -367,6 +368,17 @@ public class DeviceManager
 
         }
 
+        private PortDescription ensurePortEnabledState(PortDescription desc, boolean enabled) {
+            if (desc.isEnabled() != enabled) {
+                return new DefaultPortDescription(desc.portNumber(),
+                                                  enabled,
+                                                  desc.type(),
+                                                  desc.portSpeed(),
+                                                  desc.annotations());
+            }
+            return desc;
+        }
+
         @Override
         public void deviceDisconnected(DeviceId deviceId) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
@@ -374,17 +386,9 @@ public class DeviceManager
 
             log.info("Device {} disconnected from this node", deviceId);
 
-            List<Port> ports = store.getPorts(deviceId);
-            final Device device = getDevice(deviceId);
-
-            List<PortDescription> descs = ports.stream().map(
-              port -> (!(Device.Type.ROADM.equals(device.type()) ||
-                        (Device.Type.OTN.equals(device.type())) ||
-                        (Device.Type.FIBER_SWITCH.equals(device.type())))) ?
-                  new DefaultPortDescription(port.number(), false,
-                          port.type(), port.portSpeed()) :
-                      OpticalPortOperator.descriptionOf(port, false)
-                 ).collect(Collectors.toList());
+            List<PortDescription> descs = store.getPortDescriptions(provider().id(), deviceId)
+                    .map(desc -> ensurePortEnabledState(desc, false))
+                    .collect(Collectors.toList());
 
             store.updatePorts(this.provider().id(), deviceId, descs);
             try {
@@ -524,9 +528,12 @@ public class DeviceManager
             Device device = nullIsNotFound(getDevice(deviceId), "Device not found");
             if ((Device.Type.ROADM.equals(device.type())) ||
                 (Device.Type.OTN.equals(device.type()))) {
-                Port port = getPort(deviceId, portDescription.portNumber());
                 // FIXME This is ignoring all other info in portDescription given as input??
-                portDescription = OpticalPortOperator.descriptionOf(port, portDescription.isEnabled());
+                PortDescription storedPortDesc = store.getPortDescription(provider().id(),
+                                                          deviceId,
+                                                          portDescription.portNumber());
+                portDescription = ensurePortEnabledState(storedPortDesc,
+                                                         portDescription.isEnabled());
             }
 
             portDescription = consolidate(deviceId, portDescription);
@@ -847,13 +854,14 @@ public class DeviceManager
             if (event.configClass().equals(OpticalPortConfig.class)) {
                 ConnectPoint cpt = (ConnectPoint) event.subject();
                 DeviceId did = cpt.deviceId();
+                Provider provider = getProvider(did);
                 Port dpt = getPort(did, cpt.port());
 
-                if (dpt != null) {
+                if (dpt != null && provider != null) {
                     OpticalPortConfig opc = networkConfigService.getConfig(cpt, OpticalPortConfig.class);
-                    PortDescription desc = OpticalPortOperator.descriptionOf(dpt);
+                    PortDescription desc = store.getPortDescription(provider.id(), did, cpt.port());
                     desc = OpticalPortOperator.combine(opc, desc);
-                    if (desc != null && getProvider(did) != null) {
+                    if (desc != null) {
                         de = store.updatePortStatus(getProvider(did).id(), did, desc);
                     }
                 }

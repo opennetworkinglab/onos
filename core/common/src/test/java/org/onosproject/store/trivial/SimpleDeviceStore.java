@@ -59,11 +59,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -416,6 +418,15 @@ public class SimpleDeviceStore
     }
 
     @Override
+    public Stream<PortDescription> getPortDescriptions(ProviderId providerId,
+                                                       DeviceId deviceId) {
+        return Optional.ofNullable(deviceDescs.get(deviceId))
+                .map(m -> m.get(providerId))
+                .map(descs -> descs.portDescs.values().stream())
+                .orElse(Stream.empty());
+    }
+
+    @Override
     public DeviceEvent updatePortStatistics(ProviderId providerId, DeviceId deviceId,
                                             Collection<PortStatistics> newStatsCollection) {
 
@@ -477,6 +488,16 @@ public class SimpleDeviceStore
     public Port getPort(DeviceId deviceId, PortNumber portNumber) {
         Map<PortNumber, Port> ports = devicePorts.get(deviceId);
         return ports == null ? null : ports.get(portNumber);
+    }
+
+    @Override
+    public PortDescription getPortDescription(ProviderId providerId,
+                                              DeviceId deviceId,
+                                              PortNumber portNumber) {
+        return Optional.ofNullable(deviceDescs.get(deviceId))
+                .map(m -> m.get(providerId))
+                .map(descs -> descs.getPortDesc(portNumber))
+                .orElse(null);
     }
 
     @Override

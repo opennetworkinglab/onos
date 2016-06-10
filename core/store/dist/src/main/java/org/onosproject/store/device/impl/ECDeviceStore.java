@@ -87,6 +87,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Verify.verify;
@@ -575,8 +576,24 @@ public class ECDeviceStore
     }
 
     @Override
+    public Stream<PortDescription> getPortDescriptions(ProviderId pid,
+                                                       DeviceId deviceId) {
+
+        return portDescriptions.entrySet().stream()
+                .filter(e -> e.getKey().providerId().equals(pid))
+                .map(Map.Entry::getValue);
+    }
+
+    @Override
     public Port getPort(DeviceId deviceId, PortNumber portNumber) {
         return devicePorts.getOrDefault(deviceId, Maps.newHashMap()).get(portNumber);
+    }
+
+    @Override
+    public PortDescription getPortDescription(ProviderId pid,
+                                              DeviceId deviceId,
+                                              PortNumber portNumber) {
+        return portDescriptions.get(new PortKey(pid, deviceId, portNumber));
     }
 
     @Override

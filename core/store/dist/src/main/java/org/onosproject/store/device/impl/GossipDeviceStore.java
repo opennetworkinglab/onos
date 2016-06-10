@@ -93,11 +93,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Predicates.notNull;
@@ -835,6 +837,25 @@ public class GossipDeviceStore
     }
 
     @Override
+    public Stream<PortDescription> getPortDescriptions(ProviderId pid,
+                                                       DeviceId deviceId) {
+        Map<ProviderId, DeviceDescriptions> descs = this.deviceDescs.get(deviceId);
+        if (descs == null) {
+            return null;
+        }
+        // inner-Map(=descs) is HashMap, thus requires synchronization even for reads
+        final Optional<DeviceDescriptions> devDescs;
+        synchronized (descs) {
+            devDescs = Optional.ofNullable(descs.get(pid));
+        }
+        // DeviceDescriptions is concurrent access-safe
+        return devDescs
+            .map(dd -> dd.getPortDescs().values().stream()
+                                             .map(Timestamped::value))
+            .orElse(Stream.empty());
+    }
+
+    @Override
     public DeviceEvent updatePortStatistics(ProviderId providerId, DeviceId deviceId,
                                             Collection<PortStatistics> newStatsCollection) {
 
@@ -923,6 +944,26 @@ public class GossipDeviceStore
     public Port getPort(DeviceId deviceId, PortNumber portNumber) {
         Map<PortNumber, Port> ports = devicePorts.get(deviceId);
         return ports == null ? null : ports.get(portNumber);
+    }
+
+    @Override
+    public PortDescription getPortDescription(ProviderId pid,
+                                              DeviceId deviceId,
+                                              PortNumber portNumber) {
+        Map<ProviderId, DeviceDescriptions> descs = this.deviceDescs.get(deviceId);
+        if (descs == null) {
+            return null;
+        }
+        // inner-Map(=descs) is HashMap, thus requires synchronization even for reads
+        final Optional<DeviceDescriptions> devDescs;
+        synchronized (descs) {
+            devDescs = Optional.ofNullable(descs.get(pid));
+        }
+        // DeviceDescriptions is concurrent access-safe
+        return devDescs
+                .map(deviceDescriptions -> deviceDescriptions.getPortDesc(portNumber))
+                .map(Timestamped::value)
+                .orElse(null);
     }
 
     @Override
