@@ -19,6 +19,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onosproject.xosclient.api.VtnServiceApi.NetworkType;
+import org.onosproject.xosclient.api.VtnServiceApi.ServiceType;
 
 import java.util.Objects;
 import java.util.Set;
@@ -29,18 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Representation of CORD VTN controlled network service.
  */
 public final class VtnService {
-
-    public enum NetworkType {
-        PRIVATE,
-        PUBLIC,
-        MANAGEMENT
-    }
-
-    public enum ServiceType {
-        VSG,
-        OLT_AGENT,
-        DUMMY
-    }
 
     private final VtnServiceId id;
     private final String name;
