@@ -45,8 +45,6 @@ import java.util.concurrent.BlockingQueue;
 public class LspEventConsumer implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(LspEventConsumer.class);
     public static List<LsPdu> lsPdus = new ArrayList<>();
-    private String lspAdded = "LSP_ADDED";
-    private String lspRemoved = "LSP_REMOVED";
     private BlockingQueue queue = null;
     private Controller controller = null;
     private TopologyForDeviceAndLinkImpl deviceAndLink = new TopologyForDeviceAndLinkImpl();
@@ -64,24 +62,21 @@ public class LspEventConsumer implements Runnable {
 
     @Override
     public void run() {
-        log.debug("LspsForProvider:run...!!!");
         try {
             while (true) {
                 if (!queue.isEmpty()) {
                     LspWrapper wrapper = (LspWrapper) queue.take();
                     LsPdu lsPdu = (LsPdu) wrapper.lsPdu();
-                    for (IsisTlv isisTlv : lsPdu.tlvs()) {
-                        if ((isisTlv instanceof IpExtendedReachabilityTlv) ||
-                                (isisTlv instanceof IsExtendedReachability)) {
-                            lsPdus.add(lsPdu);
-                            if (wrapper.lspProcessing().equals(lspAdded)) {
+                    if (wrapper.lspProcessing().equals(IsisConstants.LSPREMOVED)) {
+                        callTopologyToRemoveInfo(lsPdu);
+                    } else if (wrapper.lspProcessing().equals(IsisConstants.LSPADDED)) {
+                        for (IsisTlv isisTlv : lsPdu.tlvs()) {
+                            if ((isisTlv instanceof IpExtendedReachabilityTlv) ||
+                                    (isisTlv instanceof IsExtendedReachability)) {
                                 callTopologyToSendInfo(lsPdu, wrapper.isisInterface().networkType(),
                                         wrapper.isisInterface().systemId() + ".00");
+                                break;
                             }
-                            if (wrapper.lspProcessing().equals(lspRemoved)) {
-                                callTopologyToRemoveInfo(lsPdu);
-                            }
-                            break;
                         }
                     }
                 }
@@ -99,6 +94,9 @@ public class LspEventConsumer implements Runnable {
      */
     private void callTopologyToSendInfo(LsPdu lsPdu, IsisNetworkType isisNetworkType,
                                         String ownSystemId) {
+        if ((lsPdu.lspId().equals(ownSystemId + "-00"))) {
+            return;
+        }
         if (isisNetworkType.equals(IsisNetworkType.BROADCAST)) {
             sendDeviceInfo(lsPdu);
             boolean isDis = IsisUtil.checkIsDis(lsPdu.lspId());
@@ -106,9 +104,7 @@ public class LspEventConsumer implements Runnable {
                 sendLinkInfo(lsPdu, ownSystemId);
             }
         } else if (isisNetworkType.equals(IsisNetworkType.P2P)) {
-
             sendDeviceInfo(lsPdu);
-
             for (LsPdu wrapper : lsPdus) {
                 LsPdu lsPduStored = wrapper;
                 List<String> neStringList = neighborList(lsPduStored, ownSystemId);
@@ -117,7 +113,6 @@ public class LspEventConsumer implements Runnable {
                     sendLinkInfo(lsPduStored, ownSystemId);
                 }
             }
-
             List<String> neStringList = neighborList(lsPdu, ownSystemId);
             Map<String, IsisRouter> routerPresence = deviceAndLink.isisDeviceList();
             for (String neighbor : neStringList) {
@@ -137,7 +132,8 @@ public class LspEventConsumer implements Runnable {
      * @param lsPdu ls pdu instance
      */
     private void callTopologyToRemoveInfo(LsPdu lsPdu) {
-        removeDeviceInfo(lsPdu);
+        IsisRouter isisRouter = deviceAndLink.isisRouter(lsPdu.lspId());
+        removeDeviceInfo(isisRouter);
         removeLinkInfo(lsPdu);
     }
 
@@ -195,13 +191,13 @@ public class LspEventConsumer implements Runnable {
     /**
      * Removes the device information from topology provider.
      *
-     * @param lsPdu ls pdu instance
+     * @param isisRouter ISIS router instance
      */
-    private void removeDeviceInfo(LsPdu lsPdu) {
-        IsisRouter isisRouter = deviceAndLink.removeDeviceAndLinkInfo(lsPdu);
+    private void removeDeviceInfo(IsisRouter isisRouter) {
         if (isisRouter.systemId() != null) {
             controller.removeDeviceDetails(isisRouter);
         }
+        deviceAndLink.removeRouter(isisRouter.systemId());
     }
 
     /**
@@ -228,7 +224,7 @@ public class LspEventConsumer implements Runnable {
      * @param lsPdu ls pdu instance
      */
     private void removeLinkInfo(LsPdu lsPdu) {
-        Map<String, LinkInformation> linkInformationList = deviceAndLink.removeLinkInfo(lsPdu);
+        Map<String, LinkInformation> linkInformationList = deviceAndLink.removeLinkInfo(lsPdu.lspId());
         for (String key : linkInformationList.keySet()) {
             LinkInformation linkInformation = linkInformationList.get(key);
             controller.removeLinkDetails(createIsisLink(linkInformation, lsPdu));

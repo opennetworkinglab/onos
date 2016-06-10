@@ -67,9 +67,14 @@ public final class SubTlvFinder {
                 subTlv = unreservedBandwidth;
                 break;
             case INTERFACEADDRESS:
-                NeighborIpAddress ipInterfaceAddressTlv = new NeighborIpAddress(tlvHeader);
+                InterfaceIpAddress ipInterfaceAddressTlv = new InterfaceIpAddress(tlvHeader);
                 ipInterfaceAddressTlv.readFrom(channelBuffer);
                 subTlv = ipInterfaceAddressTlv;
+                break;
+            case NEIGHBORADDRESS:
+                NeighborIpAddress ipNeighborAddressTlv = new NeighborIpAddress(tlvHeader);
+                ipNeighborAddressTlv.readFrom(channelBuffer);
+                subTlv = ipNeighborAddressTlv;
                 break;
             default:
                 //TODO

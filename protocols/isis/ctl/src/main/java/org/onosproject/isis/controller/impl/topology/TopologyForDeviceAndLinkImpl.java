@@ -22,21 +22,24 @@ import org.onosproject.isis.controller.topology.LinkInformation;
 import org.onosproject.isis.controller.topology.TopologyForDeviceAndLink;
 import org.onosproject.isis.controller.topology.IsisLinkTed;
 import org.onosproject.isis.io.isispacket.pdu.LsPdu;
-import org.onosproject.isis.io.isispacket.tlv.IpExtendedReachabilityTlv;
 import org.onosproject.isis.io.isispacket.tlv.IsExtendedReachability;
 import org.onosproject.isis.io.isispacket.tlv.IsisTlv;
 import org.onosproject.isis.io.isispacket.tlv.NeighborForExtendedIs;
-import org.onosproject.isis.io.isispacket.tlv.subtlv.AdministrativeGroup;
+
 import org.onosproject.isis.io.isispacket.tlv.subtlv.TrafficEngineeringSubTlv;
 import org.onosproject.isis.io.isispacket.tlv.subtlv.InterfaceIpAddress;
 import org.onosproject.isis.io.isispacket.tlv.subtlv.NeighborIpAddress;
+import org.onosproject.isis.io.isispacket.tlv.subtlv.AdministrativeGroup;
 import org.onosproject.isis.io.isispacket.tlv.subtlv.TrafficEngineeringMetric;
+import org.onosproject.isis.io.isispacket.tlv.subtlv.UnreservedBandwidth;
 import org.onosproject.isis.io.isispacket.tlv.subtlv.MaximumReservableBandwidth;
+import org.onosproject.isis.io.isispacket.tlv.subtlv.MaximumBandwidth;
 import org.onosproject.isis.io.util.IsisConstants;
 import org.onosproject.isis.io.util.IsisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +55,6 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
     private Map<String, DeviceInformation> deviceInformationMapForPointToPoint = new LinkedHashMap<>();
     private Map<String, DeviceInformation> deviceInformationMapToDelete = new LinkedHashMap<>();
     private Map<String, LinkInformation> addedLinkInformationMap = new LinkedHashMap<>();
-    private Map<String, LinkInformation> removeLinkInformationMap = new LinkedHashMap<>();
 
     /**
      * Gets device information.
@@ -226,11 +228,33 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
     }
 
     /**
-     * Creates Device and Link instance.
+     * Returns the ISIS router instance.
      *
-     * @param lsPdu ISIS LSPDU instance
-     *
+     * @param systemId system ID to get router details
+     * @return ISIS router instance
      */
+    public IsisRouter isisRouter(String systemId) {
+        String routerId = IsisUtil.removeTailingZeros(systemId);
+        IsisRouter isisRouter = isisRouterDetails.get(routerId);
+        if (isisRouter != null) {
+            return isisRouter;
+        } else {
+            log.debug("IsisRouter is not available");
+            IsisRouter isisRouterCheck = new DefaultIsisRouter();
+            isisRouterCheck.setSystemId(routerId);
+            return isisRouterCheck;
+        }
+    }
+
+    /**
+     * Removes the ISIS router instance from map.
+     *
+     * @param systemId system ID to remove router details
+     */
+    public void removeRouter(String systemId) {
+        String routerId = IsisUtil.removeTailingZeros(systemId);
+        isisRouterDetails.remove(systemId);
+    }
 
     /**
      * Creates Device instance.
@@ -249,18 +273,18 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
             }
         }
         return isisRouter;
-    }
+    }/*
 
-    /**
+    *//**
      * Removes Device and Link instance.
      *
      * @param lsPdu ISIS LSPDU instance
      * @return isisRouter isisRouter instance
-     */
+     *//*
     public IsisRouter removeDeviceAndLinkInfo(LsPdu lsPdu) {
         IsisRouter isisRouter = createIsisRouter(lsPdu);
         return isisRouter;
-    }
+    }*/
 
     /**
      * Creates link information.
@@ -302,13 +326,14 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
     /**
      * Removes link information.
      *
-     * @param lsPdu ls pdu instance
+     * @param systemId system ID to remove link information
      * @return updated link information
      */
-    public Map<String, LinkInformation> removeLinkInfo(LsPdu lsPdu) {
-        String lspId = lsPdu.lspId();
+    public Map<String, LinkInformation> removeLinkInfo(String systemId) {
+        String routerId = IsisUtil.removeTailingZeros(systemId);
+        Map<String, LinkInformation> removeLinkInformationMap = new LinkedHashMap<>();
         for (String key : addedLinkInformationMap.keySet()) {
-            if (key.contains(lspId)) {
+            if (key.contains(routerId)) {
                 removeLinkInformationMap.put(key, addedLinkInformationMap.get(key));
             }
         }
@@ -328,22 +353,24 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
         LinkInformation linkInformation = new DefaultIsisLinkInformation();
         IsisRouter isisRouter = isisRouterDetails.get(neighborId);
         for (IsisTlv isisTlv : lsPdu.tlvs()) {
-            if (isisTlv instanceof IpExtendedReachabilityTlv) {
-                IpExtendedReachabilityTlv ipExtendedReachabilityTlv = (IpExtendedReachabilityTlv) isisTlv;
-                List<TrafficEngineeringSubTlv> trafEnginSubTlv = ipExtendedReachabilityTlv.teTlvs();
-                for (TrafficEngineeringSubTlv teTlv : trafEnginSubTlv) {
-                    if (teTlv instanceof InterfaceIpAddress) {
-                        InterfaceIpAddress localIpAddress = (InterfaceIpAddress) isisTlv;
-                        linkInformation.setInterfaceIp(localIpAddress.localInterfaceIPAddress());
-                    }
+            if (isisTlv instanceof IsExtendedReachability) {
+                IsExtendedReachability isExtendedReachability = (IsExtendedReachability) isisTlv;
+                List<NeighborForExtendedIs> neighbours = isExtendedReachability.neighbours();
+                for (NeighborForExtendedIs teTlv : neighbours) {
+                    List<TrafficEngineeringSubTlv> teSubTlvs = teTlv.teSubTlv();
+                    for (TrafficEngineeringSubTlv teSubTlv : teSubTlvs) {
+                        if (teSubTlv instanceof InterfaceIpAddress) {
+                            InterfaceIpAddress localIpAddress = (InterfaceIpAddress) teSubTlv;
+                            linkInformation.setInterfaceIp(localIpAddress.localInterfaceIPAddress());
+                        } else if (teSubTlv instanceof NeighborIpAddress) {
+                            NeighborIpAddress neighborIpAddress = (NeighborIpAddress) teSubTlv;
+                            linkInformation.setNeighborIp(neighborIpAddress.neighborIPAddress());
+                        }
 
+                    }
                 }
-            } else {
-                linkInformation.setInterfaceIp(IsisConstants.DEFAULTIP);
-                linkInformation.setNeighborIp(IsisConstants.DEFAULTIP);
             }
         }
-        linkInformation.setNeighborIp(IsisConstants.DEFAULTIP);
         linkInformation.setLinkId(linkId);
         linkInformation.setAlreadyCreated(false);
         linkInformation.setLinkDestinationId(neighborId);
@@ -366,21 +393,22 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
         }
         isisRouter.setSystemId(IsisUtil.removeTailingZeros(lsPdu.lspId()));
         for (IsisTlv isisTlv : lsPdu.tlvs()) {
-            if (isisTlv instanceof IpExtendedReachabilityTlv) {
-                IpExtendedReachabilityTlv ipExtendedReachabilityTlv = (IpExtendedReachabilityTlv) isisTlv;
-                List<TrafficEngineeringSubTlv> trafEnginSubTlv = ipExtendedReachabilityTlv.teTlvs();
-                for (TrafficEngineeringSubTlv teTlv : trafEnginSubTlv) {
-                    if (teTlv instanceof InterfaceIpAddress) {
-                        InterfaceIpAddress localIpAddress = (InterfaceIpAddress) isisTlv;
-                        isisRouter.setInterfaceId(localIpAddress.localInterfaceIPAddress());
-                    }
-                    if (teTlv instanceof NeighborIpAddress) {
-                        NeighborIpAddress neighborIpAddress = (NeighborIpAddress) isisTlv;
-                        isisRouter.setNeighborRouterId(neighborIpAddress.neighborIPAddress());
+            if (isisTlv instanceof IsExtendedReachability) {
+                IsExtendedReachability isExtendedReachability = (IsExtendedReachability) isisTlv;
+                List<NeighborForExtendedIs> neighbours = isExtendedReachability.neighbours();
+                for (NeighborForExtendedIs teTlv : neighbours) {
+                    List<TrafficEngineeringSubTlv> teSubTlvs = teTlv.teSubTlv();
+                    for (TrafficEngineeringSubTlv teSubTlv : teSubTlvs) {
+                        if (teSubTlv instanceof InterfaceIpAddress) {
+                            InterfaceIpAddress localIpAddress = (InterfaceIpAddress) teSubTlv;
+                            isisRouter.setInterfaceId(localIpAddress.localInterfaceIPAddress());
+                        } else if (teSubTlv instanceof NeighborIpAddress) {
+                            NeighborIpAddress neighborIpAddress = (NeighborIpAddress) teSubTlv;
+                            isisRouter.setNeighborRouterId(neighborIpAddress.neighborIPAddress());
+                        }
+
                     }
                 }
-            } else {
-                log.info("Invalid TLV");
             }
         }
         return isisRouter;
@@ -398,6 +426,7 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
         isisRouter.setDis(false);
         isisRouter.setInterfaceId(IsisConstants.DEFAULTIP);
         isisRouter.setNeighborRouterId(IsisConstants.DEFAULTIP);
+
         return isisRouter;
     }
 
@@ -410,26 +439,50 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
     public IsisLinkTed createIsisLinkTedInfo(LsPdu lsPdu) {
         IsisLinkTed isisLinkTed = new DefaultIsisLinkTed();
         for (IsisTlv isisTlv : lsPdu.tlvs()) {
-            if (isisTlv instanceof IpExtendedReachabilityTlv) {
-                IpExtendedReachabilityTlv ipExtendedReachabilityTlv = (IpExtendedReachabilityTlv) isisTlv;
-                List<TrafficEngineeringSubTlv> trafficEngSubTlv = ipExtendedReachabilityTlv.teTlvs();
-                for (TrafficEngineeringSubTlv teTlv : trafficEngSubTlv) {
-                    if (teTlv instanceof AdministrativeGroup) {
-                        AdministrativeGroup ag = (AdministrativeGroup) isisTlv;
-                        isisLinkTed.setAdministrativeGroup(ag.administrativeGroup());
-                    }
-                    if (teTlv instanceof TrafficEngineeringMetric) {
-                        TrafficEngineeringMetric teM = (TrafficEngineeringMetric) isisTlv;
-                        isisLinkTed.setTeDefaultMetric(teM.getTrafficEngineeringMetricValue());
-                    }
-                    if (teTlv instanceof MaximumReservableBandwidth) {
-                        MaximumReservableBandwidth reservableBw = (MaximumReservableBandwidth) isisTlv;
-                        isisLinkTed.setMaximumReservableLinkBandwidth(
-                                Bandwidth.bps(reservableBw.getMaximumBandwidthValue()));
+            if (isisTlv instanceof IsExtendedReachability) {
+                IsExtendedReachability isExtendedReachability = (IsExtendedReachability) isisTlv;
+                List<NeighborForExtendedIs> neighbours = isExtendedReachability.neighbours();
+                for (NeighborForExtendedIs teTlv : neighbours) {
+                    List<TrafficEngineeringSubTlv> teSubTlvs = teTlv.teSubTlv();
+                    for (TrafficEngineeringSubTlv teSubTlv : teSubTlvs) {
+                        if (teSubTlv instanceof AdministrativeGroup) {
+                            AdministrativeGroup ag = (AdministrativeGroup) teSubTlv;
+                            isisLinkTed.setAdministrativeGroup(ag.administrativeGroup());
+                        }
+                        if (teSubTlv instanceof InterfaceIpAddress) {
+                            InterfaceIpAddress localIpAddress = (InterfaceIpAddress) teSubTlv;
+                            isisLinkTed.setIpv4InterfaceAddress(localIpAddress.localInterfaceIPAddress());
+                        }
+                        if (teSubTlv instanceof NeighborIpAddress) {
+                            NeighborIpAddress neighborIpAddress = (NeighborIpAddress) teSubTlv;
+                            isisLinkTed.setIpv4NeighborAddress(neighborIpAddress.neighborIPAddress());
+                        }
+                        if (teSubTlv instanceof TrafficEngineeringMetric) {
+                            TrafficEngineeringMetric teM = (TrafficEngineeringMetric) teSubTlv;
+                            isisLinkTed.setTeDefaultMetric(teM.getTrafficEngineeringMetricValue());
+                        }
+                        if (teSubTlv instanceof MaximumBandwidth) {
+                            MaximumBandwidth maxLinkBandwidth = (MaximumBandwidth) teSubTlv;
+                            isisLinkTed.setMaximumLinkBandwidth(
+                                    Bandwidth.bps(maxLinkBandwidth.getMaximumBandwidthValue()));
+                        }
+                        if (teSubTlv instanceof MaximumReservableBandwidth) {
+                            MaximumReservableBandwidth maxReservableBw = (MaximumReservableBandwidth) teSubTlv;
+                            isisLinkTed.setMaximumReservableLinkBandwidth(
+                                    Bandwidth.bps(maxReservableBw.getMaximumBandwidthValue()));
+                        }
+                        if (teSubTlv instanceof UnreservedBandwidth) {
+                            UnreservedBandwidth unReservedBandwidth = (UnreservedBandwidth) teSubTlv;
+                            List<Bandwidth> bandwidthList = new ArrayList<>();
+                            List<Float> unReservedBandwidthList = unReservedBandwidth.unReservedBandwidthValue();
+                            for (Float unReservedBandwidthFloatValue : unReservedBandwidthList) {
+                                Bandwidth bandwidth = Bandwidth.bps(unReservedBandwidthFloatValue);
+                                bandwidthList.add(bandwidth);
+                            }
+                            isisLinkTed.setUnreservedBandwidth(bandwidthList);
+                        }
                     }
                 }
-            } else {
-                log.debug("TLV type not supported");
             }
         }
         return isisLinkTed;

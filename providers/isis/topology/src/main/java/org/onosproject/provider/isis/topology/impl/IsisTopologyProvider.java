@@ -59,6 +59,7 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -132,7 +133,7 @@ public class IsisTopologyProvider extends AbstractProvider implements DeviceProv
     @Override
     public boolean isReachable(DeviceId deviceId) {
         log.debug("IsisDeviceProvider::isReachable...!!!!");
-        return false;
+        return true;
     }
 
     @Override
@@ -149,6 +150,8 @@ public class IsisTopologyProvider extends AbstractProvider implements DeviceProv
     private LinkDescription buildLinkDes(IsisLink isisLink) {
         long srcAddress = 0;
         long dstAddress = 0;
+        boolean localPseduo = false;
+        boolean remotePseduo = false;
         String localSystemId = isisLink.localSystemId();
         String remoteSystemId = isisLink.remoteSystemId();
         //Changing of port numbers
@@ -156,9 +159,17 @@ public class IsisTopologyProvider extends AbstractProvider implements DeviceProv
         dstAddress = isisLink.neighborIp().toInt();
         DeviceId srcId = DeviceId.deviceId(IsisRouterId.uri(localSystemId));
         DeviceId dstId = DeviceId.deviceId(IsisRouterId.uri(remoteSystemId));
-        if (srcAddress == 0) {
+        if (checkIsDis(isisLink.localSystemId())) {
+            localPseduo = true;
+        } else if (checkIsDis(isisLink.remoteSystemId())) {
+            remotePseduo = true;
+        } else {
+            log.debug("IsisDeviceProvider::buildLinkDes : unknown type.!");
+        }
+
+        if (localPseduo && srcAddress == 0) {
             srcAddress = PSEUDO_PORT;
-        } else if (dstAddress == 0) {
+        } else if (remotePseduo && dstAddress == 0) {
             dstAddress = PSEUDO_PORT;
         }
 
@@ -173,6 +184,28 @@ public class IsisTopologyProvider extends AbstractProvider implements DeviceProv
     }
 
     /**
+     * Return the DIS value from the systemId.
+     *
+     * @param systemId system Id.
+     * @return return true if DIS else false
+     */
+    public static boolean checkIsDis(String systemId) {
+        StringTokenizer stringTokenizer = new StringTokenizer(systemId, "." + "-");
+        int count = 0;
+        while (stringTokenizer.hasMoreTokens()) {
+            String str = stringTokenizer.nextToken();
+            if (count == 3) {
+                int x = Integer.parseInt(str);
+                if (x > 0) {
+                    return true;
+                }
+            }
+            count++;
+        }
+        return false;
+    }
+
+    /**
      * Builds port description.
      *
      * @param deviceId   device ID for the port
@@ -181,9 +214,7 @@ public class IsisTopologyProvider extends AbstractProvider implements DeviceProv
      */
     private List<PortDescription> buildPortDescriptions(DeviceId deviceId,
                                                         PortNumber portNumber) {
-
         List<PortDescription> portList;
-
         if (portMap.containsKey(deviceId)) {
             portList = portMap.get(deviceId);
         } else {
@@ -193,8 +224,8 @@ public class IsisTopologyProvider extends AbstractProvider implements DeviceProv
             PortDescription portDescriptions = new DefaultPortDescription(portNumber, true);
             portList.add(portDescriptions);
         }
-
         portMap.put(deviceId, portList);
+
         return portList;
     }
 
@@ -215,6 +246,7 @@ public class IsisTopologyProvider extends AbstractProvider implements DeviceProv
 
         //TE Info
         IsisLinkTed isisLinkTed = isisLink.linkTed();
+        log.info("Ted Information:  {}", isisLinkTed.toString());
         administrativeGroup = isisLinkTed.administrativeGroup();
         teMetric = isisLinkTed.teDefaultMetric();
         maxReservableBandwidth = isisLinkTed.maximumReservableLinkBandwidth();
@@ -251,7 +283,7 @@ public class IsisTopologyProvider extends AbstractProvider implements DeviceProv
             newBuilder.set("RouterId", systemId);
             DeviceDescription description =
                     new DefaultDeviceDescription(IsisRouterId.uri(systemId), deviceType, UNKNOWN, UNKNOWN, UNKNOWN,
-                                                 UNKNOWN, cId, newBuilder.build());
+                            UNKNOWN, cId, newBuilder.build());
             deviceProviderService.deviceConnected(deviceId, description);
         }
 
@@ -276,9 +308,9 @@ public class IsisTopologyProvider extends AbstractProvider implements DeviceProv
             LinkDescription linkDes = buildLinkDes(isisLink);
             //Updating ports of the link
             deviceProviderService.updatePorts(linkDes.src().deviceId(), buildPortDescriptions(linkDes.src().deviceId(),
-                                                                                              linkDes.src().port()));
+                    linkDes.src().port()));
             deviceProviderService.updatePorts(linkDes.dst().deviceId(), buildPortDescriptions(linkDes.dst().deviceId(),
-                                                                                              linkDes.dst().port()));
+                    linkDes.dst().port()));
             registerBandwidth(linkDes, isisLink);
             linkProviderService.linkDetected(linkDes);
         }

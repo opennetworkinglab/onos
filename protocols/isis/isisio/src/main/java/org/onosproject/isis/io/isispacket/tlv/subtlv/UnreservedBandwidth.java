@@ -54,7 +54,7 @@ public class UnreservedBandwidth extends TlvHeader implements TrafficEngineering
      *
      * @return List of un reserved bandwidth
      */
-    public List<Float> getUnReservedBandwidthValue() {
+    public List<Float> unReservedBandwidthValue() {
         return this.unReservedBandwidth;
     }
 

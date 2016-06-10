@@ -46,6 +46,15 @@ public class NeighborForExtendedIs {
     }
 
     /**
+     * Returns list of sub tlvs.
+     *
+     * @return teSubTlv list of sub tlvs
+     */
+    public List<TrafficEngineeringSubTlv> teSubTlv() {
+        return teSubTlv;
+    }
+
+    /**
      * Sets neighbor ID.
      *
      * @param neighborId neighbor ID
