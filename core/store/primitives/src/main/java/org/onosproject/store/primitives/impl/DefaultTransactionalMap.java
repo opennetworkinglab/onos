@@ -109,6 +109,11 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V>, Tr
     }
 
     @Override
+    public boolean containsKey(K key) {
+        return get(key) != null;
+    }
+
+    @Override
     public V put(K key, V value) {
         checkState(txContext.isOpen(), TX_CLOSED_ERROR);
         checkNotNull(value, ERROR_NULL_VALUE);

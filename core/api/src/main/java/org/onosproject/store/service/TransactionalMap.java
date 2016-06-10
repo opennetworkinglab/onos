@@ -39,6 +39,13 @@ public interface TransactionalMap<K, V> {
     V get(K key);
 
     /**
+     * Returns true if this map contains a mapping for the specified key.
+     * @param key key whose presence in this map to be tested
+     * @return true if this map contains a mapping for the specified key
+     */
+    boolean containsKey(K key);
+
+    /**
      * Associates the specified value with the specified key in this map (optional operation).
      * If the map previously contained a mapping for the key, the old value is replaced by the
      * specified value.
