@@ -32,20 +32,7 @@
      */
 
     // configuration
-    var instCfg = {
-            rectPad: 8,
-            nodeOx: 9,
-            nodeOy: 9,
-            nodeDim: 40,
-            birdOx: 19,
-            birdOy: 21,
-            birdDim: 21,
-            uiDy: 45,
-            titleDy: 30,
-            textYOff: 20,
-            textYSpc: 15
-        },
-        showLogicErrors = true,
+    var showLogicErrors = true,
         idIns = 'topo-p-instance',
         instOpts = {
             edge: 'left',
@@ -102,14 +89,6 @@
 
     // ==========================
 
-    function computeDim(self) {
-        var css = window.getComputedStyle(self);
-        return {
-            w: sus.stripPx(css.width),
-            h: sus.stripPx(css.height)
-        };
-    }
-
     function clickInst(d) {
         var el = d3.select(this),
             aff = el.classed('affinity');
@@ -139,28 +118,13 @@
         oiShowMaster = false;
     }
 
-    function instRectAttr(dim) {
-        var pad = instCfg.rectPad;
-        return {
-            x: pad,
-            y: pad,
-            width: dim.w - pad*2,
-            height: dim.h - pad*2,
-            rx: 6
-        };
-    }
-
-    function viewBox(dim) {
-        return '0 0 ' + dim.w + ' ' + dim.h;
-    }
-
     function attachUiBadge(svg) {
-        gs.addGlyph(svg, 'uiAttached', 24, true, [28, instCfg.uiDy])
+        gs.addGlyph(svg, 'uiAttached', 24, true, [14, 54])
             .classed('badgeIcon uiBadge', true);
     }
 
     function attachReadyBadge(svg) {
-        gs.addGlyph(svg, 'checkMark', 16, true, [12, instCfg.uiDy + 4])
+        gs.addGlyph(svg, 'checkMark', 16, true, [18, 40])
             .classed('badgeIcon readyBadge', true);
     }
 
@@ -171,32 +135,56 @@
     // ==============================
 
     function updateInstances() {
+        var rox = 5,
+            roy = 5,
+            rw = 160,
+            rhh = 30,
+            rbh = 45,
+            tx = 48,
+            instSvg = {
+                width: 170,
+                height: 85,
+                viewBox: '0 0 170 85'
+            },
+            headRect = {
+                x: rox,
+                y: roy,
+                width: rw,
+                height: rhh
+            },
+            bodyRect = {
+                x: rox,
+                y: roy + rhh,
+                width: rw,
+                height: rbh
+            },
+            titleAttr = {
+                class: 'instTitle',
+                x: tx,
+                y: 27
+            };
+
         var onoses = oiBox.el().selectAll('.onosInst')
-                .data(onosOrder, function (d) { return d.id; }),
-            instDim = {w:0,h:0},
-            c = instCfg;
+                .data(onosOrder, function (d) { return d.id; });
 
         function nSw(n) {
-            return '# Switches: ' + n;
+            return 'Switches: ' + n;
         }
 
         // operate on existing onos instances if necessary
         onoses.each(function (d) {
             var el = d3.select(this),
                 svg = el.select('svg');
-            instDim = computeDim(this);
 
             // update online state
             el.classed('online', d.online);
-            el.classed('notReady', !d.ready);
+            el.classed('ready', d.ready);
 
             // update ui-attached state
             svg.select('use.uiBadge').remove();
             if (d.uiAttached) {
                 attachUiBadge(svg);
             }
-
-            attachReadyBadge(svg, d.ready);
 
             function updAttr(id, value) {
                 svg.select('text.instLabel.'+id).text(value);
@@ -210,59 +198,39 @@
         // operate on new onos instances
         var entering = onoses.enter()
             .append('div')
-            .attr('class', 'onosInst')
+            .classed('onosInst', true)
             .classed('online', function (d) { return d.online; })
-            .classed('notReady', function (d) { return !d.ready; })
+            .classed('ready', function (d) { return d.ready; })
             .on('click', clickInst);
 
         entering.each(function (d) {
             var el = d3.select(this),
-                rectAttr,
-                svg;
-            instDim = computeDim(this);
-            rectAttr = instRectAttr(instDim);
+                svg = el.append('svg').attr(instSvg);
 
-            svg = el.append('svg').attr({
-                width: instDim.w,
-                height: instDim.h,
-                viewBox: viewBox(instDim)
-            });
+            svg.append('rect').attr(headRect);
+            svg.append('rect').attr(bodyRect);
 
-            svg.append('rect').attr(rectAttr);
+            gs.addGlyph(svg, 'bird', 20, false, [15, 10])
+                .classed('badgeIcon bird', true);
 
-            gs.addGlyph(svg, 'bird', 28, true, [14, 14])
-                .classed('badgeIcon', true);
+            attachReadyBadge(svg);
 
             if (d.uiAttached) {
                 attachUiBadge(svg);
             }
 
-            attachReadyBadge(svg);
-
-            var left = c.nodeOx + c.nodeDim,
-                len = rectAttr.width - left,
-                hlen = len / 2,
-                midline = hlen + left;
-
-            // title
             svg.append('text')
-                .attr({
-                    class: 'instTitle',
-                    x: midline,
-                    y: c.titleDy
-                })
+                .attr(titleAttr)
                 .text(d.id);
 
-            // a couple of attributes
-            var ty = c.titleDy + c.textYOff;
-
+            var ty = 55;
             function addAttr(id, label) {
                 svg.append('text').attr({
                     class: 'instLabel ' + id,
-                    x: midline,
+                    x: tx,
                     y: ty
                 }).text(label);
-                ty += c.textYSpc;
+                ty += 18;
             }
 
             addAttr('ip', d.ip);
@@ -279,8 +247,8 @@
         });
 
         // adjust the panel size appropriately...
-        oiBox.width(instDim.w * onosOrder.length);
-        oiBox.height(instDim.h);
+        oiBox.width(instSvg.width * onosOrder.length);
+        oiBox.height(instSvg.height);
 
         // remove any outgoing instances
         onoses.exit().remove();

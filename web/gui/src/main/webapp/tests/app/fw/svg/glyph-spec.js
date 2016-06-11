@@ -89,7 +89,8 @@ describe('factory: fw/svg/glyph.js', function() {
             diamond: 'M.2,.5'
         },
         glyphIds = [
-            'unknown', 'node', 'switch', 'roadm', 'endstation', 'router',
+            'unknown', 'uiAttached',
+            'node', 'switch', 'roadm', 'endstation', 'router',
             'bgpSpeaker', 'chain', 'crown', 'lock', 'topo', 'refresh',
             'garbage',
             'flowTable', 'portTable', 'groupTable',
@@ -98,7 +99,7 @@ describe('factory: fw/svg/glyph.js', function() {
             'prevIntent', 'intentTraffic', 'allTraffic', 'flows', 'eqMaster'
         ],
         badgeIds = [
-            'uiAttached', 'checkMark', 'xMark', 'triangleUp', 'triangleDown',
+            'checkMark', 'xMark', 'triangleUp', 'triangleDown',
             'plus', 'minus', 'play', 'stop'
         ],
         spriteIds = [

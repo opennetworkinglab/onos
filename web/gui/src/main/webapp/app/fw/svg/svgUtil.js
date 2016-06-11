@@ -159,12 +159,13 @@
 
     // --- Ordinal scales for 7 values.
 
-    //               blue       brown      brick red  sea green  purple     dark teal  lime
-    var lightNorm = ['#3E5780', '#78533B', '#CB4D28', '#018D61', '#8A2979', '#006D73', '#56AF00'],
-        lightMute = ['#A8B8CC', '#CCB3A8', '#FFC2BD', '#96D6BF', '#D19FCE', '#8FCCCA', '#CAEAA4'],
-
-        darkNorm  = ['#304860', '#664631', '#A8391B', '#00754B', '#77206D', '#005959', '#428700'],
-        darkMute  = ['#304860', '#664631', '#A8391B', '#00754B', '#77206D', '#005959', '#428700'];
+    // Colors per Mojo-Design's color palette..
+    //               blue       lt blue    red        lt red     dk grey    lt grey    steel
+    var lightNorm = ['#5b99d2', '#66cef6', '#d05a55', '#db7773', '#716b6b', '#aeada8', '#7e9aa8'],
+        lightMute = ['#a8cceb', '#a8e9fd', '#f1a7a7', '#f8c9c9', '#b9b5b5', '#d7d6d4', '#bdcdd5'],
+        // TODO: dark theme
+        darkNorm = ['#5b99d2', '#66cef6', '#d05a55', '#db7773', '#716b6b', '#aeada8', '#7e9aa8'],
+        darkMute = ['#a8cceb', '#a8e9fd', '#f1a7a7', '#f8c9c9', '#b9b5b5', '#d7d6d4', '#bdcdd5'];
 
     var colors= {
         light: {
@@ -215,7 +216,7 @@
                     dom.forEach(function (id, i) {
                         var x = i * 20,
                             y = k * 20,
-                            f = get(id, muted, theme);
+                            f = getColor(id, muted, theme);
                         g.append('circle').attr({
                             cx: x,
                             cy: y,

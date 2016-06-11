@@ -153,39 +153,40 @@ describe('factory: fw/svg/svgUtil.js', function() {
         ])).toBeTruthy();
     });
 
-    it('should provide a certain shade of blue', function () {
-       expect(sus.cat7().getColor('foo', false, 'light')).toEqual('#3E5780');
+    it('should provide blue', function () {
+       expect(sus.cat7().getColor('foo', false, 'light')).toEqual('#5b99d2');
     });
 
-    it('should not matter what the ID really is for shade of blue', function () {
-       expect(sus.cat7().getColor('bar', false, 'light')).toEqual('#78533B');
+    it('should provide light blue', function () {
+       expect(sus.cat7().getColor('bar', false, 'light')).toEqual('#66cef6');
     });
 
-    it('should provide different shade of blue for muted', function () {
-        expect(sus.cat7().getColor('foo', true, 'light')).toEqual('#A8B8CC');
+    it('should provide paler shade of blue for muted', function () {
+        expect(sus.cat7().getColor('foo', true, 'light')).toEqual('#a8cceb');
     });
 
-
-    it('should provide an alternate (dark) shade of blue', function () {
-       expect(sus.cat7().getColor('foo', false, 'dark')).toEqual('#304860');
+    // TODO: dark theme required
+    xit('should provide an alternate (dark) shade of blue', function () {
+       expect(sus.cat7().getColor('foo', false, 'dark')).toEqual('#5b99d2');
     });
 
-    it('should provide an alternate (dark) shade of blue for muted', function () {
-        expect(sus.cat7().getColor('foo', true, 'dark')).toEqual('#304860');
+    // TODO: dark theme required
+    xit('should provide an alternate (dark) shade of blue for muted', function () {
+        expect(sus.cat7().getColor('foo', true, 'dark')).toEqual('#a8cceb');
     });
 
     it('should iterate across the colors', function () {
-        expect(sus.cat7().getColor('foo', false, 'light')).toEqual('#3E5780');
-        expect(sus.cat7().getColor('bar', false, 'light')).toEqual('#78533B');
-        expect(sus.cat7().getColor('baz', false, 'light')).toEqual('#CB4D28');
-        expect(sus.cat7().getColor('goo', false, 'light')).toEqual('#018D61');
-        expect(sus.cat7().getColor('zoo', false, 'light')).toEqual('#8A2979');
-        expect(sus.cat7().getColor('pip', false, 'light')).toEqual('#006D73');
-        expect(sus.cat7().getColor('sdh', false, 'light')).toEqual('#56AF00');
+        expect(sus.cat7().getColor('foo', false, 'light')).toEqual('#5b99d2');
+        expect(sus.cat7().getColor('bar', false, 'light')).toEqual('#66cef6');
+        expect(sus.cat7().getColor('baz', false, 'light')).toEqual('#d05a55');
+        expect(sus.cat7().getColor('goo', false, 'light')).toEqual('#db7773');
+        expect(sus.cat7().getColor('zoo', false, 'light')).toEqual('#716b6b');
+        expect(sus.cat7().getColor('pip', false, 'light')).toEqual('#aeada8');
+        expect(sus.cat7().getColor('sdh', false, 'light')).toEqual('#7e9aa8');
         // and cycle back to the first color for item #8
-        expect(sus.cat7().getColor('bri', false, 'light')).toEqual('#3E5780');
+        expect(sus.cat7().getColor('bri', false, 'light')).toEqual('#5b99d2');
         // and return the same color for the same ID
-        expect(sus.cat7().getColor('zoo', false, 'light')).toEqual('#8A2979');
+        expect(sus.cat7().getColor('zoo', false, 'light')).toEqual('#716b6b');
     });
 
     // === translate(), scale(), skewX(), rotate()
