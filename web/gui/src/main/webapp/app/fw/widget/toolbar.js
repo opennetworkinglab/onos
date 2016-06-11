@@ -110,7 +110,8 @@
         }
 
         function adjustWidth(btnWidth) {
-            if (fs.noPxStyle(currentRow, 'width') >= maxWidth) {
+            // 0.1 fudge for rounding error
+            if (fs.noPxStyle(currentRow, 'width') + 0.1 >= maxWidth) {
                 tbWidth += btnWidth;
                 maxWidth = tbWidth;
             }

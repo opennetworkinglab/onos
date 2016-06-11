@@ -127,7 +127,8 @@ html[data-platform='iPad'] #topo-p-detail {
 /* --- Topo Instance Panel --- */
 
 #topo-p-instance {
-    height: 100px;
+    height: 85px;
+    padding: 10px;
 }
 
 #topo-p-instance div.onosInst {
@@ -140,14 +141,19 @@ html[data-platform='iPad'] #topo-p-detail {
 #topo-p-instance svg text.instTitle {
     font-size: 11pt;
     font-weight: bold;
+    font-variant: small-caps;
+    text-transform: uppercase;
 }
 #topo-p-instance svg text.instLabel {
-    font-size: 9pt;
-    font-style: italic;
+    font-size: 10pt;
 }
 
 
 /* --- Toolbar --- */
+
+#toolbar-topo-tbar {
+  padding: 6px;
+}
 
 #toolbar-topo-tbar .tbar-row.right {
     width: 100%;
@@ -227,10 +233,6 @@ html[data-platform='iPad'] #topo-p-detail {
 
 
 /* -- MISC -- */
-
-.notReady .readyBadge {
-    visibility: hidden;
-}
 
 .map-list {
     padding: 10px;

@@ -1,0 +1,11 @@
+{
+  "event": "updateInstance",
+  "payload": {
+    "id": "222.222.222.222",
+    "ip": "222.222.222.222",
+    "online": false,
+    "ready": false,
+    "uiAttached": false,
+    "switches": 0
+  }
+}

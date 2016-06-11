@@ -67,6 +67,9 @@
 
             E: [equalizeMasters, 'Equalize mastership roles'],
 
+            //-- instance color palette debug
+            // 9: function () { sus.cat7().testCard(svg); },
+
             // topology overlay selections
             F1: function () { ttbs.fnkey(0); },
             F2: function () { ttbs.fnkey(1); },
