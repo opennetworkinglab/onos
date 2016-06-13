@@ -141,6 +141,11 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OpenVSwitchPipeline"/>
     </driver>
+    <driver name="l3Device" extends="default"
+            manufacturer="" hwVersion="" swVersion="">
+        <behaviour api="org.onosproject.net.behaviour.ExtensionSelectorResolver"
+                   impl="org.onosproject.driver.extensions.MultiExtensionSelectorInterpreter" />
+    </driver>
     <driver name="aos" extends="ofdpa"
             manufacturer="Accton" hwVersion=".*" swVersion="1.*">
     </driver>

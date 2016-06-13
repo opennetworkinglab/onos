@@ -18,8 +18,11 @@ package org.onosproject.provider.bgpcep.flow.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -31,13 +34,63 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MplsLabel;
 import org.onosproject.bgp.controller.BgpController;
+import org.onosproject.bgp.controller.BgpId;
+import org.onosproject.bgp.controller.BgpPeer;
+import org.onosproject.bgpio.protocol.flowspec.BgpFlowSpecNlri;
+import org.onosproject.bgpio.protocol.flowspec.BgpFlowSpecRouteKey;
+import org.onosproject.bgpio.types.BgpFsActionReDirect;
+import org.onosproject.bgpio.types.BgpFsActionTrafficAction;
+import org.onosproject.bgpio.types.BgpFsActionTrafficMarking;
+import org.onosproject.bgpio.types.BgpFsActionTrafficRate;
+import org.onosproject.bgpio.types.BgpFsDestinationPortNum;
+import org.onosproject.bgpio.types.BgpFsDestinationPrefix;
+import org.onosproject.bgpio.types.BgpFsDscpValue;
+import org.onosproject.bgpio.types.BgpFsFragment;
+import org.onosproject.bgpio.types.BgpFsIcmpCode;
+import org.onosproject.bgpio.types.BgpFsIcmpType;
+import org.onosproject.bgpio.types.BgpFsIpProtocol;
+import org.onosproject.bgpio.types.BgpFsOperatorValue;
+import org.onosproject.bgpio.types.BgpFsPacketLength;
+import org.onosproject.bgpio.types.BgpFsPortNum;
+import org.onosproject.bgpio.types.BgpFsSourcePortNum;
+import org.onosproject.bgpio.types.BgpFsSourcePrefix;
+import org.onosproject.bgpio.types.BgpFsTcpFlags;
+import org.onosproject.bgpio.types.BgpValueType;
+import org.onosproject.bgpio.types.WideCommunityAttrHeader;
+import org.onosproject.bgpio.types.WideCommunityExcludeTarget;
+import org.onosproject.bgpio.types.WideCommunityInteger;
+import org.onosproject.bgpio.types.WideCommunityIpV4Neighbour;
+import org.onosproject.bgpio.types.WideCommunityParameter;
+import org.onosproject.bgpio.types.WideCommunityTarget;
+import org.onosproject.bgpio.types.attr.WideCommunity;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.flowapi.ExtDscpValue;
+import org.onosproject.flowapi.ExtFlowContainer;
+import org.onosproject.flowapi.ExtFlowTypes;
+import org.onosproject.flowapi.ExtFragment;
+import org.onosproject.flowapi.ExtIcmpCode;
+import org.onosproject.flowapi.ExtIcmpType;
+import org.onosproject.flowapi.ExtIpProtocol;
+import org.onosproject.flowapi.ExtKeyName;
+import org.onosproject.flowapi.ExtOperatorValue;
+import org.onosproject.flowapi.ExtPacketLength;
+import org.onosproject.flowapi.ExtPort;
+import org.onosproject.flowapi.ExtPrefix;
+import org.onosproject.flowapi.ExtTarget;
+import org.onosproject.flowapi.ExtTcpFlag;
+import org.onosproject.flowapi.ExtTrafficAction;
+import org.onosproject.flowapi.ExtTrafficMarking;
+import org.onosproject.flowapi.ExtTrafficRate;
+import org.onosproject.flowapi.ExtTrafficRedirect;
+import org.onosproject.flowapi.ExtWideCommunityInt;
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
 import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.net.ConnectPoint;
+
+import org.onosproject.net.Annotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -56,12 +109,15 @@ import org.onosproject.net.flow.FlowRuleProviderService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.FlowEntry.FlowEntryState;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.ExtensionCriterion;
+import org.onosproject.net.flow.criteria.ExtensionSelector;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsBosCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.TunnelIdCriterion;
+import org.onosproject.net.flow.instructions.ExtensionPropertyException;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.ResourceService;
@@ -125,6 +181,7 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
     protected DeviceService deviceService;
 
     private FlowRuleProviderService providerService;
+    public static final String FLOW_PEER = "flowPeer";
     private PcepLabelObject labelObj;
     public static final int OUT_LABEL_TYPE = 0;
     public static final int IN_LABEL_TYPE = 1;
@@ -572,14 +629,19 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
             case ADD:
                 if (criteria == null) {
                     processRule(fbe.target(), PcepFlowType.ADD);
-                    flowEntries.add(new DefaultFlowEntry(fbe.target(), FlowEntryState.ADDED, 0, 0, 0));
+                } else {
+                    handleMessage(fbe, BgpPeer.FlowSpecOperation.ADD, batch.deviceId());
                 }
+                flowEntries.add(new DefaultFlowEntry(fbe.target(), FlowEntryState.ADDED, 0, 0, 0));
                 break;
             case REMOVE:
                 if (criteria == null) {
                     processRule(fbe.target(), PcepFlowType.REMOVE);
-                    flowEntries.add(new DefaultFlowEntry(fbe.target(), FlowEntryState.REMOVED, 0, 0, 0));
+                } else {
+                    handleMessage(fbe, BgpPeer.FlowSpecOperation.DELETE, batch.deviceId());
                 }
+
+                flowEntries.add(new DefaultFlowEntry(fbe.target(), FlowEntryState.REMOVED, 0, 0, 0));
                 break;
             default:
                 log.error("Unknown flow operation: {}", fbe);
@@ -589,5 +651,331 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
         CompletedBatchOperation status = new CompletedBatchOperation(true, Collections.emptySet(), batch.deviceId());
         providerService.batchOperationCompleted(batch.id(), status);
         providerService.pushFlowMetrics(batch.deviceId(), flowEntries);
+    }
+
+    public void handleMessage(FlowRuleBatchEntry fbe, BgpPeer.FlowSpecOperation operType, DeviceId deviceId) {
+        Set<Criterion> set = fbe.target().selector().criteria();
+        Iterator iterator = set.iterator();
+        Criterion cr;
+
+        while (iterator.hasNext()) {
+            cr = (Criterion) iterator.next();
+
+            switch (cr.type()) {
+                case EXTENSION:
+                    ExtensionCriterion extensionCriterion = (ExtensionCriterion) cr;
+                    ExtensionSelector extension = extensionCriterion.extensionSelector();
+
+                    ExtFlowContainer container = null;
+                    List<ExtFlowTypes> bgpFlows = null;
+
+                    try {
+                        container = extension.getPropertyValue("container");
+                    } catch (ExtensionPropertyException e) {
+                        e.printStackTrace();
+                    }
+
+                    bgpFlows = container.container();
+                    iterateAndSend(bgpFlows, operType, deviceId);
+                    break;
+                default:
+                    log.error("This flow type is not supported: {}", cr.type());
+            }
+        }
+    }
+
+    void iterateAndSend(List<ExtFlowTypes> bgpFlows, BgpPeer.FlowSpecOperation operType, DeviceId deviceId) {
+        ListIterator<ExtFlowTypes> iterator = bgpFlows.listIterator();
+        ExtFlowTypes flow;
+        ExtKeyName name = null;
+        ExtPrefix ipcSource = null;
+        ExtPrefix ipcDestination = null;
+        IpPrefix prefix = null;
+        ListIterator<IpPrefix> pfxItr = null;
+        ExtTrafficRate flowRate = null;
+        ExtTrafficAction flowAction = null;
+        ExtTrafficMarking flowMarking = null;
+        List<BgpValueType> flowSpecComponents = new ArrayList<>();
+        List<BgpFsOperatorValue> operatorValue;
+        BgpFlowSpecNlri flowSpec = new BgpFlowSpecNlri(flowSpecComponents);
+        BgpFsActionTrafficRate rate = null;
+        BgpFsActionTrafficAction action = null;
+        BgpFsActionReDirect redirection = null;
+        BgpFsActionTrafficMarking marking = null;
+        List<BgpValueType> flowSpecAction = new LinkedList<>();
+
+        ExtWideCommunityInt wcIntList = null;
+        ListIterator<Integer> wcItr = null;
+        WideCommunity wideCommunity = null;
+
+        int flags = 0;
+        int hopCount = 0;
+        int community = 0;
+        int contextAs = 0;
+        int localAs = 0;
+        WideCommunityInteger wCommInt;
+        WideCommunityParameter wCommParam = null;
+        List<BgpValueType> wcParam = new ArrayList<>();
+        WideCommunityTarget wcTarget = null;
+        WideCommunityExcludeTarget wcExcludeTarget = null;
+        WideCommunityAttrHeader wideCommunityHeader = null;
+
+        while (iterator.hasNext()) {
+            flow = iterator.next();
+            switch (flow.type()) {
+                case EXT_FLOW_RULE_KEY:
+                    name = (ExtKeyName) flow;
+                    break;
+                case IPV4_DST_PFX:
+                    ipcDestination = (ExtPrefix) flow;
+                    pfxItr = ipcDestination.prefix().listIterator();
+                    prefix = pfxItr.next();
+                    flowSpecComponents.add(new BgpFsDestinationPrefix((byte) prefix.prefixLength(),
+                            prefix));
+                    break;
+                case IPV4_SRC_PFX:
+                    ipcSource = (ExtPrefix) flow;
+                    pfxItr = ipcSource.prefix().listIterator();
+                    prefix = pfxItr.next();
+                    flowSpecComponents.add(new BgpFsSourcePrefix((byte) prefix.prefixLength(),
+                            prefix));
+                    break;
+                case IP_PROTO_LIST:
+                    operatorValue = convert(((ExtIpProtocol) flow).ipProtocol());
+                    flowSpecComponents.add(new BgpFsIpProtocol(operatorValue));
+                    break;
+                case IN_PORT_LIST:
+                    operatorValue = convert(((ExtPort) flow).port());
+                    flowSpecComponents.add(new BgpFsPortNum(operatorValue));
+                    break;
+                case DST_PORT_LIST:
+                    operatorValue = convert(((ExtPort) flow).port());
+                    flowSpecComponents.add(new BgpFsDestinationPortNum(operatorValue));
+                    break;
+                case SRC_PORT_LIST:
+                    operatorValue = convert(((ExtPort) flow).port());
+                    flowSpecComponents.add(new BgpFsSourcePortNum(operatorValue));
+                    break;
+                case ICMP_TYPE_LIST:
+                    operatorValue = convert(((ExtIcmpType) flow).icmpType());
+                    flowSpecComponents.add(new BgpFsIcmpType(operatorValue));
+                    break;
+                case ICMP_CODE_LIST:
+                    operatorValue = convert(((ExtIcmpCode) flow).icmpCode());
+                    flowSpecComponents.add(new BgpFsIcmpCode(operatorValue));
+                    break;
+                case TCP_FLAG_LIST:
+                    operatorValue = convert(((ExtTcpFlag) flow).tcpFlag());
+                    flowSpecComponents.add(new BgpFsTcpFlags(operatorValue));
+                    break;
+                case PACKET_LENGTH_LIST:
+                     operatorValue = convert(((ExtPacketLength) flow).packetLength());
+                    flowSpecComponents.add(new BgpFsPacketLength(operatorValue));
+                    break;
+                case DSCP_VALUE_LIST:
+                    operatorValue = convert(((ExtDscpValue) flow).dscpValue());
+                    flowSpecComponents.add(new BgpFsDscpValue(operatorValue));
+                    break;
+                case FRAGMENT_LIST:
+                    operatorValue = convert(((ExtFragment) flow).fragment());
+                    flowSpecComponents.add(new BgpFsFragment(operatorValue));
+                    break;
+                case TRAFFIC_RATE:
+                    flowRate = (ExtTrafficRate) flow;
+                    rate = new BgpFsActionTrafficRate(flowRate.asn(), flowRate.rate().floatValue());
+                    flowSpecAction.add(rate);
+                    flowSpec.setFsActionTlv(flowSpecAction);
+                    break;
+                case TRAFFIC_ACTION:
+                    flowAction = (ExtTrafficAction) flow;
+                    byte[] byteAction = processTrafficAction((ExtTrafficAction) flow);
+                    action = new BgpFsActionTrafficAction(byteAction);
+                    flowSpecAction.add(action);
+                    flowSpec.setFsActionTlv(flowSpecAction);
+                    break;
+                case TRAFFIC_REDIRECT:
+                    byte[] byteRedirect = processTrafficRedirect((ExtTrafficRedirect) flow);
+                    redirection = new BgpFsActionReDirect(byteRedirect);
+                    flowSpecAction.add(redirection);
+                    flowSpec.setFsActionTlv(flowSpecAction);
+                    break;
+                case TRAFFIC_MARKING:
+                    byte[] byteMarking = new byte[6];
+                    flowMarking = (ExtTrafficMarking) flow;
+                    byteMarking[5] = flowMarking.marking();
+                    marking = new BgpFsActionTrafficMarking(byteMarking);
+                    flowSpecAction.add(marking);
+                    flowSpec.setFsActionTlv(flowSpecAction);
+                    break;
+                case WIDE_COMM_FLAGS:
+                    wcIntList = (ExtWideCommunityInt) flow;
+                    wcItr = wcIntList.communityInt().listIterator();
+                    flags = wcItr.next().intValue();
+                    break;
+                case WIDE_COMM_HOP_COUNT:
+                    wcIntList = (ExtWideCommunityInt) flow;
+                    wcItr = wcIntList.communityInt().listIterator();
+                    hopCount = wcItr.next().intValue();
+                    break;
+                case WIDE_COMM_COMMUNITY:
+                    wcIntList = (ExtWideCommunityInt) flow;
+                    wcItr = wcIntList.communityInt().listIterator();
+                    community = wcItr.next().intValue();
+                    break;
+                case WIDE_COMM_CONTEXT_AS:
+                    wcIntList = (ExtWideCommunityInt) flow;
+                    wcItr = wcIntList.communityInt().listIterator();
+                    contextAs = wcItr.next().intValue();
+                    break;
+                case WIDE_COMM_LOCAL_AS:
+                    wcIntList = (ExtWideCommunityInt) flow;
+                    wcItr = wcIntList.communityInt().listIterator();
+                    localAs = wcItr.next().intValue();
+                    break;
+                case WIDE_COMM_TARGET:
+                    wcTarget = processWideCommTarget((ExtTarget) flow);
+                    break;
+                case WIDE_COMM_EXT_TARGET:
+                    wcExcludeTarget = processWideCommExcTarget((ExtTarget) flow);
+                    break;
+                case WIDE_COMM_PARAMETER:
+                    wcIntList = (ExtWideCommunityInt) flow;
+                    wCommInt = new WideCommunityInteger(wcIntList.communityInt());
+                    wcParam.add(wCommInt);
+                    wCommParam = new WideCommunityParameter(wcParam);
+                    break;
+                default:
+                    log.error("error: this type is not supported");
+                    break;
+            }
+        }
+
+        if ((flowAction != null) && flowAction.rpd()) {
+            wideCommunityHeader = new WideCommunityAttrHeader((byte) flags, (byte) hopCount, (short) 0);
+            wideCommunity = new WideCommunity(wideCommunityHeader, community, localAs, contextAs,
+                    wcTarget, wcExcludeTarget, wCommParam);
+        }
+
+        if (name == null) {
+            log.error("BGP Flow key is required");
+            return;
+        }
+
+        BgpPeer peer = getPeer(deviceId);
+        if (peer != null) {
+            peer.updateFlowSpec(operType, new BgpFlowSpecRouteKey(name.keyName()), flowSpec, wideCommunity);
+        }
+    }
+
+    byte[] processTrafficAction(ExtTrafficAction flow) {
+        ExtTrafficAction flowAction = null;
+        byte[] byteAction = new byte[6];
+        byte actionByte = 0;
+        flowAction = (ExtTrafficAction) flow;
+        if (flowAction.terminal()) {
+            actionByte = (byte) (actionByte | (byte) 0x01);
+        }
+        if (flowAction.sample()) {
+            actionByte = (byte) (actionByte | (byte) 0x02);
+        }
+        if (flowAction.rpd()) {
+            actionByte = (byte) (actionByte | (byte) 0x04);
+        }
+        byteAction[5] = actionByte;
+        return byteAction;
+    }
+
+    byte[] processTrafficRedirect(ExtTrafficRedirect flow) {
+        ExtTrafficRedirect flowRedirect = null;
+        byte[] byteRedirect = new byte[6];
+        byte[] tmp;
+        int val;
+        flowRedirect = (ExtTrafficRedirect) flow;
+        val = Integer.decode(flowRedirect.redirect()).intValue();
+        tmp = intToByteStream(val);
+        for (int i = 0; i < tmp.length; i++) {
+            byteRedirect[i] = tmp [i];
+        }
+        return byteRedirect;
+    }
+
+    WideCommunityTarget processWideCommTarget(ExtTarget flow) {
+        ExtPrefix localSpeaker;
+        ExtPrefix remoteSpeaker;
+        ListIterator<IpPrefix> pfxItr = null;
+        ListIterator<IpPrefix> pfxItr1 = null;
+        List<BgpValueType> wcIpv4 = null;
+        ExtTarget target = flow;
+        WideCommunityIpV4Neighbour wcIpV4Neighbour = null;
+        WideCommunityTarget wcTarget = null;
+        localSpeaker = target.localSpeaker();
+        remoteSpeaker = target.remoteSpeaker();
+        wcIpV4Neighbour = new WideCommunityIpV4Neighbour();
+
+        pfxItr = localSpeaker.prefix().listIterator();
+        pfxItr1 = remoteSpeaker.prefix().listIterator();
+        while (pfxItr.hasNext()) {
+            wcIpV4Neighbour.add(pfxItr.next().address(), pfxItr1.next().address());
+        }
+
+        wcIpv4 = new ArrayList<>();
+        wcIpv4.add(wcIpV4Neighbour);
+        wcTarget = new WideCommunityTarget(wcIpv4);
+        return wcTarget;
+    }
+
+    WideCommunityExcludeTarget processWideCommExcTarget(ExtTarget flow) {
+        ExtPrefix localSpeaker;
+        ExtPrefix remoteSpeaker;
+        ListIterator<IpPrefix> pfxItr = null;
+        ListIterator<IpPrefix> pfxItr1 = null;
+        List<BgpValueType> wcIpv4 = null;
+        ExtTarget target = flow;
+        localSpeaker = target.localSpeaker();
+        remoteSpeaker = target.remoteSpeaker();
+        WideCommunityIpV4Neighbour wcIpV4Neighbour = null;
+        wcIpV4Neighbour = new WideCommunityIpV4Neighbour();
+        WideCommunityExcludeTarget wcExcludeTarget = null;
+
+        pfxItr = localSpeaker.prefix().listIterator();
+        pfxItr1 = remoteSpeaker.prefix().listIterator();
+        while (pfxItr.hasNext()) {
+            wcIpV4Neighbour.add(pfxItr.next().address(), pfxItr1.next().address());
+        }
+
+        wcIpv4 = new ArrayList<>();
+        wcIpv4.add(wcIpV4Neighbour);
+        wcExcludeTarget = new WideCommunityExcludeTarget(wcIpv4);
+        return wcExcludeTarget;
+    }
+
+    BgpPeer getPeer(DeviceId deviceId) {
+        Device d = deviceService.getDevice(deviceId);
+        Annotations a = d != null ? d.annotations() : null;
+        String ipAddress = a.value(FLOW_PEER);
+        BgpId bgpId = BgpId.bgpId(IpAddress.valueOf(ipAddress));
+        BgpPeer peer = bgpController.getPeer(bgpId);
+        return peer;
+    }
+
+    byte[] intToByteStream(int val) {
+        return new byte[] {
+                (byte) (val >>> 24),
+                (byte) (val >>> 16),
+                (byte) (val >>> 8),
+                (byte) val};
+    }
+
+    List<BgpFsOperatorValue> convert(List<ExtOperatorValue> opVal) {
+        List<BgpFsOperatorValue> list = new ArrayList();
+        BgpFsOperatorValue operatorValue;
+        Iterator iterator = opVal.iterator();
+        while (iterator.hasNext()) {
+            ExtOperatorValue element = (ExtOperatorValue) iterator.next();
+            operatorValue = new BgpFsOperatorValue(element.option(), element.value());
+            list.add(operatorValue);
+        }
+
+        return list;
     }
 }

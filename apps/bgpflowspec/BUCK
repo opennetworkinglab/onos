@@ -1,0 +1,12 @@
+BUNDLES = [
+    '//apps/bgpflowspec/flowapi:onos-apps-bgpflowspec-flowapi',
+    '//apps/bgpflowspec/flowmgr:onos-apps-bgpflowspec-flowmgr',
+    '//apps/bgpflowspec/bgpweb:onos-apps-bgpflowspec-web',
+]
+
+onos_app (
+  title = 'BGP App',
+  url = 'http://onosproject.org',
+  included_bundles = BUNDLES,
+  description = 'ONOS framework applications',
+)

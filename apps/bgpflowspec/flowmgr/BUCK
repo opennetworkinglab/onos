@@ -1,0 +1,10 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//core/store/serializers:onos-core-serializers',
+    '//apps/bgpflowspec/flowapi:onos-apps-bgpflowspec-flowapi',
+]
+
+osgi_jar_with_tests (
+    name = 'onos-apps-bgpflowspec-flowmgr',
+    deps = COMPILE_DEPS,
+)

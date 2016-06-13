@@ -231,6 +231,7 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
 
             DefaultAnnotations.Builder newBuilder = DefaultAnnotations.builder();
 
+            newBuilder.set(AnnotationKeys.DRIVER, "l3Device");
             newBuilder.set(AnnotationKeys.TYPE, "L3");
             newBuilder.set(ROUTING_UNIVERSE, Long.toString(nodeNlri.getIdentifier()));
 

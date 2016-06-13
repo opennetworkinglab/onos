@@ -42,6 +42,7 @@
         <module>reactive-routing</module>
         <module>virtualbng</module>
         <module>bgprouter</module>
+        <module>bgpflowspec</module>
         <module>test</module>
         <module>segmentrouting</module>
         <module>xos-integration</module>

@@ -40,6 +40,7 @@ public class ExtensionSelectorType {
         NICIRA_MATCH_NSH_CH4(5),
         NICIRA_MATCH_ENCAP_ETH_TYPE(6),
         OFDPA_MATCH_VLAN_VID(16),
+        EXT_MATCH_FLOW_TYPE(20),
         BMV2_MATCH_PARAMS(128);
 
         private ExtensionSelectorType type;
