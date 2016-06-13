@@ -19,7 +19,7 @@ rm -fr onos-*/
 [ -f $ONOS_TAR ] && tar zxf $ONOS_TAR
 
 # Change into the ONOS home directory
-cd onos-*
+cd onos-*/
 export ONOS_HOME=$PWD
 
 # FIXME: for now we're running using the karaf client; later use raw SSH
