@@ -70,7 +70,7 @@ public class InterfaceEvent extends AbstractEvent<InterfaceEvent.Type, Interface
      *
      * @param type event type
      * @param subject subject interface
-     * @param subject previous interface subject
+     * @param prevSubject previous interface subject
      */
     public InterfaceEvent(Type type, Interface subject, Interface prevSubject) {
         super(type, subject);
@@ -82,7 +82,7 @@ public class InterfaceEvent extends AbstractEvent<InterfaceEvent.Type, Interface
      *
      * @param type event type
      * @param subject subject interface
-     * @param subject previous interface subject
+     * @param prevSubject previous interface subject
      * @param time time of event
      */
     public InterfaceEvent(Type type, Interface subject, Interface prevSubject, long time) {
