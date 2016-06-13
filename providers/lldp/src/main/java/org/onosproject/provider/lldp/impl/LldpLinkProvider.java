@@ -786,7 +786,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
 
         private synchronized void reconfigureSuppressionRules(SuppressionConfig cfg) {
             if (cfg == null) {
-                log.error("Suppression Config is null.");
+                log.debug("Suppression Config is null.");
                 return;
             }
 
