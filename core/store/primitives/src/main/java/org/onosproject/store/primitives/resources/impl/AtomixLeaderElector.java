@@ -94,6 +94,11 @@ public class AtomixLeaderElector extends AbstractResource<AtomixLeaderElector>
     @Override
     public CompletableFuture<AtomixLeaderElector> open() {
         return super.open().thenApply(result -> {
+            client.onStateChange(state -> {
+                if (state == CopycatClient.State.CONNECTED && isListening()) {
+                    client.submit(new Listen());
+                }
+            });
             client.onEvent(CHANGE_SUBJECT, this::handleEvent);
             return result;
         });
@@ -182,5 +187,9 @@ public class AtomixLeaderElector extends AbstractResource<AtomixLeaderElector>
     @Override
     public Collection<Consumer<Status>> statusChangeListeners() {
         return ImmutableSet.copyOf(statusChangeListeners);
+    }
+
+    private boolean isListening() {
+        return !leadershipChangeListeners.isEmpty();
     }
 }
