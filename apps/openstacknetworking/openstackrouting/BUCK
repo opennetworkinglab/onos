@@ -3,6 +3,7 @@ COMPILE_DEPS = [
     '//core/store/serializers:onos-core-serializers',
     '//apps/openstackinterface/api:onos-apps-openstackinterface-api',
     '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
+    '//apps/scalablegateway:onos-apps-scalablegateway',
 ]
 
 BUNDLES = [

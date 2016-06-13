@@ -56,6 +56,7 @@ import org.onosproject.openstacknetworking.OpenstackPortInfo;
 import org.onosproject.openstacknetworking.OpenstackRoutingService;
 import org.onosproject.openstacknetworking.OpenstackSubjectFactories;
 import org.onosproject.openstacknetworking.OpenstackSwitchingService;
+import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
@@ -113,6 +114,8 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ScalableGatewayService gatewayService;
 
     private ApplicationId appId;
     private ConsistentMap<Integer, String> tpPortNumMap; // Map<PortNum, allocated VM`s Mac & destionation Ip address>
@@ -444,8 +447,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
 
             if (context.isHandled()) {
                 return;
-            } else if (!context.inPacket().receivedFrom().deviceId().toString()
-                    .equals(config.gatewayBridgeId())) {
+            } else if (!checkGatewayNode(context.inPacket().receivedFrom().deviceId())) {
                 return;
             }
 
@@ -472,16 +474,19 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                         }
                     default:
                         int portNum = getPortNum(ethernet.getSourceMAC(), iPacket.getDestinationAddress());
-                        Optional<Port> port =
-                                getExternalPort(pkt.receivedFrom().deviceId(), config.gatewayExternalInterfaceName());
-                        if (port.isPresent()) {
+                        DeviceId deviceId = pkt.receivedFrom().deviceId();
+                        Port port = null;
+                        port = deviceService.getPort(deviceId,
+                                gatewayService.getGatewayExternalPorts(deviceId).get(0));
+                        if (port != null) {
                             OpenstackPort openstackPort = getOpenstackPort(ethernet.getSourceMAC(),
                                     Ip4Address.valueOf(iPacket.getSourceAddress()));
                             l3EventExecutorService.execute(new OpenstackPnatHandler(rulePopulator, context,
-                                    portNum, openstackPort, port.get(), config));
+                                    portNum, openstackPort, port, config));
                         } else {
                             log.warn("There`s no external interface");
                         }
+
                         break;
                 }
             } else if (ethernet.getEtherType() == Ethernet.TYPE_ARP) {
@@ -509,6 +514,10 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
             return 0;
         }
 
+    }
+
+    private boolean checkGatewayNode(DeviceId deviceId) {
+        return gatewayService.getGatewayDeviceIds().contains(deviceId);
     }
 
     private void clearPortNumMap() {
@@ -600,21 +609,12 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
             return;
         }
 
-        checkNotNull(config.physicalRouterMac());
-        checkNotNull(config.gatewayBridgeId());
-        checkNotNull(config.gatewayExternalInterfaceMac());
-        checkNotNull(config.gatewayExternalInterfaceName());
-
-        log.warn("Configured info: {}, {}, {}, {}", config.physicalRouterMac(), config.gatewayBridgeId(),
-                config.gatewayExternalInterfaceMac(), config.gatewayExternalInterfaceName());
-
-        rulePopulator = new OpenstackRoutingRulePopulator(appId,
-                openstackService, flowObjectiveService, deviceService, driverService, config);
-
+        rulePopulator = new OpenstackRoutingRulePopulator(appId, openstackService, flowObjectiveService,
+                deviceService, driverService, config, gatewayService);
         openstackIcmpHandler = new OpenstackIcmpHandler(packetService, deviceService,
-                openstackService, config, openstackSwitchingService);
-        openstackArpHandler = new OpenstackRoutingArpHandler(packetService, openstackService, config);
-
+                openstackService, config, openstackSwitchingService, gatewayService);
+        openstackArpHandler = new OpenstackRoutingArpHandler(packetService, openstackService,
+                config, gatewayService);
         openstackIcmpHandler.requestPacket(appId);
         openstackArpHandler.requestPacket(appId);
 

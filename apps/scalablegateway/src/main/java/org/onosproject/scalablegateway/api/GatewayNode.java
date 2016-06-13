@@ -66,6 +66,15 @@ public final class GatewayNode {
     }
 
     /**
+     * Returns GatewayNode builder object.
+     *
+     * @return GatewayNode builder
+     */
+    public static GatewayNode.Builder builder() {
+        return new Builder();
+    }
+
+    /**
      * GatewayNode Builder class.
      */
     public static final class Builder {

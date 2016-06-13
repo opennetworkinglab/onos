@@ -15,6 +15,7 @@
  */
 package org.onosproject.openstacknetworking.routing;
 
+import com.google.common.collect.Lists;
 import org.onlab.packet.ARP;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
@@ -34,9 +35,11 @@ import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstacknetworking.OpenstackNetworkingConfig;
+import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -51,21 +54,23 @@ public class OpenstackRoutingArpHandler {
     private final PacketService packetService;
     private final OpenstackInterfaceService openstackService;
     private final OpenstackNetworkingConfig config;
+    private final ScalableGatewayService gatewayService;
     private static final String NETWORK_ROUTER_GATEWAY = "network:router_gateway";
     private static final String NETWORK_FLOATING_IP = "network:floatingip";
 
     /**
      * Default constructor.
-     *
-     * @param packetService packet service
+     *  @param packetService packet service
      * @param openstackService openstackInterface service
      * @param config openstackRoutingConfig
+     * @param gatewayService
      */
     OpenstackRoutingArpHandler(PacketService packetService, OpenstackInterfaceService openstackService,
-                               OpenstackNetworkingConfig config) {
+                               OpenstackNetworkingConfig config, ScalableGatewayService gatewayService) {
         this.packetService = packetService;
         this.openstackService = checkNotNull(openstackService);
         this.config = checkNotNull(config);
+        this.gatewayService = gatewayService;
     }
 
     /**
@@ -79,10 +84,12 @@ public class OpenstackRoutingArpHandler {
                 .matchEthType(EthType.EtherType.ARP.ethType().toShort())
                 .build();
 
-        packetService.requestPackets(arpSelector,
-                PacketPriority.CONTROL,
-                appId,
-                Optional.of(DeviceId.deviceId(config.gatewayBridgeId())));
+        getExternalInfo().forEach(deviceId ->
+                packetService.requestPackets(arpSelector,
+                        PacketPriority.CONTROL,
+                        appId,
+                        Optional.of(deviceId))
+        );
     }
 
     /**
@@ -137,5 +144,11 @@ public class OpenstackRoutingArpHandler {
             return MacAddress.NONE;
         }
         return port.macAddress();
+    }
+
+    private List<DeviceId> getExternalInfo() {
+        List<DeviceId> externalInfoList = Lists.newArrayList();
+        gatewayService.getGatewayDeviceIds().forEach(externalInfoList::add);
+        return externalInfoList;
     }
 }

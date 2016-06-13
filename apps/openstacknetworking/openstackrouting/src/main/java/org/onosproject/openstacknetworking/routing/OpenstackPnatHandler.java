@@ -30,10 +30,11 @@ import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstackinterface.OpenstackInterfaceService;
-import org.onosproject.openstackinterface.OpenstackNetwork;
 import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstackinterface.OpenstackRouter;
 import org.onosproject.openstacknetworking.OpenstackNetworkingConfig;
+import org.onosproject.scalablegateway.api.GatewayNode;
+import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +61,7 @@ public class OpenstackPnatHandler implements Runnable {
     private OpenstackNetworkingConfig config;
 
     private static final String DEVICE_OWNER_ROUTER_INTERFACE = "network:router_interface";
+    private static final String EXTERNAL_PORT_NULL = "There is no external port in this deviceId []";
 
     OpenstackPnatHandler(OpenstackRoutingRulePopulator rulePopulator, PacketContext context,
                          int portNum, OpenstackPort openstackPort, Port port, OpenstackNetworkingConfig config) {
@@ -84,16 +86,17 @@ public class OpenstackPnatHandler implements Runnable {
 
         OpenstackRouter router = getOpenstackRouter(openstackPort);
 
+        MacAddress externalMac = MacAddress.NONE;
+        MacAddress routerMac = MacAddress.NONE;
+
         rulePopulator.populatePnatFlowRules(inboundPacket, openstackPort, portNum,
-                getExternalIp(router), MacAddress.valueOf(config.gatewayExternalInterfaceMac()),
-                MacAddress.valueOf(config.physicalRouterMac()));
+                getExternalIp(router), externalMac, routerMac);
 
         packetOut((Ethernet) ethernet.clone(), inboundPacket.receivedFrom().deviceId(), portNum, router);
     }
 
     private OpenstackRouter getOpenstackRouter(OpenstackPort openstackPort) {
         OpenstackInterfaceService networkingService = getService(OpenstackInterfaceService.class);
-        OpenstackNetwork network = networkingService.network(openstackPort.networkId());
 
         OpenstackPort port = networkingService.ports()
                 .stream()
@@ -146,11 +149,16 @@ public class OpenstackPnatHandler implements Runnable {
         iPacket.resetChecksum();
         iPacket.setParent(ethernet);
         ethernet.setPayload(iPacket);
-        ethernet.setSourceMACAddress(config.gatewayExternalInterfaceMac())
-                .setDestinationMACAddress(config.physicalRouterMac());
+        ScalableGatewayService gatewayService = getService(ScalableGatewayService.class);
+        GatewayNode gatewayNode = gatewayService.getGatewayNode(deviceId);
+        if (gatewayNode.getGatewayExternalInterfaceNames().size() == 0) {
+            log.error(EXTERNAL_PORT_NULL, deviceId.toString());
+            return;
+        }
+        treatment.setOutput(gatewayService.getGatewayExternalPorts(deviceId).get(0));
+
         ethernet.resetChecksum();
 
-        treatment.setOutput(port.number());
 
         packetService.emit(new DefaultOutboundPacket(deviceId, treatment.build(),
                 ByteBuffer.wrap(ethernet.serialize())));

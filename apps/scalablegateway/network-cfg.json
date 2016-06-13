@@ -1,0 +1,14 @@
+{
+    "apps" : {
+        "org.onosproject.scalablegateway" : {
+            "scalablegateway" : {
+              "nodes" : [
+              {
+                "bridgeId" : "of:0000000000000003",
+                "dataPlaneIp" : "10.62.148.17",
+                "gatewayExternalInterfaceName" : "veth0"
+                }]
+            }
+        }
+    }
+}

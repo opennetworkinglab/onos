@@ -52,6 +52,11 @@
             <artifactId>onos-app-openstackinterface-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-scalablegateway</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>
 

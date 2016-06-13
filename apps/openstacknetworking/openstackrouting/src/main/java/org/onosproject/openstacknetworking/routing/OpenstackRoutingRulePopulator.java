@@ -15,6 +15,7 @@
  */
 package org.onosproject.openstacknetworking.routing;
 
+import com.google.common.collect.Lists;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
@@ -25,6 +26,7 @@ import org.onlab.packet.TCP;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.GroupId;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -55,6 +57,7 @@ import org.onosproject.openstackinterface.OpenstackFloatingIP;
 import org.onosproject.openstacknetworking.OpenstackNetworkingConfig;
 import org.onosproject.openstacknetworking.OpenstackPortInfo;
 import org.onosproject.openstacknetworking.OpenstackRoutingService;
+import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,6 +80,7 @@ public class OpenstackRoutingRulePopulator {
     private final DeviceService deviceService;
     private final DriverService driverService;
     private final OpenstackNetworkingConfig config;
+    private final ScalableGatewayService gatewayService;
 
     private static final String PORTNAME_PREFIX_TUNNEL = "vxlan";
     private static final String PORTNAME = "portName";
@@ -84,6 +88,7 @@ public class OpenstackRoutingRulePopulator {
 
     private static final String PORTNOTNULL = "Port can not be null";
     private static final String DEVICENOTNULL = "Device can not be null";
+    private static final String EXTPORTNOTNULL = "External port can not be null";
     private static final String TUNNEL_DESTINATION = "tunnelDst";
     private static final int ROUTING_RULE_PRIORITY = 25000;
     private static final int FLOATING_RULE_PRIORITY = 42000;
@@ -107,16 +112,19 @@ public class OpenstackRoutingRulePopulator {
      * @param deviceService DeviceService
      * @param driverService DriverService
      * @param config Configuration for openstack environment
+     * @param gatewayService scalable gateway service
      */
     public OpenstackRoutingRulePopulator(ApplicationId appId, OpenstackInterfaceService openstackService,
                                          FlowObjectiveService flowObjectiveService, DeviceService deviceService,
-                                         DriverService driverService, OpenstackNetworkingConfig config) {
+                                         DriverService driverService, OpenstackNetworkingConfig config,
+                                         ScalableGatewayService gatewayService) {
         this.appId = appId;
         this.flowObjectiveService = flowObjectiveService;
         this.openstackService = checkNotNull(openstackService);
         this.deviceService = deviceService;
         this.driverService = driverService;
         this.config = config;
+        this.gatewayService = gatewayService;
     }
 
     /**
@@ -155,9 +163,6 @@ public class OpenstackRoutingRulePopulator {
                 .matchIPDst(IpPrefix.valueOf(iPacket.getDestinationAddress(), 32));
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
-        tBuilder.setEthSrc(externalInterface)
-                .setEthDst(externalRouter)
-                .setIpSrc(externalIp);
 
         switch (iPacket.getProtocol()) {
             case IPv4.PROTOCOL_TCP:
@@ -177,19 +182,20 @@ public class OpenstackRoutingRulePopulator {
                 break;
         }
 
-        Port port = checkNotNull(getPortOfExternalInterface(), PORTNOTNULL);
-        tBuilder.setOutput(port.number());
+        tBuilder.setIpSrc(externalIp);
+        gatewayService.getGatewayNodes().forEach(node -> {
+            tBuilder.setOutput(gatewayService.getGatewayExternalPorts(node.getGatewayDeviceId()).get(0));
+            ForwardingObjective fo = DefaultForwardingObjective.builder()
+                    .withSelector(sBuilder.build())
+                    .withTreatment(tBuilder.build())
+                    .withFlag(ForwardingObjective.Flag.VERSATILE)
+                    .withPriority(PNAT_RULE_PRIORITY)
+                    .makeTemporary(PNAT_TIMEOUT)
+                    .fromApp(appId)
+                    .add();
 
-        ForwardingObjective fo = DefaultForwardingObjective.builder()
-                .withSelector(sBuilder.build())
-                .withTreatment(tBuilder.build())
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .withPriority(PNAT_RULE_PRIORITY)
-                .makeTemporary(PNAT_TIMEOUT)
-                .fromApp(appId)
-                .add();
-
-        flowObjectiveService.forward(inboundPacket.receivedFrom().deviceId(), fo);
+            flowObjectiveService.forward(node.getGatewayDeviceId(), fo);
+        });
 
     }
 
@@ -202,7 +208,6 @@ public class OpenstackRoutingRulePopulator {
 
     private void populatePnatIncomingFlowRules(long vni, Ip4Address externalIp) {
         IPv4 iPacket = (IPv4) inboundPacket.parsed().getPayload();
-        DeviceId deviceId = inboundPacket.receivedFrom().deviceId();
 
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         sBuilder.matchEthType(Ethernet.TYPE_IPV4)
@@ -232,19 +237,29 @@ public class OpenstackRoutingRulePopulator {
                 break;
         }
 
-        tBuilder.extension(buildNiciraExtenstion(deviceId, getHostIpfromOpenstackPort(openstackPort)), deviceId)
-                .setOutput(getTunnelPort(deviceId));
+        getGatewayNodeList().forEach(node -> {
+            DeviceId deviceId = node.id();
+            tBuilder.extension(buildNiciraExtenstion(deviceId, getHostIpfromOpenstackPort(openstackPort)), deviceId)
+                    .setOutput(getTunnelPort(deviceId));
 
-        ForwardingObjective fo = DefaultForwardingObjective.builder()
-                .withSelector(sBuilder.build())
-                .withTreatment(tBuilder.build())
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .withPriority(PNAT_RULE_PRIORITY)
-                .makeTemporary(PNAT_TIMEOUT)
-                .fromApp(appId)
-                .add();
+            ForwardingObjective fo = DefaultForwardingObjective.builder()
+                    .withSelector(sBuilder.build())
+                    .withTreatment(tBuilder.build())
+                    .withFlag(ForwardingObjective.Flag.VERSATILE)
+                    .withPriority(PNAT_RULE_PRIORITY)
+                    .makeTemporary(PNAT_TIMEOUT)
+                    .fromApp(appId)
+                    .add();
 
-        flowObjectiveService.forward(inboundPacket.receivedFrom().deviceId(), fo);
+            flowObjectiveService.forward(deviceId, fo);
+        });
+    }
+
+    private List<Device> getGatewayNodeList() {
+        List<Device> devices = Lists.newArrayList();
+        gatewayService.getGatewayDeviceIds().forEach(deviceId ->
+                devices.add(checkNotNull(deviceService.getDevice(deviceId))));
+        return devices;
     }
 
     private Ip4Address getHostIpfromOpenstackPort(OpenstackPort openstackPort) {
@@ -255,15 +270,15 @@ public class OpenstackRoutingRulePopulator {
     private Device getDevicefromOpenstackPort(OpenstackPort openstackPort) {
         String openstackPortName = PORTNAME_PREFIX_VM + openstackPort.id().substring(0, 11);
         Device device = StreamSupport.stream(deviceService.getDevices().spliterator(), false)
-                .filter(d -> findPortinDevice(d, openstackPortName))
+                .filter(d -> findPortinDevice(d.id(), openstackPortName))
                 .iterator()
                 .next();
         checkNotNull(device, DEVICENOTNULL);
         return device;
     }
 
-    private boolean findPortinDevice(Device d, String openstackPortName) {
-        Port port = deviceService.getPorts(d.id())
+    private boolean findPortinDevice(DeviceId deviceId, String openstackPortName) {
+        Port port = deviceService.getPorts(deviceId)
                 .stream()
                 .filter(p -> p.isEnabled() && p.annotations().value(PORTNAME).equals(openstackPortName))
                 .findAny()
@@ -274,13 +289,13 @@ public class OpenstackRoutingRulePopulator {
     /**
      * Builds Nicira extension for tagging remoteIp of vxlan.
      *
-     * @param id Device Id of vxlan source device
+     * @param deviceId Device Id of vxlan source device
      * @param hostIp Remote Ip of vxlan destination device
      * @return NiciraExtension Treatment
      */
-    public ExtensionTreatment buildNiciraExtenstion(DeviceId id, Ip4Address hostIp) {
-        Driver driver = driverService.getDriver(id);
-        DriverHandler driverHandler = new DefaultDriverHandler(new DefaultDriverData(driver, id));
+    public ExtensionTreatment buildNiciraExtenstion(DeviceId deviceId, Ip4Address hostIp) {
+        Driver driver = driverService.getDriver(deviceId);
+        DriverHandler driverHandler = new DefaultDriverHandler(new DefaultDriverData(driver, deviceId));
         ExtensionTreatmentResolver resolver = driverHandler.behaviour(ExtensionTreatmentResolver.class);
 
         ExtensionTreatment extensionInstruction =
@@ -329,7 +344,6 @@ public class OpenstackRoutingRulePopulator {
     }
 
     private void populateRuleGatewaytoController(long vni) {
-        Device gatewayDevice = getGatewayNode();
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
@@ -346,26 +360,24 @@ public class OpenstackRoutingRulePopulator {
                 .fromApp(appId)
                 .add();
 
-        flowObjectiveService.forward(gatewayDevice.id(), fo);
+        getGatewayNodeList().forEach(device -> flowObjectiveService.forward(device.id(), fo));
     }
 
     private void populateComputeNodeRules(long vni) {
-        Device gatewayDevice = getGatewayNode();
-
         StreamSupport.stream(deviceService.getDevices().spliterator(), false)
                 .filter(d -> !checkGatewayNode(d.id()))
-                .forEach(d -> populateRuleToGateway(d, gatewayDevice, vni));
+                .forEach(d -> populateRuleToGatewayBySgw(d.id(),
+                        gatewayService.getGroupIdForGatewayLoadBalance(d.id()), vni));
     }
 
-    private void populateRuleToGateway(Device d, Device gatewayDevice, long vni) {
+    private void populateRuleToGatewayBySgw(DeviceId deviceId, GroupId groupId, long vni) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
         sBuilder.matchEthType(Ethernet.TYPE_IPV4)
                 .matchTunnelId(vni)
                 .matchEthDst(GATEWAYMAC);
-        tBuilder.extension(buildNiciraExtenstion(d.id(), config.nodes().get(gatewayDevice.id())), d.id())
-                .setOutput(getTunnelPort(d.id()));
+        tBuilder.group(groupId);
 
         ForwardingObjective fo = DefaultForwardingObjective.builder()
                 .withSelector(sBuilder.build())
@@ -375,7 +387,28 @@ public class OpenstackRoutingRulePopulator {
                 .fromApp(appId)
                 .add();
 
-        flowObjectiveService.forward(d.id(), fo);
+        flowObjectiveService.forward(deviceId, fo);
+    }
+
+    private void populateRuleToGateway(DeviceId deviceId, Device gatewayDevice, long vni) {
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+
+        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                .matchTunnelId(vni)
+                .matchEthDst(GATEWAYMAC);
+        tBuilder.extension(buildNiciraExtenstion(deviceId, config.nodes().get(gatewayDevice.id())), deviceId)
+                .setOutput(getTunnelPort(deviceId));
+
+        ForwardingObjective fo = DefaultForwardingObjective.builder()
+                .withSelector(sBuilder.build())
+                .withTreatment(tBuilder.build())
+                .withFlag(ForwardingObjective.Flag.SPECIFIC)
+                .withPriority(ROUTING_RULE_PRIORITY)
+                .fromApp(appId)
+                .add();
+
+        flowObjectiveService.forward(deviceId, fo);
     }
 
     private Device getGatewayNode() {
@@ -383,7 +416,7 @@ public class OpenstackRoutingRulePopulator {
     }
 
     private boolean checkGatewayNode(DeviceId deviceId) {
-        return deviceId.toString().equals(config.gatewayBridgeId());
+        return gatewayService.getGatewayDeviceIds().stream().anyMatch(dId -> dId.equals(deviceId));
     }
 
     private long getVni(String netId) {
@@ -412,7 +445,7 @@ public class OpenstackRoutingRulePopulator {
 
     }
 
-    private void removeRule(DeviceId id, TrafficSelector.Builder sBuilder,
+    private void removeRule(DeviceId deviceId, TrafficSelector.Builder sBuilder,
                             ForwardingObjective.Flag flag, int priority) {
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
@@ -424,7 +457,7 @@ public class OpenstackRoutingRulePopulator {
                 .fromApp(appId)
                 .remove();
 
-        flowObjectiveService.forward(id, fo);
+        flowObjectiveService.forward(deviceId, fo);
     }
 
     /**
@@ -442,8 +475,6 @@ public class OpenstackRoutingRulePopulator {
 
     private void populateFloatingIpIncomingRules(OpenstackFloatingIP floatingIP, OpenstackPort port) {
         DeviceId portDeviceId = getDevicefromOpenstackPort(port).id();
-        Device gatewayNode = getGatewayNode();
-        Device portNode = deviceService.getDevice(portDeviceId);
 
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
@@ -451,29 +482,28 @@ public class OpenstackRoutingRulePopulator {
         sBuilder.matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(IpPrefix.valueOf(floatingIP.floatingIpAddress(), PREFIX_LENGTH));
 
-        tBuilder.setEthSrc(GATEWAYMAC)
-                .setEthDst(port.macAddress())
-                .setIpDst(floatingIP.fixedIpAddress())
-                .setTunnelId(getVni(port.networkId()))
-                .extension(buildNiciraExtenstion(gatewayNode.id(),
-                        config.nodes().get(portNode.id())), gatewayNode.id())
-                .setOutput(getTunnelPort(gatewayNode.id()));
+        getGatewayNodeList().forEach(device -> {
+            DeviceId deviceId = device.id();
+            tBuilder.setEthSrc(GATEWAYMAC)
+                    .setEthDst(port.macAddress())
+                    .setIpDst(floatingIP.fixedIpAddress())
+                    .setTunnelId(getVni(port.networkId()))
+                    .extension(buildNiciraExtenstion(deviceId, config.nodes().get(portDeviceId)), deviceId)
+                    .setOutput(getTunnelPort(deviceId));
 
-        ForwardingObjective fo = DefaultForwardingObjective.builder()
-                .withSelector(sBuilder.build())
-                .withTreatment(tBuilder.build())
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .withPriority(FLOATING_RULE_PRIORITY)
-                .fromApp(appId)
-                .add();
+            ForwardingObjective fo = DefaultForwardingObjective.builder()
+                    .withSelector(sBuilder.build())
+                    .withTreatment(tBuilder.build())
+                    .withFlag(ForwardingObjective.Flag.VERSATILE)
+                    .withPriority(FLOATING_RULE_PRIORITY)
+                    .fromApp(appId)
+                    .add();
 
-        flowObjectiveService.forward(getGatewayNode().id(), fo);
-
+            flowObjectiveService.forward(deviceId, fo);
+        });
     }
 
     private void populateFloatingIpOutgoingRules(OpenstackFloatingIP floatingIP, OpenstackPort port) {
-        Port outputPort = checkNotNull(getPortOfExternalInterface(), PORTNOTNULL);
-
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
@@ -481,20 +511,25 @@ public class OpenstackRoutingRulePopulator {
                 .matchTunnelId(getVni(port.networkId()))
                 .matchIPSrc(IpPrefix.valueOf(floatingIP.fixedIpAddress(), 32));
 
-        tBuilder.setIpSrc(floatingIP.floatingIpAddress())
-                .setEthSrc(MacAddress.valueOf(config.gatewayExternalInterfaceMac()))
-                .setEthDst(MacAddress.valueOf(config.physicalRouterMac()))
-                .setOutput(outputPort.number());
+        getGatewayNodeList().forEach(device -> {
+            DeviceId deviceId = device.id();
+            tBuilder.setIpSrc(floatingIP.floatingIpAddress())
+                    .setOutput(getExternalPortNum(deviceId));
 
-        ForwardingObjective fo = DefaultForwardingObjective.builder()
-                .withSelector(sBuilder.build())
-                .withTreatment(tBuilder.build())
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .withPriority(FLOATING_RULE_PRIORITY)
-                .fromApp(appId)
-                .add();
+            ForwardingObjective fo = DefaultForwardingObjective.builder()
+                    .withSelector(sBuilder.build())
+                    .withTreatment(tBuilder.build())
+                    .withFlag(ForwardingObjective.Flag.VERSATILE)
+                    .withPriority(FLOATING_RULE_PRIORITY)
+                    .fromApp(appId)
+                    .add();
 
-        flowObjectiveService.forward(getGatewayNode().id(), fo);
+            flowObjectiveService.forward(deviceId, fo);
+        });
+    }
+
+    private PortNumber getExternalPortNum(DeviceId deviceId) {
+        return checkNotNull(gatewayService.getGatewayExternalPorts(deviceId).get(0), PORTNOTNULL);
     }
 
     /**
@@ -514,38 +549,39 @@ public class OpenstackRoutingRulePopulator {
         sIncomingBuilder.matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(IpPrefix.valueOf(floatingIP.floatingIpAddress(), PREFIX_LENGTH));
 
-        removeRule(getGatewayNode().id(), sOutgoingBuilder, ForwardingObjective.Flag.VERSATILE, FLOATING_RULE_PRIORITY);
-        removeRule(getGatewayNode().id(), sIncomingBuilder, ForwardingObjective.Flag.VERSATILE, FLOATING_RULE_PRIORITY);
+        getGatewayNodeList().forEach(device -> {
+            removeRule(device.id(), sOutgoingBuilder, ForwardingObjective.Flag.VERSATILE, FLOATING_RULE_PRIORITY);
+            removeRule(device.id(), sIncomingBuilder, ForwardingObjective.Flag.VERSATILE, FLOATING_RULE_PRIORITY);
+        });
     }
 
     /**
      * Populates L3 rules for east to west traffic.
      *
-     * @param p target VM
+     * @param openstackPort target VM
      * @param targetList target openstackRouterInterfaces
      */
-    public void populateL3Rules(OpenstackPort p, List<OpenstackRouterInterface> targetList) {
-        Device device = getDevicefromOpenstackPort(p);
-        Port port = getPortFromOpenstackPort(device, p);
-        Ip4Address vmIp = (Ip4Address) p.fixedIps().values().iterator().next();
+    public void populateL3Rules(OpenstackPort openstackPort, List<OpenstackRouterInterface> targetList) {
+        Device device = getDevicefromOpenstackPort(openstackPort);
+        Port port = getPortFromOpenstackPort(device, openstackPort);
+        Ip4Address vmIp = openstackPort.fixedIps().values().iterator().next();
 
         if (port == null) {
             return;
         }
 
         targetList.forEach(routerInterface -> {
-            OpenstackPort openstackPort = openstackService.port(routerInterface.portId());
-            long vni = getVni(openstackPort.networkId());
+            long vni = getVni(openstackService.port(routerInterface.portId()).networkId());
 
             if (vmIp == null) {
                 return;
             }
 
-            populateL3RulestoSameNode(vmIp, p, port, device, vni);
+            populateL3RulestoSameNode(vmIp, openstackPort, port, device, vni);
 
             deviceService.getAvailableDevices().forEach(d -> {
-                if (!d.equals(device) && !d.equals(getGatewayNode())) {
-                    populateL3RulestoDifferentNode(vmIp, vni, d.id(), getHostIpfromOpenstackPort(p));
+                if (!d.equals(device) && !checkGatewayNode(d.id())) {
+                    populateL3RulestoDifferentNode(vmIp, vni, d.id(), getHostIpfromOpenstackPort(openstackPort));
                 }
             });
 
@@ -618,7 +654,7 @@ public class OpenstackRoutingRulePopulator {
         OpenstackRoutingService routingService = getService(OpenstackRoutingService.class);
 
         deviceService.getAvailableDevices().forEach(d -> {
-            if (!d.equals(getGatewayNode())) {
+            if (!checkGatewayNode(d.id())) {
                 routerInterfaces.forEach(routerInterface -> {
                     String networkId = routingService.networkIdForRouterInterface(routerInterface.portId());
                     long vni = getVni(networkId);

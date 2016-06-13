@@ -17,6 +17,7 @@ package org.onosproject.scalablegateway.api;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.onlab.packet.Ip4Address;
@@ -28,9 +29,10 @@ import org.slf4j.Logger;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.StreamSupport;
 
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.net.config.Config.FieldPresence.MANDATORY;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Configuration object for OpensatckNode service.
@@ -79,9 +81,21 @@ public class GatewayNodeConfig extends Config<ApplicationId> {
 
     @Override
     public boolean isValid() {
-        return hasOnlyFields(NODES, BRIDGE_ID, DATAPLANE_IP, EXTERNAL_INTERFACE_NAME) &&
-                isIpAddress(DATAPLANE_IP, MANDATORY) && isString(BRIDGE_ID, MANDATORY) &&
-                isString(EXTERNAL_INTERFACE_NAME, MANDATORY);
+        JsonNode jsonNodes = object.get(NODES);
+
+        if (jsonNodes == null) {
+            return false;
+        }
+
+        return hasOnlyFields(NODES)
+                && StreamSupport.stream(jsonNodes.spliterator(), false).allMatch(this::checkValid);
+    }
+
+    private boolean checkValid(JsonNode jsonNode) {
+        ObjectNode objectNode = (ObjectNode) jsonNode;
+        return isString(objectNode, BRIDGE_ID, MANDATORY)
+                && isIpAddress(objectNode, DATAPLANE_IP, MANDATORY)
+                && isString(objectNode, EXTERNAL_INTERFACE_NAME, MANDATORY);
     }
 
 }

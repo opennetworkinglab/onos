@@ -40,6 +40,7 @@ import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstacknetworking.OpenstackNetworkingConfig;
 import org.onosproject.openstacknetworking.OpenstackPortInfo;
 import org.onosproject.openstacknetworking.OpenstackSwitchingService;
+import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
@@ -62,13 +63,14 @@ public class OpenstackIcmpHandler {
     private final Map<String, OpenstackPortInfo> icmpInfoMap = Maps.newHashMap();
     private final OpenstackSwitchingService openstackSwitchingService;
     private final OpenstackInterfaceService openstackService;
+    private final ScalableGatewayService gatewayService;
     private final OpenstackNetworkingConfig config;
     private static final MacAddress GATEWAY_MAC = MacAddress.valueOf("1f:1f:1f:1f:1f:1f");
     private static final String NETWORK_ROUTER_INTERFACE = "network:router_interface";
     private static final String PORTNAME = "portName";
     private static final String NETWORK_ROUTER_GATEWAY = "network:router_gateway";
     private static final String NETWORK_FLOATING_IP = "network:floatingip";
-
+    private static final String EXTERNAL_NODE_NULL = "There is no external node about this deviceId []";
     /**
      * Default constructor.
      *
@@ -77,15 +79,17 @@ public class OpenstackIcmpHandler {
      * @param openstackService          openstackInterface service
      * @param config                    openstackRoutingConfig
      * @param openstackSwitchingService openstackSwitching service
+     * @param gatewayService scalable gateway service
      */
     OpenstackIcmpHandler(PacketService packetService, DeviceService deviceService,
                          OpenstackInterfaceService openstackService, OpenstackNetworkingConfig config,
-                         OpenstackSwitchingService openstackSwitchingService) {
+                         OpenstackSwitchingService openstackSwitchingService, ScalableGatewayService gatewayService) {
         this.packetService = packetService;
         this.deviceService = deviceService;
         this.openstackService = checkNotNull(openstackService);
         this.config = checkNotNull(config);
         this.openstackSwitchingService = checkNotNull(openstackSwitchingService);
+        this.gatewayService = gatewayService;
     }
 
     /**
@@ -99,10 +103,13 @@ public class OpenstackIcmpHandler {
                 .matchIPProtocol(IPv4.PROTOCOL_ICMP)
                 .build();
 
-        packetService.requestPackets(icmpSelector,
-                PacketPriority.CONTROL,
-                appId,
-                Optional.of(DeviceId.deviceId(config.gatewayBridgeId())));
+        Map<DeviceId, PortNumber> externalInfoMap = getExternalInfo();
+
+        externalInfoMap.keySet().forEach(deviceId ->
+                packetService.requestPackets(icmpSelector,
+                        PacketPriority.CONTROL,
+                        appId,
+                        Optional.of(deviceId)));
     }
 
     /**
@@ -223,14 +230,19 @@ public class OpenstackIcmpHandler {
         Ethernet icmpRequestEth = new Ethernet();
 
         icmpRequestEth.setEtherType(Ethernet.TYPE_IPV4)
-                .setSourceMACAddress(MacAddress.valueOf(config.gatewayExternalInterfaceMac()))
-                .setDestinationMACAddress(MacAddress.valueOf(config.physicalRouterMac()))
                 .setPayload(icmpRequestIpv4);
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(getPortForAnnotationPortName(DeviceId.deviceId(config.gatewayBridgeId()),
-                        config.gatewayExternalInterfaceName()))
-                .build();
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+
+        Map<DeviceId, PortNumber> externalInforMap = getExternalInfo();
+
+        if (externalInforMap.size() == 0 || !externalInforMap.containsKey(deviceId)) {
+            log.error(EXTERNAL_NODE_NULL, deviceId.toString());
+            return;
+        }
+        tBuilder.setOutput(externalInforMap.get(deviceId));
+
+        TrafficTreatment treatment = tBuilder.build();
 
         OutboundPacket packet = new DefaultOutboundPacket(deviceId,
                 treatment, ByteBuffer.wrap(icmpRequestEth.serialize()));
@@ -322,5 +334,11 @@ public class OpenstackIcmpHandler {
             return false;
         }
         return true;
+    }
+    private Map<DeviceId, PortNumber> getExternalInfo() {
+        Map<DeviceId, PortNumber> externalInfoMap = Maps.newHashMap();
+        gatewayService.getGatewayDeviceIds().forEach(deviceId ->
+                externalInfoMap.putIfAbsent(deviceId, gatewayService.getGatewayExternalPorts(deviceId).get(0)));
+        return externalInfoMap;
     }
 }
