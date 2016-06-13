@@ -106,10 +106,10 @@ public class DefaultFlowRule implements FlowRule {
                            ApplicationId appId, int timeout, boolean permanent,
                            FlowRuleExtPayLoad payLoad) {
 
-        if (priority < FlowRule.MIN_PRIORITY) {
-            throw new IllegalArgumentException("Priority cannot be less than "
-                    + MIN_PRIORITY);
-        }
+        checkArgument(priority >= MIN_PRIORITY, "Priority cannot be less than " +
+                MIN_PRIORITY);
+        checkArgument(priority <= MAX_PRIORITY, "Priority cannot be greater than " +
+                MAX_PRIORITY);
 
         this.deviceId = deviceId;
         this.priority = priority;
@@ -153,10 +153,10 @@ public class DefaultFlowRule implements FlowRule {
                            ApplicationId appId, GroupId groupId, int timeout,
                            boolean permanent, FlowRuleExtPayLoad payLoad) {
 
-        if (priority < FlowRule.MIN_PRIORITY) {
-            throw new IllegalArgumentException("Priority cannot be less than "
-                    + MIN_PRIORITY);
-        }
+        checkArgument(priority >= MIN_PRIORITY, "Priority cannot be less than " +
+                MIN_PRIORITY);
+        checkArgument(priority <= MAX_PRIORITY, "Priority cannot be greater than " +
+                MAX_PRIORITY);
 
         this.deviceId = deviceId;
         this.priority = priority;
@@ -379,7 +379,8 @@ public class DefaultFlowRule implements FlowRule {
             checkNotNull(priority, "Priority cannot be null");
             checkArgument(priority >= MIN_PRIORITY, "Priority cannot be less than " +
                     MIN_PRIORITY);
-
+            checkArgument(priority <= MAX_PRIORITY, "Priority cannot be greater than " +
+                    MAX_PRIORITY);
             // Computing a flow ID based on appId takes precedence over setting
             // the flow ID directly
             if (appId != null) {
