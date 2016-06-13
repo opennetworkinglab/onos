@@ -72,7 +72,7 @@ public class PcepClientImpl implements PcepClientDriver {
     private byte deadTime;
     private byte sessionId;
     private PcepPacketStatsImpl pktStats;
-    private Map<LspKey, Boolean> lspDelegationInfo;
+    private Map<LspKey, Boolean> lspDelegationInfo = new HashMap<>();
     private Map<PccId, List<PcepStateReport>> syncRptCache = new HashMap<>();
 
     @Override

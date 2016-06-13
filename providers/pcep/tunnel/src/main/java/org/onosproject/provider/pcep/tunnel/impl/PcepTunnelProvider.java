@@ -125,6 +125,7 @@ import java.util.concurrent.TimeUnit;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
+import static org.onosproject.incubator.net.tunnel.Tunnel.State.INIT;
 import static org.onosproject.incubator.net.tunnel.Tunnel.Type.MPLS;
 import static org.onosproject.net.DefaultAnnotations.EMPTY;
 import static org.onosproject.net.DeviceId.deviceId;
@@ -136,6 +137,7 @@ import static org.onosproject.pcep.controller.PcepAnnotationKeys.BANDWIDTH;
 import static org.onosproject.pcep.controller.PcepAnnotationKeys.LOCAL_LSP_ID;
 import static org.onosproject.pcep.controller.PcepAnnotationKeys.LSP_SIG_TYPE;
 import static org.onosproject.pcep.controller.PcepAnnotationKeys.PCC_TUNNEL_ID;
+import static org.onosproject.pcep.controller.PcepAnnotationKeys.PCE_INIT;
 import static org.onosproject.pcep.controller.PcepAnnotationKeys.PLSP_ID;
 import static org.onosproject.pcep.controller.PcepAnnotationKeys.DELEGATE;
 import static org.onosproject.pcep.controller.PcepAnnotationKeys.COST_TYPE;
@@ -298,6 +300,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
     @Override
     public void setupTunnel(ElementId srcElement, Tunnel tunnel, Path path) {
 
+        //TODO: tunnel which is passed doesn't have tunnelID
         if (tunnel.annotations().value(PLSP_ID) != null) {
             updateTunnel(tunnel, path);
             return;
@@ -317,8 +320,8 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         PcepClient pc = pcepClientController.getClient(PccId.pccId(((IpTunnelEndPoint) tunnel.src()).ip()));
 
         if (!(pc instanceof PcepClient)) {
-            log.error("There is no PCC connected with ip addresss {}"
-                    + ((IpElementId) srcElement).ipAddress().toString());
+            log.error("There is no PCC connected with this device {}"
+                    + srcElement.toString());
             return;
         }
 
@@ -405,6 +408,22 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             return;
         }
 
+        //To get new tunnel ID (modified tunnel ID)
+        Collection<Tunnel> tunnels = tunnelService.queryTunnel(tunnel.src(), tunnel.dst());
+        for (Tunnel t : tunnels) {
+            if (t.state().equals(INIT) && t.tunnelName().equals(tunnel.tunnelName())) {
+                tunnel = new DefaultTunnel(tunnel.providerId(), tunnel.src(),
+                        tunnel.dst(), tunnel.type(),
+                        t.state(), tunnel.groupId(),
+                        t.tunnelId(),
+                        tunnel.tunnelName(),
+                        tunnel.path(),
+                        tunnel.resource(),
+                        tunnel.annotations());
+                        break;
+            }
+        }
+
         PcepClient pc = pcepClientController.getClient(PccId.pccId(((IpTunnelEndPoint) tunnel.src()).ip()));
 
         if (!(pc instanceof PcepClient)) {
@@ -415,11 +434,27 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
         // If delegation flag is set then only send update message[means delegated PCE can send update msg for that
         // LSP].If annotation is null D flag is not set else it is set.
-        if (pc.capability().statefulPceCapability()
-                && pc.delegationInfo(
-                        new LspKey(Integer.valueOf(tunnel.annotations().value(PLSP_ID)), Short.valueOf(tunnel
-                                .annotations().value(LOCAL_LSP_ID)))) != null) {
-            pcepUpdateTunnel(tunnel, path, pc);
+        Short localLspId = 0;
+        for (Tunnel t : tunnels) {
+            if (!t.tunnelId().equals(tunnel.tunnelId()) && t.tunnelName().equals(tunnel.tunnelName())) {
+                localLspId = Short.valueOf(t.annotations().value(LOCAL_LSP_ID));
+            }
+        }
+
+        if (localLspId == 0) {
+            log.error("Local LSP ID for old tunnel not found");
+            return;
+        }
+
+        //PCInitiate tunnels are always have D flag set, else check for tunnels who are delegated via LspKey
+        if (pc.capability().statefulPceCapability()) {
+            if (tunnel.annotations().value(PCE_INIT) != null && tunnel.annotations().value(PCE_INIT).equals("true")) {
+                pcepUpdateTunnel(tunnel, path, pc);
+            } else if (pc.delegationInfo(
+                    new LspKey(Integer.valueOf(tunnel.annotations().value(PLSP_ID)),
+                            localLspId.shortValue())) != null) {
+                pcepUpdateTunnel(tunnel, path, pc);
+            }
         }
     }
 
@@ -886,6 +921,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             }
         }
 
+        tunnel.annotations().value(LSP_SIG_TYPE);
         tlv = new StatefulIPv4LspIdentifiersTlv((((IpTunnelEndPoint) tunnel.src()).ip().getIp4Address().toInt()),
                                                 localLspId, (short) 0, 0, (((IpTunnelEndPoint) tunnel.dst()).ip()
                                                         .getIp4Address().toInt()));
@@ -907,9 +943,9 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         //build ERO object
         PcepEroObject eroobj = pc.factory().buildEroObject().setSubObjects(llSubObjects).build();
 
-        float iBandwidth = DEFAULT_BANDWIDTH_VALUE;
+        int  iBandwidth = DEFAULT_BANDWIDTH_VALUE;
         if (tunnel.annotations().value(BANDWIDTH) != null) {
-            iBandwidth = Float.parseFloat(tunnel.annotations().value(BANDWIDTH));
+            iBandwidth = Float.floatToIntBits(Float.parseFloat(tunnel.annotations().value(BANDWIDTH)));
         }
         // build bandwidth object
         PcepBandwidthObject bandwidthObject = pc.factory().buildBandwidthObject().setBandwidth(iBandwidth).build();
@@ -933,6 +969,26 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
     private void pcepSetupTunnel(Tunnel tunnel, Path path, PcepClient pc) {
         try {
             int srpId = SrpIdGenerators.create();
+            Collection<Tunnel> tunnels = tunnelService.queryTunnel(tunnel.src(), tunnel.dst());
+            for (Tunnel t : tunnels) {
+                if (t.tunnelName().equals(tunnel.tunnelName())) {
+                    tunnel = new DefaultTunnel(tunnel.providerId(), tunnel.src(),
+                            tunnel.dst(), tunnel.type(),
+                            t.state(), tunnel.groupId(),
+                            t.tunnelId(),
+                            tunnel.tunnelName(),
+                            tunnel.path(),
+                            tunnel.resource(),
+                            tunnel.annotations());
+                            break;
+                }
+            }
+
+            if (tunnel.tunnelId() == null) {
+                log.error("Tunnel ID not found");
+                return;
+            }
+
             PcepTunnelData pcepTunnelData = new PcepTunnelData(tunnel, path, CREATE);
 
             pcepTunnelApiMapper.addToCoreTunnelRequestQueue(pcepTunnelData);
@@ -996,6 +1052,26 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
             tlv = new SymbolicPathNameTlv(tunnel.tunnelName().value().getBytes());
             llOptionalTlv.add(tlv);
+
+            String localLspIdString = tunnel.annotations().value(LOCAL_LSP_ID);
+            String pccTunnelIdString = tunnel.annotations().value(PCC_TUNNEL_ID);
+            short localLspId = 0;
+            short pccTunnelId = 0;
+
+            if (localLspIdString != null) {
+                localLspId = Short.valueOf(localLspIdString);
+            }
+
+            if (pccTunnelIdString != null) {
+                pccTunnelId = Short.valueOf(pccTunnelIdString);
+            }
+
+            tlv = new StatefulIPv4LspIdentifiersTlv((((IpTunnelEndPoint) tunnel.src())
+                    .ip().getIp4Address().toInt()),
+                    localLspId, pccTunnelId, 0, (((IpTunnelEndPoint) tunnel.dst()).ip()
+                    .getIp4Address().toInt()));
+            llOptionalTlv.add(tlv);
+
             // build lsp object, set r flag as false to delete the tunnel
             PcepLspObject lspobj = pc.factory().buildLspObject().setRFlag(false).setPlspId(plspId)
                     .setOptionalTlv(llOptionalTlv).build();
@@ -1047,14 +1123,6 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
             llOptionalTlv = new LinkedList<PcepValueType>();
 
-            if (!(pcepTunnelApiMapper.checkFromTunnelDBQueue(tunnelId))) {
-                log.error("Tunnel doesnot exists in DB");
-                return;
-            } else {
-                PcepTunnelData pcepTunnelDBData = pcepTunnelApiMapper.getDataFromTunnelDBQueue(tunnelId);
-                plspId = pcepTunnelDBData.plspId();
-            }
-
             if (lspSigType != WITH_SIGNALLING) {
                 String localLspIdString = tunnel.annotations().value(LOCAL_LSP_ID);
                 String pccTunnelIdString = tunnel.annotations().value(PCC_TUNNEL_ID);
@@ -1082,14 +1150,15 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             }
 
             // build lsp object
-            PcepLspObject lspobj = pc.factory().buildLspObject().setAFlag(true).setPlspId(plspId)
+            PcepLspObject lspobj = pc.factory().buildLspObject().setAFlag(true)
+                    .setPlspId(Integer.valueOf(tunnel.annotations().value(PLSP_ID)))
                     .setOptionalTlv(llOptionalTlv).build();
             // build ero object
             PcepEroObject eroobj = pc.factory().buildEroObject().setSubObjects(llSubObjects).build();
 
-            int iBandwidth = DEFAULT_BANDWIDTH_VALUE;
+            float iBandwidth = DEFAULT_BANDWIDTH_VALUE;
             if (tunnel.annotations().value(BANDWIDTH) != null) {
-                iBandwidth = Integer.parseInt(tunnel.annotations().value(BANDWIDTH));
+                iBandwidth = Float.parseFloat(tunnel.annotations().value(BANDWIDTH));
             }
             // build bandwidth object
             PcepBandwidthObject bandwidthObject = pc.factory().buildBandwidthObject().setBandwidth(iBandwidth).build();
@@ -1241,6 +1310,10 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                 annotationBuilder.set(LOCAL_LSP_ID, String.valueOf(ipv4LspTlv.getLspId()));
             }
 
+            if (tunnel.annotations().value(PCC_TUNNEL_ID) == null) {
+                annotationBuilder.set(PCC_TUNNEL_ID, String.valueOf(ipv4LspTlv.getTunnelId()));
+            }
+
             SparseAnnotations annotations = annotationBuilder.build();
             DefaultTunnelDescription td = new DefaultTunnelDescription(tunnel.tunnelId(), tunnel.src(),
                                                                        tunnel.dst(), tunnel.type(), tunnel.groupId(),
@@ -1248,6 +1321,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                                                                        annotations);
 
             if (CREATE == pcepTunnelData.requestType()) {
+                pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
                 pcepTunnelApiMapper.handleCreateTunnelRequestQueue(srpId, pcepTunnelData);
             } else if (DELETE == pcepTunnelData.requestType()) {
                 pcepTunnelApiMapper.handleRemoveFromTunnelRequestQueue(srpId, pcepTunnelData);
@@ -1552,7 +1626,8 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             List<Link> links = new ArrayList<Link>();
             LinkedList<PcepValueType> llSubObj = eroObj.getSubObjects();
             if (0 == llSubObj.size()) {
-                log.error("ERO in report message does not have hop information");
+                log.debug("ERO in report message does not have hop information");
+                return null;
             }
             ListIterator<PcepValueType> tlvIterator = llSubObj.listIterator();
 
