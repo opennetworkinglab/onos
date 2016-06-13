@@ -21,8 +21,10 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import org.onosproject.net.resource.DiscreteResource;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -41,9 +43,11 @@ class EncodableDiscreteResourcesSerializer extends Serializer<EncodableDiscreteR
         @SuppressWarnings("unchecked")
         Set<EncodedDiscreteResources> resources = kryo.readObject(input, LinkedHashSet.class);
 
-        return EncodableDiscreteResources.of(parent,
-                resources.stream()
-                        .flatMap(x -> x.values(parent.id()).stream())
-                        .collect(Collectors.toCollection(LinkedHashSet::new)));
+        return new EncodableDiscreteResources(parent, resources.stream()
+                .collect(Collectors.toMap(
+                        EncodedDiscreteResources::encodedClass,
+                        Function.identity(),
+                        (v1, v2) -> v1,
+                        LinkedHashMap::new)));
     }
 }

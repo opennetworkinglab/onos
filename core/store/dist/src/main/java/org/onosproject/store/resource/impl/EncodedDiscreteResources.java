@@ -76,6 +76,11 @@ final class EncodedDiscreteResources {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
+    Class<?> encodedClass() {
+        Range<Integer> firstRange = rangeSet.asRanges().iterator().next();
+        return codec.decode(firstRange.lowerEndpoint()).getClass();
+    }
+
     @SuppressWarnings("unchecked")
     boolean contains(DiscreteResource resource) {
         return resource.valueAs(Object.class)

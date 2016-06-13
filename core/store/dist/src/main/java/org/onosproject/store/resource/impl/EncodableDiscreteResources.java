@@ -66,7 +66,7 @@ final class EncodableDiscreteResources implements DiscreteResources {
         return new EncodableDiscreteResources(parent, values);
     }
 
-    private EncodableDiscreteResources(DiscreteResource parent, Map<Class<?>, EncodedDiscreteResources> map) {
+    EncodableDiscreteResources(DiscreteResource parent, Map<Class<?>, EncodedDiscreteResources> map) {
         this.parent = parent;
         this.map = map;
     }
