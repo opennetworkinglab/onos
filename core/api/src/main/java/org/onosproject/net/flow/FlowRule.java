@@ -27,6 +27,7 @@ public interface FlowRule {
 
     int MAX_TIMEOUT = 60;
     int MIN_PRIORITY = 0;
+    int MAX_PRIORITY = 65535;
 
     /**
      * Returns the ID of this flow.
