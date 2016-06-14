@@ -28,9 +28,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.ui.UiTopoOverlay;
-import org.onosproject.ui.topo.ButtonId;
 import org.onosproject.ui.topo.PropertyPanel;
-import org.onosproject.net.HostId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.resource.ContinuousResource;
@@ -56,8 +54,6 @@ public class PceWebTopovOverlay extends UiTopoOverlay {
     public static final String ASBR_BIT = "externalBit";
     public static final String TE_METRIC = "teCost";
 
-    private static final ButtonId SRC_BUTTON = new ButtonId("src");
-    private static final ButtonId DST_BUTTON = new ButtonId("dst");
     /**
      * Initialize the overlay ID.
      */
@@ -79,8 +75,6 @@ public class PceWebTopovOverlay extends UiTopoOverlay {
          DeviceService deviceService = AbstractShellCommand.get(DeviceService.class);
 
          pp.removeAllProps();
-
-         pp.addButton(SRC_BUTTON).addButton(DST_BUTTON);
 
          pp.removeButtons(CoreButtons.SHOW_PORT_VIEW)
                 .removeButtons(CoreButtons.SHOW_GROUP_VIEW)
@@ -155,10 +149,5 @@ public class PceWebTopovOverlay extends UiTopoOverlay {
         }
 
         return map;
-    }
-
-    @Override
-    public void modifyHostDetails(PropertyPanel pp, HostId hostId) {
-        pp.addButton(SRC_BUTTON).addButton(DST_BUTTON);
     }
 }

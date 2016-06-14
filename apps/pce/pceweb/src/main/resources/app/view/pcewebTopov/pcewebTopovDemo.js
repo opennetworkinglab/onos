@@ -75,11 +75,21 @@
             p = form.append('p');
 
         function addAttribute(name, id, nameField, type) {
-            p.append('input').attr({
-                type: type,
-                name: name,
-                id: id
-            });
+            if (type == 'radio') {
+                p.append('input').attr({
+                    type: type,
+                    name: name,
+                    id: id,
+                    class: 'radioButtonSpace'
+                });
+            } else {
+                p.append('input').attr({
+                    type: type,
+                    name: name,
+                    id: id
+                });
+            }
+
 
             p.append('span').text(nameField);
             p.append('br');
@@ -135,11 +145,21 @@
             p = form.append('p');
 
         function addAttribute(name, id, nameField, type) {
-            p.append('input').attr({
-                type: type,
-                name: name,
-                id: id
-            });
+            if (type == 'radio') {
+                p.append('input').attr({
+                    type: type,
+                    name: name,
+                    id: id,
+                    class: 'radioButtonSpace'
+                });
+            }
+            else {
+                p.append('input').attr({
+                    type: type,
+                    name: name,
+                    id: id
+                });
+            }
 
             p.append('span').text(nameField);
             p.append('br');
@@ -278,7 +298,7 @@
     }
 
     //setup path
-    function setMode() {
+    function setMode(node) {
 
         function dOk() {
             var bandWidth = isChecked('band-width-box'),
@@ -320,6 +340,8 @@
             }
 
             wss.sendEvent(setPathmsg, {
+                srid: node[0],
+                dsid: node[1],
                 bw: bandValue,
                 bwtype: bandType,
                 ctype: costTypeVal,
