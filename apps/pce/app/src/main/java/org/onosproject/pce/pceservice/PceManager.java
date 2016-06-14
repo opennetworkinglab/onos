@@ -515,7 +515,14 @@ public class PceManager implements PceService {
             }
 
             if (existingBwValue != null) {
-                shBwConstraint = new SharedBandwidthConstraint(links, existingBwValue, bwConstraint.bandwidth());
+                if (bwConstraintValue == 0) {
+                    bwConstraintValue = existingBwValue.bps();
+                }
+                //If bandwidth constraints not specified , take existing bandwidth for shared bandwidth calculation
+                shBwConstraint = bwConstraint != null ? new SharedBandwidthConstraint(links,
+                        existingBwValue, bwConstraint.bandwidth()) : new SharedBandwidthConstraint(links,
+                        existingBwValue, existingBwValue);
+
                 constraints.add(shBwConstraint);
             }
         } else {

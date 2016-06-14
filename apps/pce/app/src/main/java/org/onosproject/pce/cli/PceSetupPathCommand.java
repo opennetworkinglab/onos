@@ -86,10 +86,9 @@ public class PceSetupPathCommand extends AbstractShellCommand {
         LspType lspType = LspType.values()[type];
 
         // Add bandwidth
-        // bandwidth default data rate unit is in MBPS, since bandwidth value in network config
-        //stored in MPBS
+        // bandwidth default data rate unit is in BPS
         if (bandwidth != 0.0) {
-            listConstrnt.add(BandwidthConstraint.of(bandwidth, DataRateUnit.valueOf("MBPS")));
+            listConstrnt.add(BandwidthConstraint.of(bandwidth, DataRateUnit.valueOf("BPS")));
         }
 
         // Add cost
