@@ -23,30 +23,33 @@ import org.onosproject.net.TestDeviceParams;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
- * Test of the default virtual device model entity.
+ * Test of the default virtual host model entity.
  */
-public class DefaultVirtualDeviceTest extends TestDeviceParams {
+public class DefaultVirtualHostTest extends TestDeviceParams {
 
     /**
-     * Checks that the DefaultVirtualDevice class is immutable.
+     * Checks that the DefaultVirtualHost class is immutable.
      */
     @Test
     public void testImmutability() {
-        assertThatClassIsImmutable(DefaultVirtualDevice.class);
+        assertThatClassIsImmutable(DefaultVirtualHost.class);
     }
 
+    /**
+     * Tests the DefaultVirtualHost equality method.
+     */
     @Test
     public void testEquality() {
-        DefaultVirtualDevice device1 =
-                new DefaultVirtualDevice(NetworkId.networkId(0), DID1);
-        DefaultVirtualDevice device2 =
-                new DefaultVirtualDevice(NetworkId.networkId(0), DID1);
-        DefaultVirtualDevice device3 =
-                new DefaultVirtualDevice(NetworkId.networkId(0), DID2);
-        DefaultVirtualDevice device4 =
-                new DefaultVirtualDevice(NetworkId.networkId(1), DID1);
+        DefaultVirtualHost host1 =
+                new DefaultVirtualHost(NetworkId.networkId(0), HID1, MAC1, VLAN1, LOC1, IPSET1);
+        DefaultVirtualHost host2 =
+                new DefaultVirtualHost(NetworkId.networkId(0), HID1, MAC1, VLAN1, LOC1, IPSET1);
+        DefaultVirtualHost host3 =
+                new DefaultVirtualHost(NetworkId.networkId(0), HID2, MAC1, VLAN1, LOC1, IPSET1);
+        DefaultVirtualHost host4 =
+                new DefaultVirtualHost(NetworkId.networkId(1), HID2, MAC1, VLAN1, LOC1, IPSET1);
 
-        new EqualsTester().addEqualityGroup(device1, device2).addEqualityGroup(device3)
-                .addEqualityGroup(device4).testEquals();
+        new EqualsTester().addEqualityGroup(host1, host2).addEqualityGroup(host3)
+                .addEqualityGroup(host4).testEquals();
     }
 }

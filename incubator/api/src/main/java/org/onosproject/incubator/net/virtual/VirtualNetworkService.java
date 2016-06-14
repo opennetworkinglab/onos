@@ -51,6 +51,15 @@ public interface VirtualNetworkService {
     Set<VirtualDevice> getVirtualDevices(NetworkId networkId);
 
     /**
+     * Returns a collection of all virtual hosts in the specified network.
+     *
+     * @param networkId network identifier
+     * @return collection of hosts
+     * @throws org.onlab.util.ItemNotFoundException if no such network found
+     */
+    Set<VirtualHost> getVirtualHosts(NetworkId networkId);
+
+    /**
      * Returns collection of all virtual links in the specified network.
      *
      * @param networkId network identifier

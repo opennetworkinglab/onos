@@ -23,17 +23,22 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.virtual.DefaultVirtualDevice;
+import org.onosproject.incubator.net.virtual.DefaultVirtualHost;
 import org.onosproject.incubator.net.virtual.DefaultVirtualLink;
 import org.onosproject.incubator.net.virtual.DefaultVirtualNetwork;
 import org.onosproject.incubator.net.virtual.DefaultVirtualPort;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
+import org.onosproject.incubator.net.virtual.VirtualHost;
 import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkEvent;
@@ -44,6 +49,8 @@ import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -111,6 +118,14 @@ public class DistributedVirtualNetworkStore
     private ConsistentMap<NetworkId, Set<DeviceId>> networkIdDeviceIdSetConsistentMap;
     private Map<NetworkId, Set<DeviceId>> networkIdDeviceIdSetMap;
 
+    // Track virtual hosts by host Id
+    private ConsistentMap<HostId, VirtualHost> hostIdVirtualHostConsistentMap;
+    private Map<HostId, VirtualHost> hostIdVirtualHostMap;
+
+    // Track host IDs by network Id
+    private ConsistentMap<NetworkId, Set<HostId>> networkIdHostIdSetConsistentMap;
+    private Map<NetworkId, Set<HostId>> networkIdHostIdSetMap;
+
     // Track virtual links by network Id
     private ConsistentMap<NetworkId, Set<VirtualLink>> networkIdVirtualLinkSetConsistentMap;
     private Map<NetworkId, Set<VirtualLink>> networkIdVirtualLinkSetMap;
@@ -127,6 +142,8 @@ public class DistributedVirtualNetworkStore
                            .register(DefaultVirtualNetwork.class)
                            .register(VirtualDevice.class)
                            .register(DefaultVirtualDevice.class)
+                           .register(VirtualHost.class)
+                           .register(DefaultVirtualHost.class)
                            .register(VirtualLink.class)
                            .register(DefaultVirtualLink.class)
                            .register(VirtualPort.class)
@@ -179,6 +196,20 @@ public class DistributedVirtualNetworkStore
                 .withRelaxedReadConsistency()
                 .build();
         networkIdDeviceIdSetMap = networkIdDeviceIdSetConsistentMap.asJavaMap();
+
+        hostIdVirtualHostConsistentMap = storageService.<HostId, VirtualHost>consistentMapBuilder()
+                .withSerializer(SERIALIZER)
+                .withName("onos-hostId-virtualhost")
+                .withRelaxedReadConsistency()
+                .build();
+        hostIdVirtualHostMap = hostIdVirtualHostConsistentMap.asJavaMap();
+
+        networkIdHostIdSetConsistentMap = storageService.<NetworkId, Set<HostId>>consistentMapBuilder()
+                .withSerializer(SERIALIZER)
+                .withName("onos-networkId-hostIds")
+                .withRelaxedReadConsistency()
+                .build();
+        networkIdHostIdSetMap = networkIdHostIdSetConsistentMap.asJavaMap();
 
         networkIdVirtualLinkSetConsistentMap = storageService.<NetworkId, Set<VirtualLink>>consistentMapBuilder()
                 .withSerializer(SERIALIZER)
@@ -342,6 +373,48 @@ public class DistributedVirtualNetworkStore
 
             deviceIdVirtualDeviceMap.remove(deviceId);
         }
+        //TODO remove virtual links and ports when removing the virtual device
+    }
+
+    @Override
+    public VirtualHost addHost(NetworkId networkId, HostId hostId, MacAddress mac,
+                               VlanId vlan, HostLocation location, Set<IpAddress> ips) {
+        checkState(networkExists(networkId), "The network has not been added.");
+        Set<HostId> hostIdSet = networkIdHostIdSetMap.get(networkId);
+        if (hostIdSet == null) {
+            hostIdSet = new HashSet<>();
+        }
+        VirtualHost virtualhost = new DefaultVirtualHost(networkId, hostId, mac, vlan, location, ips);
+        //TODO update both maps in one transaction.
+        hostIdVirtualHostMap.put(hostId, virtualhost);
+        hostIdSet.add(hostId);
+        networkIdHostIdSetMap.put(networkId, hostIdSet);
+        return virtualhost;
+    }
+
+    @Override
+    public void removeHost(NetworkId networkId, HostId hostId) {
+        checkState(networkExists(networkId), "The network has not been added.");
+        //TODO update both maps in one transaction.
+
+        Set<HostId> hostIdSet = new HashSet<>();
+        networkIdHostIdSetMap.get(networkId).forEach(hostId1 -> {
+            if (hostId1.equals(hostId)) {
+                hostIdSet.add(hostId1);
+            }
+        });
+
+        if (hostIdSet != null) {
+            networkIdHostIdSetMap.compute(networkId, (id, existingHostIds) -> {
+                if (existingHostIds == null || existingHostIds.isEmpty()) {
+                    return new HashSet<>();
+                } else {
+                    return new HashSet<>(Sets.difference(existingHostIds, hostIdSet));
+                }
+            });
+
+            hostIdVirtualHostMap.remove(hostId);
+        }
     }
 
     @Override
@@ -473,6 +546,17 @@ public class DistributedVirtualNetworkStore
             deviceIdSet.forEach(deviceId -> virtualDeviceSet.add(deviceIdVirtualDeviceMap.get(deviceId)));
         }
         return ImmutableSet.copyOf(virtualDeviceSet);
+    }
+
+    @Override
+    public Set<VirtualHost> getHosts(NetworkId networkId) {
+        checkState(networkExists(networkId), "The network has not been added.");
+        Set<HostId> hostIdSet = networkIdHostIdSetMap.get(networkId);
+        Set<VirtualHost> virtualHostSet = new HashSet<>();
+        if (hostIdSet != null) {
+            hostIdSet.forEach(hostId -> virtualHostSet.add(hostIdVirtualHostMap.get(hostId)));
+        }
+        return ImmutableSet.copyOf(virtualHostSet);
     }
 
     @Override

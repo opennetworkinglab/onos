@@ -22,10 +22,14 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
+import org.onosproject.incubator.net.virtual.VirtualHost;
 import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
@@ -40,6 +44,8 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkStoreDelegate;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -138,6 +144,21 @@ public class VirtualNetworkManager
         checkNotNull(networkId, NETWORK_NULL);
         checkNotNull(deviceId, DEVICE_NULL);
         store.removeDevice(networkId, deviceId);
+    }
+
+    @Override
+    public VirtualHost createVirtualHost(NetworkId networkId, HostId hostId, MacAddress mac,
+                                         VlanId vlan, HostLocation location, Set<IpAddress> ips) {
+        checkNotNull(networkId, NETWORK_NULL);
+        checkNotNull(hostId, DEVICE_NULL);
+        return store.addHost(networkId, hostId, mac, vlan, location, ips);
+    }
+
+    @Override
+    public void removeVirtualHost(NetworkId networkId, HostId hostId) {
+        checkNotNull(networkId, NETWORK_NULL);
+        checkNotNull(hostId, DEVICE_NULL);
+        store.removeHost(networkId, hostId);
     }
 
     @Override
@@ -245,6 +266,12 @@ public class VirtualNetworkManager
     public Set<VirtualDevice> getVirtualDevices(NetworkId networkId) {
         checkNotNull(networkId, NETWORK_NULL);
         return store.getDevices(networkId);
+    }
+
+    @Override
+    public Set<VirtualHost> getVirtualHosts(NetworkId networkId) {
+        checkNotNull(networkId, NETWORK_NULL);
+        return store.getHosts(networkId);
     }
 
     @Override

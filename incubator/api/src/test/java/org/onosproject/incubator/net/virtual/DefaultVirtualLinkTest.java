@@ -20,17 +20,15 @@ import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.TestDeviceParams;
 
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
  * Test of the default virtual link model entity.
  */
-public class DefaultVirtualLinkTest {
-    final String deviceIdValue1 = "DEVICE_ID1";
-    final String deviceIdValue2 = "DEVICE_ID2";
+public class DefaultVirtualLinkTest extends TestDeviceParams {
 
     /**
      * Checks that the DefaultVirtualLink class is immutable.
@@ -46,9 +44,9 @@ public class DefaultVirtualLinkTest {
     @Test(expected = NullPointerException.class)
     public void testBuilderNullSrc() {
         DefaultVirtualDevice device1 =
-                new DefaultVirtualDevice(NetworkId.networkId(0), DeviceId.deviceId(deviceIdValue1));
+                new DefaultVirtualDevice(NetworkId.networkId(0), DID1);
         DefaultVirtualDevice device2 =
-                new DefaultVirtualDevice(NetworkId.networkId(0), DeviceId.deviceId(deviceIdValue2));
+                new DefaultVirtualDevice(NetworkId.networkId(0), DID2);
         ConnectPoint src = new ConnectPoint(device1.id(), PortNumber.portNumber(1));
         ConnectPoint dst = new ConnectPoint(device2.id(), PortNumber.portNumber(2));
 
@@ -63,9 +61,9 @@ public class DefaultVirtualLinkTest {
     @Test(expected = NullPointerException.class)
     public void testBuilderNullDst() {
         DefaultVirtualDevice device1 =
-                new DefaultVirtualDevice(NetworkId.networkId(0), DeviceId.deviceId(deviceIdValue1));
+                new DefaultVirtualDevice(NetworkId.networkId(0), DID1);
         DefaultVirtualDevice device2 =
-                new DefaultVirtualDevice(NetworkId.networkId(0), DeviceId.deviceId(deviceIdValue2));
+                new DefaultVirtualDevice(NetworkId.networkId(0), DID2);
         ConnectPoint src = new ConnectPoint(device1.id(), PortNumber.portNumber(1));
         ConnectPoint dst = new ConnectPoint(device2.id(), PortNumber.portNumber(2));
 
@@ -80,9 +78,9 @@ public class DefaultVirtualLinkTest {
     @Test(expected = NullPointerException.class)
     public void testBuilderNullNetworkId() {
         DefaultVirtualDevice device1 =
-                new DefaultVirtualDevice(NetworkId.networkId(0), DeviceId.deviceId(deviceIdValue1));
+                new DefaultVirtualDevice(NetworkId.networkId(0), DID1);
         DefaultVirtualDevice device2 =
-                new DefaultVirtualDevice(NetworkId.networkId(0), DeviceId.deviceId(deviceIdValue2));
+                new DefaultVirtualDevice(NetworkId.networkId(0), DID2);
         ConnectPoint src = new ConnectPoint(device1.id(), PortNumber.portNumber(1));
         ConnectPoint dst = new ConnectPoint(device2.id(), PortNumber.portNumber(2));
 
@@ -97,9 +95,9 @@ public class DefaultVirtualLinkTest {
     @Test
     public void testEquality() {
         DefaultVirtualDevice device1 =
-                new DefaultVirtualDevice(NetworkId.networkId(0), DeviceId.deviceId(deviceIdValue1));
+                new DefaultVirtualDevice(NetworkId.networkId(0), DID1);
         DefaultVirtualDevice device2 =
-                new DefaultVirtualDevice(NetworkId.networkId(0), DeviceId.deviceId(deviceIdValue2));
+                new DefaultVirtualDevice(NetworkId.networkId(0), DID2);
         ConnectPoint src = new ConnectPoint(device1.id(), PortNumber.portNumber(1));
         ConnectPoint dst = new ConnectPoint(device2.id(), PortNumber.portNumber(2));
 

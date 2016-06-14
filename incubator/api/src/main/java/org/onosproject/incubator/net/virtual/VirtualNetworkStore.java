@@ -15,9 +15,14 @@
  */
 package org.onosproject.incubator.net.virtual;
 
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -77,12 +82,34 @@ public interface VirtualNetworkStore
     VirtualDevice addDevice(NetworkId networkId, DeviceId deviceId);
 
     /**
-     * Renmoves the specified virtual device from the given network.
+     * Removes the specified virtual device from the given network.
      *
      * @param networkId network identifier
      * @param deviceId  device identifier
      */
     void removeDevice(NetworkId networkId, DeviceId deviceId);
+
+    /**
+     * Adds a new virtual host to the store.
+     *
+     * @param networkId network identifier
+     * @param hostId    host identifier
+     * @param mac       mac address
+     * @param vlan      vlan identifier
+     * @param location  host location
+     * @param ips       set of ip addresses
+     * @return the virtual host
+     */
+    VirtualHost addHost(NetworkId networkId, HostId hostId, MacAddress mac,
+                        VlanId vlan, HostLocation location, Set<IpAddress> ips);
+
+    /**
+     * Removes the specified virtual host from the store.
+     *
+     * @param networkId network identifier
+     * @param hostId    host identifier
+     */
+    void removeHost(NetworkId networkId, HostId hostId);
 
     /**
      * Adds a new virtual link.
@@ -147,7 +174,7 @@ public interface VirtualNetworkStore
     /**
      * Returns the virtual network for the given network identifier.
      *
-     * @param networkId  network identifier
+     * @param networkId network identifier
      * @return the virtual network
      */
     VirtualNetwork getNetwork(NetworkId networkId);
@@ -159,6 +186,14 @@ public interface VirtualNetworkStore
      * @return set of virtual devices
      */
     Set<VirtualDevice> getDevices(NetworkId networkId);
+
+    /**
+     * Returns the list of hosts in the specified virtual network.
+     *
+     * @param networkId network identifier
+     * @return set of virtual hosts
+     */
+    Set<VirtualHost> getHosts(NetworkId networkId);
 
     /**
      * Returns the list of virtual links in the specified virtual network.

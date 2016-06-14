@@ -16,8 +16,13 @@
 package org.onosproject.incubator.net.virtual;
 
 import com.google.common.annotations.Beta;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 
@@ -74,7 +79,7 @@ public interface VirtualNetworkAdminService extends VirtualNetworkService {
      *
      * @param networkId network identifier
      * @param deviceId  device identifier
-     * @return newly created device
+     * @return newly created virtual device
      * @throws org.onlab.util.ItemNotFoundException if no such network found
      */
     VirtualDevice createVirtualDevice(NetworkId networkId, DeviceId deviceId);
@@ -88,6 +93,30 @@ public interface VirtualNetworkAdminService extends VirtualNetworkService {
      */
     void removeVirtualDevice(NetworkId networkId, DeviceId deviceId);
 
+    /**
+     * Creates a new virtual host within the specified network. The host id
+     * must be unique within the bounds of the network.
+     *
+     * @param networkId network identifier
+     * @param hostId    host identifier
+     * @param mac       mac address
+     * @param vlan      vlan identifier
+     * @param location  host location
+     * @param ips       set of ip addresses
+     * @return newly created virtual host
+     * @throws org.onlab.util.ItemNotFoundException if no such network found
+     */
+    VirtualHost createVirtualHost(NetworkId networkId, HostId hostId, MacAddress mac,
+                                  VlanId vlan, HostLocation location, Set<IpAddress> ips);
+
+    /**
+     * Removes the specified virtual host.
+     *
+     * @param networkId network identifier
+     * @param hostId  host identifier
+     * @throws org.onlab.util.ItemNotFoundException if no such network or host found
+     */
+    void removeVirtualHost(NetworkId networkId, HostId hostId);
 
     /**
      * Creates a new virtual link within the specified network.

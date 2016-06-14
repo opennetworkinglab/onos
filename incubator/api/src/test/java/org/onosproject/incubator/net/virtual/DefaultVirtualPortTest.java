@@ -19,18 +19,16 @@ package org.onosproject.incubator.net.virtual;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onosproject.net.DefaultPort;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.TestDeviceParams;
 
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
  * Test of the default virtual port model entity.
  */
-public class DefaultVirtualPortTest {
-    final String deviceIdValue1 = "DEVICE_ID1";
-    final String deviceIdValue2 = "DEVICE_ID2";
+public class DefaultVirtualPortTest extends TestDeviceParams {
 
     /**
      * Checks that the DefaultVirtualPort class is immutable.
@@ -43,9 +41,9 @@ public class DefaultVirtualPortTest {
     @Test
     public void testEquality() {
         DefaultVirtualDevice device1 =
-                new DefaultVirtualDevice(NetworkId.networkId(0), DeviceId.deviceId(deviceIdValue1));
+                new DefaultVirtualDevice(NetworkId.networkId(0), DID1);
         DefaultVirtualDevice device2 =
-                new DefaultVirtualDevice(NetworkId.networkId(0), DeviceId.deviceId(deviceIdValue2));
+                new DefaultVirtualDevice(NetworkId.networkId(0), DID2);
 
         Port portA = new DefaultPort(device1, PortNumber.portNumber(1), true);
         Port portB = new DefaultPort(device1, PortNumber.portNumber(2), true);
