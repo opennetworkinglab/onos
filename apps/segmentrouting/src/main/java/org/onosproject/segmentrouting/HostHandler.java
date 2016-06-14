@@ -71,15 +71,15 @@ public class HostHandler {
             if (!deviceId.equals(devId)) {
                 return;
             }
-            processHostAddedEventInternal(host);
+            processHostAdded(host);
         });
     }
 
     protected void processHostAddedEvent(HostEvent event) {
-        processHostAddedEventInternal(event.subject());
+        processHostAdded(event.subject());
     }
 
-    private void processHostAddedEventInternal(Host host) {
+    protected void processHostAdded(Host host) {
         MacAddress mac = host.mac();
         VlanId vlanId = host.vlan();
         HostLocation location = host.location();
@@ -116,15 +116,19 @@ public class HostHandler {
     }
 
     protected void processHostRemoveEvent(HostEvent event) {
-        MacAddress mac = event.subject().mac();
-        VlanId vlanId = event.subject().vlan();
-        HostLocation location = event.subject().location();
+        processHostRemoved(event.subject());
+    }
+
+    protected void processHostRemoved(Host host) {
+        MacAddress mac = host.mac();
+        VlanId vlanId = host.vlan();
+        HostLocation location = host.location();
         DeviceId deviceId = location.deviceId();
         PortNumber port = location.port();
-        Set<IpAddress> ips = event.subject().ipAddresses();
+        Set<IpAddress> ips = host.ipAddresses();
         log.debug("Host {}/{} is removed from {}:{}", mac, vlanId, deviceId, port);
 
-        if (accepted(event.subject())) {
+        if (accepted(host)) {
             // Revoke bridging table entry
             ForwardingObjective.Builder fob =
                     hostFwdObjBuilder(deviceId, mac, vlanId, port);
@@ -133,9 +137,9 @@ public class HostHandler {
                 return;
             }
             ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("Host rule for {} revoked", event.subject()),
+                    (objective) -> log.debug("Host rule for {} revoked", host),
                     (objective, error) ->
-                            log.warn("Failed to revoke host rule for {}: {}", event.subject(), error));
+                            log.warn("Failed to revoke host rule for {}: {}", host, error));
             flowObjectiveService.forward(deviceId, fob.remove(context));
 
             // Revoke IP table entry

@@ -31,11 +31,6 @@
     <description>Segment routing application</description>
 
     <properties>
-        <onos.app.name>org.onosproject.segmentrouting</onos.app.name>
-        <onos.app.title>Segment Routing App</onos.app.title>
-        <onos.app.category>Traffic Steering</onos.app.category>
-        <onos.app.url>http://onosproject.org</onos.app.url>
-        <onos.app.readme>Segment routing application.</onos.app.readme>
         <web.context>/onos/segmentrouting</web.context>
         <api.version>1.0.0</api.version>
         <api.title>ONOS Segment Routing REST API</api.title>
@@ -69,6 +64,12 @@
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-rest</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.opencord</groupId>
+            <artifactId>cord-config</artifactId>
+            <!-- TODO: Replace this with variable -->
+            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>javax.ws.rs</groupId>
