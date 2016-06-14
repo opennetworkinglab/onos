@@ -180,6 +180,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         controller.removeListener(listener);
         providerRegistry.unregister(this);
         collectors.values().forEach(PortStatsCollector::stop);
+        collectors.clear();
         providerService = null;
         LOG.info("Stopped");
     }
@@ -374,14 +375,19 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             providerService.deviceConnected(did, description);
             providerService.updatePorts(did, buildPortDescriptions(sw));
 
-            PortStatsCollector psc =
-                    new PortStatsCollector(sw, portStatsPollFrequency);
+            PortStatsCollector psc = new PortStatsCollector(sw, portStatsPollFrequency);
+            stopCollectorIfNeeded(collectors.put(dpid, psc));
             psc.start();
-            collectors.put(dpid, psc);
 
             //figure out race condition for collectors.remove() and collectors.put()
             if (controller.getSwitch(dpid) == null) {
                 switchRemoved(dpid);
+            }
+        }
+
+        private void stopCollectorIfNeeded(PortStatsCollector collector) {
+            if (collector != null) {
+                collector.stop();
             }
         }
 
@@ -391,11 +397,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 return;
             }
             providerService.deviceDisconnected(deviceId(uri(dpid)));
-
-            PortStatsCollector collector = collectors.remove(dpid);
-            if (collector != null) {
-                collector.stop();
-            }
+            stopCollectorIfNeeded(collectors.remove(dpid));
         }
 
         @Override

@@ -131,7 +131,6 @@ public class OpenFlowRuleProvider extends AbstractProvider
 
     // NewAdaptiveFlowStatsCollector Set
     private final Map<Dpid, NewAdaptiveFlowStatsCollector> afsCollectors = Maps.newHashMap();
-    private final Map<Dpid, FlowStatsCollector> collectors = Maps.newHashMap();
     private final Map<Dpid, TableStatisticsCollector> tableStatsCollectors = Maps.newHashMap();
 
     /**
@@ -142,7 +141,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
     }
 
     @Activate
-    public void activate(ComponentContext context) {
+    protected void activate(ComponentContext context) {
         cfgService.registerProperties(getClass());
         providerService = providerRegistry.register(this);
         controller.addListener(listener);
@@ -159,7 +158,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
     }
 
     @Deactivate
-    public void deactivate(ComponentContext context) {
+    protected void deactivate(ComponentContext context) {
         cfgService.unregisterProperties(getClass(), false);
         stopCollectors();
         providerRegistry.unregister(this);
@@ -169,7 +168,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
     }
 
     @Modified
-    public void modified(ComponentContext context) {
+    protected void modified(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
         int newFlowPollFrequency;
         try {
@@ -223,15 +222,21 @@ public class OpenFlowRuleProvider extends AbstractProvider
             NewAdaptiveFlowStatsCollector fsc =
                     new NewAdaptiveFlowStatsCollector(driverService, sw, flowPollFrequency);
             fsc.start();
-            afsCollectors.put(new Dpid(sw.getId()), fsc);
+            stopCollectorIfNeeded(afsCollectors.put(new Dpid(sw.getId()), fsc));
         } else {
             FlowStatsCollector fsc = new FlowStatsCollector(timer, sw, flowPollFrequency);
             fsc.start();
-            simpleCollectors.put(new Dpid(sw.getId()), fsc);
+            stopCollectorIfNeeded(simpleCollectors.put(new Dpid(sw.getId()), fsc));
         }
         TableStatisticsCollector tsc = new TableStatisticsCollector(timer, sw, flowPollFrequency);
         tsc.start();
-        tableStatsCollectors.put(new Dpid(sw.getId()), tsc);
+        stopCollectorIfNeeded(tableStatsCollectors.put(new Dpid(sw.getId()), tsc));
+    }
+
+    private void stopCollectorIfNeeded(SwitchDataCollector collector) {
+        if (collector != null) {
+            collector.stop();
+        }
     }
 
     private void stopCollectors() {
@@ -398,29 +403,17 @@ public class OpenFlowRuleProvider extends AbstractProvider
 
         @Override
         public void switchAdded(Dpid dpid) {
-
-            OpenFlowSwitch sw = controller.getSwitch(dpid);
-
             createCollector(controller.getSwitch(dpid));
         }
 
         @Override
         public void switchRemoved(Dpid dpid) {
             if (adaptiveFlowSampling) {
-                NewAdaptiveFlowStatsCollector collector = afsCollectors.remove(dpid);
-                if (collector != null) {
-                    collector.stop();
-                }
+                stopCollectorIfNeeded(afsCollectors.remove(dpid));
             } else {
-                FlowStatsCollector collector = simpleCollectors.remove(dpid);
-                if (collector != null) {
-                    collector.stop();
-                }
+                stopCollectorIfNeeded(simpleCollectors.remove(dpid));
             }
-            TableStatisticsCollector tsc = tableStatsCollectors.remove(dpid);
-            if (tsc != null) {
-                tsc.stop();
-            }
+            stopCollectorIfNeeded(tableStatsCollectors.remove(dpid));
         }
 
         @Override

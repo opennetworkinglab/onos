@@ -29,7 +29,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Collects Table statistics for the specified switch.
  */
-class TableStatisticsCollector {
+class TableStatisticsCollector implements SwitchDataCollector {
 
     private final Logger log = getLogger(getClass());
 

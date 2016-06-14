@@ -363,10 +363,7 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
             if (isGroupSupported(sw)) {
                 GroupStatsCollector gsc = new GroupStatsCollector(sw, POLL_INTERVAL);
                 gsc.start();
-                GroupStatsCollector prevGsc = collectors.put(dpid, gsc);
-                if (prevGsc != null) {
-                    prevGsc.stop();
-                }
+                stopCollectorIfNeeded(collectors.put(dpid, gsc));
             }
 
             //figure out race condition
@@ -377,7 +374,10 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
 
         @Override
         public void switchRemoved(Dpid dpid) {
-            GroupStatsCollector collector = collectors.remove(dpid);
+            stopCollectorIfNeeded(collectors.remove(dpid));
+        }
+
+        private void stopCollectorIfNeeded(GroupStatsCollector collector) {
             if (collector != null) {
                 collector.stop();
             }
