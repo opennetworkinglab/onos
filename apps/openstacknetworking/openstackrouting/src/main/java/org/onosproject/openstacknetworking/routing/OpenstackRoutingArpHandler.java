@@ -52,6 +52,7 @@ public class OpenstackRoutingArpHandler {
     private final OpenstackInterfaceService openstackService;
     private final OpenstackNetworkingConfig config;
     private static final String NETWORK_ROUTER_GATEWAY = "network:router_gateway";
+    private static final String NETWORK_FLOATING_IP = "network:floatingip";
 
     /**
      * Default constructor.
@@ -106,11 +107,11 @@ public class OpenstackRoutingArpHandler {
         }
 
         IpAddress targetIp = Ip4Address.valueOf(arp.getTargetProtocolAddress());
-        MacAddress targetMac = getTargetMacForTargetIp(targetIp.getIp4Address());
 
-        if (targetMac == MacAddress.NONE) {
-            return;
+        if (getTargetMacForTargetIp(targetIp.getIp4Address()) == MacAddress.NONE) {
+                return;
         }
+        MacAddress targetMac = MacAddress.valueOf(config.gatewayExternalInterfaceMac());
 
         Ethernet ethReply = ARP.buildArpReply(targetIp.getIp4Address(),
                 targetMac, ethernet);
@@ -127,7 +128,8 @@ public class OpenstackRoutingArpHandler {
 
     private MacAddress getTargetMacForTargetIp(Ip4Address targetIp) {
         OpenstackPort port = openstackService.ports().stream()
-                .filter(p -> p.deviceOwner().equals(NETWORK_ROUTER_GATEWAY))
+                .filter(p -> p.deviceOwner().equals(NETWORK_ROUTER_GATEWAY) ||
+                             p.deviceOwner().equals(NETWORK_FLOATING_IP))
                 .filter(p -> p.fixedIps().containsValue(targetIp.getIp4Address()))
                 .findAny().orElse(null);
 

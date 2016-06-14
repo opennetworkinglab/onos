@@ -66,14 +66,16 @@ public class OpenstackIcmpHandler {
     private static final MacAddress GATEWAY_MAC = MacAddress.valueOf("1f:1f:1f:1f:1f:1f");
     private static final String NETWORK_ROUTER_INTERFACE = "network:router_interface";
     private static final String PORTNAME = "portName";
+    private static final String NETWORK_ROUTER_GATEWAY = "network:router_gateway";
+    private static final String NETWORK_FLOATING_IP = "network:floatingip";
 
     /**
      * Default constructor.
      *
-     * @param packetService packet service
-     * @param deviceService device service
-     * @param openstackService openstackInterface service
-     * @param config openstackRoutingConfig
+     * @param packetService             packet service
+     * @param deviceService             device service
+     * @param openstackService          openstackInterface service
+     * @param config                    openstackRoutingConfig
      * @param openstackSwitchingService openstackSwitching service
      */
     OpenstackIcmpHandler(PacketService packetService, DeviceService deviceService,
@@ -106,7 +108,7 @@ public class OpenstackIcmpHandler {
     /**
      * Handles ICMP packet.
      *
-     * @param context packet context
+     * @param context  packet context
      * @param ethernet ethernet
      */
     public void processIcmpPacket(PacketContext context, Ethernet ethernet) {
@@ -122,13 +124,30 @@ public class OpenstackIcmpHandler {
         short icmpId = getIcmpId(icmp);
 
         DeviceId deviceId = context.inPacket().receivedFrom().deviceId();
+        PortNumber portNumber = context.inPacket().receivedFrom().port();
         if (icmp.getIcmpType() == ICMP.TYPE_ECHO_REQUEST) {
             //TODO: Considers icmp between internal subnets which are belonged to the same router.
 
             OpenstackPortInfo openstackPortInfo =
                     getOpenstackPortInfo(Ip4Address.valueOf(ipPacket.getSourceAddress()), ethernet.getSourceMAC());
 
-            checkNotNull(openstackPortInfo, "openstackPortInfo can not be null");
+            //checkNotNull(openstackPortInfo, "openstackPortInfo can not be null");
+            if (requestToOpenstackRoutingNetwork(ipPacket.getDestinationAddress())) {
+                if (openstackPortInfo == null) {
+                    if (config.gatewayBridgeId().equals(context.inPacket().receivedFrom().deviceId().toString())) {
+                         if (portNumber.equals(getPortForAnnotationPortName(deviceId,
+                                        config.gatewayExternalInterfaceName()))) {
+                            processIcmpPacketSentToExtenal(ipPacket, icmp, ipPacket.getSourceAddress(),
+                                    ethernet.getSourceMAC(), deviceId, portNumber);
+                            return;
+                        }
+                    }
+                    return;
+                } else {
+                    processIcmpPacketSentToGateway(ipPacket, icmp, openstackPortInfo);
+                    return;
+                }
+            }
 
             if (ipPacket.getDestinationAddress() == openstackPortInfo.gatewayIP().toInt()) {
                 processIcmpPacketSentToGateway(ipPacket, icmp, openstackPortInfo);
@@ -154,8 +173,27 @@ public class OpenstackIcmpHandler {
         }
     }
 
+    private void processIcmpPacketSentToExtenal(IPv4 icmpRequestIpv4, ICMP icmpRequest,
+                                                int destAddr, MacAddress destMac,
+                                                DeviceId deviceId, PortNumber portNumber) {
+        icmpRequest.setChecksum((short) 0);
+        icmpRequest.setIcmpType(ICMP.TYPE_ECHO_REPLY).resetChecksum();
+        icmpRequestIpv4.setSourceAddress(icmpRequestIpv4.getDestinationAddress())
+                .setDestinationAddress(destAddr).resetChecksum();
+        icmpRequestIpv4.setPayload(icmpRequest);
+        Ethernet icmpResponseEth = new Ethernet();
+        icmpResponseEth.setEtherType(Ethernet.TYPE_IPV4)
+                .setSourceMACAddress(config.gatewayExternalInterfaceMac())
+                .setDestinationMACAddress(destMac).setPayload(icmpRequestIpv4);
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder().setOutput(portNumber).build();
+        OutboundPacket packet = new DefaultOutboundPacket(deviceId,
+                treatment, ByteBuffer.wrap(icmpResponseEth.serialize()));
+        packetService.emit(packet);
+    }
+
     private void processIcmpPacketSentToGateway(IPv4 icmpRequestIpv4, ICMP icmpRequest,
                                                 OpenstackPortInfo openstackPortInfo) {
+        icmpRequest.setChecksum((short) 0);
         icmpRequest.setIcmpType(ICMP.TYPE_ECHO_REPLY)
                 .resetChecksum();
 
@@ -271,5 +309,18 @@ public class OpenstackIcmpHandler {
         checkNotNull(port, "port cannot be null");
 
         return port.number();
+    }
+
+    private boolean requestToOpenstackRoutingNetwork(int destAddr) {
+        OpenstackPort port = openstackService.ports().stream()
+                .filter(p -> p.deviceOwner().equals(NETWORK_ROUTER_GATEWAY) ||
+                        p.deviceOwner().equals(NETWORK_FLOATING_IP))
+                .filter(p -> p.fixedIps().containsValue(
+                        Ip4Address.valueOf(destAddr)))
+                .findAny().orElse(null);
+        if (port == null) {
+            return false;
+        }
+        return true;
     }
 }

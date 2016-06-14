@@ -451,7 +451,7 @@ public class OpenstackRoutingRulePopulator {
         sBuilder.matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(IpPrefix.valueOf(floatingIP.floatingIpAddress(), PREFIX_LENGTH));
 
-        tBuilder.setEthSrc(MacAddress.valueOf(config.gatewayExternalInterfaceMac()))
+        tBuilder.setEthSrc(GATEWAYMAC)
                 .setEthDst(port.macAddress())
                 .setIpDst(floatingIP.fixedIpAddress())
                 .setTunnelId(getVni(port.networkId()))

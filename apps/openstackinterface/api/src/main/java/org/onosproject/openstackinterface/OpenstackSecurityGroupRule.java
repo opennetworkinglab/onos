@@ -347,7 +347,7 @@ public final class OpenstackSecurityGroupRule {
         public OpenstackSecurityGroupRule build() {
 
             int portRangeMinInt = (portRangeMin == null || portRangeMin.equals("null")) ?
-                    -1 : Integer.parseInt(portRangeMax);
+                    -1 : Integer.parseInt(portRangeMin);
             int portRangeMaxInt = (portRangeMax == null || portRangeMax.equals("null")) ?
                     -1 : Integer.parseInt(portRangeMax);
             IpPrefix ipPrefix = (remoteIpPrefix == null || remoteIpPrefix.equals("null")) ?

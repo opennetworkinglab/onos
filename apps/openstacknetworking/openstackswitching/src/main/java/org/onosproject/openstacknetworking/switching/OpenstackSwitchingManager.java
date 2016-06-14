@@ -126,6 +126,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     public static final Ip4Address DNS_SERVER_IP = Ip4Address.valueOf("8.8.8.8");
     private static final String FORWARD_SLASH = "/";
     private static final int DHCP_INFINITE_LEASE = -1;
+    public static final String SONA_DRIVER_NAME = "sona";
 
 
     private ApplicationId appId;
@@ -418,7 +419,11 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
         @Override
         public void process(PacketContext context) {
+            // FIXME: use GatewayNode list to check if the ARP packet is from GatewayNode's
             if (context.isHandled()) {
+                return;
+            } else if (!SONA_DRIVER_NAME.equals(driverService
+                    .getDriver(context.inPacket().receivedFrom().deviceId()).name())) {
                 return;
             }
 
