@@ -284,6 +284,8 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
                     "least a treatment and/or a nextId");
             checkNotNull(appId, "Must supply an application id");
             op = Operation.ADD;
+            checkArgument(priority <= MAX_PRIORITY && priority >= MIN_PRIORITY, "Priority " +
+                    "out of range");
             return new DefaultForwardingObjective(this);
         }
 
