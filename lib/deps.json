@@ -221,6 +221,10 @@
       "uri": "mvn:com.btisystems.mibbler.mibs:rfc:1.0-SNAPSHOT",
       "repo": "https://oss.sonatype.org/content/repositories/snapshots"
     },
+    "cord-config": {
+      "uri": "mvn:org.opencord:cord-config:1.0-SNAPSHOT",
+      "repo": "https://oss.sonatype.org/content/repositories/snapshots"
+    },
     // Openstack4j related jars
     "openstack4j-core": "mvn:org.pacesys:openstack4j-core:2.11",
     "openstack4j-http-connector": "mvn:org.pacesys.openstack4j.connectors:openstack4j-http-connector:2.11",
