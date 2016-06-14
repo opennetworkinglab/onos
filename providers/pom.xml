@@ -47,6 +47,7 @@
         <module>netcfglinks</module>
         <module>bmv2</module>
         <module>isis</module>
+        <module>ospf</module>
     </modules>
 
     <dependencies>
