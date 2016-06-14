@@ -200,8 +200,12 @@ public class IntentPartitionManager implements IntentPartitionService {
 
         for (int i = 0; i < relinquish; i++) {
             String topic = myPartitions.get(i);
-            leadershipService.withdraw(topic);
-            executor.schedule(() -> recontest(topic), BACKOFF_TIME, TimeUnit.SECONDS);
+            // Wait till all active nodes are in contention for partition ownership.
+            // This avoids too many relinquish/reclaim cycles.
+            if (leadershipService.getCandidates(topic).size() == activeNodes) {
+                leadershipService.withdraw(topic);
+                executor.schedule(() -> recontest(topic), BACKOFF_TIME, TimeUnit.SECONDS);
+            }
         }
     }
 
