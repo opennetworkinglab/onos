@@ -31,7 +31,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Collects flow statistics for the specified switch.
  */
-class FlowStatsCollector {
+class FlowStatsCollector implements SwitchDataCollector {
 
     private final Logger log = getLogger(getClass());
 
