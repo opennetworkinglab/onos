@@ -109,8 +109,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     private Set<Link> allPathLinks;
     private int highlightDelay;
     private ElementId src, dst;
-    private String srcType, dstType;
-    private List<Path> paths;
+    private List<Path> paths = new LinkedList<>();
     private int pathIndex;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -137,8 +136,6 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
                 new ClearHandler(),
-                new SetSrcHandler(),
-                new SetDstHandler(),
                 new SetPathHandler(),
                 new UpdatePathQueryHandler(),
                 new UpdatePathHandler(),
@@ -173,51 +170,6 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     }
 
     /**
-     * Handles the 'set source' event received from the client.
-     */
-    private final class SetSrcHandler extends RequestHandler {
-
-        public SetSrcHandler() {
-            super(PCEWEB_SET_SRC);
-        }
-
-        @Override
-        public void process(long sid, ObjectNode payload) {
-            String id = string(payload, ID);
-            src = elementId(id);
-            srcType = string(payload, TYPE);
-            if (src.equals(dst)) {
-                dst = null;
-            }
-            sendMessage(TopoJson.highlightsMessage(addBadge(new Highlights(),
-                    srcType, src.toString(), SRC)));
-        }
-    }
-
-    /**
-     * Handles the 'set destination' event received from the client.
-     */
-    private final class SetDstHandler extends RequestHandler {
-
-        public SetDstHandler() {
-            super(PCEWEB_SET_DST);
-        }
-
-        @Override
-        public void process(long sid, ObjectNode payload) {
-            String id = string(payload, ID);
-            dst = elementId(id);
-            dstType = string(payload, TYPE);
-            if (src.equals(dst)) {
-                src = null;
-            }
-            sendMessage(TopoJson.highlightsMessage(addBadge(new Highlights(),
-                    dstType, dst.toString(), DST)));
-
-        }
-    }
-
-    /**
      * Handles the 'path calculation' event received from the client.
      */
     private final class SetPathHandler extends RequestHandler {
@@ -228,6 +180,14 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
 
         @Override
         public void process(long sid, ObjectNode payload) {
+            String srcId = string(payload, SRCID);
+            src = elementId(srcId);
+            String dstId = string(payload, DSTID);
+            dst = elementId(dstId);
+            if (src.equals(dst)) {
+                src = null;
+            }
+
             String bandWidth = string(payload, BANDWIDTH);
             String bandWidthType = string(payload, BANDWIDTHTYPE);
             String costType = string(payload, COSTTYPE);
@@ -555,7 +515,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     /**
      * Handles the highlights of selected path.
      */
-    private void hilightAndSendPaths() {
+    private void hilightAndSendPaths(Highlights highlights) {
         PceWebLinkMap linkMap = new PceWebLinkMap();
         allPathLinks.forEach(linkMap::add);
         Set<Link> selectedPathLinks;
@@ -563,19 +523,12 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         selectedPathLinks = paths.isEmpty() ?
                 ImmutableSet.of() : ImmutableSet.copyOf(paths.get(pathIndex).links());
 
-        Highlights highlights = new Highlights();
         if (highlightDelay > 0) {
             highlights.delay(highlightDelay);
         }
         for (PceWebLink plink : linkMap.biLinks()) {
             plink.computeHilight(selectedPathLinks, allPathLinks);
             highlights.add(plink.highlight(null));
-        }
-        if (src != null) {
-            highlights = addBadge(highlights, srcType, src.toString(), SRC);
-        }
-        if (dst != null) {
-            highlights = addBadge(highlights, dstType, dst.toString(), DST);
         }
         sendMessage(TopoJson.highlightsMessage(highlights));
     }
@@ -584,17 +537,13 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
      *  Handles the addition of badge and highlights.
      *
      * @param highlights highlights
-     * @param type device type
      * @param elemId device to be add badge
      * @param src device to be add badge
      * @return
      */
-    private Highlights addBadge(Highlights highlights, String type,
+    private Highlights addBadge(Highlights highlights,
             String elemId, String src) {
-        if (ROUTER.equals(type)) {
-            highlights = addDeviceBadge(highlights, elemId, src);
-        }
-
+        highlights = addDeviceBadge(highlights, elemId, src);
         return highlights;
     }
 
@@ -603,7 +552,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
      *
      * @param h highlights
      * @param elemId device to be add badge
-     * @param type device type
+     * @param type device badge value
      * @return highlights
      */
     private Highlights addDeviceBadge(Highlights h, String elemId, String type) {
@@ -616,7 +565,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     /**
      * Handles the node badge add and highlights.
      *
-     * @param type device type
+     * @param type device badge value
      * @return badge of given node
      */
     private NodeBadge createBadge(String type) {
@@ -656,21 +605,35 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     private void findTunnelAndHighlights() {
         Collection<Tunnel> tunnelSet = null;
         tunnelSet = tunnelService.queryTunnel(MPLS);
-        for (Tunnel tunnel : tunnelSet) {
-            if (tunnel.path() == null) {
-                log.error("path does not exist");
-                return;
-            }
-            paths.add(tunnel.path());
-        }
-
         if (tunnelSet.size() == 0) {
             log.warn("Tunnel does not exist");
             return;
         }
 
+        paths.removeAll(paths);
+        Highlights highlights = new Highlights();
+        for (Tunnel tunnel : tunnelSet) {
+            if (tunnel.path() == null) {
+                log.error("path does not exist");
+                return;
+            }
+            Link firstLink = tunnel.path().links().get(0);
+            if (firstLink != null) {
+                if (firstLink.src() != null) {
+                        highlights = addBadge(highlights, firstLink.src().deviceId().toString(), SRC);
+                }
+            }
+            Link lastLink = tunnel.path().links().get(tunnel.path().links().size() - 1);
+            if (lastLink != null) {
+                if (lastLink.dst() != null) {
+                        highlights = addBadge(highlights, lastLink.dst().deviceId().toString(), DST);
+                }
+            }
+            paths.add(tunnel.path());
+        }
+
         ImmutableSet.Builder<Link> builder = ImmutableSet.builder();
         allPathLinks = buildPaths(builder).build();
-        hilightAndSendPaths();
+        hilightAndSendPaths(highlights);
     }
 }
