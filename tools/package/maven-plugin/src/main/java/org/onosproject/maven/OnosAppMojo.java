@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -30,24 +29,25 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 
-import javax.imageio.ImageIO;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.io.ByteStreams.toByteArray;
-import static org.codehaus.plexus.util.FileUtils.*;
+import static org.codehaus.plexus.util.FileUtils.copyFile;
+import static org.codehaus.plexus.util.FileUtils.fileRead;
+import static org.codehaus.plexus.util.FileUtils.fileWrite;
+import static org.codehaus.plexus.util.FileUtils.forceMkdir;
 
 /**
  * Produces ONOS application archive using the app.xml file information.
@@ -77,6 +77,11 @@ public class OnosAppMojo extends AbstractMojo {
     private static final String ONOS_APP_TITLE = "onos.app.title";
     private static final String ONOS_APP_README = "onos.app.readme";
 
+    private static final String PROJECT_GROUP_ID = "project.groupId";
+    private static final String PROJECT_ARTIFACT_ID = "project.artifactId";
+    private static final String PROJECT_VERSION = "project.version";
+    private static final String PROJECT_DESCRIPTION = "project.description";
+
     private static final String JAR = "jar";
     private static final String XML = "xml";
     private static final String APP_ZIP = "oar";
@@ -92,6 +97,9 @@ public class OnosAppMojo extends AbstractMojo {
             "mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features";
     private static final String DEFAULT_ARTIFACT =
             "mvn:${project.groupId}/${project.artifactId}/${project.version}";
+
+    private static final String PROP_START = "${";
+    private static final String PROP_END = "}";
 
     private static final int BUFFER_SIZE = 8192;
 
@@ -160,6 +168,7 @@ public class OnosAppMojo extends AbstractMojo {
     private File m2Directory;
     protected File stageDirectory;
     protected String projectPath;
+    private Map<String, String> properties;
 
     @Override
     public void execute() throws MojoExecutionException {
@@ -199,15 +208,17 @@ public class OnosAppMojo extends AbstractMojo {
         readme = (String) project.getProperties().get(ONOS_APP_README);
         readme = readme != null ? readme : projectDescription;
 
+        properties = buildProperties();
+
         if (appFile.exists()) {
             loadAppFile(appFile);
         } else {
-            artifacts = ImmutableList.of(eval(DEFAULT_ARTIFACT));
+            artifacts = ImmutableList.of(expand(DEFAULT_ARTIFACT));
         }
 
         // If there are any artifacts, stage the
         if (!artifacts.isEmpty()) {
-            getLog().info("Building ONOS application package for " + name + " (v" + eval(version) + ")");
+            getLog().info("Building ONOS application package for " + name + " (v" + expand(version) + ")");
             artifacts.forEach(a -> getLog().debug("Including artifact: " + a));
 
             if (stageDirectory.exists() || stageDirectory.mkdirs()) {
@@ -222,6 +233,24 @@ public class OnosAppMojo extends AbstractMojo {
         }
     }
 
+    // Sets up a properties dictionary with the properties from the POM file,
+    // some of which have been sanitized with nice defaults
+    private Map<String, String> buildProperties() {
+        Map<String, String> properties = new HashMap();
+        project.getProperties().forEach((k, v) -> properties.put((String) k, (String) v));
+        properties.put(PROJECT_GROUP_ID, projectGroupId);
+        properties.put(PROJECT_ARTIFACT_ID, projectArtifactId);
+        properties.put(PROJECT_VERSION, projectVersion);
+        properties.put(PROJECT_DESCRIPTION, readme);
+        properties.put(ONOS_APP_ORIGIN, origin);
+        properties.put(ONOS_APP_REQUIRES, requiredApps);
+        properties.put(ONOS_APP_CATEGORY, category);
+        properties.put(ONOS_APP_URL, url);
+        properties.put(ONOS_APP_TITLE, title);
+        properties.put(ONOS_APP_README, readme);
+        return properties;
+    }
+
     // Loads the app.xml file.
     private void loadAppFile(File appFile) throws MojoExecutionException {
         XMLConfiguration xml = new XMLConfiguration();
@@ -233,11 +262,11 @@ public class OnosAppMojo extends AbstractMojo {
             xml.setDelimiterParsingDisabled(true);
 
             name = xml.getString(NAME);
-            version = eval(xml.getString(VERSION));
-            featuresRepo = eval(xml.getString(FEATURES_REPO));
+            version = expand(xml.getString(VERSION));
+            featuresRepo = expand(xml.getString(FEATURES_REPO));
 
             artifacts = xml.configurationsAt(ARTIFACT).stream()
-                    .map(cfg -> eval(cfg.getRootNode().getValue().toString()))
+                    .map(cfg -> expand(cfg.getRootNode().getValue().toString()))
                     .collect(Collectors.toList());
 
         } catch (ConfigurationException e) {
@@ -262,7 +291,7 @@ public class OnosAppMojo extends AbstractMojo {
                 byte[] bytes = toByteArray(getClass().getResourceAsStream(APP_XML));
                 contents = new String(bytes);
             }
-            fileWrite(file.getAbsolutePath(), eval(contents));
+            fileWrite(file.getAbsolutePath(), expand(contents));
         } catch (IOException e) {
             throw new MojoExecutionException("Unable to process app.xml", e);
         }
@@ -305,7 +334,7 @@ public class OnosAppMojo extends AbstractMojo {
                 artifactFile(projectArtifactId, projectVersion, XML, "features");
         File dstDir = new File(stageDirectory, projectPath);
         forceMkdir(dstDir);
-        String s = eval(new String(toByteArray(stream)));
+        String s = expand(new String(toByteArray(stream)));
         fileWrite(new File(dstDir, featuresArtifact).getAbsolutePath(), s);
     }
 
@@ -386,19 +415,51 @@ public class OnosAppMojo extends AbstractMojo {
                 aid + "-" + version + "-" + classifier + "." + type;
     }
 
-    // Returns the given string with project variable substitutions.
-    private String eval(String string) {
-        return string == null ? null :
-                string.replaceAll("\\$\\{onos.app.name\\}", name)
-                        .replaceAll("\\$\\{onos.app.origin\\}", origin)
-                        .replaceAll("\\$\\{onos.app.requires\\}", requiredApps)
-                        .replaceAll("\\$\\{onos.app.category\\}", category)
-                        .replaceAll("\\$\\{onos.app.title\\}", title)
-                        .replaceAll("\\$\\{onos.app.url\\}", url)
-                        .replaceAll("\\$\\{project.groupId\\}", projectGroupId)
-                        .replaceAll("\\$\\{project.artifactId\\}", projectArtifactId)
-                        .replaceAll("\\$\\{project.version\\}", projectVersion)
-                        .replaceAll("\\$\\{project.description\\}", readme);
+    /**
+     * Expands any environment variables in the specified string. These are
+     * specified as ${property} tokens.
+     *
+     * @param string     string to be processed
+     * @return original string with expanded substitutions
+     */
+    private String expand(String string) {
+        return expand(string, properties);
+    }
+
+    /**
+     * Expands any environment variables in the specified string. These are
+     * specified as ${property} tokens.
+     *
+     * @param string     string to be processed
+     * @param properties dictionary of property values to substitute
+     * @return original string with expanded substitutions
+     */
+    private String expand(String string, Map<String, String> properties) {
+        if (string == null) {
+            return null;
+        }
+
+        String pString = string;
+        StringBuilder sb = new StringBuilder();
+        int start, end, last = 0;
+        while ((start = pString.indexOf(PROP_START, last)) >= 0) {
+            end = pString.indexOf(PROP_END, start + PROP_START.length());
+            checkArgument(end > start, "Malformed property in %s", pString);
+            sb.append(pString.substring(last, start));
+            String prop = pString.substring(start + PROP_START.length(), end);
+            String value;
+
+            value = properties.get(prop);
+
+            if (value == null) {
+                sb.append(PROP_START).append(prop).append(PROP_END);
+            } else {
+                sb.append(value != null ? value : "");
+            }
+            last = end + 1;
+        }
+        sb.append(pString.substring(last));
+        return sb.toString();
     }
 
     // Recursively archives the specified directory into a given ZIP stream.
