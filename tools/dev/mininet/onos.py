@@ -281,7 +281,7 @@ class ONOSNode( Controller ):
     def checkLog( self ):
         "Return log file errors and warnings"
         log = join( self.dir, 'log' )
-        errors, warnings = None, None
+        errors, warnings = [], []
         if isfile( log ):
             lines = open( log ).read().split( '\n' )
             errors = [ line for line in lines if 'ERROR' in line ]
@@ -546,6 +546,32 @@ class ONOSCLI( OldCLI ):
                             status += '%d warnings' % len( warnings )
                         status = status if status else 'OK'
                         info( node, '\t', running, '\t', status, '\n' )
+
+    def do_arp( self, line ):
+        "Send gratuitous arps from all data network hosts"
+        startTime = time.time()
+        try:
+            count = int( line )
+        except:
+            count = 1
+        # Technically this check should be on the host
+        if '-U' not in quietRun( 'arping -h' ):
+            warn( 'Please install iputils-arping' )
+            return
+        # This is much faster if we do it in parallel
+        for host in self.mn.net.hosts:
+            intf = host.defaultIntf()
+            # -b: keep using broadcasts; -f: quit after 1 reply
+            # -U: gratuitous ARP update
+            host.sendCmd( 'arping -bf -c', count, '-U -I',
+                           intf.name, intf.IP() )
+        for host in self.mn.net.hosts:
+            # We could check the output here if desired
+            host.waitOutput()
+            info( '.' )
+        info( '\n' )
+        elapsed = time.time() - startTime
+        debug( 'Completed in %.2f seconds\n' % elapsed )
 
 
 # For interactive use, exit on error
