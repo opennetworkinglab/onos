@@ -116,6 +116,11 @@ public class IntentPartitionManagerTest {
                                                               allNodes))
                                     .anyTimes();
         }
+        for (int i = 0; i < IntentPartitionManager.NUM_PARTITIONS; i++) {
+            expect(leadershipService.getCandidates(ELECTION_PREFIX + i))
+            .andReturn(Arrays.asList(MY_NODE_ID, OTHER_NODE_ID))
+            .anyTimes();
+        }
     }
 
     /**
