@@ -149,34 +149,22 @@ def unpackONOS( destDir='/tmp', run=quietRun ):
     return onosDir
 
 
-def waitListening( client=None, server='127.0.0.1', port=80, timeout=None,
-                   callback=None, sleepSecs=.5 ):
-    "Modified mininet.util.waitListening with callback, sleepSecs"
-    runCmd = ( client.cmd if client else
-               partial( quietRun, shell=True ) )
-    if not runCmd( 'which telnet' ):
-        raise Exception('Could not find telnet' )
-    # pylint: disable=maybe-no-member
-    serverIP = server if isinstance( server, basestring ) else server.IP()
-    cmd = ( 'echo A | telnet -e A %s %s' % ( serverIP, port ) )
-    elapsed = 0
-    result = runCmd( cmd )
-    while 'Connected' not in result:
-        if 'No route' in result:
-            rtable = runCmd( 'route' )
-            error( 'no route to %s:\n%s' % ( server, rtable ) )
-            return False
-        if timeout and elapsed >= timeout:
-            error( 'could not connect to %s on port %d\n' % ( server, port ) )
-            return False
-        debug( 'waiting for', server, 'to listen on port', port, '\n' )
+def waitListening( server, port=80, callback=None, sleepSecs=.5,
+                   proc='java' ):
+    "Simplified netstat version of waitListening"
+    while True:
+        lines = server.cmd( 'netstat -natp' ).strip().split( '\n' )
+        entries = [ line.split() for line in lines ]
+        portstr = ':%s' % port
+        listening = [ entry for entry in entries
+                      if len( entry ) > 6 and portstr in entry[ 3 ]
+                      and proc in entry[ 6 ] ]
+        if listening:
+            break
         info( '.' )
         if callback:
             callback()
         time.sleep( sleepSecs )
-        elapsed += sleepSecs
-        result = runCmd( cmd )
-    return True
 
 
 ### Mininet classes
@@ -338,7 +326,7 @@ class ONOSNode( Controller ):
                        callback=self.sanityCheck )
         info( ' client' )
         while True:
-            result = quietRun( 'echo apps -a | %s -h %s' %
+            result = quietRun( '%s -h %s "apps -a"' %
                                ( self.client, self.IP() ), shell=True )
             if 'openflow' in result:
                 break
@@ -528,7 +516,8 @@ class ONOSCLI( OldCLI ):
 
     def do_log( self, line ):
         "Run tail -f /tmp/onos1/log; press control-C to stop"
-        self.default( self.onos1().name, 'tail -f /tmp/%s/log' % self.onos1() )
+        self.default( '%s tail -f /tmp/%s/log' %
+                      ( self.onos1(), self.onos1() ) )
 
     def do_status( self, line ):
         "Return status of ONOS cluster(s)"
