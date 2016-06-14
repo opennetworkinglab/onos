@@ -54,6 +54,10 @@
         <step name="Net-Create-Flows.Host-to-4" requires="^"
               exec="create-flow.py ${OC1} f10 of:0000000000000004 3 1"/>
 
+        <!-- Make sure all flows are added -->
+        <step name="Net-Create-Flows.Check-Flows-Added" requires="^"
+              exec="onos-check-flows ${OC1}"/>
+
         <!-- Check that connectivity was established -->
         <step name="Net-Create-Flows.Ping-XY" requires="^"
               exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"/>
