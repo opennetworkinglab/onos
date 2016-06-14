@@ -406,15 +406,6 @@ public final class PceccSrTeBeHandler {
             DeviceId deviceId = null;
             for (Iterator<Link> iterator = linkList.iterator(); iterator.hasNext();) {
                 link = iterator.next();
-                // Add source device label now
-                deviceId = link.src().deviceId();
-                nodeLabelId = pceStore.getGlobalNodeLabel(deviceId);
-                if (nodeLabelId == null) {
-                    log.error("Unable to find node label for a device id {} in store.", deviceId.toString());
-                    return null;
-                }
-                labelStack.add(nodeLabelId);
-
                 // Add adjacency label for this link
                 adjLabelId = pceStore.getAdjLabel(link);
                 if (adjLabelId == null) {
@@ -422,11 +413,7 @@ public final class PceccSrTeBeHandler {
                     return null;
                 }
                 labelStack.add(adjLabelId);
-            }
 
-            // This is the last link in path
-            // Add destination device label now.
-            if (link != null) {
                 deviceId = link.dst().deviceId();
                 nodeLabelId = pceStore.getGlobalNodeLabel(deviceId);
                 if (nodeLabelId == null) {

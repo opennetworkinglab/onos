@@ -84,7 +84,7 @@ public class SrEroSubObject implements PcepValueType {
      */
     protected static final Logger log = LoggerFactory.getLogger(SrEroSubObject.class);
 
-    public static final short TYPE = 0x60; //TODO : type to be defined
+    public static final short TYPE = 0x24; //TODO : type to be defined
     public static final short LENGTH = 12;
     public static final short VALUE_LENGTH = 10;
     public static final int SET = 1;
@@ -243,9 +243,10 @@ public class SrEroSubObject implements PcepValueType {
     @Override
     public int write(ChannelBuffer c) {
         int iLenStartIndex = c.writerIndex();
-
-        c.writeShort(TYPE);
-        c.writeShort(LENGTH);
+        c.writeByte(TYPE);
+        // Store the position of object length
+        int objectLenIndex = c.writerIndex();
+        c.writeByte(0);
 
         short temp = 0;
         if (bMFlag) {
@@ -264,13 +265,14 @@ public class SrEroSubObject implements PcepValueType {
         temp = (short) (temp | tempST);
         c.writeShort(temp);
         if (bMFlag) {
-            int tempSid = (int) sid << 12;
+            int tempSid = sid << 12;
             c.writeInt(tempSid);
         } else {
             c.writeInt(sid);
         }
         nai.write(c);
 
+        c.setByte(objectLenIndex, (c.writerIndex() - iLenStartIndex));
         return c.writerIndex() - iLenStartIndex;
     }
 
