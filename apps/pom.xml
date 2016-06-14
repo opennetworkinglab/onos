@@ -70,6 +70,7 @@
         <module>graphitemetrics</module>
         <module>xosclient</module>
         <module>scalablegateway</module>
+        <module>bmv2-demo</module>
     </modules>
 
 
