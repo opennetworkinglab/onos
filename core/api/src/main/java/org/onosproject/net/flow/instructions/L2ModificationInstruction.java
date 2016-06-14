@@ -149,56 +149,6 @@ public abstract class L2ModificationInstruction implements Instruction {
     }
 
     /**
-     * @deprecated 1.6.0 Goldeneye release.
-     * Recommended to use ModMplsHeaderInstruction or ModVlanHeaderInstruction instead.
-     */
-    @Deprecated
-    public static final class PushHeaderInstructions extends
-            L2ModificationInstruction {
-
-
-        private final L2SubType subtype;
-        private final EthType ethernetType; // Ethernet type value: 16 bits
-
-        PushHeaderInstructions(L2SubType subType, EthType ethernetType) {
-            this.subtype = subType;
-            this.ethernetType = ethernetType;
-        }
-
-        public EthType ethernetType() {
-            return ethernetType;
-        }
-
-        @Override
-        public L2SubType subtype() {
-            return this.subtype;
-        }
-
-        @Override
-        public String toString() {
-            return subtype().toString() + SEPARATOR + ethernetType;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(type(), subtype, ethernetType);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj instanceof PushHeaderInstructions) {
-                PushHeaderInstructions that = (PushHeaderInstructions) obj;
-                return  Objects.equals(subtype, that.subtype) &&
-                        Objects.equals(this.ethernetType, that.ethernetType);
-            }
-            return false;
-        }
-    }
-
-    /**
      * Represents a MPLS header modification instruction.
      */
     public static final class ModMplsHeaderInstruction extends L2ModificationInstruction {
@@ -326,47 +276,6 @@ public abstract class L2ModificationInstruction implements Instruction {
             if (obj instanceof ModVlanPcpInstruction) {
                 ModVlanPcpInstruction that = (ModVlanPcpInstruction) obj;
                 return  Objects.equals(vlanPcp, that.vlanPcp);
-            }
-            return false;
-        }
-    }
-
-    /**
-     * Represents a VLAN POP modification instruction.
-     * @deprecated 1.6.0 Goldeneye release.
-     * Recommended to use ModVlanHeaderInstruction instead.
-     */
-    @Deprecated
-    public static final class PopVlanInstruction extends L2ModificationInstruction {
-        private final L2SubType subtype;
-
-        PopVlanInstruction(L2SubType subType) {
-            this.subtype = subType;
-        }
-
-        @Override
-        public L2SubType subtype() {
-            return subtype;
-        }
-
-        @Override
-        public String toString() {
-            return subtype().toString();
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(type(), subtype);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj instanceof PopVlanInstruction) {
-                PopVlanInstruction that = (PopVlanInstruction) obj;
-                return  Objects.equals(subtype, that.subtype);
             }
             return false;
         }
