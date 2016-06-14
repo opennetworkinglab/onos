@@ -149,8 +149,7 @@
     // configuration for device and host icons in the topology view
     var config = {
         device: {
-            dim: 36,
-            rx: 4
+            dim: 36
         },
         host: {
             badge: {
@@ -170,30 +169,15 @@
     };
 
 
-    // Adds a device icon to the specified element, using the given glyph.
-    // Returns the D3 selection of the icon.
-    function addDeviceIcon(elem, glyphId) {
-        var cfg = config.device,
-            gid = gs.glyphDefined(glyphId) ? glyphId : 'query',
-            g = elem.append('g')
-                .attr('class', 'svgIcon deviceIcon');
-
-        g.append('rect').attr({
-            x: 0,
-            y: 0,
-            rx: cfg.rx,
-            width: cfg.dim,
-            height: cfg.dim
-        });
-
-        g.append('use').attr({
+    // Adds a device glyph to the specified element.
+    // Returns the D3 selection of the glyph (use) element.
+    function addDeviceIcon(elem, glyphId, iconDim) {
+        var gid = gs.glyphDefined(glyphId) ? glyphId : 'query';
+        return elem.append('use').attr({
             'xlink:href': '#' + gid,
-            width: cfg.dim,
-            height: cfg.dim
+            width: iconDim,
+            height: iconDim
         });
-
-        g.dim = cfg.dim;
-        return g;
     }
 
     function addHostIcon(elem, radius, glyphId) {

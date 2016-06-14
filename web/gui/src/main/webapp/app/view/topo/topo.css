@@ -179,6 +179,7 @@ html[data-platform='iPad'] #topo-p-detail {
 
 #ov-topo svg .node {
     cursor: pointer;
+    fill-rule: evenodd;
 }
 
 #ov-topo svg .node text {
