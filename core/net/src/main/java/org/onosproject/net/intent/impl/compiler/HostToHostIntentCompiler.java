@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -35,6 +36,7 @@ import org.onosproject.net.intent.constraint.AsymmetricPathConstraint;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static org.onosproject.net.flow.DefaultTrafficSelector.builder;
 
@@ -60,6 +62,11 @@ public class HostToHostIntentCompiler
 
     @Override
     public List<Intent> compile(HostToHostIntent intent, List<Intent> installable) {
+        // If source and destination are the same, there are never any installables.
+        if (Objects.equals(intent.one(), intent.two())) {
+            return ImmutableList.of();
+        }
+
         boolean isAsymmetric = intent.constraints().contains(new AsymmetricPathConstraint());
         Path pathOne = getPath(intent, intent.one(), intent.two());
         Path pathTwo = isAsymmetric ?
