@@ -18,6 +18,7 @@ package org.onosproject.rest.resources;
 import org.onosproject.app.ApplicationAdminService;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.Consumes;
@@ -143,9 +144,45 @@ public class ApplicationsWebResource extends AbstractWebResource {
         return response(service, appId);
     }
 
+    /**
+     * Registers an on or off platform application.
+     *
+     * @param name application name
+     * @return 200 OK; 404; 401
+     * @onos.rsModel ApplicationId
+     */
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{name}/register")
+    public Response registerAppId(@PathParam("name") String name) {
+        CoreService service = get(CoreService.class);
+        ApplicationId appId = service.registerApplication(name);
+        return response(appId);
+    }
+
+    /**
+     * Gets a collection of application ids.
+     * Returns array of all registered application ids.
+     *
+     * @return 200 OK; 404; 401
+     * @onos.rsModel ApplicationIds
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("ids")
+    public Response getAppIds() {
+        CoreService service = get(CoreService.class);
+        Set<ApplicationId> appIds = service.getAppIds();
+        return ok(encodeArray(ApplicationId.class, "applicationIds", appIds)).build();
+    }
+
     private Response response(ApplicationAdminService service, ApplicationId appId) {
         Application app = service.getApplication(appId);
         return ok(codec(Application.class).encode(app, this)).build();
+    }
+
+    private Response response(ApplicationId appId) {
+        return ok(codec(ApplicationId.class).encode(appId, this)).build();
     }
 
 }

@@ -26,6 +26,7 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.Application;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -87,6 +88,7 @@ public class CodecManager implements CodecService {
     public void activate() {
         codecs.clear();
         registerCodec(Application.class, new ApplicationCodec());
+        registerCodec(ApplicationId.class, new ApplicationIdCodec());
         registerCodec(ControllerNode.class, new ControllerNodeCodec());
         registerCodec(Annotations.class, new AnnotationsCodec());
         registerCodec(Device.class, new DeviceCodec());
