@@ -81,6 +81,7 @@
                 append: appendPanel,
                 width: panelWidth,
                 height: panelHeight,
+                bbox: panelBBox,
                 isVisible: panelIsVisible,
                 classed: classed,
                 el: panelEl
@@ -148,6 +149,10 @@
                 return heightVal(p);
             }
             p.el.style('height', h + 'px');
+        }
+
+        function panelBBox() {
+            return p.el.node().getBoundingClientRect();
         }
 
         function panelIsVisible() {
