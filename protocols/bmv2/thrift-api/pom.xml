@@ -34,13 +34,11 @@
         <!-- BMv2 Commit ID and Thrift version -->
         <bmv2.commit>024aa03e3b52f8d32c26774511e8e5b1dc11ec65</bmv2.commit>
         <bmv2.thrift.version>0.9.3</bmv2.thrift.version>
-        <!-- Do not change below -->
-        <bmv2.baseurl>
-            https://raw.githubusercontent.com/opennetworkinglab/behavioral-model/${bmv2.commit}
-        </bmv2.baseurl>
-        <bmv2.thrift.srcdir>${project.basedir}/src/main/thrift</bmv2.thrift.srcdir>
-        <thrift.path>${project.build.directory}/thrift-compiler/</thrift.path>
-        <thrift.filename>thrift-${os.detected.classifier}.exe</thrift.filename>
+        <bmv2.baseurl>https://cdn.rawgit.com/opennetworkinglab/behavioral-model/${bmv2.commit}</bmv2.baseurl>
+        <bmv2.thrift.javanamespace>org.onosproject.bmv2.thriftapi</bmv2.thrift.javanamespace>
+        <bmv2.thrift.srcdir>${project.build.directory}/thrift-sources/${bmv2.commit}/</bmv2.thrift.srcdir>
+        <thrift.exedir>${project.build.directory}/thrift-compiler/</thrift.exedir>
+        <thrift.exefilename>thrift-${os.detected.classifier}.exe</thrift.exefilename>
     </properties>
 
     <dependencies>
@@ -71,73 +69,63 @@
         <plugins>
             <!-- Download Thrift source files from BMv2 Github repo -->
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>wagon-maven-plugin</artifactId>
-                <version>1.0</version>
+                <groupId>com.googlecode.maven-download-plugin</groupId>
+                <artifactId>download-maven-plugin</artifactId>
+                <version>1.3.0</version>
                 <executions>
                     <execution>
                         <id>download-bmv2-thrift-standard</id>
                         <phase>initialize</phase>
                         <goals>
-                            <goal>download-single</goal>
+                            <goal>wget</goal>
                         </goals>
                         <configuration>
-                            <url>${bmv2.baseurl}</url>
-                            <fromFile>thrift_src/standard.thrift</fromFile>
-                            <toDir>${bmv2.thrift.srcdir}</toDir>
+                            <url>${bmv2.baseurl}/thrift_src/standard.thrift</url>
+                            <outputDirectory>${bmv2.thrift.srcdir}</outputDirectory>
                         </configuration>
                     </execution>
                     <execution>
                         <id>download-bmv2-thrift-simple_pre</id>
                         <phase>initialize</phase>
                         <goals>
-                            <goal>download-single</goal>
+                            <goal>wget</goal>
                         </goals>
                         <configuration>
-                            <url>${bmv2.baseurl}</url>
-                            <fromFile>thrift_src/simple_pre.thrift</fromFile>
-                            <toDir>${bmv2.thrift.srcdir}</toDir>
+                            <url>${bmv2.baseurl}/thrift_src/simple_pre.thrift</url>
+                            <outputDirectory>${bmv2.thrift.srcdir}</outputDirectory>
                         </configuration>
                     </execution>
                     <execution>
                         <id>download-bmv2-thrift-simple_pre_lag</id>
                         <phase>initialize</phase>
                         <goals>
-                            <goal>download-single</goal>
+                            <goal>wget</goal>
                         </goals>
                         <configuration>
-                            <url>${bmv2.baseurl}</url>
-                            <fromFile>thrift_src/simple_pre_lag.thrift
-                            </fromFile>
-                            <toDir>${bmv2.thrift.srcdir}</toDir>
+                            <url>${bmv2.baseurl}/thrift_src/simple_pre_lag.thrift</url>
+                            <outputDirectory>${bmv2.thrift.srcdir}</outputDirectory>
                         </configuration>
                     </execution>
                     <execution>
                         <id>download-bmv2-thrift-simple_switch</id>
                         <phase>initialize</phase>
                         <goals>
-                            <goal>download-single</goal>
+                            <goal>wget</goal>
                         </goals>
                         <configuration>
-                            <url>${bmv2.baseurl}</url>
-                            <fromFile>
-                                targets/simple_switch/thrift/simple_switch.thrift
-                            </fromFile>
-                            <toDir>${bmv2.thrift.srcdir}</toDir>
+                            <url>${bmv2.baseurl}/targets/simple_switch/thrift/simple_switch.thrift</url>
+                            <outputDirectory>${bmv2.thrift.srcdir}</outputDirectory>
                         </configuration>
                     </execution>
                     <execution>
                         <id>download-bmv2-thrift-simple_switch-cpservice</id>
                         <phase>initialize</phase>
                         <goals>
-                            <goal>download-single</goal>
+                            <goal>wget</goal>
                         </goals>
                         <configuration>
-                            <url>${bmv2.baseurl}</url>
-                            <fromFile>
-                                targets/simple_switch/thrift/control_plane.thrift
-                            </fromFile>
-                            <toDir>${bmv2.thrift.srcdir}</toDir>
+                            <url>${bmv2.baseurl}/targets/simple_switch/thrift/control_plane.thrift</url>
+                            <outputDirectory>${bmv2.thrift.srcdir}</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -160,7 +148,7 @@
                                     <artifactId>mvn-thrift-compiler</artifactId>
                                     <version>1.1_${bmv2.thrift.version}</version>
                                     <type>jar</type>
-                                    <includes>${thrift.filename}</includes>
+                                    <includes>${thrift.exefilename}</includes>
                                     <outputDirectory>${project.build.directory}/thrift-compiler</outputDirectory>
                                 </artifactItem>
                             </artifactItems>
@@ -181,8 +169,11 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
-                            <executable>${bmv2.thrift.srcdir}/patch.sh
-                            </executable>
+                            <executable>${project.basedir}/src/patch.sh</executable>
+                            <arguments>
+                                <argument>${bmv2.thrift.srcdir}</argument>
+                                <argument>${bmv2.thrift.javanamespace}</argument>
+                            </arguments>
                         </configuration>
                     </execution>
                     <execution>
@@ -195,7 +186,7 @@
                             <executable>chmod</executable>
                             <arguments>
                                 <argument>+x</argument>
-                                <argument>${thrift.path}/${thrift.filename}</argument>
+                                <argument>${thrift.exedir}/${thrift.exefilename}</argument>
                             </arguments>
                         </configuration>
                     </execution>
@@ -207,7 +198,8 @@
                 <artifactId>maven-thrift-plugin</artifactId>
                 <version>0.1.11</version>
                 <configuration>
-                    <thriftExecutable>${thrift.path}/${thrift.filename}</thriftExecutable>
+                    <thriftSourceRoot>${bmv2.thrift.srcdir}</thriftSourceRoot>
+                    <thriftExecutable>${thrift.exedir}/${thrift.exefilename}</thriftExecutable>
                     <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
                 </configuration>
                 <executions>

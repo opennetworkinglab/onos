@@ -17,11 +17,13 @@
 # exit on errors
 set -e
 
-basedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-ns="org.onosproject.bmv2.thriftapi"
+srcdir=$1
+ns=$2
 
 # add java namespace at beginning of file
-for f in ${basedir}/*.thrift
+for f in ${srcdir}/*.thrift
 do
-    echo "namespace java ${ns}" | cat - ${f} > temp && mv temp ${f}
+    if ! grep -q ${ns} ${f}; then
+        echo "namespace java ${ns}" | cat - ${f} > temp && mv temp ${f}
+    fi
 done
