@@ -5,3 +5,4 @@ org.onosproject.events
 org.onosproject.routing
 org.onosproject.scalablegateway.api
 org.onosproject.newoptical.api
+org.onosproject.flowapi*

@@ -43,4 +43,6 @@ org.onosproject.scalablegateway*
 org.onosproject.sfc*
 org.onosproject.xosclient*
 org.onosproject.newoptical*
+org.onosproject.flowapi*
+org.onosproject.flow*
 

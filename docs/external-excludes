@@ -88,4 +88,5 @@ org.onosproject.flowperf*
 org.onosproject.newoptical*
 org.onosproject.yangutils.parser.antlrgencode
 org.onosproject.yangutils.*
+org.onosproject.flow*
 org.onosproject.checkstyle
