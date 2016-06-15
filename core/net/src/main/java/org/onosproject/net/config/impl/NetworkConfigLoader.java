@@ -73,13 +73,14 @@ public class NetworkConfigLoader {
 
                 populateConfigurations();
 
-                applyConfigurations();
-
-                log.info("Loaded initial network configuration from {}", CFG_FILE);
+                if (applyConfigurations()) {
+                    log.info("Loaded initial network configuration from {}", CFG_FILE);
+                } else {
+                    log.error("Partially loaded initial network configuration from {}", CFG_FILE);
+                }
             }
         } catch (Exception e) {
-            log.warn("Unable to load initial network configuration from {}",
-                    CFG_FILE, e);
+            log.warn("Unable to load initial network configuration from {}", CFG_FILE, e);
         }
     }
 
@@ -185,8 +186,10 @@ public class NetworkConfigLoader {
     /**
      * Apply the configurations associated with all of the config classes that
      * are imported and have not yet been applied.
+     *
+     * @return false if any of the configuration parsing fails
      */
-    private void applyConfigurations() {
+    private boolean applyConfigurations() {
         Iterator<Map.Entry<InnerConfigPosition, JsonNode>> iter = jsons.entrySet().iterator();
 
         Map.Entry<InnerConfigPosition, JsonNode> entry;
@@ -195,7 +198,7 @@ public class NetworkConfigLoader {
         String subjectKey;
         String subjectString;
         String configKey;
-
+        boolean isSuccess = true;
         while (iter.hasNext()) {
             entry = iter.next();
             node = entry.getValue();
@@ -212,13 +215,19 @@ public class NetworkConfigLoader {
                 Object subject = networkConfigService.getSubjectFactory(subjectKey).
                         createSubject(subjectString);
 
-                //Apply the configuration
-                networkConfigService.applyConfig(subject, configClass, node);
+                try {
+                    //Apply the configuration
+                    networkConfigService.applyConfig(subject, configClass, node);
+                } catch (IllegalArgumentException e) {
+                    log.warn("Error parsing config " + subjectKey + "/" + subject + "/" + configKey);
+                    isSuccess = false;
+                }
 
                 //Now that it has been applied the corresponding JSON entry is no longer needed
                 iter.remove();
             }
         }
-    }
+        return isSuccess;
+   }
 
 }
