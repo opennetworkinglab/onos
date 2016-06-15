@@ -141,19 +141,15 @@ public final class CapabilityConstraint extends BooleanConstraint {
         DeviceCapability dstDeviceConfig = netCfgService.getConfig(DeviceId.deviceId(dstLsrId),
                                                                        DeviceCapability.class);
 
-        if (srcDeviceConfig == null || dstDeviceConfig == null) {
-            return false;
-        }
-
         switch (capabilityType) {
         case WITH_SIGNALLING:
             return true;
         case WITHOUT_SIGNALLING_AND_WITHOUT_SR:
-            return srcDeviceConfig.localLabelCap() && dstDeviceConfig.localLabelCap();
-
+            return srcDeviceConfig != null && dstDeviceConfig != null
+                    && srcDeviceConfig.localLabelCap() && dstDeviceConfig.localLabelCap();
         case SR_WITHOUT_SIGNALLING:
-            return srcDeviceConfig.srCap() && dstDeviceConfig.srCap()
-                        && srcDeviceConfig.labelStackCap() && dstDeviceConfig.labelStackCap();
+            return srcDeviceConfig != null && dstDeviceConfig != null && srcDeviceConfig.srCap()
+                    && dstDeviceConfig.srCap() && srcDeviceConfig.labelStackCap() && dstDeviceConfig.labelStackCap();
         default:
             return false;
         }
