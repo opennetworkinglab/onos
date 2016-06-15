@@ -16,7 +16,9 @@
 package org.onosproject.store.resource.impl;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.Resources;
@@ -39,7 +41,7 @@ final class GenericDiscreteResources implements DiscreteResources {
     }
 
     private GenericDiscreteResources(Set<DiscreteResource> values) {
-        this.values = values;
+        this.values = ImmutableSet.copyOf(values);
     }
 
     // for serializer
