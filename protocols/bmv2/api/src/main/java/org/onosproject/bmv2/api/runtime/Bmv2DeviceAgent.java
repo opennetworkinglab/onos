@@ -21,6 +21,7 @@ import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.DeviceId;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * An agent to control a BMv2 device.
@@ -87,13 +88,13 @@ public interface Bmv2DeviceAgent {
     Collection<Bmv2PortInfo> getPortsInfo() throws Bmv2RuntimeException;
 
     /**
-     * Return a string representation of the given table content.
+     * Returns a list of table entries installed in the given table.
      *
-     * @param tableName string value of table name
-     * @return table string dump
+     * @param tableName a string value
+     * @return a list of parsed table entries
      * @throws Bmv2RuntimeException if any error occurs
      */
-    String dumpTable(String tableName) throws Bmv2RuntimeException;
+    List<Bmv2ParsedTableEntry> getTableEntries(String tableName) throws Bmv2RuntimeException;
 
     /**
      * Requests the device to transmit a given byte sequence over the given port.

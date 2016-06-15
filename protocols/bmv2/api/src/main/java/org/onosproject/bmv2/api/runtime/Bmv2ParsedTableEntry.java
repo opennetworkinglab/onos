@@ -20,24 +20,27 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 /**
- * Representation of a table entry obtained by parsing a BMv2 table dump.
+ * Representation of a table entry installed on a BMv2 device.
  */
 public final class Bmv2ParsedTableEntry {
     private final long entryId;
     private final Bmv2MatchKey matchKey;
     private final Bmv2Action action;
+    private final int priority;
 
     /**
      * Creates a new parsed table entry.
      *
-     * @param entryId  an entry ID
+     * @param entryId  a long value
      * @param matchKey a match key
      * @param action   an action
+     * @param priority an integer value
      */
-    public Bmv2ParsedTableEntry(long entryId, Bmv2MatchKey matchKey, Bmv2Action action) {
+    public Bmv2ParsedTableEntry(long entryId, Bmv2MatchKey matchKey, Bmv2Action action, int priority) {
         this.entryId = entryId;
         this.matchKey = matchKey;
         this.action = action;
+        this.priority = priority;
     }
 
     /**
@@ -67,9 +70,18 @@ public final class Bmv2ParsedTableEntry {
         return action;
     }
 
+    /**
+     * Returns the priority.
+     *
+     * @return an integer value
+     */
+    public int getPriority() {
+        return priority;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hashCode(entryId, matchKey, action);
+        return Objects.hashCode(entryId, matchKey, action, priority);
     }
 
     @Override
@@ -83,7 +95,8 @@ public final class Bmv2ParsedTableEntry {
         final Bmv2ParsedTableEntry other = (Bmv2ParsedTableEntry) obj;
         return Objects.equal(this.entryId, other.entryId)
                 && Objects.equal(this.matchKey, other.matchKey)
-                && Objects.equal(this.action, other.action);
+                && Objects.equal(this.action, other.action)
+                && Objects.equal(this.priority, other.priority);
     }
 
     @Override

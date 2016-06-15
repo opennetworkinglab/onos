@@ -16,7 +16,7 @@
   ~ limitations under the License.
   -->
 <drivers>
-    <driver name="bmv2-thrift" manufacturer="p4.org" hwVersion="bmv2" swVersion="n/a">
+    <driver name="bmv2-thrift" manufacturer="p4.org" hwVersion="bmv2" swVersion="1.0.0">
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.bmv2.Bmv2DeviceDescriptionDiscovery"/>
         <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"

@@ -19,11 +19,7 @@ package org.onosproject.bmv2.api.service;
 
 import org.onosproject.bmv2.api.context.Bmv2FlowRuleTranslator;
 import org.onosproject.bmv2.api.runtime.Bmv2FlowRuleWrapper;
-import org.onosproject.bmv2.api.runtime.Bmv2ParsedTableEntry;
 import org.onosproject.bmv2.api.runtime.Bmv2TableEntryReference;
-import org.onosproject.net.DeviceId;
-
-import java.util.List;
 
 /**
  * A service for managing BMv2 table entries.
@@ -36,16 +32,6 @@ public interface Bmv2TableEntryService {
      * @return a flow rule translator
      */
     Bmv2FlowRuleTranslator getFlowRuleTranslator();
-
-    /**
-     * Returns a list of table entries installed in the given device and table. The table entries returned are the
-     * result of a table dump parse.
-     *
-     * @param deviceId  a device id
-     * @param tableName a table name
-     * @return a list of parsed table entries
-     */
-    List<Bmv2ParsedTableEntry> getTableEntries(DeviceId deviceId, String tableName);
 
     /**
      * Binds the given ONOS flow rule with a BMv2 table entry reference.

@@ -244,7 +244,7 @@ public class Bmv2ControllerImpl implements Bmv2Controller {
         }
 
         @Override
-        public void packetIn(int port, long reason, int tableId, int contextId, ByteBuffer packet) {
+        public void packet_in(int port, ByteBuffer packet) {
             if (remoteDevice == null) {
                 log.debug("Received packet-in, but the remote device is still unknown. Need a hello first...");
                 return;
@@ -256,9 +256,6 @@ public class Bmv2ControllerImpl implements Bmv2Controller {
                 packetListeners.forEach(
                         l -> executorService.execute(() -> l.handlePacketIn(remoteDevice,
                                                                             port,
-                                                                            reason,
-                                                                            tableId,
-                                                                            contextId,
                                                                             ImmutableByteSequence.copyFrom(packet))));
             }
         }
