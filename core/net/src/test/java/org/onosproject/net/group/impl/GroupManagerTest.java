@@ -188,6 +188,21 @@ public class GroupManagerTest {
     }
 
     /**
+     * Tests group Purge Operation.
+     */
+    @Test
+    public void testPurgeGroups() {
+        //Test Group creation before AUDIT process
+        testGroupCreationBeforeAudit(DID);
+        programmableTestCleanUp();
+        testAuditWithExtraneousMissingGroups(DID);
+        // Test group add bucket operations
+        testAddBuckets(DID);
+        // Test group Purge operations
+        testPurgeGroupEntry(DID);
+    }
+
+    /**
      * Tests group bucket modifications (additions and deletions) and
      * Tests group deletion.
      */
@@ -505,6 +520,13 @@ public class GroupManagerTest {
         List<Group> groupEntries = Collections.singletonList(existingGroup);
         providerService.pushGroupMetrics(deviceId, groupEntries);
         internalListener.validateEvent(Collections.singletonList(GroupEvent.Type.GROUP_UPDATED));
+    }
+
+    // Test purge group entry operations
+    private void testPurgeGroupEntry(DeviceId deviceId) {
+        assertEquals(1, Iterables.size(groupService.getGroups(deviceId, appId)));
+        groupService.purgeGroupEntries(deviceId);
+        assertEquals(0, Iterables.size(groupService.getGroups(deviceId, appId)));
     }
 
     // Test group remove operations

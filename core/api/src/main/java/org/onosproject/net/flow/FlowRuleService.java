@@ -61,6 +61,12 @@ public interface FlowRuleService
     void applyFlowRules(FlowRule... flowRules);
 
     /**
+     * Purges all the flow rules on the specified device.
+     * @param deviceId device identifier
+     */
+    void purgeFlowRules(DeviceId deviceId);
+
+    /**
      * Removes the specified flow rules from their respective devices. If the
      * device is not presently connected to the controller, these flow will
      * be removed once the device reconnects.
