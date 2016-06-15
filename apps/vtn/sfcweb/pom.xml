@@ -53,6 +53,11 @@
             <artifactId>onos-app-vtn-rsc</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.karaf.shell</groupId>
+            <artifactId>org.apache.karaf.shell.console</artifactId>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
 </project>

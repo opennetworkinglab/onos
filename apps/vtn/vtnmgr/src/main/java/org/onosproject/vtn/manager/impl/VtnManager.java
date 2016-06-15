@@ -62,6 +62,7 @@ import org.onosproject.net.behaviour.BridgeDescription;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
+import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -206,6 +207,9 @@ public class VtnManager implements VtnService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService networkConfigService;
 
     private ApplicationId appId;
     private ClassifierService classifierService;
@@ -847,13 +851,16 @@ public class VtnManager implements VtnService {
             VtnRscEventFeedback l3Feedback = event.subject();
             if (VtnRscEvent.Type.ROUTER_INTERFACE_PUT == event.type()) {
                 onRouterInterfaceDetected(l3Feedback);
-            } else
-                if (VtnRscEvent.Type.ROUTER_INTERFACE_DELETE == event.type()) {
+            } else if (VtnRscEvent.Type.ROUTER_INTERFACE_DELETE == event.type()) {
                 onRouterInterfaceVanished(l3Feedback);
             } else if (VtnRscEvent.Type.FLOATINGIP_BIND == event.type()) {
                 onFloatingIpDetected(l3Feedback);
             } else if (VtnRscEvent.Type.FLOATINGIP_UNBIND == event.type()) {
                 onFloatingIpVanished(l3Feedback);
+            } else if (VtnRscEvent.Type.VIRTUAL_PORT_PUT == event.type()) {
+                onVirtualPortCreated(l3Feedback);
+            } else if (VtnRscEvent.Type.VIRTUAL_PORT_DELETE == event.type()) {
+                onVirtualPortDeleted(l3Feedback);
             }
         }
 
@@ -924,6 +931,29 @@ public class VtnManager implements VtnService {
     public void onFloatingIpVanished(VtnRscEventFeedback l3Feedback) {
         floatingIpStore.remove(l3Feedback.floatingIp().floatingIp());
         programFloatingIpEvent(l3Feedback, VtnRscEvent.Type.FLOATINGIP_UNBIND);
+    }
+
+    public void onVirtualPortCreated(VtnRscEventFeedback l3Feedback) {
+        VirtualPort vPort = l3Feedback.virtualPort();
+        BasicHostConfig basicHostConfig = networkConfigService.addConfig(HostId.hostId(vPort.macAddress()),
+                                                                         BasicHostConfig.class);
+        Set<IpAddress> ips = new HashSet<>();
+        for (FixedIp fixedIp : vPort.fixedIps()) {
+            ips.add(fixedIp.ip());
+        }
+        basicHostConfig.setIps(ips).apply();
+    }
+
+    public void onVirtualPortDeleted(VtnRscEventFeedback l3Feedback) {
+        VirtualPort vPort = l3Feedback.virtualPort();
+        HostId hostId = HostId.hostId(vPort.macAddress());
+        BasicHostConfig basicHostConfig = networkConfigService.addConfig(hostId,
+                                                                         BasicHostConfig.class);
+        Set<IpAddress> ips = hostService.getHost(hostId).ipAddresses();
+        for (FixedIp fixedIp : vPort.fixedIps()) {
+            ips.remove(fixedIp.ip());
+        }
+        basicHostConfig.setIps(ips).apply();
     }
 
     private void programInterfacesSet(Set<RouterInterface> interfacesSet,

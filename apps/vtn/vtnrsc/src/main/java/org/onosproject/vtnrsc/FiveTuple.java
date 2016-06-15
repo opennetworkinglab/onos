@@ -16,6 +16,7 @@
 package org.onosproject.vtnrsc;
 
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onosproject.net.PortNumber;
 
 /**
@@ -61,6 +62,20 @@ public interface FiveTuple {
     PortNumber portDst();
 
     /**
+     * Returns source mac.
+     *
+     * @return srcMac
+     */
+    MacAddress macSrc();
+
+    /**
+     * Returns destination mac.
+     *
+     * @return dstMac
+     */
+    MacAddress macDst();
+
+    /**
      * Returns the tenant id.
      *
      * @return tenantId
@@ -103,6 +118,22 @@ public interface FiveTuple {
          * @return this the builder object
          */
         Builder setPortDst(PortNumber portDst);
+
+        /**
+         * Assign the source mac address to this object.
+         *
+         * @param macSrc source mac address
+         * @return this the builder object
+         */
+        Builder setMacSrc(MacAddress macSrc);
+
+        /**
+         * Assign the destination mac address to this object.
+         *
+         * @param macDst destination mac address
+         * @return this the builder object
+         */
+        Builder setMacDst(MacAddress macDst);
 
         /**
          * Assign the protocol to this object.

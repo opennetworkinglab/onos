@@ -28,31 +28,41 @@
     var displayStart     = 'sfcwebTopovDisplayStart',
         showSfcInf       = 'showSfcInfo',
         clearMessage     = 'sfcTopovClear',
-        configSfpMessage = 'configSfpMessage' ;
+        configSfpMessage = 'configSfpMessage',
+        sfcPath          = 'showSfcPath' ;
 
     // internal state
     var currentMode = null;
+    var sfpInfo;
 
     // === Main API functions
 
     function start() {
         handlerMap[showSfcInf] = showSfcInformation;
+        handlerMap[sfcPath] = showSfcPath;
         wss.bindHandlers(handlerMap);
         wss.sendEvent(displayStart);
     }
 
-    function dOk() {
-        var sfcId = null;
-        sfcId = d3.select('#sfp-value').property("value");
+    function dOkSfp() {
+        var tdString;
+        var i = 0;
 
-        if (sfcId) {
-            console.log(sfcId);
+        sfpInfo.a.forEach( function () {
+            var sfpId = d3.select("#sfp-value-id-"+i).property("checked");
+            if (sfpId)
+            {
+                tdString = sfpInfo.a[i];
+            }
+            i++;
+        } );
+
+        if (!tdString) {
+            $log.debug("No SFP ID is selected.");
         }
 
-       $log.debug('Dialog OK button clicked');
-
        wss.sendEvent(configSfpMessage, {
-            id: sfcId
+            id: tdString
         });
 
         flash.flash('SFP ID query:');
@@ -62,68 +72,67 @@
         $log.debug('Dialog Close button clicked (or Esc pressed)');
     }
 
-    function createUserText() {
+    function createUserTextSfp(data) {
+        console.log(data);
+
         var content = ds.createDiv();
         var form = content.append('form');
         var p = form.append('p');
+        var i = 0;
 
-        p.append('input').attr({
-            id: 'sfp-value',
-            type: 'string',
-            name: 'sfp-value-name'
-        });
-        p.append('span').text('ID');
+        p.append('span').text('SFP IDs');
         p.append('br');
+        sfpInfo = data;
+        data.a.forEach( function () {
+
+            p.append('input').attr({
+                id: 'sfp-value-id-'+i,
+                type: 'radio',
+                name: 'sfp-id-name',
+                value: data.a[i]
+            });
+
+            p.append('span').text(data.a[i]);
+            p.append('br');
+            i++;
+        } );
 
         return content;
     }
 
-    function configSfp() {
+    function showSfcInformation(data) {
         tds.openDialog()
-        .setTitle('SFP ID User Input')
-        .addContent(createUserText())
-        .addOk(dOk, 'OK')
-        .addCancel(dClose, 'Close')
-        .bindKeys();
+            .setTitle('List of active service functions')
+            .addContent(createUserTextSfp(data))
+            .addOk(dOkSfp, 'Select SFP ID')
+            .addCancel(dClose, 'Close')
+            .bindKeys();
+
     }
 
-    function showSfcInformation(data) {
-        console.log(data);
-        wss.unbindHandlers(handlerMap);
+    function createSfcPathText(data) {
 
-        // Get the modal
-        var modal = document.getElementById('myModal');
+        var content = ds.createDiv();
+        var form = content.append('form');
+        var p = form.append('p');
+        var i = 0;
 
-        // Get the button that opens the modal
-        var btn = document.getElementById("myBtn");
+        p.append('span').text('SFC Path');
+        p.append('br');
+        data.sfcPathList.forEach( function (val, idx) {
+            p.append('span').text(val);
+            p.append('br')
+        } );
 
-        // Get the <span> element that closes the modal
-        var span = document.getElementsByClassName("close")[0];
+        return content;
+    }
 
-        modal.style.display = "block";
-
-        var tBody = document.getElementById('sfc-info-body');
-
-        var tdString = '' ;
-
-        for (var i = 0; i < data.a.length; i++) {
-            tdString += '<tr> <td>'+ data.a[i] +'</td></tr>';
-        }
-
-        tBody.innerHTML = tdString;
-
-        // When the user clicks on <span> (x), close the modal
-        span.onclick = function() {
-            modal.style.display = "none";
-        }
-
-        // When the user clicks anywhere outside of the modal, close it
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        }
-
+    function showSfcPath(data) {
+        tds.openDialog()
+            .setTitle('Service function path')
+            .addContent(createSfcPathText(data))
+            .addCancel(dClose, 'Close')
+            .bindKeys();
     }
 
     function clear() {
@@ -146,8 +155,8 @@
             return {
                 start: start,
                 showSfcInformation: showSfcInformation,
-                clear: clear,
-                configSfp: configSfp
+                showSfcPath : showSfcPath,
+                clear: clear
             };
         }]);
 

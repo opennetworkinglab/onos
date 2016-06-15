@@ -635,7 +635,10 @@ public class SfcFlowRuleInstallerImpl implements SfcFlowRuleInstallerService {
                 treatment.extension(tunnelDsttreatment, deviceId);
                 treatment.transition(TUNNEL_SEND_TABLE);
                 sendSfcRule(selector, treatment, deviceId, type, flowClassifier.priority());
-                classifierList.add(deviceIdfromPortPair);
+
+                selector.matchInPort(PortNumber.CONTROLLER);
+                sendSfcRule(selector, treatment, deviceId, type, flowClassifier.priority());
+                classifierList.add(deviceId);
 
                 installSfcTunnelSendRule(deviceId, nshSpiId, type);
                 installSfcTunnelReceiveRule(deviceIdfromPortPair, nshSpiId, type);
@@ -647,6 +650,9 @@ public class SfcFlowRuleInstallerImpl implements SfcFlowRuleInstallerService {
                                                                              nshSpiId, flowClassifier);
                 treatment.transition(ENCAP_OUTPUT_TABLE);
                 sendSfcRule(selector, treatment, deviceIdfromPortPair, type, flowClassifier.priority());
+
+                selector.matchInPort(PortNumber.CONTROLLER);
+                sendSfcRule(selector, treatment, deviceId, type, flowClassifier.priority());
                 classifierList.add(deviceIdfromPortPair);
             }
         }
