@@ -179,8 +179,7 @@ public class Bmv2PacketProvider extends AbstractProvider implements PacketProvid
     private class InternalPacketListener implements Bmv2PacketListener {
 
         @Override
-        public void handlePacketIn(Bmv2Device device, int inputPort, long reason, int tableId, int contextId,
-                                   ImmutableByteSequence packet) {
+        public void handlePacketIn(Bmv2Device device, int inputPort, ImmutableByteSequence packet) {
             Ethernet ethPkt = new Ethernet();
             ethPkt.deserialize(packet.asArray(), 0, packet.size());
 

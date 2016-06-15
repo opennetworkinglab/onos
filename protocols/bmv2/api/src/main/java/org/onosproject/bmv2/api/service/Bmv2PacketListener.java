@@ -29,11 +29,7 @@ public interface Bmv2PacketListener {
      *
      * @param device    the BMv2 device that originated the message
      * @param inputPort the device port where the packet was received
-     * @param reason    a reason code
-     * @param tableId   the ID of table that originated this packet-in
-     * @param contextId the ID of the BMv2 context where the packet-in was originated
      * @param packet    the packet raw data
      */
-    void handlePacketIn(Bmv2Device device, int inputPort, long reason, int tableId, int contextId,
-                        ImmutableByteSequence packet);
+    void handlePacketIn(Bmv2Device device, int inputPort, ImmutableByteSequence packet);
 }

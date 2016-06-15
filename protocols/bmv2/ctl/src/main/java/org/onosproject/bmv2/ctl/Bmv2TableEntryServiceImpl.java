@@ -23,31 +23,23 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
-import org.onosproject.bmv2.api.context.Bmv2DeviceContext;
 import org.onosproject.bmv2.api.context.Bmv2FlowRuleTranslator;
-import org.onosproject.bmv2.api.service.Bmv2DeviceContextService;
-import org.onosproject.bmv2.api.service.Bmv2Controller;
-import org.onosproject.bmv2.api.runtime.Bmv2DeviceAgent;
 import org.onosproject.bmv2.api.runtime.Bmv2ExactMatchParam;
 import org.onosproject.bmv2.api.runtime.Bmv2FlowRuleWrapper;
 import org.onosproject.bmv2.api.runtime.Bmv2LpmMatchParam;
 import org.onosproject.bmv2.api.runtime.Bmv2MatchKey;
-import org.onosproject.bmv2.api.runtime.Bmv2ParsedTableEntry;
-import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
 import org.onosproject.bmv2.api.runtime.Bmv2TableEntryReference;
-import org.onosproject.bmv2.api.service.Bmv2TableEntryService;
 import org.onosproject.bmv2.api.runtime.Bmv2TernaryMatchParam;
 import org.onosproject.bmv2.api.runtime.Bmv2ValidMatchParam;
-import org.onosproject.net.DeviceId;
+import org.onosproject.bmv2.api.service.Bmv2Controller;
+import org.onosproject.bmv2.api.service.Bmv2DeviceContextService;
+import org.onosproject.bmv2.api.service.Bmv2TableEntryService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collections;
-import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -104,23 +96,6 @@ public class Bmv2TableEntryServiceImpl implements Bmv2TableEntryService {
     @Override
     public Bmv2FlowRuleTranslator getFlowRuleTranslator() {
         return translator;
-    }
-
-    @Override
-    public List<Bmv2ParsedTableEntry> getTableEntries(DeviceId deviceId, String tableName) {
-        try {
-            Bmv2DeviceContext context = contextService.getContext(deviceId);
-            if (context == null) {
-                log.warn("Unable to get table entries, found null context for {}", deviceId);
-                return Collections.emptyList();
-            }
-            Bmv2DeviceAgent agent = controller.getAgent(deviceId);
-            String tableDump = agent.dumpTable(tableName);
-            return Bmv2TableDumpParser.parse(tableDump, context.configuration());
-        } catch (Bmv2RuntimeException e) {
-            log.warn("Unable to get table entries for {}: {}", deviceId, e.explain());
-            return Collections.emptyList();
-        }
     }
 
     @Override

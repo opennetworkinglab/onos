@@ -37,7 +37,7 @@ public final class Bmv2Device {
     public static final String PROTOCOL = "bmv2-thrift";
     public static final String MANUFACTURER = "p4.org";
     public static final String HW_VERSION = "bmv2";
-    public static final String SW_VERSION = N_A;
+    public static final String SW_VERSION = "1.0.0";
     public static final String SERIAL_NUMBER = N_A;
 
     private final String thriftServerHost;

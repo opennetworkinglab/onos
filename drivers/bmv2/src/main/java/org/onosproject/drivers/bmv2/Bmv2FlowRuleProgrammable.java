@@ -118,10 +118,14 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
                 return;
             }
 
-            // Bmv2 doesn't support proper polling for table entries, but only a string based table dump.
-            // The trick here is to first dump the entries currently installed in the device for a given table,
-            // and then query a service for the corresponding, previously applied, flow rule.
-            List<Bmv2ParsedTableEntry> installedEntries = tableEntryService.getTableEntries(deviceId, table.name());
+            List<Bmv2ParsedTableEntry> installedEntries;
+            try {
+                installedEntries = deviceAgent.getTableEntries(table.name());
+            } catch (Bmv2RuntimeException e) {
+                log.warn("Failed to get table entries of table {} of {}: {}", table.name(), deviceId, e.explain());
+                return;
+            }
+
             installedEntries.forEach(parsedEntry -> {
                 Bmv2TableEntryReference entryRef = new Bmv2TableEntryReference(deviceId,
                                                                                table.name(),
@@ -309,7 +313,7 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
     private void forceRemove(Bmv2DeviceAgent agent, String tableName, Bmv2MatchKey matchKey)
             throws Bmv2RuntimeException {
         // Find the entryID (expensive call!)
-        for (Bmv2ParsedTableEntry pEntry : tableEntryService.getTableEntries(agent.deviceId(), tableName)) {
+        for (Bmv2ParsedTableEntry pEntry : agent.getTableEntries(tableName)) {
             if (pEntry.matchKey().equals(matchKey)) {
                 // Remove entry and drop exceptions.
                 silentlyRemove(agent, tableName, pEntry.entryId());

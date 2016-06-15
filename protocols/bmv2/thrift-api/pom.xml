@@ -32,11 +32,11 @@
 
     <properties>
         <!-- BMv2 Commit ID and Thrift version -->
-        <bmv2.commit>e55f9cdaee5e3d729f839e7ec6c322dd66c1a1a0</bmv2.commit>
+        <bmv2.commit>024aa03e3b52f8d32c26774511e8e5b1dc11ec65</bmv2.commit>
         <bmv2.thrift.version>0.9.3</bmv2.thrift.version>
         <!-- Do not change below -->
         <bmv2.baseurl>
-            https://raw.githubusercontent.com/ccascone/behavioral-model/${bmv2.commit}
+            https://raw.githubusercontent.com/opennetworkinglab/behavioral-model/${bmv2.commit}
         </bmv2.baseurl>
         <bmv2.thrift.srcdir>${project.basedir}/src/main/thrift</bmv2.thrift.srcdir>
         <thrift.path>${project.build.directory}/thrift-compiler/</thrift.path>

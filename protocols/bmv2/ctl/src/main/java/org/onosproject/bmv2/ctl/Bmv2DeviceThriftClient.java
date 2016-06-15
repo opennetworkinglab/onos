@@ -26,11 +26,14 @@ import org.onosproject.bmv2.api.runtime.Bmv2DeviceAgent;
 import org.onosproject.bmv2.api.runtime.Bmv2ExactMatchParam;
 import org.onosproject.bmv2.api.runtime.Bmv2LpmMatchParam;
 import org.onosproject.bmv2.api.runtime.Bmv2MatchKey;
+import org.onosproject.bmv2.api.runtime.Bmv2MatchParam;
+import org.onosproject.bmv2.api.runtime.Bmv2ParsedTableEntry;
 import org.onosproject.bmv2.api.runtime.Bmv2PortInfo;
 import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
 import org.onosproject.bmv2.api.runtime.Bmv2TableEntry;
 import org.onosproject.bmv2.api.runtime.Bmv2TernaryMatchParam;
 import org.onosproject.bmv2.api.runtime.Bmv2ValidMatchParam;
+import org.onosproject.bmv2.thriftapi.BmActionEntry;
 import org.onosproject.bmv2.thriftapi.BmAddEntryOptions;
 import org.onosproject.bmv2.thriftapi.BmCounterValue;
 import org.onosproject.bmv2.thriftapi.BmMatchParam;
@@ -39,6 +42,7 @@ import org.onosproject.bmv2.thriftapi.BmMatchParamLPM;
 import org.onosproject.bmv2.thriftapi.BmMatchParamTernary;
 import org.onosproject.bmv2.thriftapi.BmMatchParamType;
 import org.onosproject.bmv2.thriftapi.BmMatchParamValid;
+import org.onosproject.bmv2.thriftapi.BmMtEntry;
 import org.onosproject.bmv2.thriftapi.SimpleSwitch;
 import org.onosproject.bmv2.thriftapi.Standard;
 import org.onosproject.net.DeviceId;
@@ -50,6 +54,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onosproject.bmv2.ctl.Bmv2TExceptionParser.parseTException;
 
 /**
@@ -214,19 +219,71 @@ public final class Bmv2DeviceThriftClient implements Bmv2DeviceAgent {
     }
 
     @Override
-    public String dumpTable(String tableName) throws Bmv2RuntimeException {
+    public List<Bmv2ParsedTableEntry> getTableEntries(String tableName) throws Bmv2RuntimeException {
 
-        log.debug("Retrieving table dump... > deviceId={}, tableName={}", deviceId, tableName);
+        log.debug("Retrieving table entries... > deviceId={}, tableName={}", deviceId, tableName);
 
+        List<BmMtEntry> bmEntries;
         try {
-            String dump = standardClient.bm_dump_table(CONTEXT_ID, tableName);
-            log.debug("Table dump retrieved! > deviceId={}, tableName={}", deviceId, tableName);
-            return dump;
+            bmEntries = standardClient.bm_mt_get_entries(CONTEXT_ID, tableName);
         } catch (TException e) {
-            log.debug("Exception while retrieving table dump: {} > deviceId={}, tableName={}",
+            log.debug("Exception while retrieving table entries: {} > deviceId={}, tableName={}",
                       e, deviceId, tableName);
             throw parseTException(e);
         }
+
+        List<Bmv2ParsedTableEntry> parsedEntries = Lists.newArrayList();
+
+        entryLoop:
+        for (BmMtEntry bmEntry : bmEntries) {
+
+            Bmv2MatchKey.Builder matchKeyBuilder = Bmv2MatchKey.builder();
+            for (BmMatchParam bmParam : bmEntry.getMatch_key()) {
+                Bmv2MatchParam param;
+                switch (bmParam.getType()) {
+                    case EXACT:
+                        param = new Bmv2ExactMatchParam(copyFrom(bmParam.getExact().getKey()));
+                        break;
+                    case LPM:
+                        param = new Bmv2LpmMatchParam(copyFrom(bmParam.getLpm().getKey()),
+                                                      bmParam.getLpm().getPrefix_length());
+                        break;
+                    case TERNARY:
+                        param = new Bmv2TernaryMatchParam(copyFrom(bmParam.getTernary().getKey()),
+                                                          copyFrom(bmParam.getTernary().getMask()));
+                        break;
+                    case VALID:
+                        param = new Bmv2ValidMatchParam(bmParam.getValid().isKey());
+                        break;
+                    default:
+                        log.warn("Parsing of match type {} unsupported, skipping table entry.",
+                                 bmParam.getType().name());
+                        continue entryLoop;
+                }
+                matchKeyBuilder.add(param);
+            }
+
+            Bmv2Action.Builder actionBuilder = Bmv2Action.builder();
+            BmActionEntry bmActionEntry = bmEntry.getAction_entry();
+            switch (bmActionEntry.getAction_type()) {
+                case ACTION_DATA:
+                    actionBuilder.withName(bmActionEntry.getAction_name());
+                    bmActionEntry.getAction_data()
+                            .stream()
+                            .map(ImmutableByteSequence::copyFrom)
+                            .forEach(actionBuilder::addParameter);
+                    break;
+                default:
+                    log.warn("Parsing of action action type {} unsupported, skipping table entry.",
+                             bmActionEntry.getAction_type().name());
+                    continue entryLoop;
+            }
+
+            parsedEntries.add(new Bmv2ParsedTableEntry(bmEntry.getEntry_handle(), matchKeyBuilder.build(),
+                                                       actionBuilder.build(), bmEntry.getOptions().getPriority()));
+        }
+
+        return parsedEntries;
     }
 
     @Override
@@ -236,7 +293,7 @@ public final class Bmv2DeviceThriftClient implements Bmv2DeviceAgent {
 
         try {
 
-            simpleSwitchClient.push_packet(portNumber, ByteBuffer.wrap(packet.asArray()));
+            simpleSwitchClient.packet_out(portNumber, ByteBuffer.wrap(packet.asArray()));
             log.debug("Packet transmission requested! > portNumber={}, packetSize={}", portNumber, packet.size());
         } catch (TException e) {
             log.debug("Exception while requesting packet transmission: {} > portNumber={}, packetSize={}",
