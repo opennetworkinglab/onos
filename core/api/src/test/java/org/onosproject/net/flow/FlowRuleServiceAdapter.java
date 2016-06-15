@@ -38,6 +38,10 @@ public class FlowRuleServiceAdapter implements FlowRuleService {
     }
 
     @Override
+    public void purgeFlowRules(DeviceId deviceId){
+    }
+
+    @Override
     public void removeFlowRules(FlowRule... flowRules) {
     }
 

@@ -260,6 +260,12 @@ public class FlowRuleManager
     }
 
     @Override
+    public void purgeFlowRules(DeviceId deviceId) {
+        checkPermission(FLOWRULE_WRITE);
+        store.purgeFlowRule(deviceId);
+    }
+
+    @Override
     public void removeFlowRules(FlowRule... flowRules) {
         checkPermission(FLOWRULE_WRITE);
 

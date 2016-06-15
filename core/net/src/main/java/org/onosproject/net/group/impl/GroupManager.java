@@ -242,6 +242,13 @@ public class GroupManager
                                      newCookie);
     }
 
+    @Override
+    public void purgeGroupEntries(DeviceId deviceId) {
+        checkPermission(GROUP_WRITE);
+        store.purgeGroupEntry(deviceId);
+    }
+
+
     /**
      * Delete a group associated to an application cookie.
      * GROUP_DELETED or GROUP_DELETE_FAILED notifications would be
