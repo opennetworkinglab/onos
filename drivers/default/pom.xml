@@ -44,11 +44,6 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-bgp-flowapi</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
             <artifactId>openflowj</artifactId>
         </dependency>
     </dependencies>
