@@ -5,7 +5,7 @@
   <meta http-equiv="Content-Style-Type" content="text/css">
   <title></title>
   <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="1404.46">
+  <meta name="CocoaVersion" content="1404.47">
   <style type="text/css">
     p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Menlo; color: #0433ff; -webkit-text-stroke: #0433ff}
     p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Menlo; color: #ff9300; -webkit-text-stroke: #ff9300}
@@ -15,16 +15,19 @@
     p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Menlo; color: #ff2600; -webkit-text-stroke: #ff2600}
     p.p7 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Menlo; color: #000000; -webkit-text-stroke: #000000}
     p.p8 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Menlo; color: #00c7fc; -webkit-text-stroke: #000000}
+    p.p9 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Menlo; color: #ff9300; -webkit-text-stroke: #000000}
+    p.p10 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Menlo; color: #000000; -webkit-text-stroke: #000000; min-height: 14.0px}
     span.s1 {font-kerning: none}
     span.s2 {font-kerning: none; color: #0433ff; -webkit-text-stroke: 0px #0433ff}
-    span.s3 {font-kerning: none; color: #000000; -webkit-text-stroke: 0px #000000}
-    span.s4 {font-kerning: none; color: #ff9300; -webkit-text-stroke: 0px #ff9300}
-    span.s5 {font-kerning: none; color: #77bb41; -webkit-text-stroke: 0px #77bb41}
-    span.s6 {font-kerning: none; color: #00c7fc; -webkit-text-stroke: 0px #00c7fc}
+    span.s3 {font: 12.0px 'PingFang TC'; font-kerning: none}
+    span.s4 {font-kerning: none; color: #77bb41; -webkit-text-stroke: 0px #77bb41}
+    span.s5 {font-kerning: none; color: #00c7fc; -webkit-text-stroke: 0px #00c7fc}
+    span.s6 {font-kerning: none; color: #000000; -webkit-text-stroke: 0px #000000}
     span.s7 {font-kerning: none; color: #ff40ff; -webkit-text-stroke: 0px #ff40ff}
     span.s8 {font-kerning: none; color: #ff2600; -webkit-text-stroke: 0px #ff2600}
     span.s9 {font-kerning: none; color: #000000}
-    span.s10 {font-kerning: none; color: #669c35; -webkit-text-stroke: 0px #669c35}
+    span.s10 {font-kerning: none; color: #ff9300}
+    span.s11 {font-kerning: none; color: #669c35; -webkit-text-stroke: 0px #669c35}
     span.Apple-tab-span {white-space:pre}
   </style>
 </head>
@@ -43,12 +46,6 @@
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>"interfaces" : [</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>{<span class="Apple-tab-span">	</span></span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"ips" : [ "10.0.1.254/24" ] </span><span class="s2">// subnet of node 1</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>},</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>{</span></p>
-<p class="p2"><span class="s3"><span class="Apple-converted-space">                </span>"vlan" : "69" </span><span class="s1">// cross-connect s-tag 69 to Fujitsu OLT</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>},</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>{</span></p>
-<p class="p2"><span class="s3"><span class="Apple-converted-space">                </span>"vlan" : "222" </span><span class="s1">// cross-connect s-tag 222 to PMC OLT</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>]</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">    </span>},</span></p>
@@ -58,23 +55,7 @@
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"ips" : [ "10.0.1.254/24" ] </span><span class="s2">// subnet of node 3</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>]</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">    </span>},</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">    </span>"of:0000000000000001/65" : { </span><span class="s4">// connect to Fujitsu OLT</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>"interfaces" : [</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>{</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"name" : "fujitsu-olt", </span><span class="s4">// unused</span></p>
-<p class="p2"><span class="s3"><span class="Apple-converted-space">                </span>"vlan" : "69" </span><span class="s1">// cross-connect s-tag 69<span class="Apple-converted-space">  </span>to vSG</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>]</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">    </span>},</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">    </span>"of:0000000000000001/73" : { </span><span class="s4">// connect to PMC OLT</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>"interfaces" : [</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>{</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"name" : "pmc-olt", </span><span class="s4">// unused</span></p>
-<p class="p2"><span class="s3"><span class="Apple-converted-space">                </span>"vlan" : "222" </span><span class="s1">// cross-connect s-tag 222 to vSG</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>]</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">    </span>},</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">    </span>}</span><span class="s3">,</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">    </span>"of:0000000000000002/5" : { </span><span class="s2">// connect to node 2</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>"interfaces" : [</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>{</span></p>
@@ -82,16 +63,16 @@
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>]</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">    </span>},</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">    </span>"of:0000000000000002/32" : { </span><span class="s5">// connect to Internet router</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">    </span>"of:0000000000000002/32" : { </span><span class="s4">// connect to Internet router</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>"interfaces" : [</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>{</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"name" : "external-quagga", </span><span class="s5">// Internet router interface name</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"ips" : [ "10.231.254.202/30", "10.231.254.223/32" ], </span><span class="s5">// Quagga IP addresses</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"mac" : "00:16:3e:56:2b:48" </span><span class="s5">// Quagga WAN MAC</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"name" : "external-quagga", </span><span class="s4">// Internet router interface name</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"ips" : [ "10.231.254.202/30", "10.231.254.223/32" ], </span><span class="s4">// Quagga IP addresses</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"mac" : "00:16:3e:56:2b:48" </span><span class="s4">// Quagga WAN MAC</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>],</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>"pimInterface" : { </span><span class="s6">// PIM configuration</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>"interfaceName" : "external-quagga", </span><span class="s6">// port that faces the Internet router</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>"pimInterface" : { </span><span class="s5">// PIM configuration</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>"interfaceName" : "external-quagga", </span><span class="s5">// port that faces the Internet router</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>"enabled" : true,</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>"helloInterval" : 1,</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>"holdTime" : 3,</span></p>
@@ -105,7 +86,7 @@
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>"segmentrouting" : {</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"name" : "Leaf-R1",</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"nodeSid" : 101, </span><span class="s2">// segment router SID</span></p>
-<p class="p1"><span class="s3"><span class="Apple-converted-space">                </span>"routerIp" : "10.0.1.254", </span><span class="s1">// segment router IP (default gateway of compute nodes)</span></p>
+<p class="p1"><span class="s6"><span class="Apple-converted-space">                </span>"routerIp" : "10.0.1.254", </span><span class="s1">// segment router IP (default gateway of compute nodes)</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"routerMac" : "00:00:00:00:01:80", </span><span class="s2">// segment router MAC</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"isEdgeRouter" : true, </span><span class="s2">// true if this is a leaf router</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"adjacencySids" : [] </span><span class="s2">// unused<span class="Apple-converted-space"> </span></span></p>
@@ -180,7 +161,7 @@
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">    </span>},</span></p>
-<p class="p6"><span class="s3"><span class="Apple-converted-space">    </span>"links" : { </span><span class="s1">// list of expected links</span></p>
+<p class="p6"><span class="s6"><span class="Apple-converted-space">    </span>"links" : { </span><span class="s1">// list of expected links</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>"of:0000000000000001/1-of:0000000000000191/1" : {</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>"basic" : {}</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>},</span></p>
@@ -219,26 +200,41 @@
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>"org.onosproject.segmentrouting" : {</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>"segmentrouting" : {</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"vRouterMacs" : [</span></p>
-<p class="p3"><span class="s3"><span class="Apple-converted-space">                    </span>"a4:23:05:34:56:78" </span><span class="s1">// vRouter LAN MAC (vSG’s default gateway)</span></p>
+<p class="p3"><span class="s6"><span class="Apple-converted-space">                    </span>"a4:23:05:34:56:78" </span><span class="s1">// vRouter LAN MAC (vSG’s default gateway)</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>],</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"vRouterId" : "of:0000000000000002", </span><span class="s7">// vRouter DPID (0/0 is replaced by this)</span></p>
-<p class="p4"><span class="s3"><span class="Apple-converted-space">                 </span>"suppressSubnet" : [ </span><span class="s1">// Do not push subnet rules for these ports</span></p>
+<p class="p4"><span class="s6"><span class="Apple-converted-space">                 </span>"suppressSubnet" : [ </span><span class="s1">// Do not push subnet rules for these ports</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                    </span>"of:0000000000000002/31", "of:0000000000000002/32"</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>],</span></p>
-<p class="p4"><span class="s3"><span class="Apple-converted-space">                </span>"suppressHostByProvider" : [ </span><span class="s1">// Hosts come from these providers will be ignored.</span></p>
+<p class="p4"><span class="s6"><span class="Apple-converted-space">                </span>"suppressHostByProvider" : [ </span><span class="s1">// Hosts come from these providers will be ignored.</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                    </span>"org.onosproject.provider.host"</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>],</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"suppressHostByPort" : [ </span><span class="s5">// Hosts on these ports will be ignored.</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"suppressHostByPort" : [ </span><span class="s4">// Hosts on these ports will be ignored.</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                    </span>"of:0000000000000002/31", "of:0000000000000002/32"</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>]</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>},</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>"xconnect": {</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"of:0000000000000001": [</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                    </span>{</span></p>
+<p class="p9"><span class="s9"><span class="Apple-converted-space">                        </span>"vlan": 10, </span><span class="s1">// VLAN ID used for this cross-connect</span></p>
+<p class="p9"><span class="s9"><span class="Apple-converted-space">                        </span>"ports": [5, 73], </span><span class="s1">// Two ports that need to be cross-connected</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                        </span>"name": "OLT1" </span><span class="s10">// Optional name</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                    </span>},</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                    </span>{</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                        </span>"vlan": 20,</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                        </span>"ports": [5, 89],</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                        </span>"name": "OLT2"</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                    </span>}</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>]</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p10"><span class="s1"></span><br></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>},</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>"org.onosproject.router" : {</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>"router" : {</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"controlPlaneConnectPoint" : "of:0000000000000002/31", </span><span class="s5">// location of Quagga</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"ospfEnabled" : "true", </span><span class="s5">// enable OSPF</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"pimEnabled" : "true", </span><span class="s6">// enable PIM</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"interfaces" : [ "external-quagga" ] </span><span class="s10">// </span><span class="s5">VR only handles peers on these ports</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"controlPlaneConnectPoint" : "of:0000000000000002/31", </span><span class="s4">// location of Quagga</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"ospfEnabled" : "true", </span><span class="s4">// enable OSPF</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"pimEnabled" : "true", </span><span class="s5">// enable PIM</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"interfaces" : [ "external-quagga" ] </span><span class="s11">// </span><span class="s4">VR only handles peers on these ports</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
