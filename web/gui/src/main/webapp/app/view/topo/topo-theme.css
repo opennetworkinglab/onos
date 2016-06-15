@@ -150,16 +150,6 @@
     opacity: 0.2 !important;
 }
 
-#ov-topo svg .node.selected rect,
-#ov-topo svg .node.selected circle {
-    fill: #f90;
-    filter: url(#blue-glow);
-}
-.firefox #ov-topo svg .node.selected rect,
-.firefox #ov-topo svg .node.selected circle {
-    filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"blue-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.7 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#blue-glow");
-}
-
 /* Device Nodes */
 
 /* note: device without the 'online' class is offline */
@@ -190,7 +180,8 @@
 
 
 #ov-topo svg .node.device.selected rect {
-    fill: #f90;
+    stroke-width: 2.0;
+    stroke: #009fdb;
 }
 
 /* Badges */
@@ -238,13 +229,17 @@
     fill: #846;
 }
 
-svg .node.host circle {
+#ov-topo svg .node.host circle {
     stroke: #a3a596;
     fill: #e0dfd6;
 }
+#ov-topo svg .node.host.selected circle {
+    stroke-width: 2.0;
+    stroke: #009fdb;
+}
 
-svg .node.host .svgIcon {
-    fill: #444;
+#ov-topo svg .node.host use {
+    fill: #3c3a3a;
 }
 
 /* --- Topo Links --- */
@@ -255,12 +250,8 @@ svg .node.host .svgIcon {
 
 #ov-topo svg .link.selected,
 #ov-topo svg .link.enhanced {
-    stroke-width: 4.5px;
-    filter: url(#blue-glow);
-}
-.firefox #ov-topo svg .link.selected,
-.firefox #ov-topo svg .link.enhanced {
-    filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"blue-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.7 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#blue-glow");
+    stroke-width: 3.5;
+    stroke: #009fdb;
 }
 
 #ov-topo svg .link.inactive {
@@ -306,7 +297,9 @@ svg .node.host .svgIcon {
 #ov-topo svg .link.animated {
     stroke-dasharray: 8 5;
     animation: ants 5s infinite linear;
-    /* below line will be added via Javascript based on path */
+    /* below line could be added via Javascript, based on path, if we cared
+     * enough about the direction of ant-flow
+     */
     /*animation-direction: reverse;*/
 }
 @keyframes ants {
@@ -336,7 +329,7 @@ svg .node.host .svgIcon {
 /* Link Labels */
 #ov-topo svg .linkLabel rect {
     stroke: none;
-    fill: #eee;
+    fill: #ffffff;
 }
 
 #ov-topo svg .linkLabel text {
@@ -346,8 +339,8 @@ svg .node.host .svgIcon {
 /* Port Labels */
 
 #ov-topo svg .portLabel rect {
-    stroke: none;
-    fill: #eee;
+    stroke: #a3a596;
+    fill: #ffffff;
 }
 
 #ov-topo svg .portLabel text {

@@ -127,7 +127,9 @@
         selectOrder.push(obj.id);
 
         n.classed('selected', true);
-        api.updateDeviceColors(obj);
+        if (n.classed('device')) {
+            api.updateDeviceColors(obj);
+        }
         updateDetail();
     }
 
