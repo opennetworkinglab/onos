@@ -16,16 +16,18 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.datamodel.utils.DataModelUtils;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
+import org.onosproject.yangutils.utils.io.impl.YangIoUtils;
+import org.onosproject.yangutils.utils.io.impl.YangToJavaNamingConflictUtil;
 
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.getParentNodeInGenCode;
 import static org.onosproject.yangutils.utils.UtilConstants.COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT_BASE_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
@@ -33,23 +35,17 @@ import static org.onosproject.yangutils.utils.UtilConstants.HYPHEN;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_KEY_WORDS;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.QUOTES;
-import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_DIGITS_WITH_SINGLE_LETTER;
 import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_FIRST_DIGIT;
-import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_HYPHEN;
-import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_IDENTIFIER_SPECIAL_CHAR;
-import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_PERIOD;
-import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_SINGLE_LETTER;
-import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_UNDERSCORE;
 import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_ALL_SPECIAL_CHAR;
-import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_DIGITS;
-import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_SINGLE_CAPITAL_CASE;
-import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_SINGLE_CAPITAL_CASE_AND_DIGITS_SMALL_CASES;
-import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_UPPERCASE;
 import static org.onosproject.yangutils.utils.UtilConstants.REVISION_PREFIX;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.UNDER_SCORE;
 import static org.onosproject.yangutils.utils.UtilConstants.VERSION_PREFIX;
-import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUTO_PREFIX;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addPackageInfo;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.createDirectories;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getJavaPackageFromPackagePath;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getPackageDirPathFromJavaJPackage;
 
 /**
  * Represents an utility Class for translating the name from YANG to java convention.
@@ -73,14 +69,14 @@ public final class JavaIdentifierSyntax {
     /**
      * Returns the root package string.
      *
-     * @param version YANG version
-     * @param nameSpace name space of the module
-     * @param revision revision of the module defined
+     * @param version          YANG version
+     * @param nameSpace        name space of the module
+     * @param revision         revision of the module defined
      * @param conflictResolver object of YANG to java naming conflict util
      * @return the root package string
      */
     public static String getRootPackage(byte version, String nameSpace, String revision,
-            YangToJavaNamingConflictUtil conflictResolver) {
+                                        YangToJavaNamingConflictUtil conflictResolver) {
 
         String pkg;
         pkg = DEFAULT_BASE_PKG;
@@ -91,29 +87,6 @@ public final class JavaIdentifierSyntax {
         pkg = pkg + PERIOD;
         pkg = pkg + getYangRevisionStr(revision);
 
-        return pkg.toLowerCase();
-    }
-
-    /**
-     * Returns the node package string.
-     *
-     * @param curNode current java node whose package string needs to be set
-     * @return returns the root package string
-     */
-    public static String getCurNodePackage(YangNode curNode) {
-
-        String pkg;
-        if (!(curNode instanceof JavaFileInfoContainer)
-                || curNode.getParent() == null) {
-            throw new TranslatorException("missing parent node to get current node's package");
-        }
-
-        YangNode parentNode = DataModelUtils.getParentNodeInGenCode(curNode);
-        if (!(parentNode instanceof JavaFileInfoContainer)) {
-            throw new TranslatorException("missing parent java node to get current node's package");
-        }
-        JavaFileInfo parentJavaFileHandle = ((JavaFileInfoContainer) parentNode).getJavaFileInfo();
-        pkg = parentJavaFileHandle.getPackage() + PERIOD + parentJavaFileHandle.getJavaName();
         return pkg.toLowerCase();
     }
 
@@ -130,7 +103,7 @@ public final class JavaIdentifierSyntax {
     /**
      * Returns package name from name space.
      *
-     * @param nameSpace name space of YANG module
+     * @param nameSpace        name space of YANG module
      * @param conflictResolver object of YANG to java naming conflict util
      * @return java package name as per java rules
      */
@@ -181,7 +154,7 @@ public final class JavaIdentifierSyntax {
     /**
      * Returns the package string.
      *
-     * @param pkgArr package array
+     * @param pkgArr           package array
      * @param conflictResolver object of YANG to java naming conflict util
      * @return package string
      */
@@ -193,7 +166,7 @@ public final class JavaIdentifierSyntax {
         for (String member : pkgArr) {
             boolean presenceOfKeyword = JAVA_KEY_WORDS.contains(member.toLowerCase());
             if (presenceOfKeyword || member.matches(REGEX_FOR_FIRST_DIGIT)) {
-                String prefix = getPrefixForIdentifier(conflictResolver);
+                String prefix = YangIoUtils.getPrefixForIdentifier(conflictResolver);
                 member = prefix + member;
             }
             pkg = pkg + member;
@@ -203,252 +176,6 @@ public final class JavaIdentifierSyntax {
             i++;
         }
         return pkg;
-    }
-
-    /**
-     * Prefix for adding with identifier and namespace, when it is a java keyword or starting with digits.
-     *
-     * @param conflictResolver object of YANG to java naming conflict util
-     * @return prefix which needs to be added
-     */
-    public static String getPrefixForIdentifier(YangToJavaNamingConflictUtil conflictResolver) {
-
-        String prefixForIdentifier = null;
-        if (conflictResolver != null) {
-            prefixForIdentifier = conflictResolver.getPrefixForIdentifier();
-        }
-        if (prefixForIdentifier != null) {
-            prefixForIdentifier = prefixForIdentifier.replaceAll(REGEX_WITH_ALL_SPECIAL_CHAR, COLAN);
-            String[] strArray = prefixForIdentifier.split(COLAN);
-            try {
-                if (strArray[0].isEmpty()) {
-                    List<String> stringArrangement = new ArrayList<String>();
-                    for (int i = 1; i < strArray.length; i++) {
-                        stringArrangement.add(strArray[i]);
-                    }
-                    strArray = stringArrangement.toArray(new String[stringArrangement.size()]);
-                }
-                prefixForIdentifier = strArray[0];
-                for (int j = 1; j < strArray.length; j++) {
-                    prefixForIdentifier = prefixForIdentifier + strArray[j].substring(0, 1).toUpperCase() +
-                            strArray[j].substring(1);
-                }
-            } catch (ArrayIndexOutOfBoundsException outOfBoundsException) {
-                throw new TranslatorException("The given prefix in pom.xml is invalid.");
-            }
-        } else {
-            prefixForIdentifier = YANG_AUTO_PREFIX;
-        }
-        return prefixForIdentifier;
-    }
-
-    /**
-     * Returns the YANG identifier name as java identifier.
-     *
-     * @param yangIdentifier identifier in YANG file
-     * @param conflictResolver object of YANG to java naming conflict util
-     * @return corresponding java identifier
-     */
-    public static String getCamelCase(String yangIdentifier, YangToJavaNamingConflictUtil conflictResolver) {
-
-        if (conflictResolver != null) {
-            String replacementForHyphen = conflictResolver.getReplacementForHyphen();
-            String replacementForPeriod = conflictResolver.getReplacementForPeriod();
-            String replacementForUnderscore = conflictResolver.getReplacementForUnderscore();
-            if (replacementForPeriod != null) {
-                yangIdentifier = yangIdentifier.replaceAll(REGEX_FOR_PERIOD,
-                        PERIOD + replacementForPeriod.toLowerCase() + PERIOD);
-            }
-            if (replacementForUnderscore != null) {
-                yangIdentifier = yangIdentifier.replaceAll(REGEX_FOR_UNDERSCORE,
-                        UNDER_SCORE + replacementForUnderscore.toLowerCase() + UNDER_SCORE);
-            }
-            if (replacementForHyphen != null) {
-                yangIdentifier = yangIdentifier.replaceAll(REGEX_FOR_HYPHEN,
-                        HYPHEN + replacementForHyphen.toLowerCase() + HYPHEN);
-            }
-        }
-        yangIdentifier = yangIdentifier.replaceAll(REGEX_FOR_IDENTIFIER_SPECIAL_CHAR, COLAN);
-        String[] strArray = yangIdentifier.split(COLAN);
-        if (strArray[0].isEmpty()) {
-            List<String> stringArrangement = new ArrayList<String>();
-            for (int i = 1; i < strArray.length; i++) {
-                stringArrangement.add(strArray[i]);
-            }
-            strArray = stringArrangement.toArray(new String[stringArrangement.size()]);
-        }
-        return upperCaseConflictResolver(strArray, conflictResolver);
-    }
-
-    /**
-     * Resolves the conflict when input has upper case.
-     *
-     * @param stringArray containing strings for upper case conflict resolver
-     * @param conflictResolver object of YANG to java naming conflict util
-     * @return camel cased string
-     */
-    private static String upperCaseConflictResolver(String[] stringArray,
-            YangToJavaNamingConflictUtil conflictResolver) {
-
-        for (int l = 0; l < stringArray.length; l++) {
-            String[] upperCaseSplitArray = stringArray[l].split(REGEX_WITH_UPPERCASE);
-            for (int m = 0; m < upperCaseSplitArray.length; m++) {
-                if (upperCaseSplitArray[m].matches(REGEX_WITH_SINGLE_CAPITAL_CASE)) {
-                    int check = m;
-                    while (check + 1 < upperCaseSplitArray.length) {
-                        if (upperCaseSplitArray[check + 1].matches(REGEX_WITH_SINGLE_CAPITAL_CASE)) {
-                            upperCaseSplitArray[check + 1] = upperCaseSplitArray[check + 1].toLowerCase();
-                            check = check + 1;
-                        } else if (upperCaseSplitArray[check + 1]
-                                .matches(REGEX_WITH_SINGLE_CAPITAL_CASE_AND_DIGITS_SMALL_CASES)) {
-                            upperCaseSplitArray[check + 1] = upperCaseSplitArray[check + 1].toLowerCase();
-                            break;
-                        } else {
-                            break;
-                        }
-                    }
-                }
-            }
-            StringBuilder strBuilder = new StringBuilder();
-            for (String element : upperCaseSplitArray) {
-                strBuilder.append(element);
-            }
-            stringArray[l] = strBuilder.toString();
-        }
-        List<String> result = new ArrayList<String>();
-        for (String element : stringArray) {
-            String[] capitalCaseSplitArray = element.split(REGEX_WITH_UPPERCASE);
-            for (String letter : capitalCaseSplitArray) {
-                String[] arrayForAddition = letter.split(REGEX_WITH_DIGITS);
-                List<String> list = Arrays.asList(arrayForAddition);
-                for (String str : list) {
-                    if (str != null && !str.isEmpty()) {
-                        result.add(str);
-                    }
-                }
-            }
-        }
-        stringArray = result.toArray(new String[result.size()]);
-        return applyCamelCaseRule(stringArray, conflictResolver);
-    }
-
-    /**
-     * Applies the rule that a string does not end with a capitalized letter and capitalizes
-     * the letter next to a number in an array.
-     *
-     * @param stringArray containing strings for camel case separation
-     * @param conflictResolver object of YANG to java naming conflict util
-     * @return camel case rule checked string
-     */
-    private static String applyCamelCaseRule(String[] stringArray, YangToJavaNamingConflictUtil conflictResolver) {
-
-        String ruleChecker = stringArray[0].toLowerCase();
-        int i;
-        if (ruleChecker.matches(REGEX_FOR_FIRST_DIGIT)) {
-            i = 0;
-            ruleChecker = EMPTY_STRING;
-        } else {
-            i = 1;
-        }
-        for (; i < stringArray.length; i++) {
-            if (i + 1 == stringArray.length) {
-                if (stringArray[i].matches(REGEX_FOR_SINGLE_LETTER)
-                        || stringArray[i].matches(REGEX_FOR_DIGITS_WITH_SINGLE_LETTER)) {
-                    ruleChecker = ruleChecker + stringArray[i].toLowerCase();
-                    break;
-                }
-            }
-            if (stringArray[i].matches(REGEX_FOR_FIRST_DIGIT)) {
-                for (int j = 0; j < stringArray[i].length(); j++) {
-                    char letterCheck = stringArray[i].charAt(j);
-                    if (Character.isLetter(letterCheck)) {
-                        stringArray[i] = stringArray[i].substring(0, j)
-                                + stringArray[i].substring(j, j + 1).toUpperCase() + stringArray[i].substring(j + 1);
-                        break;
-                    }
-                }
-                ruleChecker = ruleChecker + stringArray[i];
-            } else {
-                ruleChecker = ruleChecker + stringArray[i].substring(0, 1).toUpperCase() + stringArray[i].substring(1);
-            }
-        }
-        String ruleCheckerWithPrefix = addPrefix(ruleChecker, conflictResolver);
-        return restrictConsecutiveCapitalCase(ruleCheckerWithPrefix);
-    }
-
-    /**
-     * Adds prefix, if the string begins with digit or is a java key word.
-     *
-     * @param camelCasePrefix string for adding prefix
-     * @param conflictResolver object of YANG to java naming conflict util
-     * @return prefixed camel case string
-     */
-    private static String addPrefix(String camelCasePrefix, YangToJavaNamingConflictUtil conflictResolver) {
-
-        String prefix = getPrefixForIdentifier(conflictResolver);
-        if (camelCasePrefix.matches(REGEX_FOR_FIRST_DIGIT)) {
-            camelCasePrefix = prefix + camelCasePrefix;
-        }
-        if (JAVA_KEY_WORDS.contains(camelCasePrefix)) {
-            camelCasePrefix = prefix + camelCasePrefix.substring(0, 1).toUpperCase()
-                    + camelCasePrefix.substring(1);
-        }
-        return camelCasePrefix;
-    }
-
-    /**
-     * Restricts consecutive capital cased string as a rule in camel case.
-     *
-     * @param consecCapitalCaseRemover which requires the restriction of consecutive capital case
-     * @return string without consecutive capital case
-     */
-    private static String restrictConsecutiveCapitalCase(String consecCapitalCaseRemover) {
-
-        for (int k = 0; k < consecCapitalCaseRemover.length(); k++) {
-            if (k + 1 < consecCapitalCaseRemover.length()) {
-                if (Character.isUpperCase(consecCapitalCaseRemover.charAt(k))) {
-                    if (Character.isUpperCase(consecCapitalCaseRemover.charAt(k + 1))) {
-                        consecCapitalCaseRemover = consecCapitalCaseRemover.substring(0, k + 1)
-                                + consecCapitalCaseRemover.substring(k + 1, k + 2).toLowerCase()
-                                + consecCapitalCaseRemover.substring(k + 2);
-                    }
-                }
-            }
-        }
-        return consecCapitalCaseRemover;
-    }
-
-    /**
-     * Returns the YANG identifier name as java identifier with first letter
-     * in capital.
-     *
-     * @param yangIdentifier identifier in YANG file
-     * @return corresponding java identifier
-     */
-    public static String getCapitalCase(String yangIdentifier) {
-        yangIdentifier = yangIdentifier.substring(0, 1).toUpperCase() + yangIdentifier.substring(1);
-        return restrictConsecutiveCapitalCase(yangIdentifier);
-    }
-
-    /**
-     * Returns the YANG identifier name as java identifier with first letter
-     * in small.
-     *
-     * @param yangIdentifier identifier in YANG file.
-     * @return corresponding java identifier
-     */
-    public static String getSmallCase(String yangIdentifier) {
-        return yangIdentifier.substring(0, 1).toLowerCase() + yangIdentifier.substring(1);
-    }
-
-    /**
-     * Returns the java Package from package path.
-     *
-     * @param packagePath package path
-     * @return java package
-     */
-    public static String getJavaPackageFromPackagePath(String packagePath) {
-        return packagePath.replace(SLASH, PERIOD);
     }
 
     /**
@@ -479,12 +206,46 @@ public final class JavaIdentifierSyntax {
     }
 
     /**
-     * Returns the directory path corresponding to java package.
+     * Creates a package structure with package info java file if not present.
      *
-     * @param packagePath package path
-     * @return java package
+     * @param yangNode YANG node for which code is being generated
+     * @throws IOException any IO exception
      */
-    public static String getPackageDirPathFromJavaJPackage(String packagePath) {
-        return packagePath.replace(PERIOD, SLASH);
+    public static void createPackage(YangNode yangNode) throws IOException {
+        if (!(yangNode instanceof JavaFileInfoContainer)) {
+            throw new TranslatorException("current node must have java file info");
+        }
+        String pkgInfo;
+        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) yangNode).getJavaFileInfo();
+        String pkg = getAbsolutePackagePath(javaFileInfo.getBaseCodeGenPath(), javaFileInfo.getPackageFilePath());
+        if (!doesPackageExist(pkg)) {
+            try {
+                File pack = createDirectories(pkg);
+                YangNode parent = getParentNodeInGenCode(yangNode);
+                if (parent != null) {
+                    pkgInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo().getJavaName();
+                    addPackageInfo(pack, pkgInfo, getJavaPackageFromPackagePath(pkg), true,
+                            ((JavaFileInfoContainer) parent).getJavaFileInfo().getPluginConfig());
+                } else {
+                    pkgInfo = ((JavaFileInfoContainer) yangNode).getJavaFileInfo().getJavaName();
+                    addPackageInfo(pack, pkgInfo, getJavaPackageFromPackagePath(pkg), false,
+                            ((JavaFileInfoContainer) yangNode).getJavaFileInfo().getPluginConfig());
+                }
+            } catch (IOException e) {
+                throw new IOException("failed to create package-info file");
+            }
+        }
+    }
+
+    /**
+     * Checks if the package directory structure created.
+     *
+     * @param pkg Package to check if it is created
+     * @return existence status of package
+     */
+    public static boolean doesPackageExist(String pkg) {
+        File pkgDir = new File(getPackageDirPathFromJavaJPackage(pkg));
+        File pkgWithFile = new File(pkgDir + SLASH + "package-info.java");
+        return pkgDir.exists() && pkgWithFile.isFile();
     }
 }

@@ -23,13 +23,14 @@ import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
+import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getBuild;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getBuildForInterface;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getCheckNotNull;

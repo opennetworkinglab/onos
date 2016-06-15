@@ -28,7 +28,8 @@ import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
 import org.onosproject.yangutils.translator.tojava.TempJavaEnumerationFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaServiceFragmentFiles;
-import org.onosproject.yangutils.translator.tojava.javamodel.JavaCodeGeneratorInfo;
+import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
+import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
@@ -65,7 +66,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetG
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getDataFromTempFileHandle;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getEnumsValueAttribute;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.initiateJavaFileGeneration;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.addActivateMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.addDeActivateMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAddAugmentInfoMethodImpl;

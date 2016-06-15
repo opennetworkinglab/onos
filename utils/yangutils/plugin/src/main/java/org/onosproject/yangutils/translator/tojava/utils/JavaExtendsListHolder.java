@@ -27,7 +27,7 @@ import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.JavaImportData;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.getTempJavaFragement;
 
 /**

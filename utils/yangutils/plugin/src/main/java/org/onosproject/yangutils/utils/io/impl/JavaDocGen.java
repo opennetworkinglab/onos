@@ -16,10 +16,7 @@
 
 package org.onosproject.yangutils.utils.io.impl;
 
-import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
-import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
-
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCamelCase;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_CLASS_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_INTERFACE_JAVA_DOC;
@@ -202,7 +199,7 @@ public final class JavaDocGen {
      */
     public static String getJavaDoc(JavaDocType type, String name, boolean isList, YangPluginConfig pluginConfig) {
 
-        name = JavaIdentifierSyntax.getSmallCase(getCamelCase(name, pluginConfig.getConflictResolver()));
+        name = YangIoUtils.getSmallCase(getCamelCase(name, pluginConfig.getConflictResolver()));
         switch (type) {
             case IMPL_CLASS: {
                 return generateForClass(name);

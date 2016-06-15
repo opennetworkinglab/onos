@@ -17,7 +17,7 @@
 package org.onosproject.yangutils.linker;
 
 import java.util.Set;
-import org.onosproject.yangutils.plugin.manager.YangFileInfo;
+import org.onosproject.yangutils.datamodel.YangNode;
 
 /**
  * Abstraction of entity which provides linking service of YANG files.
@@ -28,7 +28,7 @@ public interface YangLinker {
      * Resolve the import and include dependencies for a given resolution
      * information.
      *
-     * @param yangFileInfoSet set of all dependent YANG files
+     * @param yangNodeSet set of all dependent YANG nodes
      */
-    void resolveDependencies(Set<YangFileInfo> yangFileInfoSet);
+    void resolveDependencies(Set<YangNode> yangNodeSet);
 }

@@ -22,13 +22,13 @@ import java.util.Objects;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.javamodel.JavaLeafInfoContainer;
-import org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType;
-import org.onosproject.yangutils.translator.tojava.utils.YangToJavaNamingConflictUtil;
+import org.onosproject.yangutils.translator.tojava.javamodel.AttributesJavaDataType;
+import org.onosproject.yangutils.utils.io.impl.YangToJavaNamingConflictUtil;
 
 import com.google.common.base.MoreObjects;
 
-import static org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType.getJavaImportClass;
-import static org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType.getJavaImportPackage;
+import static org.onosproject.yangutils.translator.tojava.javamodel.AttributesJavaDataType.getJavaImportClass;
+import static org.onosproject.yangutils.translator.tojava.javamodel.AttributesJavaDataType.getJavaImportPackage;
 
 /**
  * Represents the information about individual imports in the generated file.

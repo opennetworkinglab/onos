@@ -26,8 +26,10 @@ import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.javamodel.AttributesJavaDataType;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaTypeDef;
+import org.onosproject.yangutils.utils.io.impl.YangToJavaNamingConflictUtil;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
@@ -37,9 +39,9 @@ import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.INT32;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.UINT8;
-import static org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType.getJavaDataType;
-import static org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType.getJavaImportClass;
-import static org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType.getJavaImportPackage;
+import static org.onosproject.yangutils.translator.tojava.javamodel.AttributesJavaDataType.getJavaDataType;
+import static org.onosproject.yangutils.translator.tojava.javamodel.AttributesJavaDataType.getJavaImportClass;
+import static org.onosproject.yangutils.translator.tojava.javamodel.AttributesJavaDataType.getJavaImportPackage;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_LANG;
 
 /**

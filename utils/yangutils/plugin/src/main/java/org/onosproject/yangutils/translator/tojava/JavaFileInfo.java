@@ -18,7 +18,7 @@ package org.onosproject.yangutils.translator.tojava;
 
 import java.io.Serializable;
 
-import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
+import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
 /**
  * Represents cached java file handle, which supports the addition of member attributes and

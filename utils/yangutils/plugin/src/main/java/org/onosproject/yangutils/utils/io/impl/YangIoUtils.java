@@ -19,73 +19,60 @@ package org.onosproject.yangutils.utils.io.impl;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.Stack;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.regex.Pattern;
-
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.model.Dependency;
-import org.apache.maven.model.Resource;
-import org.apache.maven.project.MavenProject;
-import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.plugin.manager.YangFileInfo;
-import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
-import org.slf4j.Logger;
-import org.sonatype.plexus.build.incremental.BuildContext;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
+import static org.onosproject.yangutils.utils.UtilConstants.COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.HASH;
 import static org.onosproject.yangutils.utils.UtilConstants.HYPHEN;
-import static org.onosproject.yangutils.utils.UtilConstants.JAR;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_KEY_WORDS;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.ORG;
 import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_DIGITS_WITH_SINGLE_LETTER;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_FIRST_DIGIT;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_HYPHEN;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_IDENTIFIER_SPECIAL_CHAR;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_PERIOD;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_SINGLE_LETTER;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_UNDERSCORE;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_ALL_SPECIAL_CHAR;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_DIGITS;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_SINGLE_CAPITAL_CASE;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_SINGLE_CAPITAL_CASE_AND_DIGITS_SMALL_CASES;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_UPPERCASE;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
-import static org.onosproject.yangutils.utils.UtilConstants.TEMP;
 import static org.onosproject.yangutils.utils.UtilConstants.TWELVE_SPACE_INDENTATION;
-import static org.onosproject.yangutils.utils.UtilConstants.YANG_RESOURCES;
+import static org.onosproject.yangutils.utils.UtilConstants.UNDER_SCORE;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUTO_PREFIX;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.appendFileContents;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.updateFileHandle;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.PACKAGE_INFO;
-import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 
 /**
  * Represents common utility functionalities for code generation.
  */
 public final class YangIoUtils {
 
-    private static final Logger log = getLogger(YangIoUtils.class);
-    private static final String TARGET_RESOURCE_PATH = SLASH + TEMP + SLASH + YANG_RESOURCES + SLASH;
     private static final int LINE_SIZE = 118;
     private static final int SUB_LINE_SIZE = 112;
     private static final int ZERO = 0;
-    private static final String SERIALIZED_FILE_EXTENSION = ".ser";
 
     /**
      * Creates an instance of YANG io utils.
@@ -223,19 +210,6 @@ public final class YangIoUtils {
     }
 
     /**
-     * Adds generated source directory to the compilation root.
-     *
-     * @param source  directory
-     * @param project current maven project
-     * @param context current build context
-     */
-    public static void addToCompilationRoot(String source, MavenProject project, BuildContext context) {
-        project.addCompileSourceRoot(source);
-        context.refresh(project.getBasedir());
-        log.info("Source directory added to compilation root: " + source);
-    }
-
-    /**
      * Removes extra char from the string.
      *
      * @param valueString    string to be trimmed
@@ -300,49 +274,6 @@ public final class YangIoUtils {
      */
     public static String getAbsolutePackagePath(String baseCodeGenPath, String pathOfJavaPkg) {
         return baseCodeGenPath + pathOfJavaPkg;
-    }
-
-    /**
-     * Copies YANG files to the current project's output directory.
-     *
-     * @param yangFileInfo list of YANG files
-     * @param outputDir    project's output directory
-     * @param project      maven project
-     * @throws IOException when fails to copy files to destination resource directory
-     */
-    public static void copyYangFilesToTarget(Set<YangFileInfo> yangFileInfo, String outputDir, MavenProject project)
-            throws IOException {
-
-        List<File> files = getListOfFile(yangFileInfo);
-
-        String path = outputDir + TARGET_RESOURCE_PATH;
-        File targetDir = new File(path);
-        targetDir.mkdirs();
-
-        for (File file : files) {
-            Files.copy(file.toPath(),
-                    new File(path + file.getName()).toPath(),
-                    StandardCopyOption.REPLACE_EXISTING);
-        }
-        addToProjectResource(outputDir + SLASH + TEMP + SLASH, project);
-    }
-
-    /**
-     * Provides a list of files from list of strings.
-     *
-     * @param yangFileInfo set of yang file information
-     * @return list of files
-     */
-    private static List<File> getListOfFile(Set<YangFileInfo> yangFileInfo) {
-        List<File> files = new ArrayList<>();
-        Iterator<YangFileInfo> yangFileIterator = yangFileInfo.iterator();
-        while (yangFileIterator.hasNext()) {
-            YangFileInfo yangFile = yangFileIterator.next();
-            if (yangFile.isForTranslator()) {
-                files.add(new File(yangFile.getYangFileName()));
-            }
-        }
-        return files;
     }
 
     /**
@@ -501,173 +432,258 @@ public final class YangIoUtils {
     }
 
     /**
-     * Serializes data-model.
+     * Returns the java Package from package path.
      *
-     * @param directory base directory for serialized files
-     * @param fileInfoSet YANG file info set
-     * @param project maven project
-     * @param operation true if need to add to resource
-     * @throws IOException when fails to do IO operations
+     * @param packagePath package path
+     * @return java package
      */
-    public static void serializeDataModel(String directory, Set<YangFileInfo> fileInfoSet,
-            MavenProject project, boolean operation) throws IOException {
-
-        String serFileDirPath = directory + TARGET_RESOURCE_PATH;
-        File dir = new File(serFileDirPath);
-        dir.mkdirs();
-
-        if (operation) {
-            addToProjectResource(directory + SLASH + TEMP + SLASH, project);
-        }
-
-        for (YangFileInfo fileInfo : fileInfoSet) {
-
-            String serFileName = serFileDirPath + getCamelCase(fileInfo.getRootNode().getName(), null)
-                    + SERIALIZED_FILE_EXTENSION;
-            fileInfo.setSerializedFile(serFileName);
-            FileOutputStream fileOutputStream = new FileOutputStream(serFileName);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-            objectOutputStream.writeObject(fileInfo.getRootNode());
-            objectOutputStream.close();
-            fileOutputStream.close();
-        }
-    }
-
-    /* Adds directory to resources of project */
-    private static void addToProjectResource(String dir, MavenProject project) {
-        Resource rsc = new Resource();
-        rsc.setDirectory(dir);
-        project.addResource(rsc);
+    public static String getJavaPackageFromPackagePath(String packagePath) {
+        return packagePath.replace(SLASH, PERIOD);
     }
 
     /**
-     * Returns de-serializes YANG data-model nodes.
+     * Returns the directory path corresponding to java package.
      *
-     * @param serailizedfileInfoSet YANG file info set
-     * @return de-serializes YANG data-model nodes
-     * @throws IOException when fails do IO operations
+     * @param packagePath package path
+     * @return java package
      */
-    public static List<YangNode> deSerializeDataModel(List<String> serailizedfileInfoSet) throws IOException {
-
-        List<YangNode> nodes = new ArrayList<>();
-        for (String fileInfo : serailizedfileInfoSet) {
-            YangNode node = null;
-            try {
-                FileInputStream fileInputStream = new FileInputStream(fileInfo);
-                ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-                node = (YangNode) objectInputStream.readObject();
-                nodes.add(node);
-                objectInputStream.close();
-                fileInputStream.close();
-            } catch (IOException | ClassNotFoundException e) {
-                throw new IOException(fileInfo + " not found.");
-            }
-        }
-        return nodes;
+    public static String getPackageDirPathFromJavaJPackage(String packagePath) {
+        return packagePath.replace(PERIOD, SLASH);
     }
 
     /**
-     * Resolves inter jar dependencies.
+     * Returns the YANG identifier name as java identifier with first letter
+     * in small.
      *
-     * @param project current maven project
-     * @param localRepository local maven repository
-     * @param remoteRepos list of remote repository
-     * @param directory directory for serialized files
-     * @return list of resolved datamodel nodes
-     * @throws IOException when fails to do IO operations
+     * @param yangIdentifier identifier in YANG file.
+     * @return corresponding java identifier
      */
-    public static List<YangNode> resolveInterJarDependencies(MavenProject project, ArtifactRepository localRepository,
-            List<ArtifactRepository> remoteRepos, String directory) throws IOException {
-
-        List<String> dependeciesJarPaths = resolveDependecyJarPath(project, localRepository, remoteRepos);
-        List<YangNode> resolvedDataModelNodes = new ArrayList<>();
-        for (String dependecy : dependeciesJarPaths) {
-            resolvedDataModelNodes.addAll(deSerializeDataModel(parseJarFile(dependecy, directory)));
-        }
-        return resolvedDataModelNodes;
+    public static String getSmallCase(String yangIdentifier) {
+        return yangIdentifier.substring(0, 1).toLowerCase() + yangIdentifier.substring(1);
     }
 
     /**
-     * Returns list of jar path.
+     * Returns the YANG identifier name as java identifier with first letter
+     * in capital.
      *
-     * @return list of jar paths
+     * @param yangIdentifier identifier in YANG file
+     * @return corresponding java identifier
      */
-    private static List<String> resolveDependecyJarPath(MavenProject project, ArtifactRepository localRepository,
-            List<ArtifactRepository> remoteRepos) {
-
-        StringBuilder path = new StringBuilder();
-        List<String> jarPaths = new ArrayList<>();
-        for (Dependency dependency : project.getDependencies()) {
-
-            path.append(localRepository.getBasedir());
-            path.append(SLASH);
-            path.append(getPackageDirPathFromJavaJPackage(dependency.getGroupId()));
-            path.append(SLASH);
-            path.append(dependency.getArtifactId());
-            path.append(SLASH);
-            path.append(dependency.getVersion());
-            path.append(SLASH);
-            path.append(dependency.getArtifactId() + HYPHEN + dependency.getVersion() + PERIOD + JAR);
-            File jarFile = new File(path.toString());
-            if (jarFile.exists()) {
-                jarPaths.add(path.toString());
-            }
-            path.delete(0, path.length());
-        }
-
-        for (ArtifactRepository repo : remoteRepos) {
-            // TODO: add resolver for remote repo.
-        }
-        return jarPaths;
+    public static String getCapitalCase(String yangIdentifier) {
+        yangIdentifier = yangIdentifier.substring(0, 1).toUpperCase() + yangIdentifier.substring(1);
+        return restrictConsecutiveCapitalCase(yangIdentifier);
     }
 
     /**
-     * Parses jar file and returns list of serialized file names.
+     * Restricts consecutive capital cased string as a rule in camel case.
      *
-     * @param jarFile jar file to be parsed
-     * @param directory directory for keeping the searized files
-     * @return list of serialized files
-     * @throws IOException when fails to do IO operations
+     * @param consecCapitalCaseRemover which requires the restriction of consecutive capital case
+     * @return string without consecutive capital case
      */
-    public static List<String> parseJarFile(String jarFile, String directory)
-            throws IOException {
+    public static String restrictConsecutiveCapitalCase(String consecCapitalCaseRemover) {
 
-        List<String> serailizedFiles = new ArrayList<>();
-        JarFile jar = new JarFile(jarFile);
-        Enumeration<?> enumEntries = jar.entries();
-
-        File serializedFileDir = new File(directory);
-        serializedFileDir.mkdirs();
-        while (enumEntries.hasMoreElements()) {
-            JarEntry file = (JarEntry) enumEntries.nextElement();
-            if (file.getName().endsWith(SERIALIZED_FILE_EXTENSION)) {
-                if (file.getName().contains(SLASH)) {
-                    String[] strArray = file.getName().split(SLASH);
-                    String tempPath = "";
-                    for (int i = 0; i < strArray.length - 1; i++) {
-                        tempPath = SLASH + tempPath + SLASH + strArray[i];
+        for (int k = 0; k < consecCapitalCaseRemover.length(); k++) {
+            if (k + 1 < consecCapitalCaseRemover.length()) {
+                if (Character.isUpperCase(consecCapitalCaseRemover.charAt(k))) {
+                    if (Character.isUpperCase(consecCapitalCaseRemover.charAt(k + 1))) {
+                        consecCapitalCaseRemover = consecCapitalCaseRemover.substring(0, k + 1)
+                                + consecCapitalCaseRemover.substring(k + 1, k + 2).toLowerCase()
+                                + consecCapitalCaseRemover.substring(k + 2);
                     }
-                    File dir = new File(directory + tempPath);
-                    dir.mkdirs();
                 }
-                File serailizedFile = new File(directory + SLASH + file.getName());
-                if (file.isDirectory()) {
-                    serailizedFile.mkdirs();
-                    continue;
-                }
-                InputStream inputStream = jar.getInputStream(file);
-
-                FileOutputStream fileOutputStream = new FileOutputStream(serailizedFile);
-                while (inputStream.available() > 0) {
-                    fileOutputStream.write(inputStream.read());
-                }
-                fileOutputStream.close();
-                inputStream.close();
-                serailizedFiles.add(serailizedFile.toString());
             }
         }
-        jar.close();
-        return serailizedFiles;
+        return consecCapitalCaseRemover;
     }
 
+    /**
+     * Adds prefix, if the string begins with digit or is a java key word.
+     *
+     * @param camelCasePrefix string for adding prefix
+     * @param conflictResolver object of YANG to java naming conflict util
+     * @return prefixed camel case string
+     */
+    public static String addPrefix(String camelCasePrefix, YangToJavaNamingConflictUtil conflictResolver) {
+
+        String prefix = getPrefixForIdentifier(conflictResolver);
+        if (camelCasePrefix.matches(REGEX_FOR_FIRST_DIGIT)) {
+            camelCasePrefix = prefix + camelCasePrefix;
+        }
+        if (JAVA_KEY_WORDS.contains(camelCasePrefix)) {
+            camelCasePrefix = prefix + camelCasePrefix.substring(0, 1).toUpperCase()
+                    + camelCasePrefix.substring(1);
+        }
+        return camelCasePrefix;
+    }
+
+    /**
+     * Applies the rule that a string does not end with a capitalized letter and capitalizes
+     * the letter next to a number in an array.
+     *
+     * @param stringArray containing strings for camel case separation
+     * @param conflictResolver object of YANG to java naming conflict util
+     * @return camel case rule checked string
+     */
+    public static String applyCamelCaseRule(String[] stringArray, YangToJavaNamingConflictUtil conflictResolver) {
+
+        String ruleChecker = stringArray[0].toLowerCase();
+        int i;
+        if (ruleChecker.matches(REGEX_FOR_FIRST_DIGIT)) {
+            i = 0;
+            ruleChecker = EMPTY_STRING;
+        } else {
+            i = 1;
+        }
+        for (; i < stringArray.length; i++) {
+            if (i + 1 == stringArray.length) {
+                if (stringArray[i].matches(REGEX_FOR_SINGLE_LETTER)
+                        || stringArray[i].matches(REGEX_FOR_DIGITS_WITH_SINGLE_LETTER)) {
+                    ruleChecker = ruleChecker + stringArray[i].toLowerCase();
+                    break;
+                }
+            }
+            if (stringArray[i].matches(REGEX_FOR_FIRST_DIGIT)) {
+                for (int j = 0; j < stringArray[i].length(); j++) {
+                    char letterCheck = stringArray[i].charAt(j);
+                    if (Character.isLetter(letterCheck)) {
+                        stringArray[i] = stringArray[i].substring(0, j)
+                                + stringArray[i].substring(j, j + 1).toUpperCase() + stringArray[i].substring(j + 1);
+                        break;
+                    }
+                }
+                ruleChecker = ruleChecker + stringArray[i];
+            } else {
+                ruleChecker = ruleChecker + stringArray[i].substring(0, 1).toUpperCase() + stringArray[i].substring(1);
+            }
+        }
+        String ruleCheckerWithPrefix = addPrefix(ruleChecker, conflictResolver);
+        return restrictConsecutiveCapitalCase(ruleCheckerWithPrefix);
+    }
+
+    /**
+     * Resolves the conflict when input has upper case.
+     *
+     * @param stringArray containing strings for upper case conflict resolver
+     * @param conflictResolver object of YANG to java naming conflict util
+     * @return camel cased string
+     */
+    public static String upperCaseConflictResolver(String[] stringArray,
+                                                   YangToJavaNamingConflictUtil conflictResolver) {
+
+        for (int l = 0; l < stringArray.length; l++) {
+            String[] upperCaseSplitArray = stringArray[l].split(REGEX_WITH_UPPERCASE);
+            for (int m = 0; m < upperCaseSplitArray.length; m++) {
+                if (upperCaseSplitArray[m].matches(REGEX_WITH_SINGLE_CAPITAL_CASE)) {
+                    int check = m;
+                    while (check + 1 < upperCaseSplitArray.length) {
+                        if (upperCaseSplitArray[check + 1].matches(REGEX_WITH_SINGLE_CAPITAL_CASE)) {
+                            upperCaseSplitArray[check + 1] = upperCaseSplitArray[check + 1].toLowerCase();
+                            check = check + 1;
+                        } else if (upperCaseSplitArray[check + 1]
+                                .matches(REGEX_WITH_SINGLE_CAPITAL_CASE_AND_DIGITS_SMALL_CASES)) {
+                            upperCaseSplitArray[check + 1] = upperCaseSplitArray[check + 1].toLowerCase();
+                            break;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+            StringBuilder strBuilder = new StringBuilder();
+            for (String element : upperCaseSplitArray) {
+                strBuilder.append(element);
+            }
+            stringArray[l] = strBuilder.toString();
+        }
+        List<String> result = new ArrayList<String>();
+        for (String element : stringArray) {
+            String[] capitalCaseSplitArray = element.split(REGEX_WITH_UPPERCASE);
+            for (String letter : capitalCaseSplitArray) {
+                String[] arrayForAddition = letter.split(REGEX_WITH_DIGITS);
+                List<String> list = Arrays.asList(arrayForAddition);
+                for (String str : list) {
+                    if (str != null && !str.isEmpty()) {
+                        result.add(str);
+                    }
+                }
+            }
+        }
+        stringArray = result.toArray(new String[result.size()]);
+        return applyCamelCaseRule(stringArray, conflictResolver);
+    }
+
+    /**
+     * Returns the YANG identifier name as java identifier.
+     *
+     * @param yangIdentifier identifier in YANG file
+     * @param conflictResolver object of YANG to java naming conflict util
+     * @return corresponding java identifier
+     */
+    public static String getCamelCase(String yangIdentifier, YangToJavaNamingConflictUtil conflictResolver) {
+
+        if (conflictResolver != null) {
+            String replacementForHyphen = conflictResolver.getReplacementForHyphen();
+            String replacementForPeriod = conflictResolver.getReplacementForPeriod();
+            String replacementForUnderscore = conflictResolver.getReplacementForUnderscore();
+            if (replacementForPeriod != null) {
+                yangIdentifier = yangIdentifier.replaceAll(REGEX_FOR_PERIOD,
+                        PERIOD + replacementForPeriod.toLowerCase() + PERIOD);
+            }
+            if (replacementForUnderscore != null) {
+                yangIdentifier = yangIdentifier.replaceAll(REGEX_FOR_UNDERSCORE,
+                        UNDER_SCORE + replacementForUnderscore.toLowerCase() + UNDER_SCORE);
+            }
+            if (replacementForHyphen != null) {
+                yangIdentifier = yangIdentifier.replaceAll(REGEX_FOR_HYPHEN,
+                        HYPHEN + replacementForHyphen.toLowerCase() + HYPHEN);
+            }
+        }
+        yangIdentifier = yangIdentifier.replaceAll(REGEX_FOR_IDENTIFIER_SPECIAL_CHAR, COLAN);
+        String[] strArray = yangIdentifier.split(COLAN);
+        if (strArray[0].isEmpty()) {
+            List<String> stringArrangement = new ArrayList<String>();
+            for (int i = 1; i < strArray.length; i++) {
+                stringArrangement.add(strArray[i]);
+            }
+            strArray = stringArrangement.toArray(new String[stringArrangement.size()]);
+        }
+        return upperCaseConflictResolver(strArray, conflictResolver);
+    }
+
+    /**
+     * Prefix for adding with identifier and namespace, when it is a java keyword or starting with digits.
+     *
+     * @param conflictResolver object of YANG to java naming conflict util
+     * @return prefix which needs to be added
+     */
+    public static String getPrefixForIdentifier(YangToJavaNamingConflictUtil conflictResolver) {
+
+        String prefixForIdentifier = null;
+        if (conflictResolver != null) {
+            prefixForIdentifier = conflictResolver.getPrefixForIdentifier();
+        }
+        if (prefixForIdentifier != null) {
+            prefixForIdentifier = prefixForIdentifier.replaceAll(REGEX_WITH_ALL_SPECIAL_CHAR, COLAN);
+            String[] strArray = prefixForIdentifier.split(COLAN);
+            try {
+                if (strArray[0].isEmpty()) {
+                    List<String> stringArrangement = new ArrayList<String>();
+                    for (int i = 1; i < strArray.length; i++) {
+                        stringArrangement.add(strArray[i]);
+                    }
+                    strArray = stringArrangement.toArray(new String[stringArrangement.size()]);
+                }
+                prefixForIdentifier = strArray[0];
+                for (int j = 1; j < strArray.length; j++) {
+                    prefixForIdentifier = prefixForIdentifier + strArray[j].substring(0, 1).toUpperCase() +
+                            strArray[j].substring(1);
+                }
+            } catch (ArrayIndexOutOfBoundsException outOfBoundsException) {
+                throw new TranslatorException("The given prefix in pom.xml is invalid.");
+            }
+        } else {
+            prefixForIdentifier = YANG_AUTO_PREFIX;
+        }
+        return prefixForIdentifier;
+    }
 }

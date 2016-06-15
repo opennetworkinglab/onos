@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.translator.tojava.utils;
+package org.onosproject.yangutils.utils.io.impl;
 
 /**
  * Representation of YANG to java naming conflict resolver util.

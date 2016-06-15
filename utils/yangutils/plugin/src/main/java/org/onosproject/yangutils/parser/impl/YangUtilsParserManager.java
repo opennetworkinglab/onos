@@ -17,7 +17,6 @@
 package org.onosproject.yangutils.parser.impl;
 
 import java.io.IOException;
-
 import org.antlr.v4.runtime.ANTLRFileStream;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;

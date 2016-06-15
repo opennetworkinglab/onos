@@ -17,9 +17,10 @@
 package org.onosproject.yangutils.translator.tojava.utils;
 
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
+import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getEnumJavaAttribute;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getSmallCase;
 import static org.onosproject.yangutils.utils.UtilConstants.ARRAY_LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;

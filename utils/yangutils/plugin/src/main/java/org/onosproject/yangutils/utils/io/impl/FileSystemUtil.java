@@ -25,24 +25,12 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
-
-import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.getParentNodeInGenCode;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getJavaPackageFromPackagePath;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.utils.UtilConstants.EIGHT_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.MULTIPLE_NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
-import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addPackageInfo;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.createDirectories;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
 
 /**
  * Represents utility to handle file system operations.
@@ -56,57 +44,13 @@ public final class FileSystemUtil {
     }
 
     /**
-     * Checks if the package directory structure created.
-     *
-     * @param pkg Package to check if it is created
-     * @return existence status of package
-     */
-    public static boolean doesPackageExist(String pkg) {
-        File pkgDir = new File(getPackageDirPathFromJavaJPackage(pkg));
-        File pkgWithFile = new File(pkgDir + SLASH + "package-info.java");
-        return pkgDir.exists() && pkgWithFile.isFile();
-    }
-
-    /**
-     * Creates a package structure with package info java file if not present.
-     *
-     * @param yangNode YANG node for which code is being generated
-     * @throws IOException any IO exception
-     */
-    public static void createPackage(YangNode yangNode) throws IOException {
-        if (!(yangNode instanceof JavaFileInfoContainer)) {
-            throw new TranslatorException("current node must have java file info");
-        }
-        String pkgInfo;
-        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) yangNode).getJavaFileInfo();
-        String pkg = getAbsolutePackagePath(javaFileInfo.getBaseCodeGenPath(), javaFileInfo.getPackageFilePath());
-        if (!doesPackageExist(pkg)) {
-            try {
-                File pack = createDirectories(pkg);
-                YangNode parent = getParentNodeInGenCode(yangNode);
-                if (parent != null) {
-                    pkgInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo().getJavaName();
-                    addPackageInfo(pack, pkgInfo, getJavaPackageFromPackagePath(pkg), true,
-                            ((JavaFileInfoContainer) parent).getJavaFileInfo().getPluginConfig());
-                } else {
-                    pkgInfo = ((JavaFileInfoContainer) yangNode).getJavaFileInfo().getJavaName();
-                    addPackageInfo(pack, pkgInfo, getJavaPackageFromPackagePath(pkg), false,
-                            ((JavaFileInfoContainer) yangNode).getJavaFileInfo().getPluginConfig());
-                }
-            } catch (IOException e) {
-                throw new IOException("failed to create package-info file");
-            }
-        }
-    }
-
-    /**
      * Reads the contents from source file and append its contents to append
      * file.
      *
      * @param toAppend destination file in which the contents of source file is
-     * appended
-     * @param srcFile source file from which data is read and added to to append
-     * file
+     *                 appended
+     * @param srcFile  source file from which data is read and added to to append
+     *                 file
      * @throws IOException any IO errors
      */
     public static void appendFileContents(File toAppend, File srcFile)
@@ -118,7 +62,7 @@ public final class FileSystemUtil {
      * Reads file and convert it to string.
      *
      * @param toAppend file to be converted
-     * @param spaces spaces to be appended
+     * @param spaces   spaces to be appended
      * @return string of file
      * @throws IOException when fails to convert to string
      */
@@ -153,9 +97,9 @@ public final class FileSystemUtil {
     /**
      * Updates the generated file handle.
      *
-     * @param inputFile input file
+     * @param inputFile        input file
      * @param contentTobeAdded content to be appended to the file
-     * @param isClose when close of file is called.
+     * @param isClose          when close of file is called.
      * @throws IOException if the named file exists but is a directory rather than a regular file,
      *                     does not exist but cannot be created, or cannot be opened for any other reason
      */

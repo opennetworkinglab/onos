@@ -23,16 +23,17 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
+import org.onosproject.yangutils.utils.io.impl.YangToJavaNamingConflictUtil;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getJavaPackageFromPackagePath;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCamelCase;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getJavaPackageFromPackagePath;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getSmallCase;
 import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT_BASE_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 

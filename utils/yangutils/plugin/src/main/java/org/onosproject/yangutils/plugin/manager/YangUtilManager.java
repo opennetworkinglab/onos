@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -37,25 +36,25 @@ import org.onosproject.yangutils.linker.impl.YangLinkerManager;
 import org.onosproject.yangutils.parser.YangUtilsParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
-import org.onosproject.yangutils.translator.tojava.utils.YangToJavaNamingConflictUtil;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
+import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
+import org.onosproject.yangutils.utils.io.impl.YangToJavaNamingConflictUtil;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 import static org.apache.maven.plugins.annotations.LifecyclePhase.GENERATE_SOURCES;
 import static org.apache.maven.plugins.annotations.ResolutionScope.COMPILE;
+import static org.onosproject.yangutils.plugin.manager.YangPluginUtils.addToCompilationRoot;
+import static org.onosproject.yangutils.plugin.manager.YangPluginUtils.copyYangFilesToTarget;
+import static org.onosproject.yangutils.plugin.manager.YangPluginUtils.resolveInterJarDependencies;
+import static org.onosproject.yangutils.plugin.manager.YangPluginUtils.serializeDataModel;
 import static org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorUtil.generateJavaCode;
 import static org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorUtil.translatorErrorHandler;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT_BASE_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addToCompilationRoot;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.copyYangFilesToTarget;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getDirectory;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.resolveInterJarDependencies;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.serializeDataModel;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getPackageDirPathFromJavaJPackage;
 
 /**
  * Represents ONOS YANG utility maven plugin.
@@ -64,7 +63,7 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.serializeDataM
  * requiresDependencyResolution at compile time.
  */
 @Mojo(name = "yang2java", defaultPhase = GENERATE_SOURCES, requiresDependencyResolution = COMPILE,
-    requiresProject = true)
+        requiresProject = true)
 public class YangUtilManager
         extends AbstractMojo {
 
@@ -74,6 +73,8 @@ public class YangUtilManager
     private YangUtilsParser yangUtilsParser = new YangUtilsParserManager();
     private YangLinker yangLinker = new YangLinkerManager();
     private YangFileInfo curYangFileInfo = new YangFileInfo();
+
+    private Set<YangNode> yangNodeSet = new HashSet<>();
 
     private static final String DEFAULT_PKG = SLASH + getPackageDirPathFromJavaJPackage(DEFAULT_BASE_PKG);
 
@@ -217,6 +218,15 @@ public class YangUtilManager
     }
 
     /**
+     * Returns the YANG node set.
+     *
+     * @return YANG node set
+     */
+    public Set<YangNode> getYangNodeSet() {
+        return yangNodeSet;
+    }
+
+    /**
      * Resolved inter-jar dependencies.
      *
      * @throws IOException when fails to do IO operations
@@ -244,13 +254,23 @@ public class YangUtilManager
      */
     public void resolveDependenciesUsingLinker()
             throws MojoExecutionException {
+        createYangNodeSet();
         for (YangFileInfo yangFileInfo : getYangFileInfoSet()) {
             setCurYangFileInfo(yangFileInfo);
             try {
-                yangLinker.resolveDependencies(getYangFileInfoSet());
+                yangLinker.resolveDependencies(getYangNodeSet());
             } catch (LinkerException e) {
                 throw new MojoExecutionException(e.getMessage());
             }
+        }
+    }
+
+    /**
+     * Creates YANG nodes set.
+     */
+    public void createYangNodeSet() {
+        for (YangFileInfo yangFileInfo : getYangFileInfoSet()) {
+            getYangNodeSet().add(yangFileInfo.getRootNode());
         }
     }
 

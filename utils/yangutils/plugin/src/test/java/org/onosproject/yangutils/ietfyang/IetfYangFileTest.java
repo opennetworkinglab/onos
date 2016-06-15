@@ -22,7 +22,7 @@ import org.onosproject.yangutils.linker.impl.YangLinkerManager;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 import org.onosproject.yangutils.plugin.manager.YangUtilManager;
-import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
+import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
 
 import java.io.IOException;

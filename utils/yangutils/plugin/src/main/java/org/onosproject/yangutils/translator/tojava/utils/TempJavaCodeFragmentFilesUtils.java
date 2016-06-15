@@ -19,51 +19,29 @@ package org.onosproject.yangutils.translator.tojava.utils;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
-import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
 import org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaAugment;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
 
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
 import static org.onosproject.yangutils.utils.UtilConstants.ACTIVATE_ANNOTATION_IMPORT;
-import static org.onosproject.yangutils.utils.UtilConstants.ADD_STRING;
-import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTATION_HOLDER;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO;
-import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
-import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.COMPONENT_ANNOTATION_IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.DEACTIVATE_ANNOTATION_IMPORT;
-import static org.onosproject.yangutils.utils.UtilConstants.EIGHT_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.ENUM;
-import static org.onosproject.yangutils.utils.UtilConstants.EQUAL;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
-import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
-import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.LOGGER_FACTORY_IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.LOGGER_IMPORT;
-import static org.onosproject.yangutils.utils.UtilConstants.NEW;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_CURLY_BRACKET;
-import static org.onosproject.yangutils.utils.UtilConstants.OPEN_PARENTHESIS;
-import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
-import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SERVICE_ANNOTATION_IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
-import static org.onosproject.yangutils.utils.UtilConstants.THIS;
 import static org.onosproject.yangutils.utils.UtilConstants.TYPE;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.updateFileHandle;
-
 import static java.util.Collections.sort;
 
 /**
@@ -121,84 +99,6 @@ public final class TempJavaCodeFragmentFilesUtils {
     }
 
     /**
-     * Updated imports with augmented nodes import.
-     *
-     * @param curNode   current YANG node
-     * @param imports   list of imports
-     * @param operation to add or to delete
-     */
-    public static void addAugmentedNodesImport(YangNode curNode, List<String> imports, boolean operation) {
-
-        String nodesImport = "";
-
-        if (!(curNode instanceof YangJavaAugment)) {
-            throw new TranslatorException("current node should be of type augment node.");
-        }
-        YangJavaAugment augment = (YangJavaAugment) curNode;
-        List<YangNodeIdentifier> targetNodes = augment.getTargetNode();
-        YangNode parent = curNode.getParent();
-        if (parent instanceof YangJavaModule) {
-            // Add impl class import.
-            nodesImport = getAugmendtedNodesImports(parent, targetNodes, true) + SEMI_COLAN + NEW_LINE;
-            performOperationOnImports(imports, nodesImport, operation);
-            // Add builder class import.
-            if (targetNodes.size() > 2) {
-                nodesImport = getAugmendtedNodesImports(parent, targetNodes, false) + SEMI_COLAN + NEW_LINE;
-                performOperationOnImports(imports, nodesImport, operation);
-            }
-        }
-        // TODO: add functionality for submodule and uses.
-    }
-
-    /**
-     * Returns imports for augmented node.
-     *
-     * @param parent      parent YANG node
-     * @param targetNodes list of target nodes
-     * @param isImplClass if impl class's import required
-     * @return imports for augmented node
-     */
-    private static String getAugmendtedNodesImports(YangNode parent, List<YangNodeIdentifier> targetNodes,
-            boolean isImplClass) {
-        String pkgInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo().getPackage();
-
-        for (int i = 0; i < targetNodes.size() - 1; i++) {
-            pkgInfo = pkgInfo + PERIOD + targetNodes.get(i).getName();
-        }
-        String classInfo = targetNodes.get(targetNodes.size() - 1).getName();
-        if (!isImplClass) {
-            return IMPORT + pkgInfo.toLowerCase() + PERIOD + getCapitalCase(classInfo) + BUILDER;
-        }
-        return IMPORT + pkgInfo.toLowerCase() + PERIOD + getCapitalCase(classInfo) + BUILDER + PERIOD
-                + getCapitalCase(classInfo) + IMPL;
-    }
-
-    /**
-     * Provides string to be added in augment node's constructor.
-     *
-     * @param curNode current YANG node
-     * @return constructors string
-     */
-    public static String getAugmentsAddToAugmentedClassString(YangNode curNode) {
-
-        if (!(curNode instanceof YangJavaAugment)) {
-            throw new TranslatorException("current node should be of type augment node.");
-        }
-        YangJavaAugment augment = (YangJavaAugment) curNode;
-        List<YangNodeIdentifier> targetNodes = augment.getTargetNode();
-
-        String name = targetNodes.get(targetNodes.size() - 1).getName();
-        String captialCase = getCapitalCase(name);
-        String smallCase = getSmallCase(captialCase);
-        return EIGHT_SPACE_INDENTATION + captialCase + IMPL + SPACE + smallCase + IMPL + SPACE + EQUAL + SPACE + NEW
-                + SPACE + captialCase + BUILDER + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + PERIOD + NEW + SPACE
-                + captialCase + IMPL + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE
-                + EIGHT_SPACE_INDENTATION + smallCase + IMPL + PERIOD + ADD_STRING + AUGMENTATION + OPEN_PARENTHESIS
-                + THIS + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
-
-    }
-
-    /**
      * Adds import for array list.
      *
      * @param curNode   current YANG node
@@ -227,7 +127,7 @@ public final class TempJavaCodeFragmentFilesUtils {
      * @param classInfo class info to be added to import list
      */
     public static void addListnersImport(YangNode curNode, List<String> imports, boolean operation,
-            String classInfo) {
+                                         String classInfo) {
         String thisImport = "";
         if (classInfo.equals(LISTENER_SERVICE)) {
             thisImport = getTempJavaFragement(curNode).getJavaImportData().getListenerServiceImport();
@@ -272,7 +172,7 @@ public final class TempJavaCodeFragmentFilesUtils {
      * @return import list
      */
     private static List<String> performOperationOnImports(List<String> imports, String curImport,
-            boolean operation) {
+                                                          boolean operation) {
         if (operation) {
             imports.add(curImport);
         } else {

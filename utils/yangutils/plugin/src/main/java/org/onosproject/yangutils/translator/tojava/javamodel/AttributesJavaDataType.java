@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.translator.tojava.utils;
+package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.util.Stack;
-
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangEnumeration;
@@ -26,48 +25,35 @@ import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.YangUnion;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
+import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
-import org.onosproject.yangutils.translator.tojava.javamodel.JavaCodeGeneratorInfo;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaEnumeration;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModule;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaTypeDef;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaUnion;
+import org.onosproject.yangutils.utils.io.impl.YangToJavaNamingConflictUtil;
 
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCurNodePackage;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
+import static org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModelUtils.getCurNodePackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 import static org.onosproject.yangutils.utils.UtilConstants.BIG_INTEGER;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_DATA_TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.BYTE;
 import static org.onosproject.yangutils.utils.UtilConstants.BYTE_WRAPPER;
-import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
-import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_METHOD_NAME;
 import static org.onosproject.yangutils.utils.UtilConstants.INT;
 import static org.onosproject.yangutils.utils.UtilConstants.INTEGER_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_LANG;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_MATH;
 import static org.onosproject.yangutils.utils.UtilConstants.LONG;
 import static org.onosproject.yangutils.utils.UtilConstants.LONG_WRAPPER;
-import static org.onosproject.yangutils.utils.UtilConstants.NEW;
-import static org.onosproject.yangutils.utils.UtilConstants.PARSE_BOOLEAN;
-import static org.onosproject.yangutils.utils.UtilConstants.PARSE_BYTE;
-import static org.onosproject.yangutils.utils.UtilConstants.PARSE_INT;
-import static org.onosproject.yangutils.utils.UtilConstants.PARSE_LONG;
-import static org.onosproject.yangutils.utils.UtilConstants.PARSE_SHORT;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.SHORT;
 import static org.onosproject.yangutils.utils.UtilConstants.SHORT_WRAPPER;
-import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.UtilConstants.STRING_DATA_TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_BINARY_CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_BITS_CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_DECIMAL64_CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_TYPES_PKG;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCamelCase;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getPackageDirPathFromJavaJPackage;
 
 /**
  * Represents java data types info corresponding to YANG type.
@@ -121,51 +107,6 @@ public final class AttributesJavaDataType {
     }
 
     /**
-     * Returns from string method parsed string.
-     *
-     * @param targetDataType target data type
-     * @param yangType       YANG type
-     * @return parsed string
-     */
-    public static String getParseFromStringMethod(String targetDataType, YangType<?> yangType) {
-
-        YangDataTypes type = yangType.getDataType();
-
-        switch (type) {
-            case INT8:
-                return BYTE_WRAPPER + PERIOD + PARSE_BYTE;
-            case INT16:
-                return SHORT_WRAPPER + PERIOD + PARSE_SHORT;
-            case INT32:
-                return INTEGER_WRAPPER + PERIOD + PARSE_INT;
-            case INT64:
-                return LONG_WRAPPER + PERIOD + PARSE_LONG;
-            case UINT8:
-                return SHORT_WRAPPER + PERIOD + PARSE_SHORT;
-            case UINT16:
-                return INTEGER_WRAPPER + PERIOD + PARSE_INT;
-            case UINT32:
-                return LONG_WRAPPER + PERIOD + PARSE_LONG;
-            case UINT64:
-                return NEW + SPACE + BIG_INTEGER;
-            case STRING:
-                return EMPTY_STRING;
-            case EMPTY:
-            case BOOLEAN:
-                return BOOLEAN_WRAPPER + PERIOD + PARSE_BOOLEAN;
-            case DECIMAL64:
-            case BITS:
-            case BINARY:
-            case UNION:
-            case ENUMERATION:
-            case DERIVED:
-                return targetDataType + PERIOD + FROM_STRING_METHOD_NAME;
-            default:
-                throw new TranslatorException("given data type is not supported.");
-        }
-    }
-
-    /**
      * Returns java import class.
      *
      * @param yangType     YANG type
@@ -174,7 +115,7 @@ public final class AttributesJavaDataType {
      * @return java import class
      */
     public static String getJavaImportClass(YangType<?> yangType, boolean isListAttr,
-            YangToJavaNamingConflictUtil pluginConfig) {
+                                            YangToJavaNamingConflictUtil pluginConfig) {
 
         YangDataTypes type = yangType.getDataType();
 
@@ -279,7 +220,7 @@ public final class AttributesJavaDataType {
      * @return java import package
      */
     public static String getJavaImportPackage(YangType<?> yangType, boolean isListAttr,
-            YangToJavaNamingConflictUtil conflictResolver) {
+                                              YangToJavaNamingConflictUtil conflictResolver) {
 
         YangDataTypes type = yangType.getDataType();
 
@@ -425,7 +366,7 @@ public final class AttributesJavaDataType {
      * @return java package from parent node
      */
     private static String getPackageFromParent(YangNode parent,
-            YangToJavaNamingConflictUtil conflictResolver) {
+                                               YangToJavaNamingConflictUtil conflictResolver) {
         if (!(parent instanceof JavaFileInfoContainer)) {
             throw new TranslatorException("invalid child node is being processed.");
         }
@@ -444,7 +385,7 @@ public final class AttributesJavaDataType {
      * @param conflictResolver yang plugin config
      */
     public static void updateJavaFileInfo(YangNode yangNode,
-            YangToJavaNamingConflictUtil conflictResolver) {
+                                          YangToJavaNamingConflictUtil conflictResolver) {
         Stack<YangNode> nodesToUpdatePackage = new Stack<YangNode>();
 
         /*

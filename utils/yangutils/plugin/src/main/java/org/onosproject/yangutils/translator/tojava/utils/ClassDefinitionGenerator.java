@@ -17,9 +17,9 @@
 package org.onosproject.yangutils.translator.tojava.utils;
 
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangNotification;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaNotification;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
@@ -75,7 +75,7 @@ public final class ClassDefinitionGenerator {
      * / interface definition start.
      *
      * @param genFileTypes generated file type
-     * @param yangName class name
+     * @param yangName     class name
      * @return class definition
      */
     public static String generateClassDefinition(int genFileTypes, String yangName) {
@@ -85,19 +85,19 @@ public final class ClassDefinitionGenerator {
          * class / interface definition start.
          */
         switch (genFileTypes) {
-        case BUILDER_CLASS_MASK:
-            return getBuilderClassDefinition(yangName);
-        case IMPL_CLASS_MASK:
-            return getImplClassDefinition(yangName);
-        case BUILDER_INTERFACE_MASK:
-            return getBuilderInterfaceDefinition(yangName);
-        case GENERATE_TYPEDEF_CLASS:
-        case GENERATE_UNION_CLASS:
-            return getTypeClassDefinition(yangName);
-        case GENERATE_ENUM_CLASS:
-            return getEnumClassDefinition(yangName);
-        default:
-            return null;
+            case BUILDER_CLASS_MASK:
+                return getBuilderClassDefinition(yangName);
+            case IMPL_CLASS_MASK:
+                return getImplClassDefinition(yangName);
+            case BUILDER_INTERFACE_MASK:
+                return getBuilderInterfaceDefinition(yangName);
+            case GENERATE_TYPEDEF_CLASS:
+            case GENERATE_UNION_CLASS:
+                return getTypeClassDefinition(yangName);
+            case GENERATE_ENUM_CLASS:
+                return getEnumClassDefinition(yangName);
+            default:
+                return null;
         }
     }
 
@@ -106,8 +106,8 @@ public final class ClassDefinitionGenerator {
      * / interface definition start.
      *
      * @param genFileTypes generated file type
-     * @param yangName class name
-     * @param curNode current YANG node
+     * @param yangName     class name
+     * @param curNode      current YANG node
      * @return class definition
      */
     public static String generateClassDefinition(int genFileTypes, String yangName, YangNode curNode) {
@@ -117,19 +117,19 @@ public final class ClassDefinitionGenerator {
          * class / interface definition start.
          */
         switch (genFileTypes) {
-        case INTERFACE_MASK:
-            return getInterfaceDefinition(yangName, curNode);
-        case GENERATE_SERVICE_AND_MANAGER:
-            return getRpcInterfaceDefinition(yangName, curNode);
-        case GENERATE_EVENT_CLASS:
-            String eventName = yangName + SUBJECT;
-            return getEventDefinition(yangName, eventName);
-        case GENERATE_EVENT_LISTENER_INTERFACE:
-            return getEventListenerDefinition(yangName);
-        case GENERATE_EVENT_SUBJECT_CLASS:
-            return getClassDefinition(yangName);
-        default:
-            return null;
+            case INTERFACE_MASK:
+                return getInterfaceDefinition(yangName, curNode);
+            case GENERATE_SERVICE_AND_MANAGER:
+                return getRpcInterfaceDefinition(yangName, curNode);
+            case GENERATE_EVENT_CLASS:
+                String eventName = yangName + SUBJECT;
+                return getEventDefinition(yangName, eventName);
+            case GENERATE_EVENT_LISTENER_INTERFACE:
+                return getEventListenerDefinition(yangName);
+            case GENERATE_EVENT_SUBJECT_CLASS:
+                return getClassDefinition(yangName);
+            default:
+                return null;
         }
     }
 
@@ -174,7 +174,7 @@ public final class ClassDefinitionGenerator {
      * Returns builder interface file class definition.
      *
      * @param yangName java class name, corresponding to which the builder class
-     * is being generated
+     *                 is being generated
      * @return definition
      */
     private static String getBuilderInterfaceDefinition(String yangName) {
@@ -227,7 +227,7 @@ public final class ClassDefinitionGenerator {
      * Returns RPC file interface definition.
      *
      * @param yangName file name
-     * @param curNode current YANG node
+     * @param curNode  current YANG node
      * @return definition
      */
     private static String getRpcInterfaceDefinition(String yangName, YangNode curNode) {
@@ -236,7 +236,7 @@ public final class ClassDefinitionGenerator {
         if (holder.getExtendsList() != null && !holder.getExtendsList().isEmpty()) {
             curNode = curNode.getChild();
             while (curNode != null) {
-                if (curNode instanceof YangJavaNotification) {
+                if (curNode instanceof YangNotification) {
                     return getRpcInterfaceDefinitionWhenItExtends(yangName, holder);
                 }
                 curNode = curNode.getNextSibling();
@@ -251,7 +251,7 @@ public final class ClassDefinitionGenerator {
 
     /* Provides class definition when RPC interface needs to extends any event.*/
     private static String getRpcInterfaceDefinitionWhenItExtends(String yangName,
-            JavaExtendsListHolder holder) {
+                                                                 JavaExtendsListHolder holder) {
 
         if (yangName.matches(REGEX_FOR_ANY_STRING_ENDING_WITH_SERVICE)) {
             String[] strArray = yangName.split(SERVICE);
