@@ -1091,15 +1091,6 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             pcepTunnelApiMapper.addToCoreTunnelRequestQueue(pcepTunnelData);
             int srpId = SrpIdGenerators.create();
             TunnelId tunnelId = tunnel.tunnelId();
-            int plspId = 0;
-
-            if (!(pcepTunnelApiMapper.checkFromTunnelDBQueue(tunnelId))) {
-                log.error("Tunnel doesnot exists. Tunnel id {}" + tunnelId.toString());
-                return;
-            } else {
-                PcepTunnelData pcepTunnelDbData = pcepTunnelApiMapper.getDataFromTunnelDBQueue(tunnelId);
-                plspId = pcepTunnelDbData.plspId();
-            }
 
             PcepValueType tlv;
             LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
@@ -1121,8 +1112,11 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
             String localLspIdString = tunnel.annotations().value(LOCAL_LSP_ID);
             String pccTunnelIdString = tunnel.annotations().value(PCC_TUNNEL_ID);
+            String pLspIdString = tunnel.annotations().value(PLSP_ID);
+
             short localLspId = 0;
             short pccTunnelId = 0;
+            int plspId = 0;
 
             if (localLspIdString != null) {
                 localLspId = Short.valueOf(localLspIdString);
@@ -1130,6 +1124,10 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
             if (pccTunnelIdString != null) {
                 pccTunnelId = Short.valueOf(pccTunnelIdString);
+            }
+
+            if (pLspIdString != null) {
+                plspId = Integer.valueOf(pLspIdString);
             }
 
             tlv = new StatefulIPv4LspIdentifiersTlv((((IpTunnelEndPoint) tunnel.src())

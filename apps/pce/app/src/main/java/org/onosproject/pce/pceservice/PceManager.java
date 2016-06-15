@@ -254,6 +254,7 @@ public class PceManager implements PceService {
 
         tunnelConsumerIdGen = coreService.getIdGenerator(TUNNEL_CONSUMER_ID_GEN_TOPIC);
         localLspIdIdGen = coreService.getIdGenerator(LOCAL_LSP_ID_GEN_TOPIC);
+        localLspIdIdGen.getNewId(); // To prevent 0, the 1st value generated from being used in protocol.
         localLspIdFreeList = storageService.<Short>setBuilder()
                 .withName("pcepLocalLspIdDeletedList")
                 .withSerializer(Serializer.using(KryoNamespaces.API))
