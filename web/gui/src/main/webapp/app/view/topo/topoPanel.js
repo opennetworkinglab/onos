@@ -30,10 +30,11 @@
         idSum = 'topo-p-summary',
         idDet = 'topo-p-detail',
         panelOpts = {
-            width: 268
+            width: 290          // summary and detail panel width
         },
-        sumMax = 262,
-        padTop = 20,
+        sumMax = 262,           // summary panel max height
+        padTop = 16,            // summary panel padding below masthead
+        padFudge = padTop + 6,
         devPath = 'device';
 
     // internal state
@@ -90,8 +91,7 @@
         //    only adjusts if the body content would be 10px or larger
         function adjustHeight(fromTop, max) {
             var totalPHeight, avSpace,
-                overflow = 0,
-                pdg = 30;
+                overflow = 0;
 
             if (!fromTop) {
                 $log.warn('adjustHeight: height from top of page not given');
@@ -103,11 +103,12 @@
                 return null;
             }
 
+            p.el().style('top', fromTop + 'px');
             p.el().style('height', null);
             body.style('height', null);
 
             totalPHeight = fromTop + p.height();
-            avSpace = fs.windowSize(pdg).height;
+            avSpace = fs.windowSize(padFudge).height;
 
             if (totalPHeight >= avSpace) {
                 overflow = totalPHeight - avSpace;
@@ -123,12 +124,13 @@
             }
 
             if (!_adjustBody(fs.noPxStyle(body, 'height') - overflow)) {
-                return;
+                return p.height();
             }
 
             if (max && p.height() > max) {
                 _adjustBody(fs.noPxStyle(body, 'height') - (p.height() - max));
             }
+            return p.height();
         }
 
         return {
@@ -188,8 +190,11 @@
                     w: $window.innerWidth
                 };
             }, function () {
-                summary.adjustHeight(sumFromTop, sumMax);
-                detail.adjustHeight(detail.ypos.current);
+                var h = summary.adjustHeight(sumFromTop, sumMax),
+                    ss = summary.panel().isVisible(),
+                    dtop = h && ss ? sumFromTop + h + padFudge : 0,
+                    dy = dtop || ss ? detail.ypos.current : sumFromTop;
+                detail.adjustHeight(dy);
             }
         );
     }
@@ -431,7 +436,7 @@
 
     function augmentDetailPanel() {
         var d = detail,
-            downPos = sumFromTop + sumMax + 20;
+            downPos = sumFromTop + sumMax + padFudge;
         d.ypos = { up: sumFromTop, down: downPos, current: downPos};
 
         d._move = function (y, cb) {
