@@ -138,7 +138,6 @@ public final class DefaultNextObjective implements NextObjective {
                 .add("appId", appId())
                 .add("permanent", permanent())
                 .add("timeout", timeout())
-                .add("context", context())
                 .toString();
     }
 
