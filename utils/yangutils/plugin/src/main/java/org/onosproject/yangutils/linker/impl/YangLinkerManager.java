@@ -25,7 +25,6 @@ import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.linker.YangLinker;
 import org.onosproject.yangutils.linker.exceptions.LinkerException;
-import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 
@@ -53,53 +52,51 @@ public class YangLinkerManager
     /**
      * Creates YANG nodes set.
      *
-     * @param yangFileInfoSet YANG file information set
+     * @param yangNodeSet YANG node information set
      */
-    public void createYangNodeSet(Set<YangFileInfo> yangFileInfoSet) {
-        for (YangFileInfo yangFileInfo : yangFileInfoSet) {
-            getYangNodeSet().add(yangFileInfo.getRootNode());
-        }
+    public void createYangNodeSet(Set<YangNode> yangNodeSet) {
+        getYangNodeSet().addAll(yangNodeSet);
     }
 
     @Override
-    public void resolveDependencies(Set<YangFileInfo> yangFileInfoSet) {
+    public void resolveDependencies(Set<YangNode> yangNodeSet) {
 
         // Create YANG node set.
-        createYangNodeSet(yangFileInfoSet);
+        createYangNodeSet(yangNodeSet);
 
         // Carry out linking of sub module with module.
-        linkSubModulesToParentModule(yangFileInfoSet);
+        linkSubModulesToParentModule(yangNodeSet);
 
         // Add references to import list.
-        addRefToYangFilesImportList(yangFileInfoSet);
+        addRefToYangFilesImportList(yangNodeSet);
 
         // Add reference to include list.
-        addRefToYangFilesIncludeList(yangFileInfoSet);
+        addRefToYangFilesIncludeList(yangNodeSet);
 
         // TODO check for circular import/include.
 
         // Carry out inter-file linking.
-        processInterFileLinking(yangFileInfoSet);
+        processInterFileLinking(yangNodeSet);
     }
 
     /**
      * Resolves sub-module linking by linking sub module with parent module.
      *
-     * @param yangFileInfoSet set of YANG files info
+     * @param yangNodeSet set of YANG files info
      * @throws LinkerException fails to link sub-module to parent module
      */
-    public void linkSubModulesToParentModule(Set<YangFileInfo> yangFileInfoSet)
+    public void linkSubModulesToParentModule(Set<YangNode> yangNodeSet)
             throws LinkerException {
-        for (YangFileInfo yangFileInfo : yangFileInfoSet) {
-            YangNode yangNode = yangFileInfo.getRootNode();
+        for (YangNode yangNode : yangNodeSet) {
             if (yangNode instanceof YangSubModule) {
                 try {
                     ((YangSubModule) yangNode).linkWithModule(getYangNodeSet());
                 } catch (DataModelException e) {
-                    String errorInfo = "YANG file error: " + yangFileInfo.getYangFileName() + " at line: "
+                    String errorInfo = "YANG file error: " + yangNode.getName() + " at line: "
                             + e.getLineNumber() + " at position: " + e.getCharPositionInLine() + NEW_LINE
                             + e.getMessage();
                     throw new LinkerException(errorInfo);
+                    // TODO add file path in exception message in util manager.
                 }
             }
         }
@@ -108,20 +105,20 @@ public class YangLinkerManager
     /**
      * Adds imported node information to the import list.
      *
-     * @param yangFileInfoSet set of YANG files info
+     * @param yangNodeSet set of YANG files info
      * @throws LinkerException fails to find imported module
      */
-    public void addRefToYangFilesImportList(Set<YangFileInfo> yangFileInfoSet) throws LinkerException {
-        for (YangFileInfo yangFileInfo : yangFileInfoSet) {
-            YangNode yangNode = yangFileInfo.getRootNode();
+    public void addRefToYangFilesImportList(Set<YangNode> yangNodeSet) throws LinkerException {
+        for (YangNode yangNode : yangNodeSet) {
             if (yangNode instanceof YangReferenceResolver) {
                 try {
                     ((YangReferenceResolver) yangNode).addReferencesToImportList(getYangNodeSet());
                 } catch (DataModelException e) {
-                    String errorInfo = "Error in file: " + yangFileInfo.getYangFileName() + " at line: "
+                    String errorInfo = "Error in file: " + yangNode.getName() + " at line: "
                             + e.getLineNumber() + " at position: " + e.getCharPositionInLine() + NEW_LINE
                             + e.getMessage();
                     throw new LinkerException(errorInfo);
+                    // TODO add file path in exception message in util manager.
                 }
             }
         }
@@ -130,20 +127,20 @@ public class YangLinkerManager
     /**
      * Adds included node information to the include list.
      *
-     * @param yangFileInfoSet set of YANG files info
+     * @param yangNodeSet set of YANG files info
      * @throws LinkerException fails to find included sub-module
      */
-    public void addRefToYangFilesIncludeList(Set<YangFileInfo> yangFileInfoSet) throws LinkerException {
-        for (YangFileInfo yangFileInfo : yangFileInfoSet) {
-            YangNode yangNode = yangFileInfo.getRootNode();
+    public void addRefToYangFilesIncludeList(Set<YangNode> yangNodeSet) throws LinkerException {
+        for (YangNode yangNode : yangNodeSet) {
             if (yangNode instanceof YangReferenceResolver) {
                 try {
                     ((YangReferenceResolver) yangNode).addReferencesToIncludeList(getYangNodeSet());
                 } catch (DataModelException e) {
-                    String errorInfo = "Error in file: " + yangFileInfo.getYangFileName() + " at line: "
+                    String errorInfo = "Error in file: " + yangNode.getName() + " at line: "
                             + e.getLineNumber() + " at position: " + e.getCharPositionInLine() + NEW_LINE
                             + e.getMessage();
                     throw new LinkerException(errorInfo);
+                    // TODO add file path in exception message in util manager.
                 }
             }
         }
@@ -152,20 +149,21 @@ public class YangLinkerManager
     /**
      * Processes inter file linking for type and uses.
      *
-     * @param yangFileInfoSet set of YANG files info
+     * @param yangNodeSet set of YANG files info
      * @throws LinkerException a violation in linker execution
      */
-    public void processInterFileLinking(Set<YangFileInfo> yangFileInfoSet)
+    public void processInterFileLinking(Set<YangNode> yangNodeSet)
             throws LinkerException {
-        for (YangFileInfo yangFileInfo : yangFileInfoSet) {
+        for (YangNode yangNode : yangNodeSet) {
             try {
-                ((YangReferenceResolver) yangFileInfo.getRootNode()).resolveInterFileLinking(ResolvableType.YANG_USES);
-                ((YangReferenceResolver) yangFileInfo.getRootNode())
+                ((YangReferenceResolver) yangNode).resolveInterFileLinking(ResolvableType.YANG_USES);
+                ((YangReferenceResolver) yangNode)
                         .resolveInterFileLinking(ResolvableType.YANG_DERIVED_DATA_TYPE);
             } catch (DataModelException e) {
-                String errorInfo = "Error in file: " + yangFileInfo.getYangFileName() + " at line: "
+                String errorInfo = "Error in file: " + yangNode.getName() + " at line: "
                         + e.getLineNumber() + " at position: " + e.getCharPositionInLine() + NEW_LINE + e.getMessage();
                 throw new LinkerException(errorInfo);
+                // TODO add file path in exception message in util manager.
             }
         }
     }

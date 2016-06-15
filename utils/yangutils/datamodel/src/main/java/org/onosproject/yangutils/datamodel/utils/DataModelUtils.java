@@ -31,11 +31,11 @@ import org.onosproject.yangutils.datamodel.YangRpc;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 
+
 /**
  * Represents utilities for data model tree.
  */
 public final class DataModelUtils {
-
     /**
      * Creates a new data model tree utility.
      */

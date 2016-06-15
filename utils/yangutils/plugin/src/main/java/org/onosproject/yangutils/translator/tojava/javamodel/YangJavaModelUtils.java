@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.translator.tojava.utils;
+package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
-
 import org.onosproject.yangutils.datamodel.RpcNotificationContainer;
 import org.onosproject.yangutils.datamodel.YangCase;
 import org.onosproject.yangutils.datamodel.YangChoice;
 import org.onosproject.yangutils.datamodel.YangLeavesHolder;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangTypeHolder;
+import org.onosproject.yangutils.datamodel.utils.DataModelUtils;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
+import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
-import org.onosproject.yangutils.translator.tojava.javamodel.JavaCodeGeneratorInfo;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaEnumeration;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModule;
+import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.isRpcChildNodePresent;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_CLASS;
@@ -39,10 +38,10 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_SUBJECT_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles.addCurNodeInfoInParentTempFile;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCurNodePackage;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
+import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCamelCase;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getPackageDirPathFromJavaJPackage;
 
 /**
  * Represents utility class for YANG java model.
@@ -316,7 +315,7 @@ public final class YangJavaModelUtils {
      * @throws IOException IO operations fails
      */
     public static void generateCodeOfRootNode(JavaCodeGeneratorInfo javaCodeGeneratorInfo,
-            YangPluginConfig yangPluginConfig, String rootPkg)
+                                              YangPluginConfig yangPluginConfig, String rootPkg)
             throws IOException {
         if (!(javaCodeGeneratorInfo instanceof YangNode)) {
             // TODO:throw exception
@@ -349,4 +348,26 @@ public final class YangJavaModelUtils {
         javaCodeGeneratorInfo.getJavaFileInfo().addGeneratedFileTypes(GENERATE_EVENT_LISTENER_INTERFACE);
     }
 
+    /**
+     * Returns the node package string.
+     *
+     * @param curNode current java node whose package string needs to be set
+     * @return returns the root package string
+     */
+    public static String getCurNodePackage(YangNode curNode) {
+
+        String pkg;
+        if (!(curNode instanceof JavaFileInfoContainer)
+                || curNode.getParent() == null) {
+            throw new TranslatorException("missing parent node to get current node's package");
+        }
+
+        YangNode parentNode = DataModelUtils.getParentNodeInGenCode(curNode);
+        if (!(parentNode instanceof JavaFileInfoContainer)) {
+            throw new TranslatorException("missing parent java node to get current node's package");
+        }
+        JavaFileInfo parentJavaFileHandle = ((JavaFileInfoContainer) parentNode).getJavaFileInfo();
+        pkg = parentJavaFileHandle.getPackage() + PERIOD + parentJavaFileHandle.getJavaName();
+        return pkg.toLowerCase();
+    }
 }

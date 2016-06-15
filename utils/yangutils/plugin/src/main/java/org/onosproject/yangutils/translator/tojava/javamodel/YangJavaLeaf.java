@@ -17,10 +17,10 @@ package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
-import org.onosproject.yangutils.translator.tojava.utils.YangToJavaNamingConflictUtil;
+import org.onosproject.yangutils.utils.io.impl.YangToJavaNamingConflictUtil;
 
 import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.updateLeavesJavaQualifiedInfo;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCamelCase;
 
 /**
  * Represents java information corresponding to the YANG leaf.

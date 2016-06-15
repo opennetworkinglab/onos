@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.translator.tojava.javamodel;
-
-import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
-import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
+package org.onosproject.yangutils.translator.tojava;
 
 /**
  * Represents YANG java info containing interface for java code generator, java

@@ -25,7 +25,6 @@ import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
-import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.hamcrest.core.Is.is;
@@ -34,8 +33,8 @@ import static org.junit.Assert.assertThat;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.appendFileContents;
-import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.createPackage;
-import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.doesPackageExist;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.createPackage;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.doesPackageExist;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.updateFileHandle;
 
 /**

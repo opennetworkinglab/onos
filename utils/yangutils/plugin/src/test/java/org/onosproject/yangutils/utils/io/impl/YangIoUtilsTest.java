@@ -26,17 +26,15 @@ import org.apache.maven.project.MavenProject;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 import org.onosproject.yangutils.utils.UtilConstants;
 import org.sonatype.plexus.build.incremental.BuildContext;
 import org.sonatype.plexus.build.incremental.DefaultBuildContext;
 
-import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addPackageInfo;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addToCompilationRoot;
+import static org.onosproject.yangutils.plugin.manager.YangPluginUtils.addToCompilationRoot;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.createDirectories;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;

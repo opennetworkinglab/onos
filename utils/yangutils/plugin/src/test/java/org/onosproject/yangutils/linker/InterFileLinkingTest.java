@@ -34,10 +34,9 @@ import org.onosproject.yangutils.datamodel.utils.ResolvableStatus;
 import org.onosproject.yangutils.linker.impl.YangLinkerManager;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 import org.onosproject.yangutils.plugin.manager.YangUtilManager;
-import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
+import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -67,29 +66,30 @@ public class InterFileLinkingTest {
         String searchDir = "src/test/resources/interfiletype";
         utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
         utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
 
         YangNode refNode = null;
         YangNode selfNode = null;
 
         // Create YANG node set
-        yangLinkerManager.createYangNodeSet(utilManager.getYangFileInfoSet());
+        yangLinkerManager.createYangNodeSet(utilManager.getYangNodeSet());
 
         // Add references to import list.
-        yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangFileInfoSet());
+        yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
-        yangLinkerManager.processInterFileLinking(utilManager.getYangFileInfoSet());
+        yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
-        Iterator<YangFileInfo> yangFileInfoIterator = utilManager.getYangFileInfoSet().iterator();
+        Iterator<YangNode> yangNodeIterator = utilManager.getYangNodeSet().iterator();
 
-        YangFileInfo yangFileInfo = yangFileInfoIterator.next();
+        YangNode rootNode = yangNodeIterator.next();
 
-        if (yangFileInfo.getRootNode().getName().equals("module1")) {
-            selfNode = yangFileInfo.getRootNode();
-            refNode = yangFileInfoIterator.next().getRootNode();
+        if (rootNode.getName().equals("module1")) {
+            selfNode = rootNode;
+            refNode = yangNodeIterator.next();
         } else {
-            refNode = yangFileInfo.getRootNode();
-            selfNode = yangFileInfoIterator.next().getRootNode();
+            refNode = rootNode;
+            selfNode = yangNodeIterator.next();
         }
 
         // Check whether the data model tree returned is of type module.
@@ -136,29 +136,30 @@ public class InterFileLinkingTest {
         String searchDir = "src/test/resources/interfileuses";
         utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
         utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
 
         YangNode refNode = null;
         YangNode selfNode = null;
 
         // Create YANG node set
-        yangLinkerManager.createYangNodeSet(utilManager.getYangFileInfoSet());
+        yangLinkerManager.createYangNodeSet(utilManager.getYangNodeSet());
 
         // Add references to import list.
-        yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangFileInfoSet());
+        yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
-        yangLinkerManager.processInterFileLinking(utilManager.getYangFileInfoSet());
+        yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
-        Iterator<YangFileInfo> yangFileInfoIterator = utilManager.getYangFileInfoSet().iterator();
+        Iterator<YangNode> yangNodeIterator = utilManager.getYangNodeSet().iterator();
 
-        YangFileInfo yangFileInfo = yangFileInfoIterator.next();
+        YangNode rootNode = yangNodeIterator.next();
 
-        if (yangFileInfo.getRootNode().getName().equals("module1")) {
-            selfNode = yangFileInfo.getRootNode();
-            refNode = yangFileInfoIterator.next().getRootNode();
+        if (rootNode.getName().equals("module1")) {
+            selfNode = rootNode;
+            refNode = yangNodeIterator.next();
         } else {
-            refNode = yangFileInfo.getRootNode();
-            selfNode = yangFileInfoIterator.next().getRootNode();
+            refNode = rootNode;
+            selfNode = yangNodeIterator.next();
         }
 
         // Check whether the data model tree returned is of type module.
@@ -193,14 +194,6 @@ public class InterFileLinkingTest {
         // Check whether uses get resolved.
         assertThat(uses.getResolvableStatus(),
                 is(ResolvableStatus.RESOLVED));
-
-//        leafIterator = yangNode.getListOfLeaf().listIterator();
-//        leafInfo = leafIterator.next();
-//
-//        // Check whether the information in the leaf is correct under module.
-//        assertThat(leafInfo.getName(), is("hello"));
-//        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
-//        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
     }
 
     /**
@@ -213,32 +206,33 @@ public class InterFileLinkingTest {
         String searchDir = "src/test/resources/interfiletypewithinclude";
         utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
         utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
 
         YangNode refNode = null;
         YangNode selfNode = null;
 
         // Create YANG node set
-        yangLinkerManager.createYangNodeSet(utilManager.getYangFileInfoSet());
+        yangLinkerManager.createYangNodeSet(utilManager.getYangNodeSet());
 
         // Carry out linking of sub module with module.
-        yangLinkerManager.linkSubModulesToParentModule(utilManager.getYangFileInfoSet());
+        yangLinkerManager.linkSubModulesToParentModule(utilManager.getYangNodeSet());
 
         // Add reference to include list.
-        yangLinkerManager.addRefToYangFilesIncludeList(utilManager.getYangFileInfoSet());
+        yangLinkerManager.addRefToYangFilesIncludeList(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
-        yangLinkerManager.processInterFileLinking(utilManager.getYangFileInfoSet());
+        yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
-        Iterator<YangFileInfo> yangFileInfoIterator = utilManager.getYangFileInfoSet().iterator();
+        Iterator<YangNode> yangNodeIterator = utilManager.getYangNodeSet().iterator();
 
-        YangFileInfo yangFileInfo = yangFileInfoIterator.next();
+        YangNode rootNode = yangNodeIterator.next();
 
-        if (yangFileInfo.getRootNode().getName().equals("module1")) {
-            selfNode = yangFileInfo.getRootNode();
-            refNode = yangFileInfoIterator.next().getRootNode();
+        if (rootNode.getName().equals("module1")) {
+            selfNode = rootNode;
+            refNode = yangNodeIterator.next();
         } else {
-            refNode = yangFileInfo.getRootNode();
-            selfNode = yangFileInfoIterator.next().getRootNode();
+            refNode = rootNode;
+            selfNode = yangNodeIterator.next();
         }
 
         // Check whether the data model tree returned is of type module.
@@ -285,32 +279,33 @@ public class InterFileLinkingTest {
         String searchDir = "src/test/resources/interfileuseswithinclude";
         utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
         utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
 
         YangNode refNode = null;
         YangNode selfNode = null;
 
         // Create YANG node set
-        yangLinkerManager.createYangNodeSet(utilManager.getYangFileInfoSet());
+        yangLinkerManager.createYangNodeSet(utilManager.getYangNodeSet());
 
         // Carry out linking of sub module with module.
-        yangLinkerManager.linkSubModulesToParentModule(utilManager.getYangFileInfoSet());
+        yangLinkerManager.linkSubModulesToParentModule(utilManager.getYangNodeSet());
 
         // Add reference to include list.
-        yangLinkerManager.addRefToYangFilesIncludeList(utilManager.getYangFileInfoSet());
+        yangLinkerManager.addRefToYangFilesIncludeList(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
-        yangLinkerManager.processInterFileLinking(utilManager.getYangFileInfoSet());
+        yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
-        Iterator<YangFileInfo> yangFileInfoIterator = utilManager.getYangFileInfoSet().iterator();
+        Iterator<YangNode> yangNodeIterator = utilManager.getYangNodeSet().iterator();
 
-        YangFileInfo yangFileInfo = yangFileInfoIterator.next();
+        YangNode rootNode = yangNodeIterator.next();
 
-        if (yangFileInfo.getRootNode().getName().equals("module1")) {
-            selfNode = yangFileInfo.getRootNode();
-            refNode = yangFileInfoIterator.next().getRootNode();
+        if (rootNode.getName().equals("module1")) {
+            selfNode = rootNode;
+            refNode = yangNodeIterator.next();
         } else {
-            refNode = yangFileInfo.getRootNode();
-            selfNode = yangFileInfoIterator.next().getRootNode();
+            refNode = rootNode;
+            selfNode = yangNodeIterator.next();
         }
 
         // Check whether the data model tree returned is of type module.
@@ -345,14 +340,6 @@ public class InterFileLinkingTest {
         // Check whether uses get resolved.
         assertThat(uses.getResolvableStatus(),
                 is(ResolvableStatus.RESOLVED));
-
-//        leafIterator = yangNode.getListOfLeaf().listIterator();
-//        leafInfo = leafIterator.next();
-//
-//        // Check whether the information in the leaf is correct under module.
-//        assertThat(leafInfo.getName(), is("hello"));
-//        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
-//        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
     }
 
     /**
@@ -365,29 +352,30 @@ public class InterFileLinkingTest {
         String searchDir = "src/test/resources/interfiletypewithrevision";
         utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
         utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
 
         YangNode refNode = null;
         YangNode selfNode = null;
 
         // Create YANG node set
-        yangLinkerManager.createYangNodeSet(utilManager.getYangFileInfoSet());
+        yangLinkerManager.createYangNodeSet(utilManager.getYangNodeSet());
 
         // Add references to import list.
-        yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangFileInfoSet());
+        yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
-        yangLinkerManager.processInterFileLinking(utilManager.getYangFileInfoSet());
+        yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
-        Iterator<YangFileInfo> yangFileInfoIterator = utilManager.getYangFileInfoSet().iterator();
+        Iterator<YangNode> yangNodeIterator = utilManager.getYangNodeSet().iterator();
 
-        YangFileInfo yangFileInfo = yangFileInfoIterator.next();
+        YangNode rootNode = yangNodeIterator.next();
 
-        if (yangFileInfo.getRootNode().getName().equals("module1")) {
-            selfNode = yangFileInfo.getRootNode();
-            refNode = yangFileInfoIterator.next().getRootNode();
+        if (rootNode.getName().equals("module1")) {
+            selfNode = rootNode;
+            refNode = yangNodeIterator.next();
         } else {
-            refNode = yangFileInfo.getRootNode();
-            selfNode = yangFileInfoIterator.next().getRootNode();
+            refNode = rootNode;
+            selfNode = yangNodeIterator.next();
         }
 
         // Check whether the data model tree returned is of type module.
@@ -434,29 +422,30 @@ public class InterFileLinkingTest {
         String searchDir = "src/test/resources/interfiletypewithrevisioninname";
         utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
         utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
 
         YangNode refNode = null;
         YangNode selfNode = null;
 
         // Create YANG node set
-        yangLinkerManager.createYangNodeSet(utilManager.getYangFileInfoSet());
+        yangLinkerManager.createYangNodeSet(utilManager.getYangNodeSet());
 
         // Add references to import list.
-        yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangFileInfoSet());
+        yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
-        yangLinkerManager.processInterFileLinking(utilManager.getYangFileInfoSet());
+        yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
-        Iterator<YangFileInfo> yangFileInfoIterator = utilManager.getYangFileInfoSet().iterator();
+        Iterator<YangNode> yangNodeIterator = utilManager.getYangNodeSet().iterator();
 
-        YangFileInfo yangFileInfo = yangFileInfoIterator.next();
+        YangNode rootNode = yangNodeIterator.next();
 
-        if (yangFileInfo.getRootNode().getName().equals("module1")) {
-            selfNode = yangFileInfo.getRootNode();
-            refNode = yangFileInfoIterator.next().getRootNode();
+        if (rootNode.getName().equals("module1")) {
+            selfNode = rootNode;
+            refNode = yangNodeIterator.next();
         } else {
-            refNode = yangFileInfo.getRootNode();
-            selfNode = yangFileInfoIterator.next().getRootNode();
+            refNode = rootNode;
+            selfNode = yangNodeIterator.next();
         }
 
         // Check whether the data model tree returned is of type module.
@@ -503,27 +492,28 @@ public class InterFileLinkingTest {
         String searchDir = "src/test/resources/hierarchicalinterfiletype";
         utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
         utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
 
         YangNode refNode1 = null;
         YangNode refNode2 = null;
         YangNode selfNode = null;
 
         // Create YANG node set
-        yangLinkerManager.createYangNodeSet(utilManager.getYangFileInfoSet());
+        yangLinkerManager.createYangNodeSet(utilManager.getYangNodeSet());
 
         // Add references to import list.
-        yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangFileInfoSet());
+        yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
-        yangLinkerManager.processInterFileLinking(utilManager.getYangFileInfoSet());
+        yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
-        for (YangFileInfo yangFile : utilManager.getYangFileInfoSet()) {
-            if (yangFile.getRootNode().getName().equals("ietf-network-topology")) {
-                selfNode = yangFile.getRootNode();
-            } else if (yangFile.getRootNode().getName().equals("ietf-network")) {
-                refNode1 = yangFile.getRootNode();
+        for (YangNode rootNode : utilManager.getYangNodeSet()) {
+            if (rootNode.getName().equals("ietf-network-topology")) {
+                selfNode = rootNode;
+            } else if (rootNode.getName().equals("ietf-network")) {
+                refNode1 = rootNode;
             } else {
-                refNode2 = yangFile.getRootNode();
+                refNode2 = rootNode;
             }
         }
 
@@ -571,24 +561,25 @@ public class InterFileLinkingTest {
         String searchDir = "src/test/resources/hierarchicalintrawithinterfiletype";
         utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
         utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
 
         YangNode refNode1 = null;
         YangNode selfNode = null;
 
         // Create YANG node set
-        yangLinkerManager.createYangNodeSet(utilManager.getYangFileInfoSet());
+        yangLinkerManager.createYangNodeSet(utilManager.getYangNodeSet());
 
         // Add references to import list.
-        yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangFileInfoSet());
+        yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
-        yangLinkerManager.processInterFileLinking(utilManager.getYangFileInfoSet());
+        yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
-        for (YangFileInfo yangFile : utilManager.getYangFileInfoSet()) {
-            if (yangFile.getRootNode().getName().equals("ietf-network")) {
-                selfNode = yangFile.getRootNode();
-            } else if (yangFile.getRootNode().getName().equals("ietf-inet-types")) {
-                refNode1 = yangFile.getRootNode();
+        for (YangNode rootNode : utilManager.getYangNodeSet()) {
+            if (rootNode.getName().equals("ietf-network")) {
+                selfNode = rootNode;
+            } else if (rootNode.getName().equals("ietf-inet-types")) {
+                refNode1 = rootNode;
             }
         }
 
