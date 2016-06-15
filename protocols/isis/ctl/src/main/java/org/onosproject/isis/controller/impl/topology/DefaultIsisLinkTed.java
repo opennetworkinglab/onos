@@ -21,20 +21,19 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.util.Bandwidth;
 import org.onosproject.isis.controller.topology.IsisLinkTed;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Representation of an ISIS device information.
  */
 public class DefaultIsisLinkTed implements IsisLinkTed {
-
-
     private int administrativeGroup;
     private Ip4Address ipv4InterfaceAddress;
     private Ip4Address ipv4NeighborAddress;
     private Bandwidth maximumLinkBandwidth;
     private Bandwidth maximumReservableLinkBandwidth;
-    private List<Bandwidth> unreservedBandwidth;
+    private List<Bandwidth> unreservedBandwidth = new ArrayList<>();
     private long teDefaultMetric;
 
     @Override
@@ -134,13 +133,13 @@ public class DefaultIsisLinkTed implements IsisLinkTed {
                 Objects.equal(ipv4NeighborAddress, that.ipv4NeighborAddress) &&
                 Objects.equal(maximumLinkBandwidth, that.maximumLinkBandwidth) &&
                 Objects.equal(maximumReservableLinkBandwidth,
-                        that.maximumReservableLinkBandwidth) &&
+                              that.maximumReservableLinkBandwidth) &&
                 Objects.equal(teDefaultMetric, that.teDefaultMetric);
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(administrativeGroup, ipv4InterfaceAddress,
-                ipv4NeighborAddress, maximumLinkBandwidth, teDefaultMetric);
+                                ipv4NeighborAddress, maximumLinkBandwidth, teDefaultMetric);
     }
 }
