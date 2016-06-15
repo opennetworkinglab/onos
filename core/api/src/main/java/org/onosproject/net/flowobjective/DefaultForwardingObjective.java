@@ -169,7 +169,6 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
                 .add("appId", appId())
                 .add("permanent", permanent())
                 .add("timeout", timeout())
-                .add("context", context())
                 .toString();
     }
 

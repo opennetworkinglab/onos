@@ -120,7 +120,7 @@ class IntentInstaller {
             // if toInstall was cause of error, then recompile (manage/increment counter, when exceeded -> CORRUPT)
             if (toInstall.isPresent()) {
                 IntentData installData = toInstall.get();
-                log.warn("Failed installation: {} {} on {}",
+                log.warn("Failed installation: {} {} due to {}",
                          installData.key(), installData.intent(), ctx.error());
                 installData.setState(CORRUPT);
                 installData.incrementErrorCount();
@@ -129,7 +129,7 @@ class IntentInstaller {
             // if toUninstall was cause of error, then CORRUPT (another job will clean this up)
             if (toUninstall.isPresent()) {
                 IntentData uninstallData = toUninstall.get();
-                log.warn("Failed withdrawal: {} {} on {}",
+                log.warn("Failed withdrawal: {} {} due to {}",
                          uninstallData.key(), uninstallData.intent(), ctx.error());
                 uninstallData.setState(CORRUPT);
                 uninstallData.incrementErrorCount();
@@ -355,6 +355,7 @@ class IntentInstaller {
         private class FlowObjectiveInstallationContext implements ObjectiveContext {
             Objective objective;
             DeviceId deviceId;
+            ObjectiveError error;
 
             void setObjective(Objective objective, DeviceId deviceId) {
                 this.objective = objective;
@@ -368,6 +369,7 @@ class IntentInstaller {
 
             @Override
             public void onError(Objective objective, ObjectiveError error) {
+                this.error = error;
                 errorContexts.add(this);
                 finish();
             }
@@ -387,7 +389,7 @@ class IntentInstaller {
 
             @Override
             public String toString() {
-                return String.format("(%s, %s)", deviceId, objective);
+                return String.format("(%s on %s for %s)", error, deviceId, objective);
             }
         }
     }

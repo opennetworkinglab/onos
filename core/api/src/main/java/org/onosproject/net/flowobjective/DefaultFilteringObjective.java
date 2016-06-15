@@ -160,7 +160,6 @@ public final class DefaultFilteringObjective implements FilteringObjective {
                 .add("appId", appId())
                 .add("permanent", permanent())
                 .add("timeout", timeout())
-                .add("context", context())
                 .toString();
     }
 

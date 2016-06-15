@@ -97,7 +97,6 @@ public class DistributedFlowObjectiveStore
     @Override
     public void putNextGroup(Integer nextId, NextGroup group) {
         nextGroups.put(nextId, group.data());
-        notifyDelegate(new ObjectiveEvent(ObjectiveEvent.Type.ADD, nextId));
     }
 
     @Override
@@ -113,7 +112,6 @@ public class DistributedFlowObjectiveStore
     public NextGroup removeNextGroup(Integer nextId) {
         Versioned<byte[]> versionGroup = nextGroups.remove(nextId);
         if (versionGroup != null) {
-            notifyDelegate(new ObjectiveEvent(ObjectiveEvent.Type.REMOVE, nextId));
             return new DefaultNextGroup(versionGroup.value());
         }
         return null;
