@@ -14,7 +14,7 @@ shift
 echo "Pushing to proxy $node..."
 onos-push-bits $node
 
-others=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2 | grep -vE "^$OCT\$")
+others=$(env | sort | egrep "^OC[0-9]+" | cut -d= -f2 | grep -vE "^$OCT\$")
 
 for other in $others; do
     echo "Pushing to $other..."

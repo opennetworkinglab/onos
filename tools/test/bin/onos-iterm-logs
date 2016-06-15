@@ -4,7 +4,7 @@
 #-------------------------------------------------------------------------------
 
 cellName=$ONOS_CELL
-nodeCount=$(env | egrep "OC[0-9]+" | wc -l | tr -d ' ')
+nodeCount=$(env | egrep "^OC[0-9]+" | wc -l | tr -d ' ')
 
 osascript -e "
 tell application \"iTerm\"

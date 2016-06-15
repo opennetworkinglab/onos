@@ -6,6 +6,6 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-for node in $OCT $OCN $(env | sort | egrep "OC[0-9]+" | cut -d= -f2); do
+for node in $OCT $OCN $(env | sort | egrep "^OC[0-9]+" | cut -d= -f2); do
     printf "%s: " $node; ssh -n -o StrictHostKeyChecking=no -o PasswordAuthentication=no $ONOS_USER@$node hostname
 done

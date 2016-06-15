@@ -17,7 +17,7 @@ password=${password:-$user} # password defaults to the user if not specified
 let OPC=$OPTIND-1
 shift $OPC
 
-nodes=${1:-$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)}
+nodes=${1:-$(env | sort | egrep "^OC[0-9]+" | cut -d= -f2)}
 
 for node in $nodes; do
     # Prune the node entry from the known hosts file since server key changes

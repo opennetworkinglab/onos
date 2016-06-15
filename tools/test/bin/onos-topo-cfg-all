@@ -8,7 +8,7 @@
 
 echo "This facility has been deprecated and will be removed in 1.6.0 (Goldeneye) release!!!"
 
-nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
+nodes=$(env | sort | egrep "^OC[0-9]+" | cut -d= -f2)
 
 for node in $nodes; do
     printf "$node..."

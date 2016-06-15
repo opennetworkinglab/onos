@@ -8,7 +8,7 @@ set -e
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
+nodes=$(env | sort | egrep "^OC[0-9]+" | cut -d= -f2)
 
 onos-package && stc prerequisites && stc setup
 

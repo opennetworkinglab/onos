@@ -15,7 +15,7 @@ bundle=$(echo $(basename $jar .jar) | sed 's/-[0-9].*//g')
 
 echo "pushing bundle: $bundle"
 
-nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
+nodes=$(env | sort | egrep "^OC[0-9]+" | cut -d= -f2)
 for node in $nodes; do
     scp -q $jar $ONOS_USER@$node:.m2/repository/$jar
     scp -q $jar $ONOS_USER@$node:$ONOS_INSTALL_DIR/$KARAF_DIST/system/$jar
