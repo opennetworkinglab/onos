@@ -17,6 +17,8 @@ package org.onosproject.rest.resources;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.Consumes;
@@ -34,6 +36,7 @@ import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.SubjectFactory;
 import org.onosproject.rest.AbstractWebResource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import static org.onlab.util.Tools.emptyIsNotFound;
@@ -45,6 +48,8 @@ import static org.onlab.util.Tools.nullIsNotFound;
 @Path("network/configuration")
 public class NetworkConfigWebResource extends AbstractWebResource {
 
+    //FIX ME not found Multi status error code 207 in jaxrs Response Status.
+    private static final int  MULTI_STATUS_RESPONE = 207;
 
     private String subjectClassNotFoundErrorString(String subjectClassKey) {
         return "Config for '" + subjectClassKey + "' not found";
@@ -194,9 +199,16 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     public Response upload(InputStream request) throws IOException {
         NetworkConfigService service = get(NetworkConfigService.class);
         ObjectNode root = (ObjectNode) mapper().readTree(request);
+        List<String> errorMsgs = new ArrayList<String>();
         root.fieldNames()
-                .forEachRemaining(sk -> consumeJson(service, (ObjectNode) root.path(sk),
-                                                    service.getSubjectFactory(sk)));
+                .forEachRemaining(sk ->
+                {
+                    errorMsgs.addAll(consumeJson(service, (ObjectNode) root.path(sk),
+                                                 service.getSubjectFactory(sk)));
+                });
+        if (errorMsgs.toString().length() > 0) {
+            return Response.status(MULTI_STATUS_RESPONE).entity(produceErrorJson(errorMsgs)).build();
+        }
         return Response.ok().build();
     }
 
@@ -216,7 +228,10 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                            InputStream request) throws IOException {
         NetworkConfigService service = get(NetworkConfigService.class);
         ObjectNode root = (ObjectNode) mapper().readTree(request);
-        consumeJson(service, root, service.getSubjectFactory(subjectClassKey));
+        List<String> errorMsgs = consumeJson(service, root, service.getSubjectFactory(subjectClassKey));
+        if (errorMsgs.toString().length() > 0) {
+            return Response.status(MULTI_STATUS_RESPONE).entity(produceErrorJson(errorMsgs)).build();
+        }
         return Response.ok().build();
     }
 
@@ -238,9 +253,12 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                            InputStream request) throws IOException {
         NetworkConfigService service = get(NetworkConfigService.class);
         ObjectNode root = (ObjectNode) mapper().readTree(request);
-        consumeSubjectJson(service, root,
-                           service.getSubjectFactory(subjectClassKey).createSubject(subjectKey),
-                           subjectClassKey);
+        List<String> errorMsgs = consumeSubjectJson(service, root,
+                                 service.getSubjectFactory(subjectClassKey).createSubject(subjectKey),
+                                 subjectClassKey);
+        if (errorMsgs.size() > 0) {
+            return Response.status(MULTI_STATUS_RESPONE).entity(produceErrorJson(errorMsgs)).build();
+        }
         return Response.ok().build();
     }
 
@@ -270,21 +288,37 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         return Response.ok().build();
     }
 
-    private void consumeJson(NetworkConfigService service, ObjectNode classNode,
+    private List<String> consumeJson(NetworkConfigService service, ObjectNode classNode,
                              SubjectFactory subjectFactory) {
-        classNode.fieldNames().forEachRemaining(s ->
-            consumeSubjectJson(service, (ObjectNode) classNode.path(s),
-                               subjectFactory.createSubject(s),
-                               subjectFactory.subjectClassKey()));
+        List<String> errorMsgs = new ArrayList<String>();
+        classNode.fieldNames().forEachRemaining(s -> {
+            List<String> error = consumeSubjectJson(service, (ObjectNode) classNode.path(s),
+                                                    subjectFactory.createSubject(s),
+                                                    subjectFactory.subjectClassKey());
+            errorMsgs.addAll(error);
+        });
+        return errorMsgs;
     }
 
-    private void consumeSubjectJson(NetworkConfigService service,
+    private List<String> consumeSubjectJson(NetworkConfigService service,
                                     ObjectNode subjectNode, Object subject,
                                     String subjectClassKey) {
-        subjectNode.fieldNames().forEachRemaining(configKey ->
-            service.applyConfig(subjectClassKey, subject, configKey, subjectNode.path(configKey)));
+        List<String> errorMsgs = new ArrayList<String>();
+        subjectNode.fieldNames().forEachRemaining(configKey -> {
+            try {
+                service.applyConfig(subjectClassKey, subject, configKey, subjectNode.path(configKey));
+            } catch (IllegalArgumentException e) {
+                errorMsgs.add("Error parsing config " + subjectClassKey + "/" + subject + "/" + configKey);
+            }
+        });
+        return errorMsgs;
     }
 
+    private ObjectNode produceErrorJson(List<String> errorMsgs) {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode result = mapper.createObjectNode().put("code", 207).putPOJO("message", errorMsgs);
+        return result;
+    }
 
     // FIXME: Refactor to allow queued configs to be removed
 
