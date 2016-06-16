@@ -186,6 +186,7 @@ public class PcepClientImpl implements PcepClientDriver {
 
     @Override
     public void setLspDbSyncStatus(PcepSyncStatus syncStatus) {
+        log.debug("LSP DB sync status set from {} to {}", this.lspDbSyncStatus, syncStatus);
         this.lspDbSyncStatus = syncStatus;
     }
 
@@ -199,7 +200,7 @@ public class PcepClientImpl implements PcepClientDriver {
 
         PcepSyncStatus syncOldStatus = labelDbSyncStatus();
         this.labelDbSyncStatus = syncStatus;
-
+        log.debug("Label DB sync status set from {} to {}", syncOldStatus, syncStatus);
         if ((syncOldStatus == PcepSyncStatus.IN_SYNC) && (syncStatus == PcepSyncStatus.SYNCED)) {
             // Perform end of LSP DB sync actions.
             this.agent.analyzeSyncMsgList(pccId);

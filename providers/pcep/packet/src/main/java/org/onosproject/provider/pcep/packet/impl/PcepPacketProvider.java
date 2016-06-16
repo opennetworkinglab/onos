@@ -10,6 +10,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.TCP;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
@@ -90,6 +91,7 @@ public class PcepPacketProvider extends AbstractProvider implements PacketProvid
 
             Ethernet eth = new Ethernet();
             eth.setEtherType(Ethernet.TYPE_IPV4);
+            eth.setDestinationMACAddress(MacAddress.NONE);
             eth.setPayload(ipv4);
 
             // Get lsrId of the PCEP client from the PCC ID. Session info is based on lsrID.
