@@ -225,6 +225,6 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 throw new ResourceManagerException(e);
             }
         }
-        return new ResourceClient(new OnosCopycatClient(copycatClient, 2, 100));
+        return new ResourceClient(new OnosCopycatClient(copycatClient, 5, 100));
     }
 }
