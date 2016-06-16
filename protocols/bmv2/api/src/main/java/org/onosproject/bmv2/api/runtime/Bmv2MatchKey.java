@@ -16,6 +16,7 @@
 
 package org.onosproject.bmv2.api.runtime;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 import org.onlab.util.ImmutableByteSequence;
@@ -30,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * A match key of a BMv2 match-action table entry.
  */
+@Beta
 public final class Bmv2MatchKey {
 
     private final List<Bmv2MatchParam> matchParams;

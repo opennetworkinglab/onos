@@ -16,6 +16,7 @@
 
 package org.onosproject.bmv2.api.runtime;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.onlab.util.ImmutableByteSequence;
@@ -26,6 +27,7 @@ import static com.google.common.base.Preconditions.checkState;
 /**
  * Representation of a BMv2 ternary match parameter.
  */
+@Beta
 public final class Bmv2TernaryMatchParam implements Bmv2MatchParam {
 
     private final ImmutableByteSequence value;

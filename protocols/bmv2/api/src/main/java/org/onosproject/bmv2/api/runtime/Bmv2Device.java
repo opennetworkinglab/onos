@@ -16,6 +16,7 @@
 
 package org.onosproject.bmv2.api.runtime;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.Objects;
 import org.onosproject.net.DeviceId;
 
@@ -27,8 +28,9 @@ import java.util.regex.Pattern;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Representation of a BMv2 device.
+ * A BMv2 device.
  */
+@Beta
 public final class Bmv2Device {
 
     public static final String N_A = "n/a";
@@ -47,9 +49,9 @@ public final class Bmv2Device {
     /**
      * Creates a new BMv2 device object.
      *
-     * @param thriftServerHost the hostname / IP address of the Thrift runtime server running on the device
-     * @param thriftServerPort the port of the Thrift runtime server running on the device
-     * @param internalDeviceId the internal device ID number
+     * @param thriftServerHost the hostname or IP address of the Thrift RPC server running on the device
+     * @param thriftServerPort the listening port used by the device Thrift RPC server
+     * @param internalDeviceId the internal numeric device ID
      */
     public Bmv2Device(String thriftServerHost, int thriftServerPort, int internalDeviceId) {
         this.thriftServerHost = checkNotNull(thriftServerHost, "host cannot be null");
@@ -68,7 +70,7 @@ public final class Bmv2Device {
     }
 
     /**
-     * Returns the hostname (or IP address) of the Thrift runtime server running on the device.
+     * Returns the hostname or IP address of the Thrift RPC server running on the device.
      *
      * @return a string value
      */
@@ -77,7 +79,7 @@ public final class Bmv2Device {
     }
 
     /**
-     * Returns the port of the Thrift runtime server running on the device.
+     * Returns the listening port of the Thrift RPC server running on the device.
      *
      * @return an integer value
      */
@@ -102,7 +104,6 @@ public final class Bmv2Device {
      */
     public DeviceId asDeviceId() {
         try {
-            // TODO: include internalDeviceId number in the deviceId URI
             return DeviceId.deviceId(new URI(SCHEME, this.thriftServerHost + ":" + this.thriftServerPort,
                                              String.valueOf(this.internalDeviceId)));
         } catch (URISyntaxException e) {

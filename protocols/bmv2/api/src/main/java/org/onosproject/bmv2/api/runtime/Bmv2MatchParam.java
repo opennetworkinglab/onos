@@ -16,9 +16,12 @@
 
 package org.onosproject.bmv2.api.runtime;
 
+import com.google.common.annotations.Beta;
+
 /**
  * Representation of a BMv2 match parameter.
  */
+@Beta
 public interface Bmv2MatchParam {
 
     /**

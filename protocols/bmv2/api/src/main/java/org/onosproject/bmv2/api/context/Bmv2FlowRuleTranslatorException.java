@@ -16,10 +16,13 @@
 
 package org.onosproject.bmv2.api.context;
 
+import com.google.common.annotations.Beta;
+
 /**
  * BMv2 flow rule translator exception.
  */
-public class Bmv2FlowRuleTranslatorException extends Exception {
+@Beta
+public final class Bmv2FlowRuleTranslatorException extends Exception {
 
     public Bmv2FlowRuleTranslatorException(String msg) {
         super(msg);

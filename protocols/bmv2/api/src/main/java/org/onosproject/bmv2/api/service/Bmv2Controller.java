@@ -16,6 +16,7 @@
 
 package org.onosproject.bmv2.api.service;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.bmv2.api.runtime.Bmv2DeviceAgent;
 import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
 import org.onosproject.net.DeviceId;
@@ -23,6 +24,7 @@ import org.onosproject.net.DeviceId;
 /**
  * A controller of BMv2 devices.
  */
+@Beta
 public interface Bmv2Controller {
 
     /**

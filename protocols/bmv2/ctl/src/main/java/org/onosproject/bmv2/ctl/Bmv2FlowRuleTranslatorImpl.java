@@ -241,7 +241,7 @@ public class Bmv2FlowRuleTranslatorImpl implements Bmv2FlowRuleTranslator {
 
         if (extTreatment.type() == ExtensionTreatmentTypes.BMV2_ACTION.type()) {
             if (extTreatment instanceof Bmv2ExtensionTreatment) {
-                return ((Bmv2ExtensionTreatment) extTreatment).getAction();
+                return ((Bmv2ExtensionTreatment) extTreatment).action();
             } else {
                 throw new Bmv2FlowRuleTranslatorException("Unable to decode treatment extension: " + extTreatment);
             }

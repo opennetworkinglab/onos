@@ -16,11 +16,13 @@
 
 package org.onosproject.bmv2.api.service;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.bmv2.api.runtime.Bmv2Device;
 
 /**
  * A listener of BMv2 device events.
  */
+@Beta
 public interface Bmv2DeviceListener {
 
     /**

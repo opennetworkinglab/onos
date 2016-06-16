@@ -16,6 +16,7 @@
 
 package org.onosproject.bmv2.api.runtime;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.onlab.util.ImmutableByteSequence;
@@ -23,8 +24,9 @@ import org.onlab.util.ImmutableByteSequence;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Representation of a BMv2 exact match parameter.
+ * A BMv2 exact match parameter.
  */
+@Beta
 public final class Bmv2ExactMatchParam implements Bmv2MatchParam {
 
     private final ImmutableByteSequence value;
@@ -45,7 +47,7 @@ public final class Bmv2ExactMatchParam implements Bmv2MatchParam {
     }
 
     /**
-     * Return the byte sequence value matched by this parameter.
+     * Return the byte sequence matched by this parameter.
      *
      * @return an immutable byte buffer value
      */

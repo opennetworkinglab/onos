@@ -16,6 +16,7 @@
 
 package org.onosproject.bmv2.api.runtime;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.onosproject.net.DeviceId;
@@ -23,6 +24,7 @@ import org.onosproject.net.DeviceId;
 /**
  * A reference to a table entry installed on a BMv2 device.
  */
+@Beta
 public final class Bmv2TableEntryReference {
 
 

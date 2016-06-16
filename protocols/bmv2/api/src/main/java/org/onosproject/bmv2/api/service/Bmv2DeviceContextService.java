@@ -16,6 +16,7 @@
 
 package org.onosproject.bmv2.api.service;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.bmv2.api.context.Bmv2DeviceContext;
 import org.onosproject.bmv2.api.context.Bmv2Interpreter;
 import org.onosproject.net.DeviceId;
@@ -23,6 +24,7 @@ import org.onosproject.net.DeviceId;
 /**
  * A service for managing BMv2 device contexts.
  */
+@Beta
 public interface Bmv2DeviceContextService {
 
     /**

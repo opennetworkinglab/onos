@@ -16,6 +16,7 @@
 
 package org.onosproject.bmv2.api.runtime;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.onlab.util.KryoNamespace;
@@ -31,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Extension selector for BMv2 used as a wrapper for multiple BMv2 match parameters.
  */
+@Beta
 public final class Bmv2ExtensionSelector extends AbstractExtension implements ExtensionSelector {
 
     private final KryoNamespace appKryo = new KryoNamespace.Builder()
