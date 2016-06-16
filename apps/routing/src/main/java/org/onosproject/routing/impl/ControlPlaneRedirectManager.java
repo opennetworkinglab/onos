@@ -133,10 +133,8 @@ public class ControlPlaneRedirectManager {
         hostService.addListener(hostListener);
         interfaceService.addListener(interfaceListener);
 
-        updateConfig(true);
-        applicationService.registerDeactivateHook(this.appId, () -> {
-            this.updateConfig(false);
-        });
+        readConfig();
+        applicationService.registerDeactivateHook(this.appId, () -> provisionDevice(false));
     }
 
     @Deactivate
@@ -151,10 +149,8 @@ public class ControlPlaneRedirectManager {
      * Installs or removes interface configuration
      * based on the flag used on activate or deactivate.
      *
-     * @param operation true on activate application, false on deactivate
-     *            the application
      **/
-    private void updateConfig(boolean operation) {
+    private void readConfig() {
         ApplicationId routingAppId =
                 coreService.registerApplication(RoutingService.ROUTER_APP_ID);
 
@@ -170,17 +166,16 @@ public class ControlPlaneRedirectManager {
         ospfEnabled = config.getOspfEnabled();
         interfaces = config.getInterfaces();
 
-        updateDevice(operation);
+        provisionDevice(true);
     }
 
     /**
      * Installs or removes interface configuration for each interface
      * based on the flag used on activate or deactivate.
      *
-     * @param operation true on activate application, false on deactivate
-     *            the application
+     * @param install true to install flows, false to remove them
      **/
-    private void updateDevice(boolean operation) {
+    private void provisionDevice(boolean install) {
         if (controlPlaneConnectPoint != null &&
                 deviceService.isAvailable(controlPlaneConnectPoint.deviceId())) {
             DeviceId deviceId = controlPlaneConnectPoint.deviceId();
@@ -188,21 +183,17 @@ public class ControlPlaneRedirectManager {
             interfaceService.getInterfaces().stream()
                     .filter(intf -> intf.connectPoint().deviceId().equals(deviceId))
                     .filter(intf -> interfaces.isEmpty() || interfaces.contains(intf.name()))
-                    .forEach(operation ? this::provisionInterface : this::removeInterface);
+                    .forEach(intf -> provisionInterface(intf, install));
 
             log.info("Set up interfaces on {}", controlPlaneConnectPoint.deviceId());
         }
     }
 
-    private void removeInterface(Interface intf) {
-        modifyBasicInterfaceForwarding(intf, false);
-        updateOspfForwarding(intf, false);
+    private void provisionInterface(Interface intf, boolean install) {
+        updateInterfaceForwarding(intf, install);
+        updateOspfForwarding(intf, install);
     }
 
-    private void provisionInterface(Interface intf) {
-        modifyBasicInterfaceForwarding(intf, true);
-        updateOspfForwarding(intf, true);
-    }
     /**
      * Installs or removes the basic forwarding flows for each interface
      * based on the flag used.
@@ -211,7 +202,7 @@ public class ControlPlaneRedirectManager {
      * @param install true to create an add objective, false to create a remove
      *            objective
      **/
-    private void modifyBasicInterfaceForwarding(Interface intf, boolean install) {
+    private void updateInterfaceForwarding(Interface intf, boolean install) {
         log.debug("Adding interface objectives for {}", intf);
 
         DeviceId deviceId = controlPlaneConnectPoint.deviceId();
@@ -361,6 +352,7 @@ public class ControlPlaneRedirectManager {
         }
         return nextId;
     }
+
     /**
      * Builds a forwarding objective from the given selector, treatment and nextId.
      *
@@ -404,7 +396,7 @@ public class ControlPlaneRedirectManager {
                 case DEVICE_AVAILABILITY_CHANGED:
                     if (deviceService.isAvailable(event.subject().id())) {
                         log.info("Device connected {}", event.subject().id());
-                        updateDevice(true);
+                        provisionDevice(true);
                     }
                     break;
                 case DEVICE_UPDATED:
@@ -431,7 +423,7 @@ public class ControlPlaneRedirectManager {
                 switch (event.type()) {
                 case CONFIG_ADDED:
                 case CONFIG_UPDATED:
-                    updateConfig(true);
+                    readConfig();
                     break;
                 case CONFIG_REGISTERED:
                 case CONFIG_UNREGISTERED:
@@ -494,7 +486,6 @@ public class ControlPlaneRedirectManager {
                 return;
             }
 
-            Set<Integer> nextIds = peerNextId.get(peer);
             checkState(peerNextId.get(peer) != null,
                     "Peer nextId should not be null");
             checkState(peerNextId.get(peer).size() == 2,
@@ -593,12 +584,12 @@ public class ControlPlaneRedirectManager {
      * Update the flows comparing previous event and current event.
      *
      * @param prevIntf the previous interface event
-     * @param intf the current occured update envent
+     * @param intf the current occurred update event
      **/
     private void updateInterface(Interface prevIntf, Interface intf) {
         if (!prevIntf.vlan().equals(intf.vlan()) || !prevIntf.mac().equals(intf)) {
-            removeInterface(prevIntf);
-            provisionInterface(intf);
+            provisionInterface(prevIntf, false);
+            provisionInterface(intf, true);
         } else {
             List<InterfaceIpAddress> removeIps =
                     prevIntf.ipAddressesList().stream()
@@ -609,10 +600,10 @@ public class ControlPlaneRedirectManager {
                     .filter(cur -> !prevIntf.ipAddressesList().contains(cur))
                     .collect(Collectors.toList());
             // removing flows with match parameters present in previous subject
-            modifyBasicInterfaceForwarding(new Interface(prevIntf.name(), prevIntf.connectPoint(),
+            updateInterfaceForwarding(new Interface(prevIntf.name(), prevIntf.connectPoint(),
                     removeIps, prevIntf.mac(), prevIntf.vlan()), false);
             // adding flows with match parameters present in event subject
-            modifyBasicInterfaceForwarding(new Interface(intf.name(), intf.connectPoint(),
+            updateInterfaceForwarding(new Interface(intf.name(), intf.connectPoint(),
                     addIps, intf.mac(), intf.vlan()), true);
         }
     }
@@ -626,7 +617,7 @@ public class ControlPlaneRedirectManager {
                 switch (event.type()) {
                 case INTERFACE_ADDED:
                     if (intf != null && !intf.connectPoint().equals(controlPlaneConnectPoint)) {
-                        provisionInterface(intf);
+                        provisionInterface(intf, true);
                     }
                     break;
                 case INTERFACE_UPDATED:
@@ -636,7 +627,7 @@ public class ControlPlaneRedirectManager {
                     break;
                 case INTERFACE_REMOVED:
                     if (intf != null && !intf.connectPoint().equals(controlPlaneConnectPoint)) {
-                        removeInterface(intf);
+                        provisionInterface(intf, false);
                     }
                     break;
                 default:

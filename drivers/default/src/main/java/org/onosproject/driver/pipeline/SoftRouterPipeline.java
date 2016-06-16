@@ -261,7 +261,7 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
             }
         }
 
-        log.debug("adding Port/VLAN/MAC filtering rules in filter table: {}/{}/{}",
+        log.debug("Modifying Port/VLAN/MAC filtering rules in filter table: {}/{}/{}",
                   p.port(), v.vlanId(), e.mac());
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
@@ -287,7 +287,6 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
                 .fromApp(applicationId)
                 .makePermanent()
                 .forTable(FILTER_TABLE).build();
-        ops =  ops.add(rule);
 
         ops = install ? ops.add(rule) : ops.remove(rule);
         // apply filtering flow rules

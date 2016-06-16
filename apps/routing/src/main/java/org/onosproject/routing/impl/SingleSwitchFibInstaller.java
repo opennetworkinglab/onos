@@ -178,9 +178,7 @@ public class SingleSwitchFibInstaller {
 
         updateConfig();
 
-        applicationService.registerDeactivateHook(vrouterAppId, () -> {
-            this.cleanUp();
-        });
+        applicationService.registerDeactivateHook(vrouterAppId, () -> cleanUp());
 
         log.info("Started");
     }
@@ -191,8 +189,6 @@ public class SingleSwitchFibInstaller {
         deviceService.removeListener(deviceListener);
         interfaceService.removeListener(internalInterfaceList);
         networkConfigService.removeListener(configListener);
-
-        //processIntfFilters(false, configService.getInterfaces()); //TODO necessary?
 
         componentConfigService.unregisterProperties(getClass(), false);
 
