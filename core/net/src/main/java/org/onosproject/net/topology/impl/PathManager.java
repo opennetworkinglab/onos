@@ -265,18 +265,23 @@ public class PathManager implements PathService {
     // Produces a direct edge-to-edge path.
     private Path edgeToEdgePath(EdgeLink srcLink, EdgeLink dstLink, Path path) {
         List<Link> links = Lists.newArrayListWithCapacity(2);
+        double cost = 0;
+
         // Add source and destination edge links only if they are real and
         // add the infrastructure path only if it is not null.
         if (srcLink != NOT_HOST) {
             links.add(srcLink);
+            cost++;
         }
         if (path != null) {
             links.addAll(path.links());
+            cost += path.cost();
         }
         if (dstLink != NOT_HOST) {
             links.add(dstLink);
+            cost++;
         }
-        return new DefaultPath(PID, links, 2);
+        return new DefaultPath(PID, links, cost);
     }
 
     // Produces a direct edge-to-edge path.
