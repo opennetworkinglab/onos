@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Resource;
@@ -192,8 +193,9 @@ public final class YangPluginUtils {
 
         StringBuilder path = new StringBuilder();
         List<String> jarPaths = new ArrayList<>();
-        for (Dependency dependency : project.getDependencies()) {
+        for (Object obj : project.getDependencies()) {
 
+            Dependency dependency = (Dependency) obj;
             path.append(localRepository.getBasedir());
             path.append(SLASH);
             path.append(getPackageDirPathFromJavaJPackage(dependency.getGroupId()));
