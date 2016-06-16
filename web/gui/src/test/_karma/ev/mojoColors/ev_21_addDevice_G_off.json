@@ -1,0 +1,18 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000000000000107",
+    "type": "switch",
+    "online": false,
+    "master": "",
+    "labels": [
+      "",
+      "sw-G-0",
+      "of:0000000000000107"
+    ],
+    "metaUi": {
+      "x": 720,
+      "y": 400
+    }
+  }
+}

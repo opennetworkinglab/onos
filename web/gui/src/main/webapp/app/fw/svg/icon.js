@@ -144,31 +144,7 @@
     function loadEmbeddedIcon(div, iconCls, size) {
         loadIconByClass(div, iconCls, size, true);
     }
-
-
-    // configuration for device and host icons in the topology view
-    var config = {
-        device: {
-            dim: 36
-        },
-        host: {
-            badge: {
-                dx: 14,
-                dy: -14
-            },
-            radius: {
-                noGlyph: 9,
-                withGlyph: 14
-            },
-            glyphed: {
-                endstation: 1,
-                bgpSpeaker: 1,
-                router: 1
-            }
-        }
-    };
-
-
+    
     // Adds a device glyph to the specified element.
     // Returns the D3 selection of the glyph (use) element.
     function addDeviceIcon(elem, glyphId, iconDim) {
@@ -254,7 +230,6 @@
                 loadEmbeddedIcon: loadEmbeddedIcon,
                 addDeviceIcon: addDeviceIcon,
                 addHostIcon: addHostIcon,
-                iconConfig: function () { return config; },
                 sortIcons: sortIcons,
                 registerIconMapping: registerIconMapping
             };
