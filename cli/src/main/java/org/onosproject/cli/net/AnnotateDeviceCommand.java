@@ -22,6 +22,7 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceProvider;
@@ -99,6 +100,14 @@ public class AnnotateDeviceCommand extends AbstractShellCommand {
         @Override
         public boolean isReachable(DeviceId deviceId) {
             return false;
+        }
+
+        @Override
+        public void enablePort(DeviceId deviceId, PortNumber portNumber) {
+        }
+
+        @Override
+        public void disablePort(DeviceId deviceId, PortNumber portNumber) {
         }
     }
 }

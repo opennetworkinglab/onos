@@ -130,6 +130,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     private static final Frequency FREQ191_7 = Frequency.ofGHz(191_700);
     private static final Frequency FREQ4_4 = Frequency.ofGHz(4_400);
 
+    private static final long OFP_PORT_MOD_PORT_DOWN = 1 << 0;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceProviderRegistry providerRegistry;
 
@@ -219,6 +221,51 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     public boolean isReachable(DeviceId deviceId) {
         OpenFlowSwitch sw = controller.getSwitch(dpid(deviceId.uri()));
         return sw != null && sw.isConnected();
+    }
+
+    @Override
+    public void enablePort(DeviceId deviceId, PortNumber portNumber) {
+        OpenFlowSwitch sw = controller.getSwitch(dpid(deviceId.uri()));
+        if (sw == null) {
+            return;
+        }
+        OFPortDesc port = getPortForNumber(sw, portNumber);
+        if (port == null) {
+            return;
+        }
+
+        OFFactory fact = sw.factory();
+        sw.sendMsg(fact.buildPortMod().setPortNo(port.getPortNo())
+                .setHwAddr(port.getHwAddr())
+                .setConfig(0).setMask(OFP_PORT_MOD_PORT_DOWN).build());
+    }
+
+    /* TODO migrate this to OpenFlowSwitch? */
+    private OFPortDesc getPortForNumber(OpenFlowSwitch sw, PortNumber portNumber) {
+        List<OFPortDesc> ports = sw.getPorts();
+        for (OFPortDesc port : ports) {
+            if (port.getPortNo().getPortNumber() == portNumber.toLong()) {
+                return port;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void disablePort(DeviceId deviceId, PortNumber portNumber) {
+        OpenFlowSwitch sw = controller.getSwitch(dpid(deviceId.uri()));
+        if (sw == null) {
+            return;
+        }
+        OFPortDesc port = getPortForNumber(sw, portNumber);
+        if (port == null) {
+            return;
+        }
+
+        OFFactory fact = sw.factory();
+        sw.sendMsg(fact.buildPortMod().setPortNo(port.getPortNo())
+                .setHwAddr(port.getHwAddr())
+                .setConfig(OFP_PORT_MOD_PORT_DOWN).setMask(OFP_PORT_MOD_PORT_DOWN).build());
     }
 
     @Override

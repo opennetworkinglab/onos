@@ -16,6 +16,7 @@
 package org.onosproject.net.device;
 
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 
 /**
  * Service for administering the inventory of infrastructure devices.
@@ -30,5 +31,21 @@ public interface DeviceAdminService extends DeviceService {
     void removeDevice(DeviceId deviceId);
 
     // TODO: add ability to administratively suspend/resume device
+
+    /**
+     * Disables the given port.
+     *
+     * @param deviceId device identifier
+     * @param portNumber port number
+     */
+    void disablePort(DeviceId deviceId, PortNumber portNumber);
+
+    /**
+     * Enables the given port.
+     *
+     * @param deviceId device identifier
+     * @param portNumber port number
+     */
+    void enablePort(DeviceId deviceId, PortNumber portNumber);
 
 }

@@ -32,6 +32,7 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
@@ -108,6 +109,16 @@ public class OvsdbDeviceProvider extends AbstractProvider
     public boolean isReachable(DeviceId deviceId) {
         OvsdbClientService ovsdbClient = controller.getOvsdbClient(changeDeviceIdToNodeId(deviceId));
         return !(ovsdbClient == null || !ovsdbClient.isConnected());
+    }
+
+    @Override
+    public void enablePort(DeviceId deviceId, PortNumber portNumber) {
+        //TODO
+    }
+
+    @Override
+    public void disablePort(DeviceId deviceId, PortNumber portNumber) {
+        //TODO
     }
 
     private class InnerOvsdbNodeListener implements OvsdbNodeListener {

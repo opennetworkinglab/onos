@@ -31,6 +31,7 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.behaviour.PortDiscovery;
 import org.onosproject.net.config.ConfigFactory;
@@ -171,6 +172,16 @@ public class RestDeviceProvider extends AbstractProvider
             return false;
         }
         return restDevice.isActive();
+    }
+
+    @Override
+    public void enablePort(DeviceId deviceId, PortNumber portNumber) {
+        //TODO
+    }
+
+    @Override
+    public void disablePort(DeviceId deviceId, PortNumber portNumber) {
+        //TODO
     }
 
     private void deviceAdded(RestSBDevice nodeId) {

@@ -32,6 +32,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceAdminService;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
@@ -426,6 +427,16 @@ public class NullProviders {
             return topoShape.equals("configured") ||
                     (simulator != null && simulator.contains(deviceId) &&
                             topologyMutationDriver.isReachable(deviceId));
+        }
+
+        @Override
+        public void enablePort(DeviceId deviceId, PortNumber portNumber) {
+            // TODO
+        }
+
+        @Override
+        public void disablePort(DeviceId deviceId, PortNumber portNumber) {
+            // TODO
         }
 
         @Override

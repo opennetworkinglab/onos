@@ -274,6 +274,16 @@ public class DeviceManagerTest {
         public boolean isReachable(DeviceId device) {
             return false;
         }
+
+        @Override
+        public void enablePort(DeviceId deviceId, PortNumber portNumber) {
+            // TODO
+        }
+
+        @Override
+        public void disablePort(DeviceId deviceId, PortNumber portNumber) {
+            // TODO
+        }
     }
 
     private static class TestListener implements DeviceListener {

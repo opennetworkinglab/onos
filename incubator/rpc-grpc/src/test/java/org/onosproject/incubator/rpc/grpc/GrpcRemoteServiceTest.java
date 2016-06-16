@@ -369,6 +369,16 @@ public class GrpcRemoteServiceTest {
             return isReachableReply;
         }
 
+        @Override
+        public void enablePort(DeviceId deviceId, PortNumber portNumber) {
+            // TODO
+        }
+
+        @Override
+        public void disablePort(DeviceId deviceId, PortNumber portNumber) {
+            // TODO
+        }
+
     }
 
     class NoOpRemoteServiceProviderRegistry

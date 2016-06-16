@@ -247,6 +247,32 @@ public class DeviceManager
     }
 
     @Override
+    public void disablePort(DeviceId deviceId, PortNumber portNumber) {
+        //TODO check permission?
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        checkNotNull(portNumber, PORT_NUMBER_NULL);
+
+        DeviceProvider provider = getProvider(deviceId);
+        if (provider == null) {
+            return;
+        }
+        provider.disablePort(deviceId, portNumber);
+    }
+
+    @Override
+    public void enablePort(DeviceId deviceId, PortNumber portNumber) {
+        //TODO check permission?
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        checkNotNull(portNumber, PORT_NUMBER_NULL);
+
+        DeviceProvider provider = getProvider(deviceId);
+        if (provider == null) {
+            return;
+        }
+        provider.enablePort(deviceId, portNumber);
+    }
+
+    @Override
     protected DeviceProviderService createProviderService(
             DeviceProvider provider) {
         return new InternalDeviceProviderService(provider);

@@ -51,6 +51,7 @@ import org.onosproject.grpc.DeviceProviderRegistryRpcGrpc.DeviceProviderRegistry
 import org.onosproject.grpc.LinkProviderServiceRpcGrpc;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
@@ -428,6 +429,16 @@ public class GrpcRemoteServiceServer {
             }
             return false;
             // TODO Catch Exceptions and call onError()
+        }
+
+        @Override
+        public void enablePort(DeviceId deviceId, PortNumber portNumber) {
+            //TODO
+        }
+
+        @Override
+        public void disablePort(DeviceId deviceId, PortNumber portNumber) {
+            //TODO
         }
 
         @Override
