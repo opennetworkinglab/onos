@@ -21,7 +21,6 @@
         <groupId>org.onosproject</groupId>
         <artifactId>onos-bgpcep-providers</artifactId>
         <version>1.7.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>onos-bgpcep-app</artifactId>

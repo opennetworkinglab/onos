@@ -21,7 +21,6 @@
         <groupId>org.onosproject</groupId>
         <artifactId>onos-ovsdb</artifactId>
         <version>1.7.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>onos-ovsdb-rfc</artifactId>
     <packaging>bundle</packaging>

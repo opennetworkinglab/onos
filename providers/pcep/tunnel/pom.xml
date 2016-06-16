@@ -20,7 +20,6 @@
         <groupId>org.onosproject</groupId>
         <artifactId>onos-pcep-providers</artifactId>
         <version>1.7.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>onos-pcep-provider-tunnel</artifactId>
     <packaging>bundle</packaging>

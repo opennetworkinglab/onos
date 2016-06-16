@@ -23,7 +23,6 @@
         <groupId>org.onosproject</groupId>
         <artifactId>onos-isis-providers</artifactId>
         <version>1.7.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>onos-isis-provider-device</artifactId>

@@ -26,7 +26,6 @@
         <groupId>org.onosproject</groupId>
         <artifactId>onlab-utils</artifactId>
         <version>1.7.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>jdvue</artifactId>
