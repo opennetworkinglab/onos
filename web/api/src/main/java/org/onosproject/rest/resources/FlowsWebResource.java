@@ -126,7 +126,7 @@ public class FlowsWebResource extends AbstractWebResource {
             rules.forEach(flowRule -> {
                 ObjectNode flowNode = mapper().createObjectNode();
                 flowNode.put(DEVICE_ID, flowRule.deviceId().toString())
-                        .put(FLOW_ID, flowRule.id().value());
+                        .put(FLOW_ID, Long.toString(flowRule.id().value()));
                 flowsNode.add(flowNode);
             });
         } catch (IOException ex) {
