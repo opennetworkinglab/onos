@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.linker;
+package org.onosproject.yangutils.plugin.manager;
 
 import java.io.IOException;
 import java.util.ListIterator;

@@ -16,26 +16,30 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.utils.io.impl.YangToJavaNamingConflictUtil;
 
+import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.doesPackageExist;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
+import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT_BASE_PKG;
+import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
+import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCamelCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getJavaPackageFromPackagePath;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getPackageDirPathFromJavaJPackage;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getSmallCase;
-import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT_BASE_PKG;
-import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 
 /**
  * Unit tests for java identifier syntax.
@@ -101,25 +105,30 @@ public final class JavaIdentifierSyntaxTest {
     private static final String WITH_CAMEL_CASE_WITH_PREFIX = "123addPrefixTry";
     private static final String WITH_CAMEL_CASE_WITH_PREFIX1 = "abc1234567890Ss1123G123Gaa";
     private static YangToJavaNamingConflictUtil conflictResolver = new YangToJavaNamingConflictUtil();
+    private static final String BASE_DIR_PKG = "target.UnitTestCase.";
+    private static final String DIR_PATH = "exist1.exist2.exist3";
+    private static final String PKG_INFO = "package-info.java";
+    private static final String BASE_PKG = "target/UnitTestCase";
+    private static final String TEST_DATA_1 = "This is to append a text to the file first1\n";
 
     /**
      * Unit test for private constructor.
      *
-     * @throws SecurityException if any security violation is observed.
-     * @throws NoSuchMethodException if when the method is not found.
-     * @throws IllegalArgumentException if there is illegal argument found.
-     * @throws InstantiationException if instantiation is provoked for the
-     *             private constructor.
-     * @throws IllegalAccessException if instance is provoked or a method is
-     *             provoked.
+     * @throws SecurityException         if any security violation is observed.
+     * @throws NoSuchMethodException     if when the method is not found.
+     * @throws IllegalArgumentException  if there is illegal argument found.
+     * @throws InstantiationException    if instantiation is provoked for the
+     *                                   private constructor.
+     * @throws IllegalAccessException    if instance is provoked or a method is
+     *                                   provoked.
      * @throws InvocationTargetException when an exception occurs by the method
-     *             or constructor.
+     *                                   or constructor.
      */
     @Test
     public void callPrivateConstructors() throws SecurityException, NoSuchMethodException, IllegalArgumentException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
 
-        Class<?>[] classesToConstruct = {JavaIdentifierSyntax.class };
+        Class<?>[] classesToConstruct = {JavaIdentifierSyntax.class};
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
@@ -281,5 +290,24 @@ public final class JavaIdentifierSyntaxTest {
     public void getPathFromPackageTest() {
         String path = getPackageDirPathFromJavaJPackage(PARENT_WITH_PERIOD);
         assertThat(path.equals(PARENT_PACKAGE), is(true));
+    }
+
+
+    /**
+     * This test  case checks whether the package is existing.
+     *
+     * @throws IOException when failed to create a test file
+     */
+    @Test
+    public void packageExistTest() throws IOException {
+
+        String strPath = BASE_DIR_PKG + DIR_PATH;
+        File createDir = new File(strPath.replace(PERIOD, SLASH));
+        createDir.mkdirs();
+        File createFile = new File(createDir + SLASH + PKG_INFO);
+        createFile.createNewFile();
+        assertThat(true, is(doesPackageExist(strPath)));
+        createDir.delete();
+        deleteDirectory(createDir);
     }
 }

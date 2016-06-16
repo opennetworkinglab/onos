@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.translator.tojava.utils;
+package org.onosproject.yangutils.plugin.manager;
 
 import java.io.IOException;
 
@@ -30,7 +30,7 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirector
 /**
  * Unit tests for union translator.
  */
-public final class UnionTranslatorTest {
+public final class NotificationTranslatorTest {
 
     private final YangUtilsParserManager manager = new YangUtilsParserManager();
 
@@ -42,14 +42,14 @@ public final class UnionTranslatorTest {
             throws IOException, ParserException {
 
         String userDir = System.getProperty("user.dir");
-        YangNode node = manager.getDataModel("src/test/resources/UnionTranslator.yang");
+        YangNode node = manager.getDataModel("src/test/resources/NotificationTest.yang");
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
-        yangPluginConfig.setCodeGenDir("target/UnionTestGenFile/");
+        yangPluginConfig.setCodeGenDir(userDir + "/target/NotificationTest/");
 
         generateJavaCode(node, yangPluginConfig);
 
-        deleteDirectory(userDir + "/target/UnionTestGenFile/");
+        deleteDirectory(userDir + "/target/NotificationTest/");
     }
 
     // TODO enhance the test cases, after having a framework of translator test.

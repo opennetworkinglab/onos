@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.translator.tojava.utils;
+package org.onosproject.yangutils.plugin.manager;
 
 import java.io.IOException;
 
@@ -28,28 +28,28 @@ import static org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorUtil.
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 
 /**
- * Unit tests for rpc translator.
+ * Unit test case for enum translator.
  */
-public final class RpcTranslatorTest {
+public final class EnumTranslatorTest {
 
     private final YangUtilsParserManager manager = new YangUtilsParserManager();
 
     /**
-     * Checks rpc translation should not result in any exception.
+     * Checks enum translation should not result in any exception.
      */
     @Test
-    public void processRpcTranslator()
+    public void processEnumTranslator()
             throws IOException, ParserException {
 
         String userDir = System.getProperty("user.dir");
-        YangNode node = manager.getDataModel("src/test/resources/RpcTranslator.yang");
+        YangNode node = manager.getDataModel("src/test/resources/EnumTranslator.yang");
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
-        yangPluginConfig.setCodeGenDir(userDir + "/target/RpcTestGenFile/");
+        yangPluginConfig.setCodeGenDir(userDir + "/target/EnumTestGenFile/");
 
         generateJavaCode(node, yangPluginConfig);
 
-        deleteDirectory(userDir + "/target/RpcTestGenFile/");
+        deleteDirectory(userDir + "/target/EnumTestGenFile/");
     }
     // TODO enhance the test cases, after having a framework of translator test.
 }

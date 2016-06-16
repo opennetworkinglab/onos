@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.translator.tojava.utils;
+package org.onosproject.yangutils.plugin.manager;
 
 import java.io.IOException;
 
@@ -28,29 +28,27 @@ import static org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorUtil.
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 
 /**
- * Unit tests for union translator.
+ * Unit tests for choice-case translator.
  */
-public final class NotificationTranslatorTest {
+public final class ChoiceCaseTranslatorTest {
 
     private final YangUtilsParserManager manager = new YangUtilsParserManager();
 
     /**
-     * Checks union translation should not result in any exception.
+     * Checks choice-case translation should not result in any exception.
      */
     @Test
-    public void processUnionTranslator()
-            throws IOException, ParserException {
+    public void processChoiceCaseTranslator() throws IOException, ParserException {
 
         String userDir = System.getProperty("user.dir");
-        YangNode node = manager.getDataModel("src/test/resources/NotificationTest.yang");
+        YangNode node = manager.getDataModel("src/test/resources/ChoiceCaseTranslator.yang");
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
-        yangPluginConfig.setCodeGenDir(userDir + "/target/NotificationTest/");
+        yangPluginConfig.setCodeGenDir(userDir + "/target/ChoiceCaseTestGenFile/");
 
         generateJavaCode(node, yangPluginConfig);
 
-        deleteDirectory(userDir + "/target/NotificationTest/");
+        deleteDirectory(userDir + "/target/ChoiceCaseTestGenFile/");
     }
-
     // TODO enhance the test cases, after having a framework of translator test.
 }

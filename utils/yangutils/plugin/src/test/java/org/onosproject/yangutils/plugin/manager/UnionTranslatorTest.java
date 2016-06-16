@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.translator.tojava.utils;
+package org.onosproject.yangutils.plugin.manager;
 
 import java.io.IOException;
 
@@ -28,28 +28,29 @@ import static org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorUtil.
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 
 /**
- * Unit test case for enum translator.
+ * Unit tests for union translator.
  */
-public final class EnumTranslatorTest {
+public final class UnionTranslatorTest {
 
     private final YangUtilsParserManager manager = new YangUtilsParserManager();
 
     /**
-     * Checks enum translation should not result in any exception.
+     * Checks union translation should not result in any exception.
      */
     @Test
-    public void processEnumTranslator()
+    public void processUnionTranslator()
             throws IOException, ParserException {
 
         String userDir = System.getProperty("user.dir");
-        YangNode node = manager.getDataModel("src/test/resources/EnumTranslator.yang");
+        YangNode node = manager.getDataModel("src/test/resources/UnionTranslator.yang");
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
-        yangPluginConfig.setCodeGenDir(userDir + "/target/EnumTestGenFile/");
+        yangPluginConfig.setCodeGenDir("target/UnionTestGenFile/");
 
         generateJavaCode(node, yangPluginConfig);
 
-        deleteDirectory(userDir + "/target/EnumTestGenFile/");
+        deleteDirectory(userDir + "/target/UnionTestGenFile/");
     }
+
     // TODO enhance the test cases, after having a framework of translator test.
 }
