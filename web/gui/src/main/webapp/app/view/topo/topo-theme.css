@@ -44,33 +44,26 @@
 
 /* --- general topo-panel styling --- */
 
+.topo-p svg {
+    background: #c0242b;
+}
+
 .topo-p svg .glyph {
-    fill: #222;
-}
-
-.topo-p svg .glyph.overlay {
-    fill: #fff;
-}
-
-.topo-p h2 {
-    color: black;
-}
-
-.topo-p h3 {
-    color: black;
-}
-
-.topo-p td.label {
-    /* works for both light and dark themes ... */
-    color: #777;
-}
-.topo-p td.value {
+    fill: #ffffff;
 }
 
 .topo-p hr {
-    background-color: #ccc;
-    color: #ccc;
+    background-color: #cccccc;
 }
+
+#topo-p-detail svg {
+    background: none;
+}
+
+#topo-p-detail .header svg .glyph {
+    fill: #c0242b;
+}
+
 
 /* --- Topo Instance Panel --- */
 

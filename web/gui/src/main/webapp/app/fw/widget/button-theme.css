@@ -23,7 +23,7 @@
 .light .button svg.embeddedIcon .icon rect,
 .light .toggleButton.selected svg.embeddedIcon .icon rect,
 .light .radioButton.selected svg.embeddedIcon .icon rect {
-    fill: #838383;
+    fill: #939598;
 }
 
 .light .button:hover svg.embeddedIcon .icon rect,

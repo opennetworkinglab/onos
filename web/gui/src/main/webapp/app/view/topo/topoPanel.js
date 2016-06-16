@@ -30,11 +30,12 @@
         idSum = 'topo-p-summary',
         idDet = 'topo-p-detail',
         panelOpts = {
-            width: 290          // summary and detail panel width
+            width: 260          // summary and detail panel width
         },
-        sumMax = 262,           // summary panel max height
+        sumMax = 226,           // summary panel max height
         padTop = 16,            // summary panel padding below masthead
-        padFudge = padTop + 6,
+        padding = 16,           // panel internal padding
+        padFudge = padTop + 2 * padding,
         devPath = 'device';
 
     // internal state
@@ -210,14 +211,9 @@
                 .append('svg'),
             title = summary.appendHeader('h2'),
             table = summary.appendBody('table'),
-            tbody = table.append('tbody'),
-            glyphId = data.type || 'node';
+            tbody = table.append('tbody');
 
-        gs.addGlyph(svg, glyphId, 40);
-
-        if (glyphId === 'node') {
-            gs.addGlyph(svg, 'bird', 24, true, [8,12]);
-        }
+        gs.addGlyph(svg, 'bird', 24, 0, [1,1]);
 
         title.text(data.title);
         listProps(tbody, data);
@@ -244,7 +240,7 @@
             tbody = table.append('tbody'),
             navFn;
 
-        gs.addGlyph(svg, (data.type || 'unknown'), 40);
+        gs.addGlyph(svg, (data.type || 'unknown'), 26);
         title.text(data.title);
 
         // only add navigation when displaying a device

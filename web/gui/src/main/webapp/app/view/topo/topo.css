@@ -41,30 +41,34 @@
 /* --- Topo Summary Panel --- */
 
 #topo-p-summary {
-    /* Base css from panel.css */
+    padding: 16px;
 }
 
 
 /* --- Topo Detail Panel --- */
 
 #topo-p-detail {
-    /* Base css from panel.css */
-    top: 338px;
+    padding: 16px;
+    top: 370px;
 }
 html[data-platform='iPad'] #topo-p-detail {
-    top: 354px;
+    top: 386px;
 }
 
 #topo-p-detail .actionBtns .actionBtn {
     display: inline-block;
 }
 #topo-p-detail .actionBtns .actionBtn svg {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
 }
 
 
 /* --- general topo-panel styling --- */
+
+.topo-p div.header {
+    margin-bottom: 10px;
+}
 
 .topo-p div.header div.icon {
     vertical-align: middle;
@@ -80,17 +84,17 @@ html[data-platform='iPad'] #topo-p-detail {
 
 .topo-p svg {
     display: inline-block;
-    width: 42px;
-    height: 42px;
+    width: 26px;
+    height: 26px;
 }
 
 
 .topo-p h2 {
-    padding: 0 4px;
+    padding: 0 0 0 10px;
     margin: 0;
+    font-weight: lighter;
     word-wrap: break-word;
     display: inline-block;
-    width: 210px;
     vertical-align: middle;
 }
 
@@ -104,23 +108,34 @@ html[data-platform='iPad'] #topo-p-detail {
 
 .topo-p p,
 .topo-p table {
-    padding: 4px;
+    padding: 0;
     margin: 0;
+    width: 100%;
 }
 
 .topo-p td {
     word-wrap: break-word;
 }
 .topo-p td.label {
-    font-style: italic;
-    padding-right: 12px;
+    font-weight: bold;
+    padding: 0 10px 0 0;
 }
 .topo-p td.value {
+    padding: 0;
+}
+
+#topo-p-summary  td.label {
+    width: 50%;
+}
+
+#topo-p-detail  div.actionBtns {
+    padding-top: 6px;
 }
 
 .topo-p hr {
     height: 1px;
     border: 0;
+    margin: 4px -3px;
 }
 
 
