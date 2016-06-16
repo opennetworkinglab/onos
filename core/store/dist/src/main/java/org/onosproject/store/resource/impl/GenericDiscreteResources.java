@@ -16,7 +16,6 @@
 package org.onosproject.store.resource.impl;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import org.onosproject.net.resource.DiscreteResource;
@@ -41,7 +40,7 @@ final class GenericDiscreteResources implements DiscreteResources {
     }
 
     private GenericDiscreteResources(Set<DiscreteResource> values) {
-        this.values = ImmutableSet.copyOf(values);
+        this.values = values;
     }
 
     // for serializer
@@ -62,7 +61,8 @@ final class GenericDiscreteResources implements DiscreteResources {
     @Override
     public DiscreteResources difference(DiscreteResources other) {
         if (other instanceof GenericDiscreteResources) {
-            return of(Sets.difference(this.values(), other.values()));
+            // make sure that the set is serializable
+            return of(new LinkedHashSet<>(Sets.difference(this.values(), other.values())));
         } else if (other instanceof EmptyDiscreteResources) {
             return this;
         }
@@ -84,7 +84,8 @@ final class GenericDiscreteResources implements DiscreteResources {
     @Override
     public DiscreteResources add(DiscreteResources other) {
         if (other instanceof GenericDiscreteResources) {
-            return new GenericDiscreteResources(Sets.union(this.values(), other.values()));
+            // make sure that the set is serializable
+            return of(new LinkedHashSet<>(Sets.union(this.values(), other.values())));
         } else if (other instanceof EmptyDiscreteResources) {
             return this;
         }

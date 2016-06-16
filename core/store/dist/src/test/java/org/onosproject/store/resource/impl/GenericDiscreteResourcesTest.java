@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.Resources;
+import org.onosproject.store.service.Serializer;
 
 import java.util.Optional;
 
@@ -28,6 +29,8 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 public class GenericDiscreteResourcesTest {
+    private final Serializer serializer = ConsistentResourceStore.SERIALIZER;
+
     @Test
     public void testIfResourceIsFound() {
         DiscreteResource res1 = Resources.discrete(DeviceId.deviceId("a")).resource();
@@ -163,5 +166,29 @@ public class GenericDiscreteResourcesTest {
         DiscreteResources sut = GenericDiscreteResources.of(ImmutableSet.of(res1, res2));
 
         assertThat(sut.values(), is(ImmutableSet.of(res1, res2)));
+    }
+
+    @Test
+    public void testDifferenceSerializable() {
+        DiscreteResource res1 = Resources.discrete(DeviceId.deviceId("a")).resource();
+        DiscreteResource res2 = Resources.discrete(DeviceId.deviceId("b")).resource();
+
+        DiscreteResources set1 = GenericDiscreteResources.of(ImmutableSet.of(res1, res2));
+        DiscreteResources set2 = GenericDiscreteResources.of(ImmutableSet.of(res1));
+
+        DiscreteResources difference = set1.difference(set2);
+        assertThat(serializer.decode(serializer.encode(difference)), is(difference));
+    }
+
+    @Test
+    public void testAddSerializable() {
+        DiscreteResource res1 = Resources.discrete(DeviceId.deviceId("a")).resource();
+        DiscreteResource res2 = Resources.discrete(DeviceId.deviceId("b")).resource();
+
+        DiscreteResources set1 = GenericDiscreteResources.of(ImmutableSet.of(res1));
+        DiscreteResources set2 = GenericDiscreteResources.of(ImmutableSet.of(res2));
+
+        DiscreteResources add = set1.add(set2);
+        assertThat(serializer.decode(serializer.encode(add)), is(add));
     }
 }
