@@ -98,6 +98,7 @@ APPS = [
 
     # Apps
     '//apps/dhcp:onos-apps-dhcp-oar',
+    '//apps/dhcprelay:onos-apps-dhcprelay-oar',
     '//apps/fwd:onos-apps-fwd-oar',
     '//apps/acl:onos-apps-acl-oar',
     '//apps/bgprouter:onos-apps-bgprouter-oar',
@@ -147,6 +148,7 @@ APP_JARS = [
     '//apps/routing-api:onos-apps-routing-api',
     '//apps/dhcp/api:onos-apps-dhcp-api',
     '//apps/dhcp/app:onos-apps-dhcp-app',
+    '//apps/dhcprelay:onos-apps-dhcprelay',
     '//apps/fwd:onos-apps-fwd',
     '//apps/iptopology-api:onos-apps-iptopology-api',
     '//apps/openstacknode:onos-apps-openstacknode',

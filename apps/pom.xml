@@ -53,6 +53,7 @@
         <module>flowanalyzer</module>
         <module>vtn</module>
         <module>dhcp</module>
+        <module>dhcprelay</module>
         <module>mfwd</module>
         <module>pim</module>
         <module>mlb</module>
