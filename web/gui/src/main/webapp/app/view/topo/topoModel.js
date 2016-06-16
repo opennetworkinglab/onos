@@ -69,7 +69,7 @@
         }
 
         // else if we have [x,y] cached in meta data, use that...
-        if (x && y) {
+        if (x !== undefined && y !== undefined) {
             node.fixed = true;
             node.px = node.x = x;
             node.py = node.y = y;

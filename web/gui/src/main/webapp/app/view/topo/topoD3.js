@@ -39,23 +39,22 @@
      */
 
     // configuration
-    var devIconDim = 36;
-    var labelPad = 4;
-
-    var badgeConfig = {
+    var devIconDim = 36,
+        labelPad = 4,
+        hostRadius = 14,
+        badgeConfig = {
             radius: 12,
             yoff: 5,
             gdelta: 10
+        },
+        halfDevIcon = devIconDim / 2,
+        devBadgeOff = { dx: -halfDevIcon, dy: -halfDevIcon },
+        hostBadgeOff = { dx: -hostRadius, dy: -hostRadius },
+        status = {
+            i: 'badgeInfo',
+            w: 'badgeWarn',
+            e: 'badgeError'
         };
-
-    // TODO: remove dependence on this
-    var icfg;
-
-    var status = {
-        i: 'badgeInfo',
-        w: 'badgeWarn',
-        e: 'badgeError'
-    };
 
     // NOTE: this type of hack should go away once we have implemented
     //       the server-side UiModel code.
@@ -76,7 +75,7 @@
     var deviceLabelIndex = 0,
         hostLabelIndex = 0;
 
-    // note: these are the device icon colors without affinity
+    // note: these are the device icon colors without affinity (no master)
     var dColTheme = {
         light: {
             online: '#444444',
@@ -160,9 +159,8 @@
             .transition()
             .attr(iconBox(devIconDim, labelWidth));
 
-        // TODO: verify badge placement
         if (bdg) {
-            renderBadge(node, bdg, { dx: devIconDim, dy: 0 });
+            renderBadge(node, bdg, devBadgeOff);
         }
     }
 
@@ -173,7 +171,7 @@
         updateHostLabel(d);
 
         if (bdg) {
-            renderBadge(node, bdg, icfg.host.badge);
+            renderBadge(node, bdg, hostBadgeOff);
         }
     }
 
@@ -243,7 +241,6 @@
         var node = d3.select(this),
             glyphId = mapDeviceTypeToGlyph(d.type),
             label = trimLabel(deviceLabel(d)),
-            xlate = -devIconDim/2,
             rect, text, glyph, labelWidth;
 
         d.el = node;
@@ -253,7 +250,7 @@
         text = node.append('text').text(label)
             .attr('text-anchor', 'left')
             .attr('y', '0.3em')
-            .attr('x', devIconDim / 2 + labelPad);
+            .attr('x', halfDevIcon + labelPad);
 
         glyph = is.addDeviceIcon(node, glyphId, devIconDim);
 
@@ -262,20 +259,18 @@
         rect.attr(iconBox(devIconDim, labelWidth));
         glyph.attr(iconBox(devIconDim, 0));
 
-        node.attr('transform', sus.translate(xlate, xlate));
+        node.attr('transform', sus.translate(-halfDevIcon, -halfDevIcon));
     }
 
     function hostEnter(d) {
         var node = d3.select(this),
             gid = d.type || 'unknown',
-            rad = icfg.host.radius,
-            r = d.type ? rad.withGlyph : rad.noGlyph,
-            textDy = r + 10;
+            textDy = hostRadius + 10;
 
         d.el = node;
         sus.visible(node, api.showHosts());
 
-        is.addHostIcon(node, r, gid);
+        is.addHostIcon(node, hostRadius, gid);
 
         node.append('text')
             .text(hostLabel)
@@ -526,8 +521,6 @@
             ts = _ts_;
             ps = _ps_;
             ttbs = _ttbs_;
-
-            icfg = is.iconConfig();
 
             function initD3(_api_) {
                 api = _api_;

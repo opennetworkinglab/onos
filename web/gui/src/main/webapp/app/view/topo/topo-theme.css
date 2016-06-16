@@ -226,7 +226,7 @@
     stroke: #a3a596;
     fill: #e0dfd6;
 }
-#ov-topo svg .node.host.selected circle {
+#ov-topo svg .node.host.selected .hostIcon > circle {
     stroke-width: 2.0;
     stroke: #009fdb;
 }
