@@ -15,10 +15,8 @@
  */
 package org.onosproject.app.impl;
 
-import java.io.InputStream;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -41,7 +39,8 @@ import org.onosproject.security.Permission;
 import org.onosproject.security.SecurityUtil;
 import org.slf4j.Logger;
 
-import com.google.common.collect.Maps;
+import java.io.InputStream;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.app.ApplicationEvent.Type.APP_ACTIVATED;
@@ -76,7 +75,7 @@ public class ApplicationManager
     private boolean initializing;
 
     // Application supplied hooks for pre-activation processing.
-    private final Map<String, Runnable> deactivateHooks = Maps.newConcurrentMap();
+    private final Multimap<String, Runnable> deactivateHooks = HashMultimap.create();
 
     @Activate
     public void activate() {
@@ -266,7 +265,7 @@ public class ApplicationManager
     // Uninstalls all features that define the specified app.
     private synchronized boolean uninstallAppFeatures(Application app) throws Exception {
         boolean changed = false;
-        invokeHook(deactivateHooks.get(app.id().name()), app.id());
+        deactivateHooks.removeAll(app.id().name()).forEach(hook -> invokeHook(hook, app.id()));
         for (String name : app.features()) {
             Feature feature = featuresService.getFeature(name);
             if (feature != null && featuresService.isInstalled(feature)) {
