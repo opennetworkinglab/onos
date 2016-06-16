@@ -18,6 +18,7 @@ package org.onosproject.bmv2.api.context;
 
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
@@ -36,6 +37,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 /**
  * Default implementation of a BMv2 configuration backed by a JSON object.
  */
+@Beta
 public final class Bmv2DefaultConfiguration implements Bmv2Configuration {
 
     private final JsonObject json;

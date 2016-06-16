@@ -16,6 +16,7 @@
 
 package org.onosproject.bmv2.api.utils;
 
+import com.google.common.annotations.Beta;
 import org.onlab.util.HexString;
 import org.onlab.util.ImmutableByteSequence;
 
@@ -25,8 +26,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Collection of util methods to deal with flow rule translation.
+ * Collection of utility methods to deal with flow rule translation.
  */
+@Beta
 public final class Bmv2TranslatorUtils {
 
     private Bmv2TranslatorUtils() {

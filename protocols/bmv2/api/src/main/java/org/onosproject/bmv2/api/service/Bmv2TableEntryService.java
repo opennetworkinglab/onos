@@ -17,6 +17,7 @@
 package org.onosproject.bmv2.api.service;
 
 
+import com.google.common.annotations.Beta;
 import org.onosproject.bmv2.api.context.Bmv2FlowRuleTranslator;
 import org.onosproject.bmv2.api.runtime.Bmv2FlowRuleWrapper;
 import org.onosproject.bmv2.api.runtime.Bmv2TableEntryReference;
@@ -24,6 +25,7 @@ import org.onosproject.bmv2.api.runtime.Bmv2TableEntryReference;
 /**
  * A service for managing BMv2 table entries.
  */
+@Beta
 public interface Bmv2TableEntryService {
 
     /**

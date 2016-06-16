@@ -16,12 +16,14 @@
 
 package org.onosproject.bmv2.api.runtime;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 /**
  * Representation of a table entry installed on a BMv2 device.
  */
+@Beta
 public final class Bmv2ParsedTableEntry {
     private final long entryId;
     private final Bmv2MatchKey matchKey;

@@ -16,6 +16,8 @@
 
 package org.onosproject.bmv2.api.runtime;
 
+import com.google.common.annotations.Beta;
+
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -24,6 +26,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * An entry of a match-action table in a BMv2 device.
  */
+@Beta
 public final class Bmv2TableEntry {
 
     private static final int NO_PRIORITY_VALUE = -1;

@@ -16,6 +16,7 @@
 
 package org.onosproject.bmv2.api.runtime;
 
+import com.google.common.annotations.Beta;
 import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.DeviceId;
@@ -26,6 +27,7 @@ import java.util.List;
 /**
  * An agent to control a BMv2 device.
  */
+@Beta
 public interface Bmv2DeviceAgent {
 
     /**
@@ -43,20 +45,20 @@ public interface Bmv2DeviceAgent {
     boolean ping();
 
     /**
-     * Adds a new table entry.
+     * Adds a new table entry. If successful returns a table-specific identifier of the installed entry.
      *
-     * @param entry a table entry value
-     * @return table-specific entry ID
+     * @param entry a table entry
+     * @return a long value
      * @throws Bmv2RuntimeException if any error occurs
      */
     long addTableEntry(Bmv2TableEntry entry) throws Bmv2RuntimeException;
 
     /**
-     * Modifies an existing table entry by updating its action.
+     * Modifies an existing entry at by updating its action.
      *
-     * @param tableName string value of table name
-     * @param entryId   long value of entry ID
-     * @param action    an action value
+     * @param tableName a string value
+     * @param entryId   a long value
+     * @param action    an action
      * @throws Bmv2RuntimeException if any error occurs
      */
     void modifyTableEntry(String tableName, long entryId, Bmv2Action action) throws Bmv2RuntimeException;
@@ -64,16 +66,16 @@ public interface Bmv2DeviceAgent {
     /**
      * Deletes currently installed entry.
      *
-     * @param tableName string value of table name
-     * @param entryId   long value of entry ID
+     * @param tableName a string value
+     * @param entryId   a long value
      * @throws Bmv2RuntimeException if any error occurs
      */
     void deleteTableEntry(String tableName, long entryId) throws Bmv2RuntimeException;
 
     /**
-     * Sets table default action.
+     * Sets a default action for the given table.
      *
-     * @param tableName string value of table name
+     * @param tableName a string value
      * @param action    an action value
      * @throws Bmv2RuntimeException if any error occurs
      */
@@ -97,7 +99,7 @@ public interface Bmv2DeviceAgent {
     List<Bmv2ParsedTableEntry> getTableEntries(String tableName) throws Bmv2RuntimeException;
 
     /**
-     * Requests the device to transmit a given byte sequence over the given port.
+     * Requests the device to transmit a given packet over the given port.
      *
      * @param portNumber a port number
      * @param packet a byte sequence
@@ -106,7 +108,7 @@ public interface Bmv2DeviceAgent {
     void transmitPacket(int portNumber, ImmutableByteSequence packet) throws Bmv2RuntimeException;
 
     /**
-     * Resets the state of the switch (e.g. delete all entries, etc.).
+     * Resets the state of the switch.
      *
      * @throws Bmv2RuntimeException if any error occurs
      */
@@ -121,7 +123,7 @@ public interface Bmv2DeviceAgent {
     String dumpJsonConfig() throws Bmv2RuntimeException;
 
     /**
-     * Returns the md5 sum of the JSON-formatted model configuration currently used to process packets.
+     * Returns the MD5 sum of the JSON-formatted configuration currently used to process packets.
      *
      * @return a string value
      * @throws Bmv2RuntimeException if any error occurs
@@ -139,7 +141,7 @@ public interface Bmv2DeviceAgent {
     Pair<Long, Long> readTableEntryCounter(String tableName, long entryId) throws Bmv2RuntimeException;
 
     /**
-     * Returns the counter values for a given counter and index.
+     * Returns the values of a given counter instance.
      *
      * @param counterName a counter name
      * @param index       an integer value

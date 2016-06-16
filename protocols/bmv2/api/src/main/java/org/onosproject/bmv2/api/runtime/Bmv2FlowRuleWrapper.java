@@ -16,15 +16,17 @@
 
 package org.onosproject.bmv2.api.runtime;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.Objects;
 import org.onosproject.net.flow.FlowRule;
 
 import java.util.Date;
 
 /**
- * A wrapper class for a ONOS flow rule installed on a BMv2 device.
+ * A wrapper for a ONOS flow rule installed on a BMv2 device.
  */
-public class Bmv2FlowRuleWrapper {
+@Beta
+public final class Bmv2FlowRuleWrapper {
 
     private final FlowRule rule;
     private final long entryId;

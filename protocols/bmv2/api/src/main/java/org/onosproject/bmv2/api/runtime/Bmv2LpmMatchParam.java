@@ -16,6 +16,7 @@
 
 package org.onosproject.bmv2.api.runtime;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.onlab.util.ImmutableByteSequence;
@@ -24,8 +25,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Representation of a BMv2 longest prefix match (LPM) parameter.
+ * A BMv2 longest prefix match (LPM) parameter.
  */
+@Beta
 public final class Bmv2LpmMatchParam implements Bmv2MatchParam {
 
     private final ImmutableByteSequence value;

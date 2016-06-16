@@ -16,6 +16,7 @@
 
 package org.onosproject.bmv2.api.runtime;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.onlab.util.KryoNamespace;
@@ -28,16 +29,27 @@ import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.Exten
 /**
  * Extension treatment for BMv2 used as a wrapper for a {@link Bmv2Action}.
  */
+@Beta
 public final class Bmv2ExtensionTreatment extends AbstractExtension implements ExtensionTreatment {
 
     private final KryoNamespace appKryo = new KryoNamespace.Builder().build();
     private Bmv2Action action;
 
+    /**
+     * Creates a new extension treatment for the given BMv2 action.
+     *
+     * @param action an action
+     */
     public Bmv2ExtensionTreatment(Bmv2Action action) {
         this.action = action;
     }
 
-    public Bmv2Action getAction() {
+    /**
+     * Returns the action contained by this extension selector.
+     *
+     * @return an action
+     */
+    public Bmv2Action action() {
         return action;
     }
 

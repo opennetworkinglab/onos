@@ -16,9 +16,12 @@
 
 package org.onosproject.bmv2.api.runtime;
 
+import com.google.common.annotations.Beta;
+
 /**
  * General exception of the BMv2 runtime APIs.
  */
+@Beta
 public final class Bmv2RuntimeException extends Exception {
 
     private final Code code;

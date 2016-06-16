@@ -16,10 +16,13 @@
 
 package org.onosproject.bmv2.api.context;
 
+import com.google.common.annotations.Beta;
+
 /**
  * A BMv2 interpreter exception.
  */
-public class Bmv2InterpreterException extends Exception {
+@Beta
+public final class Bmv2InterpreterException extends Exception {
 
     public Bmv2InterpreterException(String message) {
         super(message);

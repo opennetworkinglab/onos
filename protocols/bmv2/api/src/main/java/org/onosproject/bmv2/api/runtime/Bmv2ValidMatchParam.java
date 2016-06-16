@@ -17,6 +17,7 @@
 package org.onosproject.bmv2.api.runtime;
 
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
@@ -24,6 +25,7 @@ import java.util.Objects;
 /**
  * Representation of a BMv2 valid match parameter.
  */
+@Beta
 public final class Bmv2ValidMatchParam implements Bmv2MatchParam {
 
     private final boolean flag;

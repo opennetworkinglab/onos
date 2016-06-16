@@ -37,9 +37,9 @@ public interface Bmv2FlowRuleTranslator {
      *  <li> action: is built using the context interpreter
      *          {@link Bmv2Interpreter#mapTreatment(org.onosproject.net.flow.TrafficTreatment, Bmv2Configuration)
      *          treatment mapping function} or the flow rule
-     *          {@link org.onosproject.bmv2.api.runtime.Bmv2ExtensionTreatment} extension treatment} (if any).
-     *  <li> timeout: if the table supports timeout, use the same as the flow rule, otherwise none (i.e. permanent
-     *          entry).
+     *          {@link org.onosproject.bmv2.api.runtime.Bmv2ExtensionTreatment extension treatment} (if any).
+     *  <li> timeout: if the table supports timeout, use the same as the flow rule, otherwise none (i.e. returns a
+     *          permanent entry).
      * </ul>
      *
      * @param rule    a flow rule

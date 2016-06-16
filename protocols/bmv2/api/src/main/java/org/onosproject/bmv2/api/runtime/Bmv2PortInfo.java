@@ -16,12 +16,14 @@
 
 package org.onosproject.bmv2.api.runtime;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 /**
  * Information of a port of a BMv2 device.
  */
+@Beta
 public final class Bmv2PortInfo {
 
     private final String ifaceName;
