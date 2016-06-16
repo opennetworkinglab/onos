@@ -1,0 +1,17 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:slf4j-api',
+    '//lib:org.apache.felix.scr.annotations',
+    '//lib:junit',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'Learning Switch Tutorial',
+    category = 'Tutorial',
+    url = 'http://onosproject.org',
+    description = 'Tutorial to help user create a learning switch',
+)
