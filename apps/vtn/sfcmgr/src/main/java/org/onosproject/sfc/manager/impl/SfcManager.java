@@ -316,13 +316,15 @@ public class SfcManager implements SfcService {
         Set<FiveTuple> fiveTupleSet = portChain.getLoadBalanceIdMapKeys();
         for (FiveTuple fiveTuple : fiveTupleSet) {
             id = portChain.getLoadBalanceId(fiveTuple);
+            nshSpi = NshServicePathId.of(getNshServicePathId(id, nshSpiId));
             if (processedIdList.contains(id)) {
-                // multiple five tuple can have single path.
+                // Multiple five tuple can have single path. In this case only
+                // the classifier rule need to delete
+                flowRuleInstaller.unInstallLoadBalancedClassifierRules(portChain, fiveTuple, nshSpi);
                 continue;
             } else {
                 processedIdList.add(id);
             }
-            nshSpi = NshServicePathId.of(getNshServicePathId(id, nshSpiId));
             flowRuleInstaller.unInstallLoadBalancedFlowRules(portChain, fiveTuple, nshSpi);
         }
 

@@ -218,6 +218,20 @@ public class SfcFlowRuleInstallerImpl implements SfcFlowRuleInstallerService {
         return installSfcFlowRules(portChain, fiveTuple, nshSpiId, Objective.Operation.REMOVE);
     }
 
+    @Override
+    public ConnectPoint unInstallLoadBalancedClassifierRules(PortChain portChain, FiveTuple fiveTuple,
+            NshServicePathId nshSpiId) {
+        checkNotNull(portChain, PORT_CHAIN_NOT_NULL);
+
+        List<PortPairId> portPairs = portChain.getLoadBalancePath(fiveTuple);
+        // Get the first port pair
+        ListIterator<PortPairId> portPairListIterator = portPairs.listIterator();
+        PortPairId portPairId = portPairListIterator.next();
+        PortPair portPair = portPairService.getPortPair(portPairId);
+
+        return installSfcClassifierRules(portChain, portPair, nshSpiId, fiveTuple, Objective.Operation.REMOVE);
+    }
+
     public ConnectPoint installSfcFlowRules(PortChain portChain, FiveTuple fiveTuple, NshServicePathId nshSpiId,
             Objective.Operation type) {
         checkNotNull(portChain, PORT_CHAIN_NOT_NULL);

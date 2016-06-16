@@ -64,4 +64,15 @@ public interface SfcFlowRuleInstallerService {
      */
     ConnectPoint unInstallLoadBalancedFlowRules(PortChain portChain, FiveTuple fiveTuple,
             NshServicePathId nshSpiId);
+
+    /**
+     * Uninstall load balanced classifier rules.
+     *
+     * @param portChain port-chain
+     * @param fiveTuple five tuple packet information
+     * @param nshSpiId service path index identifier
+     * @return connectPoint the network identifier
+     */
+    ConnectPoint unInstallLoadBalancedClassifierRules(PortChain portChain, FiveTuple fiveTuple,
+            NshServicePathId nshSpiId);
 }
