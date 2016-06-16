@@ -20,23 +20,18 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.project.MavenProject;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.onosproject.yangutils.utils.UtilConstants;
-import org.sonatype.plexus.build.incremental.BuildContext;
-import org.sonatype.plexus.build.incremental.DefaultBuildContext;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addPackageInfo;
-import static org.onosproject.yangutils.plugin.manager.YangPluginUtils.addToCompilationRoot;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.createDirectories;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;
 
 /**
@@ -186,20 +181,6 @@ public final class YangIoUtilsTest {
         File dirPath = createDirectories(CREATE_PATH);
         assertThat(dirPath.isDirectory(), is(true));
         FileUtils.deleteDirectory(dirPath);
-    }
-
-    /**
-     * This test case checks whether the source is getting added.
-     */
-    @Test
-    public void testForAddSource() throws IOException {
-
-        MavenProject project = new MavenProject();
-        BuildContext context = new DefaultBuildContext();
-        File sourceDir = new File(BASE_DIR + File.separator + "yang");
-        sourceDir.mkdirs();
-        addToCompilationRoot(sourceDir.toString(), project, context);
-        FileUtils.deleteDirectory(sourceDir);
     }
 
     /**

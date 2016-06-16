@@ -20,21 +20,13 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-
 import org.junit.Test;
-import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
 
 import static org.apache.commons.io.FileUtils.deleteDirectory;
-import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
-import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.appendFileContents;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.createPackage;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.doesPackageExist;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.updateFileHandle;
 
 /**
@@ -42,24 +34,21 @@ import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.updateFileH
  */
 public final class FileSystemUtilTest {
 
-    private static final String BASE_DIR_PKG = "target.UnitTestCase.";
     private static final String BASE_PKG = "target/UnitTestCase";
     private static final String TEST_DATA_1 = "This is to append a text to the file first1\n";
     private static final String TEST_DATA_2 = "This is next second line\n";
     private static final String TEST_DATA_3 = "This is next third line in the file";
     private static final String TEST_FILE = "testFile";
     private static final String SOURCE_TEST_FILE = "sourceTestFile";
-    private static final String DIR_PATH = "exist1.exist2.exist3";
-    private static final String PKG_INFO = "package-info.java";
 
     /**
      * A private constructor is tested.
      *
-     * @throws SecurityException if any security violation is observed
-     * @throws NoSuchMethodException if when the method is not found
-     * @throws IllegalArgumentException if there is illegal argument found
-     * @throws InstantiationException if instantiation is provoked for the private constructor
-     * @throws IllegalAccessException if instance is provoked or a method is provoked
+     * @throws SecurityException         if any security violation is observed
+     * @throws NoSuchMethodException     if when the method is not found
+     * @throws IllegalArgumentException  if there is illegal argument found
+     * @throws InstantiationException    if instantiation is provoked for the private constructor
+     * @throws IllegalAccessException    if instance is provoked or a method is provoked
      * @throws InvocationTargetException when an exception occurs by the method or constructor
      */
     @Test
@@ -67,7 +56,7 @@ public final class FileSystemUtilTest {
             throws SecurityException, NoSuchMethodException, IllegalArgumentException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
 
-        Class<?>[] classesToConstruct = {FileSystemUtil.class };
+        Class<?>[] classesToConstruct = {FileSystemUtil.class};
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
@@ -96,52 +85,4 @@ public final class FileSystemUtilTest {
         updateFileHandle(createFile, null, true);
         deleteDirectory(dir);
     }
-
-    /**
-     * This test  case checks whether the package is existing.
-     *
-     * @throws IOException when failed to create a test file
-     */
-    @Test
-    public void packageExistTest() throws IOException {
-
-        String strPath = BASE_DIR_PKG + DIR_PATH;
-        File createDir = new File(strPath.replace(PERIOD, SLASH));
-        createDir.mkdirs();
-        File createFile = new File(createDir + SLASH + PKG_INFO);
-        createFile.createNewFile();
-        assertThat(true, is(doesPackageExist(strPath)));
-        createPackage(getStubNode());
-        createDir.delete();
-        deleteDirectory(createDir);
-    }
-
-    /**
-     * Returns stub YANG node.
-     *
-     * @return stub node
-     */
-    private YangNode getStubNode() {
-        YangJavaModule module = new YangJavaModule();
-        module.setName(TEST_DATA_1);
-        JavaFileInfo javafileInfo = new JavaFileInfo();
-        javafileInfo.setJavaName(TEST_DATA_1);
-        javafileInfo.setBaseCodeGenPath("");
-        javafileInfo.setPackageFilePath(BASE_PKG);
-        javafileInfo.setPluginConfig(getStubPluginConfig());
-        module.setJavaFileInfo(javafileInfo);
-        return module;
-    }
-
-    /**
-     * Returns stub pluginConfig.
-     *
-     * @return stub pluginConfig
-     */
-    private YangPluginConfig getStubPluginConfig() {
-        YangPluginConfig pluginConfig = new YangPluginConfig();
-        pluginConfig.setConflictResolver(null);
-        return pluginConfig;
-    }
-
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.linker;
+package org.onosproject.yangutils.plugin.manager;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -33,8 +33,6 @@ import org.onosproject.yangutils.datamodel.YangUses;
 import org.onosproject.yangutils.datamodel.utils.ResolvableStatus;
 import org.onosproject.yangutils.linker.impl.YangLinkerManager;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
-import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-import org.onosproject.yangutils.plugin.manager.YangUtilManager;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
@@ -52,7 +50,6 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirector
  */
 public class InterFileLinkingTest {
 
-    private final YangUtilsParserManager manager = new YangUtilsParserManager();
     private final YangUtilManager utilManager = new YangUtilManager();
     private final YangLinkerManager yangLinkerManager = new YangLinkerManager();
 

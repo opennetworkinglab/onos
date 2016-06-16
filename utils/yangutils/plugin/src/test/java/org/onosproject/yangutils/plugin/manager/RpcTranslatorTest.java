@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.translator.tojava.utils;
+package org.onosproject.yangutils.plugin.manager;
 
 import java.io.IOException;
 
@@ -28,27 +28,28 @@ import static org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorUtil.
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 
 /**
- * Unit tests for choice-case translator.
+ * Unit tests for rpc translator.
  */
-public final class ChoiceCaseTranslatorTest {
+public final class RpcTranslatorTest {
 
     private final YangUtilsParserManager manager = new YangUtilsParserManager();
 
     /**
-     * Checks choice-case translation should not result in any exception.
+     * Checks rpc translation should not result in any exception.
      */
     @Test
-    public void processChoiceCaseTranslator() throws IOException, ParserException {
+    public void processRpcTranslator()
+            throws IOException, ParserException {
 
         String userDir = System.getProperty("user.dir");
-        YangNode node = manager.getDataModel("src/test/resources/ChoiceCaseTranslator.yang");
+        YangNode node = manager.getDataModel("src/test/resources/RpcTranslator.yang");
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
-        yangPluginConfig.setCodeGenDir(userDir + "/target/ChoiceCaseTestGenFile/");
+        yangPluginConfig.setCodeGenDir(userDir + "/target/RpcTestGenFile/");
 
         generateJavaCode(node, yangPluginConfig);
 
-        deleteDirectory(userDir + "/target/ChoiceCaseTestGenFile/");
+        deleteDirectory(userDir + "/target/RpcTestGenFile/");
     }
     // TODO enhance the test cases, after having a framework of translator test.
 }
