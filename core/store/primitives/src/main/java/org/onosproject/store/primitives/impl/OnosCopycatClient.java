@@ -55,7 +55,8 @@ public class OnosCopycatClient extends DelegatingCopycatClient {
             || e instanceof ClosedChannelException
             || e instanceof QueryException
             || e instanceof UnknownSessionException
-            || e instanceof ClosedSessionException;
+            || e instanceof ClosedSessionException
+            || e instanceof StorageException.Unavailable;
 
     OnosCopycatClient(CopycatClient client, int maxRetries, long delayBetweenRetriesMillis) {
         super(client);
