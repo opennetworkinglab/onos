@@ -56,7 +56,7 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V>, Tr
     private final TransactionContext txContext;
     private static final String TX_CLOSED_ERROR = "Transaction is closed";
     private final AsyncConsistentMap<K, V> backingMap;
-    private final ConsistentMap<K, V> backingConsitentMap;
+    private final ConsistentMap<K, V> backingConsistentMap;
     private final String name;
     private final Serializer serializer;
     private final Map<K, Versioned<V>> readCache = Maps.newConcurrentMap();
@@ -87,7 +87,7 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V>, Tr
             Serializer serializer) {
         this.name = name;
         this.backingMap = backingMap;
-        this.backingConsitentMap = backingMap.asConsistentMap();
+        this.backingConsistentMap = backingMap.asConsistentMap();
         this.txContext = txContext;
         this.serializer = serializer;
     }
@@ -103,7 +103,7 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V>, Tr
         if (latest != null) {
             return latest;
         } else {
-            Versioned<V> v = readCache.computeIfAbsent(key, k -> backingConsitentMap.get(k));
+            Versioned<V> v = readCache.computeIfAbsent(key, k -> backingConsistentMap.get(k));
             return v != null ? v.value() : null;
         }
     }
