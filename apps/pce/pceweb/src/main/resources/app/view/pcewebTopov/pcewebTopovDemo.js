@@ -21,7 +21,7 @@
 
     // injected refs
     var $log, fs, flash, wss, tps, ns, tds, ds;
-    var tunnelNameData, tunnelNameDataRemove;
+    var tunnelNameData, tunnelNameDataRemove, tunnelDataUpdateInfo, tunnelIdUpd;
    // constants
     var srcMessage = 'pceTopovSetSrc',
         dstMessage = 'pceTopovSetDst',
@@ -30,14 +30,17 @@
         updatePathmsgQuery = 'pceTopovUpdateQuery',
         remPathmsgQuery = 'pceTopovRemQuery',
         updatePathmsg = 'pceTopovUpdate',
+        updatePathmsgInfo = 'updatePathmsgInfo',
         remPathmsg = 'pceTopovRem',
         showTunnelInfoMsg = 'pceTopovShowTunnels',
         queryDisplayTunnelMsg = 'pceTopovTunnelDisplay',
-        showTunnelInfoRemoveMsg = 'pceTopovShowTunnelsRem';
+        showTunnelInfoRemoveMsg = 'pceTopovShowTunnelsRem',
+        showTunnelInfoUpdateMsg = 'pceTopovShowTunnelsUpdate';
     // internal state
     var currentMode = null;
     var handlerMap = {},
-        handlerMapRem = {};
+        handlerMapRem = {},
+        handlerMapShowUpdate = {};
     // === ---------------------------
     // === Helper functions
 
@@ -89,8 +92,6 @@
                     id: id
                 });
             }
-
-
             p.append('span').text(nameField);
             p.append('br');
         }
@@ -100,6 +101,7 @@
         addAttribute('band-width-value-name', 'band-width-value', null, 'number');
         addAttribute('pce-band-type', 'band-kpbs-val', 'kbps', 'radio');
         addAttribute('pce-band-type', 'band-mpbs-val', 'mbps', 'radio');
+        addAttribute('pce-band-type', 'band-bps-val', 'bps', 'radio');
         //Add the cost type related inputs.
         addAttribute('pce-cost-type-name', 'pce-cost-type', 'Cost Type', 'checkbox');
         addAttribute('pce-cost-type-valname', 'pce-cost-type-igp', 'IGP', 'radio');
@@ -139,10 +141,11 @@
         return content;
     }
 
-    function createUserTextUpdatePathEvent() {
+    function createUserTextUpdatePathEvent(data) {
         var content = ds.createDiv(),
             form = content.append('form'),
             p = form.append('p');
+        var constType;
 
         function addAttribute(name, id, nameField, type) {
             if (type == 'radio') {
@@ -165,15 +168,79 @@
             p.append('br');
         }
 
-        //Add the bandwidth related inputs.
-        addAttribute('band-width-name', 'update-band-width-box', 'Band Width', 'checkbox');
-        addAttribute('band-width-value-name', 'update-band-width-value', null, 'number');
-        addAttribute('pce-band-type', 'update-band-kpbs-val', 'kbps', 'radio');
-        addAttribute('pce-band-type', 'update-band-mpbs-val', 'mbps', 'radio');
-        //Add the cost type related inputs.
-        addAttribute('pce-cost-type', 'update-pce-cost-type', 'Cost Type', 'checkbox');
-        addAttribute('pce-cost-type-value', 'update-pce-cost-type-igp', 'IGP', 'radio');
-        addAttribute('pce-cost-type-value', 'update-pce-cost-type-te', 'TE', 'radio');
+        data.a.forEach( function (val, idx) {
+            if (val == 'Tunnel') {
+                constType = 'TUNNEL';
+                return;
+            }
+
+            if (val == 'BandWidth') {
+                constType = 'BW';
+                return;
+            }
+
+            if (val == 'CostType') {
+                constType = 'CT';
+                return;
+            }
+
+            if (constType == 'TUNNEL') {
+                p.append('span').text('Tunnel Id: ');
+                p.append('span').text(val);
+                p.append('br');
+                tunnelIdUpd = val;
+            }
+
+            if (constType == 'BW') {
+                addAttribute('band-width-name', 'update-band-width-box', 'Band Width', 'checkbox');
+                p.append('input').attr({
+                    id: 'update-band-width-value',
+                    type: 'number',
+                    name: 'band-width-value-name',
+                    value: val
+                });
+                p.append('br');
+                p.append('input').attr({
+                    id: 'update-band-bps-val',
+                    type: 'radio',
+                    name: 'pce-band-type',
+                    checked: 'checked',
+                    class: 'radioButtonSpace'
+                });
+                p.append('span').text('bps');
+                p.append('br');
+                addAttribute('pce-band-type', 'update-band-kbps-val', 'kbps', 'radio');
+                addAttribute('pce-band-type', 'update-band-mbps-val', 'mbps', 'radio');
+            }
+
+            if (constType == 'CT') {
+                addAttribute('pce-cost-type', 'update-pce-cost-type', 'Cost Type', 'checkbox');
+                if (val == 'COST') {
+                    p.append('input').attr({
+                        id: 'update-pce-cost-type-igp',
+                        type: 'radio',
+                        name: 'pce-cost-type-value',
+                        checked: 'checked',
+                        class: 'radioButtonSpace'
+                    });
+                    p.append('span').text('IGP');
+                    p.append('br');
+                    addAttribute('pce-cost-type-value', 'update-pce-cost-type-te', 'TE', 'radio');
+ 
+                } else {
+                    addAttribute('pce-cost-type-value', 'update-pce-cost-type-igp', 'IGP', 'radio');
+                    p.append('input').attr({
+                        id: 'update-pce-cost-type-te',
+                        type: 'radio',
+                        name: 'pce-cost-type-value',
+                        checked: 'checked',
+                        class: 'radioButtonSpace'
+                    });
+                    p.append('span').text('TE');
+                    p.append('br');
+                }
+            }
+        } );
 
         return content;
     }
@@ -222,66 +289,65 @@
                     tdString = val;
                 }
             } );
+            //send event to server for getting the tunnel information.
+            if (tdString != null) {
+                handlerMapShowUpdate[showTunnelInfoUpdateMsg] = showTunnelInfoUpdateMsgHandle;
+                wss.bindHandlers(handlerMapShowUpdate);
 
-            constraintsUpdateDialog(tdString);
+                wss.sendEvent(updatePathmsgInfo, {
+                    tunnelid: tdString
+                });
+            }
+            //constraintsUpdateDialog(tdString);
             $log.debug('Dialog OK button clicked');
         }
 
         tds.openDialog()
             .setTitle('Available LSPs with selected device')
             .addContent(createUserTextUpdate(data))
-            .addOkChained(dOkUpdate, 'OK')
+            .addOk(dOkUpdate, 'OK')
             .addCancel(dClose, 'Close')
             .bindKeys();
     }
 
-    function constraintsUpdateDialog(tunnelId) {
+    function dOkUpdateEvent() {
+        $log.debug('Select constraints for update path Dialog OK button pressed');
 
-        // invoked when the OK button is pressed on this dialog
-        function dOkUpdateEvent() {
-            $log.debug('Select constraints for update path Dialog OK button pressed');
+        var bandWidth = isChecked('update-band-width-box'),
+            bandValue = null,
+            bandType = null;
 
-            var bandWidth = isChecked('update-band-width-box'),
-                bandValue = null,
-                bandType = null;
+        if (bandWidth) {
+            bandValue = getCheckedValue('update-band-width-value');
 
-            if (bandWidth) {
-                bandValue = d3.select('#update-band-width-value');
-
-                if (isChecked('update-band-kpbs-val')) {
+            if (isChecked('update-band-kbps-val')) {
                     bandType = 'kbps';
-                } else if (isChecked('update-band-mpbs-val')) {
+            } else if (isChecked('update-band-mbps-val')) {
                     bandType = 'mbps';
-                }
+            } else if (isChecked('update-band-bps-val')) {
+                    bandType = 'bps';
             }
-
-            var costType = isChecked('update-pce-cost-type'),
-                costTypeVal = null;
-
-            if (costType) {
-                if (isChecked('update-pce-cost-type-igp')) {
-                    costTypeVal = 'igp';
-                } else if (isChecked('update-pce-cost-type-te')) {
-                   costTypeVal = 'te';
-                }
-            }
-
-            wss.sendEvent(updatePathmsg, {
-                    bw: bandValue,
-                    ctype: costTypeVal,
-                    tunnelname: tunnelId
-            });
-
-            flash.flash('update path message');
-
         }
 
-        tds.openDialog()
-            .setTitle('Select constraints for update path')
-            .addContent(createUserTextUpdatePathEvent())
-            .addCancel()
-            .addOk(dOkUpdateEvent, 'OK')     // NOTE: NOT the "chained" version!
-            .bindKeys();
+        var costType = isChecked('update-pce-cost-type'),
+            costTypeVal = null;
+
+        if (costType) {
+            if (isChecked('update-pce-cost-type-igp')) {
+                costTypeVal = 'igp';
+            } else if (isChecked('update-pce-cost-type-te')) {
+                costTypeVal = 'te';
+            }
+        }
+
+        wss.sendEvent(updatePathmsg, {
+                bw: bandValue,
+                bwtype: bandType,
+                ctype: costTypeVal,
+                tunnelname: tunnelIdUpd
+        });
+
+        flash.flash('update path message');
 
     }
 
@@ -293,6 +359,18 @@
             .setTitle('Available Tunnels for remove')
             .addContent(createUserTextRemove(data))
             .addOk(dOkRemove, 'OK')
+            .addCancel(dClose, 'Close')
+            .bindKeys();
+    }
+
+    function showTunnelInfoUpdateMsgHandle(data) {
+
+        wss.unbindHandlers(handlerMapShowUpdate);
+        tunnelDataUpdateInfo = data;
+        tds.openDialog()
+            .setTitle('Constrainst selection for update')
+            .addContent(createUserTextUpdatePathEvent(data))
+            .addOk(dOkUpdateEvent, 'OK')
             .addCancel(dClose, 'Close')
             .bindKeys();
     }
@@ -312,6 +390,8 @@
                     bandType = 'kbps';
                 } else if (isChecked('band-mpbs-val')) {
                     bandType = 'mbps';
+                } else if (isChecked('band-bps-val')) {
+                    bandType = 'bps';
                 }
             }
 
