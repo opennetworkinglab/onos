@@ -30,11 +30,6 @@ sed -i "" -E "s/features\/.*\/xml/features\/$NEW_VERSION\/xml/" $ONOS_ROOT/tools
 sed -i "" -E "s/ -Dversion=.*\"/ -Dversion=$NEW_VERSION\"/" $ONOS_ROOT/tools/test/bin/onos-archetypes-test
 sed -i "" -E "s/ONOS_POM_VERSION=.*\"/ONOS_POM_VERSION=\"$NEW_VERSION\"/" $ONOS_ROOT/tools/build/envDefaults
 
-# Augment the version in jdvue/bin and stc/bin
-sed -i "" -E "s/VER=.*/VER=$NEW_VERSION/" $ONOS_ROOT/utils/jdvue/bin/jdvue
-sed -i "" -E "s/VER=.*/VER=$NEW_VERSION/" $ONOS_ROOT/utils/stc/bin/stc
-sed -i "" -E "s/VER=.*/VER=$NEW_VERSION/" $ONOS_ROOT/tools/test/bin/stc
-
 # Augment fallback version in CoreManager
 sed -i "" -E "s/Version\.version\(\"[^\"]*\"\)/Version.version(\"$NEW_VERSION\")/" \
    $ONOS_ROOT/core/net/src/main/java/org/onosproject/core/impl/CoreManager.java
