@@ -56,9 +56,11 @@ import org.onosproject.net.topology.TopologyVertex;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -135,10 +137,13 @@ public abstract class AbstractUpgradableFabricApp {
     private Set<DeviceId> spineSwitches;
 
     private Map<DeviceId, List<FlowRule>> deviceFlowRules;
-    private Map<DeviceId, Boolean> rulesInstalled;
+    private Map<DeviceId, Boolean> contextFlags;
+    private Map<DeviceId, Boolean> ruleFlags;
+
+    private ConcurrentMap<DeviceId, Boolean> deployLocks = Maps.newConcurrentMap();
 
     /**
-     * Creates a new Bmv2 Fabric Component.
+     * Creates a new BMv2 fabric app.
      *
      * @param appName           app name
      * @param configurationName a common name for the P4 program / BMv2 configuration used by this app
@@ -212,7 +217,8 @@ public abstract class AbstractUpgradableFabricApp {
             leafSwitches = Sets.newHashSet();
             spineSwitches = Sets.newHashSet();
             deviceFlowRules = Maps.newConcurrentMap();
-            rulesInstalled = Maps.newConcurrentMap();
+            ruleFlags = Maps.newConcurrentMap();
+            contextFlags = Maps.newConcurrentMap();
         }
 
         // Start flow rules generator...
@@ -266,41 +272,19 @@ public abstract class AbstractUpgradableFabricApp {
 
     private void deployRoutine() {
         if (otherAppFound && otherApp.appActive) {
-            log.info("Starting update routine...");
-            updateRoutine();
+            log.info("Deactivating other app...");
             appService.deactivate(otherApp.appId);
-        } else {
-            Stream.concat(leafSwitches.stream(), spineSwitches.stream())
-                    .map(deviceService::getDevice)
-                    .forEach(device -> spawnTask(() -> deployDevice(device)));
-        }
-    }
-
-    private void updateRoutine() {
-        Stream.concat(leafSwitches.stream(), spineSwitches.stream())
-                .forEach(did -> spawnTask(() -> {
-                    cleanUpDevice(did);
-                    try {
-                        Thread.sleep(CLEANUP_SLEEP);
-                    } catch (InterruptedException e) {
-                        log.warn("Cleanup sleep interrupted!");
-                        Thread.interrupted();
-                    }
-                    deployDevice(deviceService.getDevice(did));
-                }));
-    }
-
-    private void cleanUpDevice(DeviceId deviceId) {
-        List<FlowRule> flowRulesToRemove = Lists.newArrayList();
-        flowRuleService.getFlowEntries(deviceId).forEach(fe -> {
-            if (fe.appId() == otherApp.appId.id()) {
-                flowRulesToRemove.add(fe);
+            try {
+                Thread.sleep(CLEANUP_SLEEP);
+            } catch (InterruptedException e) {
+                log.warn("Cleanup sleep interrupted!");
+                Thread.interrupted();
             }
-        });
-        if (flowRulesToRemove.size() > 0) {
-            log.info("Cleaning {} old flow rules from {}...", flowRulesToRemove.size(), deviceId);
-            removeFlowRules(flowRulesToRemove);
         }
+
+        Stream.concat(leafSwitches.stream(), spineSwitches.stream())
+                .map(deviceService::getDevice)
+                .forEach(device -> spawnTask(() -> deployDevice(device)));
     }
 
     /**
@@ -309,36 +293,35 @@ public abstract class AbstractUpgradableFabricApp {
      * @param device a device
      */
     public void deployDevice(Device device) {
-        // Serialize executions per device ID using a concurrent map.
-        rulesInstalled.compute(device.id(), (did, deployed) -> {
-            Bmv2DeviceContext deviceContext = bmv2ContextService.getContext(device.id());
-            if (deviceContext == null) {
-                log.error("Unable to get context for device {}", device.id());
-                return deployed;
-            } else if (!deviceContext.equals(bmv2Context)) {
-                log.info("Swapping configuration to {} on device {}...", configurationName, device.id());
-                bmv2ContextService.triggerConfigurationSwap(device.id(), bmv2Context);
-                return deployed;
+
+        DeviceId deviceId = device.id();
+
+        // Synchronize executions over the same device.
+        deployLocks.putIfAbsent(deviceId, new Boolean(true));
+        synchronized (deployLocks.get(deviceId)) {
+
+            // Set context if not already done.
+            if (!contextFlags.getOrDefault(deviceId, false)) {
+                log.info("Setting context to {} for {}...", configurationName, deviceId);
+                bmv2ContextService.setContext(deviceId, bmv2Context);
+                contextFlags.put(device.id(), true);
             }
 
-            List<FlowRule> rules = deviceFlowRules.get(device.id());
-            if (initDevice(device.id())) {
-                if (deployed == null && rules != null && rules.size() > 0) {
-                    log.info("Installing rules for {}...", did);
+            // Initialize device.
+            if (!initDevice(deviceId)) {
+                log.warn("Failed to initialize device {}", deviceId);
+            }
+
+            // Install rules.
+            if (!ruleFlags.getOrDefault(deviceId, false)) {
+                List<FlowRule> rules = deviceFlowRules.getOrDefault(deviceId, Collections.emptyList());
+                if (rules.size() > 0) {
+                    log.info("Installing rules for {}...", deviceId);
                     installFlowRules(rules);
-                    return true;
-                }
-            } else {
-                log.warn("Filed to initialize device {}", device.id());
-                if (deployed != null && rules != null && rules.size() > 0) {
-                    log.info("Removing rules for {}...", did);
-                    removeFlowRules(rules);
-                    return null;
+                    ruleFlags.put(deviceId, true);
                 }
             }
-
-            return deployed;
-        });
+        }
     }
 
     private void spawnTask(Runnable task) {

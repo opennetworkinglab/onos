@@ -397,7 +397,7 @@ public final class Bmv2DeviceThriftClient implements Bmv2DeviceAgent {
     }
 
     @Override
-    public void loadNewJsonConfig(String jsonString) throws Bmv2RuntimeException {
+    public void uploadNewJsonConfig(String jsonString) throws Bmv2RuntimeException {
 
         log.debug("Loading new JSON config on device... > deviceId={}, jsonStringLength={}",
                   deviceId, jsonString.length());
