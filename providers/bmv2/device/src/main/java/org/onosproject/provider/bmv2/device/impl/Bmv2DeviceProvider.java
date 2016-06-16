@@ -185,9 +185,11 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
                                 (!Objects.equals(thisDescription, lastDescription) ||
                                         !Objects.equals(thisDescription.annotations(), lastDescription.annotations()));
                 if (descriptionChanged || !deviceService.isAvailable(did)) {
-                    // Device description changed or device not available in the core.
-                    if (contextService.notifyDeviceChange(did)) {
-                        // Configuration is the expected one, we can proceed notifying the core.
+                    if (contextService.getContext(did) == null) {
+                        // Device is a first timer.
+                        log.info("Setting DEFAULT context for {}", did);
+                        contextService.setContext(did, contextService.defaultContext());
+                    } else {
                         resetDeviceState(did);
                         initPortCounters(did);
                         providerService.deviceConnected(did, thisDescription);
@@ -295,7 +297,7 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
             if (cfg != null) {
                 try {
                     cfg.getDevicesInfo().stream().forEach(info -> {
-                        // TODO: require also bmv2 internal device id from net-cfg (now is default 0)
+                        // FIXME: require also bmv2 internal device id from net-cfg (now is default 0)
                         Bmv2Device bmv2Device = new Bmv2Device(info.ip().toString(), info.port(), 0);
                         triggerProbe(bmv2Device.asDeviceId());
                     });

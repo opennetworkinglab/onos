@@ -164,7 +164,7 @@ public interface Bmv2DeviceAgent {
      * @param jsonString a string value
      * @throws Bmv2RuntimeException if any error occurs
      */
-    void loadNewJsonConfig(String jsonString) throws Bmv2RuntimeException;
+    void uploadNewJsonConfig(String jsonString) throws Bmv2RuntimeException;
 
     /**
      * Triggers a configuration swap on the device.

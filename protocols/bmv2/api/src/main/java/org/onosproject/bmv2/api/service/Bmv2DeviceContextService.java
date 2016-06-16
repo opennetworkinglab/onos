@@ -25,12 +25,8 @@ import org.onosproject.net.DeviceId;
  */
 public interface Bmv2DeviceContextService {
 
-    // TODO: handle the potential configuration states (e.g. RUNNING, SWAP_REQUESTED, etc.)
-
     /**
-     * Returns the context of a given device. The context returned is the last one for which a configuration swap was
-     * triggered, hence there's no guarantees that the device is enforcing the returned context's  configuration at the
-     * time of the call.
+     * Returns the context of the given device, null if no context has been previously set.
      *
      * @param deviceId a device ID
      * @return a BMv2 device context
@@ -38,12 +34,12 @@ public interface Bmv2DeviceContextService {
     Bmv2DeviceContext getContext(DeviceId deviceId);
 
     /**
-     * Triggers a configuration swap on a given device.
+     * Sets the context for the given device.
      *
      * @param deviceId a device ID
      * @param context  a BMv2 device context
      */
-    void triggerConfigurationSwap(DeviceId deviceId, Bmv2DeviceContext context);
+    void setContext(DeviceId deviceId, Bmv2DeviceContext context);
 
     /**
      * Binds the given interpreter with the given class loader so that other ONOS instances in the cluster can properly
@@ -55,14 +51,9 @@ public interface Bmv2DeviceContextService {
     void registerInterpreterClassLoader(Class<? extends Bmv2Interpreter> interpreterClass, ClassLoader loader);
 
     /**
-     * Notifies this service that a given device has been updated, meaning a potential context change.
-     * It returns true if the device configuration is the same as the last for which a swap was triggered, false
-     * otherwise. In the last case, the service will asynchronously trigger a swap to the last
-     * configuration stored by this service. If no swap has already been triggered then a default configuration will be
-     * applied.
+     * Returns a default context.
      *
-     * @param deviceId a device ID
-     * @return a boolean value
+     * @return a BMv2 device context
      */
-    boolean notifyDeviceChange(DeviceId deviceId);
+    Bmv2DeviceContext defaultContext();
 }
