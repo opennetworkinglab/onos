@@ -60,6 +60,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.bmv2.api.context.Bmv2DefaultConfiguration.parse;
@@ -87,7 +89,7 @@ public class Bmv2DeviceContextServiceImpl implements Bmv2DeviceContextService {
 
     private final ScheduledExecutorService scheduledExecutor = SharedScheduledExecutors.getPoolThreadExecutor();
     private final MapEventListener<DeviceId, Bmv2DeviceContext> contextListener = new ContextMapEventListener();
-    private final ConcurrentMap<DeviceId, Boolean> deviceLocks = Maps.newConcurrentMap();
+    private final ConcurrentMap<DeviceId, Lock> deviceLocks = Maps.newConcurrentMap();
 
     private ConsistentMap<DeviceId, Bmv2DeviceContext> contexts;
     private Map<String, ClassLoader> interpreterClassLoaders;
@@ -115,7 +117,7 @@ public class Bmv2DeviceContextServiceImpl implements Bmv2DeviceContextService {
         interpreterClassLoaders = Maps.newConcurrentMap();
         registerInterpreterClassLoader(defaultInterpreter.getClass(), this.getClass().getClassLoader());
 
-        contexts.addListener(contextListener);
+        contexts.addListener(contextListener, scheduledExecutor);
 
         if (configChecker != null &&  configChecker.isCancelled()) {
             configChecker.cancel(false);
@@ -169,16 +171,14 @@ public class Bmv2DeviceContextServiceImpl implements Bmv2DeviceContextService {
         return defaultContext;
     }
 
-    private void configCheck(DeviceId deviceId) {
+    private void configCheck(DeviceId deviceId, Bmv2DeviceContext storedContext) {
+        if (storedContext == null) {
+            return;
+        }
         // Synchronize executions over the same deviceId.
-        deviceLocks.putIfAbsent(deviceId, new Boolean(true));
-        synchronized (deviceLocks.get(deviceId)) {
-
-            Bmv2DeviceContext storedContext = getContext(deviceId);
-            if (storedContext == null) {
-                return;
-            }
-
+        Lock lock = deviceLocks.computeIfAbsent(deviceId, did -> new ReentrantLock());
+        lock.lock();
+        try {
             log.trace("Executing configuration check on {}...", deviceId);
 
             try {
@@ -200,18 +200,20 @@ public class Bmv2DeviceContextServiceImpl implements Bmv2DeviceContextService {
             } catch (Bmv2RuntimeException e) {
                 log.warn("Unable to dump JSON configuration from {}: {}", deviceId, e.explain());
             }
+        } finally {
+            lock.unlock();
         }
     }
 
-    private void triggerConfigCheck(DeviceId deviceId) {
+    private void triggerConfigCheck(DeviceId deviceId, Bmv2DeviceContext context) {
         if (mastershipService.isLocalMaster(deviceId)) {
-            scheduledExecutor.schedule(() -> configCheck(deviceId), 0, TimeUnit.SECONDS);
+            scheduledExecutor.schedule(() -> configCheck(deviceId, context), 0, TimeUnit.SECONDS);
         }
     }
 
     private void checkDevices() {
         deviceService.getAvailableDevices().forEach(device -> {
-            triggerConfigCheck(device.id());
+            triggerConfigCheck(device.id(), getContext(device.id()));
         });
     }
 
@@ -234,7 +236,7 @@ public class Bmv2DeviceContextServiceImpl implements Bmv2DeviceContextService {
             DeviceId deviceId = event.key();
             if (event.type().equals(INSERT) || event.type().equals(UPDATE)) {
                 log.trace("Context {} for {}", event.type().name(), deviceId);
-                triggerConfigCheck(deviceId);
+                triggerConfigCheck(deviceId, event.newValue().value());
             }
         }
     }

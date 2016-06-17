@@ -49,6 +49,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.onosproject.bmv2.api.runtime.Bmv2RuntimeException.Code.*;
 import static org.onosproject.net.flow.FlowEntry.FlowEntryState.ADDED;
@@ -61,7 +63,7 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     // Needed to synchronize operations over the same table entry.
-    private static final ConcurrentMap<Bmv2TableEntryReference, Boolean> ENTRY_LOCKS = Maps.newConcurrentMap();
+    private static final ConcurrentMap<Bmv2TableEntryReference, Lock> ENTRY_LOCKS = Maps.newConcurrentMap();
 
     private Bmv2Controller controller;
     private Bmv2TableEntryService tableEntryService;
@@ -131,9 +133,10 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
                 Bmv2TableEntryReference entryRef = new Bmv2TableEntryReference(deviceId, table.name(),
                                                                                parsedEntry.matchKey());
 
-                ENTRY_LOCKS.putIfAbsent(entryRef, true);
-                synchronized (ENTRY_LOCKS.get(entryRef)) {
+                Lock lock = ENTRY_LOCKS.computeIfAbsent(entryRef, key -> new ReentrantLock());
+                lock.lock();
 
+                try {
                     Bmv2FlowRuleWrapper frWrapper = tableEntryService.lookup(entryRef);
 
                     if (frWrapper == null) {
@@ -173,6 +176,9 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
                     FlowEntry entry = new DefaultFlowEntry(frWrapper.rule(), ADDED, frWrapper.lifeInSeconds(),
                                                            packets, bytes);
                     entryList.add(entry);
+
+                } finally {
+                    lock.unlock();
                 }
             }
         }
@@ -232,8 +238,9 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
             String tableName = bmv2Entry.tableName();
             Bmv2TableEntryReference entryRef = new Bmv2TableEntryReference(deviceId, tableName, bmv2Entry.matchKey());
 
-            ENTRY_LOCKS.putIfAbsent(entryRef, true);
-            synchronized (ENTRY_LOCKS.get(entryRef)) {
+            Lock lock = ENTRY_LOCKS.computeIfAbsent(entryRef, k -> new ReentrantLock());
+            lock.lock();
+            try {
                 // Get from store
                 Bmv2FlowRuleWrapper frWrapper = tableEntryService.lookup(entryRef);
                 try {
@@ -273,6 +280,8 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
                 } else {
                     tableEntryService.unbind(entryRef);
                 }
+            } finally {
+                lock.unlock();
             }
         }
 
