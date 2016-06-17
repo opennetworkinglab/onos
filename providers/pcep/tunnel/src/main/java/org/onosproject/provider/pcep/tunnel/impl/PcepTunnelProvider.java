@@ -1010,9 +1010,9 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         //build ERO object
         PcepEroObject eroobj = pc.factory().buildEroObject().setSubObjects(llSubObjects).build();
 
-        int  iBandwidth = DEFAULT_BANDWIDTH_VALUE;
+        float  iBandwidth = DEFAULT_BANDWIDTH_VALUE;
         if (tunnel.annotations().value(BANDWIDTH) != null) {
-            iBandwidth = Float.floatToIntBits(Float.parseFloat(tunnel.annotations().value(BANDWIDTH)));
+            iBandwidth = Float.valueOf(tunnel.annotations().value(BANDWIDTH));
         }
         // build bandwidth object
         PcepBandwidthObject bandwidthObject = pc.factory().buildBandwidthObject().setBandwidth(iBandwidth).build();
