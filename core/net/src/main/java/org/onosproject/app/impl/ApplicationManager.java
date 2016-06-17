@@ -15,8 +15,12 @@
  */
 package org.onosproject.app.impl;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.util.concurrent.Uninterruptibles;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -41,6 +45,8 @@ import org.slf4j.Logger;
 
 import java.io.InputStream;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.app.ApplicationEvent.Type.APP_ACTIVATED;
@@ -63,6 +69,7 @@ public class ApplicationManager
     private final Logger log = getLogger(getClass());
 
     private static final String APP_ID_NULL = "Application ID cannot be null";
+    private static final long DEFAULT_OPERATION_TIMEOUT_MILLIS = 2000;
 
     private final ApplicationStoreDelegate delegate = new InternalStoreDelegate();
 
@@ -76,6 +83,10 @@ public class ApplicationManager
 
     // Application supplied hooks for pre-activation processing.
     private final Multimap<String, Runnable> deactivateHooks = HashMultimap.create();
+    private final Cache<ApplicationId, CountDownLatch> pendingUninstalls =
+            CacheBuilder.newBuilder()
+                        .expireAfterWrite(DEFAULT_OPERATION_TIMEOUT_MILLIS * 2, TimeUnit.MILLISECONDS)
+                        .build();
 
     @Activate
     public void activate() {
@@ -148,11 +159,16 @@ public class ApplicationManager
     @Override
     public void uninstall(ApplicationId appId) {
         checkNotNull(appId, APP_ID_NULL);
+        CountDownLatch latch = new CountDownLatch(1);
         try {
+            pendingUninstalls.put(appId, latch);
             store.remove(appId);
         } catch (Exception e) {
+            pendingUninstalls.invalidate(appId);
+            latch.countDown();
             log.warn("Unable to purge application directory for {}", appId.name());
         }
+        Uninterruptibles.awaitUninterruptibly(latch, DEFAULT_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -182,6 +198,7 @@ public class ApplicationManager
         public void notify(ApplicationEvent event) {
             ApplicationEvent.Type type = event.type();
             Application app = event.subject();
+            CountDownLatch latch = pendingUninstalls.getIfPresent(app.id());
             try {
                 if (type == APP_ACTIVATED) {
                     if (installAppFeatures(app)) {
@@ -205,9 +222,13 @@ public class ApplicationManager
 
                 }
                 post(event);
-
             } catch (Exception e) {
                 log.warn("Unable to perform operation on application " + app.id().name(), e);
+            } finally {
+                if (latch != null) {
+                    latch.countDown();
+                    pendingUninstalls.invalidate(app.id());
+                }
             }
         }
     }
