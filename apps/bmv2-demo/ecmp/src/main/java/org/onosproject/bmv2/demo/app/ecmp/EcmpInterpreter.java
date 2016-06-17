@@ -37,7 +37,6 @@ import static org.onosproject.net.flow.instructions.Instructions.OutputInstructi
  */
 public class EcmpInterpreter implements Bmv2Interpreter {
 
-    protected static final String ECMP_METADATA_T = "ecmp_metadata_t";
     protected static final String ECMP_METADATA = "ecmp_metadata";
     protected static final String SELECTOR = "selector";
     protected static final String GROUP_ID = "groupId";

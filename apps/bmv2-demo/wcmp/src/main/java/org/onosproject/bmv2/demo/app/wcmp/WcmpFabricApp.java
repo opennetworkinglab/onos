@@ -18,6 +18,7 @@ package org.onosproject.bmv2.demo.app.wcmp;
 
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -30,6 +31,8 @@ import org.onosproject.bmv2.api.context.Bmv2DefaultConfiguration;
 import org.onosproject.bmv2.api.context.Bmv2DeviceContext;
 import org.onosproject.bmv2.api.runtime.Bmv2Action;
 import org.onosproject.bmv2.api.runtime.Bmv2DeviceAgent;
+import org.onosproject.bmv2.api.runtime.Bmv2ExtensionSelector;
+import org.onosproject.bmv2.api.runtime.Bmv2ExtensionTreatment;
 import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
 import org.onosproject.bmv2.api.service.Bmv2Controller;
 import org.onosproject.bmv2.demo.app.common.AbstractUpgradableFabricApp;
@@ -50,18 +53,19 @@ import org.onosproject.net.topology.TopologyGraph;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.onlab.packet.EthType.EtherType.IPV4;
-import static org.onosproject.bmv2.demo.app.wcmp.WcmpGroupTreatmentBuilder.groupIdOf;
-import static org.onosproject.bmv2.demo.app.wcmp.WcmpGroupTreatmentBuilder.toPrefixLengths;
-import static org.onosproject.bmv2.demo.app.wcmp.WcmpInterpreter.TABLE0;
-import static org.onosproject.bmv2.demo.app.wcmp.WcmpInterpreter.WCMP_GROUP_TABLE;
+import static org.onosproject.bmv2.api.utils.Bmv2TranslatorUtils.roundToBytes;
+import static org.onosproject.bmv2.demo.app.wcmp.WcmpInterpreter.*;
 
 /**
  * Implementation of an upgradable fabric app for the WCMP configuration.
@@ -78,6 +82,8 @@ public class WcmpFabricApp extends AbstractUpgradableFabricApp {
     private static final Bmv2Configuration WCMP_CONFIGURATION = loadConfiguration();
     private static final WcmpInterpreter WCMP_INTERPRETER = new WcmpInterpreter();
     protected static final Bmv2DeviceContext WCMP_CONTEXT = new Bmv2DeviceContext(WCMP_CONFIGURATION, WCMP_INTERPRETER);
+
+    private static final Map<DeviceId, Map<Map<PortNumber, Double>, Integer>> DEVICE_GROUP_ID_MAP = Maps.newHashMap();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private Bmv2Controller bmv2Controller;
@@ -252,19 +258,11 @@ public class WcmpFabricApp extends AbstractUpgradableFabricApp {
             portNumbers.add(p);
             weights.add(w);
         });
-        List<Integer> prefixLengths;
-        try {
-            prefixLengths = toPrefixLengths(weights);
-        } catch (WcmpGroupTreatmentBuilder.WcmpGroupException e) {
-            throw new FlowRuleGeneratorException(e);
-        }
+        List<Integer> prefixLengths = toPrefixLengths(weights);
 
         List<FlowRule> rules = Lists.newArrayList();
         for (int i = 0; i < portNumbers.size(); i++) {
-            ExtensionSelector extSelector = new WcmpGroupTableSelectorBuilder()
-                    .withGroupId(groupId)
-                    .withPrefixLength(prefixLengths.get(i))
-                    .build();
+            ExtensionSelector extSelector = buildWcmpSelector(groupId, prefixLengths.get(i));
             FlowRule rule = flowRuleBuilder(deviceId, WCMP_GROUP_TABLE)
                     .withSelector(DefaultTrafficSelector.builder()
                                           .extension(extSelector, deviceId)
@@ -277,9 +275,76 @@ public class WcmpFabricApp extends AbstractUpgradableFabricApp {
             rules.add(rule);
         }
 
-        ExtensionTreatment extTreatment = new WcmpGroupTreatmentBuilder().withGroupId(groupId).build();
+        ExtensionTreatment extTreatment = buildWcmpTreatment(groupId);
 
         return Pair.of(extTreatment, rules);
+    }
+
+    private Bmv2ExtensionSelector buildWcmpSelector(int groupId, int prefixLength) {
+        byte[] ones = new byte[roundToBytes(prefixLength)];
+        Arrays.fill(ones, (byte) 0xFF);
+        return Bmv2ExtensionSelector.builder()
+                .forConfiguration(WCMP_CONTEXT.configuration())
+                .matchExact(WCMP_META, GROUP_ID, groupId)
+                .matchLpm(WCMP_META, SELECTOR, ones, prefixLength)
+                .build();
+    }
+
+    private Bmv2ExtensionTreatment buildWcmpTreatment(int groupId) {
+        return Bmv2ExtensionTreatment.builder()
+                .forConfiguration(WCMP_CONTEXT.configuration())
+                .setActionName(WCMP_GROUP)
+                .addParameter(GROUP_ID, groupId)
+                .build();
+    }
+
+    public int groupIdOf(DeviceId did, Map<PortNumber, Double> weightedPorts) {
+        DEVICE_GROUP_ID_MAP.putIfAbsent(did, Maps.newHashMap());
+        // Counts the number of unique portNumber sets for each device ID.
+        // Each distinct set of portNumbers will have a unique ID.
+        return DEVICE_GROUP_ID_MAP.get(did).computeIfAbsent(weightedPorts,
+                                                            (pp) -> DEVICE_GROUP_ID_MAP.get(did).size() + 1);
+    }
+
+    public List<Integer> toPrefixLengths(List<Double> weigths) {
+
+        final double weightSum = weigths.stream()
+                .mapToDouble(Double::doubleValue)
+                .map(this::roundDouble)
+                .sum();
+
+        if (Math.abs(weightSum - 1) > 0.0001) {
+            throw new RuntimeException("WCMP weights sum is expected to be 1, found was " + weightSum);
+        }
+
+        final int selectorBitWidth = WCMP_CONTEXT.configuration().headerType(WCMP_META_T).field(SELECTOR).bitWidth();
+        final int availableBits = selectorBitWidth - 1;
+
+        List<Long> prefixDiffs = weigths.stream().map(w -> Math.round(w * availableBits)).collect(toList());
+
+        final long bitSum = prefixDiffs.stream().mapToLong(Long::longValue).sum();
+        final long error = availableBits - bitSum;
+
+        if (error != 0) {
+            // Lazy intuition here is that the error can be absorbed by the longest prefixDiff with the minor impact.
+            Long maxDiff = Collections.max(prefixDiffs);
+            int idx = prefixDiffs.indexOf(maxDiff);
+            prefixDiffs.remove(idx);
+            prefixDiffs.add(idx, maxDiff + error);
+        }
+        List<Integer> prefixLengths = Lists.newArrayList();
+
+        int prefix = 1;
+        for (Long p : prefixDiffs) {
+            prefixLengths.add(prefix);
+            prefix += p;
+        }
+        return ImmutableList.copyOf(prefixLengths);
+    }
+
+    private double roundDouble(double n) {
+        // 5 digits precision.
+        return (double) Math.round(n * 100000d) / 100000d;
     }
 
     private static Bmv2Configuration loadConfiguration() {

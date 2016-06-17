@@ -37,7 +37,7 @@ public final class Bmv2Action {
     private final String name;
     private final List<ImmutableByteSequence> parameters;
 
-    private Bmv2Action(String name, List<ImmutableByteSequence> parameters) {
+    protected Bmv2Action(String name, List<ImmutableByteSequence> parameters) {
         // hide constructor
         this.name = name;
         this.parameters = parameters;
