@@ -160,7 +160,6 @@ public class ApplicationManager
     @Override
     public void uninstall(ApplicationId appId) {
         checkNotNull(appId, APP_ID_NULL);
-        CountDownLatch latch = new CountDownLatch(1);
         updateStoreAndWaitForNotificationHandling(appId, store::remove);
     }
 
