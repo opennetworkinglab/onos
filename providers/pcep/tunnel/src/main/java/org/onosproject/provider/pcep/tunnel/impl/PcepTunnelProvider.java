@@ -1476,23 +1476,29 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             }
 
             PcepAttribute attributes = msgPath.getPcepAttribute();
+            float bandwidth = 0;
             int cost = 0;
-            if (attributes != null && attributes.getMetricObjectList() != null) {
-                ListIterator<PcepMetricObject> iterator = attributes.getMetricObjectList().listIterator();
-                PcepMetricObject metricObj = iterator.next();
+            if (attributes != null) {
+                if (attributes.getMetricObjectList() != null) {
+                    ListIterator<PcepMetricObject> iterator = attributes.getMetricObjectList().listIterator();
+                    PcepMetricObject metricObj = iterator.next();
 
-                while (metricObj != null) {
-                    if (metricObj.getBType() == IGP_METRIC) {
-                        costType = "COST";
-                    } else if (metricObj.getBType() == TE_METRIC) {
-                        costType = "TE_COST";
+                    while (metricObj != null) {
+                        if (metricObj.getBType() == IGP_METRIC) {
+                            costType = "COST";
+                        } else if (metricObj.getBType() == TE_METRIC) {
+                            costType = "TE_COST";
+                        }
+                        if (costType != null) {
+                            cost = metricObj.getMetricVal();
+                            log.debug("Path cost {}", cost);
+                            break;
+                        }
+                        metricObj = iterator.next();
                     }
-                    if (costType != null) {
-                        cost = metricObj.getMetricVal();
-                        log.debug("Path cost {}", cost);
-                        break;
-                    }
-                    metricObj = iterator.next();
+                }
+                if (attributes.getBandwidthObject() != null) {
+                    bandwidth = attributes.getBandwidthObject().getBandwidth();
                 }
             }
 
@@ -1510,15 +1516,8 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             Path path = new DefaultPath(providerId, links, cost, EMPTY);
             NetworkResource labelStack = new DefaultLabelStack(labels);
 
-            float bandwidth = 0;
-            if (msgPath.getBandwidthObject() != null) {
-                bandwidth = msgPath.getBandwidthObject().getBandwidth();
-            }
-
-            /*
-             * To carry PST TLV, SRP object can be present with value 0 even when PCRpt is not in response to any action
-             * from PCE.
-             */
+            // To carry PST TLV, SRP object can be present with value 0 even when PCRpt is not in response to any action
+            // from PCE.
             PcepSrpObject srpObj = stateRpt.getSrpObject();
             LspType lspType = getLspType(srpObj);
 

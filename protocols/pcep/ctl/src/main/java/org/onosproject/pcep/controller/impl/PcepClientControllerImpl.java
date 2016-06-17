@@ -503,8 +503,8 @@ public class PcepClientControllerImpl implements PcepClientController {
                         } catch (PcepParseException e) {
                             log.error("Exception occured while sending initiate delete message {}", e.getMessage());
                         }
+                        continue;
                     }
-                    continue;
                 }
 
                 if (!lspObj.getCFlag()) {
