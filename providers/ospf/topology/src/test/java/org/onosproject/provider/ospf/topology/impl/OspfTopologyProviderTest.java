@@ -72,12 +72,14 @@ public class OspfTopologyProviderTest {
     private final TestDeviceRegistry nodeRegistry = new TestDeviceRegistry();
     private final TestLinkRegistry linkRegistry = new TestLinkRegistry();
     private final TestController controller = new TestController();
+    private final TestLinkService linkService = new TestLinkService();
 
     @Before
     public void setUp() throws Exception {
         provider.deviceProviderRegistry = nodeRegistry;
         provider.linkProviderRegistry = linkRegistry;
         provider.controller = controller;
+        provider.linkService = linkService;
         provider.activate();
         assertNotNull("provider should be registered", nodeRegistry.provider);
         assertNotNull("listener should be registered", controller.nodeListener);

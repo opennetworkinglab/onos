@@ -42,6 +42,7 @@ import org.onosproject.net.link.LinkDescription;
 import org.onosproject.net.link.LinkProvider;
 import org.onosproject.net.link.LinkProviderRegistry;
 import org.onosproject.net.link.LinkProviderService;
+import org.onosproject.net.link.LinkService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.ospf.controller.OspfController;
@@ -72,6 +73,8 @@ public class OspfTopologyProvider extends AbstractProvider implements DeviceProv
     protected DeviceProviderRegistry deviceProviderRegistry;
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkProviderRegistry linkProviderRegistry;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LinkService linkService;
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OspfController controller;
     //This Interface that defines how this provider can interact with the core.
@@ -177,7 +180,7 @@ public class OspfTopologyProvider extends AbstractProvider implements DeviceProv
             ChassisId cId = new ChassisId();
             DefaultAnnotations.Builder newBuilder = DefaultAnnotations.builder();
 
-            newBuilder.set(AnnotationKeys.TYPE, "L3");
+            newBuilder.set(AnnotationKeys.TYPE, "l3");
             newBuilder.set("routerId", routerId);
             DeviceDescription description =
                     new DefaultDeviceDescription(OspfRouterId.uri(ospfRouter.routerIp()),
@@ -201,10 +204,11 @@ public class OspfTopologyProvider extends AbstractProvider implements DeviceProv
         @Override
         public void addLink(OspfRouter ospfRouter, OspfLinkTed ospfLinkTed) {
             log.debug("Addlink {}", ospfRouter.routerIp());
-            if (linkProviderService == null) {
+            LinkDescription linkDes = buildLinkDes(ospfRouter, ospfLinkTed);
+            //If already link exists, return
+            if (linkService.getLink(linkDes.src(), linkDes.dst()) != null || linkProviderService == null) {
                 return;
             }
-            LinkDescription linkDes = buildLinkDes(ospfRouter, ospfLinkTed);
             //Updating ports of the link
             List<PortDescription> srcPortDescriptions = new LinkedList<>();
             srcPortDescriptions.add(new DefaultPortDescription(linkDes.src().port(), true));
