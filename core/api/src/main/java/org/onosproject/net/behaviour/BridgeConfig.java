@@ -84,30 +84,12 @@ public interface BridgeConfig extends HandlerBehaviour {
     Collection<BridgeDescription> getBridges();
 
     /**
-     * Add a logical/virtual port.
-     * @deprecated version 1.5.0 - Falcon.
-     *
-     * @param port port number
-     */
-    @Deprecated
-    void addPort(PortDescription port);
-
-    /**
      * Adds a port to a given bridge.
      *
      * @param bridgeName bridge name
      * @param portName port name
      */
     void addPort(BridgeName bridgeName, String portName);
-
-    /**
-     * Delete a logical/virtual port.
-     * @deprecated version 1.5.0 - Falcon.
-     *
-     * @param port port number
-     */
-    @Deprecated
-    void deletePort(PortDescription port);
 
     /**
      * Removes a port from a given bridge.

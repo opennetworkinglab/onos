@@ -120,34 +120,10 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
                 .collect(Collectors.toSet());
     }
 
-    //Deprecated from version 1.5.0 - Falcon
-    @Deprecated
-    @Override
-    public void addPort(PortDescription port) {
-        OvsdbClientService client = getOvsdbClientService(handler());
-        Set<OvsdbBridge> ovsdbSet = client.getBridges();
-        if (ovsdbSet != null && ovsdbSet.size() > 0) {
-            OvsdbBridge bridge = ovsdbSet.iterator().next();
-            client.createPort(bridge.name(), port.portNumber().toString());
-        }
-    }
-
     @Override
     public void addPort(BridgeName bridgeName, String portName) {
         OvsdbClientService client = getOvsdbClientService(handler());
         client.createPort(bridgeName.name(), portName);
-    }
-
-    //Deprecated from version 1.5.0 - Falcon
-    @Deprecated
-    @Override
-    public void deletePort(PortDescription port) {
-        OvsdbClientService client = getOvsdbClientService(handler());
-        Set<OvsdbBridge> ovsdbSet = client.getBridges();
-        if (ovsdbSet != null && ovsdbSet.size() > 0) {
-            OvsdbBridge bridge = ovsdbSet.iterator().next();
-            client.dropPort(bridge.name(), port.portNumber().toString());
-        }
     }
 
     @Override
