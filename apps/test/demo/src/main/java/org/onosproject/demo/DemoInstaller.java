@@ -553,7 +553,7 @@ public class DemoInstaller implements DemoApi {
                             .matchEthDst(MacAddress.valueOf((Integer.MAX_VALUE - i) * RandomUtils.nextInt()));
 
 
-                    int randomPriority = RandomUtils.nextInt();
+                    int randomPriority = RandomUtils.nextInt(FlowRule.MAX_PRIORITY);
                     FlowRule f = DefaultFlowRule.builder()
                             .forDevice(d.id())
                             .withSelector(sbuilder.build())
