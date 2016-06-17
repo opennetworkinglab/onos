@@ -269,12 +269,10 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
 
     private void disconnectDevice(DeviceId did) {
         log.debug("Trying to disconnect device from core... deviceId={}", did);
-        activeDevices.compute(did, (k, v) -> {
-            if (deviceService.isAvailable(did)) {
-                providerService.deviceDisconnected(did);
-            }
-            return null;
-        });
+        if (deviceService.isAvailable(did)) {
+            providerService.deviceDisconnected(did);
+        }
+        activeDevices.put(did, null);
     }
 
     /**
