@@ -98,7 +98,15 @@
         }
     }
 
+    function textFieldInput() {
+        var t = d3.event.target.tagName.toLowerCase();
+        return t === 'input' || t === 'textarea';
+    }
+
     function keyIn() {
+        if (textFieldInput()) {
+            return;
+        }
         var event = d3.event,
             keyCode = event.keyCode,
             key = whatKey(keyCode),
