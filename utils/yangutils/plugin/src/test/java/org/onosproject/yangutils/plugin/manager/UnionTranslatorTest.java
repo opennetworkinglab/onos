@@ -41,7 +41,6 @@ public final class UnionTranslatorTest {
     public void processUnionTranslator()
             throws IOException, ParserException {
 
-        String userDir = System.getProperty("user.dir");
         YangNode node = manager.getDataModel("src/test/resources/UnionTranslator.yang");
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
@@ -49,7 +48,7 @@ public final class UnionTranslatorTest {
 
         generateJavaCode(node, yangPluginConfig);
 
-        deleteDirectory(userDir + "/target/UnionTestGenFile/");
+        deleteDirectory("target/UnionTestGenFile/");
     }
 
     // TODO enhance the test cases, after having a framework of translator test.
