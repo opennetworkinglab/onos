@@ -29,6 +29,7 @@ import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
 import org.onosproject.bmv2.api.service.Bmv2Controller;
 import org.onosproject.bmv2.api.service.Bmv2DeviceContextService;
 import org.onosproject.bmv2.api.service.Bmv2DeviceListener;
+import org.onosproject.bmv2.api.service.Bmv2TableEntryService;
 import org.onosproject.common.net.AbstractDeviceProvider;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -106,6 +107,9 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected Bmv2DeviceContextService contextService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected Bmv2TableEntryService tableEntryService;
 
     private ApplicationId appId;
 
@@ -228,6 +232,8 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
     private void resetDeviceState(DeviceId did) {
         try {
             controller.getAgent(did).resetState();
+            // Tables emptied. Reset all bindings.
+            tableEntryService.unbindAll(did);
         } catch (Bmv2RuntimeException e) {
             log.warn("Unable to reset {}: {}", did, e.toString());
         }

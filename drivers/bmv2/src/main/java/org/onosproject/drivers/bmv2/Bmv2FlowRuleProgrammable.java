@@ -24,6 +24,7 @@ import org.onosproject.bmv2.api.context.Bmv2DeviceContext;
 import org.onosproject.bmv2.api.context.Bmv2FlowRuleTranslator;
 import org.onosproject.bmv2.api.context.Bmv2FlowRuleTranslatorException;
 import org.onosproject.bmv2.api.context.Bmv2Interpreter;
+import org.onosproject.bmv2.api.context.Bmv2TableModel;
 import org.onosproject.bmv2.api.runtime.Bmv2DeviceAgent;
 import org.onosproject.bmv2.api.runtime.Bmv2FlowRuleWrapper;
 import org.onosproject.bmv2.api.runtime.Bmv2MatchKey;
@@ -112,10 +113,10 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
 
         List<FlowEntry> entryList = Lists.newArrayList();
 
-        configuration.tables().forEach(table -> {
+        for (Bmv2TableModel table : configuration.tables()) {
             // For each table in the configuration AND exposed by the interpreter.
             if (!interpreter.tableIdMap().inverse().containsKey(table.name())) {
-                return;
+                continue; // next table
             }
 
             List<Bmv2ParsedTableEntry> installedEntries;
@@ -123,33 +124,34 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
                 installedEntries = deviceAgent.getTableEntries(table.name());
             } catch (Bmv2RuntimeException e) {
                 log.warn("Failed to get table entries of table {} of {}: {}", table.name(), deviceId, e.explain());
-                return;
+                continue; // next table
             }
 
-            installedEntries.forEach(parsedEntry -> {
-                Bmv2TableEntryReference entryRef = new Bmv2TableEntryReference(deviceId,
-                                                                               table.name(),
+            for (Bmv2ParsedTableEntry parsedEntry : installedEntries) {
+                Bmv2TableEntryReference entryRef = new Bmv2TableEntryReference(deviceId, table.name(),
                                                                                parsedEntry.matchKey());
-                ENTRY_LOCKS.compute(entryRef, (key, value) -> {
 
-                    Bmv2FlowRuleWrapper frWrapper = tableEntryService.lookupEntryReference(entryRef);
+                ENTRY_LOCKS.putIfAbsent(entryRef, true);
+                synchronized (ENTRY_LOCKS.get(entryRef)) {
+
+                    Bmv2FlowRuleWrapper frWrapper = tableEntryService.lookup(entryRef);
 
                     if (frWrapper == null) {
                         log.warn("missing reference from table entry service, BUG? " +
                                          "deviceId={}, tableName={}, matchKey={}",
                                  deviceId, table.name(), entryRef.matchKey());
-                        return null;
+                        continue; // next entry
                     }
 
                     long remoteEntryId = parsedEntry.entryId();
                     long localEntryId = frWrapper.entryId();
 
                     if (remoteEntryId != localEntryId) {
-                        log.warn("getFlowEntries(): inconsistent entry id! BUG? Updating it... remote={}, local={}",
+                        log.debug("getFlowEntries(): inconsistent entry id! BUG? Updating it... remote={}, local={}",
                                  remoteEntryId, localEntryId);
                         frWrapper = new Bmv2FlowRuleWrapper(frWrapper.rule(), remoteEntryId,
                                                             frWrapper.creationDate());
-                        tableEntryService.bindEntryReference(entryRef, frWrapper);
+                        tableEntryService.bind(entryRef, frWrapper);
                     }
 
                     long bytes = 0L;
@@ -171,11 +173,9 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
                     FlowEntry entry = new DefaultFlowEntry(frWrapper.rule(), ADDED, frWrapper.lifeInSeconds(),
                                                            packets, bytes);
                     entryList.add(entry);
-                    return true;
-                });
-
-            });
-        });
+                }
+            }
+        }
 
         return Collections.unmodifiableCollection(entryList);
     }
@@ -226,19 +226,16 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
                 bmv2Entry = translator.translate(rule, context);
             } catch (Bmv2FlowRuleTranslatorException e) {
                 log.warn("Unable to translate flow rule: {} - {}", e.getMessage(), rule);
-                continue;
+                continue; // next rule
             }
 
             String tableName = bmv2Entry.tableName();
             Bmv2TableEntryReference entryRef = new Bmv2TableEntryReference(deviceId, tableName, bmv2Entry.matchKey());
 
-            /*
-            From here on threads are synchronized over entryKey, i.e. serialize operations
-            over the same matchKey of a specific table and device.
-             */
-            ENTRY_LOCKS.compute(entryRef, (key, value) -> {
+            ENTRY_LOCKS.putIfAbsent(entryRef, true);
+            synchronized (ENTRY_LOCKS.get(entryRef)) {
                 // Get from store
-                Bmv2FlowRuleWrapper frWrapper = tableEntryService.lookupEntryReference(entryRef);
+                Bmv2FlowRuleWrapper frWrapper = tableEntryService.lookup(entryRef);
                 try {
                     if (operation == Operation.APPLY) {
                         // Apply entry
@@ -269,15 +266,14 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
                 } catch (Bmv2RuntimeException e) {
                     log.warn("Unable to {} flow rule: {}", operation.name(), e.explain());
                 }
-                // Update binding in table entry service.
+
+                // Update entryRef binding in table entry service.
                 if (frWrapper != null) {
-                    tableEntryService.bindEntryReference(entryRef, frWrapper);
-                    return true;
+                    tableEntryService.bind(entryRef, frWrapper);
                 } else {
-                    tableEntryService.unbindEntryReference(entryRef);
-                    return null;
+                    tableEntryService.unbind(entryRef);
                 }
-            });
+            }
         }
 
         return processedFlowRules;
@@ -287,7 +283,7 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
         try {
             return agent.addTableEntry(entry);
         } catch (Bmv2RuntimeException e) {
-            if (e.getCode() != TABLE_DUPLICATE_ENTRY) {
+            if (e.getCode().equals(TABLE_DUPLICATE_ENTRY)) {
                 forceRemove(agent, entry.tableName(), entry.matchKey());
                 return agent.addTableEntry(entry);
             } else {
@@ -301,7 +297,7 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
         try {
             agent.deleteTableEntry(tableName, entryId);
         } catch (Bmv2RuntimeException e) {
-            if (e.getCode() == TABLE_INVALID_HANDLE || e.getCode() == TABLE_EXPIRED_HANDLE) {
+            if (e.getCode().equals(TABLE_INVALID_HANDLE) || e.getCode().equals(TABLE_EXPIRED_HANDLE)) {
                 // entry is not there with the declared ID, try with a forced remove.
                 forceRemove(agent, tableName, matchKey);
             } else {

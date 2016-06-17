@@ -34,6 +34,7 @@ import org.onosproject.bmv2.api.runtime.Bmv2ValidMatchParam;
 import org.onosproject.bmv2.api.service.Bmv2Controller;
 import org.onosproject.bmv2.api.service.Bmv2DeviceContextService;
 import org.onosproject.bmv2.api.service.Bmv2TableEntryService;
+import org.onosproject.net.DeviceId;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.StorageService;
@@ -99,21 +100,29 @@ public class Bmv2TableEntryServiceImpl implements Bmv2TableEntryService {
     }
 
     @Override
-    public Bmv2FlowRuleWrapper lookupEntryReference(Bmv2TableEntryReference entryRef) {
+    public Bmv2FlowRuleWrapper lookup(Bmv2TableEntryReference entryRef) {
         checkNotNull(entryRef, "table entry reference cannot be null");
         return flowRules.get(entryRef);
     }
 
     @Override
-    public void bindEntryReference(Bmv2TableEntryReference entryRef, Bmv2FlowRuleWrapper rule) {
+    public void bind(Bmv2TableEntryReference entryRef, Bmv2FlowRuleWrapper rule) {
         checkNotNull(entryRef, "table entry reference cannot be null");
         checkNotNull(rule, "bmv2 flow rule cannot be null");
         flowRules.put(entryRef, rule);
     }
 
     @Override
-    public void unbindEntryReference(Bmv2TableEntryReference entryRef) {
+    public void unbind(Bmv2TableEntryReference entryRef) {
         checkNotNull(entryRef, "table entry reference cannot be null");
         flowRules.remove(entryRef);
+    }
+
+    @Override
+    public void unbindAll(DeviceId deviceId) {
+        flowRules.keySet()
+                .stream()
+                .filter(entryRef -> entryRef.deviceId().equals(deviceId))
+                .forEach(flowRules::remove);
     }
 }

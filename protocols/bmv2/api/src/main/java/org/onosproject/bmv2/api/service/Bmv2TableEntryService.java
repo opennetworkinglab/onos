@@ -21,6 +21,7 @@ import com.google.common.annotations.Beta;
 import org.onosproject.bmv2.api.context.Bmv2FlowRuleTranslator;
 import org.onosproject.bmv2.api.runtime.Bmv2FlowRuleWrapper;
 import org.onosproject.bmv2.api.runtime.Bmv2TableEntryReference;
+import org.onosproject.net.DeviceId;
 
 /**
  * A service for managing BMv2 table entries.
@@ -41,7 +42,7 @@ public interface Bmv2TableEntryService {
      * @param entryRef a table entry reference
      * @param rule     a BMv2 flow rule wrapper
      */
-    void bindEntryReference(Bmv2TableEntryReference entryRef, Bmv2FlowRuleWrapper rule);
+    void bind(Bmv2TableEntryReference entryRef, Bmv2FlowRuleWrapper rule);
 
     /**
      * Returns the ONOS flow rule associated with the given BMv2 table entry reference, or null if there's no such a
@@ -50,12 +51,19 @@ public interface Bmv2TableEntryService {
      * @param entryRef a table entry reference
      * @return a BMv2 flow rule wrapper
      */
-    Bmv2FlowRuleWrapper lookupEntryReference(Bmv2TableEntryReference entryRef);
+    Bmv2FlowRuleWrapper lookup(Bmv2TableEntryReference entryRef);
 
     /**
      * Removes any flow rule previously bound with a given BMv2 table entry reference.
      *
      * @param entryRef a table entry reference
      */
-    void unbindEntryReference(Bmv2TableEntryReference entryRef);
+    void unbind(Bmv2TableEntryReference entryRef);
+
+    /**
+     * Removes all bindings for a given device.
+     *
+     * @param deviceId a device ID
+     */
+    void unbindAll(DeviceId deviceId);
 }
