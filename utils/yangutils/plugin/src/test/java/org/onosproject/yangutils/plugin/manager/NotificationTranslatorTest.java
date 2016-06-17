@@ -41,15 +41,14 @@ public final class NotificationTranslatorTest {
     public void processUnionTranslator()
             throws IOException, ParserException {
 
-        String userDir = System.getProperty("user.dir");
         YangNode node = manager.getDataModel("src/test/resources/NotificationTest.yang");
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
-        yangPluginConfig.setCodeGenDir(userDir + "/target/NotificationTest/");
+        yangPluginConfig.setCodeGenDir("target/NotificationTest/");
 
         generateJavaCode(node, yangPluginConfig);
 
-        deleteDirectory(userDir + "/target/NotificationTest/");
+        deleteDirectory("target/NotificationTest/");
     }
 
     // TODO enhance the test cases, after having a framework of translator test.

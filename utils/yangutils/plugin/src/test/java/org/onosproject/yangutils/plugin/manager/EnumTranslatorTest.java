@@ -41,15 +41,14 @@ public final class EnumTranslatorTest {
     public void processEnumTranslator()
             throws IOException, ParserException {
 
-        String userDir = System.getProperty("user.dir");
         YangNode node = manager.getDataModel("src/test/resources/EnumTranslator.yang");
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
-        yangPluginConfig.setCodeGenDir(userDir + "/target/EnumTestGenFile/");
+        yangPluginConfig.setCodeGenDir("target/EnumTestGenFile/");
 
         generateJavaCode(node, yangPluginConfig);
 
-        deleteDirectory(userDir + "/target/EnumTestGenFile/");
+        deleteDirectory("target/EnumTestGenFile/");
     }
     // TODO enhance the test cases, after having a framework of translator test.
 }
