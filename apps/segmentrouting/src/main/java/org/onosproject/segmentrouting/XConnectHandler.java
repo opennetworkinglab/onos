@@ -44,12 +44,9 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
-import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -398,14 +395,12 @@ public class XConnectHandler {
      * @param deviceId device ID
      */
     protected void removeDevice(DeviceId deviceId) {
-        Iterator<Map.Entry<XConnectStoreKey, Versioned<NextObjective>>> itNextObj =
-                xConnectNextObjStore.entrySet().iterator();
-        while (itNextObj.hasNext()) {
-            Map.Entry<XConnectStoreKey, Versioned<NextObjective>> entry = itNextObj.next();
-            if (entry.getKey().deviceId().equals(deviceId)) {
-                itNextObj.remove();
-            }
-        }
+        xConnectNextObjStore.entrySet().stream()
+                .filter(entry -> entry.getKey().deviceId().equals(deviceId))
+                .forEach(entry -> {
+                    xConnectNextObjStore.remove(entry.getKey());
+                });
+        log.debug("{} is removed from xConnectNextObjStore", deviceId);
     }
 
     /**
