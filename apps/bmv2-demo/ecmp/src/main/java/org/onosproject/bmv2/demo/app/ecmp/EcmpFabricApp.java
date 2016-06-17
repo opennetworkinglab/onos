@@ -19,11 +19,14 @@ package org.onosproject.bmv2.demo.app.ecmp;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Component;
 import org.onosproject.bmv2.api.context.Bmv2Configuration;
 import org.onosproject.bmv2.api.context.Bmv2DefaultConfiguration;
 import org.onosproject.bmv2.api.context.Bmv2DeviceContext;
+import org.onosproject.bmv2.api.runtime.Bmv2ExtensionSelector;
+import org.onosproject.bmv2.api.runtime.Bmv2ExtensionTreatment;
 import org.onosproject.bmv2.demo.app.common.AbstractUpgradableFabricApp;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
@@ -46,14 +49,13 @@ import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
 import static org.onlab.packet.EthType.EtherType.IPV4;
-import static org.onosproject.bmv2.demo.app.ecmp.EcmpGroupTreatmentBuilder.groupIdOf;
-import static org.onosproject.bmv2.demo.app.ecmp.EcmpInterpreter.ECMP_GROUP_TABLE;
-import static org.onosproject.bmv2.demo.app.ecmp.EcmpInterpreter.TABLE0;
+import static org.onosproject.bmv2.demo.app.ecmp.EcmpInterpreter.*;
 
 /**
  * Implementation of an upgradable fabric app for the ECMP configuration.
@@ -68,6 +70,8 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
     private static final Bmv2Configuration ECMP_CONFIGURATION = loadConfiguration();
     private static final EcmpInterpreter ECMP_INTERPRETER = new EcmpInterpreter();
     protected static final Bmv2DeviceContext ECMP_CONTEXT = new Bmv2DeviceContext(ECMP_CONFIGURATION, ECMP_INTERPRETER);
+
+    private static final Map<DeviceId, Map<Set<PortNumber>, Short>> DEVICE_GROUP_ID_MAP = Maps.newHashMap();
 
     public EcmpFabricApp() {
         super(APP_NAME, MODEL_NAME, ECMP_CONTEXT);
@@ -211,10 +215,7 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
         Iterator<PortNumber> portIterator = fabricPorts.iterator();
         List<FlowRule> rules = Lists.newArrayList();
         for (short i = 0; i < groupSize; i++) {
-            ExtensionSelector extSelector = new EcmpGroupTableSelectorBuilder()
-                    .withGroupId(groupId)
-                    .withSelector(i)
-                    .build();
+            ExtensionSelector extSelector = buildEcmpSelector(groupId, i);
             FlowRule rule = flowRuleBuilder(deviceId, ECMP_GROUP_TABLE)
                     .withSelector(
                             DefaultTrafficSelector.builder()
@@ -228,12 +229,35 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
             rules.add(rule);
         }
 
-        ExtensionTreatment extTreatment = new EcmpGroupTreatmentBuilder()
-                .withGroupId(groupId)
-                .withGroupSize(groupSize)
-                .build();
+        ExtensionTreatment extTreatment = buildEcmpTreatment(groupId, groupSize);
 
         return Pair.of(extTreatment, rules);
+    }
+
+    private Bmv2ExtensionTreatment buildEcmpTreatment(int groupId, int groupSize) {
+        return Bmv2ExtensionTreatment.builder()
+                .forConfiguration(ECMP_CONTEXT.configuration())
+                .setActionName(ECMP_GROUP)
+                .addParameter(GROUP_ID, groupId)
+                .addParameter(GROUP_SIZE, groupSize)
+                .build();
+    }
+
+    private Bmv2ExtensionSelector buildEcmpSelector(int groupId, int selector) {
+        return Bmv2ExtensionSelector.builder()
+                .forConfiguration(ECMP_CONTEXT.configuration())
+                .matchExact(ECMP_METADATA, GROUP_ID, groupId)
+                .matchExact(ECMP_METADATA, SELECTOR, selector)
+                .build();
+    }
+
+
+    public int groupIdOf(DeviceId deviceId, Set<PortNumber> ports) {
+        DEVICE_GROUP_ID_MAP.putIfAbsent(deviceId, Maps.newHashMap());
+        // Counts the number of unique portNumber sets for each deviceId.
+        // Each distinct set of portNumbers will have a unique ID.
+        return DEVICE_GROUP_ID_MAP.get(deviceId).computeIfAbsent(ports, (pp) ->
+                (short) (DEVICE_GROUP_ID_MAP.get(deviceId).size() + 1));
     }
 
     private static Bmv2Configuration loadConfiguration() {

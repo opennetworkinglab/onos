@@ -22,8 +22,6 @@ import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.criteria.ExtensionSelector;
 import org.onosproject.net.flow.criteria.ExtensionSelectorType;
 
-import java.util.Collections;
-
 import static org.onosproject.net.flow.criteria.ExtensionSelectorType.ExtensionSelectorTypes.BMV2_MATCH_PARAMS;
 
 /**
@@ -34,7 +32,7 @@ public class Bmv2ExtensionSelectorResolver extends AbstractHandlerBehaviour impl
     @Override
     public ExtensionSelector getExtensionSelector(ExtensionSelectorType type) {
         if (type.equals(BMV2_MATCH_PARAMS.type())) {
-            return new Bmv2ExtensionSelector(Collections.emptyMap());
+            return Bmv2ExtensionSelector.empty();
         }
 
         return null;

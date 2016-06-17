@@ -32,7 +32,7 @@ public class Bmv2ExtensionTreatmentResolver extends AbstractHandlerBehaviour imp
     @Override
     public ExtensionTreatment getExtensionInstruction(ExtensionTreatmentType type) {
         if (type.equals(BMV2_ACTION.type())) {
-            return new Bmv2ExtensionTreatment(null);
+            return Bmv2ExtensionTreatment.empty();
         }
         return null;
     }
