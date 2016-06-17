@@ -47,6 +47,7 @@ import java.io.InputStream;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.app.ApplicationEvent.Type.APP_ACTIVATED;
@@ -83,7 +84,7 @@ public class ApplicationManager
 
     // Application supplied hooks for pre-activation processing.
     private final Multimap<String, Runnable> deactivateHooks = HashMultimap.create();
-    private final Cache<ApplicationId, CountDownLatch> pendingUninstalls =
+    private final Cache<ApplicationId, CountDownLatch> pendingOperations =
             CacheBuilder.newBuilder()
                         .expireAfterWrite(DEFAULT_OPERATION_TIMEOUT_MILLIS * 2, TimeUnit.MILLISECONDS)
                         .build();
@@ -160,15 +161,7 @@ public class ApplicationManager
     public void uninstall(ApplicationId appId) {
         checkNotNull(appId, APP_ID_NULL);
         CountDownLatch latch = new CountDownLatch(1);
-        try {
-            pendingUninstalls.put(appId, latch);
-            store.remove(appId);
-        } catch (Exception e) {
-            pendingUninstalls.invalidate(appId);
-            latch.countDown();
-            log.warn("Unable to purge application directory for {}", appId.name());
-        }
-        Uninterruptibles.awaitUninterruptibly(latch, DEFAULT_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+        updateStoreAndWaitForNotificationHandling(appId, store::remove);
     }
 
     @Override
@@ -177,13 +170,13 @@ public class ApplicationManager
         if (!SecurityUtil.isAppSecured(appId)) {
             return;
         }
-        store.activate(appId);
+        updateStoreAndWaitForNotificationHandling(appId, store::activate);
     }
 
     @Override
     public void deactivate(ApplicationId appId) {
         checkNotNull(appId, APP_ID_NULL);
-        store.deactivate(appId);
+        updateStoreAndWaitForNotificationHandling(appId, store::deactivate);
     }
 
     @Override
@@ -193,12 +186,26 @@ public class ApplicationManager
         store.setPermissions(appId, permissions);
     }
 
+    private void updateStoreAndWaitForNotificationHandling(ApplicationId appId,
+                                                           Consumer<ApplicationId> storeUpdateTask) {
+        CountDownLatch latch = new CountDownLatch(1);
+        try {
+            pendingOperations.put(appId, latch);
+            storeUpdateTask.accept(appId);
+        } catch (Exception e) {
+            pendingOperations.invalidate(appId);
+            latch.countDown();
+            log.warn("Failed to update store for {}", appId.name(), e);
+        }
+        Uninterruptibles.awaitUninterruptibly(latch, DEFAULT_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+    }
+
     private class InternalStoreDelegate implements ApplicationStoreDelegate {
         @Override
         public void notify(ApplicationEvent event) {
             ApplicationEvent.Type type = event.type();
             Application app = event.subject();
-            CountDownLatch latch = pendingUninstalls.getIfPresent(app.id());
+            CountDownLatch latch = pendingOperations.getIfPresent(app.id());
             try {
                 if (type == APP_ACTIVATED) {
                     if (installAppFeatures(app)) {
@@ -227,7 +234,7 @@ public class ApplicationManager
             } finally {
                 if (latch != null) {
                     latch.countDown();
-                    pendingUninstalls.invalidate(app.id());
+                    pendingOperations.invalidate(app.id());
                 }
             }
         }
