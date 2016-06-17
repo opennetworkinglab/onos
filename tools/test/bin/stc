@@ -3,6 +3,8 @@
 #   System Test Coordinator
 #-------------------------------------------------------------------------------
 
+. $ONOS_ROOT/tools/build/envDefaults
+
 VER=${STC_VERSION:-2.0}
 JAR=~/.m2/repository/org/onosproject/onos-stc/$VER/onos-stc-$VER.jar
 SCENARIOS=$ONOS_ROOT/tools/test/scenarios
