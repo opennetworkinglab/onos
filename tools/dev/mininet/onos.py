@@ -55,6 +55,8 @@ from sys import argv
 from glob import glob
 import time
 from functools import partial
+from re import search
+
 
 ### ONOS Environment
 
@@ -418,9 +420,22 @@ class ONOSCluster( Controller ):
         "Return list of ONOS nodes"
         return [ h for h in self.net.hosts if isinstance( h, ONOSNode ) ]
 
-    def configPortForwarding( self, ports=[], intf='eth0', action='A' ):
-        """Start or stop ports on intf to all nodes
+    def defaultIntf( self ):
+        "Call ip route to determine default interface"
+        result = quietRun( 'ip route | grep default', shell=True ).strip()
+        match = search( r'dev\s+([^\s]+)', result )
+        if match:
+            intf = match.group( 1 )
+        else:
+            warn( "Can't find default network interface - using eth0\n" )
+            intf = 'eth0'
+        return intf
+
+    def configPortForwarding( self, ports=[], intf='', action='A' ):
+        """Start or stop forwarding on intf to all nodes
            action: A=add/start, D=delete/stop (default: A)"""
+        if not intf:
+            intf = self.defaultIntf()
         for port in ports:
             for index, node in enumerate( self.nodes() ):
                 ip, inport = node.IP(), port + index
