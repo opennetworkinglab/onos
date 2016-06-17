@@ -343,7 +343,11 @@ public class DistributedDhcpStore implements DhcpStore {
 
     @Override
     public IpAssignment getIpAssignmentFromAllocationMap(HostId hostId) {
-        return allocationMap.get(hostId).value();
+        if (allocationMap.get(hostId) != null) {
+            return allocationMap.get(hostId).value();
+        } else {
+            return null;
+        }
     }
 
     /**
