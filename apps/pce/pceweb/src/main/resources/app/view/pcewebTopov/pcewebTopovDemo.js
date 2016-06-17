@@ -344,7 +344,7 @@
                 bw: bandValue,
                 bwtype: bandType,
                 ctype: costTypeVal,
-                tunnelname: tunnelIdUpd
+                tunnelid: tunnelIdUpd
         });
 
         flash.flash('update path message');
