@@ -83,6 +83,7 @@ import org.onosproject.pcep.controller.PcepEventListener;
 import org.onosproject.pcep.controller.PcepLspStatus;
 import org.onosproject.pcep.controller.PcepLspSyncAction;
 import org.onosproject.pcep.controller.SrpIdGenerators;
+import org.onosproject.pcep.controller.PcepSyncStatus;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 import org.onosproject.pcepio.protocol.PcInitiatedLspRequest;
 import org.onosproject.pcepio.protocol.PcepAttribute;
@@ -968,6 +969,11 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
      */
     private void pcepSetupTunnel(Tunnel tunnel, Path path, PcepClient pc) {
         try {
+            if (!(pc.lspDbSyncStatus().equals(PcepSyncStatus.SYNCED))) {
+                log.error("Setup tunnel has failed as LSP DB sync is not finished");
+                return;
+            }
+
             int srpId = SrpIdGenerators.create();
             Collection<Tunnel> tunnels = tunnelService.queryTunnel(tunnel.src(), tunnel.dst());
             for (Tunnel t : tunnels) {
@@ -1021,6 +1027,11 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
      */
     private void pcepReleaseTunnel(Tunnel tunnel, PcepClient pc) {
         try {
+            if (!(pc.lspDbSyncStatus().equals(PcepSyncStatus.SYNCED))) {
+                log.error("Release tunnel has failed as LSP DB sync is not finished");
+                return;
+            }
+
             PcepTunnelData pcepTunnelData = new PcepTunnelData(tunnel, DELETE);
             pcepTunnelApiMapper.addToCoreTunnelRequestQueue(pcepTunnelData);
             int srpId = SrpIdGenerators.create();
