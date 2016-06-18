@@ -78,6 +78,7 @@ import org.onosproject.pcep.api.PcepTunnel.PathType;
 import org.onosproject.pcep.api.PcepTunnelListener;
 import org.onosproject.pcep.api.PcepTunnelStatistics;
 import org.onosproject.pcep.controller.LspKey;
+import org.onosproject.pcep.controller.LspType;
 import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcep.controller.PcepClient;
 import org.onosproject.pcep.controller.PcepClientController;
@@ -140,8 +141,9 @@ import static org.onosproject.net.DefaultAnnotations.EMPTY;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.pcep.api.PcepDpid.uri;
-import static org.onosproject.provider.pcep.tunnel.impl.LspType.WITH_SIGNALLING;
-import static org.onosproject.provider.pcep.tunnel.impl.LspType.SR_WITHOUT_SIGNALLING;
+import static org.onosproject.pcep.controller.LspType.WITH_SIGNALLING;
+import static org.onosproject.pcep.controller.LspType.SR_WITHOUT_SIGNALLING;
+import static org.onosproject.pcep.controller.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
 import static org.onosproject.pcep.controller.PcepAnnotationKeys.BANDWIDTH;
 import static org.onosproject.pcep.controller.PcepAnnotationKeys.LOCAL_LSP_ID;
 import static org.onosproject.pcep.controller.PcepAnnotationKeys.LSP_SIG_TYPE;
@@ -157,7 +159,6 @@ import static org.onosproject.provider.pcep.tunnel.impl.RequestType.UPDATE;
 import static org.onosproject.incubator.net.tunnel.Tunnel.State.UNSTABLE;
 import static org.onosproject.pcep.controller.PcepLspSyncAction.REMOVE;
 import static org.onosproject.pcep.controller.PcepLspSyncAction.SEND_UPDATE;
-import static org.onosproject.pcep.controller.PcepLspSyncAction.SEND_DELETE;
 import static org.onosproject.pcepio.protocol.ver1.PcepMetricObjectVer1.IGP_METRIC;
 import static org.onosproject.pcepio.protocol.ver1.PcepMetricObjectVer1.TE_METRIC;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -311,7 +312,10 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
         //TODO: tunnel which is passed doesn't have tunnelID
         if (tunnel.annotations().value(PLSP_ID) != null) {
-            updateTunnel(tunnel, path);
+            if (LspType.valueOf(tunnel.annotations().value(LSP_SIG_TYPE)) != WITHOUT_SIGNALLING_AND_WITHOUT_SR) {
+                // For CR LSPs, BGP flow provider will send update message after pushing labels.
+                updateTunnel(tunnel, path);
+            }
             return;
         }
 
@@ -1221,8 +1225,9 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
                 tlv = new StatefulIPv4LspIdentifiersTlv((((IpTunnelEndPoint) tunnel.src())
                         .ip().getIp4Address().toInt()),
-                        localLspId, pccTunnelId, 0, (((IpTunnelEndPoint) tunnel.dst()).ip()
-                        .getIp4Address().toInt()));
+                        localLspId, pccTunnelId,
+                        ((IpTunnelEndPoint) tunnel.src()).ip().getIp4Address().toInt(),
+                        (((IpTunnelEndPoint) tunnel.dst()).ip().getIp4Address().toInt()));
                 llOptionalTlv.add(tlv);
             }
 
@@ -1231,9 +1236,18 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                 llOptionalTlv.add(tlv);
             }
 
+            boolean delegated = (tunnel.annotations().value(DELEGATE) == null) ? false
+                                                                               : Boolean.valueOf(tunnel.annotations()
+                                                                                       .value(DELEGATE));
+            boolean initiated = (tunnel.annotations().value(PCE_INIT) == null) ? false
+                                                                               : Boolean.valueOf(tunnel.annotations()
+                                                                                       .value(PCE_INIT));
+
             // build lsp object
             PcepLspObject lspobj = pc.factory().buildLspObject().setAFlag(true)
                     .setPlspId(Integer.valueOf(tunnel.annotations().value(PLSP_ID)))
+                    .setDFlag(delegated)
+                    .setCFlag(initiated)
                     .setOptionalTlv(llOptionalTlv).build();
             // build ero object
             PcepEroObject eroobj = pc.factory().buildEroObject().setSubObjects(llSubObjects).build();
@@ -1818,36 +1832,6 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
             } else if (endOfSyncAction == REMOVE) {
                 tunnelRemoved(td);
-            }
-        }
-
-        @Override
-        public void handleEndOfSyncAction(PccId pccId, PcepMessage msg, PcepLspSyncAction endOfSyncAction) {
-            try {
-                if ((msg instanceof PcepInitiateMsg) && (endOfSyncAction == SEND_DELETE)) {
-                    PcepClient pc = pcepClientController.getClient(pccId);
-                    LinkedList<PcInitiatedLspRequest> llPcInitiatedLspRequestList = ((PcepInitiateMsg) msg)
-                            .getPcInitiatedLspRequestList();
-                    PcInitiatedLspRequest pcInitMsg = llPcInitiatedLspRequestList.iterator().next();
-
-                    if (pcInitMsg != null) {
-                        PcepSrpObject srpobj = pc.factory().buildSrpObject().setSrpID(SrpIdGenerators.create())
-                                .setRFlag(true).build();
-
-                        PcInitiatedLspRequest releaseLspRequest = pc.factory().buildPcInitiatedLspRequest()
-                                .setLspObject(pcInitMsg.getLspObject()).setSrpObject(srpobj).build();
-
-                        llPcInitiatedLspRequestList.remove(pcInitMsg);
-                        llPcInitiatedLspRequestList.add(releaseLspRequest);
-
-                        PcepInitiateMsg pcInitiateMsg = pc.factory().buildPcepInitiateMsg()
-                                .setPcInitiatedLspRequestList(llPcInitiatedLspRequestList).build();
-
-                        pc.sendMessage(Collections.singletonList(pcInitiateMsg));
-                    }
-                }
-            } catch (PcepParseException e) {
-                log.error("Exception occured while sending initiate delete message {}", e.getMessage());
             }
         }
     }

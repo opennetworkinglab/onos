@@ -55,9 +55,9 @@ import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcepio.protocol.PcepVersion;
 import org.onosproject.pcepio.types.StatefulIPv4LspIdentifiersTlv;
 
-import static org.onosproject.provider.pcep.tunnel.impl.LspType.WITH_SIGNALLING;
-import static org.onosproject.provider.pcep.tunnel.impl.LspType.SR_WITHOUT_SIGNALLING;
-import static org.onosproject.provider.pcep.tunnel.impl.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
+import static org.onosproject.pcep.controller.LspType.WITH_SIGNALLING;
+import static org.onosproject.pcep.controller.LspType.SR_WITHOUT_SIGNALLING;
+import static org.onosproject.pcep.controller.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
 /**
  * Test for PCEP update tunnel.
  */

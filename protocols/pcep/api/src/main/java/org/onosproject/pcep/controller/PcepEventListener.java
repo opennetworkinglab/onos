@@ -37,13 +37,4 @@ public interface PcepEventListener {
      * @param endOfSyncAction the action that needs to be taken for the tunnel
      */
     void handleEndOfSyncAction(Tunnel tunnel, PcepLspSyncAction endOfSyncAction);
-
-    /**
-     * Handles sending PCEP message to client on end of LSPDB sync.
-     *
-     * @param pccId id of the pcc
-     * @param msg the message to be sent
-     * @param endOfSyncAction the action that needs to be taken in the message
-     */
-    void handleEndOfSyncAction(PccId pccId, PcepMessage msg, PcepLspSyncAction endOfSyncAction);
 }

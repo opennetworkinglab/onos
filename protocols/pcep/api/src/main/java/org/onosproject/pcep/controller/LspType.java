@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.provider.pcep.tunnel.impl;
+package org.onosproject.pcep.controller;
 
 /**
  * Representation of LSP type.
