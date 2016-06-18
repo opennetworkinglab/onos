@@ -559,8 +559,8 @@ class ONOSCLI( OldCLI ):
         except:
             count = 1
         # Technically this check should be on the host
-        if '-U' not in quietRun( 'arping -h' ):
-            warn( 'Please install iputils-arping' )
+        if '-U' not in quietRun( 'arping -h', shell=True ):
+            warn( 'Please install iputils-arping.\n' )
             return
         # This is much faster if we do it in parallel
         for host in self.mn.net.hosts:
