@@ -105,7 +105,7 @@ public class WcmpFabricApp extends AbstractUpgradableFabricApp {
             }
             return true;
         } catch (Bmv2RuntimeException e) {
-            log.error("Unable to init device {}: {}", deviceId, e.explain());
+            log.debug("Exception while initializing device {}: {}", deviceId, e.explain());
             return false;
         }
     }

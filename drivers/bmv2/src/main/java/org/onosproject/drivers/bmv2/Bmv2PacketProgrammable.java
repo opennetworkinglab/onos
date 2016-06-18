@@ -16,6 +16,7 @@
 
 package org.onosproject.drivers.bmv2;
 
+import org.onlab.osgi.ServiceNotFoundException;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.bmv2.api.runtime.Bmv2DeviceAgent;
 import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
@@ -78,9 +79,11 @@ public class Bmv2PacketProgrammable extends AbstractHandlerBehaviour implements 
 
         DeviceId deviceId = handler().data().deviceId();
 
-        Bmv2Controller controller = handler().get(Bmv2Controller.class);
-        if (controller == null) {
-            log.error("Failed to get BMv2 controller");
+        Bmv2Controller controller;
+        try {
+            controller = handler().get(Bmv2Controller.class);
+        } catch (ServiceNotFoundException e) {
+            log.warn(e.getMessage());
             return;
         }
 

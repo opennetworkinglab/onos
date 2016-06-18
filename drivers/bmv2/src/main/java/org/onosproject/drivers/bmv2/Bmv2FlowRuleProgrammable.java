@@ -19,6 +19,7 @@ package org.onosproject.drivers.bmv2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.tuple.Pair;
+import org.onlab.osgi.ServiceNotFoundException;
 import org.onosproject.bmv2.api.context.Bmv2Configuration;
 import org.onosproject.bmv2.api.context.Bmv2DeviceContext;
 import org.onosproject.bmv2.api.context.Bmv2FlowRuleTranslator;
@@ -70,22 +71,15 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
     private Bmv2DeviceContextService contextService;
 
     private boolean init() {
-        controller = handler().get(Bmv2Controller.class);
-        tableEntryService = handler().get(Bmv2TableEntryService.class);
-        contextService = handler().get(Bmv2DeviceContextService.class);
-        if (controller == null) {
-            log.warn("Failed to get a BMv2 controller");
+        try {
+            controller = handler().get(Bmv2Controller.class);
+            tableEntryService = handler().get(Bmv2TableEntryService.class);
+            contextService = handler().get(Bmv2DeviceContextService.class);
+            return true;
+        } catch (ServiceNotFoundException e) {
+            log.warn(e.getMessage());
             return false;
         }
-        if (tableEntryService == null) {
-            log.warn("Failed to get a BMv2 table entry service");
-            return false;
-        }
-        if (contextService == null) {
-            log.warn("Failed to get a BMv2 device context service");
-            return false;
-        }
-        return true;
     }
 
     @Override
@@ -140,9 +134,14 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
                     Bmv2FlowRuleWrapper frWrapper = tableEntryService.lookup(entryRef);
 
                     if (frWrapper == null) {
-                        log.warn("missing reference from table entry service, BUG? " +
+                        log.debug("Missing reference from table entry service. Deleting it. BUG? " +
                                          "deviceId={}, tableName={}, matchKey={}",
                                  deviceId, table.name(), entryRef.matchKey());
+                        try {
+                            doRemove(deviceAgent, table.name(), parsedEntry.entryId(), parsedEntry.matchKey());
+                        } catch (Bmv2RuntimeException e) {
+                            log.warn("Unable to remove inconsistent flow rule: {}", e.explain());
+                        }
                         continue; // next entry
                     }
 

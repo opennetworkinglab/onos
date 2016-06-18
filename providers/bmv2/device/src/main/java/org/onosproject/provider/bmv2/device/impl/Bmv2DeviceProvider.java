@@ -189,16 +189,17 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
                                 (!Objects.equals(thisDescription, lastDescription) ||
                                         !Objects.equals(thisDescription.annotations(), lastDescription.annotations()));
                 if (descriptionChanged || !deviceService.isAvailable(did)) {
-                    if (contextService.getContext(did) == null) {
+                    if (deviceService.getDevice(did) == null) {
                         // Device is a first timer.
                         log.info("Setting DEFAULT context for {}", did);
+                        // It is important to do this before connecting the device so other
+                        // services won't find a null context.
                         contextService.setContext(did, contextService.defaultContext());
-                    } else {
-                        resetDeviceState(did);
-                        initPortCounters(did);
-                        providerService.deviceConnected(did, thisDescription);
-                        updatePortsAndStats(did);
                     }
+                    resetDeviceState(did);
+                    initPortCounters(did);
+                    providerService.deviceConnected(did, thisDescription);
+                    updatePortsAndStats(did);
                 }
                 return thisDescription;
             } else {
@@ -272,7 +273,7 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
         if (deviceService.isAvailable(did)) {
             providerService.deviceDisconnected(did);
         }
-        activeDevices.put(did, null);
+        activeDevices.remove(did);
     }
 
     /**
@@ -333,7 +334,7 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
     }
 
     /**
-     * Task that periodically trigger device probes to check for device status and update port informations.
+     * Task that periodically trigger device probes to check for device status and update port information.
      */
     private class DevicePoller implements TimerTask {
 
