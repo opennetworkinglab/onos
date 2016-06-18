@@ -217,6 +217,8 @@ class ONOSNode( Controller ):
         self.dir = '/tmp/%s' % self.name
         self.client = self.dir + '/karaf/bin/client'
         self.ONOS_HOME = '/tmp'
+        self.cmd( 'rm -rf', self.dir )
+        self.ONOS_HOME = unpackONOS( self.dir, run=self.ucmd )
 
     # pylint: disable=arguments-differ
 
@@ -225,8 +227,6 @@ class ONOSNode( Controller ):
            env: environment var dict
            nodes: all nodes in cluster"""
         env = dict( env )
-        self.cmd( 'rm -rf', self.dir )
-        self.ONOS_HOME = unpackONOS( self.dir, run=self.ucmd )
         env.update( ONOS_HOME=self.ONOS_HOME )
         self.updateEnv( env )
         karafbin = glob( '%s/apache*/bin' % self.ONOS_HOME )[ 0 ]
