@@ -18,6 +18,7 @@ package org.onosproject.drivers.bmv2;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.onlab.osgi.ServiceNotFoundException;
 import org.onlab.packet.ChassisId;
 import org.onosproject.bmv2.api.runtime.Bmv2DeviceAgent;
 import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
@@ -54,12 +55,13 @@ public class Bmv2DeviceDescriptionDiscovery extends AbstractHandlerBehaviour imp
     private Bmv2Controller controller;
 
     private boolean init() {
-        controller = handler().get(Bmv2Controller.class);
-        if (controller == null) {
-            log.warn("Failed to get a BMv2 controller");
+        try {
+            controller = handler().get(Bmv2Controller.class);
+            return true;
+        } catch (ServiceNotFoundException e) {
+            log.warn(e.getMessage());
             return false;
         }
-        return true;
     }
 
     @Override

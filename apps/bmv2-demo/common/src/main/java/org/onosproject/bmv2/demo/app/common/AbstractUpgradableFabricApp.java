@@ -64,6 +64,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -87,7 +89,7 @@ public abstract class AbstractUpgradableFabricApp {
     private static final int NUM_SPINES = 3;
     private static final int FLOW_PRIORITY = 100;
 
-    private static final int CLEANUP_SLEEP = 1000;
+    private static final int CLEANUP_SLEEP = 2000;
 
     protected final Logger log = getLogger(getClass());
 
@@ -137,10 +139,11 @@ public abstract class AbstractUpgradableFabricApp {
     private Set<DeviceId> spineSwitches;
 
     private Map<DeviceId, List<FlowRule>> deviceFlowRules;
+    private Map<DeviceId, Bmv2DeviceContext> previousContexts;
     private Map<DeviceId, Boolean> contextFlags;
     private Map<DeviceId, Boolean> ruleFlags;
 
-    private ConcurrentMap<DeviceId, Boolean> deployLocks = Maps.newConcurrentMap();
+    private ConcurrentMap<DeviceId, Lock> deviceLocks = Maps.newConcurrentMap();
 
     /**
      * Creates a new BMv2 fabric app.
@@ -270,7 +273,7 @@ public abstract class AbstractUpgradableFabricApp {
     public abstract List<FlowRule> generateSpineRules(DeviceId deviceId, Collection<Host> dstHosts, Topology topology)
             throws FlowRuleGeneratorException;
 
-    private void deployRoutine() {
+    private void deployAllDevices() {
         if (otherAppFound && otherApp.appActive) {
             log.info("Deactivating other app...");
             appService.deactivate(otherApp.appId);
@@ -297,9 +300,10 @@ public abstract class AbstractUpgradableFabricApp {
         DeviceId deviceId = device.id();
 
         // Synchronize executions over the same device.
-        deployLocks.putIfAbsent(deviceId, new Boolean(true));
-        synchronized (deployLocks.get(deviceId)) {
+        Lock lock = deviceLocks.computeIfAbsent(deviceId, k -> new ReentrantLock());
+        lock.lock();
 
+        try {
             // Set context if not already done.
             if (!contextFlags.getOrDefault(deviceId, false)) {
                 log.info("Setting context to {} for {}...", configurationName, deviceId);
@@ -321,6 +325,8 @@ public abstract class AbstractUpgradableFabricApp {
                     ruleFlags.put(deviceId, true);
                 }
             }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -421,9 +427,9 @@ public abstract class AbstractUpgradableFabricApp {
         ImmutableMap.Builder<DeviceId, List<FlowRule>> mapBuilder = ImmutableMap.builder();
         concat(spines.stream(), leafs.stream())
                 .map(deviceId -> ImmutableList.copyOf(newFlowRules
-                        .stream()
-                        .filter(fr -> fr.deviceId().equals(deviceId))
-                        .iterator()))
+                                                              .stream()
+                                                              .filter(fr -> fr.deviceId().equals(deviceId))
+                                                              .iterator()))
                 .forEach(frs -> mapBuilder.put(frs.get(0).deviceId(), frs));
         this.deviceFlowRules = mapBuilder.build();
 
@@ -433,10 +439,9 @@ public abstract class AbstractUpgradableFabricApp {
         // Avoid other executions to modify the generated flow rules.
         flowRuleGenerated = true;
 
-        log.info("DONE! Generated {} flow rules for {} devices...", newFlowRules.size(), spines.size() + leafs.size());
+        log.info("Generated {} flow rules for {} devices", newFlowRules.size(), spines.size() + leafs.size());
 
-        // Deploy configuration.
-        spawnTask(this::deployRoutine);
+        spawnTask(this::deployAllDevices);
     }
 
     /**
