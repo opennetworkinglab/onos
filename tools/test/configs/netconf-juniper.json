@@ -1,0 +1,21 @@
+{
+  "devices":{
+    "netconf:132.236.59.111:830":{
+      "basic":{
+	"manufacturer":"Juniper",
+	"hwVersion":"MX104",
+	"swVersion":"JunOS13.3"
+      }
+    }
+  },
+  "apps":{
+    "org.onosproject.netconf":{
+      "devices":[{
+        "name":"root",
+        "password":"ca$hc0w",
+        "ip":"132.236.59.111",
+        "port":830
+      }]
+    }
+  }
+}
