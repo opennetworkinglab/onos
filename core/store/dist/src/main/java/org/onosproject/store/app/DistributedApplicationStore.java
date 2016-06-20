@@ -335,18 +335,17 @@ public class DistributedApplicationStore extends ApplicationArchive
 
 
     private void activate(ApplicationId appId, boolean updateTime) {
-        AtomicBoolean stateChanged = new AtomicBoolean(false);
-        InternalApplicationHolder appHolder = Versioned.valueOrNull(apps.computeIf(appId,
-            v -> v != null && v.state() != ACTIVATED,
-            (k, v) -> {
-                stateChanged.set(true);
-                return new InternalApplicationHolder(v.app(), ACTIVATED, v.permissions());
-            }));
-        if (stateChanged.get()) {
+        Versioned<InternalApplicationHolder> vAppHolder = apps.get(appId);
+        if (vAppHolder != null) {
             if (updateTime) {
                 updateTime(appId.name());
             }
-            activateRequiredApps(appHolder.app());
+            activateRequiredApps(vAppHolder.value().app());
+
+            apps.computeIf(appId, v -> v != null && v.state() != ACTIVATED,
+                    (k, v) -> new InternalApplicationHolder(
+                            v.app(), ACTIVATED, v.permissions()));
+
         }
     }
 
