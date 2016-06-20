@@ -20,6 +20,7 @@
         <feature>onos-api</feature>
         <bundle>mvn:${project.groupId}/onos-ospf-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-ospf-ctl/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-ospf-protocol/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-ospf-provider-topology/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-ospf-provider-cfg/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-ospf-provider-cli/${project.version}</bundle>

@@ -20,6 +20,7 @@
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/onos-ospf-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-ospf-ctl/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-ospf-protocol/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-ospf-provider-topology/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-ospf-provider-cfg/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-ospf-provider-cli/${project.version}</artifact>
