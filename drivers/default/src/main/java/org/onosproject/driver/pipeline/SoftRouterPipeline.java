@@ -16,6 +16,7 @@
 package org.onosproject.driver.pipeline;
 
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
@@ -23,6 +24,7 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
@@ -336,6 +338,16 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
                     + "nextId or Treatment", fwd.selector(), fwd.appId());
             return Collections.emptySet();
         }
+
+        int tableId = FILTER_TABLE;
+
+        // A punt rule for IP traffic should be directed to the FIB table
+        // so that it only takes effect if the packet misses the FIB rules
+        if (fwd.treatment() != null && containsPunt(fwd.treatment()) &&
+                fwd.selector() != null && matchesIp(fwd.selector())) {
+            tableId = FIB_TABLE;
+        }
+
         TrafficTreatment.Builder ttBuilder = DefaultTrafficTreatment.builder();
         if (fwd.treatment() != null) {
             fwd.treatment().immediate().forEach(ins -> ttBuilder.add(ins));
@@ -363,6 +375,7 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
         FlowRule rule = DefaultFlowRule.builder()
                 .withSelector(fwd.selector())
                 .withTreatment(ttBuilder.build())
+                .forTable(tableId)
                 .makePermanent()
                 .forDevice(deviceId)
                 .fromApp(fwd.appId())
@@ -372,6 +385,17 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
         flowrules.add(rule);
 
         return flowrules;
+    }
+
+    private boolean containsPunt(TrafficTreatment treatment) {
+        return treatment.immediate().stream()
+                .anyMatch(i -> i.type().equals(Instruction.Type.OUTPUT)
+                        && ((OutputInstruction) i).port().equals(PortNumber.CONTROLLER));
+    }
+
+    private boolean matchesIp(TrafficSelector selector) {
+        EthTypeCriterion c = (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
+        return c != null && c.ethType().equals(EthType.EtherType.IPV4.ethType());
     }
 
     /**

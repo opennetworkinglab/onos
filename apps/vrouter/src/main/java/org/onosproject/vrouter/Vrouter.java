@@ -51,7 +51,9 @@ public class Vrouter {
             .add("org.onosproject.routing.fpm.FpmManager")
             .add("org.onosproject.routing.impl.SingleSwitchFibInstaller")
             .add("org.onosproject.routing.impl.ControlPlaneRedirectManager")
+            .add("org.onosproject.routing.impl.DirectHostManager")
             .build();
+
 
     @Activate
     protected void activate() {
