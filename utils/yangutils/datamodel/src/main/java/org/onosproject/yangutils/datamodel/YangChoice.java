@@ -15,6 +15,8 @@
  */
 package org.onosproject.yangutils.datamodel;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
@@ -46,21 +48,23 @@ import static org.onosproject.yangutils.datamodel.utils.YangConstructType.CHOICE
  *                | container    | 7.5     | 0..n        |-child case nodes |
  *                | default      | 7.9.3   | 0..1        |-string           |
  *                | description  | 7.19.3  | 0..1        |-string           |
- *                | if-feature   | 7.18.2  | 0..n        |-TODO             |
+ *                | if-feature   | 7.18.2  | 0..n        |-YangIfFeature    |
  *                | leaf         | 7.6     | 0..n        |-child case nodes |
  *                | leaf-list    | 7.7     | 0..n        |-child case nodes |
  *                | list         | 7.8     | 0..n        |-child case nodes |
  *                | mandatory    | 7.9.4   | 0..1        |-string           |
  *                | reference    | 7.19.4  | 0..1        |-string           |
  *                | status       | 7.19.2  | 0..1        |-string           |
- *                | when         | 7.19.5  | 0..1        |-TODO             |
+ *                | when         | 7.19.5  | 0..1        |-YangWhen         |
  *                +--------------+---------+-------------+------------------+
  */
+
 /**
  * Represents data model node to maintain information defined in YANG choice.
  */
 public class YangChoice extends YangNode
-        implements YangCommonInfo, Parsable, CollisionDetector, YangAugmentationHolder {
+        implements YangCommonInfo, Parsable, CollisionDetector, YangAugmentationHolder, YangWhenHolder,
+        YangIfFeatureHolder {
 
     private static final long serialVersionUID = 806201604L;
 
@@ -143,10 +147,40 @@ public class YangChoice extends YangNode
     private String defaultValueInString;
 
     /**
+     * When data of the node.
+     */
+    private YangWhen when;
+
+    /**
+     * List of if-feature.
+     */
+    private List<YangIfFeature> ifFeatureList;
+
+    /**
      * Create a choice node.
      */
     public YangChoice() {
         super(YangNodeType.CHOICE_NODE);
+    }
+
+    /**
+     * Returns the when.
+     *
+     * @return the when
+     */
+    @Override
+    public YangWhen getWhen() {
+        return when;
+    }
+
+    /**
+     * Sets the when.
+     *
+     * @param when the when to set
+     */
+    @Override
+    public void setWhen(YangWhen when) {
+        this.when = when;
     }
 
     /**
@@ -365,4 +399,23 @@ public class YangChoice extends YangNode
             node = node.getNextSibling();
         }
     }
+
+    @Override
+    public List<YangIfFeature> getIfFeatureList() {
+        return ifFeatureList;
+    }
+
+    @Override
+    public void addIfFeatureList(YangIfFeature ifFeature) {
+        if (getIfFeatureList() == null) {
+            setIfFeatureList(new LinkedList<>());
+        }
+        getIfFeatureList().add(ifFeature);
+    }
+
+    @Override
+    public void setIfFeatureList(List<YangIfFeature> ifFeatureList) {
+        this.ifFeatureList = ifFeatureList;
+    }
+
 }

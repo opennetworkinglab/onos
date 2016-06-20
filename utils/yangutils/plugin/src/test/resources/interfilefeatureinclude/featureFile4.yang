@@ -1,0 +1,10 @@
+submodule syslog4 {
+     yang-version 1;
+     belongs-to "syslog3" {
+         prefix "sys3";
+     }
+
+     feature p2mp-te {
+       description "Indicates support for P2MP-TE";
+     }
+}

@@ -16,6 +16,8 @@
 
 package org.onosproject.yangutils.datamodel;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
@@ -44,7 +46,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  *    +--------------+---------+-------------+------------------+
  *    | description  | 7.19.3  | 0..1        | -string          |
  *    | grouping     | 7.11    | 0..n        | -child nodes     |
- *    | if-feature   | 7.18.2  | 0..n        | -TODO            |
+ *    | if-feature   | 7.18.2  | 0..n        | -YangIfFeature   |
  *    | input        | 7.13.2  | 0..1        | -child nodes     |
  *    | output       | 7.13.3  | 0..1        | -child nodes     |
  *    | reference    | 7.19.4  | 0..1        | -string          |
@@ -57,7 +59,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  * Represents data model node to maintain information defined in YANG rpc.
  */
 public class YangRpc extends YangNode implements YangCommonInfo, Parsable,
-        CollisionDetector {
+        CollisionDetector, YangIfFeatureHolder {
 
     private static final long serialVersionUID = 806201613L;
 
@@ -80,6 +82,11 @@ public class YangRpc extends YangNode implements YangCommonInfo, Parsable,
      * Status of the node.
      */
     private YangStatusType status = YangStatusType.CURRENT;
+
+    /**
+     * List of if-feature.
+     */
+    private List<YangIfFeature> ifFeatureList;
 
     /**
      * Create a rpc node.
@@ -155,5 +162,23 @@ public class YangRpc extends YangNode implements YangCommonInfo, Parsable,
     @Override
     public void setStatus(YangStatusType status) {
         this.status = status;
+    }
+
+    @Override
+    public List<YangIfFeature> getIfFeatureList() {
+        return ifFeatureList;
+    }
+
+    @Override
+    public void addIfFeatureList(YangIfFeature ifFeature) {
+        if (getIfFeatureList() == null) {
+            setIfFeatureList(new LinkedList<>());
+        }
+        getIfFeatureList().add(ifFeature);
+    }
+
+    @Override
+    public void setIfFeatureList(List<YangIfFeature> ifFeatureList) {
+        this.ifFeatureList = ifFeatureList;
     }
 }

@@ -18,7 +18,9 @@ package org.onosproject.yangutils.translator.tojava.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
@@ -59,6 +61,7 @@ public final class JavaIdentifierSyntax {
     private static final int INDEX_TWO = 2;
     private static final int VALUE_CHECK = 10;
     private static final String ZERO = "0";
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
 
     /**
      * Create instance of java identifier syntax.
@@ -75,7 +78,7 @@ public final class JavaIdentifierSyntax {
      * @param conflictResolver object of YANG to java naming conflict util
      * @return the root package string
      */
-    public static String getRootPackage(byte version, String nameSpace, String revision,
+    public static String getRootPackage(byte version, String nameSpace, Date revision,
                                         YangToJavaNamingConflictUtil conflictResolver) {
 
         String pkg;
@@ -125,30 +128,23 @@ public final class JavaIdentifierSyntax {
      *
      * @param date YANG module revision
      * @return revision string
-     * @throws TranslatorException when date is invalid.
      */
-    private static String getYangRevisionStr(String date) throws TranslatorException {
-
-        String[] revisionArr = date.split(HYPHEN);
+    private static String getYangRevisionStr(Date date) {
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+        String dateInString = sdf.format(date);
+        String[] revisionArr = dateInString.split(HYPHEN);
 
         String rev = REVISION_PREFIX;
         rev = rev + revisionArr[INDEX_ZERO];
 
-        if (Integer.parseInt(revisionArr[INDEX_ONE]) <= MAX_MONTHS
-                && Integer.parseInt(revisionArr[INDEX_TWO]) <= MAX_DAYS) {
-            for (int i = INDEX_ONE; i < revisionArr.length; i++) {
-
-                Integer val = Integer.parseInt(revisionArr[i]);
-                if (val < VALUE_CHECK) {
-                    rev = rev + ZERO;
-                }
-                rev = rev + val;
+        for (int i = INDEX_ONE; i < revisionArr.length; i++) {
+            Integer val = Integer.parseInt(revisionArr[i]);
+            if (val < VALUE_CHECK) {
+                rev = rev + ZERO;
             }
-
-            return rev;
-        } else {
-            throw new TranslatorException("Date in revision is not proper: " + date);
+            rev = rev + val;
         }
+        return rev;
     }
 
     /**

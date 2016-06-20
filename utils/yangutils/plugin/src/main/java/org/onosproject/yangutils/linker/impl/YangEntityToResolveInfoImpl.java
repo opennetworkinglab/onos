@@ -18,6 +18,7 @@ package org.onosproject.yangutils.linker.impl;
 import java.io.Serializable;
 
 import org.onosproject.yangutils.datamodel.YangEntityToResolveInfo;
+import org.onosproject.yangutils.datamodel.YangIfFeature;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangUses;
@@ -76,6 +77,8 @@ public class YangEntityToResolveInfoImpl<T> implements YangEntityToResolveInfo<T
             prefix = ((YangType<?>) entityToBeResolved).getPrefix();
         } else if (entityToBeResolved instanceof YangUses) {
             prefix = ((YangUses) entityToBeResolved).getPrefix();
+        } else if (entityToBeResolved instanceof YangIfFeature) {
+            prefix = ((YangIfFeature) entityToBeResolved).getPrefix();
         } else {
             throw new LinkerException("Linker Exception: Entity to resolved is other than type/uses");
         }

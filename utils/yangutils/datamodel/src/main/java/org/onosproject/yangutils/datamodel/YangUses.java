@@ -48,11 +48,11 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.getParent
  *                +--------------+---------+-------------+------------------+
  *                | augment      | 7.15    | 0..1        | -child nodes     |
  *                | description  | 7.19.3  | 0..1        | -string          |
- *                | if-feature   | 7.18.2  | 0..n        | -TODO            |
+ *                | if-feature   | 7.18.2  | 0..n        | -YangIfFeature   |
  *                | refine       | 7.12.2  | 0..1        | -TODO            |
  *                | reference    | 7.19.4  | 0..1        | -string          |
  *                | status       | 7.19.2  | 0..1        | -YangStatus      |
- *                | when         | 7.19.5  | 0..1        | -TODO            |
+ *                | when         | 7.19.5  | 0..1        | -YangWhen        |
  *                +--------------+---------+-------------+------------------+
  */
 
@@ -61,7 +61,8 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.getParent
  */
 public class YangUses
         extends YangNode
-        implements YangCommonInfo, Parsable, Resolvable, CollisionDetector {
+        implements YangCommonInfo, Parsable, Resolvable, CollisionDetector, YangWhenHolder,
+        YangIfFeatureHolder {
 
     private static final long serialVersionUID = 806201617L;
 
@@ -89,6 +90,16 @@ public class YangUses
      * Status of YANG uses.
      */
     private YangStatusType status;
+
+    /**
+     * When data of the node.
+     */
+    private YangWhen when;
+
+    /**
+     * List of if-feature.
+     */
+    private List<YangIfFeature> ifFeatureList;
 
     /**
      * Status of resolution. If completely resolved enum value is "RESOLVED",
@@ -141,6 +152,26 @@ public class YangUses
      */
     public void setRefGroup(YangGrouping refGroup) {
         this.refGroup = refGroup;
+    }
+
+    /**
+     * Returns the when.
+     *
+     * @return the when
+     */
+    @Override
+    public YangWhen getWhen() {
+        return when;
+    }
+
+    /**
+     * Sets the when.
+     *
+     * @param when the when to set
+     */
+    @Override
+    public void setWhen(YangWhen when) {
+        this.when = when;
     }
 
     /**
@@ -502,5 +533,23 @@ public class YangUses
      */
     public List<List<YangLeafList>> getUsesResolvedListOfLeafList() {
         return resolvedGroupingLeafLists;
+    }
+
+    @Override
+    public List<YangIfFeature> getIfFeatureList() {
+        return ifFeatureList;
+    }
+
+    @Override
+    public void addIfFeatureList(YangIfFeature ifFeature) {
+        if (getIfFeatureList() == null) {
+            setIfFeatureList(new LinkedList<>());
+        }
+        getIfFeatureList().add(ifFeature);
+    }
+
+    @Override
+    public void setIfFeatureList(List<YangIfFeature> ifFeatureList) {
+        this.ifFeatureList = ifFeatureList;
     }
 }

@@ -1,0 +1,26 @@
+module syslog1 {
+     yang-version 1;
+     namespace "http://huawei1.com";
+     prefix "sys1";
+
+     import "syslog2" {
+        prefix "sys2";
+     }
+
+     feature frr-te {
+       description "Indicates support for TE FastReroute (FRR)";
+       if-feature "sys2:p2mp-te";
+     }
+
+     container speed {
+         leaf local-storage-limit {
+             if-feature frr-te;
+             type uint64;
+             units "kilobyte";
+             config false;
+             description
+                     "The amount of local storage that can be
+                      used to hold syslog messages.";
+         }
+     }
+}

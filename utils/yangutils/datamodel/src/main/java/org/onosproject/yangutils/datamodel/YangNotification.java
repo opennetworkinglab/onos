@@ -60,7 +60,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  *      | container    | 7.5     | 0..n        | -child nodes     |
  *      | description  | 7.19.3  | 0..1        | -string          |
  *      | grouping     | 7.11    | 0..n        | -child nodes     |
- *      | if-feature   | 7.18.2  | 0..n        | -TODO            |
+ *      | if-feature   | 7.18.2  | 0..n        | -YangIfFeature   |
  *      | leaf         | 7.6     | 0..n        | -YangLeaf        |
  *      | leaf-list    | 7.7     | 0..n        | -YangLeafList    |
  *      | list         | 7.8     | 0..n        | -child nodes     |
@@ -76,7 +76,8 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  */
 public class YangNotification
         extends YangNode
-        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector, YangAugmentationHolder {
+        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector, YangAugmentationHolder,
+        YangIfFeatureHolder {
 
     private static final long serialVersionUID = 806201611L;
 
@@ -109,6 +110,11 @@ public class YangNotification
      * Status of the node.
      */
     private YangStatusType status = YangStatusType.CURRENT;
+
+    /**
+     * List of if-feature.
+     */
+    private List<YangIfFeature> ifFeatureList;
 
     /**
      * Create a notification node.
@@ -220,5 +226,23 @@ public class YangNotification
     @Override
     public void setStatus(YangStatusType status) {
         this.status = status;
+    }
+
+    @Override
+    public List<YangIfFeature> getIfFeatureList() {
+        return ifFeatureList;
+    }
+
+    @Override
+    public void addIfFeatureList(YangIfFeature ifFeature) {
+        if (getIfFeatureList() == null) {
+            setIfFeatureList(new LinkedList<>());
+        }
+        getIfFeatureList().add(ifFeature);
+    }
+
+    @Override
+    public void setIfFeatureList(List<YangIfFeature> ifFeatureList) {
+        this.ifFeatureList = ifFeatureList;
     }
 }

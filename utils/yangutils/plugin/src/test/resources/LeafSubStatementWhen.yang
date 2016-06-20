@@ -1,0 +1,14 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+    leaf ifType {
+        when "ifType != 'ethernet'" {
+            description "ifType is not ethernet";
+        }
+        type enumeration {
+            enum ethernet;
+            enum atm;
+        }
+    }
+}

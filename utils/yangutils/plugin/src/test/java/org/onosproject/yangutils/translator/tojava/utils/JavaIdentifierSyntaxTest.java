@@ -20,6 +20,9 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -104,6 +107,8 @@ public final class JavaIdentifierSyntaxTest {
     private static final String WITH_SMALL = "test_this";
     private static final String WITH_CAMEL_CASE_WITH_PREFIX = "123addPrefixTry";
     private static final String WITH_CAMEL_CASE_WITH_PREFIX1 = "abc1234567890Ss1123G123Gaa";
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
+    private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
     private static YangToJavaNamingConflictUtil conflictResolver = new YangToJavaNamingConflictUtil();
     private static final String BASE_DIR_PKG = "target.UnitTestCase.";
     private static final String DIR_PATH = "exist1.exist2.exist3";
@@ -140,9 +145,10 @@ public final class JavaIdentifierSyntaxTest {
      * Unit test for root package generation with revision complexity.
      */
     @Test
-    public void getRootPackageTest() {
+    public void getRootPackageTest() throws ParseException {
         conflictResolver.setPrefixForIdentifier(null);
-        String rootPackage = getRootPackage((byte) 1, CHILD_PACKAGE, DATE1, conflictResolver);
+        Date date = simpleDateFormat.parse(DATE1);
+        String rootPackage = getRootPackage((byte) 1, CHILD_PACKAGE, date, conflictResolver);
         assertThat(rootPackage.equals(DEFAULT_BASE_PKG + PERIOD + VERSION_NUMBER
                 + PERIOD + CHILD_WITH_PERIOD + PERIOD + DATE_WITH_REV1), is(true));
     }
@@ -151,31 +157,34 @@ public final class JavaIdentifierSyntaxTest {
      * Unit test for root package generation with invalid prefix.
      */
     @Test
-    public void getRootPackageWithInvalidPrefix() throws TranslatorException {
+    public void getRootPackageWithInvalidPrefix() throws TranslatorException, ParseException {
         thrown.expect(TranslatorException.class);
         thrown.expectMessage("The given prefix in pom.xml is invalid.");
         conflictResolver.setPrefixForIdentifier(INVALID_PREFIX);
-        String rootPackage1 = getRootPackage((byte) 1, INVALID_NAME_SPACE_FOR_INVALID_PREFIX, DATE1, conflictResolver);
+        Date date = simpleDateFormat.parse(DATE1);
+        String rootPackage1 = getRootPackage((byte) 1, INVALID_NAME_SPACE_FOR_INVALID_PREFIX, date,
+                conflictResolver);
     }
 
     /**
      * Unit test for root package generation with special characters presence.
      */
     @Test
-    public void getRootPackageWithSpecialCharactersTest() {
+    public void getRootPackageWithSpecialCharactersTest() throws ParseException {
         conflictResolver.setPrefixForIdentifier(VALID_PREFIX);
-        String rootPackage = getRootPackage((byte) 1, INVALID_NAME_SPACE1, DATE1, conflictResolver);
+        Date date = simpleDateFormat.parse(DATE1);
+        String rootPackage = getRootPackage((byte) 1, INVALID_NAME_SPACE1, date, conflictResolver);
         assertThat(rootPackage.equals(DEFAULT_BASE_PKG + PERIOD + VERSION_NUMBER
                 + PERIOD + VALID_NAME_SPACE1 + PERIOD + DATE_WITH_REV1), is(true));
         conflictResolver.setPrefixForIdentifier(null);
-        String rootPackage1 = getRootPackage((byte) 1, INVALID_NAME_SPACE2, DATE1, conflictResolver);
+        String rootPackage1 = getRootPackage((byte) 1, INVALID_NAME_SPACE2, date, conflictResolver);
         assertThat(rootPackage1.equals(DEFAULT_BASE_PKG + PERIOD + VERSION_NUMBER
                 + PERIOD + VALID_NAME_SPACE2 + PERIOD + DATE_WITH_REV1), is(true));
-        String rootPackage2 = getRootPackage((byte) 1, INVALID_NAME_SPACE3, DATE1, conflictResolver);
+        String rootPackage2 = getRootPackage((byte) 1, INVALID_NAME_SPACE3, date, conflictResolver);
         assertThat(rootPackage2.equals(DEFAULT_BASE_PKG + PERIOD + VERSION_NUMBER
                 + PERIOD + VALID_NAME_SPACE4 + PERIOD + DATE_WITH_REV1), is(true));
         conflictResolver.setPrefixForIdentifier(INVALID_PREFIX1);
-        String rootPackage3 = getRootPackage((byte) 1, INVALID_NAME_SPACE2, DATE1, conflictResolver);
+        String rootPackage3 = getRootPackage((byte) 1, INVALID_NAME_SPACE2, date, conflictResolver);
         assertThat(rootPackage3.equals(DEFAULT_BASE_PKG + PERIOD + VERSION_NUMBER
                 + PERIOD + VALID_NAME_SPACE3 + PERIOD + DATE_WITH_REV1), is(true));
 
@@ -185,8 +194,9 @@ public final class JavaIdentifierSyntaxTest {
      * Unit test for root package generation without complexity in revision.
      */
     @Test
-    public void getRootPackageWithRevTest() {
-        String rootPkgWithRev = getRootPackage((byte) 1, CHILD_PACKAGE, DATE2, null);
+    public void getRootPackageWithRevTest() throws ParseException {
+        Date date = simpleDateFormat.parse(DATE2);
+        String rootPkgWithRev = getRootPackage((byte) 1, CHILD_PACKAGE, date, null);
         assertThat(rootPkgWithRev.equals(
                 DEFAULT_BASE_PKG + PERIOD + VERSION_NUMBER + PERIOD + CHILD_WITH_PERIOD + PERIOD + DATE_WITH_REV2),
                 is(true));

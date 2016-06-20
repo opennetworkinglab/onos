@@ -16,6 +16,7 @@
 package org.onosproject.yangutils.datamodel;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Set;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
@@ -56,7 +57,7 @@ public class YangInclude
      * The include's "revision-date" statement is used to specify the exact
      * version of the submodule to import.
      */
-    private String revision;
+    private Date revision;
 
     /**
      * Reference to node which is included.
@@ -98,7 +99,7 @@ public class YangInclude
      *
      * @return the revision
      */
-    public String getRevision() {
+    public Date getRevision() {
         return revision;
     }
 
@@ -107,7 +108,7 @@ public class YangInclude
      *
      * @param revision the revision to set
      */
-    public void setRevision(String revision) {
+    public void setRevision(Date revision) {
         this.revision = revision;
     }
 
@@ -182,7 +183,7 @@ public class YangInclude
      */
     public YangSubModule addReferenceToInclude(Set<YangNode> yangNodeSet) throws DataModelException {
         String includedSubModuleName = getSubModuleName();
-        String includedSubModuleRevision = getRevision();
+        Date includedSubModuleRevision = getRevision();
         YangNode subModuleNode = null;
 
         /*
@@ -204,7 +205,7 @@ public class YangInclude
 
         if (subModuleNode != null) {
             if (subModuleNode instanceof YangSubModule) {
-                if (getRevision() == null || getRevision().isEmpty()) {
+                if (getRevision() == null) {
                     setIncludedNode(subModuleNode);
                     return (YangSubModule) subModuleNode;
                 }

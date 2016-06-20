@@ -29,5 +29,10 @@ public enum ResolvableType {
     /**
      * Identifies the uses.
      */
-    YANG_USES
+    YANG_USES,
+
+    /**
+     * Identifies the if-feature.
+     */
+    YANG_IF_FEATURE
 }

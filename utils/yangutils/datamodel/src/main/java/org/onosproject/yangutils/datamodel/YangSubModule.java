@@ -57,7 +57,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.resolveLi
  *                | description  | 7.19.3  | 0..1        | - string         |
  *                | deviation    | 7.18.3  | 0..n        | - TODO           |
  *                | extension    | 7.17    | 0..n        | - TODO           |
- *                | feature      | 7.18.1  | 0..n        | - TODO           |
+ *                | feature      | 7.18.1  | 0..n        | - YangFeature    |
  *                | grouping     | 7.11    | 0..n        | - child nodes    |
  *                | identity     | 7.16    | 0..n        | - TODO           |
  *                | import       | 7.1.5   | 0..n        | - YangImport     |
@@ -82,7 +82,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.resolveLi
 public class YangSubModule
         extends YangNode
         implements YangLeavesHolder, YangDesc, YangReference, Parsable, CollisionDetector, YangReferenceResolver,
-        RpcNotificationContainer {
+        RpcNotificationContainer, YangFeatureHolder {
 
     private static final long serialVersionUID = 806201614L;
 
@@ -131,6 +131,11 @@ public class YangSubModule
      * List of leaf-lists at root level in the sub-module.
      */
     private List<YangLeafList> listOfLeafList;
+
+    /**
+     * List of feature at root level in the module.
+     */
+    private List<YangFeature> listOfFeature;
 
     /**
      * Organization owner of the sub-module.
@@ -199,12 +204,18 @@ public class YangSubModule
     private List<YangResolutionInfo> usesResolutionList;
 
     /**
+     * if-feature resolution list.
+     */
+    private List<YangResolutionInfo> ifFeatureResolutionList;
+
+    /**
      * Creates a sub module node.
      */
     public YangSubModule() {
         super(YangNodeType.SUB_MODULE_NODE);
         derivedTypeResolutionList = new LinkedList<>();
         usesResolutionList = new LinkedList<>();
+        ifFeatureResolutionList = new LinkedList<>();
         importList = new LinkedList<YangImport>();
         includeList = new LinkedList<YangInclude>();
         listOfLeaf = new LinkedList<YangLeaf>();
@@ -538,8 +549,10 @@ public class YangSubModule
     public List<YangResolutionInfo> getUnresolvedResolutionList(ResolvableType type) {
         if (type == ResolvableType.YANG_DERIVED_DATA_TYPE) {
             return derivedTypeResolutionList;
-        } else {
+        } else if (type == ResolvableType.YANG_USES) {
             return usesResolutionList;
+        } else {
+            return ifFeatureResolutionList;
         }
     }
 
@@ -550,6 +563,8 @@ public class YangSubModule
             derivedTypeResolutionList.add(resolutionInfo);
         } else if (type == ResolvableType.YANG_USES) {
             usesResolutionList.add(resolutionInfo);
+        } else if (type == ResolvableType.YANG_IF_FEATURE) {
+            ifFeatureResolutionList.add(resolutionInfo);
         }
     }
 
@@ -560,6 +575,8 @@ public class YangSubModule
             derivedTypeResolutionList = resolutionList;
         } else if (type == ResolvableType.YANG_USES) {
             usesResolutionList = resolutionList;
+        } else if (type == ResolvableType.YANG_IF_FEATURE) {
+            ifFeatureResolutionList = resolutionList;
         }
 
     }
@@ -600,5 +617,23 @@ public class YangSubModule
             YangImport yangImport = importInfoIterator.next();
             yangImport.addReferenceToImport(yangNodeSet);
         }
+    }
+
+    @Override
+    public List<YangFeature> getFeatureList() {
+        return listOfFeature;
+    }
+
+    @Override
+    public void addFeatureList(YangFeature feature) {
+        if (getFeatureList() == null) {
+            setListOfFeature(new LinkedList<>());
+        }
+        getFeatureList().add(feature);
+    }
+
+    @Override
+    public void setListOfFeature(List<YangFeature> listOfFeature) {
+        this.listOfFeature = listOfFeature;
     }
 }

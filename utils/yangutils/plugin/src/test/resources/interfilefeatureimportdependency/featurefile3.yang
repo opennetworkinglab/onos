@@ -1,0 +1,11 @@
+module syslog3 {
+     yang-version 1;
+     namespace "http://huawei3.com";
+     prefix "sys3";
+
+     feature extended-admin-groups {
+       description
+         "Indicates support for TE link extended admin
+         groups.";
+     }
+}

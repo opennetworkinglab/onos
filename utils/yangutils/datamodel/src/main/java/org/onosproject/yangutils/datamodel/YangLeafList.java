@@ -17,7 +17,8 @@
 package org.onosproject.yangutils.datamodel;
 
 import java.io.Serializable;
-
+import java.util.LinkedList;
+import java.util.List;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
@@ -39,16 +40,16 @@ import org.onosproject.yangutils.datamodel.utils.YangConstructType;
  *                +--------------+---------+-------------+------------------+
  *                | config       | 7.19.1  | 0..1        | -boolean         |
  *                | description  | 7.19.3  | 0..1        | -string          |
- *                | if-feature   | 7.18.2  | 0..n        | -TODO            |
+ *                | if-feature   | 7.18.2  | 0..n        | -YangIfFeature   |
  *                | max-elements | 7.7.4   | 0..1        | -int             |
  *                | min-elements | 7.7.3   | 0..1        | -int             |
- *                | must         | 7.5.3   | 0..n        | -TODO            |
+ *                | must         | 7.5.3   | 0..n        | -YangMust        |
  *                | ordered-by   | 7.7.5   | 0..1        | -TODO            |
  *                | reference    | 7.19.4  | 0..1        | -string          |
  *                | status       | 7.19.2  | 0..1        | -YangStatus      |
  *                | type         | 7.4     | 1           | -YangType        |
  *                | units        | 7.3.3   | 0..1        | -string          |
- *                | when         | 7.19.5  | 0..1        | -TODO            |
+ *                | when         | 7.19.5  | 0..1        | -YangWhen        |
  *                +--------------+---------+-------------+------------------+
  */
 
@@ -56,7 +57,8 @@ import org.onosproject.yangutils.datamodel.utils.YangConstructType;
  * Represents leaf-list data represented in YANG.
  */
 public class YangLeafList
-        implements YangCommonInfo, Parsable, Cloneable, Serializable {
+        implements YangCommonInfo, Parsable, Cloneable, Serializable,
+        YangMustHolder, YangWhenHolder, YangIfFeatureHolder {
 
     private static final long serialVersionUID = 806201637L;
 
@@ -133,6 +135,21 @@ public class YangLeafList
     private transient YangLeavesHolder containedIn;
 
     /**
+     * List of must statement constraints.
+     */
+    private List<YangMust> mustConstraintList;
+
+    /**
+     * When data of the leaf.
+     */
+    private YangWhen when;
+
+    /**
+     * List of if-feature.
+     */
+    private List<YangIfFeature> ifFeatureList;
+
+    /**
      * Creates a YANG leaf-list.
      */
     public YangLeafList() {
@@ -172,6 +189,26 @@ public class YangLeafList
      */
     public void setConfig(boolean isCfg) {
         isConfig = isCfg;
+    }
+
+    /**
+     * Returns the when.
+     *
+     * @return the when
+     */
+    @Override
+    public YangWhen getWhen() {
+        return when;
+    }
+
+    /**
+     * Sets the when.
+     *
+     * @param when the when to set
+     */
+    @Override
+    public void setWhen(YangWhen when) {
+        this.when = when;
     }
 
     /**
@@ -362,5 +399,41 @@ public class YangLeafList
             throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 
+    }
+
+    @Override
+    public List<YangIfFeature> getIfFeatureList() {
+        return ifFeatureList;
+    }
+
+    @Override
+    public void addIfFeatureList(YangIfFeature ifFeature) {
+        if (getIfFeatureList() == null) {
+            setIfFeatureList(new LinkedList<>());
+        }
+        getIfFeatureList().add(ifFeature);
+    }
+
+    @Override
+    public void setIfFeatureList(List<YangIfFeature> ifFeatureList) {
+        this.ifFeatureList = ifFeatureList;
+    }
+
+    @Override
+    public List<YangMust> getListOfMust() {
+        return mustConstraintList;
+    }
+
+    @Override
+    public void setListOfMust(List<YangMust> mustConstraintList) {
+        this.mustConstraintList = mustConstraintList;
+    }
+
+    @Override
+    public void addMust(YangMust must) {
+        if (getListOfMust() == null) {
+            setListOfMust(new LinkedList<>());
+        }
+        getListOfMust().add(must);
     }
 }

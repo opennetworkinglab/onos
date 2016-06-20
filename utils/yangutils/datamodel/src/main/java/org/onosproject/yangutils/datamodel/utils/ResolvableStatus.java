@@ -46,6 +46,11 @@ public enum ResolvableStatus {
      * Identifies that resolvable entity is inter file linked (i.e. complete
      * linking with external files).
      */
-    INTER_FILE_LINKED
+    INTER_FILE_LINKED,
+
+    /**
+     * Identifies that resolvable entity is referred node is not defined.
+     */
+    UNDEFINED
 
 }

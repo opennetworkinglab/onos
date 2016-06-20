@@ -1,0 +1,26 @@
+module Test {
+    yang-version 1;
+    namespace urn:ietf:params:xml:ns:yang:ietf-ospf;
+    prefix test;
+
+     revision 2013-07-15 {
+       description
+        "This revision adds the following new data types:
+         - yang-identifier
+         - hex-string
+         - uuid
+         - dotted-quad";
+       reference
+        "RFC 6991: Common YANG Data Types";
+     }
+     revision 2013-07-14 {
+       description
+        "This revision adds the following new data types:
+         - yang-identifier
+         - hex-string
+         - uuid
+         - dotted-quad";
+       reference
+        "RFC 6991: Common YANG Data Types";
+     }
+}

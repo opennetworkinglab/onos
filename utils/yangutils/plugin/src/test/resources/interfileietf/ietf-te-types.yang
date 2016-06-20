@@ -257,7 +257,7 @@
      }*/
 
      /* TE basic features */
-     /*feature p2mp-te {
+     feature p2mp-te {
        description
          "Indicates support for P2MP-TE";
      }
@@ -291,7 +291,7 @@
      feature named-path-constraints {
        description
          "Indicates support for named path constraints";
-     }*/
+     }
 
      grouping explicit-route-subobject {
        description

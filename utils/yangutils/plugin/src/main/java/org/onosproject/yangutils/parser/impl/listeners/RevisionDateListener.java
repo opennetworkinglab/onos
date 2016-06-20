@@ -16,6 +16,7 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import java.util.Date;
 import org.onosproject.yangutils.datamodel.YangImport;
 import org.onosproject.yangutils.datamodel.YangInclude;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
@@ -28,8 +29,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLoc
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.isDateValid;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.removeQuotesAndHandleConcat;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidDateFromString;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 
 /*
@@ -87,13 +87,7 @@ public final class RevisionDateListener {
         checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATE_DATA, ctx.dateArgumentString().getText(),
                 ENTRY);
 
-        String date = removeQuotesAndHandleConcat(ctx.dateArgumentString().getText());
-        if (!isDateValid(date)) {
-            ParserException parserException = new ParserException("YANG file error: Input date is not correct");
-            parserException.setLine(ctx.getStart().getLine());
-            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
-            throw parserException;
-        }
+        Date date = getValidDateFromString(ctx.dateArgumentString().getText(), ctx);
 
         // Obtain the node of the stack.
         Parsable tmpNode = listener.getParsedDataStack().peek();

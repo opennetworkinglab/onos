@@ -68,7 +68,7 @@
       * Features
       */
 
-     /*feature configuration-schedule {
+     feature configuration-schedule {
        description
          "This feature indicates that the system supports
           configuration scheduling.";
@@ -91,7 +91,7 @@
        description
          "This feature indicates that the system supports
           template configuration.";
-     }*/
+     }
 
      /*
       * Typedefs

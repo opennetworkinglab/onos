@@ -16,6 +16,7 @@
 package org.onosproject.yangutils.datamodel;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Set;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
@@ -61,7 +62,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.findRefer
  *                | substatement  | section | cardinality |data model mapping|
  *                +---------------+---------+-------------+------------------+
  *                | prefix        | 7.1.4   | 1           | string           |
- *                | revision-date | 7.1.5.1 | 0..1        | string           |
+ *                | revision-date | 7.1.5.1 | 0..1        | Date             |
  *                +---------------+---------+-------------+------------------+
  */
 
@@ -91,7 +92,7 @@ public class YangImport
      * the most recent "revision" statement in the imported module. organization
      * which defined the YANG module.
      */
-    private String revision;
+    private Date revision;
 
     /**
      * Reference to node which is imported.
@@ -152,7 +153,7 @@ public class YangImport
      *
      * @return the revision of the imported module
      */
-    public String getRevision() {
+    public Date getRevision() {
         return revision;
     }
 
@@ -161,7 +162,7 @@ public class YangImport
      *
      * @param rev set the revision of the imported module
      */
-    public void setRevision(String rev) {
+    public void setRevision(Date rev) {
         revision = rev;
     }
 
@@ -245,7 +246,7 @@ public class YangImport
      */
     public void addReferenceToImport(Set<YangNode> yangNodeSet) throws DataModelException {
         String importedModuleName = getModuleName();
-        String importedModuleRevision = getRevision();
+        Date importedModuleRevision = getRevision();
         YangNode moduleNode = null;
         /*
          * Find the imported module node for a given module name with a
@@ -266,7 +267,7 @@ public class YangImport
 
         if (moduleNode != null) {
             if (moduleNode instanceof YangModule) {
-                if (getRevision() == null || getRevision().isEmpty()) {
+                if (getRevision() == null) {
                     setImportedNode(moduleNode);
                     return;
                 }

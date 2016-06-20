@@ -1,0 +1,9 @@
+module syslog2 {
+     yang-version 1;
+     namespace "http://huawei2.com";
+     prefix "sys2";
+
+     feature p2mp-te {
+       description "Indicates support for P2MP-TE";
+     }
+}

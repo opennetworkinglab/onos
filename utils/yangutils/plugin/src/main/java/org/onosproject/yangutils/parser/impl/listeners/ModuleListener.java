@@ -16,11 +16,13 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import java.util.Date;
 import org.onosproject.yangutils.datamodel.ResolvableType;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangReferenceResolver;
 import org.onosproject.yangutils.datamodel.YangRevision;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.linker.exceptions.LinkerException;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
@@ -34,8 +36,8 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMes
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getCurrentDateForRevision;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.setCurrentDateForRevision;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.translator.tojava.YangDataModelFactory.getYangModuleNode;
@@ -91,13 +93,6 @@ public final class ModuleListener {
             yangModule.setVersion((byte) 1);
         }
 
-        if (ctx.moduleBody().revisionStatements().revisionStatement().isEmpty()) {
-            String currentDate = setCurrentDateForRevision();
-            YangRevision currentRevision = new YangRevision();
-            currentRevision.setRevDate(currentDate);
-            yangModule.setRevision(currentRevision);
-        }
-
         listener.getParsedDataStack().push(yangModule);
     }
 
@@ -113,11 +108,22 @@ public final class ModuleListener {
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, MODULE_DATA, ctx.identifier().getText(), EXIT);
 
-        if (!(listener.getParsedDataStack().peek() instanceof YangModule)) {
+        Parsable tmpNode = listener.getParsedDataStack().peek();
+        if (!(tmpNode instanceof YangModule)) {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, MODULE_DATA,
                     ctx.identifier().getText(), EXIT));
         }
+
+        if (((YangModule) tmpNode).getRevision() == null) {
+            Date currentDate = getCurrentDateForRevision();
+            YangRevision currentRevision = new YangRevision();
+            currentRevision.setRevDate(currentDate);
+            ((YangModule) tmpNode).setRevision(currentRevision);
+        }
+
         try {
+            ((YangReferenceResolver) listener.getParsedDataStack()
+                    .peek()).resolveSelfFileLinking(ResolvableType.YANG_IF_FEATURE);
             ((YangReferenceResolver) listener.getParsedDataStack()
                     .peek()).resolveSelfFileLinking(ResolvableType.YANG_USES);
             ((YangReferenceResolver) listener.getParsedDataStack()

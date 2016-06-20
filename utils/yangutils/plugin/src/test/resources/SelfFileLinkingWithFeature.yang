@@ -1,0 +1,23 @@
+module syslog {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix "sys";
+    feature local-storage {
+        description
+            "This feature means the device supports local
+             storage (memory, flash or disk) that can be used to
+             store syslog messages.";
+    }
+
+    container speed {
+        leaf local-storage-limit {
+             if-feature local-storage;
+             type uint64;
+             units "kilobyte";
+             config false;
+             description
+                  "The amount of local storage that can be
+                   used to hold syslog messages.";
+         }
+     }
+}

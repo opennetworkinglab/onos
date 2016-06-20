@@ -55,7 +55,7 @@ public class YangMust implements YangDesc, YangReference, Parsable, Serializable
     /**
      * Constraint info.
      */
-    private String constratint;
+    private String constraint;
 
     /**
      * Description string.
@@ -78,17 +78,17 @@ public class YangMust implements YangDesc, YangReference, Parsable, Serializable
      *
      * @return the constraint
      */
-    public String getConstratint() {
-        return constratint;
+    public String getConstraint() {
+        return constraint;
     }
 
     /**
      * Sets the constraint.
      *
-     * @param constratint the constraint to set
+     * @param constraint the constraint to set
      */
-    public void setConstratint(String constratint) {
-        this.constratint = constratint;
+    public void setConstraint(String constraint) {
+        this.constraint = constraint;
     }
 
     /**

@@ -1,0 +1,16 @@
+submodule syslog2 {
+     yang-version 1;
+     belongs-to "syslog1" {
+         prefix "sys1";
+     }
+     
+     import "syslog3" {
+        prefix "sys3";
+     }
+
+     feature p2mp-te {
+       description "Indicates support for P2MP-TE";
+       if-feature "sys3:extended-admin-groups";
+     }
+}
+

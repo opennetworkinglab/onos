@@ -70,17 +70,17 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  *                | container    | 7.5     | 0..n        | -child nodes     |
  *                | description  | 7.19.3  | 0..1        | -string          |
  *                | grouping     | 7.11    | 0..n        | -child nodes     |
- *                | if-feature   | 7.18.2  | 0..n        | -TODO            |
+ *                | if-feature   | 7.18.2  | 0..n        | -YangIfFeature   |
  *                | leaf         | 7.6     | 0..n        | -YangLeaf        |
  *                | leaf-list    | 7.7     | 0..n        | -YangLeafList    |
  *                | list         | 7.8     | 0..n        | -child nodes     |
- *                | must         | 7.5.3   | 0..n        | -TODO            |
+ *                | must         | 7.5.3   | 0..n        | -YangMust        |
  *                | presence     | 7.5.5   | 0..1        | -boolean         |
  *                | reference    | 7.19.4  | 0..1        | -string          |
  *                | status       | 7.19.2  | 0..1        | -YangStatus      |
  *                | typedef      | 7.3     | 0..n        | -child nodes     |
  *                | uses         | 7.12    | 0..n        | -child nodes     |
- *                | when         | 7.19.5  | 0..1        | -TODO            |
+ *                | when         | 7.19.5  | 0..1        | -YangWhen        |
  *                +--------------+---------+-------------+------------------+
  */
 
@@ -89,7 +89,8 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  */
 public class YangContainer
         extends YangNode
-        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector, YangAugmentationHolder {
+        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector, YangAugmentationHolder,
+        YangMustHolder, YangWhenHolder, YangIfFeatureHolder {
 
     private static final long serialVersionUID = 806201605L;
 
@@ -135,10 +136,45 @@ public class YangContainer
     private YangStatusType status = YangStatusType.CURRENT;
 
     /**
+     * List of must statement constraints.
+     */
+    private List<YangMust> mustConstraintList;
+
+    /**
+     * When data of the node.
+     */
+    private YangWhen when;
+
+    /**
+     * List of if-feature.
+     */
+    private List<YangIfFeature> ifFeatureList;
+
+    /**
      * Create a container node.
      */
     public YangContainer() {
         super(YangNodeType.CONTAINER_NODE);
+    }
+
+    /**
+     * Returns the when.
+     *
+     * @return the when
+     */
+    @Override
+    public YangWhen getWhen() {
+        return when;
+    }
+
+    /**
+     * Sets the when.
+     *
+     * @param when the when to set
+     */
+    @Override
+    public void setWhen(YangWhen when) {
+        this.when = when;
     }
 
     /**
@@ -445,4 +481,41 @@ public class YangContainer
                     + getName() + "\"");
         }
     }
+
+    @Override
+    public List<YangIfFeature> getIfFeatureList() {
+        return ifFeatureList;
+    }
+
+    @Override
+    public void addIfFeatureList(YangIfFeature ifFeature) {
+        if (getIfFeatureList() == null) {
+            setIfFeatureList(new LinkedList<>());
+        }
+        getIfFeatureList().add(ifFeature);
+    }
+
+    @Override
+    public void setIfFeatureList(List<YangIfFeature> ifFeatureList) {
+        this.ifFeatureList = ifFeatureList;
+    }
+
+    @Override
+    public List<YangMust> getListOfMust() {
+        return mustConstraintList;
+    }
+
+    @Override
+    public void setListOfMust(List<YangMust> mustConstraintList) {
+        this.mustConstraintList = mustConstraintList;
+    }
+
+    @Override
+    public void addMust(YangMust must) {
+        if (getListOfMust() == null) {
+            setListOfMust(new LinkedList<>());
+        }
+        getListOfMust().add(must);
+    }
+
 }

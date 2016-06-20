@@ -16,7 +16,7 @@
 package org.onosproject.yangutils.datamodel;
 
 import java.io.Serializable;
-
+import java.util.Date;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
@@ -41,6 +41,7 @@ import org.onosproject.yangutils.datamodel.utils.YangConstructType;
  *                | reference    | 7.19.4  | 0..1        |sring            |
  *                +--------------+---------+-------------+------------------+
  */
+
 /**
  * Represents the information about the revision.
  */
@@ -51,7 +52,7 @@ public class YangRevision implements YangDesc, YangReference, Parsable, Serializ
     /**
      * Revision date. Date string in the format "YYYY-MM-DD"
      */
-    private String revDate;
+    private Date revDate;
 
     /**
      * Description of revision.
@@ -74,7 +75,7 @@ public class YangRevision implements YangDesc, YangReference, Parsable, Serializ
      *
      * @return the revision date
      */
-    public String getRevDate() {
+    public Date getRevDate() {
         return revDate;
     }
 
@@ -83,7 +84,7 @@ public class YangRevision implements YangDesc, YangReference, Parsable, Serializ
      *
      * @param revDate the revision date to set
      */
-    public void setRevDate(String revDate) {
+    public void setRevDate(Date revDate) {
         this.revDate = revDate;
     }
 

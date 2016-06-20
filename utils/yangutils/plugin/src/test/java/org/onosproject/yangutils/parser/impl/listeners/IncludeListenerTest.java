@@ -16,13 +16,14 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-
-import java.io.IOException;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -33,6 +34,8 @@ import static org.junit.Assert.assertThat;
 public class IncludeListenerTest {
 
     private final YangUtilsParserManager manager = new YangUtilsParserManager();
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
+    private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
 
     /**
      * Checks if include listener with ; is valid and updates the data
@@ -65,43 +68,43 @@ public class IncludeListenerTest {
      * and updates the data model tree.
      */
     @Test
-    public void processIncludeWithDate() throws IOException, ParserException {
+    public void processIncludeWithDate() throws IOException, ParserException, ParseException {
 
         YangNode node = manager.getDataModel("src/test/resources/IncludeWithDate.yang");
 
         // Checks for the sub module name in data model tree.
         assertThat(((YangModule) node).getIncludeList().get(0).getSubModuleName(), is("itut"));
-        assertThat(((YangModule) node).getIncludeList().get(0).getRevision(), is("2016-02-03"));
+        assertThat(((YangModule) node).getIncludeList().get(0).getRevision(), is(simpleDateFormat.parse("2016-02-03")));
     }
 
     /**
      * Checks if include has more than one occurrence.
      */
     @Test
-    public void processIncludeMultiInstance() throws IOException, ParserException {
+    public void processIncludeMultiInstance() throws IOException, ParserException, ParseException {
 
         YangNode node = manager.getDataModel("src/test/resources/IncludeMultiInstance.yang");
 
         // Checks for the sub module name in data model tree.
         assertThat(((YangModule) node).getIncludeList().get(0).getSubModuleName(), is("itut"));
-        assertThat(((YangModule) node).getIncludeList().get(0).getRevision(), is("2016-02-03"));
+        assertThat(((YangModule) node).getIncludeList().get(0).getRevision(), is(simpleDateFormat.parse("2016-02-03")));
         assertThat(((YangModule) node).getIncludeList().get(1).getSubModuleName(), is("sdn"));
-        assertThat(((YangModule) node).getIncludeList().get(1).getRevision(), is("2014-02-03"));
+        assertThat(((YangModule) node).getIncludeList().get(1).getRevision(), is(simpleDateFormat.parse("2014-02-03")));
     }
 
     /**
      * Checks if include and import can come in any order.
      */
     @Test
-    public void processIncludeImportAnyOrder() throws IOException, ParserException {
+    public void processIncludeImportAnyOrder() throws IOException, ParserException, ParseException {
 
         YangNode node = manager.getDataModel("src/test/resources/IncludeImportAnyOrder.yang");
 
         // Checks for the sub module name in data model tree.
         assertThat(((YangModule) node).getIncludeList().get(0).getSubModuleName(), is("itut"));
-        assertThat(((YangModule) node).getIncludeList().get(0).getRevision(), is("2016-02-03"));
+        assertThat(((YangModule) node).getIncludeList().get(0).getRevision(), is(simpleDateFormat.parse("2016-02-03")));
         assertThat(((YangModule) node).getIncludeList().get(1).getSubModuleName(), is("sdn"));
-        assertThat(((YangModule) node).getIncludeList().get(1).getRevision(), is("2014-02-03"));
+        assertThat(((YangModule) node).getIncludeList().get(1).getRevision(), is(simpleDateFormat.parse("2014-02-03")));
     }
 
     /**

@@ -65,14 +65,14 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  *                | choice       | 7.9     | 0..n        |-child nodes      |
  *                | container    | 7.5     | 0..n        |-child nodes      |
  *                | description  | 7.19.3  | 0..1        |-string           |
- *                | if-feature   | 7.18.2  | 0..n        |-TODO             |
+ *                | if-feature   | 7.18.2  | 0..n        |-YangIfFeature    |
  *                | leaf         | 7.6     | 0..n        |-YangLeaf         |
  *                | leaf-list    | 7.7     | 0..n        |-YangLeafList     |
  *                | list         | 7.8     | 0..n        |-child nodes      |
  *                | reference    | 7.19.4  | 0..1        |-String           |
  *                | status       | 7.19.2  | 0..1        |-YangStatus       |
  *                | uses         | 7.12    | 0..n        |-child nodes      |
- *                | when         | 7.19.5  | 0..1        |-TODO             |
+ *                | when         | 7.19.5  | 0..1        |-YangWhen         |
  *                +--------------+---------+-------------+------------------+
  */
 
@@ -81,7 +81,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  */
 public class YangAugment
         extends YangNode
-        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector {
+        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector, YangWhenHolder, YangIfFeatureHolder {
 
     private static final long serialVersionUID = 806201602L;
 
@@ -121,6 +121,16 @@ public class YangAugment
     private YangStatusType status;
 
     /**
+     * When data of the node.
+     */
+    private YangWhen when;
+
+    /**
+     * List of if-feature.
+     */
+    private List<YangIfFeature> ifFeatureList;
+
+    /**
      * Create a YANG augment node.
      */
     public YangAugment() {
@@ -143,6 +153,26 @@ public class YangAugment
      */
     public void setTargetNode(List<YangNodeIdentifier> nodeIdentifiers) {
         targetNode = nodeIdentifiers;
+    }
+
+    /**
+     * Returns the when.
+     *
+     * @return the when
+     */
+    @Override
+    public YangWhen getWhen() {
+        return when;
+    }
+
+    /**
+     * Sets the when.
+     *
+     * @param when the when to set
+     */
+    @Override
+    public void setWhen(YangWhen when) {
+        this.when = when;
     }
 
     /**
@@ -341,4 +371,21 @@ public class YangAugment
         this.name = name;
     }
 
+    @Override
+    public List<YangIfFeature> getIfFeatureList() {
+        return ifFeatureList;
+    }
+
+    @Override
+    public void addIfFeatureList(YangIfFeature ifFeature) {
+        if (getIfFeatureList() == null) {
+            setIfFeatureList(new LinkedList<>());
+        }
+        getIfFeatureList().add(ifFeature);
+    }
+
+    @Override
+    public void setIfFeatureList(List<YangIfFeature> ifFeatureList) {
+        this.ifFeatureList = ifFeatureList;
+    }
 }

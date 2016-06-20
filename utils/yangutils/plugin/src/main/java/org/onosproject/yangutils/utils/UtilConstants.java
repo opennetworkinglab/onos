@@ -1140,6 +1140,12 @@ public final class UtilConstants {
             + "grouping for given uses";
 
     /**
+     * Static attribute for grouping linker error information.
+     */
+    public static final String FEATURE_LINKER_ERROR = "YANG file error: Unable to find feature "
+            + "for given if-feature";
+
+    /**
      * Static attribute for reference.
      */
     public static final String REFERENCE = "Reference";

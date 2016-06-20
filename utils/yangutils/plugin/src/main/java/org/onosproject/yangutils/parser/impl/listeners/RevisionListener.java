@@ -16,6 +16,7 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import java.util.Date;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangRevision;
 import org.onosproject.yangutils.datamodel.YangSubModule;
@@ -31,8 +32,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMes
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.isDateValid;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.removeQuotesAndHandleConcat;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidDateFromString;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 
 /*
@@ -88,20 +88,7 @@ public final class RevisionListener {
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATA, ctx.dateArgumentString().getText(), ENTRY);
 
-        // Validate for reverse chronological order of revision & for revision
-        // value.
-        if (!validateRevision(listener, ctx)) {
-            return;
-            // TODO to be implemented.
-        }
-
-        String date = removeQuotesAndHandleConcat(ctx.dateArgumentString().getText());
-        if (!isDateValid(date)) {
-            ParserException parserException = new ParserException("YANG file error: Input date is not correct");
-            parserException.setLine(ctx.getStart().getLine());
-            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
-            throw parserException;
-        }
+        Date date = getValidDateFromString(ctx.dateArgumentString().getText(), ctx);
 
         YangRevision revisionNode = new YangRevision();
         revisionNode.setRevDate(date);
@@ -134,12 +121,26 @@ public final class RevisionListener {
             switch (tmpNode.getYangConstructType()) {
                 case MODULE_DATA: {
                     YangModule module = (YangModule) tmpNode;
-                    module.setRevision((YangRevision) tmpRevisionNode);
+                    if (module.getRevision() != null) {
+                        Date curRevisionDate = module.getRevision().getRevDate();
+                        if (curRevisionDate.before(((YangRevision) tmpRevisionNode).getRevDate())) {
+                            module.setRevision((YangRevision) tmpRevisionNode);
+                        }
+                    } else {
+                        module.setRevision((YangRevision) tmpRevisionNode);
+                    }
                     break;
                 }
                 case SUB_MODULE_DATA: {
                     YangSubModule subModule = (YangSubModule) tmpNode;
-                    subModule.setRevision((YangRevision) tmpRevisionNode);
+                    if (subModule.getRevision() != null) {
+                        Date curRevisionDate = subModule.getRevision().getRevDate();
+                        if (curRevisionDate.before(((YangRevision) tmpRevisionNode).getRevDate())) {
+                            subModule.setRevision((YangRevision) tmpRevisionNode);
+                        }
+                    } else {
+                        subModule.setRevision((YangRevision) tmpRevisionNode);
+                    }
                     break;
                 }
                 default:

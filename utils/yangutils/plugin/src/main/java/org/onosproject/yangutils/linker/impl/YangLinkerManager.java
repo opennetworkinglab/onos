@@ -156,6 +156,8 @@ public class YangLinkerManager
             throws LinkerException {
         for (YangNode yangNode : yangNodeSet) {
             try {
+                ((YangReferenceResolver) yangNode)
+                        .resolveInterFileLinking(ResolvableType.YANG_IF_FEATURE);
                 ((YangReferenceResolver) yangNode).resolveInterFileLinking(ResolvableType.YANG_USES);
                 ((YangReferenceResolver) yangNode)
                         .resolveInterFileLinking(ResolvableType.YANG_DERIVED_DATA_TYPE);

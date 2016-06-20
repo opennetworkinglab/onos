@@ -16,13 +16,14 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-
-import java.io.IOException;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.notNullValue;
@@ -34,18 +35,19 @@ import static org.junit.Assert.assertThat;
 public class RevisionListenerTest {
 
     private final YangUtilsParserManager manager = new YangUtilsParserManager();
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
+    private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
 
     /**
      * Checks if revision doesn't have optional parameters "revision and
      * description".
      */
     @Test
-    public void processRevisionNoOptionalParameter() throws IOException, ParserException {
+    public void processRevisionNoOptionalParameter() throws IOException, ParserException, ParseException {
 
         YangNode node = manager.getDataModel("src/test/resources/RevisionNoOptionalParameter.yang");
-
         // Checks for the version value in data model tree.
-        assertThat(((YangModule) node).getRevision().getRevDate(), is("2016-02-03"));
+        assertThat(((YangModule) node).getRevision().getRevDate(), is(simpleDateFormat.parse("2016-02-03")));
     }
 
     /**
@@ -74,5 +76,15 @@ public class RevisionListenerTest {
 
         YangNode node = manager.getDataModel("src/test/resources/RevisionAbsence.yang");
         assertThat(((YangModule) node).getRevision().getRevDate(), notNullValue());
+    }
+
+    /**
+     * Checks latest date is stored when there are multiple revisions.
+     */
+    @Test
+    public void processWithMultipleRevision() throws IOException, ParserException, ParseException {
+
+        YangNode node = manager.getDataModel("src/test/resources/MultipleRevision.yang");
+        assertThat(((YangModule) node).getRevision().getRevDate(), is(simpleDateFormat.parse("2013-07-15")));
     }
 }

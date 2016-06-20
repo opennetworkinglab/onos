@@ -40,7 +40,9 @@ import org.onosproject.yangutils.parser.impl.listeners.DefaultListener;
 import org.onosproject.yangutils.parser.impl.listeners.DescriptionListener;
 import org.onosproject.yangutils.parser.impl.listeners.EnumListener;
 import org.onosproject.yangutils.parser.impl.listeners.EnumerationListener;
+import org.onosproject.yangutils.parser.impl.listeners.FeatureListener;
 import org.onosproject.yangutils.parser.impl.listeners.GroupingListener;
+import org.onosproject.yangutils.parser.impl.listeners.IfFeatureListener;
 import org.onosproject.yangutils.parser.impl.listeners.ImportListener;
 import org.onosproject.yangutils.parser.impl.listeners.IncludeListener;
 import org.onosproject.yangutils.parser.impl.listeners.InputListener;
@@ -53,6 +55,7 @@ import org.onosproject.yangutils.parser.impl.listeners.MandatoryListener;
 import org.onosproject.yangutils.parser.impl.listeners.MaxElementsListener;
 import org.onosproject.yangutils.parser.impl.listeners.MinElementsListener;
 import org.onosproject.yangutils.parser.impl.listeners.ModuleListener;
+import org.onosproject.yangutils.parser.impl.listeners.MustListener;
 import org.onosproject.yangutils.parser.impl.listeners.NotificationListener;
 import org.onosproject.yangutils.parser.impl.listeners.NamespaceListener;
 import org.onosproject.yangutils.parser.impl.listeners.OrganizationListener;
@@ -76,6 +79,7 @@ import org.onosproject.yangutils.parser.impl.listeners.UnitsListener;
 import org.onosproject.yangutils.parser.impl.listeners.UsesListener;
 import org.onosproject.yangutils.parser.impl.listeners.ValueListener;
 import org.onosproject.yangutils.parser.impl.listeners.VersionListener;
+import org.onosproject.yangutils.parser.impl.listeners.WhenListener;
 
 import static org.onosproject.yangutils.utils.UtilConstants.UNSUPPORTED_YANG_CONSTRUCT;
 import static org.onosproject.yangutils.utils.UtilConstants.CURRENTLY_UNSUPPORTED;
@@ -473,22 +477,22 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterFeatureStatement(GeneratedYangParser.FeatureStatementContext ctx) {
-        handleUnsupportedYangConstruct(YangConstructType.FEATURE_DATA, ctx, CURRENTLY_UNSUPPORTED);
+        FeatureListener.processFeatureEntry(this, ctx);
     }
 
     @Override
     public void exitFeatureStatement(GeneratedYangParser.FeatureStatementContext ctx) {
-        //TODO: to be implemented
+        FeatureListener.processFeatureExit(this, ctx);
     }
 
     @Override
     public void enterFeatureBody(GeneratedYangParser.FeatureBodyContext ctx) {
-        //TODO : to be implemented
+        // do nothing
     }
 
     @Override
     public void exitFeatureBody(GeneratedYangParser.FeatureBodyContext ctx) {
-        //TODO : to be implemented
+        // do nothing.
     }
 
     @Override
@@ -503,12 +507,12 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterIfFeatureStatement(GeneratedYangParser.IfFeatureStatementContext ctx) {
-        // TODO: to be implemented
+        IfFeatureListener.processIfFeatureEntry(this, ctx);
     }
 
     @Override
     public void exitIfFeatureStatement(GeneratedYangParser.IfFeatureStatementContext ctx) {
-        // TODO: to be implemented
+        // do nothing.
     }
 
     @Override
@@ -813,12 +817,12 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterMustStatement(GeneratedYangParser.MustStatementContext ctx) {
-        // TODO: to be implemented
+        MustListener.processMustEntry(this, ctx);
     }
 
     @Override
     public void exitMustStatement(GeneratedYangParser.MustStatementContext ctx) {
-        // TODO: to be implemented
+        MustListener.processMustExit(this, ctx);
     }
 
     @Override
@@ -1083,12 +1087,12 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterWhenStatement(GeneratedYangParser.WhenStatementContext ctx) {
-        // TODO: to be implemented
+        WhenListener.processWhenEntry(this, ctx);
     }
 
     @Override
     public void exitWhenStatement(GeneratedYangParser.WhenStatementContext ctx) {
-        // TODO: to be implemented
+        WhenListener.processWhenExit(this, ctx);
     }
 
     @Override

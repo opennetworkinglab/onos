@@ -16,13 +16,14 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-
-import java.io.IOException;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -33,6 +34,8 @@ import static org.junit.Assert.assertThat;
 public class RevisionDateListenerTest {
 
     private final YangUtilsParserManager manager = new YangUtilsParserManager();
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
+    private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
 
     /**
      * Checks if revision date syntax is correct in include.
@@ -56,26 +59,26 @@ public class RevisionDateListenerTest {
      * Checks revision date in quotes inside include.
      */
     @Test
-    public void processRevisionDateInQuotesAtInclude() throws IOException, ParserException {
+    public void processRevisionDateInQuotesAtInclude() throws IOException, ParserException, ParseException {
 
         YangNode node = manager.getDataModel("src/test/resources/RevisionDateInQuotesAtInclude.yang");
         // Checks for the version value in data model tree.
-        assertThat(((YangModule) node).getImportList().get(0).getRevision(), is("2015-02-03"));
-        assertThat(((YangModule) node).getIncludeList().get(0).getRevision(), is("2016-02-03"));
-        assertThat(((YangModule) node).getIncludeList().get(1).getRevision(), is("2014-02-03"));
+        assertThat(((YangModule) node).getImportList().get(0).getRevision(), is(simpleDateFormat.parse("2015-02-03")));
+        assertThat(((YangModule) node).getIncludeList().get(0).getRevision(), is(simpleDateFormat.parse("2016-02-03")));
+        assertThat(((YangModule) node).getIncludeList().get(1).getRevision(), is(simpleDateFormat.parse("2014-02-03")));
     }
 
     /**
      * Checks revision date in quotes inside import.
      */
     @Test
-    public void processRevisionDateInQuotesAtImport() throws IOException, ParserException {
+    public void processRevisionDateInQuotesAtImport() throws IOException, ParserException, ParseException {
 
         YangNode node = manager.getDataModel("src/test/resources/RevisionDateInQuotesAtImport.yang");
         // Checks for the version value in data model tree.
-        assertThat(((YangModule) node).getImportList().get(0).getRevision(), is("2015-02-03"));
-        assertThat(((YangModule) node).getIncludeList().get(0).getRevision(), is("2016-02-03"));
-        assertThat(((YangModule) node).getIncludeList().get(1).getRevision(), is("2014-02-03"));
+        assertThat(((YangModule) node).getImportList().get(0).getRevision(), is(simpleDateFormat.parse("2015-02-03")));
+        assertThat(((YangModule) node).getIncludeList().get(0).getRevision(), is(simpleDateFormat.parse("2016-02-03")));
+        assertThat(((YangModule) node).getIncludeList().get(1).getRevision(), is(simpleDateFormat.parse("2014-02-03")));
     }
 
     /**
@@ -100,13 +103,13 @@ public class RevisionDateListenerTest {
      * Checks if revision date listener updates the data model tree.
      */
     @Test
-    public void processRevisionDateValidEntry() throws IOException, ParserException {
+    public void processRevisionDateValidEntry() throws IOException, ParserException, ParseException {
 
         YangNode node = manager.getDataModel("src/test/resources/RevisionDateValidEntry.yang");
 
         // Checks for the version value in data model tree.
-        assertThat(((YangModule) node).getImportList().get(0).getRevision(), is("2015-02-03"));
-        assertThat(((YangModule) node).getIncludeList().get(0).getRevision(), is("2016-02-03"));
-        assertThat(((YangModule) node).getIncludeList().get(1).getRevision(), is("2014-02-03"));
+        assertThat(((YangModule) node).getImportList().get(0).getRevision(), is(simpleDateFormat.parse("2015-02-03")));
+        assertThat(((YangModule) node).getIncludeList().get(0).getRevision(), is(simpleDateFormat.parse("2016-02-03")));
+        assertThat(((YangModule) node).getIncludeList().get(1).getRevision(), is(simpleDateFormat.parse("2014-02-03")));
     }
 }

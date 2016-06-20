@@ -21,6 +21,7 @@ import java.util.Set;
 
 import org.onosproject.yangutils.datamodel.CollisionDetector;
 import org.onosproject.yangutils.datamodel.ResolvableType;
+import org.onosproject.yangutils.datamodel.YangIfFeature;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangLeavesHolder;
@@ -29,13 +30,14 @@ import org.onosproject.yangutils.datamodel.YangReferenceResolver;
 import org.onosproject.yangutils.datamodel.YangResolutionInfo;
 import org.onosproject.yangutils.datamodel.YangRpc;
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.datamodel.YangUses;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
-
 
 /**
  * Represents utilities for data model tree.
  */
 public final class DataModelUtils {
+
     /**
      * Creates a new data model tree utility.
      */
@@ -161,11 +163,15 @@ public final class DataModelUtils {
                 .getEntityToResolve() instanceof YangType) {
             resolutionNode.addToResolutionList(resolutionInfo,
                     ResolvableType.YANG_DERIVED_DATA_TYPE);
-        } else {
+        } else if (resolutionInfo.getEntityToResolveInfo()
+                .getEntityToResolve() instanceof YangUses) {
             resolutionNode.addToResolutionList(resolutionInfo,
                     ResolvableType.YANG_USES);
+        } else if (resolutionInfo.getEntityToResolveInfo()
+                .getEntityToResolve() instanceof YangIfFeature) {
+            resolutionNode.addToResolutionList(resolutionInfo,
+                    ResolvableType.YANG_IF_FEATURE);
         }
-
     }
 
     /**
