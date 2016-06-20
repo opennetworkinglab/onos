@@ -174,7 +174,7 @@ public class UiExtensionManager
                         new UiTopoMap("s_america", "South America", "*s_america", 0.9),
                         new UiTopoMap("usa", "United States", "*continental_us", 1.0),
                         new UiTopoMap("bayareaGEO", "Bay Area, California", "*bayarea", 1.0),
-                        new UiTopoMap("europe", "Europe", "*europe", 2.5),
+                        new UiTopoMap("europe", "Europe", "*europe", 9.0),
                         new UiTopoMap("italy", "Italy", "*italy", 0.8),
                         new UiTopoMap("uk", "United Kingdom and Ireland", "*uk", 0.6),
                         new UiTopoMap("japan", "Japan", "*japan", 0.8),
