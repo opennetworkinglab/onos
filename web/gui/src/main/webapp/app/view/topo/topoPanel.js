@@ -330,7 +330,7 @@
             edgeLink = data.type() === 'hostLink',
             order = edgeLink ? edgeOrder : coreOrder;
 
-        gs.addGlyph(svg, 'ports', 40);
+        gs.addGlyph(svg, 'ports', 26);
         title.text('Link');
 
         var linkData = {

@@ -60,7 +60,8 @@
             mapid: map.id,
             mapscale: map.scale,
             mapfilepath: map.filePath,
-            tint: tintCheck.property('checked') ? 'on' : 'off'
+            tint: 'off'
+            // tint: tintCheck.property('checked') ? 'on' : 'off'
         };
         setMap(p);
         $log.debug('Dialog OK button clicked');
@@ -88,12 +89,16 @@
                     .attr('selected', m.id === current.mapid ? true : null)
                     .text(m.description);
         });
+
+/*
         var p = form.append('p');
         tintCheck = p.append('input').attr('type', 'checkbox').attr('name', 'tint');
         if (current.tint == 'on') {
             tintCheck.attr('checked', 'true');
         }
         p.append('span').text('Enable map tint');
+*/
+        
         return content;
     }
 
