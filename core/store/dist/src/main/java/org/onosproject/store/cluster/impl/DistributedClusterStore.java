@@ -256,7 +256,7 @@ public class DistributedClusterStore
             ControllerNode node = allNodes.get(nodeId);
             // Either this node or that node is no longer part of the same cluster
             if (node == null) {
-                log.warn("Could not find node {} in the cluster, ignoring state change", node);
+                log.debug("Could not find node {} in the cluster, ignoring state change", nodeId);
                 return;
             }
             ClusterEvent.Type type = newState == State.READY ? INSTANCE_READY :
