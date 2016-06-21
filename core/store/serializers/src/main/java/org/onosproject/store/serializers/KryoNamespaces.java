@@ -389,6 +389,7 @@ public final class KryoNamespaces {
                     Instructions.NoActionInstruction.class,
                     Instructions.OutputInstruction.class,
                     Instructions.GroupInstruction.class,
+                    Instructions.SetQueueInstruction.class,
                     Instructions.TableTypeTransition.class,
                     L0ModificationInstruction.class,
                     L0ModificationInstruction.L0SubType.class,
