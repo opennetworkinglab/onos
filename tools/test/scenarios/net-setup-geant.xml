@@ -38,7 +38,7 @@
               exec="onos-mininet sendAndExpect gratuitousArp --expect ."/>
 
         <step name="Check-Summary" requires="ARP-Hosts"
-              exec="onos-check-summary ${OC1} [0-9]* 25 140 25"/>
+              exec="onos-check-summary ${OC1} [0-9]* 31 108 31"/>
 
         <step name="Balance-Masters" requires="~Check-Summary" if="${OC2}"
               exec="onos ${OC1} balance-masters"/>

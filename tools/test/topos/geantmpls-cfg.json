@@ -30,7 +30,10 @@
     "of:0000000000000022": { "basic": { "name": "BDE", "latitude": 50.8285252, "longitude": -4.546936  }},
     "of:000000000000001a": { "basic": { "name": "MAR", "latitude": 43.2961743, "longitude": 5.3699525  }},
     "of:000000000000001b": { "basic": { "name": "HAM", "latitude": 53.5503414, "longitude": 10.000654 }},
-    "of:000000000000001c": { "basic": { "name": "AMS", "latitude": 52.374436,  "longitude": 4.8979956033677 }}
+    "of:000000000000001c": { "basic": { "name": "AMS", "latitude": 52.374436,  "longitude": 4.8979956033677 }},
+    "of:000000000000001d": { "basic": { "name": "STO", "latitude": 59.3251172, "longitude": 18.0710935 }},
+    "of:000000000000001e": { "basic": { "name": "OSL", "latitude": 59.9132694, "longitude": 10.7391112 }},
+    "of:000000000000001f": { "basic": { "name": "HEL", "latitude": 60.1666277, "longitude": 24.9435079 }}
   },
   "hosts": {
     "00:00:00:00:00:01/-1": { "basic": { "location": "of:0000000000000001/1", "ips": [ "10.0.0.1" ],  "name": "ATH", "latitude": 34.9841493, "longitude": 24.7279843  }},
@@ -46,7 +49,7 @@
     "00:00:00:00:00:0b/-1": { "basic": { "location": "of:000000000000000b/1", "ips": [ "10.0.0.11" ], "name": "BUC", "latitude": 47.4361414, "longitude": 26.1027443  }},
     "00:00:00:00:00:0c/-1": { "basic": { "location": "of:000000000000000c/1", "ips": [ "10.0.0.12" ], "name": "VIE", "latitude": 48.2083537, "longitude": 13.3725042  }},
     "00:00:00:00:00:0d/-1": { "basic": { "location": "of:000000000000000d/1", "ips": [ "10.0.0.13" ], "name": "FRA", "latitude": 48.1106529, "longitude": 9.2820934  }},
-    "00:00:00:00:00:0e/-1": { "basic": { "location": "of:000000000000000e/1", "ips": [ "10.0.0.14" ], "name": "COP", "latitude": 57.6867243, "longitude": 10.0700724 }},
+    "00:00:00:00:00:0e/-1": { "basic": { "location": "of:000000000000000e/1", "ips": [ "10.0.0.14" ], "name": "COP", "latitude": 57.1867243, "longitude": 9.5700724 }},
     "00:00:00:00:00:0f/-1": { "basic": { "location": "of:000000000000000f/1", "ips": [ "10.0.0.15" ], "name": "TLN", "latitude": 59.4372155, "longitude": 26.7453688 }},
     "00:00:00:00:00:10/-1": { "basic": { "location": "of:0000000000000010/1", "ips": [ "10.0.0.16" ], "name": "RIG", "latitude": 56.9493977, "longitude": 26.1051846  }},
     "00:00:00:00:00:11/-1": { "basic": { "location": "of:0000000000000011/1", "ips": [ "10.0.0.17" ], "name": "KAU", "latitude": 52.8981061, "longitude": 24.9117515 }},
@@ -62,7 +65,10 @@
     "00:00:00:00:00:22/-1": { "basic": { "location": "of:0000000000000022/1", "ips": [ "10.0.0.27" ], "name": "BDE", "latitude": 50.8285252, "longitude": -4.546936  }},
     "00:00:00:00:00:1a/-1": { "basic": { "location": "of:000000000000001a/1", "ips": [ "10.0.0.28" ], "name": "MAR", "latitude": 43.374436, "longitude": 3.3699525  }},
     "00:00:00:00:00:1b/-1": { "basic": { "location": "of:000000000000001b/1", "ips": [ "10.0.0.27" ], "name": "HAM", "latitude": 52.6996415, "longitude": 11.6301627  }},
-    "00:00:00:00:00:1c/-1": { "basic": { "location": "of:000000000000001c/1", "ips": [ "10.0.0.29" ], "name": "AMS", "latitude": 51.374436,  "longitude": 7.3979956033677 }}
+    "00:00:00:00:00:1c/-1": { "basic": { "location": "of:000000000000001c/1", "ips": [ "10.0.0.29" ], "name": "AMS", "latitude": 51.374436,  "longitude": 7.3979956033677 }},
+    "00:00:00:00:00:1d/-1": { "basic": { "location": "of:000000000000001d/1", "ips": [ "10.0.0.30" ], "name": "STO", "latitude": 61.3251172, "longitude": 16.0710935 }},
+    "00:00:00:00:00:1e/-1": { "basic": { "location": "of:000000000000001e/1", "ips": [ "10.0.0.31" ], "name": "OSL", "latitude": 61.9132694, "longitude": 9.7391112 }},
+    "00:00:00:00:00:1f/-1": { "basic": { "location": "of:000000000000001f/1", "ips": [ "10.0.0.32" ], "name": "HEL", "latitude": 62.1666277, "longitude": 24.9435079 }}
   }
 
 }
