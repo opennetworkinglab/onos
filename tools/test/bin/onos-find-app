@@ -1,0 +1,48 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Finds an app in the system.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+aux=/tmp/stc-$$.log
+trap "rm -f $aux 2>/dev/null" EXIT
+
+echo onos-find-app: $*
+
+target=${1:-$OCI}
+app=$2
+id=$3
+set -x
+
+onos $target "onos:apps" | tee $aux
+appString=`cat $aux | grep "name=$app,"`
+
+if [ $? -ne 0 ]
+then
+    exit 1;
+fi
+
+state='inactive'
+if [ appString != "" ]
+then
+    if [[ ${appString:0:1} == '*' ]]
+    then
+        state='active'
+    fi
+    for token in '$appString'
+    do
+        if [[ $token =~ "id=" ]]
+        then
+            echo "@stc ${id}Id=${token}"
+        fi
+    done
+    echo "@stc ${id}State=${state}"
+    exit 0
+fi
+
+
+cat $aux
+exit 1
+
