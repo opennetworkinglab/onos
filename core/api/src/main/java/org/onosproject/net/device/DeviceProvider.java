@@ -50,6 +50,8 @@ public interface DeviceProvider extends Provider {
 
     /**
      * Checks the reachability (connectivity) of a device from this provider.
+     * Reachability, unlike availability, denotes whether THIS particular node
+     * can send messages and receive replies from the specified device.
      *
      * @param deviceId  device identifier
      * @return true if reachable, false otherwise
