@@ -73,7 +73,7 @@ public class OnosCopycatClient extends DelegatingCopycatClient {
 
     @Override
     public <T> CompletableFuture<T> submit(Query<T> query) {
-        if (state() == State.SUSPENDED || state() == State.CLOSED) {
+        if (state() == State.CLOSED) {
             return Tools.exceptionalFuture(new StorageException.Unavailable());
         }
         CompletableFuture<T> future = new CompletableFuture<>();
