@@ -17,6 +17,7 @@ package org.onosproject.pce.cli;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.LinkedList;
 
@@ -26,6 +27,8 @@ import org.apache.karaf.shell.commands.Option;
 
 import org.onlab.util.DataRateUnit;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.Constraint;
@@ -71,6 +74,7 @@ public class PceSetupPathCommand extends AbstractShellCommand {
         log.info("executing pce-setup-path");
 
         PceService service = get(PceService.class);
+        TunnelService tunnelService = get(TunnelService.class);
 
         DeviceId srcDevice = DeviceId.deviceId(src);
         DeviceId dstDevice = DeviceId.deviceId(dst);
@@ -84,6 +88,15 @@ public class PceSetupPathCommand extends AbstractShellCommand {
            return;
         }
         LspType lspType = LspType.values()[type];
+
+        //Validating tunnel name, duplicated tunnel names not allowed
+        Collection<Tunnel> existingTunnels = tunnelService.queryTunnel(Tunnel.Type.MPLS);
+        for (Tunnel t : existingTunnels) {
+            if (t.tunnelName().toString().equals(name)) {
+                error("Path creation failed, Tunnel name already exists");
+                return;
+            }
+        }
 
         // Add bandwidth
         // bandwidth default data rate unit is in BPS
