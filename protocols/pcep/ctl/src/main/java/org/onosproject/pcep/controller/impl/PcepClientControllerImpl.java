@@ -438,6 +438,7 @@ public class PcepClientControllerImpl implements PcepClientController {
                 // When there are no LSPs to sync, directly end-of-sync PCRpt will come and the
                 // list will be null.
                 syncStateRptList = Collections.EMPTY_LIST;
+                log.debug("No LSPs reported from PCC during sync.");
             }
 
             Iterator<PcepStateReport> stateRptListIterator = syncStateRptList.iterator();
@@ -502,8 +503,8 @@ public class PcepClientControllerImpl implements PcepClientController {
                         } catch (PcepParseException e) {
                             log.error("Exception occured while sending initiate delete message {}", e.getMessage());
                         }
+                        continue;
                     }
-                    continue;
                 }
 
                 if (!lspObj.getCFlag()) {

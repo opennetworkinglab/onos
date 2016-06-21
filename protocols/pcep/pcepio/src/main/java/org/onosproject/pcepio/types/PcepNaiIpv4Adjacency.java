@@ -59,6 +59,14 @@ public class PcepNaiIpv4Adjacency implements PcepNai {
         return ST_TYPE;
     }
 
+    public int getLocalIpv4Addr() {
+        return localIpv4Addr;
+    }
+
+    public int getRemoteIpv4Addr() {
+        return remoteIpv4Addr;
+    }
+
     @Override
     public int write(ChannelBuffer bb) {
         int iLenStartIndex = bb.writerIndex();

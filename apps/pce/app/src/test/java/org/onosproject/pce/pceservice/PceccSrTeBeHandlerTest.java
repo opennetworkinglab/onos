@@ -417,11 +417,8 @@ public class PceccSrTeBeHandlerTest {
         // Compute label stack
         LabelStack labelStack = srTeHandler.computeLabelStack(path1);
 
-        // check node-label of D1.deviceId()
         List<LabelResourceId> labelList = labelStack.labelResources();
         Iterator<LabelResourceId> iterator = labelList.iterator();
-        labelId = iterator.next();
-        assertThat(labelId, is(LabelResourceId.labelResourceId(4097)));
 
         // check adjacency label of D1.deviceId()
         labelId = iterator.next();
