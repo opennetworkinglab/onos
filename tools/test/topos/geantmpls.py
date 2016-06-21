@@ -50,6 +50,9 @@ class GeantMplsTopo( Topo ):
         MAR = self.addSwitch( 's26' )
         HAM = self.addSwitch( 's27' )
         AMS = self.addSwitch( 's28' )
+        STO = self.addSwitch( 's29' )
+        OSL = self.addSwitch( 's30' )
+        HEL = self.addSwitch( 's31' )
 
 
     # ... and now hosts
@@ -81,6 +84,9 @@ class GeantMplsTopo( Topo ):
         MAR_host = self.addHost( 'h26' )
         HAM_host = self.addHost( 'h27' )
         AMS_host = self.addHost( 'h28' )
+        STO_host = self.addHost( 'h29' )
+        OSL_host = self.addHost( 'h30' )
+        HEL_host = self.addHost( 'h31' )
 
         # add edges between switch and corresponding host
         self.addLink( ATH , ATH_host )
@@ -111,22 +117,33 @@ class GeantMplsTopo( Topo ):
         self.addLink( MAR , MAR_host )
         self.addLink( HAM , HAM_host )
         self.addLink( AMS , AMS_host )
+        self.addLink( STO , STO_host )
+        self.addLink( HEL , HEL_host )
+        self.addLink( OSL , OSL_host )
 
         # add edges between switches
         self.addLink( ATH , MIL, bw=10 )
+        self.addLink( MIL , ATH, bw=10 )
         self.addLink( MIL , VIE, bw=10 )
         self.addLink( MIL , MAR, bw=10 )
         self.addLink( MIL , GEN, bw=10 )
+        self.addLink( GEN , MIL, bw=10 )
         self.addLink( MIL , MLT, bw=10 )
         self.addLink( GEN , FRA, bw=10 )
+        self.addLink( FRA , GEN, bw=10 )
         self.addLink( GEN , PAR, bw=10 )
+        self.addLink( PAR , GEN, bw=10 )
+        self.addLink( GEN , PAR, bw=10 )
+        self.addLink( FRA , POZ, bw=10 )
         self.addLink( GEN , MAR, bw=10 )
         self.addLink( MAR , MAD, bw=10 )
         self.addLink( MAD , PAR, bw=10 )
         self.addLink( MAD , LIS, bw=10 )
         self.addLink( LIS , LON, bw=10 )
+        self.addLink( LON , LIS, bw=10 )
         self.addLink( LON , PAR, bw=10 )
         self.addLink( LON , DUB, bw=10 )
+        self.addLink( DUB , LON, bw=10 )
         self.addLink( LON , BRU, bw=10 )
         self.addLink( BRU , AMS, bw=10 )
         self.addLink( AMS , LUX, bw=10 )
@@ -154,7 +171,11 @@ class GeantMplsTopo( Topo ):
         self.addLink( VIE , BRA, bw=10 )
         self.addLink( RIG , TLN, bw=10 )
         self.addLink( TLN , HAM, bw=10 )
-
+        self.addLink( OSL , STO, bw=10 )
+        self.addLink( STO , HEL, bw=10 )
+        self.addLink( STO , COP, bw=10 )
+        self.addLink( OSL , COP, bw=10 )
+        self.addLink( TLN , HEL, bw=10 )
 
 topos = { 'att': ( lambda: GeantMplsTopo() ) }
 
