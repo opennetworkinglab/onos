@@ -26,12 +26,13 @@ public interface VtnServiceApi {
     enum NetworkType {
         PRIVATE,
         PUBLIC,
-        MANAGEMENT
+        MANAGEMENT_HOSTS,
+        MANAGEMENT_LOCAL
     }
 
     enum ServiceType {
         VSG,
-        OLT_AGENT,
+        ACCESS_AGENT,
         MANAGEMENT,
         DEFAULT
     }

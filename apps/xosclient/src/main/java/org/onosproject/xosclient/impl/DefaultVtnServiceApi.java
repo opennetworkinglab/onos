@@ -39,12 +39,8 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.onosproject.xosclient.api.VtnServiceApi.NetworkType.PRIVATE;
-import static org.onosproject.xosclient.api.VtnServiceApi.NetworkType.PUBLIC;
-import static org.onosproject.xosclient.api.VtnServiceApi.NetworkType.MANAGEMENT;
-import static org.onosproject.xosclient.api.VtnServiceApi.ServiceType.DEFAULT;
-import static org.onosproject.xosclient.api.VtnServiceApi.ServiceType.OLT_AGENT;
-import static org.onosproject.xosclient.api.VtnServiceApi.ServiceType.VSG;
+import static org.onosproject.xosclient.api.VtnServiceApi.NetworkType.*;
+import static org.onosproject.xosclient.api.VtnServiceApi.ServiceType.*;
 
 /**
  * Provides CORD VTN service and service dependency APIs.
@@ -180,8 +176,10 @@ public final class DefaultVtnServiceApi extends XosApi implements VtnServiceApi 
         String name = netName.toUpperCase();
         if (name.contains(PUBLIC.name())) {
             return PUBLIC;
-        } else if (name.contains(MANAGEMENT.name())) {
-            return MANAGEMENT;
+        } else if (name.contains(MANAGEMENT_HOSTS.name())) {
+            return MANAGEMENT_HOSTS;
+        } else if (name.contains("MANAGEMENT")) {
+            return MANAGEMENT_LOCAL;
         } else {
             return PRIVATE;
         }
@@ -194,8 +192,8 @@ public final class DefaultVtnServiceApi extends XosApi implements VtnServiceApi 
         String name = netName.toUpperCase();
         if (name.contains(VSG.name())) {
             return VSG;
-        } else if (name.contains(OLT_AGENT.name())) {
-            return OLT_AGENT;
+        } else if (name.contains(ACCESS_AGENT.name())) {
+            return ACCESS_AGENT;
         } else if (name.contains(ServiceType.MANAGEMENT.name())) {
             return ServiceType.MANAGEMENT;
         } else {
