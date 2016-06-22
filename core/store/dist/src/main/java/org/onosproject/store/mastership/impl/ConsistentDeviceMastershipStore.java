@@ -97,6 +97,7 @@ public class ConsistentDeviceMastershipStore
     private static final Pattern DEVICE_MASTERSHIP_TOPIC_PATTERN =
             Pattern.compile("device:(.*)");
 
+    private ExecutorService eventHandler;
     private ExecutorService messageHandlingExecutor;
     private ScheduledExecutorService transferExecutor;
     private final LeadershipEventListener leadershipEventListener =
@@ -116,6 +117,10 @@ public class ConsistentDeviceMastershipStore
 
     @Activate
     public void activate() {
+
+        eventHandler = Executors.newSingleThreadExecutor(
+                        groupedThreads("onos/store/device/mastership", "event-handler", log));
+
         messageHandlingExecutor =
                 Executors.newSingleThreadExecutor(
                         groupedThreads("onos/store/device/mastership", "message-handler", log));
@@ -136,10 +141,10 @@ public class ConsistentDeviceMastershipStore
     @Deactivate
     public void deactivate() {
         clusterCommunicator.removeSubscriber(ROLE_RELINQUISH_SUBJECT);
+        leadershipService.removeListener(leadershipEventListener);
         messageHandlingExecutor.shutdown();
         transferExecutor.shutdown();
-        leadershipService.removeListener(leadershipEventListener);
-
+        eventHandler.shutdown();
         log.info("Stopped");
     }
 
@@ -308,6 +313,10 @@ public class ConsistentDeviceMastershipStore
 
         @Override
         public void event(LeadershipEvent event) {
+            eventHandler.execute(() -> handleEvent(event));
+        }
+
+        private void handleEvent(LeadershipEvent event) {
             Leadership leadership = event.subject();
             DeviceId deviceId = extractDeviceIdFromTopic(leadership.topic());
             RoleInfo roleInfo = getNodes(deviceId);

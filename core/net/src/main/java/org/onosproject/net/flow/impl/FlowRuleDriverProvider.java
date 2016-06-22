@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+
 import org.onosproject.core.ApplicationId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
@@ -186,16 +187,19 @@ class FlowRuleDriverProvider extends AbstractProvider implements FlowRuleProvide
 
         @Override
         public void event(DeviceEvent event) {
-            executor.schedule(() -> pollDeviceFlowEntries(event.subject()), 0, TimeUnit.SECONDS);
+            executor.execute(() -> handleEvent(event));
         }
 
-        @Override
-        public boolean isRelevant(DeviceEvent event) {
+        private void handleEvent(DeviceEvent event) {
             Device device = event.subject();
-            return mastershipService.isLocalMaster(device.id()) && device.is(FlowRuleProgrammable.class) &&
-                    (event.type() == DEVICE_ADDED ||
-                            event.type() == DEVICE_UPDATED ||
-                            (event.type() == DEVICE_AVAILABILITY_CHANGED && deviceService.isAvailable(device.id())));
+            boolean isRelevant = mastershipService.isLocalMaster(device.id())
+                    && device.is(FlowRuleProgrammable.class)
+                    && (event.type() == DEVICE_ADDED ||
+                        event.type() == DEVICE_UPDATED ||
+                        (event.type() == DEVICE_AVAILABILITY_CHANGED && deviceService.isAvailable(device.id())));
+            if (isRelevant) {
+                pollDeviceFlowEntries(event.subject());
+            }
         }
     }
 
