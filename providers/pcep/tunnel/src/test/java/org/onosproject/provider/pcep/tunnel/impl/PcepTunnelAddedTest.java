@@ -25,7 +25,7 @@ import static org.onosproject.pcep.controller.PcepAnnotationKeys.LSP_SIG_TYPE;
 import static org.onosproject.pcep.controller.PcepAnnotationKeys.PCC_TUNNEL_ID;
 import static org.onosproject.pcep.controller.PcepAnnotationKeys.PLSP_ID;
 import static org.onosproject.pcep.controller.PcepAnnotationKeys.DELEGATE;
-import static org.onosproject.provider.pcep.tunnel.impl.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
+import static org.onosproject.pcep.controller.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
 import static org.onosproject.pcep.controller.PcepSyncStatus.SYNCED;
 import static org.onosproject.net.Device.Type.ROUTER;
 import static org.onosproject.net.MastershipRole.MASTER;

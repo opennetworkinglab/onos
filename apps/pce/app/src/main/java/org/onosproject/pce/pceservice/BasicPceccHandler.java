@@ -150,7 +150,7 @@ public final class BasicPceccHandler {
 
                     // Push into destination device
                     // Destination device IN port is link.dst().port()
-                    installLocalLabelRule(dstDeviceId, labelId, dstPort, tunnel.tunnelId(), isLastLabelToPush,
+                    installLocalLabelRule(dstDeviceId, labelId, dstPort, tunnel.tunnelId(), false,
                                           Long.valueOf(LabelType.IN_LABEL.value), Objective.Operation.ADD);
 
                     // Push into source device

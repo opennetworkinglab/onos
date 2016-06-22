@@ -20,9 +20,9 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.onosproject.net.DefaultAnnotations.EMPTY;
-import static org.onosproject.provider.pcep.tunnel.impl.LspType.WITH_SIGNALLING;
-import static org.onosproject.provider.pcep.tunnel.impl.LspType.SR_WITHOUT_SIGNALLING;
-import static org.onosproject.provider.pcep.tunnel.impl.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
+import static org.onosproject.pcep.controller.LspType.WITH_SIGNALLING;
+import static org.onosproject.pcep.controller.LspType.SR_WITHOUT_SIGNALLING;
+import static org.onosproject.pcep.controller.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
 import static org.onosproject.pcep.controller.PcepAnnotationKeys.LSP_SIG_TYPE;
 
 import java.io.IOException;

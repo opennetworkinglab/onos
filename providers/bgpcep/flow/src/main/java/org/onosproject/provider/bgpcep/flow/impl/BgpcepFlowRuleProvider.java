@@ -82,15 +82,21 @@ import org.onosproject.pcepio.protocol.PcepUpdateMsg;
 import org.onosproject.pcepio.protocol.PcepUpdateRequest;
 import org.onosproject.pcepio.types.IPv4SubObject;
 import org.onosproject.pcepio.types.NexthopIPv4addressTlv;
+import org.onosproject.pcepio.types.PathSetupTypeTlv;
 import org.onosproject.pcepio.types.PcepLabelDownload;
 import org.onosproject.pcepio.types.PcepLabelMap;
 import org.onosproject.pcepio.types.PcepValueType;
 import org.onosproject.pcepio.types.StatefulIPv4LspIdentifiersTlv;
+import org.onosproject.pcepio.types.SymbolicPathNameTlv;
+import org.onosproject.pcep.controller.LspType;
 import org.onosproject.pcep.controller.SrpIdGenerators;
 import org.onosproject.pcep.controller.PcepAnnotationKeys;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import static org.onosproject.pcep.controller.PcepAnnotationKeys.DELEGATE;
+import static org.onosproject.pcep.controller.PcepAnnotationKeys.LSP_SIG_TYPE;
+import static org.onosproject.pcep.controller.PcepAnnotationKeys.PCE_INIT;
 import static org.onosproject.pcep.controller.PcepSyncStatus.IN_SYNC;
 import static org.onosproject.pcep.controller.PcepSyncStatus.SYNCED;
 import static org.onosproject.net.flow.criteria.Criterion.Type.EXTENSION;
@@ -447,20 +453,34 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
 
         srpObj = getSrpObject(pc, type, false);
 
-        String lspId = tunnel.annotations().value(PcepAnnotationKeys.PLSP_ID);
-        String plspId = tunnel.annotations().value(PcepAnnotationKeys.LOCAL_LSP_ID);
+        String lspId = tunnel.annotations().value(PcepAnnotationKeys.LOCAL_LSP_ID);
+        String plspId = tunnel.annotations().value(PcepAnnotationKeys.PLSP_ID);
         String tunnelIdentifier = tunnel.annotations().value(PcepAnnotationKeys.PCC_TUNNEL_ID);
 
         LinkedList<PcepValueType> tlvs = new LinkedList<>();
         StatefulIPv4LspIdentifiersTlv lspIdTlv = new StatefulIPv4LspIdentifiersTlv(((IpTunnelEndPoint) tunnel.src())
-                .ip().getIp4Address().toInt(), Short.valueOf(lspId), Short.valueOf(tunnelIdentifier), 0,
+                .ip().getIp4Address().toInt(), Short.valueOf(lspId), Short.valueOf(tunnelIdentifier),
+                ((IpTunnelEndPoint) tunnel.src()).ip().getIp4Address().toInt(),
                 ((IpTunnelEndPoint) tunnel.dst()).ip().getIp4Address().toInt());
         tlvs.add(lspIdTlv);
+
+        if (tunnel.tunnelName().value() != null) {
+            SymbolicPathNameTlv pathNameTlv = new SymbolicPathNameTlv(tunnel.tunnelName().value().getBytes());
+            tlvs.add(pathNameTlv);
+        }
+
+        boolean delegated = (tunnel.annotations().value(DELEGATE) == null) ? false
+                                                                           : Boolean.valueOf(tunnel.annotations()
+                                                                                   .value(DELEGATE));
+        boolean initiated = (tunnel.annotations().value(PCE_INIT) == null) ? false
+                                                                           : Boolean.valueOf(tunnel.annotations()
+                                                                                   .value(PCE_INIT));
 
         lspObj = pc.factory().buildLspObject()
                 .setRFlag(false)
                 .setAFlag(true)
-                .setDFlag(true)
+                .setDFlag(delegated)
+                .setCFlag(initiated)
                 .setPlspId(Integer.valueOf(plspId))
                 .setOptionalTlv(tlvs)
                 .build();
@@ -495,9 +515,15 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
             return;
         }
 
+        // set PathSetupTypeTlv of SRP object
+        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+        LspType lspSigType = LspType.valueOf(tunnel.annotations().value(LSP_SIG_TYPE));
+        llOptionalTlv.add(new PathSetupTypeTlv(lspSigType.type()));
+
         PcepSrpObject srpObj = pc.factory().buildSrpObject()
                                .setRFlag(false)
                                .setSrpID(SrpIdGenerators.create())
+                               .setOptionalTlv(llOptionalTlv)
                                .build();
 
         PcepEroObject eroObj = pc.factory().buildEroObject()
