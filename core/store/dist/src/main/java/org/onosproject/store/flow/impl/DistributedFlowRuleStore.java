@@ -163,6 +163,7 @@ public class DistributedFlowRuleStore
 
     private Map<Long, NodeId> pendingResponses = Maps.newConcurrentMap();
     private ExecutorService messageHandlingExecutor;
+    private ExecutorService eventHandler;
 
     private ScheduledFuture<?> backupTask;
     private final ScheduledExecutorService backupSenderExecutor =
@@ -197,6 +198,8 @@ public class DistributedFlowRuleStore
 
         local = clusterService.getLocalNode().id();
 
+        eventHandler = Executors.newSingleThreadExecutor(
+                groupedThreads("onos/flow", "event-handler", log));
         messageHandlingExecutor = Executors.newFixedThreadPool(
                 msgHandlerPoolSize, groupedThreads("onos/store/flow", "message-handlers", log));
 
@@ -233,6 +236,7 @@ public class DistributedFlowRuleStore
         unregisterMessageHandlers();
         deviceTableStats.removeListener(tableStatsListener);
         deviceTableStats.destroy();
+        eventHandler.shutdownNow();
         messageHandlingExecutor.shutdownNow();
         backupSenderExecutor.shutdownNow();
         log.info("Stopped");
@@ -663,6 +667,10 @@ public class DistributedFlowRuleStore
 
         @Override
         public void event(ReplicaInfoEvent event) {
+            eventHandler.execute(() -> handleEvent(event));
+        }
+
+        private void handleEvent(ReplicaInfoEvent event) {
             if (!backupEnabled) {
                 return;
             }
