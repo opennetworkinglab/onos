@@ -20,10 +20,7 @@ import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.jboss.netty.util.HashedWheelTimer;
-import org.jboss.netty.util.Timeout;
-import org.jboss.netty.util.TimerTask;
-import org.onlab.util.Timer;
+import org.onlab.util.SharedScheduledExecutors;
 import org.onosproject.bmv2.api.runtime.Bmv2Device;
 import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
 import org.onosproject.bmv2.api.service.Bmv2Controller;
@@ -34,6 +31,7 @@ import org.onosproject.common.net.AbstractDeviceProvider;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.config.basics.ConfigException;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
@@ -55,14 +53,20 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.bmv2.api.runtime.Bmv2Device.*;
+import static org.onosproject.net.Device.Type.SWITCH;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.onosproject.provider.bmv2.device.impl.Bmv2PortStatisticsGetter.getPortStatistics;
 import static org.onosproject.provider.bmv2.device.impl.Bmv2PortStatisticsGetter.initCounters;
@@ -76,20 +80,22 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
 
     private static final String APP_NAME = "org.onosproject.bmv2";
 
-    private static final int POLL_INTERVAL = 5_000; // milliseconds
+    private static final int POLL_PERIOD = 5_000; // milliseconds
 
     private final Logger log = getLogger(this.getClass());
 
     private final ExecutorService executorService = Executors
             .newFixedThreadPool(16, groupedThreads("onos/bmv2", "device-discovery", log));
 
+    private final ScheduledExecutorService scheduledExecutorService = SharedScheduledExecutors.getPoolThreadExecutor();
+
     private final NetworkConfigListener cfgListener = new InternalNetworkConfigListener();
 
     private final ConfigFactory cfgFactory = new InternalConfigFactory();
 
-    private final ConcurrentMap<DeviceId, DeviceDescription> activeDevices = Maps.newConcurrentMap();
+    private final Map<DeviceId, DeviceDescription> lastDescriptions = Maps.newHashMap();
 
-    private final DevicePoller devicePoller = new DevicePoller();
+    private final ConcurrentMap<DeviceId, Lock> deviceLocks = Maps.newConcurrentMap();
 
     private final InternalDeviceListener deviceListener = new InternalDeviceListener();
 
@@ -103,6 +109,9 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected Bmv2Controller controller;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -112,6 +121,7 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
     protected Bmv2TableEntryService tableEntryService;
 
     private ApplicationId appId;
+    private ScheduledFuture<?> poller;
 
     /**
      * Creates a Bmv2 device provider with the supplied identifier.
@@ -126,19 +136,24 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
         netCfgService.registerConfigFactory(cfgFactory);
         netCfgService.addListener(cfgListener);
         controller.addDeviceListener(deviceListener);
-        devicePoller.start();
+        if (poller != null) {
+            poller.cancel(false);
+        }
+        poller = scheduledExecutorService.scheduleAtFixedRate(this::pollDevices, 1_000, POLL_PERIOD, MILLISECONDS);
         super.activate();
     }
 
     @Override
     protected void deactivate() {
-        devicePoller.stop();
+        if (poller != null) {
+            poller.cancel(false);
+        }
         controller.removeDeviceListener(deviceListener);
         try {
-            activeDevices.forEach((did, value) -> {
+            lastDescriptions.forEach((did, value) -> {
                 executorService.execute(() -> disconnectDevice(did));
             });
-            executorService.awaitTermination(1000, TimeUnit.MILLISECONDS);
+            executorService.awaitTermination(1000, MILLISECONDS);
         } catch (InterruptedException e) {
             log.error("Device discovery threads did not terminate");
         }
@@ -181,32 +196,43 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
     }
 
     private void discoverDevice(DeviceId did) {
-        log.debug("Starting device discovery... deviceId={}", did);
-        activeDevices.compute(did, (k, lastDescription) -> {
+        // Serialize discovery for the same device.
+        Lock lock = deviceLocks.computeIfAbsent(did, k -> new ReentrantLock());
+        lock.lock();
+        try {
+            log.debug("Starting device discovery... deviceId={}", did);
+
+            if (contextService.getContext(did) == null) {
+                // Device is a first timer.
+                log.info("Setting DEFAULT context for {}", did);
+                // It is important to do this before creating the device in the core
+                // so other services won't find a null context.
+                contextService.setDefaultContext(did);
+                // Abort discovery, we'll receive a new hello once the swap has been performed.
+                return;
+            }
+
+            DeviceDescription lastDescription = lastDescriptions.get(did);
             DeviceDescription thisDescription = getDeviceDescription(did);
+
             if (thisDescription != null) {
-                boolean descriptionChanged = lastDescription != null &&
-                                (!Objects.equals(thisDescription, lastDescription) ||
-                                        !Objects.equals(thisDescription.annotations(), lastDescription.annotations()));
+                boolean descriptionChanged = lastDescription == null ||
+                        (!Objects.equals(thisDescription, lastDescription) ||
+                                !Objects.equals(thisDescription.annotations(), lastDescription.annotations()));
                 if (descriptionChanged || !deviceService.isAvailable(did)) {
-                    if (deviceService.getDevice(did) == null) {
-                        // Device is a first timer.
-                        log.info("Setting DEFAULT context for {}", did);
-                        // It is important to do this before connecting the device so other
-                        // services won't find a null context.
-                        contextService.setContext(did, contextService.defaultContext());
-                    }
                     resetDeviceState(did);
                     initPortCounters(did);
                     providerService.deviceConnected(did, thisDescription);
                     updatePortsAndStats(did);
                 }
-                return thisDescription;
+                lastDescriptions.put(did, thisDescription);
             } else {
                 log.warn("Unable to get device description for {}", did);
-                return lastDescription;
+                lastDescriptions.put(did, lastDescription);
             }
-        });
+        } finally {
+            lock.unlock();
+        }
     }
 
     private DeviceDescription getDeviceDescription(DeviceId did) {
@@ -269,11 +295,27 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
     }
 
     private void disconnectDevice(DeviceId did) {
-        log.debug("Trying to disconnect device from core... deviceId={}", did);
-        if (deviceService.isAvailable(did)) {
-            providerService.deviceDisconnected(did);
+        log.debug("Disconnecting device from core... deviceId={}", did);
+        providerService.deviceDisconnected(did);
+        lastDescriptions.remove(did);
+    }
+
+    private void pollDevices() {
+        for (Device device: deviceService.getAvailableDevices(SWITCH)) {
+            if (device.id().uri().getScheme().equals(SCHEME) &&
+                    mastershipService.isLocalMaster(device.id())) {
+                executorService.execute(() -> pollingTask(device.id()));
+            }
         }
-        activeDevices.remove(did);
+    }
+
+    private void pollingTask(DeviceId deviceId) {
+        log.debug("Polling device {}...", deviceId);
+        if (isReachable(deviceId)) {
+            updatePortsAndStats(deviceId);
+        } else {
+            disconnectDevice(deviceId);
+        }
     }
 
     /**
@@ -330,52 +372,6 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
         public void handleHello(Bmv2Device device, int instanceId, String jsonConfigMd5) {
             log.debug("Received hello from {}", device);
             triggerProbe(device.asDeviceId());
-        }
-    }
-
-    /**
-     * Task that periodically trigger device probes to check for device status and update port information.
-     */
-    private class DevicePoller implements TimerTask {
-
-        private final HashedWheelTimer timer = Timer.getTimer();
-        private Timeout timeout;
-
-        @Override
-        public void run(Timeout tout) throws Exception {
-            if (tout.isCancelled()) {
-                return;
-            }
-            activeDevices.keySet()
-                    .stream()
-                    // Filter out devices not yet created in the core.
-                    .filter(did -> deviceService.getDevice(did) != null)
-                    .forEach(did -> executorService.execute(() -> pollingTask(did)));
-            tout.getTimer().newTimeout(this, POLL_INTERVAL, TimeUnit.MILLISECONDS);
-        }
-
-        private void pollingTask(DeviceId deviceId) {
-            if (isReachable(deviceId)) {
-                updatePortsAndStats(deviceId);
-            } else {
-                disconnectDevice(deviceId);
-            }
-        }
-
-        /**
-         * Starts the collector.
-         */
-        synchronized void start() {
-            log.info("Starting device poller...");
-            timeout = timer.newTimeout(this, 1, TimeUnit.SECONDS);
-        }
-
-        /**
-         * Stops the collector.
-         */
-        synchronized void stop() {
-            log.info("Stopping device poller...");
-            timeout.cancel();
         }
     }
 }
