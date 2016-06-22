@@ -25,7 +25,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Represents a route entry for an IP prefix.
+ *
+ * @deprecated use RouteService instead
  */
+@Deprecated
 public class RouteEntry {
     private final IpPrefix prefix;              // The IP prefix
     private final IpAddress nextHop;            // Next-hop IP address

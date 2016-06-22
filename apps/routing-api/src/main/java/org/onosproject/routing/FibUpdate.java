@@ -21,7 +21,10 @@ import java.util.Objects;
 
 /**
  * Represents a change to the Forwarding Information Base (FIB).
+ *
+ * @deprecated use RouteService instead
  */
+@Deprecated
 public class FibUpdate {
 
     /**

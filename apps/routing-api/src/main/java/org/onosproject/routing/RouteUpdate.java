@@ -23,7 +23,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Represents a change in routing information.
+ *
+ * @deprecated use RouteService instead
  */
+@Deprecated
 public class RouteUpdate {
     private final Type type;                    // The route update type
     private final RouteEntry routeEntry;        // The updated route entry

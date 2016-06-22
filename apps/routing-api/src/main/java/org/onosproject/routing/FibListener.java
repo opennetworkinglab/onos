@@ -19,7 +19,10 @@ import java.util.Collection;
 
 /**
  * A component that is able to process Forwarding Information Base (FIB) updates.
+ *
+ * @deprecated use RouteService instead
  */
+@Deprecated
 public interface FibListener {
 
     /**

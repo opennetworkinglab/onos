@@ -24,7 +24,10 @@ import java.util.Objects;
 
 /**
  * An entry in the Forwarding Information Base (FIB).
+ *
+ * @deprecated use RouteService instead
  */
+@Deprecated
 public class FibEntry {
 
     private final IpPrefix prefix;
