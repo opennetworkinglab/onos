@@ -204,7 +204,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                     errorMsgs.addAll(consumeJson(service, (ObjectNode) root.path(sk),
                                                  service.getSubjectFactory(sk)));
                 });
-        if (errorMsgs.toString().length() > 0) {
+        if (errorMsgs.size() > 0) {
             return Response.status(MULTI_STATUS_RESPONE).entity(produceErrorJson(errorMsgs)).build();
         }
         return Response.ok().build();
@@ -227,7 +227,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         NetworkConfigService service = get(NetworkConfigService.class);
         ObjectNode root = (ObjectNode) mapper().readTree(request);
         List<String> errorMsgs = consumeJson(service, root, service.getSubjectFactory(subjectClassKey));
-        if (errorMsgs.toString().length() > 0) {
+        if (errorMsgs.size() > 0) {
             return Response.status(MULTI_STATUS_RESPONE).entity(produceErrorJson(errorMsgs)).build();
         }
         return Response.ok().build();
