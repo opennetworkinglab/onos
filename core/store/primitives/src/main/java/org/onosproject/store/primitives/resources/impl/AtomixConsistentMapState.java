@@ -259,36 +259,41 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      * @return update result
      */
     protected MapEntryUpdateResult<String, byte[]> updateAndGet(Commit<? extends UpdateAndGet> commit) {
-        MapEntryUpdateResult.Status updateStatus = validate(commit.operation());
-        String key = commit.operation().key();
-        MapEntryValue oldCommitValue = mapEntries.get(commit.operation().key());
-        Versioned<byte[]> oldMapValue = toVersioned(oldCommitValue);
+        try {
+            MapEntryUpdateResult.Status updateStatus = validate(commit.operation());
+            String key = commit.operation().key();
+            MapEntryValue oldCommitValue = mapEntries.get(commit.operation().key());
+            Versioned<byte[]> oldMapValue = toVersioned(oldCommitValue);
 
-        if (updateStatus != MapEntryUpdateResult.Status.OK) {
-            commit.close();
-            return new MapEntryUpdateResult<>(updateStatus, "", key,
-                    oldMapValue, oldMapValue);
-        }
+            if (updateStatus != MapEntryUpdateResult.Status.OK) {
+                commit.close();
+                return new MapEntryUpdateResult<>(updateStatus, "", key,
+                        oldMapValue, oldMapValue);
+            }
 
-        byte[] newValue = commit.operation().value();
-        long newVersion = versionCounter.incrementAndGet();
-        Versioned<byte[]> newMapValue = newValue == null ? null
-                : new Versioned<>(newValue, newVersion);
+            byte[] newValue = commit.operation().value();
+            long newVersion = versionCounter.incrementAndGet();
+            Versioned<byte[]> newMapValue = newValue == null ? null
+                    : new Versioned<>(newValue, newVersion);
 
-        MapEvent.Type updateType = newValue == null ? REMOVE
-                : oldCommitValue == null ? INSERT : UPDATE;
-        if (updateType == REMOVE || updateType == UPDATE) {
-            mapEntries.remove(key);
-            oldCommitValue.discard();
+            MapEvent.Type updateType = newValue == null ? REMOVE
+                    : oldCommitValue == null ? INSERT : UPDATE;
+            if (updateType == REMOVE || updateType == UPDATE) {
+                mapEntries.remove(key);
+                oldCommitValue.discard();
+            }
+            if (updateType == INSERT || updateType == UPDATE) {
+                mapEntries.put(key, new NonTransactionalCommit(newVersion, commit));
+            } else {
+                commit.close();
+            }
+            publish(Lists.newArrayList(new MapEvent<>("", key, newMapValue, oldMapValue)));
+            return new MapEntryUpdateResult<>(updateStatus, "", key, oldMapValue,
+                    newMapValue);
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         }
-        if (updateType == INSERT || updateType == UPDATE) {
-            mapEntries.put(key, new NonTransactionalCommit(newVersion, commit));
-        } else {
-            commit.close();
-        }
-        publish(Lists.newArrayList(new MapEvent<>("", key, newMapValue, oldMapValue)));
-        return new MapEntryUpdateResult<>(updateStatus, "", key, oldMapValue,
-                newMapValue);
     }
 
     /**
