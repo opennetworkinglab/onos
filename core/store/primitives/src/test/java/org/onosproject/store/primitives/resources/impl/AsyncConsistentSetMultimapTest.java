@@ -22,6 +22,7 @@ import com.google.common.collect.TreeMultiset;
 import com.google.common.io.Files;
 import io.atomix.resource.ResourceType;
 import org.apache.commons.collections.keyvalue.DefaultMapEntry;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.util.Tools;
 
@@ -40,6 +41,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Tests the {@link AsyncConsistentSetMultimap}.
  */
+@Ignore
 public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
     private final File testDir = Files.createTempDir();
     private final String keyOne = "hello";

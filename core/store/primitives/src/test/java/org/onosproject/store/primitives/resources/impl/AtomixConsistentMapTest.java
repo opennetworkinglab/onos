@@ -18,6 +18,7 @@ package org.onosproject.store.primitives.resources.impl;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import io.atomix.resource.ResourceType;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.util.Tools;
 import org.onosproject.store.primitives.MapUpdate;
@@ -48,6 +49,7 @@ import static org.junit.Assert.fail;
 /**
  * Unit tests for {@link AtomixConsistentMap}.
  */
+@Ignore
 public class AtomixConsistentMapTest extends AtomixTestBase {
 
     @Override
