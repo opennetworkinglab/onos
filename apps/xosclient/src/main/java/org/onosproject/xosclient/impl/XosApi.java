@@ -15,6 +15,7 @@
  */
 package org.onosproject.xosclient.impl;
 
+import org.glassfish.jersey.client.ClientProperties;
 import org.onosproject.xosclient.api.XosAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,8 @@ public class XosApi {
     protected final XosAccess access;
     protected final Client client;
 
+    private static final int DEFAULT_TIMEOUT_MS = 2000;
+
     /**
      * Default constructor.
      *
@@ -52,6 +55,9 @@ public class XosApi {
         this.baseUrl = baseUrl;
         this.access = xosAccess;
         this.client = ClientBuilder.newClient();
+
+        client.property(ClientProperties.CONNECT_TIMEOUT, DEFAULT_TIMEOUT_MS);
+        client.property(ClientProperties.READ_TIMEOUT, DEFAULT_TIMEOUT_MS);
     }
 
     /**

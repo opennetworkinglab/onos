@@ -4,6 +4,7 @@ COMPILE_DEPS = [
     '//lib:openstack4j-core',
     '//lib:openstack4j-http-connector',
     '//lib:openstack4j-httpclient',
+    '//lib:jersey-client',
 ]
 
 osgi_jar_with_tests (
