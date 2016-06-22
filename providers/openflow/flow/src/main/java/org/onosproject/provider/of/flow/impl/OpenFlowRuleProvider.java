@@ -19,8 +19,11 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalNotification;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -217,6 +220,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
     }
 
     private void createCollector(OpenFlowSwitch sw) {
+        checkNotNull(sw, "Null switch");
         if (adaptiveFlowSampling) {
             // NewAdaptiveFlowStatsCollector Constructor
             NewAdaptiveFlowStatsCollector fsc =
@@ -339,10 +343,17 @@ public class OpenFlowRuleProvider extends AbstractProvider
     public void executeBatch(FlowRuleBatchOperation batch) {
         checkNotNull(batch);
 
-        pendingBatches.put(batch.id(), new InternalCacheEntry(batch));
-
         Dpid dpid = Dpid.dpid(batch.deviceId().uri());
         OpenFlowSwitch sw = controller.getSwitch(dpid);
+
+        // If switch no longer exists, simply return.
+        if (sw == null) {
+            Set<FlowRule> failures = ImmutableSet.copyOf(Lists.transform(batch.getOperations(), e -> e.target()));
+            providerService.batchOperationCompleted(batch.id(),
+                                                    new CompletedBatchOperation(false, failures, batch.deviceId()));
+            return;
+        }
+        pendingBatches.put(batch.id(), new InternalCacheEntry(batch));
         OFFlowMod mod;
         for (FlowRuleBatchEntry fbe : batch.getOperations()) {
             // flow is the third party privacy flow

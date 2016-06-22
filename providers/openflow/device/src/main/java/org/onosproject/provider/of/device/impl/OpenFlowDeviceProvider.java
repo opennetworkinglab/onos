@@ -787,7 +787,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                             OFPortStatsReply portStatsReply = (OFPortStatsReply) msg;
                             List<OFPortStatsEntry> portStatsReplyList = portStatsReplies.get(dpid);
                             if (portStatsReplyList == null) {
-                                portStatsReplyList = Lists.newArrayList();
+                                portStatsReplyList = Lists.newCopyOnWriteArrayList();
                             }
                             portStatsReplyList.addAll(portStatsReply.getEntries());
                             portStatsReplies.put(dpid, portStatsReplyList);

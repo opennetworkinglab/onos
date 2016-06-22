@@ -15,6 +15,7 @@
  */
 package org.onosproject.provider.of.flow.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import org.onlab.util.SharedExecutors;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.RoleState;
@@ -52,7 +53,7 @@ class FlowStatsCollector implements SwitchDataCollector {
      */
     FlowStatsCollector(Timer timer, OpenFlowSwitch sw, int pollInterval) {
         this.timer = timer;
-        this.sw = sw;
+        this.sw = checkNotNull(sw, "Null switch");
         this.pollInterval = pollInterval;
     }
 

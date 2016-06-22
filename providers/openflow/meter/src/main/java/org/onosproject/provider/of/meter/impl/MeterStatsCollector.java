@@ -56,6 +56,11 @@ public class MeterStatsCollector implements TimerTask {
 
     @Override
     public void run(Timeout timeout) throws Exception {
+        if (!sw.isConnected()) {
+            log.debug("Switch {} disconnected. Aborting meter stats collection", sw.getStringId());
+            return;
+        }
+
         log.trace("Collecting stats for {}", sw.getStringId());
 
         sendMeterStatistic();
