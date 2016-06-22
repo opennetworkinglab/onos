@@ -34,19 +34,18 @@ import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.server.TThreadPoolServer;
-import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.transport.TServerTransport;
+import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.onlab.util.ImmutableByteSequence;
-import org.onosproject.bmv2.api.service.Bmv2Controller;
 import org.onosproject.bmv2.api.runtime.Bmv2Device;
 import org.onosproject.bmv2.api.runtime.Bmv2DeviceAgent;
+import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
+import org.onosproject.bmv2.api.service.Bmv2Controller;
 import org.onosproject.bmv2.api.service.Bmv2DeviceListener;
 import org.onosproject.bmv2.api.service.Bmv2PacketListener;
-import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
+import org.onosproject.bmv2.thriftapi.BmConfig;
 import org.onosproject.bmv2.thriftapi.ControlPlaneService;
 import org.onosproject.bmv2.thriftapi.SimpleSwitch;
 import org.onosproject.bmv2.thriftapi.Standard;
@@ -55,6 +54,7 @@ import org.onosproject.net.DeviceId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
@@ -67,6 +67,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.bmv2.thriftapi.ControlPlaneService.Processor;
 
 /**
  * Default implementation of a BMv2 controller.
@@ -93,10 +94,10 @@ public class Bmv2ControllerImpl implements Bmv2Controller {
                     .removalListener(new ClientRemovalListener())
                     .build(new ClientLoader());
 
-    private final InternalTrackingProcessor trackingProcessor = new InternalTrackingProcessor();
+    private final TProcessor trackingProcessor = new TrackingProcessor();
 
     private final ExecutorService executorService = Executors
-            .newFixedThreadPool(16, groupedThreads("onos/bmv2", "controller", log));
+            .newFixedThreadPool(32, groupedThreads("onos/bmv2", "controller", log));
 
     private final Set<Bmv2DeviceListener> deviceListeners = new CopyOnWriteArraySet<>();
     private final Set<Bmv2PacketListener> packetListeners = new CopyOnWriteArraySet<>();
@@ -104,7 +105,7 @@ public class Bmv2ControllerImpl implements Bmv2Controller {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
-    private TThreadPoolServer thriftServer;
+    private Bmv2ControlPlaneThriftServer server;
 
     // TODO: make it configurable trough component config
     private int serverPort = DEFAULT_PORT;
@@ -124,12 +125,9 @@ public class Bmv2ControllerImpl implements Bmv2Controller {
 
     private void startServer(int port) {
         try {
-            TServerTransport transport = new TServerSocket(port);
             log.info("Starting server on port {}...", port);
-            this.thriftServer = new TThreadPoolServer(new TThreadPoolServer.Args(transport)
-                                                              .processor(trackingProcessor)
-                                                              .executorService(executorService));
-            executorService.execute(thriftServer::serve);
+            this.server = new Bmv2ControlPlaneThriftServer(port, trackingProcessor, executorService);
+            executorService.execute(server::serve);
         } catch (TTransportException e) {
             log.error("Unable to start server", e);
         }
@@ -137,8 +135,9 @@ public class Bmv2ControllerImpl implements Bmv2Controller {
 
     private void stopServer() {
         // Stop the server if running...
-        if (thriftServer != null && !thriftServer.isServing()) {
-            thriftServer.stop();
+        if (server != null && !server.isServing()) {
+            server.setShouldStop(true);
+            server.stop();
         }
         try {
             executorService.shutdown();
@@ -162,8 +161,11 @@ public class Bmv2ControllerImpl implements Bmv2Controller {
     @Override
     public boolean isReacheable(DeviceId deviceId) {
         try {
-            return getAgent(deviceId).ping();
-        } catch (Bmv2RuntimeException e) {
+            Bmv2DeviceThriftClient client = (Bmv2DeviceThriftClient) getAgent(deviceId);
+            BmConfig config = client.standardClient.bm_mgmt_get_info();
+            // The BMv2 instance running at this thrift IP and port might have a different BMv2 internal ID.
+            return config.getDevice_id() == Integer.valueOf(deviceId.uri().getFragment());
+        } catch (Bmv2RuntimeException | TException e) {
             return false;
         }
     }
@@ -213,15 +215,15 @@ public class Bmv2ControllerImpl implements Bmv2Controller {
     }
 
     /**
-     * Handles Thrift calls from BMv2 devices using registered listeners.
+     * Handles requests from BMv2 devices using the registered listeners.
      */
-    private final class InternalServiceHandler implements ControlPlaneService.Iface {
+    private final class ServiceHandler implements ControlPlaneService.Iface {
 
-        private final TSocket socket;
+        private final InetAddress clientAddress;
         private Bmv2Device remoteDevice;
 
-        private InternalServiceHandler(TSocket socket) {
-            this.socket = socket;
+        ServiceHandler(InetAddress clientAddress) {
+            this.clientAddress = clientAddress;
         }
 
         @Override
@@ -231,20 +233,19 @@ public class Bmv2ControllerImpl implements Bmv2Controller {
 
         @Override
         public void hello(int thriftServerPort, int deviceId, int instanceId, String jsonConfigMd5) {
-            // Locally note the remote device for future uses.
-            String host = socket.getSocket().getInetAddress().getHostAddress();
+            // Store a reference to the remote device for future uses.
+            String host = clientAddress.getHostAddress();
             remoteDevice = new Bmv2Device(host, thriftServerPort, deviceId);
 
             if (deviceListeners.size() == 0) {
                 log.debug("Received hello, but there's no listener registered.");
             } else {
-                deviceListeners.forEach(
-                        l -> executorService.execute(() -> l.handleHello(remoteDevice, instanceId, jsonConfigMd5)));
+                deviceListeners.forEach(l -> l.handleHello(remoteDevice, instanceId, jsonConfigMd5));
             }
         }
 
         @Override
-        public void packet_in(int port, ByteBuffer packet) {
+        public void packet_in(int port, ByteBuffer data, int dataLength) {
             if (remoteDevice == null) {
                 log.debug("Received packet-in, but the remote device is still unknown. Need a hello first...");
                 return;
@@ -253,41 +254,42 @@ public class Bmv2ControllerImpl implements Bmv2Controller {
             if (packetListeners.size() == 0) {
                 log.debug("Received packet-in, but there's no listener registered.");
             } else {
-                packetListeners.forEach(
-                        l -> executorService.execute(() -> l.handlePacketIn(remoteDevice,
-                                                                            port,
-                                                                            ImmutableByteSequence.copyFrom(packet))));
+                byte[] bytes = new byte[dataLength];
+                data.get(bytes);
+                ImmutableByteSequence pkt = ImmutableByteSequence.copyFrom(bytes);
+                packetListeners.forEach(l -> l.handlePacketIn(remoteDevice, port, pkt));
             }
         }
     }
 
     /**
-     * Thrift Processor decorator. This class is needed in order to have access to the socket when handling a call.
-     * Socket is needed to get the IP address of the client originating the call (see InternalServiceHandler.hello())
+     * Decorator of a Thrift processor needed in order to keep track of the client's IP address that originated the
+     * request.
      */
-    private final class InternalTrackingProcessor implements TProcessor {
+    private final class TrackingProcessor implements TProcessor {
 
-        // Map sockets to processors.
-        // TODO: implement it as a cache so unused sockets are expired automatically
-        private final ConcurrentMap<TSocket, ControlPlaneService.Processor<InternalServiceHandler>> processors =
-                Maps.newConcurrentMap();
+        // Map transports to processors.
+        private final ConcurrentMap<TTransport, Processor<ServiceHandler>> processors = Maps.newConcurrentMap();
 
         @Override
         public boolean process(final TProtocol in, final TProtocol out) throws TException {
-            // Get the socket for this request.
-            TSocket socket = (TSocket) in.getTransport();
-            // Get or create a processor for this socket
-            ControlPlaneService.Processor<InternalServiceHandler> processor = processors.computeIfAbsent(socket, s -> {
-                InternalServiceHandler handler = new InternalServiceHandler(s);
-                return new ControlPlaneService.Processor<>(handler);
-            });
-            // Delegate to the processor we are decorating.
-            return processor.process(in, out);
+            // Get the client address for this request.
+            InetAddress clientAddress = server.getClientAddress((TFramedTransport) in.getTransport());
+            if (clientAddress != null) {
+                // Get or create a processor for this input transport, i.e. the client on the other side.
+                Processor<ServiceHandler> processor = processors.computeIfAbsent(
+                        in.getTransport(), t -> new Processor<>(new ServiceHandler(clientAddress)));
+                // Delegate to the processor we are decorating.
+                return processor.process(in, out);
+            } else {
+                log.warn("Unable to retrieve client IP address of incoming request");
+                return false;
+            }
         }
     }
 
     /**
-     * Transport/client cache loader.
+     * Cache loader of BMv2 Thrift clients.
      */
     private class ClientLoader extends CacheLoader<DeviceId, Pair<TTransport, Bmv2DeviceThriftClient>> {
 

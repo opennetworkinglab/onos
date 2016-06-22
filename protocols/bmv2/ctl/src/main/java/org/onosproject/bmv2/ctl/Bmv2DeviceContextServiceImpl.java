@@ -171,6 +171,17 @@ public class Bmv2DeviceContextServiceImpl implements Bmv2DeviceContextService {
         return defaultContext;
     }
 
+    @Override
+    public void setDefaultContext(DeviceId deviceId) {
+        Versioned<Bmv2DeviceContext> previous = contexts.put(deviceId, defaultContext);
+        if (mastershipService.getMasterFor(deviceId) == null) {
+            // Checking for who is the master here is ugly but necessary, as this method is called by Bmv2DeviceProvider
+            // prior to master election. A solution could be to use a separate leadership contest instead of the
+            // mastership service.
+            triggerConfigCheck(deviceId, defaultContext);
+        }
+    }
+
     private void configCheck(DeviceId deviceId, Bmv2DeviceContext storedContext) {
         if (storedContext == null) {
             return;
@@ -206,14 +217,14 @@ public class Bmv2DeviceContextServiceImpl implements Bmv2DeviceContextService {
     }
 
     private void triggerConfigCheck(DeviceId deviceId, Bmv2DeviceContext context) {
-        if (mastershipService.isLocalMaster(deviceId)) {
             scheduledExecutor.schedule(() -> configCheck(deviceId, context), 0, TimeUnit.SECONDS);
-        }
     }
 
     private void checkDevices() {
         deviceService.getAvailableDevices().forEach(device -> {
-            triggerConfigCheck(device.id(), getContext(device.id()));
+            if (mastershipService.isLocalMaster(device.id())) {
+                triggerConfigCheck(device.id(), getContext(device.id()));
+            }
         });
     }
 
@@ -235,8 +246,10 @@ public class Bmv2DeviceContextServiceImpl implements Bmv2DeviceContextService {
         public void event(MapEvent<DeviceId, Bmv2DeviceContext> event) {
             DeviceId deviceId = event.key();
             if (event.type().equals(INSERT) || event.type().equals(UPDATE)) {
-                log.trace("Context {} for {}", event.type().name(), deviceId);
-                triggerConfigCheck(deviceId, event.newValue().value());
+                if (mastershipService.isLocalMaster(deviceId)) {
+                    log.trace("Context {} for {}", event.type().name(), deviceId);
+                    triggerConfigCheck(deviceId, event.newValue().value());
+                }
             }
         }
     }

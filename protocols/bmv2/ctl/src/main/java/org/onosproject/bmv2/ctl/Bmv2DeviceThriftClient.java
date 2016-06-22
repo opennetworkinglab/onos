@@ -68,7 +68,7 @@ public final class Bmv2DeviceThriftClient implements Bmv2DeviceAgent {
     // See: https://github.com/p4lang/behavioral-model/blob/master/modules/bm_sim/include/bm_sim/context.h
     private static final int CONTEXT_ID = 0;
 
-    private final Standard.Iface standardClient;
+    protected final Standard.Iface standardClient;
     private final SimpleSwitch.Iface simpleSwitchClient;
     private final TTransport transport;
     private final DeviceId deviceId;
@@ -418,6 +418,7 @@ public final class Bmv2DeviceThriftClient implements Bmv2DeviceAgent {
 
         try {
             standardClient.bm_swap_configs();
+            simpleSwitchClient.force_swap();
             log.debug("JSON config swapped! > deviceId={}", deviceId);
         } catch (TException e) {
             log.debug("Exception while swapping JSON config: {} > deviceId={}", e, deviceId);

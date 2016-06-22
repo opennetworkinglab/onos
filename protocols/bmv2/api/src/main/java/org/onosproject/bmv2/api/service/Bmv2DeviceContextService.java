@@ -53,9 +53,14 @@ public interface Bmv2DeviceContextService {
     void registerInterpreterClassLoader(Class<? extends Bmv2Interpreter> interpreterClass, ClassLoader loader);
 
     /**
-     * Returns a default context.
+     * Returns the default context.
      *
      * @return a BMv2 device context
      */
     Bmv2DeviceContext defaultContext();
+
+    /**
+     * Sets the default context for the given device.
+     */
+    void setDefaultContext(DeviceId deviceId);
 }
