@@ -60,6 +60,7 @@ import org.slf4j.Logger;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -172,6 +173,9 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
                 notifyLeadershipChange(oldLeadership, newLeadership);
             }
             return newLeadership;
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         } finally {
             commit.close();
         }
@@ -191,6 +195,9 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
             if (!Objects.equal(oldLeadership, newLeadership)) {
                 notifyLeadershipChange(oldLeadership, newLeadership);
             }
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         } finally {
             commit.close();
         }
@@ -215,6 +222,9 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
             return (electionState != null &&
                     electionState.leader() != null &&
                     commit.operation().nodeId().equals(electionState.leader().nodeId()));
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         } finally {
             commit.close();
         }
@@ -239,6 +249,9 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
                 notifyLeadershipChange(oldLeadership, newLeadership);
             }
             return true;
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         } finally {
             commit.close();
         }
@@ -262,6 +275,9 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
                 }
             });
             notifyLeadershipChanges(changes);
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         } finally {
             commit.close();
         }
@@ -276,6 +292,9 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
         String topic = commit.operation().topic();
         try {
             return leadership(topic);
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         } finally {
             commit.close();
         }
@@ -293,6 +312,9 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
                 Leader leader = leadership(e.getKey()).leader();
                 return leader != null && leader.nodeId().equals(nodeId);
             }).keySet());
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         } finally {
             commit.close();
         }
@@ -308,6 +330,9 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
         try {
             result.putAll(Maps.transformEntries(elections, (k, v) -> leadership(k)));
             return result;
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         } finally {
             commit.close();
         }
