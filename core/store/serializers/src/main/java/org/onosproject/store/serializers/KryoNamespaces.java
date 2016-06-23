@@ -537,7 +537,7 @@ public final class KryoNamespaces {
             )
             .register(ClosedOpenRange.class)
             .register(DiscreteResourceCodec.class)
-            .register(ImmutableByteSequence.class)
+            .register(new ImmutableByteSequenceSerializer(), ImmutableByteSequence.class)
             .build("API");
 
 

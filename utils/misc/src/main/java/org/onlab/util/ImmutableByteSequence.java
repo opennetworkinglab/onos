@@ -16,7 +16,6 @@
 
 package org.onlab.util;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import java.nio.ByteBuffer;
@@ -238,8 +237,6 @@ public final class ImmutableByteSequence {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .addValue(HexString.toHexString(asArray()))
-                .toString();
+        return HexString.toHexString(value.array());
     }
 }
