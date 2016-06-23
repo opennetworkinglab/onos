@@ -130,11 +130,11 @@ public class OpenFlowRuleProvider extends AbstractProvider
     private Cache<Long, InternalCacheEntry> pendingBatches;
 
     private final Timer timer = new Timer("onos-openflow-collector");
-    private final Map<Dpid, FlowStatsCollector> simpleCollectors = Maps.newHashMap();
+    private final Map<Dpid, FlowStatsCollector> simpleCollectors = Maps.newConcurrentMap();
 
     // NewAdaptiveFlowStatsCollector Set
-    private final Map<Dpid, NewAdaptiveFlowStatsCollector> afsCollectors = Maps.newHashMap();
-    private final Map<Dpid, TableStatisticsCollector> tableStatsCollectors = Maps.newHashMap();
+    private final Map<Dpid, NewAdaptiveFlowStatsCollector> afsCollectors = Maps.newConcurrentMap();
+    private final Map<Dpid, TableStatisticsCollector> tableStatsCollectors = Maps.newConcurrentMap();
 
     /**
      * Creates an OpenFlow host provider.
