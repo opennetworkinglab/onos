@@ -330,7 +330,7 @@ public class DistributedTopologyStore
         public void event(EventuallyConsistentMapEvent<DeviceId, Set<ConnectPoint>> event) {
             if (event.type() == EventuallyConsistentMapEvent.Type.PUT) {
                 if (!event.value().isEmpty()) {
-                    log.info("Cluster rooted at {} has {} broadcast-points; #{}",
+                    log.debug("Cluster rooted at {} has {} broadcast-points; #{}",
                              event.key(), event.value().size(), event.value().hashCode());
                 }
             }
