@@ -224,4 +224,54 @@ public interface PceStore {
      * @return success or failure
      */
     boolean removeFailedPathInfo(PcePathInfo failedPathInfo);
+
+    /**
+     * Adds lsrid to device id mapping.
+     *
+     * @param lsrId lsrId of the device
+     * @param deviceId device id
+     * @return success or failure
+     */
+    boolean addLsrIdDevice(String lsrId, DeviceId deviceId);
+
+    /**
+     * Removes lsrid to device id mapping.
+     *
+     * @param lsrId lsrId of the device
+     * @return success or failure
+     */
+    boolean removeLsrIdDevice(String lsrId);
+
+    /**
+     * Gets lsrid to device id mapping.
+     *
+     * @param lsrId lsrId of the device
+     * @return device id of the lsrId
+     */
+    DeviceId getLsrIdDevice(String lsrId);
+
+    /**
+     * Adds lsrId of the PCC in form of device id for the PCC for which sync is pending due to non-availability of BGP.
+     * device.
+     *
+     * @param lsrId LSR id of the PCC in form of device id
+     * @return success or failure
+     */
+    public boolean addPccLsr(DeviceId lsrId);
+
+    /**
+     * Removes lsrId of the PCC in form of device id for the PCC for which pending sync is done.
+     *
+     * @param lsrId LSR id of the PCC in form of device id
+     * @return success or failure
+     */
+    public boolean removePccLsr(DeviceId lsrId);
+
+    /**
+     * Gets lsrId of the PCC in form of device id.
+     *
+     * @param lsrId LSR id of the PCC in form of device id
+     * @return success or failure
+     */
+    public boolean hasPccLsr(DeviceId lsrId);
 }

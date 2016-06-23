@@ -19,6 +19,8 @@ import com.google.common.collect.ImmutableSet;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +53,9 @@ public class PceStoreAdapter implements PceStore {
 
     // Set of Path info
     private Set<PcePathInfo> failedPathInfoSet = new HashSet<>();
+
+    // Locally maintain LSRID to device id mapping for better performance.
+    private Map<String, DeviceId> lsrIdDeviceIdMap = new HashMap<>();
 
     @Override
     public boolean existsGlobalNodeLabel(DeviceId id) {
@@ -207,5 +212,40 @@ public class PceStoreAdapter implements PceStore {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public boolean addLsrIdDevice(String lsrId, DeviceId deviceId) {
+        lsrIdDeviceIdMap.put(lsrId, deviceId);
+        return true;
+    }
+
+    @Override
+    public boolean removeLsrIdDevice(String lsrId) {
+        lsrIdDeviceIdMap.remove(lsrId);
+        return true;
+    }
+
+    @Override
+    public DeviceId getLsrIdDevice(String lsrId) {
+        return lsrIdDeviceIdMap.get(lsrId);
+    }
+
+    @Override
+    public boolean addPccLsr(DeviceId lsrId) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean removePccLsr(DeviceId lsrId) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean hasPccLsr(DeviceId lsrId) {
+        // TODO Auto-generated method stub
+        return false;
     }
 }

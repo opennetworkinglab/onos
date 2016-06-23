@@ -690,6 +690,7 @@ public class PceManagerTest {
         LabelResourceId node1Label = LabelResourceId.labelResourceId(5200);
         LabelResourceId node2Label = LabelResourceId.labelResourceId(5201);
 
+        pceManager.pceStore.addLsrIdDevice(deviceD1.annotations().value(LSRID), deviceD1.id());
         pceManager.pceStore.addGlobalNodeLabel(D1.deviceId(), node1Label);
         pceManager.pceStore.addGlobalNodeLabel(D2.deviceId(), node2Label);
 
@@ -713,7 +714,7 @@ public class PceManagerTest {
         eth.setEtherType(Ethernet.TYPE_IPV4);
         eth.setPayload(ipv4);
 
-        InboundPacket inPkt = new DefaultInboundPacket(new ConnectPoint(D1.deviceId(),
+        InboundPacket inPkt = new DefaultInboundPacket(new ConnectPoint(DeviceId.deviceId("1.1.1.1"),
                                                                         PortNumber.portNumber(PCEP_PORT)),
                                                        eth, null);
 
