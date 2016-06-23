@@ -19,20 +19,18 @@ package org.onosproject.store.primitives.resources.impl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.TreeMultiset;
-import com.google.common.io.Files;
 import io.atomix.resource.ResourceType;
 import org.apache.commons.collections.keyvalue.DefaultMapEntry;
-import org.junit.Ignore;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.util.Tools;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -41,9 +39,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Tests the {@link AsyncConsistentSetMultimap}.
  */
-@Ignore
 public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
-    private final File testDir = Files.createTempDir();
     private final String keyOne = "hello";
     private final String keyTwo = "goodbye";
     private final String keyThree = "foo";
@@ -58,7 +54,16 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
                                                               valueTwo,
                                                               valueThree,
                                                               valueFour);
-    private final AtomicInteger port = new AtomicInteger(49200);
+
+    @BeforeClass
+    public static void preTestSetup() throws Throwable {
+        createCopycatServers(3);
+    }
+
+    @AfterClass
+    public static void postTestCleanup() throws Exception {
+        clearTests();
+    }
 
     @Override
     protected ResourceType resourceType() {
@@ -71,8 +76,7 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
      */
     @Test
     public void testSize() throws Throwable {
-        clearTests();
-        AsyncConsistentSetMultimap map = createResource(3);
+        AsyncConsistentSetMultimap map = createResource("testOneMap");
         //Simplest operation case
         map.isEmpty().thenAccept(result -> assertTrue(result));
         map.put(keyOne, valueOne).
@@ -114,7 +118,6 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
         map.isEmpty().thenAccept(result -> assertTrue(result));
 
         map.destroy().join();
-        clearTests();
     }
 
     /**
@@ -122,8 +125,7 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
      */
     @Test
     public void containsTest() throws Throwable {
-        clearTests();
-        AsyncConsistentSetMultimap map = createResource(3);
+        AsyncConsistentSetMultimap map = createResource("testTwoMap");
 
         //Populate the maps
         allKeys.forEach(key -> {
@@ -174,7 +176,6 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
         });
 
         map.destroy().join();
-        clearTests();
     }
 
     /**
@@ -183,8 +184,7 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
      */
     @Test
     public void addAndRemoveTest() throws Exception {
-        clearTests();
-        AsyncConsistentSetMultimap map = createResource(3);
+        AsyncConsistentSetMultimap map = createResource("testThreeMap");
 
         //Test single put
         allKeys.forEach(key -> {
@@ -309,7 +309,6 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
         });
 
         map.destroy().join();
-        clearTests();
     }
 
     /**
@@ -319,8 +318,7 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
      */
     @Test
     public void testAccessors() throws Exception {
-        clearTests();
-        AsyncConsistentSetMultimap map = createResource(3);
+        AsyncConsistentSetMultimap map = createResource("testFourMap");
 
         //Populate for full map behavior tests
         allKeys.forEach(key -> {
@@ -400,15 +398,13 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
         map.entries()
                 .thenAccept(result -> assertTrue(result.isEmpty())).join();
 
-        map.destroy();
-        clearTests();
+        map.destroy().join();
     }
 
-    private AsyncConsistentSetMultimap createResource(int clusterSize) {
+    private AsyncConsistentSetMultimap createResource(String mapName) {
         try {
-            createCopycatServers(clusterSize);
             AsyncConsistentSetMultimap map = createAtomixClient().
-                    getResource("testMap", AsyncConsistentSetMultimap.class)
+                    getResource("mapName", AsyncConsistentSetMultimap.class)
                     .join();
             return map;
         } catch (Throwable e) {
