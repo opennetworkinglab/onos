@@ -64,7 +64,6 @@ import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.config.basics.OpticalPortConfig;
-import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceAdminService;
 import org.onosproject.net.device.DeviceDescription;
@@ -288,6 +287,19 @@ public class DeviceManager
             log.trace("Checking device {}", deviceId);
 
             if (!isReachable(deviceId)) {
+                if (mastershipService.getLocalRole(deviceId) != NONE) {
+                    // can't be master if device is not reachable
+                    try {
+                        post(store.markOffline(deviceId));
+                        //relinquish master role and ability to be backup.
+                        mastershipService.relinquishMastership(deviceId).get();
+                    } catch (InterruptedException e) {
+                        log.warn("Interrupted while reliquishing role for {}", deviceId);
+                        Thread.currentThread().interrupt();
+                    } catch (ExecutionException e) {
+                        log.error("Exception thrown while relinquishing role for {}", deviceId, e);
+                    }
+                }
                 continue;
             }
 
@@ -334,7 +346,6 @@ public class DeviceManager
             }
             provider.roleChanged(deviceId, newRole);
             // not triggering probe when triggered by provider service event
-
             return true;
         }
 
@@ -360,12 +371,15 @@ public class DeviceManager
 
             DeviceEvent event = store.createOrUpdateDevice(provider().id(), deviceId,
                                                            deviceDescription);
-            log.info("Device {} connected", deviceId);
+            if (deviceDescription.isDefaultAvailable()) {
+                log.info("Device {} connected", deviceId);
+            } else {
+                log.info("Device {} registered", deviceId);
+            }
             if (event != null) {
                 log.trace("event: {} {}", event.type(), event);
                 post(event);
             }
-
         }
 
         private PortDescription ensurePortEnabledState(PortDescription desc, boolean enabled) {
@@ -684,19 +698,7 @@ public class DeviceManager
             case MASTER:
                 final Device device = getDevice(did);
                 if ((device != null) && !isAvailable(did)) {
-                    //flag the device as online. Is there a better way to do this?
-                    DefaultDeviceDescription deviceDescription
-                            = new DefaultDeviceDescription(did.uri(),
-                                                           device.type(),
-                                                           device.manufacturer(),
-                                                           device.hwVersion(),
-                                                           device.swVersion(),
-                                                           device.serialNumber(),
-                                                           device.chassisId());
-                    DeviceEvent devEvent =
-                            store.createOrUpdateDevice(device.providerId(), did,
-                                                       deviceDescription);
-                    post(devEvent);
+                    store.markOnline(did);
                 }
                 // TODO: should apply role only if there is mismatch
                 log.debug("Applying role {} to {}", myNextRole, did);

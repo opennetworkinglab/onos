@@ -245,6 +245,13 @@ public class SimpleDeviceStore
         }
     }
 
+    // implement differently if desired
+    @Override
+    public boolean markOnline(DeviceId deviceId) {
+        log.warn("Mark online not supported");
+        return false;
+    }
+
     @Override
     public List<DeviceEvent> updatePorts(ProviderId providerId,
                                          DeviceId deviceId,

@@ -258,7 +258,6 @@ public class IsisTopologyProviderTest {
 
             }
 
-
             @Override
             public void deviceDisconnected(DeviceId deviceId) {
 

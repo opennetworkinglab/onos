@@ -77,4 +77,11 @@ public interface DeviceDescription extends Description {
      */
     ChassisId chassisId();
 
+    /**
+     * Return whether device should be made available by default.
+     *
+     * @return default availability
+     */
+    boolean isDefaultAvailable();
+
 }

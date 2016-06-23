@@ -450,7 +450,6 @@ public class GrpcRemoteServiceTest {
             deviceConnected.countDown();
         }
 
-
         final CountDownLatch updatePorts = new CountDownLatch(1);
         DeviceId updatePortsDid;
         List<PortDescription> updatePortsDescs;

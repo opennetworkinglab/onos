@@ -79,7 +79,8 @@ public final class BasicDeviceOperator implements ConfigOperator {
         SparseAnnotations sa = combine(bdc, descr.annotations());
         return new DefaultDeviceDescription(descr.deviceUri(), type, manufacturer,
                                             hwVersion, swVersion,
-                                            serial, descr.chassisId(), sa);
+                                            serial, descr.chassisId(),
+                                            descr.isDefaultAvailable(), sa);
     }
 
     /**

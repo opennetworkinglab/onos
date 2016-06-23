@@ -38,6 +38,7 @@ public class DefaultDeviceDescription extends AbstractDescription
     private final String swVersion;
     private final String serialNumber;
     private final ChassisId chassisId;
+    private final boolean defaultAvailable;
 
     /**
      * Creates a device description using the supplied information.
@@ -55,6 +56,28 @@ public class DefaultDeviceDescription extends AbstractDescription
                                     String hwVersion, String swVersion,
                                     String serialNumber, ChassisId chassis,
                                     SparseAnnotations... annotations) {
+        this(uri, type, manufacturer, hwVersion, swVersion, serialNumber,
+             chassis, true, annotations);
+    }
+
+    /**
+     * Creates a device description using the supplied information.
+     *
+     * @param uri            device URI
+     * @param type           device type
+     * @param manufacturer   device manufacturer
+     * @param hwVersion      device HW version
+     * @param swVersion      device SW version
+     * @param serialNumber   device serial number
+     * @param chassis        chassis id
+     * @param defaultAvailable optional whether device is by default available
+     * @param annotations    optional key/value annotations map
+     */
+    public DefaultDeviceDescription(URI uri, Type type, String manufacturer,
+                                    String hwVersion, String swVersion,
+                                    String serialNumber, ChassisId chassis,
+                                    boolean defaultAvailable,
+                                    SparseAnnotations... annotations) {
         super(annotations);
         this.uri = checkNotNull(uri, "Device URI cannot be null");
         this.type = checkNotNull(type, "Device type cannot be null");
@@ -63,6 +86,7 @@ public class DefaultDeviceDescription extends AbstractDescription
         this.swVersion = swVersion;
         this.serialNumber = serialNumber;
         this.chassisId = chassis;
+        this.defaultAvailable = defaultAvailable;
     }
 
     /**
@@ -74,7 +98,7 @@ public class DefaultDeviceDescription extends AbstractDescription
                                     SparseAnnotations... annotations) {
         this(base.deviceUri(), base.type(), base.manufacturer(),
              base.hwVersion(), base.swVersion(), base.serialNumber(),
-             base.chassisId(), annotations);
+             base.chassisId(), base.isDefaultAvailable(), annotations);
     }
 
     /**
@@ -83,10 +107,26 @@ public class DefaultDeviceDescription extends AbstractDescription
      * @param type device type
      * @param annotations Annotations to use.
      */
-    public DefaultDeviceDescription(DeviceDescription base, Type type, SparseAnnotations... annotations) {
+    public DefaultDeviceDescription(DeviceDescription base, Type type,
+                                    SparseAnnotations... annotations) {
         this(base.deviceUri(), type, base.manufacturer(),
                 base.hwVersion(), base.swVersion(), base.serialNumber(),
-                base.chassisId(), annotations);
+                base.chassisId(), base.isDefaultAvailable(), annotations);
+    }
+
+    /**
+     * Creates a device description using the supplied information.
+     *
+     * @param base DeviceDescription to basic information (except for defaultAvailable)
+     * @param defaultAvailable whether device should be made available by default
+     * @param annotations Annotations to use.
+     */
+    public DefaultDeviceDescription(DeviceDescription base,
+                                    boolean defaultAvailable,
+                                    SparseAnnotations... annotations) {
+        this(base.deviceUri(), base.type(), base.manufacturer(),
+             base.hwVersion(), base.swVersion(), base.serialNumber(),
+             base.chassisId(), defaultAvailable, annotations);
     }
 
     @Override
@@ -125,6 +165,11 @@ public class DefaultDeviceDescription extends AbstractDescription
     }
 
     @Override
+    public boolean isDefaultAvailable() {
+        return defaultAvailable;
+    }
+
+    @Override
     public String toString() {
         return toStringHelper(this)
                 .add("uri", uri).add("type", type).add("mfr", manufacturer)
@@ -137,7 +182,8 @@ public class DefaultDeviceDescription extends AbstractDescription
     @Override
     public int hashCode() {
         return Objects.hashCode(super.hashCode(), uri, type, manufacturer,
-                                hwVersion, swVersion, serialNumber, chassisId);
+                                hwVersion, swVersion, serialNumber, chassisId,
+                                defaultAvailable);
     }
 
     @Override
@@ -153,7 +199,8 @@ public class DefaultDeviceDescription extends AbstractDescription
                     && Objects.equal(this.hwVersion, that.hwVersion)
                     && Objects.equal(this.swVersion, that.swVersion)
                     && Objects.equal(this.serialNumber, that.serialNumber)
-                    && Objects.equal(this.chassisId, that.chassisId);
+                    && Objects.equal(this.chassisId, that.chassisId)
+                    && Objects.equal(this.defaultAvailable, that.defaultAvailable);
         }
         return false;
     }
@@ -167,5 +214,6 @@ public class DefaultDeviceDescription extends AbstractDescription
         this.swVersion = null;
         this.serialNumber = null;
         this.chassisId = null;
+        this.defaultAvailable = true;
     }
 }

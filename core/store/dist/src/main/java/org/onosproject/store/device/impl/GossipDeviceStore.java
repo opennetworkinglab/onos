@@ -341,7 +341,7 @@ public class GossipDeviceStore
 
             if (deviceEvent != null) {
                 log.debug("Notifying peers of a device update topology event for providerId: {} and deviceId: {}",
-                         providerId, deviceId);
+                          providerId, deviceId);
                 notifyPeers(new InternalDeviceEvent(providerId, deviceId, mergedDesc));
             }
 
@@ -406,11 +406,16 @@ public class GossipDeviceStore
                 return null;
             }
             if (oldDevice == null) {
+                // REGISTER
+                if (!deltaDesc.value().isDefaultAvailable()) {
+                    return registerDevice(providerId, newDevice);
+                }
                 // ADD
                 return createDevice(providerId, newDevice, deltaDesc.timestamp());
             } else {
                 // UPDATE or ignore (no change or stale)
-                return updateDevice(providerId, oldDevice, newDevice, deltaDesc.timestamp());
+                return updateDevice(providerId, oldDevice, newDevice, deltaDesc.timestamp(),
+                                    deltaDesc.value().isDefaultAvailable());
             }
         }
     }
@@ -437,7 +442,8 @@ public class GossipDeviceStore
     // Guarded by deviceDescs value (=Device lock)
     private DeviceEvent updateDevice(ProviderId providerId,
                                      Device oldDevice,
-                                     Device newDevice, Timestamp newTimestamp) {
+                                     Device newDevice, Timestamp newTimestamp,
+                                     boolean forceAvailable) {
         // We allow only certain attributes to trigger update
         boolean propertiesChanged =
                 !Objects.equals(oldDevice.hwVersion(), newDevice.hwVersion()) ||
@@ -461,7 +467,7 @@ public class GossipDeviceStore
             event = new DeviceEvent(DeviceEvent.Type.DEVICE_UPDATED, newDevice, null);
         }
 
-        if (!providerId.isAncillary()) {
+        if (!providerId.isAncillary() && forceAvailable) {
             boolean wasOnline = availableDevices.contains(newDevice.id());
             markOnline(newDevice.id(), newTimestamp);
             if (!wasOnline) {
@@ -469,6 +475,20 @@ public class GossipDeviceStore
             }
         }
         return event;
+    }
+
+    private DeviceEvent registerDevice(ProviderId providerId, Device newDevice) {
+        // update composed device cache
+        Device oldDevice = devices.putIfAbsent(newDevice.id(), newDevice);
+        verify(oldDevice == null,
+               "Unexpected Device in cache. PID:%s [old=%s, new=%s]",
+               providerId, oldDevice, newDevice);
+
+        if (!providerId.isAncillary()) {
+            markOffline(newDevice.id());
+        }
+
+        return new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, newDevice, null);
     }
 
     @Override
@@ -512,6 +532,24 @@ public class GossipDeviceStore
             }
             return null;
         }
+    }
+
+    public boolean markOnline(DeviceId deviceId) {
+        if (devices.containsKey(deviceId)) {
+            final Timestamp timestamp = deviceClockService.getTimestamp(deviceId);
+            Map<?, ?> deviceLock = getOrCreateDeviceDescriptionsMap(deviceId);
+            synchronized (deviceLock) {
+                if (markOnline(deviceId, timestamp)) {
+                    notifyDelegate(new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, getDevice(deviceId), null));
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+        log.warn("Device {} does not exist in store", deviceId);
+        return false;
+
     }
 
     /**
@@ -1576,7 +1614,8 @@ public class GossipDeviceStore
             Timestamped<DeviceDescription> deviceDescription = event.deviceDescription();
 
             try {
-                notifyDelegateIfNotNull(createOrUpdateDeviceInternal(providerId, deviceId, deviceDescription));
+                notifyDelegateIfNotNull(createOrUpdateDeviceInternal(providerId, deviceId,
+                                                                     deviceDescription));
             } catch (Exception e) {
                 log.warn("Exception thrown handling device update", e);
             }

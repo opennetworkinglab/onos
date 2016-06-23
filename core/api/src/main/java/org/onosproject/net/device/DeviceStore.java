@@ -52,8 +52,6 @@ public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
      */
     Iterable<Device> getAvailableDevices();
 
-
-
     /**
      * Returns the device with the specified identifier.
      *
@@ -74,6 +72,7 @@ public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
     DeviceEvent createOrUpdateDevice(ProviderId providerId, DeviceId deviceId,
                                      DeviceDescription deviceDescription);
 
+
     // TODO: We may need to enforce that ancillary cannot interfere this state
     /**
      * Removes the specified infrastructure device.
@@ -82,6 +81,14 @@ public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
      * @return ready to send event describing what occurred; null if no change
      */
     DeviceEvent markOffline(DeviceId deviceId);
+
+    /**
+     * Marks the device as available.
+     *
+     * @param deviceId device identifier
+     * @return true if availability change request was accepted and changed the state
+     */
+    boolean markOnline(DeviceId deviceId);
 
     /**
      * Updates the ports of the specified infrastructure device using the given
