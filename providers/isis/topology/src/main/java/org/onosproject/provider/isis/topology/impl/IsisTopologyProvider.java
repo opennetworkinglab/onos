@@ -52,6 +52,7 @@ import org.onosproject.net.link.LinkDescription;
 import org.onosproject.net.link.LinkProvider;
 import org.onosproject.net.link.LinkProviderRegistry;
 import org.onosproject.net.link.LinkProviderService;
+import org.onosproject.net.link.LinkService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
@@ -85,6 +86,8 @@ public class IsisTopologyProvider extends AbstractProvider implements DeviceProv
     protected LinkProviderRegistry linkProviderRegistry;
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService networkConfigService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LinkService linkService;
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IsisController controller;
     //This Interface that defines how this provider can interact with the core.
@@ -155,8 +158,14 @@ public class IsisTopologyProvider extends AbstractProvider implements DeviceProv
         String localSystemId = isisLink.localSystemId();
         String remoteSystemId = isisLink.remoteSystemId();
         //Changing of port numbers
-        srcAddress = isisLink.interfaceIp().toInt();
-        dstAddress = isisLink.neighborIp().toInt();
+        if (isisLink.interfaceIp() != null) {
+            //srcAddress = isisLink.interfaceIp().toInt();
+            srcAddress = (long) Long.parseUnsignedLong(Integer.toBinaryString(isisLink.interfaceIp().toInt()), 2);
+        }
+        if (isisLink.neighborIp() != null) {
+            //dstAddress = isisLink.neighborIp().toInt();
+            dstAddress = (long) Long.parseUnsignedLong(Integer.toBinaryString(isisLink.neighborIp().toInt()), 2);
+        }
         DeviceId srcId = DeviceId.deviceId(IsisRouterId.uri(localSystemId));
         DeviceId dstId = DeviceId.deviceId(IsisRouterId.uri(remoteSystemId));
         if (checkIsDis(isisLink.localSystemId())) {
@@ -283,8 +292,9 @@ public class IsisTopologyProvider extends AbstractProvider implements DeviceProv
             newBuilder.set("RouterId", systemId);
             DeviceDescription description =
                     new DefaultDeviceDescription(IsisRouterId.uri(systemId), deviceType, UNKNOWN, UNKNOWN, UNKNOWN,
-                            UNKNOWN, cId, newBuilder.build());
+                                                 UNKNOWN, cId, newBuilder.build());
             deviceProviderService.deviceConnected(deviceId, description);
+            System.out.println("Device added: " + systemId);
         }
 
         @Override
@@ -302,17 +312,26 @@ public class IsisTopologyProvider extends AbstractProvider implements DeviceProv
         @Override
         public void addLink(IsisLink isisLink) {
             log.debug("Addlink {}", isisLink.localSystemId());
-            if (linkProviderService == null) {
-                return;
-            }
+
             LinkDescription linkDes = buildLinkDes(isisLink);
             //Updating ports of the link
-            deviceProviderService.updatePorts(linkDes.src().deviceId(), buildPortDescriptions(linkDes.src().deviceId(),
-                    linkDes.src().port()));
-            deviceProviderService.updatePorts(linkDes.dst().deviceId(), buildPortDescriptions(linkDes.dst().deviceId(),
-                    linkDes.dst().port()));
-            registerBandwidth(linkDes, isisLink);
-            linkProviderService.linkDetected(linkDes);
+            //If already link exists, return
+            if (linkService.getLink(linkDes.src(), linkDes.dst()) != null || linkProviderService == null) {
+                return;
+            }
+            ConnectPoint destconnectPoint = linkDes.dst();
+            PortNumber destport = destconnectPoint.port();
+            if (destport.toLong() != 0) {
+                deviceProviderService.updatePorts(linkDes.src().deviceId(),
+                                                  buildPortDescriptions(linkDes.src().deviceId(),
+                                                  linkDes.src().port()));
+                deviceProviderService.updatePorts(linkDes.dst().deviceId(),
+                                                  buildPortDescriptions(linkDes.dst().deviceId(),
+                                                  linkDes.dst().port()));
+                registerBandwidth(linkDes, isisLink);
+                linkProviderService.linkDetected(linkDes);
+                System.out.println("link desc " + linkDes.toString());
+            }
         }
 
         @Override

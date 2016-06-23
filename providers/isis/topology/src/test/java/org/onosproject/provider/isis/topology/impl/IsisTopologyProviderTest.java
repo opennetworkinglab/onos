@@ -81,6 +81,7 @@ public class IsisTopologyProviderTest {
     private final TestDeviceRegistry nodeRegistry = new TestDeviceRegistry();
     private final TestLinkRegistry linkRegistry = new TestLinkRegistry();
     private final TestController controller = new TestController();
+    private final TestLinkService linkService = new TestLinkService();
     private MockNetConfigRegistryAdapter networkConfigService = new MockNetConfigRegistryAdapter();
 
     @Before
@@ -89,6 +90,7 @@ public class IsisTopologyProviderTest {
         provider.linkProviderRegistry = linkRegistry;
         provider.networkConfigService = networkConfigService;
         provider.controller = controller;
+        provider.linkService = linkService;
         provider.activate();
         assertNotNull("provider should be registered", nodeRegistry.provider);
         assertNotNull("listener should be registered", controller.nodeListener);
@@ -289,9 +291,9 @@ public class IsisTopologyProviderTest {
 
             }
         }
-
-
     }
+
+
 
     private class TestDeviceService extends DeviceServiceAdapter {
         private DeviceListener listener;

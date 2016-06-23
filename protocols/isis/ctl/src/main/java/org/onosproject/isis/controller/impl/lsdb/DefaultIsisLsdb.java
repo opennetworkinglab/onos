@@ -21,7 +21,9 @@ import org.onosproject.isis.controller.IsisLsdb;
 import org.onosproject.isis.controller.IsisLsdbAge;
 import org.onosproject.isis.controller.IsisLspBin;
 import org.onosproject.isis.controller.IsisMessage;
+import org.onosproject.isis.controller.IsisNeighbor;
 import org.onosproject.isis.controller.IsisPduType;
+import org.onosproject.isis.controller.IsisRouterType;
 import org.onosproject.isis.controller.LspWrapper;
 import org.onosproject.isis.controller.impl.Controller;
 import org.onosproject.isis.controller.impl.LspEventConsumer;
@@ -390,6 +392,41 @@ public class DefaultIsisLsdb implements IsisLsdb {
         try {
             lspWrapper.setLspProcessing(IsisConstants.LSPREMOVED);
             lspForProviderQueue.put(lspWrapper);
+        } catch (Exception e) {
+            log.debug("Added LSp In Blocking queue: {}", lspWrapper);
+        }
+    }
+
+    /**
+     * Removes topology information when neighbor down.
+     *
+     * @param neighbor      ISIS neighbor instance
+     * @param isisInterface ISIS interface instance
+     */
+    public void removeTopology(IsisNeighbor neighbor, IsisInterface isisInterface) {
+        String lspKey = neighbor.neighborSystemId() + ".00-00";
+        LspWrapper lspWrapper = null;
+        switch (IsisRouterType.get(isisInterface.reservedPacketCircuitType())) {
+            case L1:
+                lspWrapper = findLsp(IsisPduType.L1LSPDU, lspKey);
+                break;
+            case L2:
+                lspWrapper = findLsp(IsisPduType.L2LSPDU, lspKey);
+                break;
+            case L1L2:
+                lspWrapper = findLsp(IsisPduType.L1LSPDU, lspKey);
+                if (lspWrapper == null) {
+                    lspWrapper = findLsp(IsisPduType.L2LSPDU, lspKey);
+                }
+                break;
+            default:
+                log.debug("Unknown type");
+        }
+        try {
+            if (lspWrapper != null) {
+                lspWrapper.setLspProcessing(IsisConstants.LSPREMOVED);
+                lspForProviderQueue.put(lspWrapper);
+            }
         } catch (Exception e) {
             log.debug("Added LSp In Blocking queue: {}", lspWrapper);
         }
