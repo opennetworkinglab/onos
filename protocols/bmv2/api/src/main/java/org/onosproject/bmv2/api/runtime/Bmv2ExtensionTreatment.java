@@ -29,11 +29,14 @@ import org.onosproject.bmv2.api.utils.Bmv2TranslatorUtils;
 import org.onosproject.net.flow.AbstractExtension;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
+import org.onosproject.store.serializers.KryoNamespaces;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -47,16 +50,25 @@ import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.Exten
 @Beta
 public final class Bmv2ExtensionTreatment extends AbstractExtension implements ExtensionTreatment {
 
-    private final KryoNamespace appKryo = new KryoNamespace.Builder().build();
+    private static final KryoNamespace APP_KRYO = new KryoNamespace.Builder()
+            .register(KryoNamespaces.API)
+            .register(Bmv2ExtensionTreatment.class)
+            .register(Bmv2Action.class)
+            .build();
+
+    private List<String> parameterNames;
     private Bmv2Action action;
 
     /**
      * Creates a new extension treatment for the given BMv2 action.
+     * The list of action parameters name is also required for visualization purposes (i.e. nicer toString()).
      *
-     * @param action an action
+     * @param action         an action
+     * @param parameterNames a list of strings
      */
-    private Bmv2ExtensionTreatment(Bmv2Action action) {
+    private Bmv2ExtensionTreatment(Bmv2Action action, List<String> parameterNames) {
         this.action = action;
+        this.parameterNames = parameterNames;
     }
 
     /**
@@ -75,12 +87,14 @@ public final class Bmv2ExtensionTreatment extends AbstractExtension implements E
 
     @Override
     public byte[] serialize() {
-        return appKryo.serialize(action);
+        return APP_KRYO.serialize(this);
     }
 
     @Override
     public void deserialize(byte[] data) {
-        action = appKryo.deserialize(data);
+        Bmv2ExtensionTreatment other = APP_KRYO.deserialize(data);
+        action = other.action;
+        parameterNames = other.parameterNames;
     }
 
     @Override
@@ -102,8 +116,12 @@ public final class Bmv2ExtensionTreatment extends AbstractExtension implements E
 
     @Override
     public String toString() {
+        StringJoiner stringJoiner = new StringJoiner(", ", "(", ")");
+        for (int i = 0; i < parameterNames.size(); i++) {
+            stringJoiner.add(parameterNames.get(i) + "=" + action.parameters().get(i));
+        }
         return MoreObjects.toStringHelper(this)
-                .add("action", action)
+                .addValue(action.name() + stringJoiner.toString())
                 .toString();
     }
 
@@ -113,7 +131,7 @@ public final class Bmv2ExtensionTreatment extends AbstractExtension implements E
      * @return a BMv2 extension treatment
      */
     public static Bmv2ExtensionTreatment empty() {
-        return new Bmv2ExtensionTreatment(null);
+        return new Bmv2ExtensionTreatment(null, Collections.emptyList());
     }
 
     /**
@@ -232,6 +250,7 @@ public final class Bmv2ExtensionTreatment extends AbstractExtension implements E
                           "invalid number of parameters", actionName);
 
             List<ImmutableByteSequence> newParameters = new ArrayList<>(parameters.size());
+            List<String> parameterNames = new ArrayList<>(parameters.size());
 
             for (String parameterName : parameters.keySet()) {
                 Bmv2RuntimeDataModel runtimeData = actionModel.runtimeData(parameterName);
@@ -242,13 +261,14 @@ public final class Bmv2ExtensionTreatment extends AbstractExtension implements E
                     ImmutableByteSequence newSequence = fitByteSequence(parameters.get(parameterName), bitWidth);
                     int idx = actionModel.runtimeDatas().indexOf(runtimeData);
                     newParameters.add(idx, newSequence);
+                    parameterNames.add(idx, parameterName);
                 } catch (Bmv2TranslatorUtils.ByteSequenceFitException e) {
                     throw new IllegalArgumentException(e.getMessage() +
                                                                " [" + actionName + "->" + runtimeData.name() + "]");
                 }
             }
 
-            return new Bmv2ExtensionTreatment(new Bmv2Action(actionName, newParameters));
+            return new Bmv2ExtensionTreatment(new Bmv2Action(actionName, newParameters), parameterNames);
         }
 
 

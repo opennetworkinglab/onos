@@ -39,6 +39,11 @@
            <groupId>org.apache.felix</groupId>
            <artifactId>org.apache.felix.scr.annotations</artifactId>
        </dependency>
+       <dependency>
+           <groupId>org.onosproject</groupId>
+           <artifactId>onos-core-serializers</artifactId>
+           <version>${project.version}</version>
+       </dependency>
    </dependencies>
 
 </project>
