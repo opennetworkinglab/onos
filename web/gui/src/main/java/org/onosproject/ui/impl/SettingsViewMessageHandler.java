@@ -36,14 +36,17 @@ public class SettingsViewMessageHandler extends UiMessageHandler {
     private static final String SETTINGS = "settings";
 
     private static final String COMPONENT = "component";
+    private static final String FQ_COMPONENT = "fqComponent";
     private static final String ID = "id";
     private static final String TYPE = "type";
     private static final String VALUE = "value";
     private static final String DEFAULT = "defValue";
     private static final String DESC = "desc";
 
+    private static final char DOT = '.';
+
     private static final String[] COL_IDS = {
-            COMPONENT, ID, TYPE, VALUE, DEFAULT, DESC
+            COMPONENT, FQ_COMPONENT, ID, TYPE, VALUE, DEFAULT, DESC
     };
 
     @Override
@@ -90,13 +93,25 @@ public class SettingsViewMessageHandler extends UiMessageHandler {
             }
         }
 
-        private void populateRow(TableModel.Row row, String component, ConfigProperty prop) {
-            row.cell(COMPONENT, component)
+        private void populateRow(TableModel.Row row, String fqComp,
+                                 ConfigProperty prop) {
+            row.cell(COMPONENT, simpleName(fqComp))
+                    .cell(FQ_COMPONENT, fqComp)
                     .cell(ID, prop.name())
-                    .cell(TYPE, prop.type().toString().toLowerCase())
+                    .cell(TYPE, typeName(prop))
                     .cell(VALUE, prop.value())
                     .cell(DEFAULT, prop.defaultValue())
                     .cell(DESC, prop.description());
+        }
+
+        // return just simple class name: "a.b.c.MyClass" -> "MyClass"
+        private String simpleName(String component) {
+            int lastDot = component.lastIndexOf(DOT);
+            return lastDot < 0 ? component : component.substring(lastDot + 1);
+        }
+
+        private String typeName(ConfigProperty prop) {
+            return prop.type().toString().toLowerCase();
         }
     }
 }

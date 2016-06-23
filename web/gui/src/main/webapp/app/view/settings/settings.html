@@ -14,11 +14,10 @@
         <div class="table-header" onos-sortable-header>
             <table>
                 <tr>
-                    <td colId="component" sortable col-width="300px">Component </td>
-                    <td colId="id" sortable col-width="240px">Property </td>
+                    <td colId="component" sortable col-width="260px">Component </td>
+                    <td colId="id" sortable col-width="260px">Property </td>
                     <td colId="type" sortable col-width="100px">Type </td>
                     <td colId="value" sortable col-width="100px">Value </td>
-                    <td colId="defValue" sortable col-width="100px">Default </td>
                     <td colId="desc">Description </td>
                 </tr>
             </table>
@@ -33,17 +32,21 @@
                 </tr>
 
                 <tr ng-repeat="prop in tableData track by $index"
+                    ng-click="selectCallback($event, prop)"
+                    ng-class="{selected: prop.id === selId}"
                     ng-repeat-complete row-id="{{prop.id}}">
                     <td>{{prop.component}}</td>
                     <td>{{prop.id}}</td>
                     <td>{{prop.type}}</td>
-                    <td>{{prop.value}}</td>
-                    <td>{{prop.defValue}}</td>
+                    <td ng-class="{notdef: prop.value !== prop.defValue}">
+                        {{prop.value}}
+                    </td>
                     <td>{{prop.desc}}</td>
                 </tr>
             </table>
         </div>
 
     </div>
+    <settings-details-panel></settings-details-panel>
 
 </div>

@@ -470,7 +470,7 @@
                 });
                 ks.gestureNotes([
                     ['click', 'Select a row to show application details'],
-                    ['scroll down', 'See more application']
+                    ['scroll down', 'See more applications']
                 ]);
 
                 // if the panelData changes
