@@ -64,7 +64,7 @@
 
         // navigation menu icons...
         nav_apps: 'bird',
-        nav_settings: 'chain',
+        nav_settings: 'cog',
         nav_cluster: 'node',
         nav_processors: 'allTraffic',
 
