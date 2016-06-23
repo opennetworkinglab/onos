@@ -34,7 +34,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <onos.version>1.6.0-SNAPSHOT</onos.version>
         <onos.app.name>org.onosproject.kafkaintegration</onos.app.name>
         <onos.app.title>Kafka Integration Application</onos.app.title>
         <onos.app.origin>Calix, Inc.</onos.app.origin>
