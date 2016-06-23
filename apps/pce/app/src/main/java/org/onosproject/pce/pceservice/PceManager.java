@@ -1058,6 +1058,18 @@ public class PceManager implements PceService {
                 // Node-label allocation is being done during Label DB Sync.
                 // So, when device is detected, no need to do node-label
                 // allocation.
+                String lsrId = specificDevice.annotations().value(LSRID);
+                if (lsrId != null) {
+                    pceStore.addLsrIdDevice(lsrId, specificDevice.id());
+
+                    // Search in failed DB sync store. If found, trigger label DB sync.
+                    DeviceId pccDeviceId = DeviceId.deviceId(lsrId);
+                    if (pceStore.hasPccLsr(pccDeviceId)) {
+                        log.debug("Continue to perform label DB sync for device {}.", pccDeviceId.toString());
+                        syncLabelDb(pccDeviceId);
+                        pceStore.removePccLsr(pccDeviceId);
+                    }
+                }
                 break;
 
             case DEVICE_REMOVED:
@@ -1065,6 +1077,11 @@ public class PceManager implements PceService {
                 if (mastershipService.getLocalRole(specificDevice.id()) == MastershipRole.MASTER) {
                     releaseNodeLabel(specificDevice);
                 }
+
+                if (specificDevice.annotations().value(LSRID) != null) {
+                    pceStore.removeLsrIdDevice(specificDevice.annotations().value(LSRID));
+                }
+
                 break;
 
             default:
@@ -1252,13 +1269,20 @@ public class PceManager implements PceService {
     private boolean syncLabelDb(DeviceId deviceId) {
         checkNotNull(deviceId);
 
-        Device specificDevice = deviceService.getDevice(deviceId);
-        if (specificDevice == null) {
-            log.error("Unable to find device for specific device id {}.", deviceId.toString());
+        DeviceId actualDevcieId = pceStore.getLsrIdDevice(deviceId.toString());
+        if (actualDevcieId == null) {
+            log.error("Device not available {}.", deviceId.toString());
+            pceStore.addPccLsr(deviceId);
             return false;
         }
 
-        if (pceStore.getGlobalNodeLabel(deviceId) != null) {
+        Device specificDevice = deviceService.getDevice(actualDevcieId);
+        if (specificDevice == null) {
+            log.error("Unable to find device for specific device id {}.", actualDevcieId.toString());
+            return false;
+        }
+
+        if (pceStore.getGlobalNodeLabel(actualDevcieId) != null) {
             Map<DeviceId, LabelResourceId> globalNodeLabelMap = pceStore.getGlobalNodeLabels();
 
             for (Entry<DeviceId, LabelResourceId> entry : globalNodeLabelMap.entrySet()) {
@@ -1279,7 +1303,7 @@ public class PceManager implements PceService {
                     continue;
                 }
 
-                srTeHandler.advertiseNodeLabelRule(deviceId,
+                srTeHandler.advertiseNodeLabelRule(actualDevcieId,
                                                    entry.getValue(),
                                                    IpPrefix.valueOf(IpAddress.valueOf(srcLsrId), PREFIX_LENGTH),
                                                    Objective.Operation.ADD, false);
@@ -1287,8 +1311,8 @@ public class PceManager implements PceService {
 
             Map<Link, LabelResourceId> adjLabelMap = pceStore.getAdjLabels();
             for (Entry<Link, LabelResourceId> entry : adjLabelMap.entrySet()) {
-                if (entry.getKey().src().deviceId().equals(deviceId)) {
-                    srTeHandler.installAdjLabelRule(deviceId,
+                if (entry.getKey().src().deviceId().equals(actualDevcieId)) {
+                    srTeHandler.installAdjLabelRule(actualDevcieId,
                                                     entry.getValue(),
                                                     entry.getKey().src().port(),
                                                     entry.getKey().dst().port(),
@@ -1297,12 +1321,12 @@ public class PceManager implements PceService {
             }
         }
 
-        srTeHandler.advertiseNodeLabelRule(deviceId,
+        srTeHandler.advertiseNodeLabelRule(actualDevcieId,
                                            LabelResourceId.labelResourceId(0),
                                            IpPrefix.valueOf(END_OF_SYNC_IP_PREFIX),
                                            Objective.Operation.ADD, true);
 
-        log.debug("End of label DB sync for device {}", deviceId);
+        log.debug("End of label DB sync for device {}", actualDevcieId);
 
         if (mastershipService.getLocalRole(specificDevice.id()) == MastershipRole.MASTER) {
             // Allocate node-label to this specific device.
