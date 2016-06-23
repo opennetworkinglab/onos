@@ -36,7 +36,7 @@
     var pName = 'settings-details-panel',
         panelWidth = 540,
         topPdg = 60,
-        propOrder = ['fqComponent', 'id', 'type', 'value', 'defValue', 'desc'],
+        propOrder = ['fqComponent', 'prop', 'type', 'value', 'defValue', 'desc'],
         friendlyProps = [
             'Component', 'Property', 'Type', 'Value', 'Default Value',
             'Description'
@@ -93,7 +93,8 @@
             }
         }
 
-        ndiv('settings-title');
+        ndiv('settings-title-1');
+        ndiv('settings-title-2');
         ndiv('settings-props', true);
     }
 
@@ -111,7 +112,8 @@
     function populateTop(details) {
         var propsBody = top.select('.settings-props').append('tbody');
 
-        top.select('.settings-title').text(details.id);
+        top.select('.settings-title-1').text(details.component);
+        top.select('.settings-title-2').text(details.prop);
 
         propOrder.forEach(function (prop, i) {
             addProp(propsBody, i, details[prop]);

@@ -43,15 +43,27 @@
     cursor: pointer;
 }
 
-#settings-details-panel .top .settings-title {
+#settings-details-panel .top .settings-title-1 {
     width: 90%;
-    height: 62px;
-    font-size: 20pt;
+    height: 28px;
+    font-size: 14pt;
     font-weight: lighter;
     overflow: hidden;
     white-space: nowrap;
     padding: 0 12px 0 2px;
     margin-top: 19px;
+    margin-bottom: 5px;
+}
+
+#settings-details-panel .top .settings-title-2 {
+    width: 90%;
+    height: 52px;
+    font-size: 20pt;
+    font-weight: lighter;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 0 6px 0 2px;
+    margin-top: 5px;
     margin-bottom: 5px;
 }
 

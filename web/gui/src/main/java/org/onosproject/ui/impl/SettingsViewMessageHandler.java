@@ -37,6 +37,7 @@ public class SettingsViewMessageHandler extends UiMessageHandler {
 
     private static final String COMPONENT = "component";
     private static final String FQ_COMPONENT = "fqComponent";
+    private static final String PROP = "prop";
     private static final String ID = "id";
     private static final String TYPE = "type";
     private static final String VALUE = "value";
@@ -46,7 +47,7 @@ public class SettingsViewMessageHandler extends UiMessageHandler {
     private static final char DOT = '.';
 
     private static final String[] COL_IDS = {
-            COMPONENT, FQ_COMPONENT, ID, TYPE, VALUE, DEFAULT, DESC
+            COMPONENT, FQ_COMPONENT, PROP, ID, TYPE, VALUE, DEFAULT, DESC
     };
 
     @Override
@@ -95,9 +96,12 @@ public class SettingsViewMessageHandler extends UiMessageHandler {
 
         private void populateRow(TableModel.Row row, String fqComp,
                                  ConfigProperty prop) {
-            row.cell(COMPONENT, simpleName(fqComp))
+            String simple = simpleName(fqComp);
+
+            row.cell(ID, simple + DELIM + prop.name())
                     .cell(FQ_COMPONENT, fqComp)
-                    .cell(ID, prop.name())
+                    .cell(COMPONENT, simple)
+                    .cell(PROP, prop.name())
                     .cell(TYPE, typeName(prop))
                     .cell(VALUE, prop.value())
                     .cell(DEFAULT, prop.defaultValue())
@@ -113,5 +117,7 @@ public class SettingsViewMessageHandler extends UiMessageHandler {
         private String typeName(ConfigProperty prop) {
             return prop.type().toString().toLowerCase();
         }
+
+        private static final String DELIM = "::";
     }
 }
