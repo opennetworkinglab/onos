@@ -148,8 +148,9 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     private final InternalDeviceProvider listener = new InternalDeviceProvider();
 
-    static final int POLL_INTERVAL = 5;
-    @Property(name = "PortStatsPollFrequency", intValue = POLL_INTERVAL,
+    private static final String POLL_PROP_NAME = "portStatsPollFrequency";
+    private static final int POLL_INTERVAL = 5;
+    @Property(name = POLL_PROP_NAME, intValue = POLL_INTERVAL,
     label = "Frequency (in seconds) for polling switch Port statistics")
     private int portStatsPollFrequency = POLL_INTERVAL;
 
@@ -190,7 +191,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         Dictionary<?, ?> properties = context.getProperties();
         int newPortStatsPollFrequency;
         try {
-            String s = get(properties, "PortStatsPollFrequency");
+            String s = get(properties, POLL_PROP_NAME);
             newPortStatsPollFrequency = isNullOrEmpty(s) ? portStatsPollFrequency : Integer.parseInt(s.trim());
 
         } catch (NumberFormatException | ClassCastException e) {
