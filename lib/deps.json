@@ -86,7 +86,7 @@
     "gmetric4j": "mvn:info.ganglia.gmetric4j:gmetric4j:1.0.10",
     "aopalliance-repackaged": "mvn:org.glassfish.hk2.external:aopalliance-repackaged:2.4.0-b34",
     "asm": "mvn:org.ow2.asm:asm:5.0.3",
-    "atomix": "mvn:io.atomix:atomix-all:1.0.0-rc8",
+    "atomix": "mvn:io.atomix:atomix-all:1.0.0-rc9",
     "commons-codec": "mvn:commons-codec:commons-codec:1.10",
     "commons-collections": "mvn:commons-collections:commons-collections:3.2.2",
     "commons-configuration": "mvn:commons-configuration:commons-configuration:1.10",

@@ -71,7 +71,7 @@
         <dependency>
             <groupId>io.atomix</groupId>
             <artifactId>atomix</artifactId>
-            <version>1.0.0-rc8</version>
+            <version>1.0.0-rc9</version>
         </dependency>
 
         <dependency>
