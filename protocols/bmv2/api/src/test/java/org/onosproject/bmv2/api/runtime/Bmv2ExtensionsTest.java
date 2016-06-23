@@ -18,6 +18,7 @@ package org.onosproject.bmv2.api.runtime;
 
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
+import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.MacAddress;
@@ -30,7 +31,7 @@ import java.io.InputStreamReader;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class Bmv2ExtensionBuilderTest {
+public class Bmv2ExtensionsTest {
 
     private Bmv2Configuration config;
 
@@ -42,7 +43,7 @@ public class Bmv2ExtensionBuilderTest {
     }
 
     @Test
-    public void testExtensionSelector() throws Exception {
+    public void testExtensionSelectorBuilder() throws Exception {
 
         Bmv2ExtensionSelector extSelectorExact = Bmv2ExtensionSelector.builder()
                 .forConfiguration(config)
@@ -85,7 +86,7 @@ public class Bmv2ExtensionBuilderTest {
     }
 
     @Test
-    public void testExtensionTreatment() throws Exception {
+    public void testExtensionTreatmentBuilder() throws Exception {
 
         Bmv2ExtensionTreatment treatment = Bmv2ExtensionTreatment.builder()
                 .forConfiguration(config)
@@ -96,5 +97,41 @@ public class Bmv2ExtensionBuilderTest {
         assertThat(treatment.action().parameters().size(), is(1));
 
         // TODO add more tests, e.g. check for byte sequences content and size.
+    }
+
+    @Test
+    public void testExtensionSelectorSerialization() throws Exception {
+
+        Bmv2ExtensionSelector original = Bmv2ExtensionSelector.builder()
+                .forConfiguration(config)
+                .matchExact("standard_metadata", "ingress_port", (short) 255)
+                .matchLpm("ethernet", "etherType", 512, 4)
+                .matchTernary("ethernet", "dstAddr", 1024L, 512L)
+                .matchValid("ethernet", "srcAddr", true)
+                .build();
+
+        Bmv2ExtensionSelector other = Bmv2ExtensionSelector.empty();
+        other.deserialize(original.serialize());
+
+        new EqualsTester()
+                .addEqualityGroup(original, other)
+                .testEquals();
+    }
+
+    @Test
+    public void testExtensionTreatmentSerialization() throws Exception {
+
+        Bmv2ExtensionTreatment original = Bmv2ExtensionTreatment.builder()
+                .forConfiguration(config)
+                .setActionName("set_egress_port")
+                .addParameter("port", 1)
+                .build();
+
+        Bmv2ExtensionTreatment other = Bmv2ExtensionTreatment.empty();
+        other.deserialize(original.serialize());
+
+        new EqualsTester()
+                .addEqualityGroup(original, other)
+                .testEquals();
     }
 }

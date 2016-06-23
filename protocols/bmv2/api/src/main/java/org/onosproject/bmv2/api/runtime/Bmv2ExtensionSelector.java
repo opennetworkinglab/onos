@@ -29,9 +29,10 @@ import org.onosproject.bmv2.api.utils.Bmv2TranslatorUtils;
 import org.onosproject.net.flow.AbstractExtension;
 import org.onosproject.net.flow.criteria.ExtensionSelector;
 import org.onosproject.net.flow.criteria.ExtensionSelectorType;
+import org.onosproject.store.serializers.KryoNamespaces;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.*;
@@ -46,9 +47,8 @@ import static org.onosproject.bmv2.api.utils.Bmv2TranslatorUtils.fitByteSequence
 @Beta
 public final class Bmv2ExtensionSelector extends AbstractExtension implements ExtensionSelector {
 
-    private final KryoNamespace appKryo = new KryoNamespace.Builder()
-            .register(HashMap.class)
-            .register(Bmv2MatchParam.class)
+    private static final KryoNamespace APP_KRYO = new KryoNamespace.Builder()
+            .register(KryoNamespaces.API)
             .register(Bmv2ExactMatchParam.class)
             .register(Bmv2TernaryMatchParam.class)
             .register(Bmv2LpmMatchParam.class)
@@ -83,12 +83,12 @@ public final class Bmv2ExtensionSelector extends AbstractExtension implements Ex
 
     @Override
     public byte[] serialize() {
-        return appKryo.serialize(parameterMap);
+        return APP_KRYO.serialize(parameterMap);
     }
 
     @Override
     public void deserialize(byte[] data) {
-        this.parameterMap = appKryo.deserialize(data);
+        this.parameterMap = APP_KRYO.deserialize(data);
     }
 
     @Override
@@ -110,9 +110,31 @@ public final class Bmv2ExtensionSelector extends AbstractExtension implements Ex
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("parameterMap", parameterMap)
-                .toString();
+        MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(this);
+        parameterMap.forEach((name, param) -> {
+            switch (param.type()) {
+                case EXACT:
+                    Bmv2ExactMatchParam e = (Bmv2ExactMatchParam) param;
+                    helper.add(name, e.value());
+                    break;
+                case TERNARY:
+                    Bmv2TernaryMatchParam t = (Bmv2TernaryMatchParam) param;
+                    helper.add(name, t.value() + "&&&" + t.mask());
+                    break;
+                case LPM:
+                    Bmv2LpmMatchParam l = (Bmv2LpmMatchParam) param;
+                    helper.add(name, l.value() + "/" + String.valueOf(l.prefixLength()));
+                    break;
+                case VALID:
+                    Bmv2ValidMatchParam v = (Bmv2ValidMatchParam) param;
+                    helper.add(name, v.flag() ? "VALID" : "NOT_VALID");
+                    break;
+                default:
+                    helper.add(name, param);
+                    break;
+            }
+        });
+        return helper.toString();
     }
 
     /**
@@ -121,7 +143,7 @@ public final class Bmv2ExtensionSelector extends AbstractExtension implements Ex
      * @return a BMv2 extension treatment
      */
     public static Bmv2ExtensionSelector empty() {
-        return new Bmv2ExtensionSelector(null);
+        return new Bmv2ExtensionSelector(Collections.emptyMap());
     }
 
     /**
