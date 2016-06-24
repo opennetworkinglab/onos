@@ -17,7 +17,7 @@
 <drivers>
     <driver name="linc-oe" extends="default"
             manufacturer="FlowForwarding.org" hwVersion="Unknown"
-            swVersion="LINC-OE OpenFlow Software Switch 1.1">
+            swVersion="LINC(-OE)? OpenFlow Software Switch 1.1">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.optical.handshaker.OfOpticalSwitchImplLinc13"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
@@ -52,6 +52,8 @@
             swVersion="of-agent">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.optical.handshaker.OplinkRoadmHandshaker"/>
+        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
+                   impl="org.onosproject.driver.optical.query.OplinkRoadmLambdaQuery"/>
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
     </driver>

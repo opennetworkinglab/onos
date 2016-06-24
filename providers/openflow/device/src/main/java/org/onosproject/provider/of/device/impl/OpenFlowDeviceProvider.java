@@ -32,10 +32,12 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -62,6 +64,7 @@ import org.onosproject.net.OtuSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.behaviour.LambdaQuery;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DefaultPortStatistics;
@@ -71,6 +74,8 @@ import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
+import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.net.driver.HandlerBehaviour;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openflow.controller.Dpid;
@@ -479,7 +484,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                     LOG.debug("Ports Of{}", portsOf);
                     portsOf.forEach(
                         op -> {
-                            portDescs.add(buildPortDescription(type, op));
+                            portDescs.add(buildPortDescription(type, op, opsw));
                         }
                      );
                     });
@@ -540,9 +545,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             return annotations;
         }
 
-        private PortDescription buildPortDescription(PortDescPropertyType ptype, OFObject port) {
+        private PortDescription buildPortDescription(PortDescPropertyType ptype, OFObject port,
+                OpenFlowOpticalSwitch opsw) {
             if (port instanceof  OFPortOptical) {
-               return buildPortDescription(ptype, (OFPortOptical) port);
+                return buildPortDescription(ptype, (OFPortOptical) port, opsw);
             }
             return buildPortDescription(ptype, (OFExpPort) port);
         }
@@ -681,7 +687,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
          * @param port the port to build from.
          * @return portDescription for the port.
          */
-        private PortDescription buildPortDescription(PortDescPropertyType ptype, OFPortOptical port) {
+        private PortDescription buildPortDescription(PortDescPropertyType ptype, OFPortOptical port,
+                OpenFlowOpticalSwitch opsw) {
             checkArgument(port.getDesc().size() >= 1);
 
             // Minimally functional fixture. This needs to be fixed as we add better support.
@@ -706,8 +713,35 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 case 2:     // OMS port
                     // Assume complete optical spectrum and 50 GHz grid
                     // LINC-OE is only supported optical OF device for now
-                    return omsPortDescription(portNo, enabled,
-                            Spectrum.U_BAND_MIN, Spectrum.O_BAND_MAX, Frequency.ofGHz(50), annotations);
+                    Set<OchSignal> signals = null;
+                    if (opsw instanceof HandlerBehaviour) {
+                        DriverHandler driverHandler = ((HandlerBehaviour) opsw).handler();
+                        if (driverHandler != null && driverHandler.hasBehaviour(LambdaQuery.class)) {
+                            try {
+                                signals = driverHandler.behaviour(LambdaQuery.class).queryLambdas(portNo);
+                            } catch (NullPointerException e) {
+                                signals = null;
+                            }
+                        }
+                    }
+                    Frequency minFreq;
+                    Frequency maxFreq;
+                    Frequency channelSpacing;
+                    if (signals == null || signals.isEmpty()) {
+                        minFreq = Spectrum.U_BAND_MIN;
+                        maxFreq = Spectrum.O_BAND_MAX;
+                        channelSpacing = Frequency.ofGHz(50);
+                    } else {
+                        Comparator<OchSignal> compare =
+                                (OchSignal a, OchSignal b) -> a.spacingMultiplier() - b.spacingMultiplier();
+                        OchSignal minOch = Collections.min(signals, compare);
+                        OchSignal maxOch = Collections.max(signals, compare);
+                        minFreq = minOch.centralFrequency();
+                        maxFreq = maxOch.centralFrequency();
+                        channelSpacing = minOch.channelSpacing().frequency();
+                    }
+                    return omsPortDescription(portNo, enabled, minFreq,
+                            maxFreq, channelSpacing, annotations);
                 case 5:     // OCH port
                     OchSignal signal = new OchSignal(GridType.DWDM, ChannelSpacing.CHL_50GHZ, 0, 4);
                     return ochPortDescription(portNo, enabled, OduSignalType.ODU4,

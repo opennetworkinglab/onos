@@ -91,7 +91,7 @@ public class OmsPortHelperTest {
         assertThat(oms.maxFrequency(), is(maxF));
         assertThat(oms.minFrequency(), is(minF));
         assertThat(oms.grid(), is(grid));
-        assertThat("(33-3)/2 = 15", oms.totalChannels(), is((short) 15));
+        assertThat("((33-3)/2)+1 = 16", oms.totalChannels(), is((short) 16));
     }
 
 }
