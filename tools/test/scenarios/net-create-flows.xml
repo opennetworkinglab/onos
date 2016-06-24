@@ -86,6 +86,10 @@
         <step name="Net-Create-Flows.Delete-f10" requires="^"
               exec="curl -f -X DELETE -uonos:rocks ${f10Location}"/>
 
+        <!-- Make sure all flows are removed -->
+        <step name="Net-Create-Flows.Check-Flows-Removed" requires="^"
+              exec="onos-check-flows ${OC1}"/>
+
         <!-- Ping again to be sure the path was removed. -->
         <step name="Net-Create-Flows.Fail-Ping-XY" requires="^"
               exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 100% packet loss"/>
