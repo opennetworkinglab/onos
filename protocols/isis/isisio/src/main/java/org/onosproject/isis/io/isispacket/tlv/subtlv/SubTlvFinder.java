@@ -71,6 +71,11 @@ public final class SubTlvFinder {
                 ipInterfaceAddressTlv.readFrom(channelBuffer);
                 subTlv = ipInterfaceAddressTlv;
                 break;
+            case NEIGHBORADDRESS:
+                NeighborIpAddress ipNeighborAddressTlv = new NeighborIpAddress(tlvHeader);
+                ipNeighborAddressTlv.readFrom(channelBuffer);
+                subTlv = ipNeighborAddressTlv;
+                break;
             default:
                 //TODO
                 break;

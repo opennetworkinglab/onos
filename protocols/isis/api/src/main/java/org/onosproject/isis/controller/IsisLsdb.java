@@ -122,4 +122,11 @@ public interface IsisLsdb {
      * @param l2LspSeqNo link state sequence number
      */
     void setL2LspSeqNo(int l2LspSeqNo);
+    /**
+     * Removes topology information when neighbor down.
+     *
+     * @param neighbor ISIS neighbor instance
+     * @param isisInterface ISIS interface instance
+     */
+    void removeTopology(IsisNeighbor neighbor, IsisInterface isisInterface);
 }

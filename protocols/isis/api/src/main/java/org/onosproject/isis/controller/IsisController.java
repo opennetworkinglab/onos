@@ -16,9 +16,11 @@
 package org.onosproject.isis.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.onosproject.isis.controller.topology.IsisLinkListener;
 import org.onosproject.isis.controller.topology.IsisRouterListener;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Representation of an ISIS controller.
@@ -52,4 +54,32 @@ public interface IsisController {
      * @return list of process instances
      */
     List<IsisProcess> allConfiguredProcesses();
+
+    /**
+     * Registers a listener for ISIS message events.
+     *
+     * @param listener the listener to notify
+     */
+    void addLinkListener(IsisLinkListener listener);
+
+    /**
+     * Unregisters a link listener.
+     *
+     * @param listener the listener to unregister
+     */
+    void removeLinkListener(IsisLinkListener listener);
+
+    /**
+     * Gets the list of listeners registered for router events.
+     *
+     * @return list of listeners
+     */
+    Set<IsisRouterListener> listener();
+
+    /**
+     * Gets the list of listeners registered for link events.
+     *
+     * @return list of listeners
+     */
+    Set<IsisLinkListener> linkListener();
 }

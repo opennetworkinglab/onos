@@ -48,12 +48,17 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-isis-provider-device</artifactId>
+            <artifactId>onos-isis-provider-topology</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-isis-provider-cfg</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-isis-provider-cli</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

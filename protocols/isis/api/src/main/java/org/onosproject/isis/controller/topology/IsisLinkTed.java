@@ -16,7 +16,6 @@
 package org.onosproject.isis.controller.topology;
 
 import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip6Address;
 import org.onlab.util.Bandwidth;
 
 import java.util.List;
@@ -27,114 +26,100 @@ import java.util.List;
 public interface IsisLinkTed {
 
     /**
-     * Provides maximum bandwidth can be used on the link.
+     * Gets the administrative group.
      *
-     * @return maximum bandwidth
+     * @return administrative group
      */
-    Bandwidth maximumLink();
+    int administrativeGroup();
 
     /**
-     * Sets maximum band width.
+     * Sets the administrative group.
      *
-     * @param bandwidth maximum bandwidth
+     * @param administrativeGroup administrative group
      */
-    void setMaximumLink(Bandwidth bandwidth);
+    void setAdministrativeGroup(int administrativeGroup);
 
     /**
-     * Amount of bandwidth reservable on the link.
+     * Provides the IPv4 interface address.
+     *
+     * @return IPv4 interface address
+     */
+    Ip4Address ipv4InterfaceAddress();
+
+    /**
+     * Sets the IPv4 interface address.
+     *
+     * @param interfaceAddress IPv4 interface address
+     */
+    void setIpv4InterfaceAddress(Ip4Address interfaceAddress);
+
+    /**
+     * Provides the IPv4 neighbor address.
+     *
+     * @return IPv4 neighbor address
+     */
+    Ip4Address ipv4NeighborAddress();
+
+    /**
+     * Sets the IPv4 neighbor address.
+     *
+     * @param neighborAddress IPv4 neighbor address
+     */
+    void setIpv4NeighborAddress(Ip4Address neighborAddress);
+
+    /**
+     * Gets the maximum link bandwidth.
+     *
+     * @return maximum link bandwidth
+     */
+    Bandwidth maximumLinkBandwidth();
+
+    /**
+     * Sets the maximum link bandwidth.
+     *
+     * @param bandwidth maximum link bandwidth
+     */
+    void setMaximumLinkBandwidth(Bandwidth bandwidth);
+
+    /**
+     * Provides max bandwidth that can be reservable on the link.
+     *
+     * @return max bandwidth reservable
+     */
+    Bandwidth maximumReservableLinkBandwidth();
+
+    /**
+     * Sets max bandwidth that can be reservable on the link.
+     *
+     * @param bandwidth max bandwidth that can be reservable on the link
+     */
+    void setMaximumReservableLinkBandwidth(Bandwidth bandwidth);
+
+    /**
+     * Amount of bandwidth unreserved on the link.
      *
      * @return unreserved bandwidth
      */
-    List<Bandwidth> maxUnResBandwidth();
+    List<Bandwidth> unreservedBandwidth();
 
     /**
-     * Sets max bandwidth that is not reserved on the link.
+     * Sets the bandwidth unreserved on the link.
      *
-     * @param bandwidth max bandwidth that is not reserved on the link
+     * @param bandwidth bandwidth unreserved
      */
-    void setMaxUnResBandwidth(Bandwidth bandwidth);
-
-    /**
-     * Provides max bandwidth that can be reserved on the link.
-     *
-     * @return max bandwidth reserved
-     */
-    Bandwidth maxReserved();
-
-    /**
-     * Sets max bandwidth that can be reserved on the link.
-     *
-     * @param bandwidth max bandwidth that can be reserved on the link
-     */
-    void setMaxReserved(Bandwidth bandwidth);
+    void setUnreservedBandwidth(List<Bandwidth> bandwidth);
 
     /**
      * Provides Traffic Engineering metric for the link.
      *
-     * @return Traffic Engineering metric
+     * @return Traffic Engineering Default metric
      */
-    int teMetric();
+    long teDefaultMetric();
 
     /**
      * Sets Traffic Engineering metric for the link.
      *
-     * @param teMetric Traffic Engineering metric for the link
+     * @param teMetric Traffic Engineering Default metric for the link
      */
-    void setTeMetric(int teMetric);
-
-    /**
-     * Provides IPv4 router-Id of local node.
-     *
-     * @return IPv4 router-Id of local node
-     */
-    List<Ip4Address> ipv4LocRouterId();
-
-    /**
-     * Sets IPv4 router-Id of local node.
-     *
-     * @param routerIds IPv4 router-Id of local node
-     */
-    void setIpv4LocRouterId(List<Ip4Address> routerIds);
-
-    /**
-     * Provides IPv6 router-Id of local node.
-     *
-     * @return IPv6 router-Id of local node
-     */
-    List<Ip6Address> ipv6LocRouterId();
-
-    /**
-     * Sets IPv6 router-Id of local node.
-     *
-     * @param routerIds IPv6 router-Id of local node
-     */
-    void setIpv6LocRouterId(List<Ip6Address> routerIds);
-
-    /**
-     * Provides IPv4 router-Id of remote node.
-     *
-     * @return IPv4 router-Id of remote node
-     */
-    List<Ip4Address> ipv4RemRouterId();
-
-    /**
-     * Sets IPv4 router-Id of remote node.
-     *
-     * @param routerIds IPv4 router-Id of remote node
-     */
-    void setIpv4RemRouterId(List<Ip4Address> routerIds);
-
-    /**
-     * Provides IPv6 router-Id of remote node.
-     *
-     * @return IPv6 router-Id of remote node
-     */
-    List<Ip6Address> ipv6RemRouterId();
-
-    /**
-     * Sets IPv6 router-Id of remote node.
-     *
-     * @param routerIds IPv6 router-Id of remote node
-     */
-    void setIpv6RemRouterId(List<Ip6Address> routerIds);
+    void setTeDefaultMetric(long teMetric);
 }

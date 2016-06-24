@@ -3,7 +3,7 @@ BUNDLES = [
     '//protocols/isis/ctl:onos-protocols-isis-ctl',
     '//protocols/isis/isisio:onos-protocols-isis-isisio',
     '//providers/isis/cfg:onos-providers-isis-cfg',
-    '//providers/isis/device:onos-providers-isis-device',
+    '//providers/isis/topology:onos-providers-isis-topology',
 ]
 
 onos_app (

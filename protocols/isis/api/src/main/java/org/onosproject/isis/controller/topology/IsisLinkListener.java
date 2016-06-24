@@ -23,16 +23,14 @@ public interface IsisLinkListener {
     /**
      * Notifies that we got a link from network.
      *
-     * @param isisRouter  router instance
-     * @param isisLinkTed link TED information of router
+     * @param isisLink link instance
      */
-    void addLink(IsisRouter isisRouter, IsisLinkTed isisLinkTed);
+    void addLink(IsisLink isisLink);
 
     /**
      * Notifies that a link got removed from network.
      *
-     * @param isisRouter router instance
-     * @param isisLinkTed isis link ted infromation
+     * @param isisLink link instance
      */
-    void deleteLink(IsisRouter isisRouter, IsisLinkTed isisLinkTed);
+    void deleteLink(IsisLink isisLink);
 }

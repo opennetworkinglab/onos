@@ -33,7 +33,7 @@ import static org.hamcrest.Matchers.notNullValue;
 public class InterfaceIpAddressTest {
     private final byte[] packet = {1, 1, 1, 1};
     private final byte[] packet1 = {};
-    private InterfaceIpAddress interfaceIpAddress;
+    private NeighborIpAddress interfaceIpAddress;
     private TlvHeader tlvHeader;
     private Ip4Address ip4Address = Ip4Address.valueOf("1.1.1.1");
     private byte[] result;
@@ -41,7 +41,7 @@ public class InterfaceIpAddressTest {
 
     @Before
     public void setUp() throws Exception {
-        interfaceIpAddress = new InterfaceIpAddress(new TlvHeader());
+        interfaceIpAddress = new NeighborIpAddress(new TlvHeader());
     }
 
     @After
@@ -61,15 +61,6 @@ public class InterfaceIpAddressTest {
     }
 
     /**
-     * Tests addLocalInterfaceIPAddress() method.
-     */
-    @Test
-    public void testAddLocalInterfaceIPAddress() throws Exception {
-        interfaceIpAddress.addLocalInterfaceIPAddress(ip4Address);
-        assertThat(interfaceIpAddress, is(notNullValue()));
-    }
-
-    /**
      * Tests readFrom() method.
      */
     @Test
@@ -77,7 +68,7 @@ public class InterfaceIpAddressTest {
         tlvHeader = new TlvHeader();
         tlvHeader.setTlvType(3);
         tlvHeader.setTlvLength(4);
-        interfaceIpAddress = new InterfaceIpAddress(tlvHeader);
+        interfaceIpAddress = new NeighborIpAddress(tlvHeader);
         channelBuffer = ChannelBuffers.copiedBuffer(packet);
         interfaceIpAddress.readFrom(channelBuffer);
         assertThat(interfaceIpAddress, is(notNullValue()));
@@ -91,27 +82,11 @@ public class InterfaceIpAddressTest {
         tlvHeader = new TlvHeader();
         tlvHeader.setTlvType(3);
         tlvHeader.setTlvLength(4);
-        interfaceIpAddress = new InterfaceIpAddress(tlvHeader);
+        interfaceIpAddress = new NeighborIpAddress(tlvHeader);
         channelBuffer = ChannelBuffers.copiedBuffer(packet1);
         interfaceIpAddress.readFrom(channelBuffer);
         assertThat(interfaceIpAddress, is(notNullValue()));
     }
 
-    /**
-     * Tests asBytes() method.
-     */
-    @Test
-    public void testAsBytes() throws Exception {
-        result = interfaceIpAddress.asBytes();
-        assertThat(result, is(notNullValue()));
-    }
 
-    /**
-     * Tests getLinkSubTypeTlvBodyAsByteArray() method.
-     */
-    @Test
-    public void testGetLinkSubTypeTlvBodyAsByteArray() throws Exception {
-        result = interfaceIpAddress.tlvBodyAsBytes();
-        assertThat(result, is(notNullValue()));
-    }
 }

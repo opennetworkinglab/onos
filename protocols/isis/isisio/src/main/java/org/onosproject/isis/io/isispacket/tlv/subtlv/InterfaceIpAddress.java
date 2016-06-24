@@ -1,18 +1,18 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright 2016-present Open Networking Laboratory
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 package org.onosproject.isis.io.isispacket.tlv.subtlv;
 
 import com.google.common.base.MoreObjects;
@@ -32,8 +32,8 @@ import java.util.List;
  */
 public class InterfaceIpAddress extends TlvHeader implements TrafficEngineeringSubTlv {
     private static final Logger log =
-            LoggerFactory.getLogger(InterfaceIpAddress.class);
-    private List<Ip4Address> localInterfaceIPAddress = new ArrayList<>();
+            LoggerFactory.getLogger(NeighborIpAddress.class);
+    private Ip4Address localInterfaceIPAddress;
 
     /**
      * Creates an instance of local interface ip address.
@@ -50,16 +50,16 @@ public class InterfaceIpAddress extends TlvHeader implements TrafficEngineeringS
      *
      * @param localAddress ip address
      */
-    public void addLocalInterfaceIPAddress(Ip4Address localAddress) {
-        localInterfaceIPAddress.add(localAddress);
+    public void setIpAddress(Ip4Address localAddress) {
+        this.localInterfaceIPAddress = localAddress;
     }
 
     /**
-     * Returns local interface ip address.
+     * Gets local interface ip address.
      *
      * @return localAddress ip address
      */
-    public List<Ip4Address> getLocalInterfaceIPAddress() {
+    public Ip4Address localInterfaceIPAddress() {
         return localInterfaceIPAddress;
     }
 
@@ -72,17 +72,19 @@ public class InterfaceIpAddress extends TlvHeader implements TrafficEngineeringS
         while (channelBuffer.readableBytes() >= IsisUtil.FOUR_BYTES) {
             byte[] tempByteArray = new byte[IsisUtil.FOUR_BYTES];
             channelBuffer.readBytes(tempByteArray, 0, IsisUtil.FOUR_BYTES);
-            this.addLocalInterfaceIPAddress(Ip4Address.valueOf(tempByteArray));
+            this.setIpAddress(Ip4Address.valueOf(tempByteArray));
+
         }
     }
 
     /**
-     * Returns local interface ip address as byte array.
+     * Gets local interface ip address as byte array.
      *
      * @return local interface ip address as byte array
      */
     public byte[] asBytes() {
         byte[] linkSubType = null;
+
         byte[] linkSubTlvHeader = tlvHeaderAsByteArray();
         byte[] linkSubTlvBody = tlvBodyAsBytes();
         linkSubType = Bytes.concat(linkSubTlvHeader, linkSubTlvBody);
@@ -91,15 +93,16 @@ public class InterfaceIpAddress extends TlvHeader implements TrafficEngineeringS
     }
 
     /**
-     * Returns byte array of local interface ip address.
+     * Gets byte array of local interface ip address.
      *
      * @return byte array of local interface ip address
      */
     public byte[] tlvBodyAsBytes() {
+
         List<Byte> linkSubTypeBody = new ArrayList<>();
-        for (Ip4Address remoteAddress : this.localInterfaceIPAddress) {
-            linkSubTypeBody.addAll(Bytes.asList(remoteAddress.toOctets()));
-        }
+
+        linkSubTypeBody.addAll(Bytes.asList(this.localInterfaceIPAddress.toOctets()));
+
 
         return Bytes.toArray(linkSubTypeBody);
     }

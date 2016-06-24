@@ -60,8 +60,8 @@ public final class SubTlvToBytes {
         } else if (subTlv instanceof UnreservedBandwidth) {
             UnreservedBandwidth unreservedBandwidth = (UnreservedBandwidth) subTlv;
             subTlvBytes.addAll(Bytes.asList(unreservedBandwidth.asBytes()));
-        } else if (subTlv instanceof InterfaceIpAddress) {
-            InterfaceIpAddress interfaceIpAddress = (InterfaceIpAddress) subTlv;
+        } else if (subTlv instanceof NeighborIpAddress) {
+            NeighborIpAddress interfaceIpAddress = (NeighborIpAddress) subTlv;
             subTlvBytes.addAll(Bytes.asList(interfaceIpAddress.asBytes()));
         } else {
             log.debug("TlvsToBytes::UNKNOWN TLV TYPE ::TlvsToBytes ");

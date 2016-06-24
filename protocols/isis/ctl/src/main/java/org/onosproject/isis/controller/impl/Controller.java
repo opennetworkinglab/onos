@@ -30,6 +30,9 @@ import org.onosproject.isis.controller.IsisInterface;
 import org.onosproject.isis.controller.IsisNetworkType;
 import org.onosproject.isis.controller.IsisProcess;
 import org.onosproject.isis.controller.IsisRouterType;
+import org.onosproject.isis.controller.topology.IsisAgent;
+import org.onosproject.isis.controller.topology.IsisLink;
+import org.onosproject.isis.controller.topology.IsisRouter;
 import org.onosproject.isis.io.util.IsisConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +46,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.onlab.util.Tools.groupedThreads;
@@ -64,13 +68,27 @@ public class Controller {
     private ScheduledExecutorService connectExecutor = null;
     private int connectRetryCounter = 0;
     private int connectRetryTime;
+    private ScheduledFuture future = null;
+    private IsisAgent agent;
 
     /**
      * Deactivates ISIS controller.
      */
     public void isisDeactivate() {
+        disconnectExecutor();
+        processes = null;
         peerExecFactory.shutdown();
     }
+
+    /**
+     * Sets ISIS agent.
+     *
+     * @param agent ISIS agent instance
+     */
+    public void setAgent(IsisAgent agent) {
+        this.agent = agent;
+    }
+
 
     /**
      * Updates the processes configuration.
@@ -134,17 +152,17 @@ public class Controller {
         peerBootstrap.setOption("keepAlive", true);
         peerBootstrap.setOption("receiveBufferSize", Controller.BUFFER_SIZE);
         peerBootstrap.setOption("receiveBufferSizePredictorFactory",
-                                new FixedReceiveBufferSizePredictorFactory(
-                                        Controller.BUFFER_SIZE));
+                new FixedReceiveBufferSizePredictorFactory(
+                        Controller.BUFFER_SIZE));
         peerBootstrap.setOption("receiveBufferSizePredictor",
-                                new AdaptiveReceiveBufferSizePredictor(64, 1024, 65536));
+                new AdaptiveReceiveBufferSizePredictor(64, 1024, 65536));
         peerBootstrap.setOption("child.keepAlive", true);
         peerBootstrap.setOption("child.tcpNoDelay", true);
         peerBootstrap.setOption("child.sendBufferSize", Controller.BUFFER_SIZE);
         peerBootstrap.setOption("child.receiveBufferSize", Controller.BUFFER_SIZE);
         peerBootstrap.setOption("child.receiveBufferSizePredictorFactory",
-                                new FixedReceiveBufferSizePredictorFactory(
-                                        Controller.BUFFER_SIZE));
+                new FixedReceiveBufferSizePredictorFactory(
+                        Controller.BUFFER_SIZE));
         peerBootstrap.setOption("child.reuseAddress", true);
 
         isisChannelHandler = new IsisChannelHandler(this, processes);
@@ -236,8 +254,8 @@ public class Controller {
                     continue;
                 }
                 isisInterface.setIntermediateSystemName(jsonNode1
-                                                                .path(IsisConstants.INTERMEDIATESYSTEMNAME)
-                                                                .asText());
+                        .path(IsisConstants.INTERMEDIATESYSTEMNAME)
+                        .asText());
                 String systemId = jsonNode1.path(IsisConstants.SYSTEMID).asText();
                 if (isValidSystemId(systemId)) {
                     isisInterface.setSystemId(systemId);
@@ -462,7 +480,8 @@ public class Controller {
      */
     public void disconnectExecutor() {
         if (connectExecutor != null) {
-            connectExecutor.shutdown();
+            future.cancel(true);
+            connectExecutor.shutdownNow();
             connectExecutor = null;
         }
     }
@@ -480,10 +499,55 @@ public class Controller {
      * @param retryDelay retry delay
      */
     private void scheduleConnectionRetry(long retryDelay) {
-        if (this.connectExecutor == null) {
-            this.connectExecutor = Executors.newSingleThreadScheduledExecutor();
+        if (connectExecutor == null) {
+            connectExecutor = Executors.newSingleThreadScheduledExecutor();
         }
-        this.connectExecutor.schedule(new ConnectionRetry(), retryDelay, TimeUnit.MINUTES);
+        future = connectExecutor.schedule(new ConnectionRetry(), retryDelay, TimeUnit.MINUTES);
+    }
+
+    /**
+     * Adds device details.
+     *
+     * @param isisRouter ISIS router instance
+     */
+    public void addDeviceDetails(IsisRouter isisRouter) {
+        agent.addConnectedRouter(isisRouter);
+    }
+
+    /**
+     * Removes device details.
+     *
+     * @param isisRouter Isis router instance
+     */
+    public void removeDeviceDetails(IsisRouter isisRouter) {
+        agent.removeConnectedRouter(isisRouter);
+    }
+
+    /**
+     * Adds link details.
+     *
+     * @param isisLink ISIS link instance
+     */
+    public void addLinkDetails(IsisLink isisLink) {
+        agent.addLink(isisLink);
+    }
+
+    /**
+     * Removes link details.
+     *
+     * @param isisLink ISIS link instance
+     */
+    public void removeLinkDetails(IsisLink isisLink) {
+        agent.deleteLink(isisLink);
+    }
+
+    /**
+     * Returns the isisAgent instance.
+     *
+     * @return agent
+     */
+    public IsisAgent agent() {
+        return this.agent;
     }
 
     /**
@@ -503,7 +567,7 @@ public class Controller {
                         if (!future.isSuccess()) {
                             connectRetryCounter++;
                             log.error("Connection failed, ConnectRetryCounter {} remote host {}", connectRetryCounter,
-                                      IsisConstants.SHOST);
+                                    IsisConstants.SHOST);
                             /*
                              * Reconnect to peer on failure is exponential till 4 mins, later on retry after every 4
                              * mins.
@@ -517,7 +581,7 @@ public class Controller {
                             isisChannelHandler.sentConfigPacket(configPacket);
                             connectRetryCounter++;
                             log.info("Connected to remote host {}, Connect Counter {}", IsisConstants.SHOST,
-                                     connectRetryCounter);
+                                    connectRetryCounter);
                             disconnectExecutor();
 
                             return;

@@ -21,7 +21,8 @@
         <bundle>mvn:${project.groupId}/onos-isis-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-isis-isisio/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-isis-ctl/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-isis-provider-device/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-isis-provider-topology/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-isis-provider-cfg/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-isis-provider-cli/${project.version}</bundle>
     </feature>
 </features>

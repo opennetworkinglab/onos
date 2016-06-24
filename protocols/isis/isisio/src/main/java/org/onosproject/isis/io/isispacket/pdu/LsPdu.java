@@ -90,12 +90,20 @@ public class LsPdu extends IsisHeader {
 
     /**
      * Creates an instance of Link State packet.
-     * Parameterized constructor which populate
      *
      * @param isisHeader isis header details
      */
     public LsPdu(IsisHeader isisHeader) {
         populateHeader(isisHeader);
+    }
+
+    /**
+     * Returns the ISIS tlvs.
+     *
+     * @return tlvs
+     */
+    public List<IsisTlv> tlvs() {
+        return this.variableLengths;
     }
 
     /**

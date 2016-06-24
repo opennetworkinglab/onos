@@ -31,10 +31,10 @@
     <description>ONOS ISIS protocol adapters</description>
 
     <modules>
-        <module>device</module>
         <module>app</module>
         <module>cfg</module>
         <module>cli</module>
+        <module>topology</module>
     </modules>
 
     <dependencies>

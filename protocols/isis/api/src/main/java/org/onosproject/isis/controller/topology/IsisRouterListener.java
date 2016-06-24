@@ -34,11 +34,4 @@ public interface IsisRouterListener {
      * @param isisRouter ISIS router instance
      */
     void routerRemoved(IsisRouter isisRouter);
-
-    /**
-     * Notifies that the router has changed in some way.
-     *
-     * @param isisRouter ISIS router instance
-     */
-    void routerChanged(IsisRouter isisRouter);
 }

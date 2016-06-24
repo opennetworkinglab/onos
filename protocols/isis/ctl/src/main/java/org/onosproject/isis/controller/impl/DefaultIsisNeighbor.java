@@ -356,6 +356,8 @@ public class DefaultIsisNeighbor implements IsisNeighbor {
         stopInactivityTimeCheck();
         stopHoldingTimeCheck();
         isisInterface.removeNeighbor(this);
+
+        isisInterface.isisLsdb().removeTopology(this, isisInterface);
     }
 
     /**

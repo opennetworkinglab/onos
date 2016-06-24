@@ -43,7 +43,6 @@ public enum IsisNetworkType {
 
     private int value;
 
-
     /**
      * Creates an instance of ISIS network type.
      *

@@ -21,17 +21,24 @@ import org.onosproject.isis.controller.IsisLsdb;
 import org.onosproject.isis.controller.IsisLsdbAge;
 import org.onosproject.isis.controller.IsisLspBin;
 import org.onosproject.isis.controller.IsisMessage;
+import org.onosproject.isis.controller.IsisNeighbor;
 import org.onosproject.isis.controller.IsisPduType;
+import org.onosproject.isis.controller.IsisRouterType;
 import org.onosproject.isis.controller.LspWrapper;
+import org.onosproject.isis.controller.impl.Controller;
+import org.onosproject.isis.controller.impl.LspEventConsumer;
 import org.onosproject.isis.io.isispacket.pdu.LsPdu;
 import org.onosproject.isis.io.util.IsisConstants;
 import org.onosproject.isis.io.util.IsisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -43,10 +50,14 @@ public class DefaultIsisLsdb implements IsisLsdb {
     private Map<String, LspWrapper> isisL1Db = new ConcurrentHashMap<>();
     private Map<String, LspWrapper> isisL2Db = new ConcurrentHashMap<>();
     private IsisLsdbAge lsdbAge = null;
+    private Controller controller = null;
+    private List<IsisInterface> isisInterfaceList = new ArrayList<>();
 
 
     private int l1LspSeqNo = IsisConstants.STARTLSSEQUENCENUM;
     private int l2LspSeqNo = IsisConstants.STARTLSSEQUENCENUM;
+    private LspEventConsumer queueConsumer = null;
+    private BlockingQueue<LspWrapper> lspForProviderQueue = new ArrayBlockingQueue<>(1024);
 
     /**
      * Creates an instance of ISIS LSDB.
@@ -56,10 +67,30 @@ public class DefaultIsisLsdb implements IsisLsdb {
     }
 
     /**
+     * Sets the controller instance.
+     *
+     * @param controller controller instance
+     */
+    public void setController(Controller controller) {
+        this.controller = controller;
+    }
+
+    /**
+     * Sets the list of IsisInterface instance.
+     *
+     * @param isisInterfaceList isisInterface instance
+     */
+    public void setIsisInterface(List<IsisInterface> isisInterfaceList) {
+        this.isisInterfaceList = isisInterfaceList;
+    }
+
+    /**
      * Initializes the link state database.
      */
     public void initializeDb() {
         lsdbAge.startDbAging();
+        queueConsumer = new LspEventConsumer(lspForProviderQueue, controller);
+        new Thread(queueConsumer).start();
     }
 
     /**
@@ -95,7 +126,6 @@ public class DefaultIsisLsdb implements IsisLsdb {
 
         return lspKey.toString();
     }
-
 
     /**
      * Returns the neighbor L1 database information.
@@ -215,7 +245,7 @@ public class DefaultIsisLsdb implements IsisLsdb {
             byte[] lspBytes = lspdu.asBytes();
             lspdu.setPduLength(lspBytes.length);
             lspBytes = IsisUtil.addChecksum(lspBytes, IsisConstants.CHECKSUMPOSITION,
-                                            IsisConstants.CHECKSUMPOSITION + 1);
+                    IsisConstants.CHECKSUMPOSITION + 1);
             byte[] checkSum = {lspBytes[IsisConstants.CHECKSUMPOSITION], lspBytes[IsisConstants.CHECKSUMPOSITION + 1]};
             lspdu.setCheckSum(ChannelBuffers.copiedBuffer(checkSum).readUnsignedShort());
         }
@@ -236,6 +266,14 @@ public class DefaultIsisLsdb implements IsisLsdb {
         addLsp(lspWrapper, lspdu.lspId());
 
         log.debug("Added LSp In LSDB: {}", lspWrapper);
+        try {
+            if (!lspWrapper.isSelfOriginated()) {
+                lspWrapper.setLspProcessing(IsisConstants.LSPADDED);
+                lspForProviderQueue.put(lspWrapper);
+            }
+        } catch (Exception e) {
+            log.debug("Added LSp In Blocking queue: {}", lspWrapper);
+        }
         return true;
     }
 
@@ -273,9 +311,10 @@ public class DefaultIsisLsdb implements IsisLsdb {
             lspBin.addIsisLsp(key, lspWrapper);
             lsdbAge.addLspBin(binNumber, lspBin);
             log.debug("Added Type {} LSP to LSDB and LSABin[{}], Remaining life time of LSA {}",
-                      lspWrapper.lsPdu().isisPduType(),
-                      binNumber, lspWrapper.remainingLifetime());
+                    lspWrapper.lsPdu().isisPduType(),
+                    binNumber, lspWrapper.remainingLifetime());
         }
+
         return false;
     }
 
@@ -337,6 +376,7 @@ public class DefaultIsisLsdb implements IsisLsdb {
     public void deleteLsp(IsisMessage lspMessage) {
         LsPdu lsp = (LsPdu) lspMessage;
         String lspKey = lsp.lspId();
+        LspWrapper lspWrapper = findLsp(lspMessage.isisPduType(), lspKey);
         switch (lsp.isisPduType()) {
             case L1LSPDU:
                 isisL1Db.remove(lspKey);
@@ -347,6 +387,48 @@ public class DefaultIsisLsdb implements IsisLsdb {
             default:
                 log.debug("Unknown LSP type to remove..!!!");
                 break;
+        }
+
+        try {
+            lspWrapper.setLspProcessing(IsisConstants.LSPREMOVED);
+            lspForProviderQueue.put(lspWrapper);
+        } catch (Exception e) {
+            log.debug("Added LSp In Blocking queue: {}", lspWrapper);
+        }
+    }
+
+    /**
+     * Removes topology information when neighbor down.
+     *
+     * @param neighbor      ISIS neighbor instance
+     * @param isisInterface ISIS interface instance
+     */
+    public void removeTopology(IsisNeighbor neighbor, IsisInterface isisInterface) {
+        String lspKey = neighbor.neighborSystemId() + ".00-00";
+        LspWrapper lspWrapper = null;
+        switch (IsisRouterType.get(isisInterface.reservedPacketCircuitType())) {
+            case L1:
+                lspWrapper = findLsp(IsisPduType.L1LSPDU, lspKey);
+                break;
+            case L2:
+                lspWrapper = findLsp(IsisPduType.L2LSPDU, lspKey);
+                break;
+            case L1L2:
+                lspWrapper = findLsp(IsisPduType.L1LSPDU, lspKey);
+                if (lspWrapper == null) {
+                    lspWrapper = findLsp(IsisPduType.L2LSPDU, lspKey);
+                }
+                break;
+            default:
+                log.debug("Unknown type");
+        }
+        try {
+            if (lspWrapper != null) {
+                lspWrapper.setLspProcessing(IsisConstants.LSPREMOVED);
+                lspForProviderQueue.put(lspWrapper);
+            }
+        } catch (Exception e) {
+            log.debug("Added LSp In Blocking queue: {}", lspWrapper);
         }
     }
 }
