@@ -64,8 +64,8 @@ def stageOnos(output, files=[]):
                                 addFile(output, dest, oar.open(f), f.file_size)
                                 written_files.add(dest)
             elif 'features.xml' in file:
-                dest = BASE + 'apache-karaf-3.0.5/system/org/onosproject/onos-features/1.6.0-SNAPSHOT/'
-                dest += 'onos-features-1.6.0-SNAPSHOT-features.xml'
+                dest = BASE + 'apache-karaf-3.0.5/system/org/onosproject/onos-features/1.6.0/'
+                dest += 'onos-features-1.6.0-features.xml'
                 with open(file) as f:
                     addFile(output, dest, f, os.stat(file).st_size)
         addString(output, BASE + 'apps/org.onosproject.drivers/active', '')
