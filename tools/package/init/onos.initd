@@ -41,7 +41,12 @@ startonos () {
     cmd=$1
     shift
     # Start ONOS as a daemon
-    . /etc/init.d/functions && true
+    if test -f /lib/lsb/init-functions; then
+        . /lib/lsb/init-functions
+    else
+        . /etc/init.d/functions && true
+    fi
+
     if type daemon | grep -i function >/dev/null 2>&1; then
         # Use 'daemon' function if available
         # Shell metacharacters are passed as arguments to daemon
