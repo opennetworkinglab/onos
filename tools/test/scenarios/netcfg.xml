@@ -1,0 +1,71 @@
+<!--
+  ~ Copyright 2016-present Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="netcfg"
+          description="Network configuration REST API test">
+
+    <group name="Netcfg">
+
+        <!-- Activate the DHCP app -->
+        <step name="Netcfg.Activate-Dhcp"
+              exec="onos ${OC1} app activate org.onosproject.dhcp"/>
+
+        <!-- Upload the first set of config changes -->
+        <step name="Netcfg.Post-1" requires="^"
+              exec="post-netcfg.py ${OC1} ${ONOS_SCENARIOS}/netcfg-test/dhcp-cfg1.json"/>
+
+        <group name="Query1" requires="Netcfg.Post-1">
+            <parallel var="${OC#}" starts="Netcfg.Query-1-${#}">
+                <!-- Check that the values made it into the config for the DHCP server -->
+                <step name="Netcfg.QueryDhcp-1-${#}" exec="check-dhcp-netcfg.py ${OC#} ttl=1 lease=2 renew=3 rebind=4 delay=5 timeout=6"/>
+            </parallel>
+        </group>
+
+        <!-- Upload the second set of config changes -->
+        <step name="Netcfg.Post-2" requires="Query1"
+              exec="post-netcfg.py ${OC1} ${ONOS_SCENARIOS}/netcfg-test/dhcp-cfg2.json"/>
+
+        <!-- Check that the values made it into the config for the DHCP server -->
+        <group name="Query2" requires="Netcfg.Post-2">
+            <parallel var="${OC#}" starts="Netcfg.Query-2-${#}">
+                <!-- Check that the values made it into the config for the DHCP server -->
+                <step name="Netcfg.QueryDhcp-2-${#}" exec="check-dhcp-netcfg.py ${OC#} ttl=21 lease=22 renew=23 rebind=24 delay=25 timeout=26"/>
+            </parallel>
+        </group>
+
+
+        <!-- Delete the DHCP server config -->
+        <step name="Netcfg.Delete" requires="Query2"
+              exec="delete-netcfg.py ${OC1} apps/org.onosproject.dhcp/dhcp"/>
+
+        <!-- Check that the config for the DHCP server is no longer there -->
+        <group name="Query3" requires="Netcfg.Delete">
+            <parallel var="${OC#}" starts="Netcfg.Query-3-${#}">
+                <!-- Check that the values were deleted for the config for the DHCP server -->
+                <step name="Netcfg.QueryDhcp-31-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} ttl=21"/>
+                <step name="Netcfg.QueryDhcp-32-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} lease=22"/>
+                <step name="Netcfg.QueryDhcp-33-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} renew=23"/>
+                <step name="Netcfg.QueryDhcp-34-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} rebind=24"/>
+                <step name="Netcfg.QueryDhcp-35-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} delay=25"/>
+                <step name="Netcfg.QueryDhcp-36-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} timeout=26"/>
+            </parallel>
+        </group>
+
+        <!-- Deactivate the DHCP app -->
+        <step name="Netcfg.Deactivate-Dhcp" requires="Query3"
+              exec="onos ${OC1} app deactivate org.onosproject.dhcp"/>
+
+    </group>
+</scenario>

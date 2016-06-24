@@ -34,6 +34,9 @@
     <import file="${ONOS_SCENARIOS}/drivers-test.xml"/>
     <dependency name="Drivers-Test" requires="Setup,Net-Smoke,Archetypes"/>
 
+    <import file="${ONOS_SCENARIOS}/netcfg.xml"/>
+    <dependency name="Netcfg" requires="Setup"/>
+
     <import file="${ONOS_SCENARIOS}/wrapup.xml"/>
-    <dependency name="Wrapup" requires="~Archetypes,~Setup,~Net-Smoke,~Drivers-Test,~MetaAppReactivated"/>
+    <dependency name="Wrapup" requires="~Archetypes,~Setup,~Net-Smoke,~Drivers-Test,~MetaAppReactivated,~Netcfg"/>
 </scenario>
