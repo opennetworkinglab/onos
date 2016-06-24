@@ -21,5 +21,5 @@
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/${project.artifactId}/${project.version}</artifact>
     <!-- TODO: Replace this with variable -->
-    <artifact>mvn:org.opencord/cord-config/1.0-SNAPSHOT</artifact>
+    <artifact>mvn:org.onosproject/cord-config/1.0-b1</artifact>
 </app>
