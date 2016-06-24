@@ -66,6 +66,7 @@ import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.link.LinkService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.pcep.api.PcepController;
@@ -212,6 +213,9 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LinkService linkService;
 
     TunnelProviderService service;
 
@@ -611,6 +615,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         if (tunnel.type() == MPLS) {
             pcepTunnelApiMapper.removeFromCoreTunnelRequestQueue(tunnel.id());
             service.tunnelRemoved(tunnel);
+            return;
         }
 
         Tunnel tunnelOld = tunnelQueryById(tunnel.id());
@@ -1681,8 +1686,8 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             if (lspObj.getDFlag()) {
                 annotations = getAnnotations(lspObj, ipv4LspIdenTlv, bandwidth, lspType, costType);
                 td = new DefaultTunnelDescription(null, tunnelEndPointSrc, tunnelEndPointDst, MPLS, new DefaultGroupId(
-                        0), providerId, TunnelName.tunnelName(new String(pathNameTlv.getValue())), path, labelStack,
-                        annotations);
+                        0), providerId, TunnelName.tunnelName(new String(pathNameTlv.getValue())),
+                        tunnel.path(), labelStack, annotations);
                 tunnelUpdateInDelegatedCase(pccId, annotations, td, providerId);
             }
             removeOrUpdatetunnel(tunnel, pccId, lspObj, providerId, tunnelState);
@@ -1744,12 +1749,29 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
                     IPv4SubObject ipv4SubObj = (IPv4SubObject) subObj;
                     if (!isSrcSet) {
-                        IpAddress srcIp = IpAddress.valueOf(ipv4SubObj.getIpAddress());
-                        src = new ConnectPoint(IpElementId.ipElement(srcIp), PortNumber.portNumber(0));
-                        isSrcSet = true;
-                    } else {
-                        IpAddress dstIp = IpAddress.valueOf(ipv4SubObj.getIpAddress());
-                        dst = new ConnectPoint(IpElementId.ipElement(dstIp), PortNumber.portNumber(0));
+                            Iterable<Link> links = linkService.getActiveLinks();
+                            for (Link l : links) {
+                                if (l.src().port().equals(PortNumber.portNumber(ipv4SubObj.getIpAddress()))) {
+                                    src = l.src();
+                                    isSrcSet = true;
+                                    break;
+                                } else if (l.dst().port().equals(PortNumber.portNumber(ipv4SubObj.getIpAddress()))) {
+                                    src = l.dst();
+                                    isSrcSet = true;
+                                    break;
+                                }
+                            }
+                        } else {
+                            Iterable<Link> links = linkService.getActiveLinks();
+                            for (Link l : links) {
+                                if (l.src().port().equals(PortNumber.portNumber(ipv4SubObj.getIpAddress()))) {
+                                    dst = l.src();
+                                    break;
+                                } else if (l.dst().port().equals(PortNumber.portNumber(ipv4SubObj.getIpAddress()))) {
+                                    dst = l.dst();
+                                    break;
+                                }
+                            }
                         Link link = DefaultLink.builder()
                                 .providerId(providerId)
                                 .src(src)

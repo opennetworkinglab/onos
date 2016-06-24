@@ -28,6 +28,7 @@ import static org.onosproject.pcep.controller.PcepAnnotationKeys.DELEGATE;
 import static org.onosproject.pcep.controller.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
 import static org.onosproject.pcep.controller.PcepSyncStatus.SYNCED;
 import static org.onosproject.net.Device.Type.ROUTER;
+import static org.onosproject.net.Link.State.ACTIVE;
 import static org.onosproject.net.MastershipRole.MASTER;
 
 import java.io.IOException;
@@ -62,15 +63,20 @@ import org.onosproject.incubator.net.tunnel.TunnelProviderService;
 import org.onosproject.incubator.net.tunnel.Tunnel.State;
 import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
+import org.onosproject.net.DefaultLink;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
+import org.onosproject.net.Link;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Path;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DeviceServiceAdapter;
+import org.onosproject.net.link.LinkServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.pcepio.exceptions.PcepOutOfBoundMessageException;
 import org.onosproject.pcepio.exceptions.PcepParseException;
@@ -82,6 +88,7 @@ import org.onosproject.pcep.controller.ClientCapability;
 import org.onosproject.pcep.controller.LspKey;
 import org.onosproject.pcep.controller.PccId;
 
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -99,7 +106,22 @@ public class PcepTunnelAddedTest {
     private final MockTunnelServiceAdapter tunnelService = new MockTunnelServiceAdapter();
     public final MockDeviceService deviceService = new MockDeviceService();
     private final MockMasterShipService masterShipService = new MockMasterShipService();
+    private final MockLinkService linkService = new MockLinkService();
     private final MockTunnelAdminService tunnelAdminService = new MockTunnelAdminService();
+
+    private class MockLinkService extends LinkServiceAdapter {
+        LinkedList<Link> links = new LinkedList<>();
+        void addLink(Link link) {
+            links.add(link);
+        }
+
+        @Override
+        public Iterable<Link> getActiveLinks() {
+
+            return FluentIterable.from(links)
+                    .filter(input -> input.state() == Link.State.ACTIVE);
+        }
+    }
 
     private class MockTunnelAdminService implements TunnelAdminService {
 
@@ -275,6 +297,7 @@ public class PcepTunnelAddedTest {
         tunnelProvider.tunnelService = tunnelService;
         tunnelProvider.tunnelAdminService = tunnelAdminService;
         tunnelProvider.service = registry.register(tunnelProvider);
+        tunnelProvider.linkService = linkService;
         tunnelProvider.activate();
     }
 
@@ -326,6 +349,14 @@ public class PcepTunnelAddedTest {
         controller.getClient(PccId.pccId(IpAddress.valueOf("1.1.1.1"))).setCapability(
                 new ClientCapability(true, true, true, true, true));
         masterShipService.setMaster(true);
+        Link link = DefaultLink.builder()
+                .src(new ConnectPoint(device.id(), PortNumber.portNumber(16843009)))
+                .dst(new ConnectPoint(device.id(), PortNumber.portNumber(84215045)))
+                .state(ACTIVE)
+                .type(Link.Type.DIRECT)
+                .providerId(ProviderId.NONE)
+                .build();
+        linkService.addLink(link);
         controller.processClientMessage(PccId.pccId(IpAddress.valueOf("1.1.1.1")), message);
 
         assertThat(registry.tunnelIdCounter, is((long) 1));
@@ -444,6 +475,14 @@ public class PcepTunnelAddedTest {
         controller.getClient(pccId).setLspDbSyncStatus(SYNCED);
         controller.getClient(pccId).setCapability(new ClientCapability(true, true, true, true, true));
 
+        Link link = DefaultLink.builder()
+                .src(new ConnectPoint(device.id(), PortNumber.portNumber(16843009)))
+                .dst(new ConnectPoint(device.id(), PortNumber.portNumber(84215045)))
+                .state(ACTIVE)
+                .type(Link.Type.DIRECT)
+                .providerId(ProviderId.NONE)
+                .build();
+        linkService.addLink(link);
         PcepClientAdapter pc = new PcepClientAdapter();
         pc.init(pccId, PcepVersion.PCEP_1);
         controller.getClient(pccId).setLspAndDelegationInfo(new LspKey(1, (short) 1), true);
@@ -505,6 +544,14 @@ public class PcepTunnelAddedTest {
         deviceService.addDevice(device);
         controller.getClient(PccId.pccId(IpAddress.valueOf("1.1.1.1"))).setCapability(
                 new ClientCapability(true, true, true, true, true));
+        Link link = DefaultLink.builder()
+                .src(new ConnectPoint(device.id(), PortNumber.portNumber(16843009)))
+                .dst(new ConnectPoint(device.id(), PortNumber.portNumber(84215045)))
+                .state(ACTIVE)
+                .type(Link.Type.DIRECT)
+                .providerId(ProviderId.NONE)
+                .build();
+        linkService.addLink(link);
         controller.processClientMessage(PccId.pccId(IpAddress.valueOf("1.1.1.1")), message);
         assertThat(tunnelService.tunnelIdAsKeyStore.values().iterator().next().annotations().value(DELEGATE),
                 is("false"));
@@ -624,6 +671,7 @@ public class PcepTunnelAddedTest {
         tunnelProvider.tunnelAdminService = null;
         tunnelProvider.deviceService = null;
         tunnelProvider.mastershipService = null;
+        tunnelProvider.linkService = null;
         tunnelProvider.service = null;
     }
 }

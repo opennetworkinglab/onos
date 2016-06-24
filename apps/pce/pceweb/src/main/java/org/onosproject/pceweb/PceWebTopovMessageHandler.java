@@ -664,6 +664,11 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
                 sendMessage(TopoJson.highlightsMessage(highlights));
                 return;
             }
+            if (!tunnel.state().equals(Tunnel.State.ACTIVE)) {
+                log.debug("Tunnel state is not active");
+                sendMessage(TopoJson.highlightsMessage(highlights));
+                return;
+            }
             Link firstLink = tunnel.path().links().get(0);
             if (firstLink != null) {
                 if (firstLink.src() != null) {

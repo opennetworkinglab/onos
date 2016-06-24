@@ -1005,7 +1005,7 @@ public class BgpTopologyProviderTest {
         linkStateAttr.add(tlv);
         tlv = BgpLinkAttrTeDefaultMetric.of(20);
         linkStateAttr.add(tlv);
-        tlv = BgpLinkAttrMaxLinkBandwidth.of((float) 8.75 * 1_000_000L,
+        tlv = BgpLinkAttrMaxLinkBandwidth.of((float) 70 * 1_000_000L,
                 LinkStateAttributes.ATTR_LINK_MAX_RES_BANDWIDTH);
         linkStateAttr.add(tlv);
         linkPathAttributes.add(new LinkStateAttributes(linkStateAttr));
