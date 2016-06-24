@@ -47,7 +47,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
@@ -152,7 +151,7 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
                         log.debug("getFlowEntries(): inconsistent entry id! BUG? Updating it... remote={}, local={}",
                                  remoteEntryId, localEntryId);
                         frWrapper = new Bmv2FlowRuleWrapper(frWrapper.rule(), remoteEntryId,
-                                                            frWrapper.creationDate());
+                                                            frWrapper.installedOnMillis());
                         tableEntryService.bind(entryRef, frWrapper);
                     }
 
@@ -255,7 +254,7 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
                         }
                         // Add entry.
                         entryId = doAddEntry(deviceAgent, bmv2Entry);
-                        frWrapper = new Bmv2FlowRuleWrapper(rule, entryId, new Date());
+                        frWrapper = new Bmv2FlowRuleWrapper(rule, entryId, System.currentTimeMillis());
                     } else {
                         // Remove entry
                         if (frWrapper == null) {
