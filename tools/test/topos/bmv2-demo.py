@@ -1,10 +1,20 @@
 #!/usr/bin/python
 
+import os
+import sys
 import argparse
+
+# Find and import bmv2.py
+if 'ONOS_ROOT' not in os.environ:
+    print "Environment var $ONOS_ROOT not set"
+    exit()
+else:
+    sys.path.append(os.environ["ONOS_ROOT"] + "/tools/dev/mininet")
+    from bmv2 import ONOSBmv2Switch
+
 from itertools import combinations
 from time import sleep
 
-from bmv2 import ONOSBmv2Switch
 from mininet.cli import CLI
 from mininet.link import TCLink
 from mininet.log import setLogLevel
@@ -29,8 +39,8 @@ class ClosTopo(Topo):
             bmv2Switches[switchId] = self.addSwitch(switchId,
                                                     cls=ONOSBmv2Switch,
                                                     loglevel="warn",
-                                                    device_id=int(switchId[1:]),
-                                                    thrift_port=tport)
+                                                    deviceId=int(switchId[1:]),
+                                                    thriftPort=tport)
             tport += 1
 
         for i in (1, 2, 3):
