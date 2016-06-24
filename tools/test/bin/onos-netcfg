@@ -15,13 +15,18 @@ file="${2:-$ONOS_ROOT/tools/test/topos/oe-linear-3.json}"
 url="${3}"
 
 method="POST"
-[ $file == "delete" ] && method="DELETE"
+[ $(echo $file | awk '{print tolower($0)}') == "delete" ] && method="DELETE"
 
-# Validate JSON
 if [ $method == "POST" ]; then
-    cat $file | python -m json.tool >> /dev/null || echo "Not valid JSON File"; exit 1
+    # Validate JSON
+    cat $file | python -m json.tool >> /dev/null
+    if [ "$?" -ne "0" ]; then
+        echo "Not valid JSON File" && exit 1
+    fi
+    curl $fail -sSL --user $ONOS_WEB_USER:$ONOS_WEB_PASS \
+        -X POST -H 'Content-Type:application/json' \
+        http://$node:8181/onos/v1/network/configuration/${url} -d@$file
+elif [ $method == "DELETE" ]; then
+    curl $fail -sSL --user $ONOS_WEB_USER:$ONOS_WEB_PASS \
+        -X DELETE http://$node:8181/onos/v1/network/configuration/${url}
 fi
-
-curl $fail -sSL --user $ONOS_WEB_USER:$ONOS_WEB_PASS \
-    -X $method -H 'Content-Type:application/json' \
-    http://$node:8181/onos/v1/network/configuration/${url} -d@$file
