@@ -18,6 +18,7 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
+        <bundle>mvn:${project.groupId}/onos-app-bgp-flowapi/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-bgpio/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-bgp-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-bgp-ctl/${project.version}</bundle>

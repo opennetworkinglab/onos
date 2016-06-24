@@ -19,6 +19,7 @@
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>
+    <artifact>mvn:${project.groupId}/onos-app-bgp-flowapi/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-bgpio/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-bgp-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-bgp-ctl/${project.version}</artifact>
