@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,12 @@
  */
 package org.onosproject.net.config;
 
+import org.joda.time.LocalDateTime;
 import org.onosproject.event.AbstractEvent;
+
+import java.util.Optional;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Describes network configuration event.
@@ -23,6 +28,8 @@ import org.onosproject.event.AbstractEvent;
 public class NetworkConfigEvent extends AbstractEvent<NetworkConfigEvent.Type, Object> {
 
     private final Class configClass;
+    private final Config config;
+    private final Config prevConfig;
 
     /**
      * Type of network configuration events.
@@ -65,6 +72,8 @@ public class NetworkConfigEvent extends AbstractEvent<NetworkConfigEvent.Type, O
     public NetworkConfigEvent(Type type, Object subject, Class configClass) {
         super(type, subject);
         this.configClass = configClass;
+        this.config = null;
+        this.prevConfig = null;
     }
 
     /**
@@ -78,6 +87,26 @@ public class NetworkConfigEvent extends AbstractEvent<NetworkConfigEvent.Type, O
     public NetworkConfigEvent(Type type, Object subject, Class configClass, long time) {
         super(type, subject, time);
         this.configClass = configClass;
+        this.config = null;
+        this.prevConfig = null;
+    }
+
+    /**
+     * Creates an event of a given type and for the specified subject,
+     * previous config and time.
+     *
+     * @param type        device event type
+     * @param subject     event subject
+     * @param configClass configuration class
+     * @param config      current config
+     * @param prevConfig  previous config
+     */
+    public NetworkConfigEvent(Type type, Object subject, Config config,
+            Config prevConfig, Class configClass) {
+        super(type, subject);
+        this.configClass = configClass;
+        this.config = config;
+        this.prevConfig = prevConfig;
     }
 
     /**
@@ -89,4 +118,34 @@ public class NetworkConfigEvent extends AbstractEvent<NetworkConfigEvent.Type, O
         return configClass;
     }
 
+    /**
+     * Returns current config.
+     *
+     * @return current config; value presents only when the type is
+     *         CONFIG_ADDED or CONFIG_UPDATED
+     */
+    public Optional<Config> config() {
+        return (config != null) ? Optional.of(config) : Optional.empty();
+    }
+
+    /**
+     * Returns previous config.
+     *
+     * @return previous config; value presents only when the type is
+     *         CONFIG_UPDATED or CONFIG_REMOVED
+     */
+    public Optional<Config> prevConfig() {
+        return (prevConfig != null) ? Optional.of(prevConfig) : Optional.empty();
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("time", new LocalDateTime(time()))
+                .add("type", type())
+                .add("config", config())
+                .add("prevConfig", prevConfig())
+                .add("configClass", configClass())
+                .toString();
+    }
 }

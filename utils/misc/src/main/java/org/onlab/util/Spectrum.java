@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,33 +19,37 @@ package org.onlab.util;
  * Telecom optical wavelength bands: O, E, S, C, L and U bands.
  *
  * See ITU-T G-Series Recommendations, Supplement 39
+ * See ITU-T G.694.1 for center frequency definition.
  */
 public final class Spectrum {
 
-    private Spectrum() {
-    }
+    // Center frequency
+    public static final Frequency CENTER_FREQUENCY = Frequency.ofGHz(193_100);
 
     // O band (original): 1260 to 1360 nm
-    public static final Frequency O_BAND_MIN = Frequency.ofTHz(220.436);
-    public static final Frequency O_BAND_MAX = Frequency.ofTHz(237.931);
+    public static final Frequency O_BAND_MIN = Frequency.ofGHz(220_436);
+    public static final Frequency O_BAND_MAX = Frequency.ofGHz(237_931);
 
     // E band (extended): 1360 to 1460 nm
-    public static final Frequency E_BAND_MIN = Frequency.ofTHz(205.337);
-    public static final Frequency E_BAND_MAX = Frequency.ofTHz(220.436);
+    public static final Frequency E_BAND_MIN = Frequency.ofGHz(205_337);
+    public static final Frequency E_BAND_MAX = Frequency.ofGHz(220_436);
 
     // S band (short wavelength): 1460 to 1530 nm
-    public static final Frequency S_BAND_MIN = Frequency.ofTHz(195.943);
-    public static final Frequency S_BAND_MAX = Frequency.ofTHz(205.337);
+    public static final Frequency S_BAND_MIN = Frequency.ofGHz(195_943);
+    public static final Frequency S_BAND_MAX = Frequency.ofGHz(205_337);
 
     // C band (conventional): 1530 to 1565 nm
-    public static final Frequency C_BAND_MIN = Frequency.ofTHz(191.561);
-    public static final Frequency C_BAND_MAX = Frequency.ofTHz(195.943);
+    public static final Frequency C_BAND_MIN = Frequency.ofGHz(191_561);
+    public static final Frequency C_BAND_MAX = Frequency.ofGHz(195_943);
 
     // L band (long wavelength): 1565 to 1625 nm
-    public static final Frequency L_BAND_MIN = Frequency.ofTHz(184.488);
-    public static final Frequency L_BAND_MAX = Frequency.ofTHz(191.561);
+    public static final Frequency L_BAND_MIN = Frequency.ofGHz(184_488);
+    public static final Frequency L_BAND_MAX = Frequency.ofGHz(191_561);
 
     // U band (ultra-long wavelength): 1625 to 1675 nm
-    public static final Frequency U_BAND_MIN = Frequency.ofTHz(178.981);
-    public static final Frequency U_BAND_MAX = Frequency.ofTHz(184.488);
+    public static final Frequency U_BAND_MIN = Frequency.ofGHz(178_981);
+    public static final Frequency U_BAND_MAX = Frequency.ofGHz(184_488);
+
+    private Spectrum() {
+    }
 }

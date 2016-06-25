@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.onosproject.net.flow;
+
+import java.util.List;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.ProviderService;
@@ -50,6 +52,15 @@ public interface FlowRuleProviderService extends ProviderService<FlowRuleProvide
     void pushFlowMetricsWithoutFlowMissing(DeviceId deviceId, Iterable<FlowEntry> flowEntries);
 
     /**
+     * Pushes the collection of table statistics entries currently extracted
+     * from the given device.
+     *
+     * @param deviceId device identifier
+     * @param tableStatsEntries collection of flow table statistics entries
+     */
+    void pushTableStatistics(DeviceId deviceId, List<TableStatisticsEntry> tableStatsEntries);
+
+    /**
      * Indicates to the core that the requested batch operation has
      * been completed.
      *
@@ -57,5 +68,4 @@ public interface FlowRuleProviderService extends ProviderService<FlowRuleProvide
      * @param operation the resulting outcome of the operation
      */
     void batchOperationCompleted(long batchId, CompletedBatchOperation operation);
-
 }

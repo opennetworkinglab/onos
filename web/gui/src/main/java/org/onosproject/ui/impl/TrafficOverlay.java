@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 
 package org.onosproject.ui.impl;
 
+import org.onosproject.net.DeviceId;
 import org.onosproject.ui.UiTopoOverlay;
 import org.onosproject.ui.topo.ButtonId;
 import org.onosproject.ui.topo.PropertyPanel;
@@ -55,7 +56,7 @@ public class TrafficOverlay extends UiTopoOverlay {
     }
 
     @Override
-    public void modifyDeviceDetails(PropertyPanel pp) {
+    public void modifyDeviceDetails(PropertyPanel pp, DeviceId deviceId) {
         pp.addButton(SHOW_DEVICE_FLOWS)
             .addButton(SHOW_RELATED_TRAFFIC);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,11 +83,11 @@ public class IcmpHandler {
 
         if (((ICMP) ipv4.getPayload()).getIcmpType() == ICMP.TYPE_ECHO_REQUEST &&
                 ipMatches) {
-            sendICMPResponse(ethernet, connectPoint);
+            sendIcmpResponse(ethernet, connectPoint);
         }
     }
 
-    private void sendICMPResponse(Ethernet icmpRequest, ConnectPoint outport) {
+    private void sendIcmpResponse(Ethernet icmpRequest, ConnectPoint outport) {
 
         Ethernet icmpReplyEth = new Ethernet();
 
@@ -101,6 +101,7 @@ public class IcmpHandler {
         icmpReplyIpv4.setChecksum((short) 0);
 
         ICMP icmpReply = new ICMP();
+        icmpReply.setPayload(((ICMP) icmpRequestIpv4.getPayload()).getPayload());
         icmpReply.setIcmpType(ICMP.TYPE_ECHO_REPLY);
         icmpReply.setIcmpCode(ICMP.SUBTYPE_ECHO_REPLY);
         icmpReply.setChecksum((short) 0);

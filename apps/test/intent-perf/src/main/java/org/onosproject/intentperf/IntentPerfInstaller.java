@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,11 +51,9 @@ import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.PartitionService;
+import org.onosproject.net.intent.IntentPartitionService;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.cluster.messaging.ClusterMessage;
-import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -71,6 +69,7 @@ import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -140,7 +139,7 @@ public class IntentPerfInstaller {
     protected MastershipService mastershipService;
 
     @Reference(cardinality = MANDATORY_UNARY)
-    protected PartitionService partitionService;
+    protected IntentPartitionService partitionService;
 
     @Reference(cardinality = MANDATORY_UNARY)
     protected ComponentConfigService configService;
@@ -179,14 +178,14 @@ public class IntentPerfInstaller {
         workers = Executors.newFixedThreadPool(DEFAULT_NUM_WORKERS, groupedThreads("onos/intent-perf", "worker-%d"));
 
         // disable flow backups for testing
-        configService.setProperty("org.onosproject.store.flow.impl.NewDistributedFlowRuleStore",
+        configService.setProperty("org.onosproject.store.flow.impl.DistributedFlowRuleStore",
                                   "backupEnabled", "true");
 
         // TODO: replace with shared executor
         messageHandlingExecutor = Executors.newSingleThreadExecutor(
                 groupedThreads("onos/perf", "command-handler"));
 
-        communicationService.addSubscriber(CONTROL, new InternalControl(),
+        communicationService.addSubscriber(CONTROL, String::new, new InternalControl(),
                                            messageHandlingExecutor);
 
         listener = new Listener();
@@ -572,10 +571,9 @@ public class IntentPerfInstaller {
         }
     }
 
-    private class InternalControl implements ClusterMessageHandler {
+    private class InternalControl implements Consumer<String> {
         @Override
-        public void handle(ClusterMessage message) {
-            String cmd = new String(message.payload());
+        public void accept(String cmd) {
             log.info("Received command {}", cmd);
             if (cmd.equals(START)) {
                 startTestRun();

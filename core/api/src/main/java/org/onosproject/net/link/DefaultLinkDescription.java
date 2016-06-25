@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.onosproject.net.AbstractDescription;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.SparseAnnotations;
+import com.google.common.base.Objects;
 
 /**
  * Default implementation of immutable link description entity.
@@ -30,6 +31,30 @@ public class DefaultLinkDescription extends AbstractDescription
     private final ConnectPoint src;
     private final ConnectPoint dst;
     private final Link.Type type;
+    private final boolean isExpected;
+
+    public static final boolean EXPECTED = true;
+    public static final boolean NOT_EXPECTED = false;
+
+    /**
+     * Creates a link description using the supplied information.
+     *
+     * @param src         link source
+     * @param dst         link destination
+     * @param type        link type
+     * @param isExpected  is the link expected to be part of this configuration
+     * @param annotations optional key/value annotations
+     */
+    public DefaultLinkDescription(ConnectPoint src, ConnectPoint dst,
+                                  Link.Type type,
+                                  boolean isExpected,
+                                  SparseAnnotations... annotations) {
+        super(annotations);
+        this.src = src;
+        this.dst = dst;
+        this.type = type;
+        this.isExpected = isExpected;
+    }
 
     /**
      * Creates a link description using the supplied information.
@@ -40,11 +65,9 @@ public class DefaultLinkDescription extends AbstractDescription
      * @param annotations optional key/value annotations
      */
     public DefaultLinkDescription(ConnectPoint src, ConnectPoint dst,
-                                  Link.Type type, SparseAnnotations... annotations) {
-        super(annotations);
-        this.src = src;
-        this.dst = dst;
-        this.type = type;
+                                  Link.Type type,
+                                  SparseAnnotations... annotations) {
+        this(src, dst, type, EXPECTED, annotations);
     }
 
     @Override
@@ -63,11 +86,39 @@ public class DefaultLinkDescription extends AbstractDescription
     }
 
     @Override
+    public boolean isExpected() {
+        return isExpected;
+    }
+
+    @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("src", src())
                 .add("dst", dst())
-                .add("type", type()).toString();
+                .add("type", type())
+                .add("isExpected", isExpected())
+                .add("annotations", annotations())
+                .toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), src, dst, type, isExpected);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object != null && getClass() == object.getClass()) {
+            if (!super.equals(object)) {
+                return false;
+            }
+            DefaultLinkDescription that = (DefaultLinkDescription) object;
+            return Objects.equal(this.src, that.src)
+                    && Objects.equal(this.dst, that.dst)
+                    && Objects.equal(this.type, that.type)
+                    && Objects.equal(this.isExpected, that.isExpected);
+        }
+        return false;
     }
 
 }

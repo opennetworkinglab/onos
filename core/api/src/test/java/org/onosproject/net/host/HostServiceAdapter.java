@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,21 @@
  */
 package org.onosproject.net.host;
 
+import java.util.Set;
+
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultHost;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
+import org.onosproject.net.provider.ProviderId;
 
-import java.util.Set;
+import com.google.common.collect.Sets;
 
 /**
  * Test adapter for host service.
@@ -41,7 +47,13 @@ public class HostServiceAdapter implements HostService {
 
     @Override
     public Host getHost(HostId hostId) {
-        return null;
+        ProviderId providerId = ProviderId.NONE;
+        MacAddress mac =  MacAddress.valueOf("fa:12:3e:56:ee:a2");
+        VlanId vlan = VlanId.NONE;
+        HostLocation location =  HostLocation.NONE;
+        Set<IpAddress> ips = Sets.newHashSet();
+        Annotations annotations = null;
+        return new DefaultHost(providerId, hostId, mac, vlan, location, ips, annotations);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.onosproject.store.service;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -26,6 +27,17 @@ import java.util.function.Predicate;
  * Testing adapter for the consistent map.
  */
 public class ConsistentMapAdapter<K, V> implements ConsistentMap<K, V> {
+
+    @Override
+    public String name() {
+        return null;
+    }
+
+    @Override
+    public DistributedPrimitive.Type primitiveType() {
+        return DistributedPrimitive.Type.CONSISTENT_MAP;
+    }
+
     @Override
     public int size() {
         return 0;
@@ -123,6 +135,11 @@ public class ConsistentMapAdapter<K, V> implements ConsistentMap<K, V> {
     }
 
     @Override
+    public Versioned<V> replace(K key, V value) {
+        return null;
+    }
+
+    @Override
     public boolean replace(K key, V oldValue, V newValue) {
         return false;
     }
@@ -133,7 +150,7 @@ public class ConsistentMapAdapter<K, V> implements ConsistentMap<K, V> {
     }
 
     @Override
-    public void addListener(MapEventListener<K, V> listener) {
+    public void addListener(MapEventListener<K, V> listener, Executor executor) {
 
     }
 

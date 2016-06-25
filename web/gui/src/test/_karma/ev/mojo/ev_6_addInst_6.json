@@ -1,0 +1,11 @@
+{
+  "event": "addInstance",
+  "payload": {
+    "id": "ONOS-6",
+    "ip": "192.168.224.126",
+    "online": true,
+    "ready": false,
+    "uiAttached": false,
+    "switches": 0
+  }
+}

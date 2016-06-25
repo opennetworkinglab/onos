@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public class IntentData { //FIXME need to make this "immutable"
 
     private final IntentState request; //TODO perhaps we want a full fledged object for requests
     private IntentState state;
-    private Timestamp version;
+    private final Timestamp version;
     private NodeId origin;
     private int errorCount;
 
@@ -58,10 +58,34 @@ public class IntentData { //FIXME need to make this "immutable"
      * @param version version of the intent for this key
      */
     public IntentData(Intent intent, IntentState state, Timestamp version) {
+        checkNotNull(intent);
+        checkNotNull(state);
+
         this.intent = intent;
         this.state = state;
         this.request = state;
         this.version = version;
+    }
+
+    /**
+     * Creates a new intent data object.
+     *
+     * @param intent intent this metadata references
+     * @param state intent state
+     * @param version version of the intent for this key
+     * @param origin ID of the node where the data was originally created
+     */
+    public IntentData(Intent intent, IntentState state, Timestamp version, NodeId origin) {
+        checkNotNull(intent);
+        checkNotNull(state);
+        checkNotNull(version);
+        checkNotNull(origin);
+
+        this.intent = intent;
+        this.state = state;
+        this.request = state;
+        this.version = version;
+        this.origin = origin;
     }
 
     /**
@@ -81,10 +105,23 @@ public class IntentData { //FIXME need to make this "immutable"
         errorCount = intentData.errorCount;
     }
 
+    /**
+     * Create a new instance based on the original instance with new installables.
+     *
+     * @param original original data
+     * @param installables new installable intents to set
+     */
+    public IntentData(IntentData original, List<Intent> installables) {
+        this(original);
+
+        this.installables = ImmutableList.copyOf(checkNotNull(installables));
+    }
+
     // kryo constructor
     protected IntentData() {
         intent = null;
         request = null;
+        version = null;
     }
 
     /**
@@ -128,15 +165,6 @@ public class IntentData { //FIXME need to make this "immutable"
     }
 
     /**
-     * Sets the origin, which is the node that created the intent.
-     *
-     * @param origin origin instance
-     */
-    public void setOrigin(NodeId origin) {
-        this.origin = origin;
-    }
-
-    /**
      * Returns the origin node that created this intent.
      *
      * @return origin node ID
@@ -152,20 +180,6 @@ public class IntentData { //FIXME need to make this "immutable"
      */
     public void setState(IntentState newState) {
         this.state = newState;
-    }
-
-    /**
-     * Sets the version for this intent data.
-     * <p>
-     * The store should call this method only once when the IntentData is
-     * first passed into the pending map. Ideally, an IntentData is timestamped
-     * on the same thread that the called used to submit the intents.
-     * </p>
-     *
-     * @param version the version/timestamp for this intent data
-     */
-    public void setVersion(Timestamp version) {
-        this.version = version;
     }
 
     /**
@@ -192,15 +206,6 @@ public class IntentData { //FIXME need to make this "immutable"
      */
     public int errorCount() {
         return errorCount;
-    }
-
-    /**
-     * Sets the intent installables to the given list of intents.
-     *
-     * @param installables list of installables for this intent
-     */
-    public void setInstallables(List<Intent> installables) {
-        this.installables = ImmutableList.copyOf(installables);
     }
 
     /**

@@ -1,0 +1,26 @@
+{
+  "id": 1,
+  "type": "FAILOVER",
+  "operation": "ADD",
+  "treatments": [
+    {
+      "instructions": [
+        {
+          "type": "OUTPUT",
+          "port": -3
+        },
+        {
+          "type": "NOACTION"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "criteria": [
+      {
+        "type": "IN_PORT",
+        "port": 23
+      }
+    ]
+  }
+}

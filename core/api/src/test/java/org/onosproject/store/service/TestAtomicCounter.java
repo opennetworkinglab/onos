@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,70 +15,67 @@
  */
 package org.onosproject.store.service;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Test implementation of atomic counter.
  */
-public final class TestAtomicCounter implements AtomicCounter {
+public final class TestAtomicCounter implements AsyncAtomicCounter {
     final AtomicLong value;
+
+    @Override
+    public String name() {
+        return null;
+    }
 
     private TestAtomicCounter() {
         value = new AtomicLong();
     }
 
     @Override
-    public long incrementAndGet() {
-        return value.incrementAndGet();
+    public CompletableFuture<Long> incrementAndGet() {
+        return CompletableFuture.completedFuture(value.incrementAndGet());
     }
 
     @Override
-    public long getAndIncrement() {
-        return value.getAndIncrement();
+    public CompletableFuture<Long> getAndIncrement() {
+        return CompletableFuture.completedFuture(value.getAndIncrement());
     }
 
     @Override
-    public long getAndAdd(long delta) {
-        return value.getAndAdd(delta);
+    public CompletableFuture<Long> getAndAdd(long delta) {
+        return CompletableFuture.completedFuture(value.getAndAdd(delta));
     }
 
     @Override
-    public long addAndGet(long delta) {
-        return value.addAndGet(delta);
+    public CompletableFuture<Long> addAndGet(long delta) {
+        return CompletableFuture.completedFuture(value.addAndGet(delta));
     }
 
     @Override
-    public long get() {
-        return value.get();
+    public CompletableFuture<Void> set(long value) {
+        this.value.set(value);
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> compareAndSet(long expectedValue, long updateValue) {
+        return CompletableFuture.completedFuture(value.compareAndSet(expectedValue, updateValue));
+    }
+
+    @Override
+    public CompletableFuture<Long> get() {
+        return CompletableFuture.completedFuture(value.get());
     }
 
     public static AtomicCounterBuilder builder() {
         return new Builder();
     }
 
-    public static class Builder implements AtomicCounterBuilder {
+    public static class Builder extends AtomicCounterBuilder {
         @Override
-        public AtomicCounterBuilder withName(String name) {
-            return this;
-        }
-
-        @Override
-        public AtomicCounterBuilder withPartitionsDisabled() {
-            return this;
-        }
-
-        @Override
-        public AtomicCounterBuilder withMeteringDisabled() {
-            return this;
-        }
-
-        @Override
-        public AsyncAtomicCounter buildAsyncCounter() {
-            throw new UnsupportedOperationException("Async Counter is not supported");
-        }
-
-        @Override
-        public AtomicCounter build() {
+        public AsyncAtomicCounter build() {
             return new TestAtomicCounter();
         }
     }

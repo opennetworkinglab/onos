@@ -1,0 +1,6 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+    description "";
+}

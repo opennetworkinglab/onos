@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,21 @@
  */
 package org.onlab.packet;
 
+import org.onlab.util.Identifier;
+
 /**
  * The class representing a network device chassisId.
  * This class is immutable.
  */
-public final class ChassisId {
+public final class ChassisId extends Identifier<Long> {
 
     private static final long UNKNOWN = 0;
-    private final long value;
 
     /**
      * Default constructor.
      */
     public ChassisId() {
-        this.value = ChassisId.UNKNOWN;
+        super(ChassisId.UNKNOWN);
     }
 
     /**
@@ -37,7 +38,7 @@ public final class ChassisId {
      * @param value the value to use.
      */
     public ChassisId(long value) {
-        this.value = value;
+        super(value);
     }
 
     /**
@@ -46,7 +47,7 @@ public final class ChassisId {
      * @param value the value to use.
      */
     public ChassisId(String value) {
-        this.value = Long.parseLong(value, 16);
+        super(Long.parseLong(value, 16));
     }
 
     /**
@@ -55,7 +56,7 @@ public final class ChassisId {
      * @return the value of the chassis id.
      */
     public long value() {
-        return value;
+        return identifier;
     }
 
     /**
@@ -65,22 +66,11 @@ public final class ChassisId {
      */
     @Override
     public String toString() {
-        return Long.toHexString(this.value);
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof ChassisId)) {
-            return false;
-        }
-
-        ChassisId otherChassisId = (ChassisId) other;
-
-        return value == otherChassisId.value;
+        return Long.toHexString(identifier);
     }
 
     @Override
     public int hashCode() {
-        return Long.hashCode(value);
+        return Long.hashCode(identifier);
     }
 }

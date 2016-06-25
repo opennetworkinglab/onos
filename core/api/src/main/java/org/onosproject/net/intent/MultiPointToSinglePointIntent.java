@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,17 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
     }
 
     /**
+     * Creates a new builder pre-populated with the information in the given
+     * intent.
+     *
+     * @param intent initial intent
+     * @return intent builder
+     */
+    public static Builder builder(MultiPointToSinglePointIntent intent) {
+        return new Builder(intent);
+    }
+
+    /**
      * Builder of a multi point to single point intent.
      */
     public static final class Builder extends ConnectivityIntent.Builder {
@@ -108,6 +119,19 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
 
         private Builder() {
             // Hide constructor
+        }
+
+        /**
+         * Creates a new builder pre-populated with information from the given
+         * intent.
+         *
+         * @param intent initial intent
+         */
+        protected Builder(MultiPointToSinglePointIntent intent) {
+            super(intent);
+
+            this.ingressPoints(intent.ingressPoints())
+                    .egressPoint(intent.egressPoint());
         }
 
         @Override

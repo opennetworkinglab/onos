@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,10 @@ public class PathListCommand extends TopologyCommand {
     @Override
     protected void execute() {
         init();
+        if (src.split("/").length != 1 || dst.split("/").length != 1) {
+            print("Expected device IDs as arguments");
+            return;
+        }
         Set<Path> paths = service.getPaths(topology, deviceId(src), deviceId(dst));
         if (outputJson()) {
             print("%s", json(this, paths));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,9 @@ import org.onosproject.ui.table.CellFormatter;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.cell.EnumFormatter;
+import org.onosproject.ui.table.cell.HexFormatter;
+import org.onosproject.ui.table.cell.HexLongFormatter;
+import org.onosproject.ui.table.cell.NumberFormatter;
 
 import java.util.Collection;
 import java.util.List;
@@ -72,6 +75,8 @@ public class FlowViewMessageHandler extends UiMessageHandler {
     // handler for flow table requests
     private final class FlowDataRequest extends TableRequestHandler {
 
+        private static final String NO_ROWS_MESSAGE = "No flows found";
+
         private FlowDataRequest() {
             super(FLOW_DATA_REQ, FLOW_DATA_RESP, FLOWS);
         }
@@ -82,11 +87,20 @@ public class FlowViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
+        protected String noRowsMessage(ObjectNode payload) {
+            return NO_ROWS_MESSAGE;
+        }
+
+        @Override
         protected TableModel createTableModel() {
             TableModel tm = super.createTableModel();
+            tm.setFormatter(ID, HexLongFormatter.INSTANCE);
+            tm.setFormatter(GROUP_ID, HexFormatter.INSTANCE);
+            tm.setFormatter(STATE, EnumFormatter.INSTANCE);
+            tm.setFormatter(PACKETS, NumberFormatter.INTEGER);
+            tm.setFormatter(BYTES, NumberFormatter.INTEGER);
             tm.setFormatter(SELECTOR, new SelectorFormatter());
             tm.setFormatter(TREATMENT, new TreatmentFormatter());
-            tm.setFormatter(STATE, EnumFormatter.INSTANCE);
             return tm;
         }
 
@@ -108,13 +122,13 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                 .cell(GROUP_ID, flow.groupId().id())
                 .cell(TABLE_ID, flow.tableId())
                 .cell(PRIORITY, flow.priority())
-                .cell(SELECTOR, flow)
-                .cell(TREATMENT, flow)
                 .cell(TIMEOUT, flow.timeout())
                 .cell(PERMANENT, flow.isPermanent())
                 .cell(STATE, flow.state())
                 .cell(PACKETS, flow.packets())
-                .cell(BYTES, flow.bytes());
+                .cell(BYTES, flow.bytes())
+                .cell(SELECTOR, flow)
+                .cell(TREATMENT, flow);
         }
 
         private final class SelectorFormatter implements CellFormatter {
@@ -142,12 +156,20 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                 FlowEntry flow = (FlowEntry) value;
                 List<Instruction> instructions = flow.treatment().allInstructions();
 
-                if (instructions.isEmpty()) {
+                if (instructions.isEmpty()
+                        && flow.treatment().metered() == null
+                        && flow.treatment().tableTransition() == null) {
                     return "(No traffic treatment instructions for this flow)";
                 }
                 StringBuilder sb = new StringBuilder("Treatment Instructions: ");
                 for (Instruction i : instructions) {
                     sb.append(i).append(COMMA);
+                }
+                if (flow.treatment().metered() != null) {
+                    sb.append(flow.treatment().metered().toString()).append(COMMA);
+                }
+                if (flow.treatment().tableTransition() != null) {
+                    sb.append(flow.treatment().tableTransition().toString()).append(COMMA);
                 }
                 removeTrailingComma(sb);
 

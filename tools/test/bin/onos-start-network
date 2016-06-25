@@ -36,4 +36,4 @@ $SSHCMD -n $ONOS_USER@$OCN mkdir -p topos
 $SCPCMD $ONOS_ROOT/tools/test/topos/* $ONOS_USER@$OCN:topos/
 
 echo "Starting Network."
-$SSHCMD -t $ONOS_USER@$OCN sudo python $topo $(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
+$SSHCMD -t $ONOS_USER@$OCN sudo python $topo $(env | sort | egrep "^OC[0-9]+" | cut -d= -f2)

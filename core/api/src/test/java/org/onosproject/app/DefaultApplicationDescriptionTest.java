@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,29 +38,40 @@ public class DefaultApplicationDescriptionTest {
 
     public static final String APP_NAME = "org.foo.app";
     public static final Version VER = Version.version(1, 2, "a", null);
+    public static final String TITLE = "Awesome App";
     public static final String DESC = "Awesome application from Circus, Inc.";
     public static final String ORIGIN = "Circus";
+    public static final String CATEGORY = "other";
+    public static final String URL = "http://www.onosproject.org";
+    public static final String README = "Awesome application from Circus, Inc.";
+    public static final byte[] ICON = new byte[] {};
     public static final ApplicationRole ROLE = ApplicationRole.ADMIN;
     public static final Set<Permission> PERMS = ImmutableSet.of(
                             new Permission(AppPermission.class.getName(), "FLOWRULE_WRITE"),
                             new Permission(AppPermission.class.getName(), "FLOWRULE_READ"));
     public static final URI FURL = URI.create("mvn:org.foo-features/1.2a/xml/features");
     public static final List<String> FEATURES = ImmutableList.of("foo", "bar");
+    public static final List<String> APPS = ImmutableList.of("fifi");
 
     @Test
     public void basics() {
         ApplicationDescription app =
-                new DefaultApplicationDescription(APP_NAME, VER, DESC, ORIGIN,
-                                                  ROLE, PERMS, FURL, FEATURES);
+                new DefaultApplicationDescription(APP_NAME, VER, TITLE, DESC, ORIGIN,
+                                                  CATEGORY, URL, README, ICON,
+                                                  ROLE, PERMS, FURL, FEATURES, APPS);
         assertEquals("incorrect id", APP_NAME, app.name());
         assertEquals("incorrect version", VER, app.version());
+        assertEquals("incorrect title", TITLE, app.title());
         assertEquals("incorrect description", DESC, app.description());
         assertEquals("incorrect origin", ORIGIN, app.origin());
-        assertEquals("incorect role", ROLE, app.role());
+        assertEquals("incorrect category", CATEGORY, app.category());
+        assertEquals("incorrect URL", URL, app.url());
+        assertEquals("incorrect readme", README, app.readme());
+        assertEquals("incorrect role", ROLE, app.role());
         assertEquals("incorrect permissions", PERMS, app.permissions());
         assertEquals("incorrect features repo", FURL, app.featuresRepo().get());
         assertEquals("incorrect features", FEATURES, app.features());
+        assertEquals("incorrect apps", APPS, app.requiredApps());
         assertTrue("incorrect toString", app.toString().contains(APP_NAME));
     }
-
 }

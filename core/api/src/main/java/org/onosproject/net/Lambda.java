@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,6 @@ package org.onosproject.net;
  * Abstraction of wavelength. Currently, this is just a marker interface
  */
 public interface Lambda {
-    /**
-     * Create an Lambda instance with the specified wavelength index number.
-     *
-     * @param lambda index number
-     * @return an instance
-     */
-    static Lambda indexedLambda(long lambda) {
-        return new IndexedLambda(lambda);
-    }
-
     /**
      * Creates a Lambda instance with the specified arguments.
      *

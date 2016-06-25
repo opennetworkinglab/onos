@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 public abstract class ConnectivityIntentTest extends IntentTest {
 
     public static final ApplicationId APPID = new TestApplicationId("foo");
+    public static final Key KEY = Key.of(1L, APPID);
 
     public static final IntentId IID = new IntentId(123);
     public static final TrafficSelector MATCH = DefaultTrafficSelector.emptySelector();

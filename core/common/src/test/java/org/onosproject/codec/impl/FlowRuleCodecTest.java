@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,10 @@
  */
 package org.onosproject.codec.impl;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hamcrest.Description;
+import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.EthType;
@@ -32,11 +31,20 @@ import org.onlab.packet.VlanId;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.GridType;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OchSignalType;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
@@ -52,9 +60,11 @@ import org.onosproject.net.flow.criteria.IcmpCodeCriterion;
 import org.onosproject.net.flow.criteria.IcmpTypeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6CodeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
-import org.onosproject.net.flow.criteria.IndexedLambdaCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.OchSignalCriterion;
+import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
+import org.onosproject.net.flow.criteria.OduSignalIdCriterion;
+import org.onosproject.net.flow.criteria.OduSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
@@ -62,9 +72,6 @@ import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
@@ -72,6 +79,12 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import static org.easymock.EasyMock.anyShort;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -102,6 +115,7 @@ public class FlowRuleCodecTest {
 
         expect(mockCoreService.registerApplication(FlowRuleCodec.REST_APP_ID))
                 .andReturn(APP_ID).anyTimes();
+        expect(mockCoreService.getAppId(anyShort())).andReturn(APP_ID).anyTimes();
         replay(mockCoreService);
         context.registerService(CoreService.class, mockCoreService);
     }
@@ -134,6 +148,7 @@ public class FlowRuleCodecTest {
         assertThat(rule.isPermanent(), is(false));
         assertThat(rule.timeout(), is(1));
         assertThat(rule.priority(), is(1));
+        assertThat(rule.tableId(), is(1));
         assertThat(rule.deviceId().toString(), is("of:0000000000000001"));
     }
 
@@ -160,6 +175,164 @@ public class FlowRuleCodecTest {
     }
 
     SortedMap<String, Instruction> instructions = new TreeMap<>();
+
+    /**
+     * Checks that a simple rule encodes properly.
+     */
+    @Test
+    public void testFlowRuleEncode() {
+
+        DeviceId deviceId = DeviceId.deviceId("of:000000000000000a");
+
+        Instruction output = Instructions.createOutput(PortNumber.portNumber(0));
+        Instruction modL2Src = Instructions.modL2Src(MacAddress.valueOf("11:22:33:44:55:66"));
+        Instruction modL2Dst = Instructions.modL2Dst(MacAddress.valueOf("44:55:66:77:88:99"));
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        TrafficTreatment treatment = tBuilder
+                .add(output)
+                .add(modL2Src)
+                .add(modL2Dst)
+                .build();
+
+        Criterion inPort = Criteria.matchInPort(PortNumber.portNumber(0));
+        Criterion ethSrc = Criteria.matchEthSrc(MacAddress.valueOf("11:22:33:44:55:66"));
+        Criterion ethDst = Criteria.matchEthDst(MacAddress.valueOf("44:55:66:77:88:99"));
+        Criterion ethType = Criteria.matchEthType(Ethernet.TYPE_IPV4);
+
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+        TrafficSelector selector = sBuilder
+                .add(inPort)
+                .add(ethSrc)
+                .add(ethDst)
+                .add(ethType)
+                .build();
+
+        FlowRule permFlowRule = DefaultFlowRule.builder()
+                                                    .withCookie(1)
+                                                    .forTable(1)
+                                                    .withPriority(1)
+                                                    .makePermanent()
+                                                    .withTreatment(treatment)
+                                                    .withSelector(selector)
+                                                    .forDevice(deviceId).build();
+
+        FlowRule tempFlowRule =  DefaultFlowRule.builder()
+                                                .withCookie(1)
+                                                .forTable(1)
+                                                .withPriority(1)
+                                                .makeTemporary(1000)
+                                                .withTreatment(treatment)
+                                                .withSelector(selector)
+                                                .forDevice(deviceId).build();
+
+        ObjectNode permFlowRuleJson = flowRuleCodec.encode(permFlowRule, context);
+        ObjectNode tempFlowRuleJson = flowRuleCodec.encode(tempFlowRule, context);
+
+        assertThat(permFlowRuleJson, FlowRuleJsonMatcher.matchesFlowRule(permFlowRule));
+        assertThat(tempFlowRuleJson, FlowRuleJsonMatcher.matchesFlowRule(tempFlowRule));
+    }
+
+    private static final class FlowRuleJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode> {
+
+        private final FlowRule flowRule;
+
+        private FlowRuleJsonMatcher(FlowRule flowRule) {
+            this.flowRule = flowRule;
+        }
+
+        @Override
+        protected boolean matchesSafely(JsonNode jsonNode, Description description) {
+
+            // check id
+            long jsonId = jsonNode.get("id").asLong();
+            long id = flowRule.id().id();
+            if (jsonId != id) {
+                description.appendText("flow rule id was " + jsonId);
+                return false;
+            }
+
+            // TODO: need to check application ID
+
+            // check tableId
+            int jsonTableId = jsonNode.get("tableId").asInt();
+            int tableId = flowRule.tableId();
+            if (jsonTableId != tableId) {
+                description.appendText("table id was " + jsonId);
+                return false;
+            }
+
+            // check priority
+            int jsonPriority = jsonNode.get("priority").asInt();
+            int priority = flowRule.priority();
+            if (jsonPriority != priority) {
+                description.appendText("priority was " + jsonPriority);
+                return false;
+            }
+
+            // check timeout
+            int jsonTimeout = jsonNode.get("timeout").asInt();
+            int timeout = flowRule.timeout();
+            if (jsonTimeout != timeout) {
+                description.appendText("timeout was " + jsonTimeout);
+                return false;
+            }
+
+            // check isPermanent
+            boolean jsonIsPermanent = jsonNode.get("isPermanent").asBoolean();
+            boolean isPermanent = flowRule.isPermanent();
+            if (jsonIsPermanent != isPermanent) {
+                description.appendText("isPermanent was " + jsonIsPermanent);
+                return false;
+            }
+
+            // check deviceId
+            String jsonDeviceId = jsonNode.get("deviceId").asText();
+            String deviceId = flowRule.deviceId().toString();
+            if (!jsonDeviceId.equals(deviceId)) {
+                description.appendText("deviceId was " + jsonDeviceId);
+                return false;
+            }
+
+            // check traffic treatment
+            JsonNode jsonTreatment = jsonNode.get("treatment");
+            TrafficTreatmentCodecTest.TrafficTreatmentJsonMatcher treatmentMatcher =
+                    TrafficTreatmentCodecTest.TrafficTreatmentJsonMatcher
+                            .matchesTrafficTreatment(flowRule.treatment());
+
+            if (!treatmentMatcher.matches(jsonTreatment)) {
+                description.appendText("treatment is not matched");
+                return false;
+            }
+
+            // check traffic selector
+            JsonNode jsonSelector = jsonNode.get("selector");
+            TrafficSelectorCodecTest.TrafficSelectorJsonMatcher selectorMatcher =
+                    TrafficSelectorCodecTest.TrafficSelectorJsonMatcher
+                            .matchesTrafficSelector(flowRule.selector());
+
+            if (!selectorMatcher.matches(jsonSelector)) {
+                description.appendText("selector is not matched");
+                return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText(flowRule.toString());
+        }
+
+        /**
+         * Factory to allocate a flow rule matcher.
+         *
+         * @param flowRule flow rule object we are looking for
+         * @return matcher
+         */
+        public static FlowRuleJsonMatcher matchesFlowRule(FlowRule flowRule) {
+            return new FlowRuleJsonMatcher(flowRule);
+        }
+    }
 
     /**
      * Looks up an instruction in the instruction map based on type and subtype.
@@ -210,7 +383,7 @@ public class FlowRuleCodecTest {
                             instruction.type().name() + "/" + subType, instruction);
                 });
 
-        assertThat(rule.treatment().allInstructions().size(), is(24));
+        assertThat(rule.treatment().allInstructions().size(), is(23));
 
         Instruction instruction;
 
@@ -246,20 +419,20 @@ public class FlowRuleCodecTest {
                 L2ModificationInstruction.L2SubType.MPLS_LABEL.name());
         assertThat(instruction.type(), is(Instruction.Type.L2MODIFICATION));
         assertThat(((L2ModificationInstruction.ModMplsLabelInstruction) instruction)
-                        .mplsLabel().toInt(),
+                        .label().toInt(),
                 is(MplsLabel.MAX_MPLS));
 
         instruction = getInstruction(Instruction.Type.L2MODIFICATION,
                 L2ModificationInstruction.L2SubType.MPLS_PUSH.name());
         assertThat(instruction.type(), is(Instruction.Type.L2MODIFICATION));
-        assertThat(((L2ModificationInstruction.PushHeaderInstructions) instruction)
+        assertThat(((L2ModificationInstruction.ModMplsHeaderInstruction) instruction)
                         .ethernetType().toShort(),
                 is(Ethernet.MPLS_UNICAST));
 
         instruction = getInstruction(Instruction.Type.L2MODIFICATION,
                 L2ModificationInstruction.L2SubType.MPLS_POP.name());
         assertThat(instruction.type(), is(Instruction.Type.L2MODIFICATION));
-        assertThat(((L2ModificationInstruction.PushHeaderInstructions) instruction)
+        assertThat(((L2ModificationInstruction.ModMplsHeaderInstruction) instruction)
                         .ethernetType().toShort(),
                 is(Ethernet.MPLS_UNICAST));
 
@@ -271,12 +444,12 @@ public class FlowRuleCodecTest {
         instruction = getInstruction(Instruction.Type.L2MODIFICATION,
                 L2ModificationInstruction.L2SubType.VLAN_POP.name());
         assertThat(instruction.type(), is(Instruction.Type.L2MODIFICATION));
-        assertThat(instruction, instanceOf(L2ModificationInstruction.PopVlanInstruction.class));
+        assertThat(instruction, instanceOf(L2ModificationInstruction.ModVlanHeaderInstruction.class));
 
         instruction = getInstruction(Instruction.Type.L2MODIFICATION,
                 L2ModificationInstruction.L2SubType.VLAN_PUSH.name());
         assertThat(instruction.type(), is(Instruction.Type.L2MODIFICATION));
-        assertThat(instruction, instanceOf(L2ModificationInstruction.PushHeaderInstructions.class));
+        assertThat(instruction, instanceOf(L2ModificationInstruction.ModVlanHeaderInstruction.class));
 
         instruction = getInstruction(Instruction.Type.L2MODIFICATION,
                 L2ModificationInstruction.L2SubType.TUNNEL_ID.name());
@@ -314,13 +487,6 @@ public class FlowRuleCodecTest {
         assertThat(((L3ModificationInstruction.ModIPv6FlowLabelInstruction) instruction)
                 .flowLabel(),
                 is(8));
-
-        instruction = getInstruction(Instruction.Type.L0MODIFICATION,
-                L0ModificationInstruction.L0SubType.LAMBDA.name());
-        assertThat(instruction.type(), is(Instruction.Type.L0MODIFICATION));
-        assertThat(((L0ModificationInstruction.ModLambdaInstruction) instruction)
-                        .lambda(),
-                is((short) 7));
 
         instruction = getInstruction(Instruction.Type.L0MODIFICATION,
                 L0ModificationInstruction.L0SubType.OCH.name());
@@ -382,7 +548,7 @@ public class FlowRuleCodecTest {
 
         checkCommonData(rule);
 
-        assertThat(rule.selector().criteria().size(), is(33));
+        assertThat(rule.selector().criteria().size(), is(35));
 
         rule.selector().criteria()
                 .stream()
@@ -511,13 +677,28 @@ public class FlowRuleCodecTest {
         assertThat(((IPv6ExthdrFlagsCriterion) criterion).exthdrFlags(),
                 is(99));
 
-        criterion = getCriterion(Criterion.Type.OCH_SIGID);
-        assertThat(((IndexedLambdaCriterion) criterion).lambda(),
-                is(Lambda.indexedLambda(122)));
-
         criterion = getCriterion(Criterion.Type.TUNNEL_ID);
         assertThat(((TunnelIdCriterion) criterion).tunnelId(),
                 is(100L));
+
+        criterion = getCriterion(Criterion.Type.OCH_SIGTYPE);
+        assertThat(((OchSignalTypeCriterion) criterion).signalType(),
+                is(OchSignalType.FIXED_GRID));
+
+        criterion = getCriterion(Criterion.Type.ODU_SIGTYPE);
+        assertThat(((OduSignalTypeCriterion) criterion).signalType(),
+                is(OduSignalType.ODU4));
+
+
+        criterion = getCriterion(Criterion.Type.ODU_SIGID);
+        assertThat(((OduSignalIdCriterion) criterion).oduSignalId().tributaryPortNumber(),
+                is(1));
+
+       assertThat(((OduSignalIdCriterion) criterion).oduSignalId().tributarySlotLength(),
+                is(80));
+
+       assertThat(((OduSignalIdCriterion) criterion).oduSignalId().tributarySlotBitmap(),
+                is(new byte[] {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}));
     }
 
     /**

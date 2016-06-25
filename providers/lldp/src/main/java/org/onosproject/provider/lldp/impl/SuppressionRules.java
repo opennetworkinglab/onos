@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,38 +18,33 @@ package org.onosproject.provider.lldp.impl;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 
 import org.onosproject.net.Annotations;
 import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.Element;
 import org.onosproject.net.Port;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.base.MoreObjects;
 
 public class SuppressionRules {
 
     public static final String ANY_VALUE = "(any)";
 
-    private final Set<DeviceId> suppressedDevice;
     private final Set<Device.Type> suppressedDeviceType;
     private final Map<String, String> suppressedAnnotation;
 
-    public SuppressionRules(Set<DeviceId> suppressedDevice,
-                     Set<Device.Type> suppressedType,
-                     Map<String, String> suppressedAnnotation) {
+    public SuppressionRules(Set<Device.Type> suppressedType,
+                            Map<String, String> suppressedAnnotation) {
 
-        this.suppressedDevice = ImmutableSet.copyOf(suppressedDevice);
         this.suppressedDeviceType = ImmutableSet.copyOf(suppressedType);
         this.suppressedAnnotation = ImmutableMap.copyOf(suppressedAnnotation);
     }
 
     public boolean isSuppressed(Device device) {
-        if (suppressedDevice.contains(device.id())) {
-            return true;
-        }
         if (suppressedDeviceType.contains(device.type())) {
             return true;
         }
@@ -92,15 +87,37 @@ public class SuppressionRules {
         return false;
     }
 
-    Set<DeviceId> getSuppressedDevice() {
-        return suppressedDevice;
-    }
-
     Set<Device.Type> getSuppressedDeviceType() {
         return suppressedDeviceType;
     }
 
     Map<String, String> getSuppressedAnnotation() {
         return suppressedAnnotation;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(suppressedDeviceType,
+                            suppressedAnnotation);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object != null && getClass() == object.getClass()) {
+            SuppressionRules that = (SuppressionRules) object;
+            return Objects.equals(this.suppressedDeviceType,
+                                      that.suppressedDeviceType)
+                    && Objects.equals(this.suppressedAnnotation,
+                                      that.suppressedAnnotation);
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("suppressedDeviceType", suppressedDeviceType)
+                .add("suppressedAnnotation", suppressedAnnotation)
+                .toString();
     }
 }

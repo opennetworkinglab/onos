@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,6 +137,20 @@ public final class DefaultGroupBucket implements GroupBucket, StoredGroupBucketE
                                       (short) -1,
                                       watchPort,
                                       watchGroup);
+    }
+
+    /**
+     * Creates all group bucket.
+     *
+     * @param treatment traffic treatment associated with group bucket
+     * @return all group bucket object
+     */
+    public static GroupBucket createAllGroupBucket(TrafficTreatment treatment) {
+        return new DefaultGroupBucket(GroupDescription.Type.ALL,
+                                      treatment,
+                                      (short) -1,
+                                      null,
+                                      null);
     }
 
     @Override

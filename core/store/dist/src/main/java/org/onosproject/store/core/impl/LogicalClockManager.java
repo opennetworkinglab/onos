@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,18 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.store.LogicalTimestamp;
 import org.onosproject.store.Timestamp;
-import org.onosproject.store.impl.LogicalTimestamp;
 import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.LogicalClockService;
 import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.CLOCK_WRITE;
+
 /**
- * LogicalClockService implementation based on a AtomicCounter.
+ * LogicalClockService implementation based on a {@link AtomicCounter}.
  */
 @Component(immediate = true, enabled = true)
 @Service
@@ -47,10 +50,7 @@ public class LogicalClockManager implements LogicalClockService {
 
     @Activate
     public void activate() {
-        atomicCounter = storageService.atomicCounterBuilder()
-                                      .withName(SYSTEM_LOGICAL_CLOCK_COUNTER_NAME)
-                                      .withPartitionsDisabled()
-                                      .build();
+        atomicCounter = storageService.getAtomicCounter(SYSTEM_LOGICAL_CLOCK_COUNTER_NAME);
         log.info("Started");
     }
 
@@ -61,6 +61,7 @@ public class LogicalClockManager implements LogicalClockService {
 
     @Override
     public Timestamp getTimestamp() {
+        checkPermission(CLOCK_WRITE);
         return new LogicalTimestamp(atomicCounter.incrementAndGet());
     }
 }

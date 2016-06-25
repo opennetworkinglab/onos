@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public class DefaultEdgeLink extends DefaultLink implements EdgeLink {
                            HostLocation hostLocation, boolean isIngress,
                            Annotations... annotations) {
         super(providerId, isIngress ? hostPoint : hostLocation,
-              isIngress ? hostLocation : hostPoint, Type.EDGE, annotations);
+              isIngress ? hostLocation : hostPoint, Type.EDGE, State.ACTIVE, annotations);
         checkArgument(hostPoint.elementId() instanceof HostId,
                       "Host point does not refer to a host ID");
         this.hostId = (HostId) hostPoint.elementId();

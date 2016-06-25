@@ -1,0 +1,57 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Runs ONOS from distributable onos.tar.gz
+# -----------------------------------------------------------------------------
+
+ONOS_TAR=
+
+cd /tmp
+
+# Kill any running instances
+[ -f /tmp/onos.pid ] && kill -9 $(cat /tmp/onos.pid) &>/dev/null
+
+set -e
+
+# Blitz previously unrolled onos- directory
+rm -fr onos-*/
+
+# Unroll new image from the specified tar file
+[ -f $ONOS_TAR ] && tar zxf $ONOS_TAR
+
+# Change into the ONOS home directory
+cd onos-*/
+export ONOS_HOME=$PWD
+
+# FIXME: for now we're running using the karaf client; later use raw SSH
+unset ONOS_USE_SSH
+
+# Create config/cluster.json (cluster metadata)
+IP=${ONOS_IP:-127.0.0.1}
+echo "Creating local cluster configs for IP $IP..."
+[ -d $ONOS_HOME/config ] || mkdir -p $ONOS_HOME/config
+cat > $ONOS_HOME/config/cluster.json <<EOF
+{
+  "name": "default",
+  "nodes": [ {"id": "$IP", "ip": "$IP", "port": 9876 } ],
+  "partitions": [ { "id": 1, "members": [ "$IP" ] } ]
+}
+EOF
+
+# Start ONOS as a server, but include any specified options
+./bin/onos-service server "$@" &>onos.log &
+echo "$!" > /tmp/onos.pid
+
+# Hang-on a bit and then start tailing the ONOS log output
+RETRY_COUNT=5
+echo "Waiting for karaf.log"
+until [ $RETRY_COUNT -le 0 ]; do
+    KARAF_LOG=$(find $ONOS_HOME -type f -name karaf.log)
+    if [ $KARAF_LOG ]; then
+        tail -f $KARAF_LOG
+        return
+    fi
+    RETRY_COUNT=$[$RETRY_COUNT-1]
+    sleep 1
+done
+echo "Fail to open karaf.log"
+

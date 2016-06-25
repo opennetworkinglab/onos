@@ -1,0 +1,107 @@
+{
+  "type": "object",
+  "title": "all-port-statistics",
+  "required": [
+    "statistics"
+  ],
+  "properties": {
+    "statistics": {
+      "type": "array",
+      "required": [
+        "statistics"
+      ],
+      "xml": {
+        "name": "statistics",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "statistics",
+        "required": [
+          "ports"
+        ],
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "example": "of:0000000000000001"
+          },
+          "ports": {
+            "type": "array",
+            "xml": {
+              "name": "ports",
+              "wrapped": true
+            },
+            "items": {
+              "type": "object",
+              "title": "ports",
+              "required": [
+                "port",
+                "packetsReceived",
+                "packetsSent",
+                "bytesReceived",
+                "bytesSent",
+                "packetsRxDropped",
+                "packetsTxDropped",
+                "packetsRxErrors",
+                "packetsTxErrors",
+                "durationSec"
+              ],
+              "properties": {
+                "port": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 1
+                },
+                "packetsReceived": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 98
+                },
+                "packetsSent": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 98
+                },
+                "bytesReceived": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 9162
+                },
+                "bytesSent": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 9162
+                },
+                "packetsRxDropped": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 0
+                },
+                "packetsTxDropped": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 0
+                },
+                "packetsRxErrors": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 0
+                },
+                "packetsTxErrors": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 0
+                },
+                "durationSec": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 90
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

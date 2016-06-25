@@ -1,7 +1,5 @@
-package org.onosproject.cli.net;
-
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +13,14 @@ package org.onosproject.cli.net;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.cli.net;
 
 import static org.onosproject.net.DeviceId.deviceId;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
@@ -35,6 +36,10 @@ import org.onosproject.net.device.PortStatistics;
         description = "Lists statistics of all ports in the system")
 public class DevicePortStatsCommand extends DevicesListCommand {
 
+    @Option(name = "-nz", aliases = "--nonzero", description = "Show only non-zero portstats",
+            required = false, multiValued = false)
+    private boolean nonzero = false;
+
     @Option(name = "-d", aliases = "--delta", description = "Show Delta Port Statistics,"
             + "only for the last polling interval",
             required = false, multiValued = false)
@@ -47,6 +52,10 @@ public class DevicePortStatsCommand extends DevicesListCommand {
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = false, multiValued = false)
     String uri = null;
+
+    @Argument(index = 1, name = "portNumber", description = "Port Number",
+            required = false, multiValued = false)
+    Integer portNumber = null;
 
     private static final String FORMAT =
             "   port=%s, pktRx=%s, pktTx=%s, bytesRx=%s, bytesTx=%s, pktRxDrp=%s, pktTxDrp=%s, Dur=%s";
@@ -90,9 +99,14 @@ public class DevicePortStatsCommand extends DevicesListCommand {
      * @param portStats
      */
     private void printPortStats(DeviceId deviceId, Iterable<PortStatistics> portStats) {
-
         print("deviceId=%s", deviceId);
-        for (PortStatistics stat : portStats) {
+        for (PortStatistics stat : sortByPort(portStats)) {
+            if (portNumber != null && stat.port() != portNumber) {
+                continue;
+            }
+            if (nonzero && stat.isZero()) {
+                continue;
+            }
             print(FORMAT, stat.port(), stat.packetsReceived(), stat.packetsSent(), stat.bytesReceived(),
                     stat.bytesSent(), stat.packetsRxDropped(), stat.packetsTxDropped(), stat.durationSec());
         }
@@ -107,7 +121,13 @@ public class DevicePortStatsCommand extends DevicesListCommand {
         final String formatDelta = "   port=%s, pktRx=%s, pktTx=%s, bytesRx=%s, bytesTx=%s,"
                 + " rateRx=%s, rateTx=%s, pktRxDrp=%s, pktTxDrp=%s, interval=%s";
         print("deviceId=%s", deviceId);
-        for (PortStatistics stat : portStats) {
+        for (PortStatistics stat : sortByPort(portStats)) {
+            if (portNumber != null && stat.port() != portNumber) {
+                continue;
+            }
+            if (nonzero && stat.isZero()) {
+                continue;
+            }
             float duration = ((float) stat.durationSec()) +
                     (((float) stat.durationNano()) / TimeUnit.SECONDS.toNanos(1));
             float rateRx = stat.bytesReceived() * 8 / duration;
@@ -140,22 +160,28 @@ public class DevicePortStatsCommand extends DevicesListCommand {
         print("| Port | Packets |  Bytes  | Rate bps |   Drop  | Packets |  Bytes  | Rate bps |   Drop  | Interval |");
         print("|---------------------------------------------------------------------------------------------------|");
 
-        for (PortStatistics stat : portStats) {
-                float duration = ((float) stat.durationSec()) +
-                        (((float) stat.durationNano()) / TimeUnit.SECONDS.toNanos(1));
-                float rateRx = stat.bytesReceived() * 8 / duration;
-                float rateTx = stat.bytesSent() * 8 / duration;
-                print(formatDeltaTable, stat.port(),
-                        humanReadable(stat.packetsReceived()),
-                        humanReadable(stat.bytesReceived()),
-                        humanReadableBps(rateRx),
-                        humanReadable(stat.packetsRxDropped()),
-                        humanReadable(stat.packetsSent()),
-                        humanReadable(stat.bytesSent()),
-                        humanReadableBps(rateTx),
-                        humanReadable(stat.packetsTxDropped()),
-                        String.format("%.3f", duration));
+        for (PortStatistics stat : sortByPort(portStats)) {
+            if (portNumber != null && stat.port() != portNumber) {
+                continue;
             }
+            if (nonzero && stat.isZero()) {
+                continue;
+            }
+            float duration = ((float) stat.durationSec()) +
+                    (((float) stat.durationNano()) / TimeUnit.SECONDS.toNanos(1));
+            float rateRx = stat.bytesReceived() * 8 / duration;
+            float rateTx = stat.bytesSent() * 8 / duration;
+            print(formatDeltaTable, stat.port(),
+                  humanReadable(stat.packetsReceived()),
+                  humanReadable(stat.bytesReceived()),
+                  humanReadableBps(rateRx),
+                  humanReadable(stat.packetsRxDropped()),
+                  humanReadable(stat.packetsSent()),
+                  humanReadable(stat.bytesSent()),
+                  humanReadableBps(rateTx),
+                  humanReadable(stat.packetsTxDropped()),
+                  String.format("%.3f", duration));
+        }
         print("+---------------------------------------------------------------------------------------------------+");
     }
 
@@ -188,5 +214,12 @@ public class DevicePortStatsCommand extends DevicesListCommand {
         int exp = (int) (Math.log(bps) / Math.log(unit));
         Character pre = ("KMGTPE").charAt(exp - 1);
         return String.format("%.2f%s", bps / Math.pow(unit, exp), pre);
+    }
+
+    private static List<PortStatistics> sortByPort(Iterable<PortStatistics> portStats) {
+        List<PortStatistics> portStatsList = Lists.newArrayList(portStats);
+        portStatsList.sort((PortStatistics o1, PortStatistics o2) ->
+                o1.port() - o2.port());
+        return portStatsList;
     }
 }

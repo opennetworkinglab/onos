@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,23 @@
 
 /**
  * Set of facilities to allow the platform to be extended with
- * device specific behaviours and to allow modeling device behaviours while
- * hiding details of specific device driver implementations.
+ * device specific behaviours and to allow modeling device (and other entity)
+ * behaviours while hiding details of specific driver implementations.
+ * While primarily intended for devices, this subsystem can be used to abstract
+ * behaviours of other entities as well.
  * <p>
  * {@link org.onosproject.net.driver.Driver} is a representation of a
- * specific family of devices supports set of
+ * specific family of entities (devices, links, etc.) which supports set of
  * {@link org.onosproject.net.driver.Behaviour behaviour classes}. Default
  * implementation is provided by the platform and allows DriverProviders to
  * add different behaviour implementations via DriverService.
  * </p>
  * <p>
  * {@link org.onosproject.net.driver.DriverData} is a container for data
- * learned about a device. It is associated with a specific
+ * learned about an entity. It is associated with a specific
  * {@link org.onosproject.net.driver.Driver}
  * and provides set of {@link org.onosproject.net.driver.Behaviour behaviours}
- * for talking about a device. A default
+ * for talking about an entity. A default
  * implementation provided by platform and has mutable key/value store for use by
  * implementations of {@link org.onosproject.net.driver.Behaviour behaviours}.
  * </p>

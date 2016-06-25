@@ -1,0 +1,175 @@
+module flow-classifier {
+
+    yang-version 1;
+
+    namespace "sfc.flowclassifier";
+
+    prefix "flow-classifier";
+
+    import "port-pair" {
+        prefix "port-pair";
+    } 
+    
+    organization "ON-LAB";
+
+    description "This submodule defines for flow classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    typedef flow-classifier-id {
+        type port-pair:uuid;
+    }
+
+    typedef IpPrefix {
+        type string;
+    }
+
+    typedef VirtualPortId {
+        type string;
+    }
+ 
+    grouping flow-classifier {
+        container flow-classifier {
+        	leaf id {
+                    type flow-classifier-id;
+        	}
+
+        	leaf tenant-id {
+        	    type port-pair:tenant-id;
+        	}
+
+        	leaf name {
+           	    type string;
+          	}
+ 
+        	leaf description {
+            	    type string;
+        	}
+    
+        	leaf etherType {
+            	    type string;
+        	}
+
+        	leaf protocol {
+            	    type string;
+        	}
+
+        	leaf priority {
+            	    type int32;
+        	}
+
+        	leaf minSrcPortRange {
+           	    type int32;
+        	}
+
+        	leaf maxSrcPortRange {
+            	    type int32;
+        	}
+
+       		leaf minDstPortRange {
+            	    type int32;
+        	}  
+
+        	leaf maxDstPortRange {
+            	    type int32;
+        	}
+
+        	leaf srcIpPrefix {
+            	    type IpPrefix;
+        	}
+
+        	leaf dstIpPrefix {
+            	    type IpPrefix;
+        	}
+
+        	leaf srcPort {
+	   	    type VirtualPortId;
+        	}
+
+        	leaf dstPort {
+	    	    type VirtualPortId;
+        	}
+    	}
+    }
+   rpc exists {
+      input {
+         leaf id {
+            type flow-classifier-id;
+          }
+      }
+      output {
+          leaf is-present {
+              type boolean;
+          }
+      }
+    }
+
+   rpc get-flow-classifier-count {
+      
+      output {
+          leaf count {
+              type int32;
+          }
+      }
+    }
+   
+   rpc get-flow-classifier {
+      input {
+         leaf id {
+            type flow-classifier-id;
+          }
+      }
+      output {
+          uses flow-classifier;
+      }
+    }
+
+   rpc create-flow-classifier {
+      input {
+          uses flow-classifier;
+      }
+      output {
+          leaf is-created {
+              type boolean;
+          }
+      }
+    }
+
+   rpc update-flow-classifier {
+      input {
+          uses flow-classifier;
+      }
+      output {
+          leaf is-updated {
+              type boolean;
+          }
+      }
+    }
+
+   rpc remove-flow-classifier {
+      input {
+         leaf id {
+            type flow-classifier-id;
+          }
+      }
+      output {
+          leaf is-removed {
+              type boolean;
+          }
+      }
+    }
+ 
+    notification Flow-Classifier-Put {
+       uses flow-classifier;
+    }
+    
+    notification Flow-Classifier-Delete {
+       uses flow-classifier;
+    }
+
+    notification Flow-Classifier-Update {
+        uses flow-classifier;
+    }
+}

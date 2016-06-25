@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.onosproject.net.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.Set;
 
@@ -25,11 +26,11 @@ import java.util.Set;
 public class NetworkConfigServiceAdapter implements NetworkConfigService {
     @Override
     public Set<Class> getSubjectClasses() {
-        return null;
+        return ImmutableSet.of();
     }
 
     @Override
-    public SubjectFactory getSubjectFactory(String subjectKey) {
+    public SubjectFactory getSubjectFactory(String subjectClassKey) {
         return null;
     }
 
@@ -39,23 +40,23 @@ public class NetworkConfigServiceAdapter implements NetworkConfigService {
     }
 
     @Override
-    public Class<? extends Config> getConfigClass(String subjectKey, String configKey) {
+    public Class<? extends Config> getConfigClass(String subjectClassKey, String configKey) {
         return null;
     }
 
     @Override
     public <S> Set<S> getSubjects(Class<S> subjectClass) {
-        return null;
+        return ImmutableSet.of();
     }
 
     @Override
     public <S, C extends Config<S>> Set<S> getSubjects(Class<S> subjectClass, Class<C> configClass) {
-        return null;
+        return ImmutableSet.of();
     }
 
     @Override
     public <S> Set<? extends Config<S>> getConfigs(S subject) {
-        return null;
+        return ImmutableSet.of();
     }
 
     @Override
@@ -74,17 +75,32 @@ public class NetworkConfigServiceAdapter implements NetworkConfigService {
     }
 
     @Override
+    public <S, C extends Config<S>> C applyConfig(String subjectClassKey, S subject, String configKey, JsonNode json) {
+        return null;
+    }
+
+    @Override
     public <S, C extends Config<S>> void removeConfig(S subject, Class<C> configClass) {
 
     }
 
     @Override
-    public void addListener(NetworkConfigListener listener) {
+    public <S> void removeConfig(String subjectClassKey, S subject, String configKey) {
+    }
 
+    @Override
+    public void addListener(NetworkConfigListener listener) {
     }
 
     @Override
     public void removeListener(NetworkConfigListener listener) {
+    }
 
+    @Override
+    public <S> void removeConfig(S subject) {
+    }
+
+    @Override
+    public <S> void removeConfig() {
     }
 }

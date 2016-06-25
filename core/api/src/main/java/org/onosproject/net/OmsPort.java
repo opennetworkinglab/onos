@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.onlab.util.Frequency;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Implementation of OMS port (Optical Multiplexing Section).
@@ -27,7 +28,10 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * See ITU G.709 "Interfaces for the Optical Transport Network (OTN)"
  *
  * Assumes we only support fixed grid for now.
+ *
+ * @deprecated in Goldeneye (1.6.0)
  */
+@Deprecated
 public class OmsPort extends DefaultPort {
 
     private final Frequency minFrequency;     // Minimum frequency
@@ -49,9 +53,9 @@ public class OmsPort extends DefaultPort {
     public OmsPort(Element element, PortNumber number, boolean isEnabled,
                    Frequency minFrequency, Frequency maxFrequency, Frequency grid, Annotations... annotations) {
         super(element, number, isEnabled, Type.OMS, 0, annotations);
-        this.minFrequency = minFrequency;
-        this.maxFrequency = maxFrequency;
-        this.grid = grid;
+        this.minFrequency = checkNotNull(minFrequency);
+        this.maxFrequency = checkNotNull(maxFrequency);
+        this.grid = checkNotNull(grid);
     }
 
     /**
@@ -61,7 +65,7 @@ public class OmsPort extends DefaultPort {
      */
     public short totalChannels() {
         Frequency diff = maxFrequency.subtract(minFrequency);
-        return (short) (diff.asHz() / (grid.asHz() + 1));
+        return (short) (diff.asHz() / grid.asHz());
     }
 
     /**
@@ -102,7 +106,7 @@ public class OmsPort extends DefaultPort {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof OmsPort) {
+        if (obj != null && getClass() == obj.getClass()) {
             final OmsPort other = (OmsPort) obj;
             return Objects.equals(this.element().id(), other.element().id()) &&
                     Objects.equals(this.number(), other.number()) &&

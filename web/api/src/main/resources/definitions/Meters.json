@@ -1,0 +1,129 @@
+{
+  "type": "object",
+  "title": "meters",
+  "required": [
+    "meters"
+  ],
+  "properties": {
+    "meters": {
+      "type": "array",
+      "xml": {
+        "name": "meters",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "meter",
+        "required": [
+          "id",
+          "appId",
+          "deviceId",
+          "unit",
+          "burst",
+          "state",
+          "life",
+          "refCount",
+          "packets",
+          "bytes",
+          "bands"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1"
+          },
+          "appId": {
+            "type": "string",
+            "example": "1"
+          },
+          "deviceId": {
+            "type": "string",
+            "example": "of:0000000000000001"
+          },
+          "unit": {
+            "type": "string",
+            "example": "KB_PER_SEC"
+          },
+          "burst": {
+            "type": "boolean",
+            "example": true
+          },
+          "state": {
+            "type": "string",
+            "example": "ADDED"
+          },
+          "life": {
+            "type": "integer",
+            "format": "int64",
+            "example": 0
+          },
+          "refCount": {
+            "type": "integer",
+            "format": "int64",
+            "example": 0
+          },
+          "packets": {
+            "type": "integer",
+            "format": "int64",
+            "example": 0
+          },
+          "bytes": {
+            "type": "integer",
+            "format": "int64",
+            "example": 0
+          },
+          "bands": {
+            "type": "array",
+            "xml": {
+              "name": "bands",
+              "wrapped": true
+            },
+            "items": {
+              "type": "object",
+              "title": "bands",
+              "required": [
+                "type",
+                "rate",
+                "burstSize",
+                "prec",
+                "packets",
+                "bytes"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "REMARK"
+                },
+                "rate": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 0
+                },
+                "burstSize": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 0
+                },
+                "prec": {
+                  "type": "integer",
+                  "format": "int16",
+                  "example": 0
+                },
+                "packets": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 0
+                },
+                "bytes": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

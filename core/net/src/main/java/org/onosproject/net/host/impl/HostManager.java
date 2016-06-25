@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -192,10 +192,7 @@ public class HostManager
     @Override
     public void removeHost(HostId hostId) {
         checkNotNull(hostId, HOST_ID_NULL);
-        HostEvent event = store.removeHost(hostId);
-        if (event != null) {
-            post(event);
-        }
+        store.removeHost(hostId);
     }
 
     // Personalized host provider service issued to the supplied provider.
@@ -211,11 +208,8 @@ public class HostManager
             checkNotNull(hostId, HOST_ID_NULL);
             checkValidity();
             hostDescription = validateHost(hostDescription, hostId);
-            HostEvent event = store.createOrUpdateHost(provider().id(), hostId,
+            store.createOrUpdateHost(provider().id(), hostId,
                                                        hostDescription, replaceIps);
-            if (event != null) {
-                post(event);
-            }
         }
 
         // returns a HostDescription made from the union of the BasicHostConfig
@@ -231,20 +225,14 @@ public class HostManager
         public void hostVanished(HostId hostId) {
             checkNotNull(hostId, HOST_ID_NULL);
             checkValidity();
-            HostEvent event = store.removeHost(hostId);
-            if (event != null) {
-                post(event);
-            }
+            store.removeHost(hostId);
         }
 
         @Override
         public void removeIpFromHost(HostId hostId, IpAddress ipAddress) {
             checkNotNull(hostId, HOST_ID_NULL);
             checkValidity();
-            HostEvent event = store.removeIp(hostId, ipAddress);
-            if (event != null) {
-                post(event);
-            }
+            store.removeIp(hostId, ipAddress);
         }
     }
 
@@ -264,7 +252,7 @@ public class HostManager
             if ((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
                     event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED) &&
                     event.configClass().equals(BasicHostConfig.class)) {
-                log.info("Detected Host network config event {}", event.type());
+                log.debug("Detected host network config event {}", event.type());
                 kickOutBadHost(((HostId) event.subject()));
             }
         }

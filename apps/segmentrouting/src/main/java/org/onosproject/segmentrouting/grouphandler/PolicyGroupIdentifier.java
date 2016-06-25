@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ public class PolicyGroupIdentifier {
     private List<GroupBucketIdentifier> bucketIds;
 
     /**
-     * Constructor.
+     * Constructs policy group identifier.
      *
      * @param id unique identifier associated with the policy group
      * @param input policy group params associated with this group

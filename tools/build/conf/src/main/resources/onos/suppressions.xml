@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2014-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -28,5 +28,19 @@
     <suppress files=".*" checks="OperatorWrapCheck"/>
     <suppress files=".*" checks="HiddenField"/>
     <suppress files=".java" checks="NewlineAtEndOfFile"/>
+    <suppress files="org.onlab.packet.*" checks="AbbreviationAsWordInName" />
+    <suppress files="org.onlab.jdvue.*" checks="AbbreviationAsWordInName" />
+    <suppress files="org.onosproject.driver.pipeline.*" checks="AbbreviationAsWordInName" />
+    <suppress files="org.onosproject.segmentrouting.*" checks="AbbreviationAsWordInName" />
 
+    <!-- Suppressions for unit testing code -->
+    <suppress checks="JavadocPackage"
+              files=".*/src/test/.*.java"
+            />
+
+    <suppress checks="JavadocPackage"
+              files=".*/thirdparty/.*.java"/>
+
+    <!-- Suppressions for yangutils generated code -->
+    <suppress files="org.onosproject.yang.gen.v1.*" checks="JavadocStyle" />
 </suppressions>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,11 @@ public final class ConfigProperty {
          * Indicates the value is a string.
          */
         STRING,
+
+        /**
+         * Indicates the value is a byte.
+         */
+        BYTE,
 
         /**
          * Indicates the value is an integer.
@@ -194,6 +199,16 @@ public final class ConfigProperty {
     }
 
     /**
+     * Returns the property value as a byte.
+     *
+     * @return byte value
+     */
+    public byte asByte() {
+        checkState(type == Type.BYTE, "Value is not a byte");
+        return Byte.parseByte(value);
+    }
+
+    /**
      * Returns the property value as an integer.
      *
      * @return integer value
@@ -245,7 +260,7 @@ public final class ConfigProperty {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return name.hashCode();
     }
 
     /**

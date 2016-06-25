@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
+import org.onosproject.ui.table.cell.NumberFormatter;
 
 import java.util.Collection;
 
@@ -61,6 +62,8 @@ public class PortViewMessageHandler extends UiMessageHandler {
     // handler for port table requests
     private final class PortDataRequest extends TableRequestHandler {
 
+        private static final String NO_ROWS_MESSAGE = "No ports found";
+
         private PortDataRequest() {
             super(PORT_DATA_REQ, PORT_DATA_RESP, PORTS);
         }
@@ -68,6 +71,23 @@ public class PortViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage(ObjectNode payload) {
+            return NO_ROWS_MESSAGE;
+        }
+
+        @Override
+        protected TableModel createTableModel() {
+            TableModel tm = super.createTableModel();
+            tm.setFormatter(PKT_RX, NumberFormatter.INTEGER);
+            tm.setFormatter(PKT_TX, NumberFormatter.INTEGER);
+            tm.setFormatter(BYTES_RX, NumberFormatter.INTEGER);
+            tm.setFormatter(BYTES_TX, NumberFormatter.INTEGER);
+            tm.setFormatter(PKT_RX_DRP, NumberFormatter.INTEGER);
+            tm.setFormatter(PKT_TX_DRP, NumberFormatter.INTEGER);
+            return tm;
         }
 
         @Override

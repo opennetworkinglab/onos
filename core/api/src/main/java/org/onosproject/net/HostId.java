@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public final class HostId extends ElementId {
         checkArgument(string.length() >= MIN_ID_LENGTH,
                       "Host ID must be at least %s characters", MIN_ID_LENGTH);
         MacAddress mac = MacAddress.valueOf(string.substring(0, MAC_LENGTH));
-        VlanId vlanId = VlanId.vlanId(Short.parseShort(string.substring(MAC_LENGTH + 1)));
+        VlanId vlanId = VlanId.vlanId(string.substring(MAC_LENGTH + 1));
         return new HostId(mac, vlanId);
     }
 

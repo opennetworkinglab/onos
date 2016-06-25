@@ -1,0 +1,93 @@
+{
+  "type": "object",
+  "required": [
+    "apps",
+    "links",
+    "domains",
+    "hosts",
+    "ports",
+    "devices"
+  ],
+  "properties": {
+    "apps": {
+      "type": "object"
+    },
+    "links": {
+      "title": "links",
+      "type": "object",
+      "properties": {
+        "deviceId/port-deviceId/port": {
+          "title": "basic",
+          "type": "object",
+          "required": [
+            "basic"
+          ],
+          "properties": {
+            "basic": {
+              "title": "basic",
+              "type": "object",
+              "properties": {
+                "allowed": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "domains": {
+      "type": "object"
+    },
+    "hosts": {
+      "type": "object"
+    },
+    "ports": {
+      "type": "object"
+    },
+    "devices": {
+      "title": "Devices",
+      "type": "object",
+      "required": [
+        "deviceId"
+      ],
+      "properties": {
+        "deviceId": {
+          "title": "basic",
+          "type": "object",
+          "required": [
+            "basic"
+          ],
+          "properties": {
+            "basic": {
+              "title": "basicDevice",
+              "type": "object",
+              "required": [
+                "allowed"
+              ],
+              "properties": {
+                "allowed": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "name": {
+                  "type": "string",
+                  "example": "DeviceName"
+                },
+                "owner": {
+                  "type": "string",
+                  "example": "OwnerName"
+                },
+                "latitude": {
+                  "type": "string",
+                  "example": "25"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -32,18 +32,18 @@ if [ "${1}" = "-h" -o "${1}" = "--help" ]; then
     exit 0
 fi
 
-case $2 in 
+case $2 in
     start|stop|restart|status)
         # Select the target
         if [ "${1}" = "--cell" ]; then
-            nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
+            nodes=$(env | sort | egrep "^OC[0-9]+" | cut -d= -f2)
         else
             nodes=$(find_node ${1:-$OCI})
         fi
 
         # Execute the remote commands
         for node in $nodes; do
-            ssh $ONOS_USER@${node} "sudo ${2:-status} onos"
+            ssh -tt $ONOS_USER@${node} "sudo service onos ${2:-status}"
         done
     ;;
     *)

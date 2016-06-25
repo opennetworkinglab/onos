@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,12 +57,12 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
     void updateMeterState(Meter meter);
 
     /**
-     * Obtains a meter matching the given meter id.
+     * Obtains a meter matching the given meter key.
      *
-     * @param meterId a meter id
+     * @param key a meter key
      * @return a meter
      */
-    Meter getMeter(MeterId meterId);
+    Meter getMeter(MeterKey key);
 
     /**
      * Returns all meters stored in the store.

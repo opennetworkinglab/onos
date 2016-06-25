@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,15 +15,19 @@
   -->
 <scenario name="smoke" description="ONOS smoke test">
     <import file="${ONOS_SCENARIOS}/prerequisites.xml"/>
+    <import file="${ONOS_SCENARIOS}/net-prerequisites.xml"/>
 
     <import file="${ONOS_SCENARIOS}/setup.xml"/>
-    <dependency name="Setup" requires="Prerequisites"/>
+    <dependency name="Setup" requires="Prerequisites,Net-Prerequisites"/>
 
     <import file="${ONOS_SCENARIOS}/net-smoke.xml"/>
     <dependency name="Net-Smoke" requires="Setup"/>
 
     <import file="${ONOS_SCENARIOS}/archetypes.xml"/>
     <dependency name="Archetypes" requires="Setup"/>
+
+    <import file="${ONOS_SCENARIOS}/drivers-test.xml"/>
+    <dependency name="Drivers-Test" requires="Setup,Net-Smoke,Archetypes"/>
 
     <import file="${ONOS_SCENARIOS}/wrapup.xml"/>
     <dependency name="Wrapup" requires="~Archetypes,~Setup,~Net-Smoke"/>

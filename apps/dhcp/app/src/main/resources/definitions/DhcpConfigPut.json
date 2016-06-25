@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "required": [
+    "mac",
+    "ip"],
+  "properties": {
+    "mac": {
+      "type": "String",
+      "example": "be:48:89:d5:75:59"
+    },
+    "ip": {
+      "type": "String",
+      "example": "10.128.12.4"
+    }
+  }
+}
+

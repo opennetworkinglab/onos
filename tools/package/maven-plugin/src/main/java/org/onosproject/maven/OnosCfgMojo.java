@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import java.util.List;
  * Produces ONOS component configuration catalogue resources.
  */
 @Mojo(name = "cfg", defaultPhase = LifecyclePhase.GENERATE_RESOURCES)
+@java.lang.SuppressWarnings("squid:S1148")
 public class OnosCfgMojo extends AbstractMojo {
 
     private static final String COMPONENT = "org.apache.felix.scr.annotations.Component";

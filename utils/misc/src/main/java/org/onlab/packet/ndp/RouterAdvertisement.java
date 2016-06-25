@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.onlab.packet.IPacket;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
@@ -321,5 +322,18 @@ public class RouterAdvertisement extends BasePacket {
 
             return routerAdvertisement;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("currentHopLimit", Byte.toString(currentHopLimit))
+                .add("mFlag", Byte.toString(mFlag))
+                .add("oFlag", Byte.toString(oFlag))
+                .add("routerLifetime", Short.toString(routerLifetime))
+                .add("reachableTime", Integer.toString(reachableTime))
+                .add("retransmitTimer", Integer.toString(retransmitTimer))
+                .toString();
+        // TODO: need to handle optionis
     }
 }

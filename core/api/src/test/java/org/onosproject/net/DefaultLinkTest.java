@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,11 +42,11 @@ public class DefaultLinkTest {
 
     @Test
     public void testEquality() {
-        Link l1 = new DefaultLink(PID, cp(DID1, P1), cp(DID2, P2), DIRECT);
-        Link l2 = new DefaultLink(PID, cp(DID1, P1), cp(DID2, P2), DIRECT);
-        Link l3 = new DefaultLink(PID, cp(DID1, P2), cp(DID2, P2), DIRECT);
-        Link l4 = new DefaultLink(PID, cp(DID1, P2), cp(DID2, P2), DIRECT);
-        Link l5 = new DefaultLink(PID, cp(DID1, P2), cp(DID2, P2), INDIRECT);
+        Link l1 = new DefaultLink(PID, cp(DID1, P1), cp(DID2, P2), DIRECT, Link.State.ACTIVE);
+        Link l2 = new DefaultLink(PID, cp(DID1, P1), cp(DID2, P2), DIRECT, Link.State.ACTIVE);
+        Link l3 = new DefaultLink(PID, cp(DID1, P2), cp(DID2, P2), DIRECT, Link.State.ACTIVE);
+        Link l4 = new DefaultLink(PID, cp(DID1, P2), cp(DID2, P2), DIRECT, Link.State.ACTIVE);
+        Link l5 = new DefaultLink(PID, cp(DID1, P2), cp(DID2, P2), INDIRECT, Link.State.ACTIVE);
 
         new EqualsTester().addEqualityGroup(l1, l2)
                 .addEqualityGroup(l3, l4)
@@ -56,7 +56,7 @@ public class DefaultLinkTest {
 
     @Test
     public void basics() {
-        Link link = new DefaultLink(PID, cp(DID1, P1), cp(DID2, P2), DIRECT);
+        Link link = new DefaultLink(PID, cp(DID1, P1), cp(DID2, P2), DIRECT, Link.State.ACTIVE);
         assertEquals("incorrect src", cp(DID1, P1), link.src());
         assertEquals("incorrect dst", cp(DID2, P2), link.dst());
         assertEquals("incorrect type", DIRECT, link.type());

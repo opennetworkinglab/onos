@@ -1,0 +1,18 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:jersey-client',
+    '//lib:jersey-common',
+    '//lib:httpclient-osgi',
+    '//lib:httpcore-osgi',
+    '//lib:javax.ws.rs-api',
+    '//lib:hk2-api',
+    '//lib:jersey-guava',
+    '//lib:aopalliance-repackaged',
+    '//lib:javax.inject',
+    '//protocols/rest/api:onos-protocols-rest-api',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)
+

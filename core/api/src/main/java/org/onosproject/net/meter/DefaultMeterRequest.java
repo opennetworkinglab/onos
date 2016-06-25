@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,8 @@ public final class DefaultMeterRequest implements MeterRequest {
 
     private DefaultMeterRequest(DeviceId deviceId, ApplicationId appId,
                                 Meter.Unit unit, boolean burst,
-                                Collection<Band> bands, MeterContext context, Type op) {
+                                Collection<Band> bands, MeterContext context,
+                                Type op) {
         this.deviceId = deviceId;
         this.appId = appId;
         this.unit = unit;
@@ -57,6 +58,7 @@ public final class DefaultMeterRequest implements MeterRequest {
     public DeviceId deviceId() {
         return deviceId;
     }
+
 
     @Override
     public ApplicationId appId() {
@@ -107,6 +109,7 @@ public final class DefaultMeterRequest implements MeterRequest {
         private Collection<Band> bands;
         private DeviceId deviceId;
         private MeterContext context;
+        private Optional<MeterId> desiredId = Optional.empty();
 
 
         @Override

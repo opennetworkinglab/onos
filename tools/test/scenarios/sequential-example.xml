@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright 2015-present Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="example" description="sequential scenario example">
+    <group name="Wrapup">
+        <!-- 'starts' is a comma-separated list of patterns that name steps starting the current iteration of the sequence -->
+        <!-- 'ends' is a comma-separated list of patterns that name steps ending the previous iteration of the sequence -->
+        <!-- In this example each Final-Check-Logs-(N) will become dependent on Fetch-Logs-(N-1), for N > 1 -->
+        <sequential var="${OC#}" starts="Final-Check-Logs-${#}" ends="Fetch-Logs-${#-1}">
+            <step name="Final-Check-Logs-${#}" exec="onos-check-logs ${OC#}"/>
+            <step name="Fetch-Logs-${#}" exec="onos-fetch-logs ${OC#}"
+                  cwd="${WORKSPACE}/tmp/stc" requires="~^"/>
+        </sequential>
+    </group>
+</scenario>

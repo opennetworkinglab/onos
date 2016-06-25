@@ -1,0 +1,18 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000000000000007",
+    "type": "balancer",
+    "online": true,
+    "master": "ONOS",
+    "labels": [
+      "",
+      "balancer",
+      "of:0000000000000007"
+    ],
+    "metaUi": {
+      "x": 600,
+      "y": 300
+    }
+  }
+}

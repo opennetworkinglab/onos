@@ -1,0 +1,132 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Validates that the local environment is ready to commence release process.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+
+GERRIT_USER=${GERRIT_USER:-$USER}
+WIKI_USER=${WIKI_USER:-$USER}
+
+set -e
+
+# Tests availability of the specified tools
+function testTool {
+    trap "echo 'FAILED'" ERR
+    printf "Checking $1 availability... "
+    which -s $1
+    echo "OK"
+}
+
+# Tests availability of gerrit
+function testGerritTool {
+    trap "echo 'FAILED'" ERR
+    printf "Checking gerrit... "
+    git review --version 2>/dev/null
+    echo "OK"
+}
+
+# Tests availability of GPG or GPG2
+function testGpgTool {
+    trap "echo 'FAILED'" ERR
+    printf "Checking gpg or gpg2... "
+    which -s gpg || which -s gpg2
+    echo "OK"
+}
+
+# Tests Java version
+function testJavaVersion {
+    trap "echo 'FAILED'" ERR
+    printf "Checking Java version... "
+    v=$(javac -version 2>&1 | grep 1.8.0_ | sed -e 's/.*1.8.0_\([0-9]*\).*/\1/g')
+    test "$v" -ge 73
+    echo "OK"
+}
+
+# Tests availability of the required tools
+function testToolchain {
+    for tool in bash python git java javac mvn tar; do
+        testTool $tool;
+    done
+    testGerritTool
+    testGpgTool
+    testJavaVersion
+}
+
+# Tests that the specified artifact dependency is not a snapshot version
+function testArtifactDependency {
+    trap "echo 'FAILED'" ERR
+    printf "Checking $1 dependency... "
+    grep "<$1.version>.*</$1.version>" $ONOS_ROOT/pom.xml | grep -q SNAPSHOT && false
+    echo "OK"
+}
+
+# Tests that the ONOS-base is not a snapshot version
+function testOnosBase {
+    trap "echo 'FAILED'" ERR
+    printf "Checking onos-base dependency... "
+    grep -A1 "onos-base" $ONOS_ROOT/pom.xml | grep -q SNAPSHOT && false
+    echo "OK"
+}
+
+# Tests that the root pom does not contain any snapshot dependencies
+# on anxillary artifacts, e.g. openflowj, copycat
+function testSnapshotDependencies {
+    testOnosBase
+    for artifact in onos-build-conf onos-maven-plugin openflowj atomix copycat; do
+        testArtifactDependency $artifact
+    done
+}
+
+# Test access to Gerrit (Administrator)
+function testGerritAccess {
+    trap "echo 'FAILED'" ERR
+    printf "Checking Gerrit ONOS Release group access... "
+    ssh -p 29418 gerrit.onosproject.org gerrit ls-members "ONOS\ Release"\
+         --recursive | grep -q $GERRIT_USER
+    echo "OK"
+}
+
+# Test access to wiki.onosproject.org
+function testWikiAccess {
+    trap "echo 'FAILED'" ERR
+    printf "Checking Wiki access... "
+    ssh $WIKI_USER@wiki.onosproject.org "test -w /var/www/api/index.html"
+    echo "OK"
+}
+
+# Test access to EC2
+function testEC2Access {
+    aux=$(mktemp)
+    trap "cat $aux; rm -f $aux; echo 'FAILED'" ERR
+    printf "Checking EC2 access... "
+    uploadToS3.py -v 1>$aux 2>&1
+    rm -f $aux
+    echo "OK"
+}
+
+# Sonatype account must be created & ~/.m2/settings.xml must be configured
+# Test by "releasing" a fake project setup for that purpose to validate access.
+function testSonatypeAccess {
+    aux=$(mktemp)
+    trap "cat $aux; rm -f $aux; echo 'FAILED'" ERR
+    printf "Checking Sonatype access... "
+    pushd $ONOS_ROOT/tools/build/release-test >/dev/null
+    # TODO: Figure out how to supress the GPG note
+    mvn -Prelease clean deploy org.sonatype.plugins:nexus-staging-maven-plugin:drop \
+        1>$aux 2>&1 </dev/null
+    mvn clean >/dev/null
+    rm -f $aux
+    popd >/dev/null
+    echo "OK"
+}
+
+testToolchain
+testSnapshotDependencies
+testGerritAccess
+testWikiAccess
+testEC2Access
+testSonatypeAccess
+
+echo "Ready to commence release process!"
+

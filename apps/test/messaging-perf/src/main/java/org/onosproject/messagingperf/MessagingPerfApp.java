@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,9 +130,8 @@ public class MessagingPerfApp {
             serializerPool = KryoNamespace.newBuilder()
                     .register(KryoNamespaces.BASIC)
                     .register(KryoNamespaces.MISC)
-                    .register(byte[].class)
                     .register(Data.class)
-                    .build();
+                    .build("MessagingPerfApp");
         }
     };
 
@@ -310,7 +309,7 @@ public class MessagingPerfApp {
                 messageSendingExecutor.submit(this::requestReply);
             });
         } catch (Exception e) {
-            e.printStackTrace();
+            log.info("requestReply()", e);
         }
     }
 
@@ -323,7 +322,7 @@ public class MessagingPerfApp {
                     encoder,
                     randomPeer());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.info("unicast()", e);
         }
         messageSendingExecutor.submit(this::unicast);
     }
@@ -336,7 +335,7 @@ public class MessagingPerfApp {
                     TEST_UNICAST_MESSAGE_TOPIC,
                     encoder);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.info("broadcast()", e);
         }
         messageSendingExecutor.submit(this::broadcast);
     }

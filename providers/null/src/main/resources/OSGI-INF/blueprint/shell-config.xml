@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -33,6 +33,14 @@
                 <null/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.provider.nil.cli.NullDeviceCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+                <ref component-id="upDownCompleter"/>
+                <null/>
+            </completers>
+        </command>
     </command-bundle>
 
     <bean id="startStopCompleter" class="org.onosproject.cli.StartStopCompleter"/>
@@ -40,5 +48,6 @@
     <bean id="topoShapeCompleter" class="org.onosproject.provider.nil.cli.TopologyShapeCompleter"/>
     <bean id="linkSrcCompleter" class="org.onosproject.cli.net.LinkSrcCompleter"/>
     <bean id="linkDstCompleter" class="org.onosproject.cli.net.LinkDstCompleter"/>
+    <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
 
 </blueprint>

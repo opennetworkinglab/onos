@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,17 +32,31 @@ public final class TableUtils {
     private TableUtils() { }
 
     /**
-     * Generates a JSON array node from a table model.
+     * Generates a JSON array node from the rows of the given table model.
      *
      * @param tm the table model
-     * @return the array node representation
+     * @return the array node representation of rows
      */
-    public static ArrayNode generateArrayNode(TableModel tm) {
+    public static ArrayNode generateRowArrayNode(TableModel tm) {
         ArrayNode array = MAPPER.createArrayNode();
         for (TableModel.Row r : tm.getRows()) {
             array.add(toJsonNode(r, tm));
         }
         return array;
+    }
+
+    /**
+     * Generates a JSON object node from the annotations of the given table model.
+     *
+     * @param tm the table model
+     * @return the object node representation of the annotations
+     */
+    public static ObjectNode generateAnnotObjectNode(TableModel tm) {
+        ObjectNode node = MAPPER.createObjectNode();
+        for (TableModel.Annot a : tm.getAnnotations()) {
+            node.put(a.key(), a.valueAsString());
+        }
+        return node;
     }
 
     private static JsonNode toJsonNode(TableModel.Row row, TableModel tm) {

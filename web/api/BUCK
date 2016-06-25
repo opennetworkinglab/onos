@@ -1,0 +1,17 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api',
+    '//lib:javax.ws.rs-api',
+    '//utils/rest:onlab-rest',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_REST',
+]
+
+osgi_jar_with_tests (
+    name = 'onos-rest',
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    web_context = '/onos/v1',
+)

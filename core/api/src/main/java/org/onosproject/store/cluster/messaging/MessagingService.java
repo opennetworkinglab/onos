@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ package org.onosproject.store.cluster.messaging;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 /**
  * Interface for low level messaging primitives.
@@ -36,7 +36,7 @@ public interface MessagingService {
     CompletableFuture<Void> sendAsync(Endpoint ep, String type, byte[] payload);
 
     /**
-     * Sends a message synchronously and waits for a response.
+     * Sends a message asynchronously and expects a response.
      * @param ep end point to send the message to.
      * @param type type of message.
      * @param payload message payload.
@@ -45,12 +45,14 @@ public interface MessagingService {
     CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload);
 
     /**
-     * Registers a new message handler for message type.
-     * @param type message type.
-     * @param handler message handler
-     * @param executor executor to use for running message handler logic.
+     * Sends a message synchronously and expects a response.
+     * @param ep end point to send the message to.
+     * @param type type of message.
+     * @param payload message payload.
+     * @param executor executor over which any follow up actions after completion will be executed.
+     * @return a response future
      */
-    void registerHandler(String type, Consumer<byte[]> handler, Executor executor);
+    CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload, Executor executor);
 
     /**
      * Registers a new message handler for message type.
@@ -58,14 +60,22 @@ public interface MessagingService {
      * @param handler message handler
      * @param executor executor to use for running message handler logic.
      */
-    void registerHandler(String type, Function<byte[], byte[]> handler, Executor executor);
+    void registerHandler(String type, BiConsumer<Endpoint, byte[]> handler, Executor executor);
+
+    /**
+     * Registers a new message handler for message type.
+     * @param type message type.
+     * @param handler message handler
+     * @param executor executor to use for running message handler logic.
+     */
+    void registerHandler(String type, BiFunction<Endpoint, byte[], byte[]> handler, Executor executor);
 
     /**
      * Registers a new message handler for message type.
      * @param type message type.
      * @param handler message handler
      */
-    void registerHandler(String type, Function<byte[], CompletableFuture<byte[]>> handler);
+    void registerHandler(String type, BiFunction<Endpoint, byte[], CompletableFuture<byte[]>> handler);
 
     /**
      * Unregister current handler, if one exists for message type.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,12 @@ public interface ControllerNode {
     /** Represents the operational state of the instance. */
     enum State {
         /**
+         * Signifies that the instance is active and that all components are
+         * operating normally.
+         */
+        READY,
+
+        /**
          * Signifies that the instance is active and operating normally.
          */
         ACTIVE,
@@ -33,7 +39,25 @@ public interface ControllerNode {
          * Signifies that the instance is inactive, which means either down or
          * up, but not operational.
          */
-        INACTIVE
+        INACTIVE;
+
+        /**
+         * Indicates whether the state represents node which is active or ready.
+         *
+         * @return true if active or ready
+         */
+        public boolean isActive() {
+            return this == ACTIVE || this == READY;
+        }
+
+        /**
+         * Indicates whether the state represents a node which is ready.
+         *
+         * @return true if active and ready
+         */
+        public boolean isReady() {
+            return this == READY;
+        }
     }
 
     /**

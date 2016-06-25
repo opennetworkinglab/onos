@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +29,11 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.ClusterId;
 import org.onosproject.net.topology.DefaultGraphDescription;
+import org.onosproject.net.topology.DefaultTopologyVertex;
 import org.onosproject.net.topology.GraphDescription;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.TopologyCluster;
+import org.onosproject.net.topology.TopologyVertex;
 
 import java.util.Set;
 
@@ -53,6 +55,9 @@ public class DefaultTopologyTest {
     public static final DeviceId D4 = deviceId("of:4");
     public static final DeviceId D5 = deviceId("of:5");
 
+    public static final TopologyVertex V1 = new DefaultTopologyVertex(D1);
+    public static final TopologyVertex V5 = new DefaultTopologyVertex(D5);
+
     public static final PortNumber P1 = portNumber(1);
     public static final PortNumber P2 = portNumber(2);
 
@@ -61,6 +66,9 @@ public class DefaultTopologyTest {
                     ? 2.0 : 1.0;
 
     private DefaultTopology dt;
+
+    public static final ClusterId C0 = ClusterId.clusterId(0);
+    public static final ClusterId C1 = ClusterId.clusterId(1);
 
     @Before
     public void setUp() {
@@ -73,7 +81,7 @@ public class DefaultTopologyTest {
                              link("1", 3, "4", 3), link("4", 3, "1", 3),
                              link("3", 4, "4", 4), link("4", 4, "3", 4));
         GraphDescription graphDescription =
-                new DefaultGraphDescription(now, devices, links);
+                new DefaultGraphDescription(now, System.currentTimeMillis(), devices, links);
 
         dt = new DefaultTopology(PID, graphDescription);
         assertEquals("incorrect supplier", PID, dt.providerId());
@@ -81,8 +89,9 @@ public class DefaultTopologyTest {
         assertEquals("incorrect device count", 5, dt.deviceCount());
         assertEquals("incorrect link count", 8, dt.linkCount());
         assertEquals("incorrect cluster count", 2, dt.clusterCount());
-        assertEquals("incorrect broadcast set size", 6,
-                     dt.broadcastSetSize(ClusterId.clusterId(0)));
+        assertEquals("incorrect broadcast set size", 6, dt.broadcastSetSize(C0));
+        assertEquals("incorrect root node", V1, dt.getCluster(C0).root());
+        assertEquals("incorrect root node", V5, dt.getCluster(C1).root());
     }
 
     @Test
@@ -122,9 +131,11 @@ public class DefaultTopologyTest {
 
     // Short-hand for creating a link.
     public static Link link(String src, int sp, String dst, int dp) {
-        return new DefaultLink(PID, new ConnectPoint(did(src), portNumber(sp)),
-                               new ConnectPoint(did(dst), portNumber(dp)),
-                               Link.Type.DIRECT);
+        return DefaultLink.builder().providerId(PID)
+                .src(new ConnectPoint(did(src), portNumber(sp)))
+                .dst(new ConnectPoint(did(dst), portNumber(dp)))
+                .type(Link.Type.DIRECT)
+                .build();
     }
 
     // Crates a new device with the specified id

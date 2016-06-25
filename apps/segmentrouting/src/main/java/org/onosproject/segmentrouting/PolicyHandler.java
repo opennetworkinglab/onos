@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.slf4j.Logger;
 
@@ -47,18 +48,43 @@ public class PolicyHandler {
     private FlowObjectiveService flowObjectiveService;
     private TunnelHandler tunnelHandler;
     private final EventuallyConsistentMap<String, Policy> policyStore;
-
+    /**
+     * Result of policy creation.
+     */
     public enum Result {
+        /**
+         * Success.
+         */
         SUCCESS,
+
+        /**
+         * The same policy exists already.
+         */
         POLICY_EXISTS,
+
+        /**
+         * The policy ID exists already.
+         */
         ID_EXISTS,
+
+        /**
+         * Cannot find associated tunnel.
+         */
         TUNNEL_NOT_FOUND,
+
+        /**
+         * Policy was not found.
+         */
         POLICY_NOT_FOUND,
+
+        /**
+         * Policy type {} is not supported yet.
+         */
         UNSUPPORTED_TYPE
     }
 
     /**
-     * Creates a reference.
+     * Constructs policy handler.
      *
      * @param appId                segment routing application ID
      * @param deviceConfiguration  DeviceConfiguration reference

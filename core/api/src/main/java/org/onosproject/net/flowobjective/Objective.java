@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.onosproject.core.ApplicationId;
 import java.util.Optional;
 
 /**
- * Base representation of an flow description.
+ * Base representation of a flow-objective description.
  */
 @Beta
 public interface Objective {
@@ -29,20 +29,38 @@ public interface Objective {
     boolean DEFAULT_PERMANENT = true;
     int DEFAULT_TIMEOUT = 0;
     int DEFAULT_PRIORITY = 32768;
+    int MIN_PRIORITY = 0;
+    int MAX_PRIORITY = 65535;
 
     /**
      * Type of operation.
      */
     enum Operation {
         /**
-         * Adds the objective.
+         * Adds the objective. Can be used for any flow objective. For forwarding
+         * and filtering objectives, existing objectives with identical selector
+         * and priority fields (but different treatments or next) will be replaced.
+         * For next objectives, if modification is desired, ADD will not
+         * do anything - use ADD_TO_EXISTING.
          */
         ADD,
 
         /**
-         * Removes the objective.
+         * Removes the objective. Can be used for any flow objective.
          */
-        REMOVE
+        REMOVE,
+
+        /**
+         * Add to an existing Next Objective. Should not be used for any other
+         * objective.
+         */
+        ADD_TO_EXISTING,
+
+        /**
+         * Remove from an existing Next Objective. Should not be used for any
+         * other objective.
+         */
+        REMOVE_FROM_EXISTING
     }
 
     /**
@@ -96,6 +114,13 @@ public interface Objective {
     Optional<ObjectiveContext> context();
 
     /**
+     * Returns a new builder set to create a copy of this objective.
+     *
+     * @return new builder
+     */
+    Objective.Builder copy();
+
+    /**
      * An objective builder.
      */
     interface Builder {
@@ -129,6 +154,37 @@ public interface Objective {
          * @return an objective builder
          */
         Builder withPriority(int priority);
-    }
 
+        /**
+         * Builds the objective that will be added.
+         *
+         * @return an objective
+         */
+        Objective add();
+
+        /**
+         * Builds the objective that will be removed.
+         *
+         * @return an objective.
+         */
+        Objective remove();
+
+        /**
+         * Builds the objective that will be added.
+         * The context will be used to notify the calling application.
+         *
+         * @param context an objective context
+         * @return an objective
+         */
+        Objective add(ObjectiveContext context);
+
+        /**
+         * Builds the objective that will be removed.
+         * The context will be used to notify the calling application.
+         *
+         * @param context an objective context
+         * @return an objective
+         */
+        Objective remove(ObjectiveContext context);
+    }
 }

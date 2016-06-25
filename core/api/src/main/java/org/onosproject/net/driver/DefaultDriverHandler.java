@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public class DefaultDriverHandler implements DriverHandler {
 
-    private final DefaultDriverData data;
+    private final DriverData data;
 
     // Reference to service directory to provide run-time context.
     protected static ServiceDirectory serviceDirectory = new DefaultServiceDirectory();
@@ -35,7 +35,7 @@ public class DefaultDriverHandler implements DriverHandler {
      *
      * @param data driver data to attach
      */
-    public DefaultDriverHandler(DefaultDriverData data) {
+    public DefaultDriverHandler(DriverData data) {
         this.data = data;
     }
 

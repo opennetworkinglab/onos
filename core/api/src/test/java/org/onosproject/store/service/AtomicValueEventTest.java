@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,13 +30,13 @@ import static org.onosproject.store.service.AtomicValueEvent.Type.UPDATE;
 public class AtomicValueEventTest {
 
     AtomicValueEvent<String> event1 =
-            new AtomicValueEvent<>("map1", UPDATE, "e1");
+            new AtomicValueEvent<>("map1", "e1", "e0");
     AtomicValueEvent<String> event2 =
-            new AtomicValueEvent<>("map1", UPDATE, "e2");
+            new AtomicValueEvent<>("map1", "e2", "e1");
     AtomicValueEvent<String> sameAsEvent2 =
-            new AtomicValueEvent<>("map1", UPDATE, "e2");
+            new AtomicValueEvent<>("map1", "e2", "e1");
     AtomicValueEvent<String> event3 =
-            new AtomicValueEvent<>("map2", UPDATE, "e2");
+            new AtomicValueEvent<>("map2", "e2", "e1");
 
     /**
      * Checks that the SetEvent class is immutable.
@@ -64,7 +64,8 @@ public class AtomicValueEventTest {
     @Test
     public void testConstruction() {
         assertThat(event1.type(), is(UPDATE));
-        assertThat(event1.value(), is("e1"));
+        assertThat(event1.newValue(), is("e1"));
+        assertThat(event1.oldValue(), is("e0"));
         assertThat(event1.name(), is("map1"));
     }
 

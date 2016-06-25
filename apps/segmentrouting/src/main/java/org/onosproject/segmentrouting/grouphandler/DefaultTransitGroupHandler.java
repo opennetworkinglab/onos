@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.link.LinkService;
-import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.segmentrouting.SegmentRoutingManager;
+import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
+import org.onosproject.segmentrouting.config.DeviceProperties;
 
 /**
  * Default ECMP group handler creation module for a transit device.
@@ -38,16 +40,13 @@ import org.onosproject.store.service.EventuallyConsistentMap;
  * 2) all ports to D3 + with no label push,
  */
 public class DefaultTransitGroupHandler extends DefaultGroupHandler {
-
     protected DefaultTransitGroupHandler(DeviceId deviceId,
                                   ApplicationId appId,
                                   DeviceProperties config,
                                   LinkService linkService,
                                   FlowObjectiveService flowObjService,
-                                  EventuallyConsistentMap<
-                                  NeighborSetNextObjectiveStoreKey,
-                                  Integer> nsNextObjStore) {
-        super(deviceId, appId, config, linkService, flowObjService, nsNextObjStore);
+                                  SegmentRoutingManager srManager) {
+        super(deviceId, appId, config, linkService, flowObjService, srManager);
     }
 
     @Override
@@ -76,7 +75,7 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
         log.debug("createGroupsAtTransitRouter: The neighborset with label "
                 + "for sw {} is {}", deviceId, nsSet);
 
-        createGroupsFromNeighborsets(nsSet);
+        //createGroupsFromNeighborsets(nsSet);
     }
 
     @Override
@@ -90,7 +89,7 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
         Set<NeighborSet> nsSet = computeImpactedNeighborsetForPortEvent(
                                              newNeighborLink.dst().deviceId(),
                                              devicePortMap.keySet());
-        createGroupsFromNeighborsets(nsSet);
+        //createGroupsFromNeighborsets(nsSet);
     }
 
     @Override
@@ -168,7 +167,15 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
             if (deviceSubSet.size() > 1) {
                 boolean avoidEdgeRouterPairing = true;
                 for (DeviceId device : deviceSubSet) {
-                    if (!deviceConfig.isEdgeDevice(device)) {
+                    boolean isEdge;
+                    try {
+                        isEdge = deviceConfig.isEdgeDevice(device);
+                    } catch (DeviceConfigNotFoundException e) {
+                        log.warn(e.getMessage() + " Skipping filterEdgeRouterOnlyPairings on this device.");
+                        continue;
+                    }
+
+                    if (!isEdge) {
                         avoidEdgeRouterPairing = false;
                         break;
                     }

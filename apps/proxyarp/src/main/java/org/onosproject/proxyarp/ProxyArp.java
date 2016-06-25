@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.ICMP6;
+import org.onlab.packet.IPv6;
+import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -38,7 +41,6 @@ import org.slf4j.Logger;
 
 import java.util.Dictionary;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.packet.Ethernet.TYPE_ARP;
 import static org.onlab.packet.Ethernet.TYPE_IPV6;
 import static org.onlab.packet.ICMP6.NEIGHBOR_ADVERTISEMENT;
@@ -171,7 +173,7 @@ public class ProxyArp {
         Dictionary<?, ?> properties = context.getProperties();
         Boolean flag;
 
-        flag = isPropertyEnabled(properties, "ipv6NeighborDiscovery");
+        flag = Tools.isPropertyEnabled(properties, "ipv6NeighborDiscovery");
         if (flag == null) {
             log.info("IPv6 Neighbor Discovery is not configured, " +
                              "using current value of {}", ipv6NeighborDiscovery);
@@ -180,26 +182,6 @@ public class ProxyArp {
             log.info("Configured. IPv6 Neighbor Discovery is {}",
                      ipv6NeighborDiscovery ? "enabled" : "disabled");
         }
-    }
-
-    /**
-     * Check property name is defined and set to true.
-     *
-     * @param properties   properties to be looked up
-     * @param propertyName the name of the property to look up
-     * @return value when the propertyName is defined or return null
-     */
-    private static Boolean isPropertyEnabled(Dictionary<?, ?> properties,
-                                             String propertyName) {
-        Boolean value = null;
-        try {
-            String s = (String) properties.get(propertyName);
-            value = isNullOrEmpty(s) ? null : s.trim().equals("true");
-        } catch (ClassCastException e) {
-            // No propertyName defined.
-            value = null;
-        }
-        return value;
     }
 
     /**
@@ -214,27 +196,35 @@ public class ProxyArp {
             if (context.isHandled()) {
                 return;
             }
-            // If IPv6 NDP is disabled, don't handle IPv6 frames.
+
             InboundPacket pkt = context.inPacket();
             Ethernet ethPkt = pkt.parsed();
             if (ethPkt == null) {
                 return;
             }
-            if (!ipv6NeighborDiscovery && (ethPkt.getEtherType() == TYPE_IPV6)) {
-                return;
+
+            if (ethPkt.getEtherType() == TYPE_ARP) {
+                //handle the arp packet.
+                proxyArpService.handlePacket(context);
+            } else if (ipv6NeighborDiscovery && ethPkt.getEtherType() == TYPE_IPV6) {
+                IPv6 ipv6Pkt = (IPv6) ethPkt.getPayload();
+                if (ipv6Pkt.getNextHeader() == IPv6.PROTOCOL_ICMP6) {
+                    ICMP6 icmp6Pkt = (ICMP6) ipv6Pkt.getPayload();
+                    if (icmp6Pkt.getIcmpType() == NEIGHBOR_SOLICITATION ||
+                        icmp6Pkt.getIcmpType() == NEIGHBOR_ADVERTISEMENT) {
+                        // handle ICMPv6 solicitations and advertisements
+                        proxyArpService.handlePacket(context);
+                    }
+                }
             }
 
+            // FIXME why were we listening to IPv4 frames at all?
             // Do not ARP for multicast packets.  Let mfwd handle them.
             if (ethPkt.getEtherType() == Ethernet.TYPE_IPV4) {
                 if (ethPkt.getDestinationMAC().isMulticast()) {
                     return;
                 }
             }
-
-            //handle the arp packet.
-            proxyArpService.handlePacket(context);
         }
     }
 }
-
-

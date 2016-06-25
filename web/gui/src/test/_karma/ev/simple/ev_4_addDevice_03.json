@@ -6,7 +6,7 @@
     "online": false,
     "master": "myInstB",
     "location": {
-      "type": "latlng",
+      "type": "lnglat",
       "lat": 40.7127,
       "lng": -74.0059
     },

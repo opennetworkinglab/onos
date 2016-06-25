@@ -1,0 +1,14 @@
+{
+  "disks": [
+    {
+      "resourceName": "disk1",
+      "readBytes": 500,
+      "writeBytes": 300
+    },
+    {
+      "resourceName": "disk2",
+      "readBytes": 500,
+      "writeBytes": 300
+    }
+  ]
+}

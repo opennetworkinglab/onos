@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,25 +19,37 @@ import org.onlab.packet.MacAddress;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Implementation of MAC address criterion.
  */
 public final class EthCriterion implements Criterion {
     private final MacAddress mac;
+    private final MacAddress mask;
     private final Type type;
 
     /**
      * Constructor.
      *
      * @param mac the source or destination MAC address to match
+     * @param mask the mask for the address
+     * @param type the match type. Should be either Type.ETH_DST_MASKED or
+     *             Type.ETH_SRC_MASKED
+     */
+    EthCriterion(MacAddress mac, MacAddress mask, Type type) {
+        this.mac = mac;
+        this.mask = mask;
+        this.type = type;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param mac the source or destination MAC address to match
      * @param type the match type. Should be either Type.ETH_DST or
-     * Type.ETH_SRC
+     *             Type.ETH_SRC
      */
     EthCriterion(MacAddress mac, Type type) {
-        this.mac = mac;
-        this.type = type;
+        this(mac, null, type);
     }
 
     @Override
@@ -54,15 +66,25 @@ public final class EthCriterion implements Criterion {
         return this.mac;
     }
 
+    /**
+     * Gets the mask for the MAC address to match.
+     *
+     * @return the MAC address to match
+     */
+    public MacAddress mask() {
+        return this.mask;
+    }
+
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("mac", mac).toString();
+        return (mask != null) ?
+            type().toString() + SEPARATOR + mac + "/" + mask :
+            type().toString() + SEPARATOR + mac;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type.ordinal(), mac);
+        return Objects.hash(type.ordinal(), mac, mask);
     }
 
     @Override
@@ -73,6 +95,7 @@ public final class EthCriterion implements Criterion {
         if (obj instanceof EthCriterion) {
             EthCriterion that = (EthCriterion) obj;
             return Objects.equals(mac, that.mac) &&
+                    Objects.equals(mask, that.mask) &&
                     Objects.equals(type, that.type);
         }
         return false;

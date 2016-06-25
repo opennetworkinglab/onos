@@ -1,0 +1,18 @@
+{
+  "networks": [
+    {
+      "resourceName": "eth0",
+      "incomingBytes": 1024,
+      "outgoingBytes": 1024,
+      "incomingPackets": 1000,
+      "outgoingPackets": 2000
+    },
+    {
+      "resourceName": "eth1",
+      "incomingBytes": 1024,
+      "outgoingBytes": 1024,
+      "incomingPackets": 1000,
+      "outgoingPackets": 2000
+    }
+  ]
+}

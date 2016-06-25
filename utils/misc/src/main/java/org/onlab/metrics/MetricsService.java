@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
+import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 
 /**
@@ -37,6 +38,13 @@ public interface MetricsService {
      * @return MetricsComponent object that can be used to create Metrics.
      */
     MetricsComponent registerComponent(String name);
+
+    /**
+     * Fetches existing metric registry.
+     *
+     * @return metric registry
+     */
+    MetricRegistry getMetricRegistry();
 
     /**
      * Creates a Counter metric.
@@ -103,6 +111,25 @@ public interface MetricsService {
              MetricsFeature feature,
              String metricName,
              T metric);
+
+    /**
+     * Registers a reporter to receive any changes on metric registry.
+     *
+     * @param reporter metric reporter
+     */
+    void registerReporter(MetricsReporter reporter);
+
+    /**
+     * Unregisters the given metric reporter.
+     *
+     * @param reporter metric reporter
+     */
+    void unregisterReporter(MetricsReporter reporter);
+
+    /**
+     * Notifies the changes on metric registry to all registered reporters.
+     */
+    void notifyReporters();
 
     /**
      * Removes the metric with the given name.

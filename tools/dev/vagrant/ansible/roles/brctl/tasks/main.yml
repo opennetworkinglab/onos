@@ -1,0 +1,37 @@
+- name: Bridge onosbr0 is present
+  become: yes
+  template:
+    src: templates/create_bridge.j2
+    dest: /etc/network/if-pre-up.d/create_bridge_{{ networks.bridge_name }}
+    owner: root
+    group: root
+    mode: 0755
+
+- name: eth1 is in onosbr0
+  become: yes
+  template:
+    src: templates/add_iface.j2
+    dest: /etc/network/if-pre-up.d/add_iface_{{ interfaces.hostonly }}
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Activate onos bridge
+  become: yes
+  command: /etc/network/if-pre-up.d/create_bridge_{{ networks.bridge_name }} report-changed
+  register: bridge_changed
+  changed_when: bridge_changed.stdout == 'true'
+
+- name: Activate eth1 in bridge
+  become: yes
+  command: /etc/network/if-pre-up.d/add_iface_{{ interfaces.hostonly }} report-changed
+  register: bridge_iface_changed
+  changed_when: bridge_iface_changed == 'true'
+
+- name: Flush ip of eth1
+  become: yes
+  command: /sbin/ip addr flush {{ interfaces.hostonly }}
+
+- name: bring onosbr0 up
+  become: yes
+  command: /sbin/ifconfig onosbr0 up

@@ -1,0 +1,18 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:00000000000000015",
+    "type": "-unmatched-",
+    "online": true,
+    "master": "ONOS-B",
+    "labels": [
+      "",
+      "-unmatched-",
+      "of:0000000000000015"
+    ],
+    "metaUi": {
+      "x": 600,
+      "y": 500
+    }
+  }
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,18 +30,6 @@ public interface HostProviderService extends ProviderService<HostProvider> {
      *
      * @param hostId          id of the host that been detected
      * @param hostDescription description of host and its location
-     */
-    @Deprecated
-    default void hostDetected(HostId hostId, HostDescription hostDescription) {
-        hostDetected(hostId, hostDescription, false);
-    }
-
-    /**
-     * Notifies the core when a host has been detected on a network along with
-     * information that identifies the host location.
-     *
-     * @param hostId          id of the host that been detected
-     * @param hostDescription description of host and its location
      * @param replaceIps      replace IP set if true, merge IP set otherwise
      */
     void hostDetected(HostId hostId, HostDescription hostDescription, boolean replaceIps);
@@ -54,9 +42,10 @@ public interface HostProviderService extends ProviderService<HostProvider> {
     void hostVanished(HostId hostId);
 
     /**
-     * Notifies the core when a host is no longer detected on a network.
+     * Notifies the core when an IP is no longer associated with a host.
      *
-     * @param hostId id of the host that vanished
+     * @param hostId id of the host
+     * @param ipAddress ip address of host that vanished
      */
     void removeIpFromHost(HostId hostId, IpAddress ipAddress);
 

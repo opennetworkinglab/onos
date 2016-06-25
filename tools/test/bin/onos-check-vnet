@@ -1,0 +1,53 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Checks vnet related entities (tenantId, networkId).
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+aux=/tmp/stc-$$.log
+trap "rm -f $aux 2>/dev/null" EXIT
+target=${1:-$OCI}
+command_name=`basename $0`
+
+# Prints usage help
+function usage {
+    echo "usage: $command_name <node-ip> checkTenant <tenantId>" >&2
+    echo "       $command_name <node-ip> getNetworkId <tenantId>" >&2
+}
+
+# Extracts networkId
+function extractAndPublishNetworkId() {
+    for token in $aString
+    do
+        if [[ $token =~ "networkId=" ]]
+        then
+            echo "@stc $token"
+            exit 0
+        fi
+    done
+    return 1
+}
+
+echo $command_name: $*
+[ $# -lt 3 ] || [ "$1" = "-h" ] && usage && exit 0
+
+case "$2" in
+    "checkTenant")
+         onos $target "vnet-tenants" | tee $aux
+         grep -w $3 $aux && exit 0
+         ;;
+    "getNetworkId")
+         onos $target "vnets" | tee $aux
+         aString=`grep "tenantId=$3," $aux | tail -1` #get last row 
+         extractAndPublishNetworkId && exit 0
+         ;;
+    *)
+         usage
+         ;;
+esac
+
+cat $aux
+exit 1
+

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,4 +24,54 @@
 
 #ov-settings div.ctrl-btns {
     width: 45px;
+}
+
+#ov-settings div.summary-list td.notdef {
+    color: #0071bd;
+    font-weight: bold;
+}
+
+#settings-details-panel .container {
+    padding: 0 30px;
+    overflow-y: scroll;
+}
+
+#settings-details-panel .close-btn {
+    position: absolute;
+    right: 26px;
+    top: 26px;
+    cursor: pointer;
+}
+
+#settings-details-panel .top .settings-title-1 {
+    width: 90%;
+    height: 28px;
+    font-size: 14pt;
+    font-weight: lighter;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 0 12px 0 2px;
+    margin-top: 19px;
+    margin-bottom: 5px;
+}
+
+#settings-details-panel .top .settings-title-2 {
+    width: 90%;
+    height: 52px;
+    font-size: 20pt;
+    font-weight: lighter;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 0 6px 0 2px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+#settings-details-panel td.label {
+    font-weight: bold;
+    text-align: right;
+    font-size: 12pt;
+    padding-right: 6px;
+    vertical-align: top;
+    width: 120px;
 }

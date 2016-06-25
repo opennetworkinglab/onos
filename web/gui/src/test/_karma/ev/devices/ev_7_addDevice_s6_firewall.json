@@ -1,0 +1,18 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000000000000006",
+    "type": "firewall",
+    "online": true,
+    "master": "ONOS",
+    "labels": [
+      "",
+      "firewall",
+      "of:0000000000000006"
+    ],
+    "metaUi": {
+      "x": 450,
+      "y": 300
+    }
+  }
+}

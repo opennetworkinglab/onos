@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,5 +143,16 @@ public class RedirectTest {
 
         assertTrue(rd1.equals(rd1));
         assertFalse(rd1.equals(rd2));
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringRedirect() throws Exception {
+        Redirect rd = deserializer.deserialize(bytePacket, 0, bytePacket.length);
+        String str = rd.toString();
+
+        // TODO: need to handle TARGET_ADDRESS and DESTINATION_ADDRESS
     }
 }

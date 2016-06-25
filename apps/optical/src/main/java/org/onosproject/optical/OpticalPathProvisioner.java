@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,11 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
-import org.onosproject.net.OchPort;
-import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.Path;
 import org.onosproject.net.Port;
@@ -45,9 +44,8 @@ import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.net.resource.device.DeviceResourceService;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
-import org.onosproject.net.resource.link.LinkResourceService;
+import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyEdge;
@@ -62,13 +60,17 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
 
 /**
  * OpticalPathProvisioner listens for event notifications from the Intent F/W.
  * It generates one or more opticalConnectivityIntent(s) and submits (or withdraws) to Intent F/W
  * for adding/releasing capacity at the packet layer.
+ *
+ * @deprecated in Goldeneye (1.6.0)
  */
 
+@Deprecated
 @Component(immediate = true)
 public class OpticalPathProvisioner {
 
@@ -96,18 +98,13 @@ public class OpticalPathProvisioner {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceResourceService deviceResourceService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LinkResourceService linkResourceService;
-
     private ApplicationId appId;
 
     private final InternalOpticalPathProvisioner pathProvisioner = new InternalOpticalPathProvisioner();
 
     @Activate
     protected void activate() {
+        deviceService = opticalView(deviceService);
         intentService.addListener(pathProvisioner);
         appId = coreService.registerApplication("org.onosproject.optical");
         initOpticalPorts();
@@ -139,10 +136,6 @@ public class OpticalPathProvisioner {
                 case FAILED:
                     log.info("Intent {} failed, calling optical path provisioning app.", event.subject());
                     setupLightpath(event.subject());
-                    break;
-                case WITHDRAWN:
-                    log.info("Intent {} withdrawn.", event.subject());
-                    releaseResources(event.subject());
                     break;
                 default:
                     break;
@@ -288,11 +281,10 @@ public class OpticalPathProvisioner {
                             .appId(appId)
                             .src(src)
                             .dst(dst)
-                            .signalType(OduCltPort.SignalType.CLT_10GBE)
+                            .signalType(CltSignalType.CLT_10GBE)
                             .bidirectional(true)
                             .build();
                     intents.add(circuitIntent);
-                    continue;
                 } else if (srcPort instanceof OchPort && dstPort instanceof OchPort) {
                     // Create lightpath
                     // FIXME: hardcoded ODU signal type
@@ -304,7 +296,6 @@ public class OpticalPathProvisioner {
                             .bidirectional(true)
                             .build();
                     intents.add(opticalIntent);
-                    continue;
                 } else {
                     log.warn("Unsupported cross connect point types {} {}", srcPort.type(), dstPort.type());
                     return Collections.emptyList();
@@ -343,6 +334,7 @@ public class OpticalPathProvisioner {
                 return getIntents(crossConnectPoints);
             }
 
+            log.warn("Unable to find multi-layer path.");
             return Collections.emptyList();
         }
 
@@ -369,43 +361,44 @@ public class OpticalPathProvisioner {
             }
         }
 
-        /**
-         * Release resources associated to the given intent.
-         *
-         * @param intent the intent
-         */
-        private void releaseResources(Intent intent) {
-            LinkResourceAllocations lra = linkResourceService.getAllocations(intent.id());
-            if (intent instanceof OpticalConnectivityIntent) {
-                deviceResourceService.releasePorts(intent.id());
-                if (lra != null) {
-                    linkResourceService.releaseResources(lra);
-                }
-            } else if (intent instanceof OpticalCircuitIntent) {
-                deviceResourceService.releasePorts(intent.id());
-                deviceResourceService.releaseMapping(intent.id());
-                if (lra != null) {
-                    linkResourceService.releaseResources(lra);
-                }
-            }
-        }
     }
 
     /**
-     * Verifies if given link is cross-connect between packet and optical layer.
+     * Verifies if given device type is in packet layer, i.e., ROADM, OTN or ROADM_OTN device.
+     *
+     * @param type device type
+     * @return true if in packet layer, false otherwise
+     */
+    private boolean isPacketLayer(Device.Type type) {
+        return type == Device.Type.SWITCH || type == Device.Type.ROUTER || type == Device.Type.VIRTUAL;
+    }
+
+    /**
+     * Verifies if given device type is in packet layer, i.e., switch or router device.
+     *
+     * @param type device type
+     * @return true if in packet layer, false otherwise
+     */
+    private boolean isTransportLayer(Device.Type type) {
+        return type == Device.Type.ROADM || type == Device.Type.OTN || type == Device.Type.ROADM_OTN;
+    }
+
+    /**
+     * Verifies if given link forms a cross-connection between packet and optical layer.
      *
      * @param link the link
-     * @return true if the link is a cross-connect link
+     * @return true if the link is a cross-connect link, false otherwise
      */
-    public static boolean isCrossConnectLink(Link link) {
+    private boolean isCrossConnectLink(Link link) {
         if (link.type() != Link.Type.OPTICAL) {
             return false;
         }
 
-        checkNotNull(link.annotations());
-        checkNotNull(link.annotations().value("optical.type"));
+        Device.Type src = deviceService.getDevice(link.src().deviceId()).type();
+        Device.Type dst = deviceService.getDevice(link.dst().deviceId()).type();
 
-        return link.annotations().value("optical.type").equals("cross-connect");
+        return src != dst &&
+                ((isPacketLayer(src) && isTransportLayer(dst)) || (isPacketLayer(dst) && isTransportLayer(src)));
     }
 
 }

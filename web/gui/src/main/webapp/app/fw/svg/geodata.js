@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,7 +132,7 @@
             mfs = settings.mapFillScale,
             path = d3.geo.path().projection(proj);
 
-        rescaleProjection(proj, mfs, dim, path, geoData);
+        rescaleProjection(proj, mfs, dim, path, geoData, opts.adjustScale);
 
         // return the results
         return {
@@ -142,7 +142,8 @@
         };
     }
 
-    function rescaleProjection(proj, mfs, dim, path, geoData) {
+    function rescaleProjection(proj, mfs, dim, path, geoData, adjustScale) {
+        var adj = adjustScale || 1;
         // adjust projection scale and translation to fill the view
         // with the map
 
@@ -161,7 +162,7 @@
             y = (y1 + y2) / 2;
 
         // size map to 95% of minimum dimension to fill space..
-        var s = mfs / Math.min(dx / dim, dy / dim),
+        var s = (mfs / Math.min(dx / dim, dy / dim)) * adj,
             t = [dim / 2 - s * x, dim / 2 - s * y];
 
         // set new scale, translation on the projection..

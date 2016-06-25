@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,11 +42,52 @@ public interface Application {
     Version version();
 
     /**
+     * Returns the title of the application.
+     * This should be a short, human-readable string, as opposed
+     * to the unique identifier returned by {@link #id()}.
+     *
+     * @return application title text
+     */
+    String title();
+
+    /**
      * Returns description of the application.
      *
      * @return application description text
      */
     String description();
+
+    /**
+     * Returns category of the application.
+     *
+     * The application developer can choose one of the category from the
+     * following examples to easily discern the high-level purpose of the application.
+     * (Security, Traffic Steering, Monitoring, Drivers, Provider, Utility)
+     *
+     * @return application category text
+     */
+    String category();
+
+    /**
+     * Returns url of the application.
+     *
+     * @return application url
+     */
+    String url();
+
+    /**
+     * Returns readme of the application.
+     *
+     * @return application readme
+     */
+    String readme();
+
+    /**
+     * Returns icon of the application.
+     *
+     * @return application icon
+     */
+    byte[] icon();
 
     /**
      * Returns the name of the application origin, group or company.
@@ -84,4 +125,11 @@ public interface Application {
      * @return application features
      */
     List<String> features();
+
+    /**
+     * Returns list of required application names.
+     *
+     * @return list of application names
+     */
+    List<String> requiredApps();
 }

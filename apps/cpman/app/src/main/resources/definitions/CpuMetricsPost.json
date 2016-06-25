@@ -1,0 +1,37 @@
+{
+  "type": "object",
+  "required": [
+    "cpuLoad",
+    "totalCpuTime",
+    "sysCpuTime",
+    "userCpuTime",
+    "cpuIdleTime"
+  ],
+  "properties": {
+    "cpuLoad": {
+      "type": "integer",
+      "format": "int64",
+      "example": "50"
+    },
+    "totalCpuTime": {
+      "type": "integer",
+      "format": "int64",
+      "example": "2000"
+    },
+    "sysCpuTime": {
+      "type": "integer",
+      "format": "int64",
+      "example": "2000"
+    },
+    "userCpuTime": {
+      "type": "integer",
+      "format": "int64",
+      "example": "2000"
+    },
+    "cpuIdleTime": {
+      "type": "integer",
+      "format": "int64",
+      "example": "2000"
+    }
+  }
+}

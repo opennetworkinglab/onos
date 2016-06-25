@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.intent.ResourceContext;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.link.LinkResourceService;
 
 import static org.easymock.EasyMock.createMock;
 import static org.hamcrest.Matchers.closeTo;
@@ -51,15 +51,20 @@ public class AnnotationConstraintTest {
 
     private AnnotationConstraint sut;
     private Link link;
-    private LinkResourceService linkResourceService;
+    private ResourceContext resourceContext;
 
     @Before
     public void setUp() {
-        linkResourceService = createMock(LinkResourceService.class);
+        resourceContext = createMock(ResourceContext.class);
 
         DefaultAnnotations annotations = DefaultAnnotations.builder().set(KEY, String.valueOf(VALUE)).build();
 
-        link = new DefaultLink(PID, cp(DID1, PID1), cp(DID2, PID2), DIRECT, annotations);
+        link = DefaultLink.builder()
+                .providerId(PID)
+                .src(cp(DID1, PID1))
+                .dst(cp(DID2, PID2))
+                .type(DIRECT)
+                .annotations(annotations).build();
     }
 
     /**
@@ -70,8 +75,8 @@ public class AnnotationConstraintTest {
         double value = 120;
         sut = new AnnotationConstraint(KEY, value);
 
-        assertThat(sut.isValid(link, linkResourceService), is(true));
-        assertThat(sut.cost(link, linkResourceService), is(closeTo(VALUE, 1.0e-6)));
+        assertThat(sut.isValid(link, resourceContext), is(true));
+        assertThat(sut.cost(link, resourceContext), is(closeTo(VALUE, 1.0e-6)));
     }
 
     /**
@@ -82,8 +87,8 @@ public class AnnotationConstraintTest {
         double value = 80;
         sut = new AnnotationConstraint(KEY, value);
 
-        assertThat(sut.isValid(link, linkResourceService), is(false));
-        assertThat(sut.cost(link, linkResourceService), is(lessThan(0.0)));
+        assertThat(sut.isValid(link, resourceContext), is(false));
+        assertThat(sut.cost(link, resourceContext), is(lessThan(0.0)));
     }
 
     @Test

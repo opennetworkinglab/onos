@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.onosproject.cip;
 
 import com.google.common.io.ByteStreams;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -93,7 +94,7 @@ public class ClusterIpManager {
         cfgService.registerProperties(getClass());
 
         localId = clusterService.getLocalNode().id();
-        processLeadershipChange(leadershipService.getLeader(CLUSTER_IP));
+        processLeaderChange(leadershipService.getLeader(CLUSTER_IP));
 
         leadershipService.addListener(listener);
         leadershipService.runForLeadership(CLUSTER_IP);
@@ -137,10 +138,7 @@ public class ClusterIpManager {
         }
     }
 
-    private synchronized void processLeadershipChange(NodeId newLeader) {
-        if (newLeader == null) {
-            return;
-        }
+    private synchronized void processLeaderChange(NodeId newLeader) {
         boolean isLeader = Objects.equals(newLeader, localId);
         log.info("Processing leadership change; wasLeader={}, isLeader={}", wasLeader, isLeader);
         if (!wasLeader && isLeader) {
@@ -189,11 +187,15 @@ public class ClusterIpManager {
 
     // Listens for leadership changes.
     private class InternalLeadershipListener implements LeadershipEventListener {
+
+        @Override
+        public boolean isRelevant(LeadershipEvent event) {
+            return CLUSTER_IP.equals(event.subject().topic());
+        }
+
         @Override
         public void event(LeadershipEvent event) {
-            if (event.subject().topic().equals(CLUSTER_IP)) {
-                processLeadershipChange(event.subject().leader());
-            }
+             processLeaderChange(event.subject().leaderNodeId());
         }
     }
 

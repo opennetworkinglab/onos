@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.onosproject.cli.app;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,7 +23,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.cli.Comparators;
+import org.onosproject.utils.Comparators;
 import org.onosproject.core.Application;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -40,11 +41,11 @@ import static org.onosproject.app.ApplicationState.ACTIVE;
 public class ApplicationsListCommand extends AbstractShellCommand {
 
     private static final String FMT =
-            "%s id=%d, name=%s, version=%s, origin=%s, description=%s, " +
-                    "features=%s, featuresRepo=%s, permissions=%s";
+            "%s id=%d, name=%s, version=%s, origin=%s, category=%s, description=%s, " +
+                    "features=%s, featuresRepo=%s, apps=%s, permissions=%s, url=%s";
 
     private static final String SHORT_FMT =
-            "%s %3d %-32s %-8s %s";
+            "%s %3d %-36s %-8s %s";
 
     @Option(name = "-s", aliases = "--short", description = "Show short output only",
             required = false, multiValued = false)
@@ -68,15 +69,17 @@ public class ApplicationsListCommand extends AbstractShellCommand {
                 boolean isActive = service.getState(app.id()) == ACTIVE;
                 if (activeOnly && isActive || !activeOnly) {
                     if (shortOnly) {
+                        String shortDescription = app.title().equals(app.id().name()) ?
+                                app.description().replaceAll("[\\r\\n]", " ").replaceAll(" +", " ") :
+                                app.title();
                         print(SHORT_FMT, isActive ? "*" : " ",
-                              app.id().id(), app.id().name(), app.version(),
-                              app.description());
+                              app.id().id(), app.id().name(), app.version(), shortDescription);
                     } else {
                         print(FMT, isActive ? "*" : " ",
                               app.id().id(), app.id().name(), app.version(), app.origin(),
-                              app.description(), app.features(),
-                              app.featuresRepo().isPresent() ? app.featuresRepo().get().toString() : "",
-                              app.permissions());
+                              app.category(), app.description(), app.features(),
+                              app.featuresRepo().map(URI::toString).orElse(""),
+                              app.requiredApps(), app.permissions(), app.url());
                     }
                 }
             }

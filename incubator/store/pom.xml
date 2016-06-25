@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,8 +23,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-incubator</artifactId>
-        <version>1.4.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.7.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>onos-incubator-store</artifactId>
@@ -53,6 +52,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- FIXME: not OSGi-ready -->
+        <dependency>
+            <groupId>com.googlecode.concurrent-trees</groupId>
+            <artifactId>concurrent-trees</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava-testlib</artifactId>
@@ -76,7 +82,6 @@
         </dependency>
     </dependencies>
 
-
     <build>
         <plugins>
             <plugin>
@@ -85,5 +90,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

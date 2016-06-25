@@ -1,0 +1,32 @@
+{
+  "event": "showHighlights",
+  "payload": {
+    "devices": [],
+    "hosts": [
+      {
+        "id": "0E:2A:69:30:13:86/-1",
+        "badge": {
+          "status": "e",
+          "txt": "99",
+          "msg": "cadbury's flake"
+        }
+      },
+      {
+        "id": "0E:2A:69:30:13:97/-1",
+        "badge": {
+          "status": "i",
+          "gid": "xMark",
+          "msg": "x marks the spot"
+        }
+      },
+      {
+        "id": "0E:2A:69:30:13:a8/-1",
+        "badge": {
+          "status": "w",
+          "gid": "crown"
+        }
+      }
+    ],
+    "links": []
+  }
+}

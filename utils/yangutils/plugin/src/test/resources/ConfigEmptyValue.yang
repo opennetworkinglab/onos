@@ -1,0 +1,9 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+    leaf invalid-interval {
+        type "uint16";
+        config ;
+    }
+}

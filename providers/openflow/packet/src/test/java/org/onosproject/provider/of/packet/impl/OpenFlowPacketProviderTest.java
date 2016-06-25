@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.onosproject.openflow.controller.DefaultOpenFlowPacketContext;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowController;
 import org.onosproject.openflow.controller.OpenFlowEventListener;
+import org.onosproject.openflow.controller.OpenFlowMessageListener;
 import org.onosproject.openflow.controller.OpenFlowPacketContext;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
@@ -88,7 +89,7 @@ public class OpenFlowPacketProviderTest {
     private static final TrafficTreatment TR = treatment(INST1, INST2);
     private static final TrafficTreatment TR_MISSING = treatment(INST1, INST3);
 
-    private static final byte[] ANY = new byte [] {0, 0, 0, 0};
+    private static final byte[] ANY = new byte[] {0, 0, 0, 0};
 
     private final OpenFlowPacketProvider provider = new OpenFlowPacketProvider();
     private final TestPacketRegistry registry = new TestPacketRegistry();
@@ -295,6 +296,16 @@ public class OpenFlowPacketProviderTest {
         }
 
         @Override
+        public void addMessageListener(OpenFlowMessageListener listener) {
+
+        }
+
+        @Override
+        public void removeMessageListener(OpenFlowMessageListener listener) {
+
+        }
+
+        @Override
         public void addPacketListener(int priority, PacketListener listener) {
             pktListener = listener;
         }
@@ -424,8 +435,6 @@ public class OpenFlowPacketProviderTest {
         public String channelId() {
             return "1.2.3.4:1";
         }
-
-
     }
 
 }

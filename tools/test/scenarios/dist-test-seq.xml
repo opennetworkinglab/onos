@@ -1,0 +1,67 @@
+<!--
+  ~ Copyright 2015-present Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<scenario name="dist-test"
+          description="ONOS distributed primitives setup">
+    <group name="Distributed-Primitives">
+        <!--<import file="${ONOS_SCENARIOS}/prerequisites.xml"/>-->
+
+        <!--<import file="${ONOS_SCENARIOS}/setup.xml"/>
+        <dependency name="Setup" requires="Prerequisites"/>-->
+
+        <sequential var="${OC#}" starts="Distributed-App-${#}" ends="Check-Distributed-Exceptions-${#-1}">
+            <step name="Distributed-App-${#}"
+                  requires="Setup"
+                  exec="onos ${OC#} app activate org.onosproject.distributedprimitives"/>
+
+            <step name="Test-Counter-Increment-${#}"
+                  requires="Distributed-App-${#}"
+                  exec="onos-execute-expect ${OC#} counter-test-increment fooCounter 5 --expect updated"/>
+
+            <step name="Test-Add-${#}"
+                  requires="Distributed-App-${#}"
+                  exec="onos-execute-expect ${OC#} set-test-add fooSet foo --expect added"/>
+
+            <step name="Test-Get-${#}"
+                  requires="Test-Add-${#}"
+                  exec="onos-execute-expect ${OC#} set-test-get fooSet foo --expect contains"/>
+
+            <step name="Test-Remove-${#}"
+                  requires="Test-Get-${#}"
+                  exec="onos-execute-expect ${OC#} set-test-remove fooSet foo --expect removed"/>
+
+            <step name="Test-Add-Multiple-${#}"
+                  requires="Test-Remove-${#}"
+                  exec="onos-execute-expect ${OC#} set-test-add fooSet foo foo2 foo3 --expect added"/>
+
+            <step name="Test-Get-Multiple-${#}"
+                  requires="Test-Add-Multiple-${#}"
+                  exec="onos-execute-expect ${OC#} set-test-get fooSet foo foo2 foo3 --expect contains"/>
+
+            <step name="Test-Remove-Multiple-${#}"
+                  requires="Test-Get-Multiple-${#}"
+                  exec="onos-execute-expect ${OC#} set-test-remove fooSet foo foo2 foo3 --expect removed"/>
+
+            <step name="Sleep-${#}"
+                  exec="sleep 2"
+                  requires="Test-Remove-Multiple-${#}"/>
+            <!--Check with check logs-->
+            <step name="Check-Distributed-Exceptions-${#}"
+                  exec="onos-check-logs ${OC#}"
+                  requires="Sleep-${#}"/>
+        </sequential>
+    </group>
+</scenario>

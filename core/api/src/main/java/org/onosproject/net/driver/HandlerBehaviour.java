@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 package org.onosproject.net.driver;
 
 /**
- * Representation of a facet of device behaviour that can be used to interact
- * with a device (in context of {@link org.onosproject.net.driver.DriverHandler}).
+ * Representation of a facet of behaviour that can be used to interact
+ * with an entity (in context of {@link org.onosproject.net.driver.DriverHandler}).
  */
 public interface HandlerBehaviour extends Behaviour {
 

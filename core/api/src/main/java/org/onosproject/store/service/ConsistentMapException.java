@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,10 @@ public class ConsistentMapException extends StorageException {
     public ConsistentMapException() {
     }
 
+    public ConsistentMapException(String message) {
+        super(message);
+    }
+
     public ConsistentMapException(Throwable t) {
         super(t);
     }
@@ -38,6 +42,13 @@ public class ConsistentMapException extends StorageException {
      * ConsistentMap update conflicts with an in flight transaction.
      */
     public static class ConcurrentModification extends ConsistentMapException {
+        public ConcurrentModification() {
+            super();
+        }
+
+        public ConcurrentModification(String message) {
+            super(message);
+        }
     }
 
     /**

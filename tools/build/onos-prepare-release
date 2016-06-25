@@ -1,0 +1,36 @@
+#!/bin/bash
+# --------------------------------------------------------
+# Creates a tempdir for release and checks out the code
+# --------------------------------------------------------
+
+set -e
+
+GERRIT_USER=${GERRIT_USER:-$USER}
+BRANCH=${2:-master}
+
+export ONOS_VERSION=${1:-$ONOS_VERSION}
+if [ -z "$ONOS_VERSION" ]; then
+  echo "USAGE: onos-prepare-release <version number>"
+  echo "       Alternatively, ONOS_VERSION must be set"
+  exit -1
+fi
+
+DIR=$(mktemp -d /tmp/onos-release.XXXXX) &&
+  echo "Created tempdir for release: $DIR" ||
+  { echo "Failed to create temp file"; exit 1; }
+
+cd $DIR
+git init
+git remote add origin ssh://$GERRIT_USER@gerrit.onosproject.org:29418/onos.git
+git fetch origin
+git checkout $BRANCH
+
+# Check existance of version
+git tag -l | grep -q "$ONOS_VERSION\$" &&
+  { echo "ERROR: Version already exists"; exit -1; }
+
+export ONOS_ROOT=$DIR
+. $ONOS_ROOT/tools/build/envDefaults
+exec bash -i
+
+# TODO on exit, print "leaving directory"

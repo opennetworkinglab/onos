@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,11 +59,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -206,8 +208,7 @@ public class SimpleDeviceStore
                 // FIXME: Is the enclosing if required here?
                 verify(replaced,
                        "Replacing devices cache failed. PID:%s [expected:%s, found:%s, new=%s]",
-                       providerId, oldDevice, devices.get(newDevice.id())
-                        , newDevice);
+                       providerId, oldDevice, devices.get(newDevice.id()), newDevice);
             }
             if (!providerId.isAncillary()) {
                 availableDevices.add(newDevice.id());
@@ -417,6 +418,15 @@ public class SimpleDeviceStore
     }
 
     @Override
+    public Stream<PortDescription> getPortDescriptions(ProviderId providerId,
+                                                       DeviceId deviceId) {
+        return Optional.ofNullable(deviceDescs.get(deviceId))
+                .map(m -> m.get(providerId))
+                .map(descs -> descs.portDescs.values().stream())
+                .orElse(Stream.empty());
+    }
+
+    @Override
     public DeviceEvent updatePortStatistics(ProviderId providerId, DeviceId deviceId,
                                             Collection<PortStatistics> newStatsCollection) {
 
@@ -481,6 +491,16 @@ public class SimpleDeviceStore
     }
 
     @Override
+    public PortDescription getPortDescription(ProviderId providerId,
+                                              DeviceId deviceId,
+                                              PortNumber portNumber) {
+        return Optional.ofNullable(deviceDescs.get(deviceId))
+                .map(m -> m.get(providerId))
+                .map(descs -> descs.getPortDesc(portNumber))
+                .orElse(null);
+    }
+
+    @Override
     public List<PortStatistics> getPortStatistics(DeviceId deviceId) {
         Map<PortNumber, PortStatistics> portStats = devicePortStats.get(deviceId);
         if (portStats == null) {
@@ -532,7 +552,7 @@ public class SimpleDeviceStore
 
         checkArgument(!providerDescs.isEmpty(), "No Device descriptions supplied");
 
-        ProviderId primary = pickPrimaryPID(providerDescs);
+        ProviderId primary = pickPrimaryPid(providerDescs);
 
         DeviceDescriptions desc = providerDescs.get(primary);
 
@@ -575,7 +595,7 @@ public class SimpleDeviceStore
     private Port composePort(Device device, PortNumber number,
                              Map<ProviderId, DeviceDescriptions> descsMap) {
 
-        ProviderId primary = pickPrimaryPID(descsMap);
+        ProviderId primary = pickPrimaryPid(descsMap);
         DeviceDescriptions primDescs = descsMap.get(primary);
         // if no primary, assume not enabled
         // TODO: revisit this default port enabled/disabled behavior
@@ -613,7 +633,7 @@ public class SimpleDeviceStore
     /**
      * @return primary ProviderID, or randomly chosen one if none exists
      */
-    private ProviderId pickPrimaryPID(Map<ProviderId, DeviceDescriptions> descsMap) {
+    private ProviderId pickPrimaryPid(Map<ProviderId, DeviceDescriptions> descsMap) {
         ProviderId fallBackPrimary = null;
         for (Entry<ProviderId, DeviceDescriptions> e : descsMap.entrySet()) {
             if (!e.getKey().isAncillary()) {

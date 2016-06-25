@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,8 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.store.Timestamp;
 
-import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.*;
+import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.PUT;
+import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.REMOVE;
 
 /**
  * Testing version of an Eventually Consistent Map.
@@ -174,6 +175,11 @@ public final class TestEventuallyConsistentMap<K, V> extends EventuallyConsisten
 
         @Override
         public EventuallyConsistentMapBuilder<K, V> withSerializer(KryoNamespace.Builder serializerBuilder) {
+            return this;
+        }
+
+        @Override
+        public EventuallyConsistentMapBuilder<K, V> withSerializer(KryoNamespace serializer) {
             return this;
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,9 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
+import org.onosproject.net.intent.OpticalCircuitIntent;
+import org.onosproject.net.intent.OpticalConnectivityIntent;
+import org.onosproject.net.intent.OpticalOduIntent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
@@ -114,6 +117,9 @@ public class IntentsListCommand extends AbstractShellCommand {
         private IntentSummary summarySinglePointToMultiPoint;
         private IntentSummary summaryPath;
         private IntentSummary summaryLinkCollection;
+        private IntentSummary summaryOpticalCircuit;
+        private IntentSummary summaryOpticalConnectivity;
+        private IntentSummary summaryOpticalOdu;
         private IntentSummary summaryUnknownType;
 
         /**
@@ -130,6 +136,9 @@ public class IntentsListCommand extends AbstractShellCommand {
                 new IntentSummary("SinglePointToMultiPoint");
             summaryPath = new IntentSummary("Path");
             summaryLinkCollection = new IntentSummary("LinkCollection");
+            summaryOpticalCircuit = new IntentSummary("OpticalCircuit");
+            summaryOpticalConnectivity = new IntentSummary("OpticalConnectivity");
+            summaryOpticalOdu = new IntentSummary("OpticalOdu");
             summaryUnknownType = new IntentSummary("UnknownType");
         }
 
@@ -182,7 +191,18 @@ public class IntentsListCommand extends AbstractShellCommand {
                     summaryLinkCollection.update(intentState);
                     continue;
                 }
-
+                if (intent instanceof OpticalCircuitIntent) {
+                    summaryOpticalCircuit.update(intentState);
+                    continue;
+                }
+                if (intent instanceof OpticalConnectivityIntent) {
+                    summaryOpticalConnectivity.update(intentState);
+                    continue;
+                }
+                if (intent instanceof OpticalOduIntent) {
+                    summaryOpticalOdu.update(intentState);
+                    continue;
+                }
                 summaryUnknownType.update(intentState);
             }
         }
@@ -204,6 +224,9 @@ public class IntentsListCommand extends AbstractShellCommand {
                        summarySinglePointToMultiPoint.json(mapper));
             result.set("path", summaryPath.json(mapper));
             result.set("linkCollection", summaryLinkCollection.json(mapper));
+            result.set("opticalCircuit", summaryOpticalCircuit.json(mapper));
+            result.set("opticalConnectivity", summaryOpticalConnectivity.json(mapper));
+            result.set("opticalOdu", summaryOpticalOdu.json(mapper));
             result.set("unknownType", summaryUnknownType.json(mapper));
             result.set("all", summaryAll.json(mapper));
             return result;
@@ -220,6 +243,9 @@ public class IntentsListCommand extends AbstractShellCommand {
             summarySinglePointToMultiPoint.printState();
             summaryPath.printState();
             summaryLinkCollection.printState();
+            summaryOpticalCircuit.printState();
+            summaryOpticalConnectivity.printState();
+            summaryOpticalOdu.printState();
             summaryUnknownType.printState();
             summaryAll.printState();
         }
@@ -378,6 +404,15 @@ public class IntentsListCommand extends AbstractShellCommand {
             LinkCollectionIntent li = (LinkCollectionIntent) intent;
             print("    links=%s", li.links());
             print("    egress=%s", li.egressPoints());
+        } else if (intent instanceof OpticalCircuitIntent) {
+            OpticalCircuitIntent ci = (OpticalCircuitIntent) intent;
+            print("    src=%s, dst=%s", ci.getSrc(), ci.getDst());
+        } else if (intent instanceof OpticalConnectivityIntent) {
+            OpticalConnectivityIntent ci = (OpticalConnectivityIntent) intent;
+            print("    src=%s, dst=%s", ci.getSrc(), ci.getDst());
+        } else if (intent instanceof OpticalOduIntent) {
+            OpticalOduIntent ci = (OpticalOduIntent) intent;
+            print("    src=%s, dst=%s", ci.getSrc(), ci.getDst());
         }
 
         List<Intent> installable = service.getInstallableIntents(intent.key());

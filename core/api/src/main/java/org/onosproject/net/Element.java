@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,12 @@
  */
 package org.onosproject.net;
 
+import org.onosproject.net.driver.Projectable;
+
 /**
  * Base abstraction of a network element, i.e. an infrastructure device or an end-station host.
  */
-public interface Element extends Annotated, Provided {
+public interface Element extends Annotated, Provided, Projectable {
 
     /**
      * Returns the network element identifier.

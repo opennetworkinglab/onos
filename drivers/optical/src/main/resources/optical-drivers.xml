@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2016-present Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<drivers>
+    <driver name="linc-oe" extends="default"
+            manufacturer="FlowForwarding.org" hwVersion="Unknown"
+            swVersion="LINC-OE OpenFlow Software Switch 1.1">
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.optical.handshaker.OfOpticalSwitchImplLinc13"/>
+        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
+                   impl="org.onosproject.driver.optical.query.LincOELambdaQuery"/>
+        <behaviour api="org.onosproject.net.optical.OpticalDevice"
+                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
+    </driver>
+
+    <driver name="calient" extends="default"
+            manufacturer="calient technologies inc" hwVersion="calient hardware.*"
+            swVersion="ocs software version.*">
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.optical.handshaker.CalientFiberSwitchHandshaker"/>
+        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
+                   impl="org.onosproject.driver.optical.query.CalientLambdaQuery"/>
+    </driver>
+
+    <driver name="eci" extends="default"
+            manufacturer="ECI Telecom" hwVersion="Optical.*" swVersion="V_1_0">
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.optical.handshaker.OFOpticalSwitch13"/>
+        <behaviour api="org.onosproject.net.behaviour.TributarySlotQuery"
+                   impl="org.onosproject.driver.optical.query.DefaultTributarySlotQuery" />
+        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
+                   impl="org.onosproject.driver.optical.query.OFOpticalSwitch13LambdaQuery"/>
+        <behaviour api="org.onosproject.net.optical.OpticalDevice"
+                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
+    </driver>
+
+    <driver name="oplk-roadm" extends="default"
+            manufacturer="Oplink a Molex company" hwVersion="ROADM"
+            swVersion="of-agent">
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.optical.handshaker.OplinkRoadmHandshaker"/>
+        <behaviour api="org.onosproject.net.optical.OpticalDevice"
+                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
+    </driver>
+
+</drivers>
+

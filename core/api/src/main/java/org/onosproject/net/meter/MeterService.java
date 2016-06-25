@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.onosproject.net.meter;
 
 import org.onosproject.event.ListenerService;
+import org.onosproject.net.DeviceId;
 
 import java.util.Collection;
 
@@ -46,10 +47,11 @@ public interface MeterService
     /**
      * Fetch the meter by the meter id.
      *
+     * @param deviceId a device id
      * @param id a meter id
      * @return a meter
      */
-    Meter getMeter(MeterId id);
+    Meter getMeter(DeviceId deviceId, MeterId id);
 
     /**
      * Fetches all the meters.
@@ -58,4 +60,11 @@ public interface MeterService
      */
     Collection<Meter> getAllMeters();
 
+    /**
+     * Fetches the meters by the device id.
+     *
+     * @param deviceId a device id
+     * @return a collection of meters
+     */
+    Collection<Meter> getMeters(DeviceId deviceId);
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2014-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,45 +20,22 @@
     <modelVersion>4.0.0</modelVersion>
 
     <prerequisites>
-        <maven>3.0.1</maven>
+        <maven>3.0.3</maven>
     </prerequisites>
 
     <parent>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos-base</artifactId>
-        <version>1</version>
-        <relativePath>tools/build/pom.xml</relativePath>
+        <artifactId>onos-dependencies</artifactId>
+        <version>1.7.0-SNAPSHOT</version>
+        <relativePath>lib/pom.xml</relativePath>
     </parent>
 
     <groupId>org.onosproject</groupId>
     <artifactId>onos</artifactId>
     <packaging>pom</packaging>
-    <version>1.4.0-SNAPSHOT</version>
 
     <name>${project.artifactId}</name>
     <description>Open Network Operating System root project</description>
-
-    <modules>
-        <module>utils</module>
-        <module>core</module>
-        <module>web</module>
-        <module>cli</module>
-
-        <module>openflow</module>
-        <module>ovsdb</module>
-        <module>pcep</module>
-
-        <module>providers</module>
-        <module>drivers</module>
-
-        <module>apps</module>
-        <module>incubator</module>
-        <module>features</module>
-
-        <module>tools/package/archetypes</module>
-        <module>tools/package/branding</module>
-    </modules>
-
     <url>http://onosproject.org/</url>
 
     <scm>
@@ -75,14 +52,41 @@
         </license>
     </licenses>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <netty4.version>4.0.23.Final</netty4.version>
-        <copycat.version>0.5.0.onos</copycat.version>
-        <openflowj.version>0.9.0.onos</openflowj.version>
-        <karaf.version>3.0.3</karaf.version>
-        <jersey.version>1.19</jersey.version>
-    </properties>
+    <modules>
+        <module>lib</module>
+
+        <module>utils</module>
+        <module>core</module>
+        <module>web</module>
+        <module>cli</module>
+
+        <module>protocols</module>
+        <module>providers</module>
+        <module>drivers</module>
+
+        <module>apps</module>
+        <module>incubator</module>
+        <module>features</module>
+
+        <module>tools/package/archetypes</module>
+        <module>tools/package/branding</module>
+    </modules>
+
+    <!-- FIXME remove before release; needed for the following
+     - openflowj
+     - snmp
+    -->
+    <repositories>
+        <repository>
+            <id>snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <distributionManagement>
         <snapshotRepository>
@@ -94,237 +98,8 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.11</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.hamcrest</groupId>
-                <artifactId>hamcrest-core</artifactId>
-                <version>1.3</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.hamcrest</groupId>
-                <artifactId>hamcrest-library</artifactId>
-                <version>1.3</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>1.7.6</version>
-                <scope>provided</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-core</artifactId>
-                <version>1.7.6</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-jdk14</artifactId>
-                <version>1.7.6</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>18.0</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty</artifactId>
-                <version>3.9.0.Final</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava-testlib</artifactId>
-                <version>18.0</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>com.googlecode.concurrent-trees</groupId>
-                <artifactId>concurrent-trees</artifactId>
-                <version>2.4.0</version>
-            </dependency>
-
-            <dependency>
-                <groupId>commons-lang</groupId>
-                <artifactId>commons-lang</artifactId>
-                <version>2.6</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>3.3.2</version>
-            </dependency>
-
-            <dependency>
-                <groupId>commons-configuration</groupId>
-                <artifactId>commons-configuration</artifactId>
-                <version>1.10</version>
-            </dependency>
-
-            <dependency>
-                <groupId>commons-collections</groupId>
-                <artifactId>commons-collections</artifactId>
-                <version>3.2.1</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.codehaus.jackson</groupId>
-                <artifactId>jackson-core-asl</artifactId>
-                <version>1.9.13</version>
-            </dependency>
-            <dependency>
-                <groupId>org.codehaus.jackson</groupId>
-                <artifactId>jackson-mapper-asl</artifactId>
-                <version>1.9.13</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.easymock</groupId>
-                <artifactId>easymock</artifactId>
-                <version>3.2</version>
-                <scope>test</scope>
-            </dependency>
-
-            <!-- Web related -->
-            <dependency>
-                <groupId>com.sun.jersey</groupId>
-                <artifactId>jersey-servlet</artifactId>
-                <version>${jersey.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.jersey.contribs</groupId>
-                <artifactId>jersey-multipart</artifactId>
-                <version>${jersey.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.jersey.jersey-test-framework</groupId>
-                <artifactId>jersey-test-framework-core</artifactId>
-                <version>${jersey.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.jersey.jersey-test-framework</groupId>
-                <artifactId>jersey-test-framework-grizzly2</artifactId>
-                <version>${jersey.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>2.4.2</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-annotations</artifactId>
-                <version>2.4.2</version>
-                <scope>provided</scope>
-            </dependency>
-
-            <!-- OSGi related -->
-            <dependency>
-                <groupId>org.osgi</groupId>
-                <artifactId>org.osgi.core</artifactId>
-                <version>4.3.1</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.osgi</groupId>
-                <artifactId>org.osgi.compendium</artifactId>
-                <version>4.3.1</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>org.apache.felix.scr.annotations</artifactId>
-                <version>1.9.8</version>
-                <scope>provided</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.karaf.features</groupId>
-                <artifactId>org.apache.karaf.features.core</artifactId>
-                <version>${karaf.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.karaf.system</groupId>
-                <artifactId>org.apache.karaf.system.core</artifactId>
-                <version>${karaf.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.karaf.shell</groupId>
-                <artifactId>org.apache.karaf.shell.console</artifactId>
-                <version>${karaf.version}</version>
-                <scope>provided</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.livetribe.slp</groupId>
-                <artifactId>livetribe-slp</artifactId>
-                <version>2.2.1</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.eclipsesource.minimal-json</groupId>
-                <artifactId>minimal-json</artifactId>
-                <version>0.9.1</version>
-            </dependency>
-            <dependency>
-                <groupId>com.esotericsoftware</groupId>
-                <artifactId>kryo</artifactId>
-                <version>3.0.0</version>
-            </dependency>
-            <dependency>
-                <groupId>com.esotericsoftware</groupId>
-                <artifactId>reflectasm</artifactId>
-                <version>1.10.0</version>
-                <type>bundle</type>
-            </dependency>
-            <dependency>
-                <groupId>org.ow2.asm</groupId>
-                <artifactId>asm</artifactId>
-                <version>4.2</version>
-            </dependency>
-            <dependency>
-                <groupId>com.esotericsoftware</groupId>
-                <artifactId>minlog</artifactId>
-                <version>1.3.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.objenesis</groupId>
-                <artifactId>objenesis</artifactId>
-                <version>2.1</version>
-            </dependency>
-
-            <!-- ONOS related -->
-            <dependency>
                 <groupId>org.onosproject</groupId>
                 <artifactId>onlab-misc</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.onosproject</groupId>
-                <artifactId>onlab-nio</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -430,332 +205,23 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>commons-pool</groupId>
-                <artifactId>commons-pool</artifactId>
-                <version>1.6</version>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-bgpio</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-bgp-api</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-common</artifactId>
-                <version>${netty4.version}</version>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-app-bgp-api</artifactId>
+                <version>${project.version}</version>
             </dependency>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-buffer</artifactId>
-                <version>${netty4.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-transport</artifactId>
-                <version>${netty4.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-handler</artifactId>
-                <version>${netty4.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-codec</artifactId>
-                <version>${netty4.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-transport-native-epoll</artifactId>
-                <version>${netty4.version}</version>
-                <classifier>${os.detected.classifier}</classifier>
-            </dependency>
-            <dependency>
-                <groupId>joda-time</groupId>
-                <artifactId>joda-time</artifactId>
-                <version>2.5</version>
-            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
-    <dependencies>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-library</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <!-- TODO: update once following issue is fixed. -->
-                    <!-- https://jira.codehaus.org/browse/MCOMPILER-205 -->
-                    <version>2.5.1</version>
-                    <configuration>
-                        <source>1.8</source>
-                        <target>1.8</target>
-                    </configuration>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.18.1</version>
-                    <configuration>
-                        <redirectTestOutputToFile>true
-                        </redirectTestOutputToFile>
-                        <printSummary>true</printSummary>
-                        <excludedGroups>org.onlab.junit.IntegrationTest
-                        </excludedGroups>
-                        <rerunFailingTestsCount>1</rerunFailingTestsCount>
-                    </configuration>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-jar-plugin</artifactId>
-                    <version>2.3.1</version>
-                    <executions>
-                        <execution>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>test-jar</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-resources-plugin</artifactId>
-                    <version>2.6</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.felix</groupId>
-                    <artifactId>maven-bundle-plugin</artifactId>
-                    <version>2.5.3</version>
-                    <extensions>true</extensions>
-                    <!--
-                        Drop following dependency when the below bug fix is published
-                        https://issues.apache.org/jira/browse/FELIX-4556
-                    -->
-                    <dependencies>
-                        <dependency>
-                            <groupId>biz.aQute.bnd</groupId>
-                            <artifactId>bndlib</artifactId>
-                            <version>2.4.0</version>
-                        </dependency>
-                    </dependencies>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-shade-plugin</artifactId>
-                    <version>2.3</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.felix</groupId>
-                    <artifactId>maven-scr-plugin</artifactId>
-                    <version>1.20.0</version>
-                    <executions>
-                        <execution>
-                            <id>generate-scr-srcdescriptor</id>
-                            <goals>
-                                <goal>scr</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <configuration>
-                        <supportedProjectTypes>
-                            <supportedProjectType>bundle</supportedProjectType>
-                            <supportedProjectType>war</supportedProjectType>
-                        </supportedProjectTypes>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>findbugs-maven-plugin</artifactId>
-                    <version>3.0.1</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.onosproject</groupId>
-                            <artifactId>onos-build-conf</artifactId>
-                            <version>1.0</version>
-                        </dependency>
-                    </dependencies>
-                    <configuration>
-                        <effort>Max</effort>
-                        <excludeFilterFile>onos/findbugs-suppressions.xml
-                        </excludeFilterFile>
-                    </configuration>
-                </plugin>
-
-                <!-- This version needs to be updated manually when changes are made to onos-maven-plugin -->
-                <plugin>
-                    <groupId>org.onosproject</groupId>
-                    <artifactId>onos-maven-plugin</artifactId>
-                    <version>1.5</version>
-                      <executions>
-                        <execution>
-                            <id>cfg</id>
-                            <phase>generate-resources</phase>
-                            <goals>
-                                <goal>cfg</goal>
-                            </goals>
-                        </execution>
-                        <execution>
-                            <id>swagger</id>
-                            <phase>generate-sources</phase>
-                            <goals>
-                                <goal>swagger</goal>
-                            </goals>
-                        </execution>
-                        <execution>
-                            <id>app</id>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>app</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.13</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.onosproject</groupId>
-                        <artifactId>onos-build-conf</artifactId>
-                        <version>1.0</version>
-                    </dependency>
-                    <!-- For Java 8 lambda support-->
-                    <dependency>
-                        <groupId>com.puppycrawl.tools</groupId>
-                        <artifactId>checkstyle</artifactId>
-                        <version>5.9</version>
-                    </dependency>
-                </dependencies>
-                <configuration>
-                    <!-- begin: workaround for unexpected NullPointerException on Eclipse -->
-                    <sourceDirectory>${project.build.sourceDirectory}
-                    </sourceDirectory>
-                    <testSourceDirectory>${project.build.testSourceDirectory}
-                    </testSourceDirectory>
-                    <!-- end: workaround for unexpected NullPointerException on Eclipse -->
-                    <configLocation>onos/checkstyle.xml</configLocation>
-                    <suppressionsLocation>onos/suppressions.xml
-                    </suppressionsLocation>
-                    <failsOnError>false</failsOnError>
-                    <logViolationsToConsole>true</logViolationsToConsole>
-                    <includeTestSourceDirectory>true
-                    </includeTestSourceDirectory>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>validate-checkstyle</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.2</version>
-                <configuration>
-                    <excludes>
-                    </excludes>
-                    <rulesets>
-                        <ruleset>onos/pmd.xml</ruleset>
-                    </rulesets>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>validate-pmd</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <!--  Uncomment this goal to make the build fail on pmd errors -->
-                            <!--<goal>check</goal>-->
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.7.2.201409121644</version>
-                <executions>
-                    <execution>
-                        <id>default-prepare-agent</id>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>default-report</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.12.1</version>
-                <configuration>
-                    <configLocation>onos/checkstyle.xml</configLocation>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.2</version>
-                <configuration>
-                    <excludes>
-                    </excludes>
-                    <rulesets>
-                        <ruleset>onos/pmd.xml</ruleset>
-                    </rulesets>
-                </configuration>
-            </plugin>
-        </plugins>
-    </reporting>
 </project>

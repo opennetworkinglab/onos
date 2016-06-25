@@ -1,0 +1,87 @@
+{
+  "type": "object",
+  "title": "metrics",
+  "required": [
+    "metrics"
+  ],
+  "properties": {
+    "metrics": {
+      "type": "array",
+      "xml": {
+        "name": "metric",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "metric",
+        "required": [
+          "metric"
+        ],
+        "properties": {
+          "metric": {
+            "type": "object",
+            "title": "property",
+            "optional": [
+              "type"
+            ],
+            "properties": {
+              "timer": {
+                "type": "object",
+                "title": "timer",
+                "required": [
+                  "counter",
+                  "mean_rate",
+                  "1_min_rate",
+                  "5_min_rate",
+                  "15_min_rate",
+                  "mean",
+                  "min",
+                  "max",
+                  "stddev"
+                ],
+                "properties": {
+                  "counter": {
+                    "type": "integer",
+                    "example": "1"
+                  },
+                  "mean_rate": {
+                    "type": "double",
+                    "example": "1.0"
+                  },
+                  "1_min_rate": {
+                    "type": "double",
+                    "example": "1.0"
+                  },
+                  "5_min_rate": {
+                    "type": "double",
+                    "example": "1.0"
+                  },
+                  "15_min_rate": {
+                    "type": "double",
+                    "example": "1.0"
+                  },
+                  "mean": {
+                    "type": "double",
+                    "example": "1.0"
+                  },
+                  "min": {
+                    "type": "double",
+                    "example": "1.0"
+                  },
+                  "max": {
+                    "type": "double",
+                    "example": "1.0"
+                  },
+                  "stddev": {
+                    "type": "double",
+                    "example": "1.0"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

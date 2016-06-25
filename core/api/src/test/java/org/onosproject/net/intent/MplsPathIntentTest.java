@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ public class MplsPathIntentTest extends AbstractIntentTest {
     Optional<MplsLabel> label2;
     TrafficSelector selector;
     TrafficTreatment treatment;
+    static final Key KEY1 = Key.of(5L, APP_ID);
 
     @Before
     public void mplsPathIntentTestSetUp() {
@@ -58,6 +59,7 @@ public class MplsPathIntentTest extends AbstractIntentTest {
         label2 = Optional.of(MplsLabel.mplsLabel(2));
         intent1 = MplsPathIntent.builder()
                 .appId(APP_ID)
+                .key(KEY1)
                 .ingressLabel(label1)
                 .egressLabel(label2)
                 .path(defaultPath)
@@ -105,6 +107,7 @@ public class MplsPathIntentTest extends AbstractIntentTest {
         assertThat(intent1.treatment(), equalTo(intent2.treatment()));
         assertThat(intent1.priority(), is(PRIORITY));
         assertThat(intent1.path(), is(defaultPath));
+        assertThat(intent1.key(), equalTo(KEY1));
     }
 
 }

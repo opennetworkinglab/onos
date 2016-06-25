@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flow.instructions;
 
+import com.google.common.base.MoreObjects;
 import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -22,15 +23,18 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
-import org.onosproject.net.IndexedLambda;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalId;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.instructions.L0ModificationInstruction.L0SubType;
-import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModOchSignalInstruction;
+import org.onosproject.net.flow.instructions.L1ModificationInstruction.ModOduSignalIdInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.L3SubType;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpIPInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpEthInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpOpInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModTtlInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.L4SubType;
@@ -47,6 +51,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class Instructions {
 
+    private static final String SEPARATOR = ":";
 
     // Ban construction
     private Instructions() {}
@@ -64,12 +69,12 @@ public final class Instructions {
     }
 
     /**
-     * Creates a drop instruction.
+     * Creates a no action instruction.
      *
-     * @return drop instruction
+     * @return no action instruction
      */
-    public static DropInstruction createDrop() {
-        return new DropInstruction();
+    public static NoActionInstruction createNoAction() {
+        return new NoActionInstruction();
     }
 
     /**
@@ -83,6 +88,24 @@ public final class Instructions {
         return new GroupInstruction(groupId);
     }
 
+    /**
+     * Creates a set-queue instruction.
+     *
+     * @param queueId Queue Id
+     * @param port Port number
+     * @return set-queue instruction
+     */
+    public static SetQueueInstruction setQueue(final long queueId, final PortNumber port) {
+        checkNotNull(queueId, "queue ID cannot be null");
+        return new SetQueueInstruction(queueId, port);
+    }
+
+    /**
+     * Creates a meter instruction.
+     *
+     * @param meterId Meter Id
+     * @return meter instruction
+     */
     public static MeterInstruction meterTraffic(final MeterId meterId) {
         checkNotNull(meterId, "meter id cannot be null");
         return new MeterInstruction(meterId);
@@ -97,15 +120,23 @@ public final class Instructions {
     public static L0ModificationInstruction modL0Lambda(Lambda lambda) {
         checkNotNull(lambda, "L0 OCh signal cannot be null");
 
-        if (lambda instanceof IndexedLambda) {
-            return new ModLambdaInstruction(L0SubType.LAMBDA, (short) ((IndexedLambda) lambda).index());
-        } else if (lambda instanceof OchSignal) {
+        if (lambda instanceof OchSignal) {
             return new ModOchSignalInstruction((OchSignal) lambda);
         } else {
             throw new UnsupportedOperationException(String.format("Unsupported type: %s", lambda));
         }
     }
 
+    /**
+     * Creates an L1 modification with the specified ODU signal Id.
+     *
+     * @param oduSignalId ODU Signal Id
+     * @return a L1 modification
+     */
+    public static L1ModificationInstruction modL1OduSignalId(OduSignalId oduSignalId) {
+        checkNotNull(oduSignalId, "L1 ODU signal ID cannot be null");
+        return new ModOduSignalIdInstruction(oduSignalId);
+    }
     /**
      * Creates a l2 src modification.
      *
@@ -264,12 +295,45 @@ public final class Instructions {
     }
 
     /**
+     * Creates a L3 ARP IP src modification.
+     *
+     * @param addr the ip address to modify to
+     * @return a L3 modification
+     */
+    public static L3ModificationInstruction modArpSpa(IpAddress addr) {
+        checkNotNull(addr, "Src l3 ARP IP address cannot be null");
+        return new ModArpIPInstruction(L3SubType.ARP_SPA, addr);
+    }
+
+    /**
+     * Creates a l3 ARP Ether src modification.
+     *
+     * @param addr the mac address to modify to
+     * @return a l3 modification
+     */
+    public static L3ModificationInstruction modArpSha(MacAddress addr) {
+        checkNotNull(addr, "Src l3 ARP address cannot be null");
+        return new ModArpEthInstruction(L3SubType.ARP_SHA, addr);
+    }
+
+    /**
+     * Creates a l3 ARP operation modification.
+     *
+     * @param op the ARP operation to modify to
+     * @return a l3 modification
+     */
+    public static L3ModificationInstruction modL3ArpOp(short op) {
+        checkNotNull(op, "Arp operation cannot be null");
+        return new ModArpOpInstruction(L3SubType.ARP_OP, op);
+    }
+
+    /**
      * Creates a push MPLS header instruction.
      *
      * @return a L2 modification.
      */
     public static Instruction pushMpls() {
-        return new L2ModificationInstruction.PushHeaderInstructions(
+        return new L2ModificationInstruction.ModMplsHeaderInstruction(
                 L2ModificationInstruction.L2SubType.MPLS_PUSH,
                                           EthType.EtherType.MPLS_UNICAST.ethType());
     }
@@ -280,7 +344,7 @@ public final class Instructions {
      * @return a L2 modification.
      */
     public static Instruction popMpls() {
-        return new L2ModificationInstruction.PushHeaderInstructions(
+        return new L2ModificationInstruction.ModMplsHeaderInstruction(
                 L2ModificationInstruction.L2SubType.MPLS_POP,
                 EthType.EtherType.MPLS_UNICAST.ethType());
     }
@@ -293,7 +357,7 @@ public final class Instructions {
      */
     public static Instruction popMpls(EthType etherType) {
         checkNotNull(etherType, "Ethernet type cannot be null");
-        return new L2ModificationInstruction.PushHeaderInstructions(
+        return new L2ModificationInstruction.ModMplsHeaderInstruction(
                 L2ModificationInstruction.L2SubType.MPLS_POP, etherType);
     }
 
@@ -303,7 +367,7 @@ public final class Instructions {
      * @return a L2 modification
      */
     public static Instruction popVlan() {
-        return new L2ModificationInstruction.PopVlanInstruction(
+        return new L2ModificationInstruction.ModVlanHeaderInstruction(
                 L2ModificationInstruction.L2SubType.VLAN_POP);
     }
 
@@ -313,7 +377,7 @@ public final class Instructions {
      * @return a L2 modification
      */
     public static Instruction pushVlan() {
-        return new L2ModificationInstruction.PushHeaderInstructions(
+        return new L2ModificationInstruction.ModVlanHeaderInstruction(
                 L2ModificationInstruction.L2SubType.VLAN_PUSH,
                 EthType.EtherType.VLAN.ethType());
     }
@@ -356,36 +420,10 @@ public final class Instructions {
      *
      * @param port the TCP port number to modify to
      * @return a L4 modification
-     * @deprecated in Drake release
-     */
-    @Deprecated
-    public static L4ModificationInstruction modTcpSrc(short port) {
-       checkNotNull(port, "Src TCP port cannot be null");
-       return new ModTransportPortInstruction(L4SubType.TCP_SRC, TpPort.tpPort(port));
-    }
-
-    /**
-     * Creates a TCP src modification.
-     *
-     * @param port the TCP port number to modify to
-     * @return a L4 modification
      */
     public static L4ModificationInstruction modTcpSrc(TpPort port) {
        checkNotNull(port, "Src TCP port cannot be null");
        return new ModTransportPortInstruction(L4SubType.TCP_SRC, port);
-    }
-
-    /**
-     * Creates a TCP dst modification.
-     *
-     * @param port the TCP port number to modify to
-     * @return a L4 modification
-     * @deprecated in Drake release
-     */
-    @Deprecated
-    public static L4ModificationInstruction modTcpDst(short port) {
-        checkNotNull(port, "Dst TCP port cannot be null");
-        return new ModTransportPortInstruction(L4SubType.TCP_DST, TpPort.tpPort(port));
     }
 
     /**
@@ -404,36 +442,10 @@ public final class Instructions {
      *
      * @param port the UDP port number to modify to
      * @return a L4 modification
-     * @deprecated in Drake release
-     */
-    @Deprecated
-    public static L4ModificationInstruction modUdpSrc(short port) {
-        checkNotNull(port, "Src UDP port cannot be null");
-        return new ModTransportPortInstruction(L4SubType.UDP_SRC, TpPort.tpPort(port));
-    }
-
-    /**
-     * Creates a UDP src modification.
-     *
-     * @param port the UDP port number to modify to
-     * @return a L4 modification
      */
     public static L4ModificationInstruction modUdpSrc(TpPort port) {
         checkNotNull(port, "Src UDP port cannot be null");
         return new ModTransportPortInstruction(L4SubType.UDP_SRC, port);
-    }
-
-    /**
-     * Creates a UDP dst modification.
-     *
-     * @param port the UDP port number to modify to
-     * @return a L4 modification
-     * @deprecated in Drake release
-     */
-    @Deprecated
-    public static L4ModificationInstruction modUdpDst(short port) {
-        checkNotNull(port, "Dst UDP port cannot be null");
-        return new ModTransportPortInstruction(L4SubType.UDP_DST, TpPort.tpPort(port));
     }
 
     /**
@@ -448,25 +460,39 @@ public final class Instructions {
     }
 
     /**
-     *  Drop instruction.
+     * Creates an extension instruction.
+     *
+     * @param extension extension instruction
+     * @param deviceId device ID
+     * @return extension instruction
      */
-    public static final class DropInstruction implements Instruction {
+    public static ExtensionInstructionWrapper extension(ExtensionTreatment extension,
+                                                        DeviceId deviceId) {
+        checkNotNull(extension, "Extension instruction cannot be null");
+        checkNotNull(deviceId, "Device ID cannot be null");
+        return new ExtensionInstructionWrapper(extension, deviceId);
+    }
 
-        private DropInstruction() {}
+    /**
+     *  No Action instruction.
+     */
+    public static final class NoActionInstruction implements Instruction {
+
+        private NoActionInstruction() {}
 
         @Override
         public Type type() {
-            return Type.DROP;
+            return Type.NOACTION;
         }
 
         @Override
         public String toString() {
-            return toStringHelper(type().toString()).toString();
+            return type().toString();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(type().ordinal());
+            return type().ordinal();
         }
 
         @Override
@@ -474,7 +500,7 @@ public final class Instructions {
             if (this == obj) {
                 return true;
             }
-            if (obj instanceof DropInstruction) {
+            if (obj instanceof NoActionInstruction) {
                 return true;
             }
             return false;
@@ -499,10 +525,10 @@ public final class Instructions {
         public Type type() {
             return Type.OUTPUT;
         }
+
         @Override
         public String toString() {
-            return toStringHelper(type().toString())
-                    .add("port", port).toString();
+            return type().toString() + SEPARATOR + port.toString();
         }
 
         @Override
@@ -545,8 +571,7 @@ public final class Instructions {
 
         @Override
         public String toString() {
-            return toStringHelper(type().toString())
-                    .add("group ID", groupId.id()).toString();
+            return type().toString() + SEPARATOR + "0x" + Integer.toHexString(groupId.id());
         }
 
         @Override
@@ -562,6 +587,66 @@ public final class Instructions {
             if (obj instanceof GroupInstruction) {
                 GroupInstruction that = (GroupInstruction) obj;
                 return Objects.equals(groupId, that.groupId);
+
+            }
+            return false;
+        }
+    }
+
+    /**
+     *  Set-Queue Instruction.
+     */
+    public static final class SetQueueInstruction implements Instruction {
+        private final long queueId;
+        private final PortNumber port;
+
+        private SetQueueInstruction(long queueId) {
+            this.queueId = queueId;
+            this.port = null;
+        }
+
+        private SetQueueInstruction(long queueId, PortNumber port) {
+            this.queueId = queueId;
+            this.port = port;
+        }
+
+        public long queueId() {
+            return queueId;
+        }
+
+        public PortNumber port() {
+            return port;
+        }
+
+        @Override
+        public Type type() {
+            return Type.QUEUE;
+        }
+
+        @Override
+        public String toString() {
+            MoreObjects.ToStringHelper toStringHelper = toStringHelper(type().toString());
+            toStringHelper.add("queueId", queueId);
+
+            if (port() != null) {
+                toStringHelper.add("port", port);
+            }
+            return toStringHelper.toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type().ordinal(), queueId, port);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof SetQueueInstruction) {
+                SetQueueInstruction that = (SetQueueInstruction) obj;
+                return Objects.equals(queueId, that.queueId) && Objects.equals(port, that.port);
 
             }
             return false;
@@ -589,8 +674,7 @@ public final class Instructions {
 
         @Override
         public String toString() {
-            return toStringHelper(type().toString())
-                    .add("meter ID", meterId.id()).toString();
+            return type().toString() + SEPARATOR + meterId.id();
         }
 
         @Override
@@ -633,8 +717,7 @@ public final class Instructions {
 
         @Override
         public String toString() {
-            return toStringHelper(type().toString())
-                    .add("tableId", this.tableId).toString();
+            return type().toString() + SEPARATOR + this.tableId;
         }
 
         @Override
@@ -683,10 +766,9 @@ public final class Instructions {
 
         @Override
         public String toString() {
-            return toStringHelper(type().toString())
-                    .add("metadata", Long.toHexString(this.metadata))
-                    .add("metadata mask", Long.toHexString(this.metadataMask))
-                    .toString();
+            return type().toString() + SEPARATOR +
+                    Long.toHexString(this.metadata) + "/" +
+                    Long.toHexString(this.metadataMask);
         }
 
         @Override
@@ -703,6 +785,56 @@ public final class Instructions {
                 MetadataInstruction that = (MetadataInstruction) obj;
                 return Objects.equals(metadata, that.metadata) &&
                         Objects.equals(metadataMask, that.metadataMask);
+
+            }
+            return false;
+        }
+    }
+
+    /**
+     *  Extension instruction.
+     */
+    public static class ExtensionInstructionWrapper implements Instruction {
+        private final ExtensionTreatment extensionTreatment;
+        private final DeviceId deviceId;
+
+        ExtensionInstructionWrapper(ExtensionTreatment extension, DeviceId deviceId) {
+            extensionTreatment = extension;
+            this.deviceId = deviceId;
+        }
+
+        public ExtensionTreatment extensionInstruction() {
+            return extensionTreatment;
+        }
+
+        public DeviceId deviceId() {
+            return deviceId;
+        }
+
+        @Override
+        public Type type() {
+            return Type.EXTENSION;
+        }
+
+        @Override
+        public String toString() {
+            return type().toString() + SEPARATOR + deviceId + "/" + extensionTreatment;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type().ordinal(), extensionTreatment, deviceId);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ExtensionInstructionWrapper) {
+                ExtensionInstructionWrapper that = (ExtensionInstructionWrapper) obj;
+                return Objects.equals(extensionTreatment, that.extensionTreatment)
+                        && Objects.equals(deviceId, that.deviceId);
 
             }
             return false;

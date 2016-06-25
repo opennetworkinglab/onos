@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -215,6 +215,34 @@ public final class DefaultAnnotations implements SparseAnnotations {
 
         // Private construction is forbidden.
         private Builder() {
+        }
+
+        /**
+         * Adds all specified annotation. Any previous value associated with
+         * the given annotations will be overwritten.
+         *
+         * @param base annotations
+         * @return self
+         */
+        public Builder putAll(Annotations base) {
+            if (base instanceof DefaultAnnotations) {
+                builder.putAll(((DefaultAnnotations) base).map);
+
+            } else if (base instanceof SparseAnnotations) {
+                final SparseAnnotations sparse = (SparseAnnotations) base;
+                for (String key : base.keys()) {
+                    if (sparse.isRemoved(key)) {
+                        remove(key);
+                    } else {
+                        set(key, base.value(key));
+                    }
+                }
+
+            } else {
+                base.keys().forEach(key -> set(key, base.value(key)));
+
+            }
+            return this;
         }
 
         /**

@@ -1,0 +1,16 @@
+SRC_DEPS = [
+    '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+    '//core/api:onos-api-tests',
+]
+
+osgi_jar_with_tests (
+    name = 'onos-core-common',
+    deps = SRC_DEPS,
+    test_deps = TEST_DEPS,
+    visibility = ['PUBLIC'],
+)

@@ -43,7 +43,7 @@ fi
 echo "ONOS_CELL=${ONOS_CELL}"
 echo "ONOS_NIC=${ONOS_NIC}"
 # get number of OC variables
-max=$( env | egrep 'OC[0-9]+' | wc -l )
+max=$( env | egrep '^OC[0-9]+' | wc -l )
 for n in $( seq 0 ${max} ); do
     ocn="OC${n}"
     if [ -n "${!ocn}" ]; then

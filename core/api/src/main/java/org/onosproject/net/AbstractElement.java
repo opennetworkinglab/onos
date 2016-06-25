@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.onosproject.net.provider.ProviderId;
 /**
  * Base implementation of network elements, i.e. devices or hosts.
  */
-public abstract class AbstractElement extends AbstractModel implements Element {
+public abstract class AbstractElement extends AbstractProjectableModel implements Element {
 
     protected final ElementId id;
 

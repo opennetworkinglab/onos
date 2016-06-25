@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.flow;
 
+import java.util.List;
+
 import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -22,12 +24,12 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.meter.MeterId;
-
-import java.util.List;
 
 /**
  * Abstraction of network traffic treatment.
@@ -190,14 +192,14 @@ public interface TrafficTreatment {
         /**
          * Push MPLS ether type.
          *
-         * @return a treatment builder.
+         * @return a treatment builder
          */
         Builder pushMpls();
 
         /**
          * Pops MPLS ether type.
          *
-         * @return a treatment builder.
+         * @return a treatment builder
          */
         Builder popMpls();
 
@@ -205,32 +207,22 @@ public interface TrafficTreatment {
          * Pops MPLS ether type and set the new ethertype.
          *
          * @param etherType an ether type
-         * @return a treatment builder.
-         * @deprecated in Drake Release
-         */
-        @Deprecated
-        Builder popMpls(int etherType);
-
-        /**
-         * Pops MPLS ether type and set the new ethertype.
-         *
-         * @param etherType an ether type
-         * @return a treatment builder.
+         * @return a treatment builder
          */
         Builder popMpls(EthType etherType);
 
         /**
          * Sets the mpls label.
          *
-         * @param mplsLabel MPLS label.
-         * @return a treatment builder.
+         * @param mplsLabel MPLS label
+         * @return a treatment builder
          */
         Builder setMpls(MplsLabel mplsLabel);
 
         /**
          * Sets the mpls bottom-of-stack indicator bit.
          *
-         * @param mplsBos boolean to set BOS=1 (true) or BOS=0 (false).
+         * @param mplsBos boolean to set BOS=1 (true) or BOS=0 (false)
          * @return a treatment builder.
          */
         Builder setMplsBos(boolean mplsBos);
@@ -243,22 +235,29 @@ public interface TrafficTreatment {
         Builder decMplsTtl();
 
         /**
-         * Sets the optical channel ID or lambda.
-         *
-         * @param lambda optical channel ID
-         * @return a treatment builder
-         * @deprecated in Drake Release
-         */
-        @Deprecated
-        Builder setLambda(short lambda);
-
-        /**
          * Sets the group ID.
          *
          * @param groupId group ID
          * @return a treatment builder
          */
         Builder group(GroupId groupId);
+
+        /**
+         * Sets the Queue ID.
+         *
+         * @param queueId a queue ID
+         * @return a treatment builder
+         */
+        Builder setQueue(long queueId);
+
+        /**
+         * Sets the Queue ID for a specific port.
+         *
+         * @param queueId a queue ID
+         * @param port a port number
+         * @return a treatment builder
+         */
+        Builder setQueue(long queueId, PortNumber port);
 
         /**
          * Sets a meter to be used by this flow.
@@ -280,14 +279,14 @@ public interface TrafficTreatment {
         /**
          * Pops outermost VLAN tag.
          *
-         * @return a treatment builder.
+         * @return a treatment builder
          */
         Builder popVlan();
 
         /**
          * Pushes a new VLAN tag.
          *
-         * @return a treatment builder.
+         * @return a treatment builder
          */
         Builder pushVlan();
 
@@ -327,20 +326,10 @@ public interface TrafficTreatment {
         /**
          * Sets the tunnel id.
          *
-         * @param tunnelId a tunnel id.
-         * @return a treatment builder.
+         * @param tunnelId a tunnel id
+         * @return a treatment builder
          */
         Builder setTunnelId(long tunnelId);
-
-        /**
-         * Sets the src TCP port.
-         *
-         * @param port a port number
-         * @return a treatment builder
-         * @deprecated in Drake release
-         */
-        @Deprecated
-        Builder setTcpSrc(short port);
 
         /**
          * Sets the src TCP port.
@@ -355,28 +344,8 @@ public interface TrafficTreatment {
          *
          * @param port a port number
          * @return a treatment builder
-         * @deprecated in Drake release
-         */
-        @Deprecated
-        Builder setTcpDst(short port);
-
-        /**
-         * Sets the dst TCP port.
-         *
-         * @param port a port number
-         * @return a treatment builder
          */
         Builder setTcpDst(TpPort port);
-
-        /**
-         * Sets the src UDP port.
-         *
-         * @param port a port number
-         * @return a treatment builder
-         * @deprecated in Drake release
-         */
-        @Deprecated
-        Builder setUdpSrc(short port);
 
         /**
          * Sets the src UDP port.
@@ -391,18 +360,41 @@ public interface TrafficTreatment {
          *
          * @param port a port number
          * @return a treatment builder
-         * @deprecated in Drake release
-         */
-        @Deprecated
-        Builder setUdpDst(short port);
-
-        /**
-         * Sets the dst UDP port.
-         *
-         * @param port a port number
-         * @return a treatment builder
          */
         Builder setUdpDst(TpPort port);
+
+        /**
+         * Sets the arp src ip address.
+         *
+         * @param addr an ip
+         * @return a treatment builder
+         */
+        Builder setArpSpa(IpAddress addr);
+
+        /**
+         * Sets the arp src mac address.
+         *
+         * @param addr a macaddress
+         * @return a treatment builder
+         */
+        Builder setArpSha(MacAddress addr);
+
+        /**
+         * Sets the arp operation.
+         *
+         * @param op the value of arp operation.
+         * @return a treatment builder.
+         */
+        Builder setArpOp(short op);
+
+        /**
+         * Uses an extension treatment.
+         *
+         * @param extension extension treatment
+         * @param deviceId device ID
+         * @return a treatment builder
+         */
+        Builder extension(ExtensionTreatment extension, DeviceId deviceId);
 
         /**
          * Builds an immutable traffic treatment descriptor.

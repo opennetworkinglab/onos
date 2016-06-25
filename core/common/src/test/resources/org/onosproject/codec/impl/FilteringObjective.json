@@ -1,0 +1,26 @@
+{
+  "priority": 60,
+  "appId": "org.onosproject.sample",
+  "isPermanent": "false",
+  "timeout": 1,
+  "type": "PERMIT",
+  "operation": "ADD",
+  "conditions": [
+    {
+      "type": "IN_PORT",
+      "port": 23
+    }
+  ],
+  "meta": {
+    "instructions": [
+      {
+        "type": "OUTPUT",
+        "port": -3
+      },
+      {
+        "type": "NOACTION"
+      }
+    ],
+    "deferred": []
+  }
+}

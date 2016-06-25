@@ -1,0 +1,42 @@
+{
+  "type": "object",
+  "title": "nodes",
+  "properties": {
+    "nodes": {
+      "type": "array",
+      "xml": {
+        "name": "nodes",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "nodes",
+        "required": [
+          "id",
+          "ip",
+          "tcpPort",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "127.0.0.1"
+          },
+          "ip": {
+            "type": "string",
+            "example": "127.0.0.1"
+          },
+          "tcpPort": {
+            "type": "integer",
+            "format": "int64",
+            "example": 9876
+          },
+          "status": {
+            "type": "string",
+            "example": "ACTIVE"
+          }
+        }
+      }
+    }
+  }
+}

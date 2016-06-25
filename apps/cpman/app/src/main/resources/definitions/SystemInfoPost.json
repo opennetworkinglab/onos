@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "required": [
+    "numOfCores",
+    "numOfCpus",
+    "cpuSpeed",
+    "totalMemory"
+  ],
+  "properties": {
+    "numOfCores": {
+      "type": "integer",
+      "format": "int64",
+      "example": "6"
+    },
+    "numOfCpus": {
+      "type": "integer",
+      "format": "int64",
+      "example": "2"
+    },
+    "cpuSpeed": {
+      "type": "integer",
+      "format": "int64",
+      "example": "2048"
+    },
+    "totalMemory": {
+      "type": "integer",
+      "format": "int64",
+      "example": "4096"
+    }
+  }
+}

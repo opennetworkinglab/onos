@@ -1,0 +1,8 @@
+- hosts: localhost
+  remote_user: vagrant
+  serial: 1
+  roles:
+    - common
+    - brctl
+    - java8-oracle
+    - lxc

@@ -1,0 +1,21 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.servicemix.bundles.snmp4j',
+    '//lib:snmp-core',
+    '//lib:bti7000',
+    '//lib:mibs-net-snmp',
+    '//lib:mibs-rfc',
+    '//incubator/api:onos-incubator-api',
+    '//protocols/snmp/api:onos-protocols-snmp-api',
+    '//protocols/snmp/ctl:onos-protocols-snmp-ctl',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+    '//core/api:onos-api-tests',
+]
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
+

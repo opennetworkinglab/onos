@@ -1,0 +1,148 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+  ~ Copyright 2016-present Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<data xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+    <capable-switch xmlns="urn:onf:config:yang">
+        <id/>
+        <config-version/>
+        <resources>
+            <port>
+                <name/>
+                <number/>
+                <requested-number/>
+                <current-rate/>
+                <max-rate/>
+                <configuration/>
+                <state>
+                    <oper-state/>
+                    <blocked/>
+                    <live/>
+                </state>
+                <features>
+                    <current>
+                        <rate/>
+                        <auto-negotiate/>
+                        <medium/>
+                        <pause/>
+                    </current>
+                    <advertised>
+                        <rate/>
+                        <medium/>
+                        <pause/>
+                    </advertised>
+                    <supported>
+                        <rate/>
+                        <medium/>
+                        <pause/>
+                    </supported>
+                    <advertised-peer>
+                        <rate/>
+                        <medium/>
+                        <pause/>
+                    </advertised-peer>
+                </features>
+                <tunnel>
+                    <local-endpoint-ipv4-adress/>
+                    <remote-endpoint-ipv4-adress/>
+                </tunnel>
+                <ipgre-tunnel>
+                    <local-endpoint-ipv4-adress/>
+                    <remote-endpoint-ipv4-adress/>
+                    <key/>
+                </ipgre-tunnel>
+                <vxlan-tunnel>
+                    <local-endpoint-ipv4-adress/>
+                    <remote-endpoint-ipv4-adress/>
+                    <vni/>
+                </vxlan-tunnel>
+            </port>
+            <queue>
+                <resource-id/>
+                <id/>
+                <port/>
+                <properties>
+                    <min-rate/>
+                    <max-rate/>
+                    <experimenter-id/>
+                    <experimenter-data/>
+                </properties>
+            </queue>
+            <owned-certificate>
+                <resource-id/>
+                <certificate/>
+                <private-key>
+                    <key-type/>
+                    <key-data/>
+                </private-key>
+            </owned-certificate>
+            <external-certificate>
+                <resource-id/>
+                <certificate/>
+            </external-certificate>
+            <flow-table>
+                <resource-id/>
+                <table-id/>
+                <name/>
+                <max-entries/>
+            </flow-table>
+        </resources>
+        <logical-switches>
+            <switch>
+                <id/>
+                <capabilities>
+                    <max-buffered-packets/>
+                    <max-tables/>
+                    <max-ports/>
+                    <reserved-port-types>
+                        <type/>
+                    </reserved-port-types>
+                    <group-types>
+                        <type/>
+                    </group-types>
+                    <group-capabilities>
+                        <capability/>
+                    </group-capabilities>
+                    <action-types>
+                        <type/>
+                    </action-types>
+                    <instruction-types>
+                        <type/>
+                    </instruction-types>
+                </capabilities>
+                <datapath-id/>
+                <controllers>
+                    <controller>
+                        <id/>
+                        <ip-address/>
+                        <local-ip-address/>
+                        <state>
+                            <connection-state/>
+                            <local-ip-address-in-use/>
+                            <local-port-in-use/>
+                        </state>
+                    </controller>
+                </controllers>
+                <resources>
+                    <port/>
+                    <queue/>
+                    <certificate/>
+                    <flow-table/>
+                </resources>
+            </switch>
+        </logical-switches>
+    </capable-switch>
+</data>

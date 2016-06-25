@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.onosproject.net.driver;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
@@ -23,7 +24,10 @@ import org.apache.commons.configuration.XMLConfiguration;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Utility capable of reading driver configuration XML resources and producing
@@ -126,13 +130,22 @@ public class XmlDriverLoader {
     public DefaultDriver loadDriver(HierarchicalConfiguration driverCfg,
                                     DriverResolver resolver) {
         String name = driverCfg.getString(NAME);
-        String parentName = driverCfg.getString(EXTENDS);
+        String parentsString = driverCfg.getString(EXTENDS, "");
+        List<Driver> parents = Lists.newArrayList();
+        if (!parentsString.equals("")) {
+            List<String> parentsNames;
+            if (parentsString.contains(",")) {
+                parentsNames = Arrays.asList(parentsString.replace(" ", "").split(","));
+            } else {
+                parentsNames = Lists.newArrayList(parentsString);
+            }
+            parents = parentsNames.stream().map(parent -> (parent != null) ?
+                    resolve(parent, resolver) : null).collect(Collectors.toList());
+        }
         String manufacturer = driverCfg.getString(MFG, "");
         String hwVersion = driverCfg.getString(HW, "");
         String swVersion = driverCfg.getString(SW, "");
-
-        Driver parent = parentName != null ? resolve(parentName, resolver) : null;
-        return new DefaultDriver(name, parent, manufacturer, hwVersion, swVersion,
+        return new DefaultDriver(name, parents, manufacturer, hwVersion, swVersion,
                                  parseBehaviours(driverCfg),
                                  parseProperties(driverCfg));
     }

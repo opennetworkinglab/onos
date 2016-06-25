@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,44 +15,38 @@
  */
 package org.onosproject.net.flow;
 
-import com.google.common.base.Objects;
+import org.onlab.util.Identifier;
 
 /**
  * Representation of a Flow ID.
  */
-public final class FlowId {
-
-    private final long flowid;
+public final class FlowId extends Identifier<Long> {
 
     private FlowId(long id) {
-        this.flowid = id;
+        super(id);
     }
 
+    /**
+     * Creates a flow ID from a long value.
+     *
+     * @param id long value
+     * @return flow ID
+     */
     public static FlowId valueOf(long id) {
         return new FlowId(id);
     }
 
+    /**
+     * Gets the flow ID value.
+     *
+     * @return flow ID value as long
+     */
     public long value() {
-        return flowid;
+        return this.identifier;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (obj.getClass()  == this.getClass()) {
-            FlowId that = (FlowId) obj;
-            return Objects.equal(this.flowid, that.flowid);
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(this.flowid);
+    public String toString() {
+        return Long.toHexString(identifier);
     }
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,15 +15,15 @@
   ~ limitations under the License.
   -->
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="${project.artifactId}-${project.version}">
-    <repository>mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features</repository>
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
         <bundle>mvn:${project.groupId}/onos-app-pcep-api/${project.version}</bundle>
-	<bundle>mvn:${project.groupId}/onos-pcepio/${project.version}</bundle>     
-        <bundle>mvn:${project.groupId}/onos-pcep-controller-api/${project.version}</bundle>     
+    <bundle>mvn:${project.groupId}/onos-pcepio/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-pcep-controller-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-controller-impl/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-provider-topology/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-provider-tunnel/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-pcep-provider-packet/${project.version}</bundle>
     </feature>
 </features>

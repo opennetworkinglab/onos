@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,13 +33,15 @@ import org.onosproject.net.device.DeviceServiceAdapter;
  */
 public class LinkCodecTest {
 
-    private final Link link = new DefaultLink(JsonCodecUtils.PID,
-                                              JsonCodecUtils.CP1,
-                                              JsonCodecUtils.CP2,
-                                              Link.Type.DIRECT,
-                                              Link.State.ACTIVE,
-                                              false,
-                                              JsonCodecUtils.A1);
+    private final Link link = DefaultLink.builder()
+            .providerId(JsonCodecUtils.PID)
+            .src(JsonCodecUtils.CP1)
+            .dst(JsonCodecUtils.CP2)
+            .type(Link.Type.DIRECT)
+            .state(Link.State.ACTIVE)
+            .isExpected(false)
+            .annotations(JsonCodecUtils.A1)
+            .build();
 
     @Test
     public void linkCodecTest() {

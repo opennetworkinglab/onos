@@ -1,0 +1,68 @@
+checkstyle_source = 'src/main/resources/onos/checkstyle.xml'
+suppression_source = 'src/main/resources/onos/suppressions.xml'
+
+export_file (
+  name = 'checkstyle-xml',
+  src = checkstyle_source,
+  visibility = [ 'PUBLIC' ],
+)
+
+export_file (
+  name = 'suppressions-xml',
+  src = suppression_source,
+  visibility = [ 'PUBLIC' ],
+)
+
+export_file (
+  name = 'start-checkstyle',
+  visibility = [ 'PUBLIC' ],
+)
+
+COMPILE = [
+  '//lib:guava',
+  '//lib:checkstyle',
+]
+
+RUN = [
+  '//lib:commons-logging',
+  '//lib:commons-beanutils',
+  '//lib:commons-lang3',
+  '//lib:commons-collections',
+  '//lib:antlr',
+]
+
+java_library (
+  name = 'checkstyle',
+  srcs = glob([ 'src/main/java/**/*.java' ]),
+  deps = COMPILE,
+)
+
+java_binary (
+  name = 'checkstyle-jar',
+  deps = [ ':checkstyle' ] + RUN,
+  main_class = 'org.onosproject.checkstyle.Main',
+  blacklist = [ 'META-INF/.*' ],
+  visibility = [ 'PUBLIC' ],
+)
+
+# cmd = '#!/bin/bash\n'
+# cmd += '$1 &>/dev/null < /dev/null &'
+#
+# genrule(
+#   name = 'checkstyle-sh',
+#   bash = "echo '%s' > $OUT && chmod +x $OUT" % cmd,
+#   out = 'checkstyle.sh',
+# )
+#
+# sh_test(
+#   name = 'checkstyle-runner',
+#   test = ':checkstyle-sh',
+#   args = [
+#   '$(exe :checkstyle-jar)',
+#   '$(location //lib:checkstyle)',
+#   '$(location //tools/build/conf:checkstyle-xml)',
+#   '`mktemp /tmp/%s-checkstyle-XXXXXX`',
+#   ],
+#   labels = [ 'checkstyle' ],
+#   visibility = [ 'PUBLIC' ],
+# )

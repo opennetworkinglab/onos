@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public final class PacketTestUtils {
      * deserialize the packet.
      *
      * @param deserializer deserializer function to test
-     * @param header byte array of a full-size packet
+     * @param header       byte array of a full-size packet
      */
     public static void testDeserializeTruncated(Deserializer deserializer,
                                                 byte[] header) {
@@ -82,9 +82,9 @@ public final class PacketTestUtils {
      * DeserializationException is not thrown by the deserializer function.
      *
      * @param deserializer deserializer function to test
-     * @param bytes input byte array
-     * @param offset input offset
-     * @param length input length
+     * @param bytes        input byte array
+     * @param offset       input offset
+     * @param length       input length
      */
     public static void expectDeserializationException(Deserializer deserializer,
                                                       byte[] bytes, int offset, int length) {

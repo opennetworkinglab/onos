@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,8 @@ public class ProcessorViewMessageHandler extends UiMessageHandler {
 
     // handler for packet processor table requests
     private final class ProcessorDataRequest extends TableRequestHandler {
+        private static final String NO_ROWS_MESSAGE = "No packet processors found";
+
         private ProcessorDataRequest() {
             super(PROCESSOR_DATA_REQ, PROCESSOR_DATA_RESP, PROCESSORS);
         }
@@ -74,9 +76,14 @@ public class ProcessorViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
+        protected String noRowsMessage(ObjectNode payload) {
+            return NO_ROWS_MESSAGE;
+        }
+
+        @Override
         protected TableModel createTableModel() {
             TableModel tm = super.createTableModel();
-            tm.setFormatter(AVG_MS, new NumberFormatter());
+            tm.setFormatter(AVG_MS, NumberFormatter.TO_5DP);
             return tm;
         }
 

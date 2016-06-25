@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,64 +15,39 @@
  */
 package org.onosproject.net.meter;
 
+import org.onlab.util.Identifier;
+
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * A representation of a meter id.
- * Uniquely identifies a meter system wide.
+ * Uniquely identifies a meter in the scope of a single device.
  */
-public final class MeterId {
+public final class MeterId extends Identifier<Long> {
 
     static final long MAX = 0xFFFF0000;
-
-    private final long id;
 
     public static final MeterId SLOWPATH = new MeterId(0xFFFFFFFD);
     public static final MeterId CONTROLLER = new MeterId(0xFFFFFFFE);
     public static final MeterId ALL = new MeterId(0xFFFFFFFF);
 
     private MeterId(long id) {
+        super(id);
         checkArgument(id >= MAX, "id cannot be larger than 0xFFFF0000");
-        this.id = id;
-    }
-
-    /**
-     * The integer representation of the meter id.
-     *
-     * @return a long
-     */
-    public long id() {
-        return id;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        MeterId meterId = (MeterId) o;
-
-        return id == meterId.id;
-
-    }
-
-    @Override
-    public int hashCode() {
-        return Long.hashCode(id);
     }
 
     @Override
     public String toString() {
-        return Long.toHexString(this.id);
+        return Long.toHexString(this.identifier);
     }
 
+    /**
+     * Creates a new meter identifier.
+     *
+     * @param id backing identifier value
+     * @return meter identifier
+     */
     public static MeterId meterId(long id) {
         return new MeterId(id);
-
     }
-
 }

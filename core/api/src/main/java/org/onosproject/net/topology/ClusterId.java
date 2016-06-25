@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,16 @@
  */
 package org.onosproject.net.topology;
 
-import java.util.Objects;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
+import org.onlab.util.Identifier;
 
 /**
  * Representation of the topology cluster identity.
  */
-public final class ClusterId {
-
-    private final int id;
+public final class ClusterId extends Identifier<Integer> {
 
     // Public construction is prohibit
     private ClusterId(int id) {
-        this.id = id;
+        super(id);
     }
 
     /**
@@ -48,29 +44,6 @@ public final class ClusterId {
      * @return backing integer index
      */
     public int index() {
-        return id;
+        return identifier;
     }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof ClusterId) {
-            final ClusterId other = (ClusterId) obj;
-            return Objects.equals(this.id, other.id);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return toStringHelper(this).add("id", id).toString();
-    }
-
 }

@@ -8,7 +8,7 @@
 
 set -e
 
-export NEW_VERSION=$1
+export NEW_VERSION=${1:-$ONOS_VERSION}
 [ -z "$NEW_VERSION" ] && echo "New ONOS version not specified" && exit 1
 
 export NEW_VERSION_SHORT=${NEW_VERSION%-SNAPSHOT}
@@ -22,8 +22,11 @@ cd $ONOS_ROOT
 onos-change-version $NEW_VERSION
 export ONOS_VERSION=$NEW_VERSION
 
+# Validate integrity of the versioning
+onos-validate-change-version
+
 # Build ONOS & deploy to staging repo using the release profile.
-onos-build && onos-package && mvn -Prelease clean deploy -DskipTests
+onos-build && onos-package --tar --zip && mvn -Prelease clean deploy -DskipTests
 
 # Build ONOS docs
 onos-build-docs

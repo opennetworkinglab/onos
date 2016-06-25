@@ -24,10 +24,10 @@ if ( ! $?JAVA_HOME ) then
     endif
 endif
 if ( ! $?MAVEN ) then
-    setenv MAVEN $HOME/Applications/apache-maven-3.3.1
+    setenv MAVEN $HOME/Applications/apache-maven-3.3.9
 endif
 if ( ! $?KARAF_VERSION ) then
-    setenv KARAF_VERSION 3.0.3
+    setenv KARAF_VERSION 3.0.5
 endif
 if ( ! $?KARAF_ROOT ) then
     setenv KARAF_ROOT $HOME/Applications/apache-karaf-$KARAF_VERSION

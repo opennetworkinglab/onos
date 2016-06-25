@@ -4,20 +4,17 @@
         <h2>Hosts ({{tableData.length}} total)</h2>
         <div class="ctrl-btns">
             <div class="refresh" ng-class="{active: autoRefresh}"
-                 icon icon-size="36" icon-id="refresh"
+                 icon icon-size="42" icon-id="refresh"
                  tooltip tt-msg="autoRefreshTip"
                  ng-click="toggleRefresh()"></div>
         </div>
     </div>
 
     <div class="summary-list" onos-table-resize>
-        <div ng-show="loading" class="loading-wheel"
-             icon icon-id="loading" icon-size="75"></div>
-
         <div class="table-header" onos-sortable-header>
             <table>
                 <tr>
-                    <td colId="type" class="table-icon" sortable></td>
+                    <td colId="type" class="table-icon"></td>
                     <td colId="id" sortable>Host ID </td>
                     <td colId="mac" sortable>MAC Address </td>
                     <td colId="vlan" sortable>VLAN ID </td>
@@ -31,7 +28,7 @@
             <table onos-flash-changes id-prop="id">
                 <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="6">
-                        No Hosts found
+                        {{annots.no_rows_msg}}
                     </td>
                 </tr>
 

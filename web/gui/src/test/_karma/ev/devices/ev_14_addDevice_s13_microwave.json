@@ -1,0 +1,18 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:00000000000000013",
+    "type": "microwave",
+    "online": true,
+    "master": "ONOS",
+    "labels": [
+      "",
+      "microwave",
+      "of:0000000000000013"
+    ],
+    "metaUi": {
+      "x": 300,
+      "y": 500
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "priority": 1,
+  "isPermanent": true,
+  "treatment": {
+    "instructions": [
+      {
+        "type": "OUTPUT",
+        "port": 2
+      }
+    ]
+  },
+  "selector": {
+    "criteria": [
+      {
+        "type": "ETH_TYPE",
+        "ethType": "0x806"
+      }
+    ]
+  }
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.onosproject.net;
 import org.onlab.junit.TestUtils;
 import org.onlab.packet.ChassisId;
 import org.onosproject.TestApplicationId;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.provider.ProviderId;
@@ -44,6 +45,7 @@ public final class NetTestTools {
 
     public static final ProviderId PID = new ProviderId("of", "foo");
     public static final ApplicationId APP_ID = new TestApplicationId("foo");
+    public static final NodeId NODE_ID = new NodeId("node1");
 
     // Short-hand for producing a device id from a string
     public static DeviceId did(String id) {
@@ -79,7 +81,7 @@ public final class NetTestTools {
         return new DefaultLink(PID,
                                connectPoint(src, sp),
                                connectPoint(dst, dp),
-                               Link.Type.DIRECT);
+                               Link.Type.DIRECT, Link.State.ACTIVE);
     }
 
     // Creates a path that leads through the given devices.
@@ -87,6 +89,21 @@ public final class NetTestTools {
         List<Link> links = new ArrayList<>();
         for (int i = 0; i < ids.length - 1; i++) {
             links.add(link(ids[i], i, ids[i + 1], i));
+        }
+        return new DefaultPath(PID, links, ids.length);
+    }
+
+    // Creates a path that leads through the given devices.
+    public static Path createPath(boolean srcIsEdge, boolean dstIsEdge, String... ids) {
+        List<Link> links = new ArrayList<>();
+        for (int i = 0; i < ids.length - 1; i++) {
+            if (i == 0 && srcIsEdge) {
+                links.add(DefaultEdgeLink.createEdgeLink(host(ids[i], ids[i + 1]), true));
+            } else if (i == ids.length - 2 && dstIsEdge) {
+                links.add(DefaultEdgeLink.createEdgeLink(host(ids[i + 1], ids[i]), false));
+            } else {
+                links.add(link(ids[i], i, ids[i + 1], i));
+            }
         }
         return new DefaultPath(PID, links, ids.length);
     }

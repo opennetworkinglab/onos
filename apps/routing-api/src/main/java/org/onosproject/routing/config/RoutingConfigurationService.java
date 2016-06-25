@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,38 +15,23 @@
  */
 package org.onosproject.routing.config;
 
+import java.util.Set;
+
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
-
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Provides information about the routing configuration.
  */
 public interface RoutingConfigurationService {
 
-    /**
-     * Gets the list of BGP speakers inside the SDN network.
-     *
-     * @return the map of BGP speaker names to BGP speaker objects
-     */
-    Map<String, BgpSpeaker> getBgpSpeakers();
+    String REACTIVE_ROUTING_APP_ID = "org.onosproject.reactive.routing";
 
-    /**
-     * Gets the list of configured BGP peers.
-     *
-     * @return the map from peer IP address to BgpPeer object
-     */
-    Map<IpAddress, BgpPeer> getBgpPeers();
+    Class<ReactiveRoutingConfig> CONFIG_CLASS = ReactiveRoutingConfig.class;
 
-    /**
-     * Gets the MAC address configured for virtual gateway in SDN network.
-     *
-     * @return the MAC address of virtual gateway
-     */
+
     MacAddress getVirtualGatewayMacAddress();
 
     /**
@@ -74,15 +59,6 @@ public interface RoutingConfigurationService {
     boolean isIpPrefixLocal(IpPrefix ipPrefix);
 
     /**
-     * Retrieves the entire set of interfaces in the network.
-     *
-     * @return the set of interfaces
-     * @deprecated in Drake release - use InterfaceService instead
-     */
-    @Deprecated
-    Set<Interface> getInterfaces();
-
-    /**
      * Retrieves the entire set of connect points connected to BGP peers in the
      * network.
      *
@@ -90,36 +66,5 @@ public interface RoutingConfigurationService {
      */
     Set<ConnectPoint> getBgpPeerConnectPoints();
 
-    /**
-     * Retrieves the interface associated with the given connect point.
-     *
-     * @param connectPoint the connect point to retrieve interface information
-     * for
-     * @return the interface
-     * @deprecated in Drake release - use InterfaceService instead
-     */
-    @Deprecated
-    Interface getInterface(ConnectPoint connectPoint);
-
-    /**
-     * Retrieves the interface associated with the given IP address.
-     *
-     * @param ip IP address of the interface
-     * @return the interface
-     * @deprecated in Drake release - use InterfaceService instead
-     */
-    @Deprecated
-    Interface getInterface(IpAddress ip);
-
-    /**
-     * Retrieves the interface that matches the given IP address. Matching
-     * means that the IP address is in one of the interface's assigned subnets.
-     *
-     * @param ipAddress IP address to match
-     * @return the matching interface
-     * @deprecated in Drake release - use InterfaceService instead
-     */
-    @Deprecated
-    Interface getMatchingInterface(IpAddress ipAddress);
 
 }

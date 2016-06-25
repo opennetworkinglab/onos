@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,27 @@
  */
 package org.onosproject.codec.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
+import org.onlab.util.HexString;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.Lambda;
+import org.onosproject.net.OchSignalType;
+import org.onosproject.net.OduSignalId;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.onlab.util.Tools.nullIsIllegal;
 
@@ -69,6 +72,8 @@ public final class DecodeCriterionCodecHelper {
         decoderMap.put(Criterion.Type.ETH_TYPE.name(), new EthTypeDecoder());
         decoderMap.put(Criterion.Type.VLAN_VID.name(), new VlanVidDecoder());
         decoderMap.put(Criterion.Type.VLAN_PCP.name(), new VlanPcpDecoder());
+        decoderMap.put(Criterion.Type.INNER_VLAN_VID.name(), new InnerVlanVidDecoder());
+        decoderMap.put(Criterion.Type.INNER_VLAN_PCP.name(), new InnerVlanPcpDecoder());
         decoderMap.put(Criterion.Type.IP_DSCP.name(), new IpDscpDecoder());
         decoderMap.put(Criterion.Type.IP_ECN.name(), new IpEcnDecoder());
         decoderMap.put(Criterion.Type.IP_PROTO.name(), new IpProtoDecoder());
@@ -95,17 +100,24 @@ public final class DecodeCriterionCodecHelper {
         decoderMap.put(Criterion.Type.OCH_SIGID.name(), new OchSigIdDecoder());
         decoderMap.put(Criterion.Type.OCH_SIGTYPE.name(), new OchSigTypeDecoder());
         decoderMap.put(Criterion.Type.TUNNEL_ID.name(), new TunnelIdDecoder());
+        decoderMap.put(Criterion.Type.ODU_SIGID.name(), new OduSigIdDecoder());
+        decoderMap.put(Criterion.Type.ODU_SIGTYPE.name(), new OduSigTypeDecoder());
     }
 
     private class EthTypeDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
-            int ethType = nullIsIllegal(json.get(CriterionCodec.ETH_TYPE),
-                    CriterionCodec.ETH_TYPE + MISSING_MEMBER_MESSAGE).asInt();
+            JsonNode ethTypeNode = nullIsIllegal(json.get(CriterionCodec.ETH_TYPE),
+                                              CriterionCodec.ETH_TYPE + MISSING_MEMBER_MESSAGE);
+            int ethType;
+            if (ethTypeNode.isInt()) {
+                ethType = ethTypeNode.asInt();
+            } else {
+                ethType = Integer.decode(ethTypeNode.textValue());
+            }
             return Criteria.matchEthType(ethType);
         }
     }
-
     private class EthDstDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
@@ -130,7 +142,8 @@ public final class DecodeCriterionCodecHelper {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
             PortNumber port = PortNumber.portNumber(nullIsIllegal(json.get(CriterionCodec.PORT),
-                    CriterionCodec.PORT + MISSING_MEMBER_MESSAGE).asLong());
+                                                                  CriterionCodec.PORT +
+                                                                          MISSING_MEMBER_MESSAGE).asLong());
 
             return Criteria.matchInPort(port);
         }
@@ -140,7 +153,8 @@ public final class DecodeCriterionCodecHelper {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
             PortNumber port = PortNumber.portNumber(nullIsIllegal(json.get(CriterionCodec.PORT),
-                    CriterionCodec.PORT + MISSING_MEMBER_MESSAGE).asLong());
+                                                                  CriterionCodec.PORT +
+                                                                          MISSING_MEMBER_MESSAGE).asLong());
 
             return Criteria.matchInPhyPort(port);
         }
@@ -170,9 +184,31 @@ public final class DecodeCriterionCodecHelper {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
             byte priority = (byte) nullIsIllegal(json.get(CriterionCodec.PRIORITY),
-                    CriterionCodec.VLAN_ID + MISSING_MEMBER_MESSAGE).asInt();
+                    CriterionCodec.PRIORITY + MISSING_MEMBER_MESSAGE).asInt();
 
             return Criteria.matchVlanPcp(priority);
+        }
+    }
+
+    private class InnerVlanVidDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            short vlanId = (short) nullIsIllegal(json.get(CriterionCodec.INNER_VLAN_ID),
+                                                 CriterionCodec.INNER_VLAN_ID +
+                                                         MISSING_MEMBER_MESSAGE).asInt();
+
+            return Criteria.matchInnerVlanId(VlanId.vlanId(vlanId));
+        }
+    }
+
+    private class InnerVlanPcpDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            byte priority = (byte) nullIsIllegal(json.get(CriterionCodec.INNER_PRIORITY),
+                                                 CriterionCodec.INNER_PRIORITY +
+                                                         MISSING_MEMBER_MESSAGE).asInt();
+
+            return Criteria.matchInnerVlanPcp(priority);
         }
     }
 
@@ -386,36 +422,32 @@ public final class DecodeCriterionCodecHelper {
     private class OchSigIdDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
-            if (json.get(CriterionCodec.LAMBDA) != null) {
-                Lambda lambda = Lambda.indexedLambda(nullIsIllegal(json.get(CriterionCodec.LAMBDA),
-                        CriterionCodec.LAMBDA + MISSING_MEMBER_MESSAGE).asInt());
-                return Criteria.matchLambda(lambda);
-            } else {
-                JsonNode ochSignalId = nullIsIllegal(json.get(CriterionCodec.OCH_SIGNAL_ID),
-                        CriterionCodec.GRID_TYPE + MISSING_MEMBER_MESSAGE);
-                GridType gridType =
-                        GridType.valueOf(
-                                nullIsIllegal(ochSignalId.get(CriterionCodec.GRID_TYPE),
-                                CriterionCodec.GRID_TYPE + MISSING_MEMBER_MESSAGE).asText());
-                ChannelSpacing channelSpacing =
-                        ChannelSpacing.valueOf(
-                                nullIsIllegal(ochSignalId.get(CriterionCodec.CHANNEL_SPACING),
-                                CriterionCodec.CHANNEL_SPACING + MISSING_MEMBER_MESSAGE).asText());
-                int spacingMultiplier = nullIsIllegal(ochSignalId.get(CriterionCodec.SPACING_MULIPLIER),
-                        CriterionCodec.SPACING_MULIPLIER + MISSING_MEMBER_MESSAGE).asInt();
-                int slotGranularity = nullIsIllegal(ochSignalId.get(CriterionCodec.SLOT_GRANULARITY),
-                        CriterionCodec.SLOT_GRANULARITY + MISSING_MEMBER_MESSAGE).asInt();
-                return Criteria.matchLambda(
-                        Lambda.ochSignal(gridType, channelSpacing,
-                                spacingMultiplier, slotGranularity));
-            }
+            JsonNode ochSignalId = nullIsIllegal(json.get(CriterionCodec.OCH_SIGNAL_ID),
+                    CriterionCodec.GRID_TYPE + MISSING_MEMBER_MESSAGE);
+            GridType gridType =
+                    GridType.valueOf(
+                            nullIsIllegal(ochSignalId.get(CriterionCodec.GRID_TYPE),
+                            CriterionCodec.GRID_TYPE + MISSING_MEMBER_MESSAGE).asText());
+            ChannelSpacing channelSpacing =
+                    ChannelSpacing.valueOf(
+                            nullIsIllegal(ochSignalId.get(CriterionCodec.CHANNEL_SPACING),
+                            CriterionCodec.CHANNEL_SPACING + MISSING_MEMBER_MESSAGE).asText());
+            int spacingMultiplier = nullIsIllegal(ochSignalId.get(CriterionCodec.SPACING_MULIPLIER),
+                    CriterionCodec.SPACING_MULIPLIER + MISSING_MEMBER_MESSAGE).asInt();
+            int slotGranularity = nullIsIllegal(ochSignalId.get(CriterionCodec.SLOT_GRANULARITY),
+                    CriterionCodec.SLOT_GRANULARITY + MISSING_MEMBER_MESSAGE).asInt();
+            return Criteria.matchLambda(
+                    Lambda.ochSignal(gridType, channelSpacing,
+                            spacingMultiplier, slotGranularity));
         }
     }
 
     private class OchSigTypeDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
-            return null;
+            OchSignalType ochSignalType = OchSignalType.valueOf(nullIsIllegal(json.get(CriterionCodec.OCH_SIGNAL_TYPE),
+                    CriterionCodec.OCH_SIGNAL_TYPE + MISSING_MEMBER_MESSAGE).asText());
+            return Criteria.matchOchSignalType(ochSignalType);
         }
     }
 
@@ -428,6 +460,34 @@ public final class DecodeCriterionCodecHelper {
         }
     }
 
+    private class OduSigIdDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            JsonNode oduSignalId = nullIsIllegal(json.get(CriterionCodec.ODU_SIGNAL_ID),
+                    CriterionCodec.TRIBUTARY_PORT_NUMBER + MISSING_MEMBER_MESSAGE);
+
+            int tributaryPortNumber = nullIsIllegal(oduSignalId.get(CriterionCodec.TRIBUTARY_PORT_NUMBER),
+                    CriterionCodec.TRIBUTARY_PORT_NUMBER + MISSING_MEMBER_MESSAGE).asInt();
+            int tributarySlotLen = nullIsIllegal(oduSignalId.get(CriterionCodec.TRIBUTARY_SLOT_LEN),
+                    CriterionCodec.TRIBUTARY_SLOT_LEN + MISSING_MEMBER_MESSAGE).asInt();
+            byte[] tributarySlotBitmap = HexString.fromHexString(
+                    nullIsIllegal(oduSignalId.get(CriterionCodec.TRIBUTARY_SLOT_BITMAP),
+                    CriterionCodec.TRIBUTARY_SLOT_BITMAP + MISSING_MEMBER_MESSAGE).asText());
+
+            return Criteria.matchOduSignalId(
+                    OduSignalId.oduSignalId(tributaryPortNumber, tributarySlotLen, tributarySlotBitmap));
+        }
+    }
+
+    private class OduSigTypeDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            OduSignalType oduSignalType = OduSignalType.valueOf(nullIsIllegal(json.get(CriterionCodec.ODU_SIGNAL_TYPE),
+                    CriterionCodec.ODU_SIGNAL_TYPE + MISSING_MEMBER_MESSAGE).asText());
+            return Criteria.matchOduSignalType(oduSignalType);
+        }
+    }
+
     /**
      * Decodes the JSON into a criterion object.
      *
@@ -435,7 +495,9 @@ public final class DecodeCriterionCodecHelper {
      * @throws IllegalArgumentException if the JSON is invalid
      */
     public Criterion decode() {
-        String type = json.get(CriterionCodec.TYPE).asText();
+        String type =
+                nullIsIllegal(json.get(CriterionCodec.TYPE), "Type not specified")
+                        .asText();
 
         CriterionDecoder decoder = decoderMap.get(type);
         if (decoder != null) {

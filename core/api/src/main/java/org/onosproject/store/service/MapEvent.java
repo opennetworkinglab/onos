@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,21 +50,24 @@ public class MapEvent<K, V> {
     private final String name;
     private final Type type;
     private final K key;
-    private final Versioned<V> value;
+    private final Versioned<V> newValue;
+    private final Versioned<V> oldValue;
 
     /**
      * Creates a new event object.
      *
      * @param name map name
-     * @param type type of event
      * @param key key the event concerns
-     * @param value value key is mapped to
+     * @param currentValue new value key is mapped to
+     * @param previousValue value that was replaced
      */
-    public MapEvent(String name, Type type, K key, Versioned<V> value) {
+    public MapEvent(String name, K key, Versioned<V> currentValue, Versioned<V> previousValue) {
         this.name = name;
-        this.type = type;
         this.key = key;
-        this.value = value;
+        this.newValue = currentValue;
+        this.oldValue = previousValue;
+        this.type = currentValue != null ?
+                    previousValue != null ? Type.UPDATE : Type.INSERT : Type.REMOVE;
     }
 
     /**
@@ -100,9 +103,30 @@ public class MapEvent<K, V> {
      * the new value.
      *
      * @return the value
+     * @deprecated 1.5.0 Falcon release. Use {@link #newValue()} or {@link #oldValue()} instead.
      */
+    @Deprecated
     public Versioned<V> value() {
-        return value;
+        return type == Type.REMOVE ? oldValue() : newValue();
+    }
+
+    /**
+     * Returns the new value in the map associated with the key. If {@link #type()} returns {@code REMOVE},
+     * this method will return {@code null}.
+     *
+     * @return the new value for key
+     */
+    public Versioned<V> newValue() {
+        return newValue;
+    }
+
+    /**
+     * Returns the value associated with the key, before it was updated.
+     *
+     * @return previous value in map for the key
+     */
+    public Versioned<V> oldValue() {
+        return oldValue;
     }
 
     @Override
@@ -115,12 +139,13 @@ public class MapEvent<K, V> {
         return Objects.equals(this.name, that.name) &&
                 Objects.equals(this.type, that.type) &&
                 Objects.equals(this.key, that.key) &&
-                Objects.equals(this.value, that.value);
+                Objects.equals(this.newValue, that.newValue) &&
+                Objects.equals(this.oldValue, that.oldValue);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, type, key, value);
+        return Objects.hash(name, type, key, newValue, oldValue);
     }
 
     @Override
@@ -129,7 +154,8 @@ public class MapEvent<K, V> {
                 .add("name", name)
                 .add("type", type)
                 .add("key", key)
-                .add("value", value)
+                .add("newValue", newValue)
+                .add("oldValue", oldValue)
                 .toString();
     }
 }

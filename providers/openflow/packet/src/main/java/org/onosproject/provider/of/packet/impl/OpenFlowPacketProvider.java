@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,7 +156,8 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
 
             DefaultInboundPacket inPkt = new DefaultInboundPacket(
                     new ConnectPoint(id, PortNumber.portNumber(pktCtx.inPort())),
-                    pktCtx.parsed(), ByteBuffer.wrap(pktCtx.unparsed()));
+                    pktCtx.parsed(), ByteBuffer.wrap(pktCtx.unparsed()),
+                    pktCtx.cookie());
 
             DefaultOutboundPacket outPkt = null;
             if (!pktCtx.isBuffered()) {

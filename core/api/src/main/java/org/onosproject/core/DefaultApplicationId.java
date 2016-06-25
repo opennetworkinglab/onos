@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ public class DefaultApplicationId implements ApplicationId {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(name);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class DefaultApplicationId implements ApplicationId {
         }
         if (obj instanceof DefaultApplicationId) {
             DefaultApplicationId other = (DefaultApplicationId) obj;
-            return Objects.equals(this.id, other.id);
+            return Objects.equals(this.name, other.name);
         }
         return false;
     }

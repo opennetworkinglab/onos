@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,16 @@ public interface ComponentConfigService {
     void setProperty(String componentName, String name, String value);
 
     /**
+     * Presets the value of the specified configuration property, regardless
+     * of the component's state.
+     *
+     * @param componentName component name
+     * @param name          property name
+     * @param value         new property value
+     */
+    void preSetProperty(String componentName, String name, String value);
+
+    /**
      * Clears the value of the specified configuration property thus making
      * the property take on its default value.
      *
@@ -72,3 +82,4 @@ public interface ComponentConfigService {
     void unsetProperty(String componentName, String name);
 
 }
+

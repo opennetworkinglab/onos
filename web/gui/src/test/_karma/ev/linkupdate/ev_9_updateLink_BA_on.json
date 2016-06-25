@@ -1,0 +1,14 @@
+{
+  "event": "updateLink",
+  "payload": {
+    "id": "of:000000000000000b/2-of:000000000000000a/1",
+    "type": "direct",
+    "online": true,
+    "expected": true,
+    "linkWidth": 1.2,
+    "src": "of:000000000000000b",
+    "srcPort": "2",
+    "dst": "of:000000000000000a",
+    "dstPort": "1"
+  }
+}

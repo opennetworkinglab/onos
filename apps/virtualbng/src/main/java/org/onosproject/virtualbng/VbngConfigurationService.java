@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,11 @@
  */
 package org.onosproject.virtualbng;
 
-import java.util.Map;
-
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onosproject.net.ConnectPoint;
+
+import java.util.Map;
 
 /**
  * Provides information about the virtual BNG configuration.
@@ -52,6 +53,13 @@ public interface VbngConfigurationService {
      * @return the REST communication port configured for XOS server
      */
     int getXosRestPort();
+
+    /**
+     * Gets the host to port map.
+     *
+     * @return host to port map
+     */
+    Map<String, ConnectPoint> getNodeToPort();
 
     /**
      * Evaluates whether an IP address is an assigned public IP address.

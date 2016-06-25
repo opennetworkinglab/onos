@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 package org.onosproject.mastership;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
+import org.onlab.util.Tools;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
@@ -25,6 +27,8 @@ import org.onosproject.net.MastershipRole;
  * Service for administering the inventory of device masterships.
  */
 public interface MastershipAdminService {
+
+    long TIMEOUT_MILLIS = 3000;
 
     /**
      * Applies the current mastership role for the specified device.
@@ -35,6 +39,18 @@ public interface MastershipAdminService {
      * @return future that is completed when the role is set
      */
     CompletableFuture<Void> setRole(NodeId instance, DeviceId deviceId, MastershipRole role);
+
+    /**
+     * Synchronous version of setRole.
+     * Applies the current mastership role for the specified device.
+     *
+     * @param instance controller instance identifier
+     * @param deviceId device identifier
+     * @param role     requested role
+     */
+    default void setRoleSync(NodeId instance, DeviceId deviceId, MastershipRole role) {
+        Tools.futureGetOrElse(setRole(instance, deviceId, role), TIMEOUT_MILLIS, TimeUnit.MILLISECONDS, null);
+    }
 
     /**
      * Balances the mastership to be shared as evenly as possibly by all

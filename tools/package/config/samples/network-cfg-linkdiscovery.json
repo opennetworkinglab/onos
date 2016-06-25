@@ -1,0 +1,35 @@
+{
+    "ports": {
+        "of:0000000000000002/3": {
+            "linkDiscovery": {
+                "enabled": false
+            }
+        },
+        "of:0000000000000002/2": {
+            "linkDiscovery": {
+                "enabled": false
+            }
+        }
+    },
+    "devices": {
+        "of:0000000000000001": {
+            "linkDiscovery": {
+                "enabled": false
+            }
+        }
+    },
+    "apps": {
+        "org.onosproject.provider.lldp": {
+            "suppression": {
+                "deviceTypes": [
+                    "ROADM"
+                ],
+                "annotation": {
+                    "no-lldp": null,
+                    "sendLLDP": "false"
+                }
+            }
+        }
+    }
+}
+

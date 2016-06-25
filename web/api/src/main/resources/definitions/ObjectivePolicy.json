@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "title": "objectivePolicy",
+  "required": [
+    "policy"
+  ],
+  "properties": {
+    "policy": {
+      "type": "string",
+      "example": "policy expression"
+    }
+  }
+}

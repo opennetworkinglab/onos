@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,24 @@
  */
 package org.onosproject.net.device.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.onosproject.net.config.ConfigOperator;
-import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.config.ConfigOperator;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.slf4j.Logger;
 
 import java.util.Objects;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
+
 /**
  * Implementations of merge policies for various sources of device configuration
- * information. This includes applications, provides, and network configurations.
+ * information. This includes applications, providers, and network configurations.
  */
 public final class BasicDeviceOperator implements ConfigOperator {
 
@@ -46,12 +46,12 @@ public final class BasicDeviceOperator implements ConfigOperator {
      * Generates a DeviceDescription containing fields from a DeviceDescription and
      * a DeviceConfig.
      *
-     * @param bdc the device config entity from network config
+     * @param bdc   the device config entity from network config
      * @param descr a DeviceDescription
      * @return DeviceDescription based on both sources
      */
     public static DeviceDescription combine(BasicDeviceConfig bdc, DeviceDescription descr) {
-        if (bdc == null) {
+        if (bdc == null || descr == null) {
             return descr;
         }
 
@@ -59,18 +59,34 @@ public final class BasicDeviceOperator implements ConfigOperator {
         if (bdc.type() != null && bdc.type() != type) {
             type = bdc.type();
         }
+        String manufacturer = descr.manufacturer();
+        if (bdc.manufacturer() != null && !bdc.manufacturer().equals(manufacturer)) {
+            manufacturer = bdc.manufacturer();
+        }
+        String hwVersion = descr.hwVersion();
+        if (bdc.hwVersion() != null && !bdc.hwVersion().equals(hwVersion)) {
+            hwVersion = bdc.hwVersion();
+        }
+        String swVersion = descr.swVersion();
+        if (bdc.swVersion() != null && !bdc.swVersion().equals(swVersion)) {
+            swVersion = bdc.swVersion();
+        }
+        String serial = descr.serialNumber();
+        if (bdc.serial() != null && !bdc.serial().equals(serial)) {
+            serial = bdc.serial();
+        }
 
         SparseAnnotations sa = combine(bdc, descr.annotations());
-        return new DefaultDeviceDescription(descr.deviceURI(), type, descr.manufacturer(),
-                                            descr.hwVersion(), descr.swVersion(),
-                                            descr.serialNumber(), descr.chassisId(), sa);
+        return new DefaultDeviceDescription(descr.deviceUri(), type, manufacturer,
+                                            hwVersion, swVersion,
+                                            serial, descr.chassisId(), sa);
     }
 
     /**
      * Generates an annotation from an existing annotation and DeviceConfig.
      *
      * @param bdc the device config entity from network config
-     * @param an the annotation
+     * @param an  the annotation
      * @return annotation combining both sources
      */
     public static SparseAnnotations combine(BasicDeviceConfig bdc, SparseAnnotations an) {
@@ -92,6 +108,9 @@ public final class BasicDeviceOperator implements ConfigOperator {
         }
         if (bdc.owner() != null) {
             newBuilder.set(AnnotationKeys.OWNER, bdc.owner());
+        }
+        if (bdc.managementAddress() != null) {
+            newBuilder.set(AnnotationKeys.MANAGEMENT_ADDRESS, bdc.managementAddress());
         }
         DefaultAnnotations newAnnotations = newBuilder.build();
         return DefaultAnnotations.union(an, newAnnotations);

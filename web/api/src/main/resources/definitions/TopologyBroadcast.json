@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "title": "response",
+  "required": [
+    "broadcast"
+  ],
+  "properties": {
+    "broadcast": {
+      "type": "boolean",
+      "example": true
+    }
+  }
+}

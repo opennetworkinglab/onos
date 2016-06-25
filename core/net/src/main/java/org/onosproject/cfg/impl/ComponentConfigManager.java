@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -172,6 +172,17 @@ public class ComponentConfigManager implements ComponentConfigService {
     }
 
     @Override
+    public void preSetProperty(String componentName, String name, String value) {
+
+        checkPermission(CONFIG_WRITE);
+
+        checkNotNull(componentName, COMPONENT_NULL);
+        checkNotNull(name, PROPERTY_NULL);
+
+        store.setProperty(componentName, name, value);
+    }
+
+    @Override
     public void unsetProperty(String componentName, String name) {
         checkPermission(CONFIG_WRITE);
 
@@ -234,8 +245,9 @@ public class ComponentConfigManager implements ComponentConfigService {
                 return;
             }
         }
-        log.warn("Unable to set non-existent property {} for component {}",
-                 name, componentName);
+
+        // If definition doesn't exist in local catalog, cache the property.
+        preSet(componentName, name, value);
     }
 
     // Locates the property in the component map and replaces it with an
@@ -251,6 +263,21 @@ public class ComponentConfigManager implements ComponentConfigService {
             }
             log.warn("Unable to reset non-existent property {} for component {}",
                      name, componentName);
+        }
+    }
+
+    // Stores non-existent property so that loadExistingValues() can load in future.
+    private void preSet(String componentName, String name, String value) {
+        try {
+            Configuration config = cfgAdmin.getConfiguration(componentName, null);
+            Dictionary<String, Object> property = config.getProperties();
+            if (property == null) {
+                property = new Hashtable<>();
+            }
+            property.put(name, value);
+            config.update(property);
+        } catch (IOException e) {
+            log.error("Failed to preset configuration for {}", componentName);
         }
     }
 
@@ -290,5 +317,4 @@ public class ComponentConfigManager implements ComponentConfigService {
             log.warn("Unable to update configuration for " + componentName, e);
         }
     }
-
 }

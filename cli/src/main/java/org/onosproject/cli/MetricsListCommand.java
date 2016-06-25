@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.Snapshot;
 import com.codahale.metrics.Timer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.TreeMultimap;
@@ -45,6 +47,25 @@ import static java.lang.String.format;
          description = "Prints metrics in the system")
 public class MetricsListCommand extends AbstractShellCommand {
 
+    private static final String COUNTER = "counter";
+
+    private static final String GAUGE = "gauge";
+    private static final String VALUE = "value";
+
+    private static final String METER = "meter";
+    private static final String MEAN_RATE = "mean_rate";
+    private static final String ONE_MIN_RATE = "1_min_rate";
+    private static final String FIVE_MIN_RATE = "5_min_rate";
+    private static final String FIFT_MIN_RATE = "15_min_rate";
+
+    private static final String HISTOGRAM = "histogram";
+    private static final String MIN = "min";
+    private static final String MAX = "max";
+    private static final String MEAN = "mean";
+    private static final String STDDEV = "stddev";
+
+    private static final String TIMER = "timer";
+
     @Argument(index = 0, name = "metricName", description = "Name of Metric",
             required = false, multiValued = false)
     String metricName = null;
@@ -57,8 +78,10 @@ public class MetricsListCommand extends AbstractShellCommand {
 
         TreeMultimap<String, Metric> matched = listMetrics(metricsService, filter);
         matched.asMap().forEach((name, metrics) -> {
-            for (Metric metric : metrics) {
-                printMetric(name, metric);
+            if (outputJson()) {
+                metrics.forEach(metric -> print("%s", json(metric)));
+            } else {
+                metrics.forEach(metric -> printMetric(name, metric));
             }
         });
     }
@@ -159,6 +182,52 @@ public class MetricsListCommand extends AbstractShellCommand {
         }
 
         return metrics;
+    }
+
+    /**
+     * Creates a json object for a certain metric.
+     *
+     * @param metric metric object
+     * @return json object
+     */
+    private ObjectNode json(Metric metric) {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode objectNode = mapper.createObjectNode();
+        ObjectNode dataNode = mapper.createObjectNode();
+
+        if (metric instanceof Counter) {
+            dataNode.put(COUNTER, ((Counter) metric).getCount());
+            objectNode.set(COUNTER, dataNode);
+        } else if (metric instanceof Gauge) {
+            objectNode.put(VALUE, ((Gauge) metric).getValue().toString());
+            objectNode.set(GAUGE, dataNode);
+        } else if (metric instanceof Meter) {
+            dataNode.put(COUNTER, ((Meter) metric).getCount());
+            dataNode.put(MEAN_RATE, ((Meter) metric).getMeanRate());
+            dataNode.put(ONE_MIN_RATE, ((Meter) metric).getOneMinuteRate());
+            dataNode.put(FIVE_MIN_RATE, ((Meter) metric).getFiveMinuteRate());
+            dataNode.put(FIFT_MIN_RATE, ((Meter) metric).getFifteenMinuteRate());
+            objectNode.set(METER, dataNode);
+        } else if (metric instanceof Histogram) {
+            dataNode.put(COUNTER, ((Histogram) metric).getCount());
+            dataNode.put(MEAN, ((Histogram) metric).getSnapshot().getMean());
+            dataNode.put(MIN, ((Histogram) metric).getSnapshot().getMin());
+            dataNode.put(MAX, ((Histogram) metric).getSnapshot().getMax());
+            dataNode.put(STDDEV, ((Histogram) metric).getSnapshot().getStdDev());
+            objectNode.set(HISTOGRAM, dataNode);
+        } else if (metric instanceof Timer) {
+            dataNode.put(COUNTER, ((Timer) metric).getCount());
+            dataNode.put(MEAN_RATE, ((Timer) metric).getMeanRate());
+            dataNode.put(ONE_MIN_RATE, ((Timer) metric).getOneMinuteRate());
+            dataNode.put(FIVE_MIN_RATE, ((Timer) metric).getFiveMinuteRate());
+            dataNode.put(FIFT_MIN_RATE, ((Timer) metric).getFifteenMinuteRate());
+            dataNode.put(MEAN, nanoToMs(((Timer) metric).getSnapshot().getMean()));
+            dataNode.put(MIN, nanoToMs(((Timer) metric).getSnapshot().getMin()));
+            dataNode.put(MAX, nanoToMs(((Timer) metric).getSnapshot().getMax()));
+            dataNode.put(STDDEV, nanoToMs(((Timer) metric).getSnapshot().getStdDev()));
+            objectNode.set(TIMER, dataNode);
+        }
+        return objectNode;
     }
 
     private double nanoToMs(double nano) {

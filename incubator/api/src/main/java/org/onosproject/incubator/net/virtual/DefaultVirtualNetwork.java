@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Default implementation of the virtual network descriptor.
  */
-public class DefaultVirtualNetwork implements VirtualNetwork {
+public final class DefaultVirtualNetwork implements VirtualNetwork {
 
     private final NetworkId id;
     private final TenantId tenantId;

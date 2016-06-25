@@ -1,0 +1,95 @@
+/* css for driver matrix view */
+
+#ov-driver-matrix h2 {
+    display: inline-block;
+}
+
+#ov-driver-matrix .driver-matrix {
+    background-color: white;
+}
+
+#ov-driver-matrix table {
+    margin-left: 20px;
+}
+
+#ov-driver-matrix .table-header-rotated table {
+    border-collapse: collapse;
+}
+#ov-driver-matrix .table-header-rotated td {
+    width: 24px;
+}
+#ov-driver-matrix .table-header-rotated th.rotate {
+    height: 140px;
+    white-space: nowrap;
+    font-size: 10pt;
+}
+#ov-driver-matrix .table-header-rotated th.rotate > div {
+    -webkit-transform: translate(25px, 51px) rotate(-45deg);
+    transform: translate(25px, 51px) rotate(-45deg);
+    width: 33px;
+}
+#ov-driver-matrix .table-header-rotated th.rotate > div > span {
+    border-bottom: 1px solid #ccc;
+    padding: 5px 10px;
+    background-color: rgb(249, 225, 193);
+}
+
+#ov-driver-matrix .table-grid {
+    overflow: scroll;
+    color: white;
+}
+#ov-driver-matrix .table-grid table {
+    border-collapse: collapse;
+}
+#ov-driver-matrix .table-grid th.row-header {
+    padding: 0 10px;
+    border-bottom: 1px solid #ccc;
+    text-align: right;
+    color: black;
+    font-size: 10pt;
+    background-color: rgb(249, 225, 193);
+}
+#ov-driver-matrix .table-grid td {
+    width: 24px;
+}
+#ov-driver-matrix .table-grid td.xmark {
+    background-color: rgb(249, 225, 193);
+    color: rgb(88,70,14);
+}
+#ov-driver-matrix .table-grid td {
+    text-align: center;
+    padding: 2px 5px;
+    border: 1px solid #ccc;
+}
+
+/* === NOT YET IMPLEMENTED === */
+/* Panel Styling */
+#ov-driver-matrix-item-details-panel.floatpanel {
+    position: absolute;
+    top: 115px;
+}
+
+.light #ov-driver-matrix-item-details-panel.floatpanel {
+    background-color: rgb(229, 234, 237);
+}
+.dark #ov-driver-matrix-item-details-panel.floatpanel {
+    background-color: #3A4042;
+}
+
+#ov-driver-matrix-item-details-panel h3 {
+    margin: 0;
+    font-size: large;
+}
+
+#ov-driver-matrix-item-details-panel h4 {
+    margin: 0;
+}
+
+#ov-driver-matrix-item-details-panel td {
+    padding: 5px;
+}
+#ov-driver-matrix-item-details-panel td.label {
+    font-style: italic;
+    opacity: 0.8;
+}
+

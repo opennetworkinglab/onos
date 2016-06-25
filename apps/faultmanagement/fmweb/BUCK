@@ -1,0 +1,20 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api',
+    '//utils/rest:onlab-rest',
+    '//lib:javax.ws.rs-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//lib:jersey-test-framework-core',
+    '//lib:jersey-test-framework-jetty',
+    '//utils/osgi:onlab-osgi-tests',
+    '//web/api:onos-rest-tests',
+    '//incubator/api:onos-incubator-api-tests',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)

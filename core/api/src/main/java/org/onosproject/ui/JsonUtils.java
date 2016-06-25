@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,8 @@ public final class JsonUtils {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     // non-instantiable
-    private JsonUtils() { }
+    private JsonUtils() {
+    }
 
     /**
      * Wraps a message payload into an event structure for the given event
@@ -98,7 +99,7 @@ public final class JsonUtils {
     /**
      * Returns the specified node property as a number.
      *
-     * @param node message event
+     * @param node object node
      * @param name property name
      * @return property as number
      */
@@ -109,7 +110,7 @@ public final class JsonUtils {
     /**
      * Returns the specified node property as a string.
      *
-     * @param node message event
+     * @param node object node
      * @param name property name
      * @return property as a string
      */
@@ -140,4 +141,14 @@ public final class JsonUtils {
         return (ObjectNode) node.path(name);
     }
 
+    /**
+     * Returns the specified node property as a boolean.
+     *
+     * @param node object node
+     * @param name property name
+     * @return property as a boolean
+     */
+    public static boolean bool(ObjectNode node, String name) {
+        return node.path(name).asBoolean();
+    }
 }

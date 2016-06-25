@@ -1,0 +1,112 @@
+#! /bin/bash
+# -----------------------------------------------------------------------------
+# init.d script to run ONOS
+#
+# This provides the core for an ONOS service in a variety of environments,
+# including init.d, upstart, and systemd. It can also be invoked directly.
+# If it is invoked by a boot system, environment variables will usually be
+# empty and the default values will be used.
+# -----------------------------------------------------------------------------
+### BEGIN INIT INFO
+# Provides:          onos
+# Required-Start:    $network $remote_fs $syslog
+# Required-Stop:     $network $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: ONOS network operating system
+# Description:       ONOS is a network operating system for controlling SDN networks, designed for high availablility, performance, and scale out.
+### END INIT INFO
+
+
+ONOS_HOME=${ONOS_HOME:-/opt/onos}
+[ -f $ONOS_HOME/options ] && . $ONOS_HOME/options
+ONOS_USER=${ONOS_USER:-root}
+ONOS_GROUP=${ONOS_GROUP:-$ONOS_USER}
+ONOS_OPTS=${ONOS_OPTS:-""}
+
+start () {
+    mkdir -p $ONOS_HOME/var 2>/dev/null && chown $ONOS_USER:$ONOS_GROUP $ONOS_HOME/var
+    mkdir -p $ONOS_HOME/config 2>/dev/null && chown $ONOS_USER:$ONOS_GROUP $ONOS_HOME/config
+    [ ! -h $ONOS_HOME/log ]  && ln -s $ONOS_HOME/karaf/data/log $ONOS_HOME/log || :
+    # Start ONOS if it's not already running
+    if ! status >/dev/null; then
+        echo "Starting ONOS"
+        startonos $ONOS_HOME/bin/onos-service server $ONOS_OPTS
+    else
+        echo "ONOS/karaf is already running"
+    fi
+}
+
+startonos () {
+    cmd=$1
+    shift
+    # Start ONOS as a daemon
+    . /etc/init.d/functions && true
+    if type daemon | grep -i function >/dev/null 2>&1; then
+        # Use 'daemon' function if available
+        # Shell metacharacters are passed as arguments to daemon
+        daemon --user $ONOS_USER $cmd $* \
+            \>$ONOS_HOME/var/stdout.log 2\>$ONOS_HOME/var/stderr.log \&
+    elif type start-stop-daemon >/dev/null 2>&1; then
+        # Use start-stop-daemon if available
+        # Warning! running as root can overwrite any linked log file
+        start-stop-daemon --signal INT --start --chuid $ONOS_USER \
+            --background --exec $cmd -- $* \
+            >$ONOS_HOME/var/stdout.log 2>$ONOS_HOME/var/stderr.log
+    else
+        # Fall back to using sudo
+        # Warning! running as root can overwrite any linked log file
+        sudo -E -n -u -b $ONOS_USER $cmd $* \
+            >$ONOS_HOME/var/stdout.log 2>$ONOS_HOME/var/stderr.log
+    fi
+}
+
+stop () {
+    if status >/dev/null; then
+        echo "Stopping ONOS"
+        $ONOS_HOME/karaf/bin/stop
+        # Wait until karaf claims not to be running
+        while status >/dev/null; do echo -n .; sleep 1; done
+    else
+        echo "ONOS/karaf is not running"
+    fi
+}
+
+restart () {
+        stop
+        sleep 2  # Bogus hack since karaf stop doesn't work ;-(
+        start
+}
+
+status () {
+    # karaf status returns 0 if running, 1 if not
+    if [ `id -u` == 0 ]; then
+        # Avoid creating data dir as root
+        sudo -n -u $ONOS_USER $ONOS_HOME/karaf/bin/status
+    else
+        $ONOS_HOME/karaf/bin/status
+    fi
+}
+
+case $1 in
+    start)
+        start
+	;;
+    stop | force-stop)
+        stop
+        ;;
+    restart)
+        shift
+        restart "$@"
+        ;;
+    status)
+        status
+        exit $?
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

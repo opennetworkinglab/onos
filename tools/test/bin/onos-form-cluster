@@ -13,8 +13,10 @@ while getopts u:p: o; do
         p) password=$OPTARG;;
     esac
 done
-user=${user:-onos}           # user defaults to 'onos'
-password=${password:-$user}  # password defaults to user name if not specified
+ONOS_WEB_USER=${ONOS_WEB_USER:-onos} # ONOS WEB User defaults to 'onos'
+ONOS_WEB_PASS=${ONOS_WEB_PASS:-rocks} # ONOS WEB Password defaults to 'rocks'
+user=${user:-$ONOS_WEB_USER}
+password=${password:-$ONOS_WEB_PASS}
 let OPC=$OPTIND-1
 shift $OPC
 

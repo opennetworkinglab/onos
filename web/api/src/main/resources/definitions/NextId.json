@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "title": "nextId",
+  "required": [
+    "id"
+  ],
+  "properties": {
+    "nextId": {
+      "type": "integer",
+      "format": "int64",
+      "example": 3
+    }
+  }
+}

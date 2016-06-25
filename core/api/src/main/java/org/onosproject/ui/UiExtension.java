@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.onosproject.ui;
 
+import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,17 +44,21 @@ public final class UiExtension {
     private final List<UiView> views;
     private final UiMessageHandlerFactory messageHandlerFactory;
     private final UiTopoOverlayFactory topoOverlayFactory;
+    private final UiTopoMapFactory topoMapFactory;
 
+    private boolean isValid = true;
 
     // private constructor - only the builder calls this
     private UiExtension(ClassLoader cl, String path, List<UiView> views,
                         UiMessageHandlerFactory mhFactory,
-                        UiTopoOverlayFactory toFactory) {
+                        UiTopoOverlayFactory toFactory,
+                        UiTopoMapFactory tmFactory) {
         this.classLoader = cl;
         this.resourcePath = path;
         this.views = views;
         this.messageHandlerFactory = mhFactory;
         this.topoOverlayFactory = toFactory;
+        this.topoMapFactory = tmFactory;
     }
 
 
@@ -81,7 +86,7 @@ public final class UiExtension {
      * @return contributed view descriptors
      */
     public List<UiView> views() {
-        return views;
+        return isValid ? views : ImmutableList.of();
     }
 
     /**
@@ -113,11 +118,21 @@ public final class UiExtension {
         return topoOverlayFactory;
     }
 
+    /**
+     * Returns the topology map factory, if one was defined.
+     *
+     * @return topology map factory
+     */
+    public UiTopoMapFactory topoMapFactory() {
+        return topoMapFactory;
+    }
+
 
     // Returns the resource input stream from the specified class-loader.
     private InputStream getStream(String path) {
         InputStream stream = classLoader.getResourceAsStream(path);
         if (stream == null) {
+            isValid = false;
             log.warn("Unable to find resource {}", path);
         }
         return stream;
@@ -134,6 +149,7 @@ public final class UiExtension {
         private List<UiView> views = new ArrayList<>();
         private UiMessageHandlerFactory messageHandlerFactory = null;
         private UiTopoOverlayFactory topoOverlayFactory = null;
+        private UiTopoMapFactory topoMapFactory = null;
 
         /**
          * Create a builder with the given class loader.
@@ -186,13 +202,25 @@ public final class UiExtension {
         }
 
         /**
+         * Sets the topology map factory for this extension.
+         *
+         * @param tmFactory topology map factory
+         * @return self, for chaining
+         */
+        public Builder topoMapFactory(UiTopoMapFactory tmFactory) {
+            this.topoMapFactory = tmFactory;
+            return this;
+        }
+
+        /**
          * Builds the UI extension.
          *
          * @return UI extension instance
          */
         public UiExtension build() {
             return new UiExtension(classLoader, resourcePath, views,
-                                   messageHandlerFactory, topoOverlayFactory);
+                                    messageHandlerFactory, topoOverlayFactory,
+                                    topoMapFactory);
         }
 
     }

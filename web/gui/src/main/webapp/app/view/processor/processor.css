@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Processor View -- CSS file
+ ONOS GUI -- Processor View (layout) -- CSS file
  */
 
 #ov-processor h2 {
@@ -23,21 +23,11 @@
 }
 
 #ov-processor div.ctrl-btns {
-    width: 40px;
+    width: 45px;
 }
 
-.light #ov-processor .current-view use {
-    fill: white;
-}
-.dark #ov-processor .current-view use {
-    fill: #304860;
-}
-
-.light #ov-processor .current-view rect {
-    fill: deepskyblue;
-}
-.dark #ov-processor .current-view rect {
-    fill: #eee;
+#ov-processor td.priority {
+    text-align: center;
 }
 
 #ov-processor td.number {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,14 +89,17 @@ public class RouteEntry {
     /**
      * Creates the binary string representation of an IP prefix.
      * The prefix can be either IPv4 or IPv6.
-     * The string length is equal to the prefix length.
+     * The string length is equal to the prefix length + 1.
+     *
+     * For each string, we put a extra "0" in the front. The purpose of
+     * doing this is to store the default route inside InvertedRadixTree.
      *
      * @param ipPrefix the IP prefix to use
      * @return the binary string representation
      */
     public static String createBinaryString(IpPrefix ipPrefix) {
         if (ipPrefix.prefixLength() == 0) {
-            return "";
+            return "0";
         }
 
         byte[] octets = ipPrefix.address().toOctets();
@@ -109,7 +112,8 @@ public class RouteEntry {
             boolean isSet = ((value & mask) != 0);
             result.append(isSet ? "1" : "0");
         }
-        return result.toString();
+
+        return "0" + result.toString();
     }
 
     @Override

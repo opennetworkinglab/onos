@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,6 +87,16 @@ public interface ForwardingObjective extends Objective {
     Flag flag();
 
     /**
+     * Auxiliary optional information provided to the device driver. Typically
+     * conveys information about selectors (matches) that are intended to
+     * use this Forwarding Objective.
+     *
+     * @return a selector intended to pass meta information to the device driver.
+     *         Value may be null if no meta information is provided.
+     */
+    TrafficSelector meta();
+
+    /**
      * A forwarding objective builder.
      */
     interface Builder extends Objective.Builder {
@@ -124,10 +134,19 @@ public interface ForwardingObjective extends Objective {
         Builder withFlag(Flag flag);
 
         /**
+         * Set meta information related to this forwarding objective.
+         *
+         * @param selector match conditions
+         * @return an objective builder
+         */
+        Builder withMeta(TrafficSelector selector);
+
+        /**
          * Builds the forwarding objective that will be added.
          *
          * @return a forwarding objective
          */
+        @Override
         ForwardingObjective add();
 
         /**
@@ -135,6 +154,7 @@ public interface ForwardingObjective extends Objective {
          *
          * @return a forwarding objective.
          */
+        @Override
         ForwardingObjective remove();
 
         /**
@@ -144,6 +164,7 @@ public interface ForwardingObjective extends Objective {
          * @param context an objective context
          * @return a forwarding objective
          */
+        @Override
         ForwardingObjective add(ObjectiveContext context);
 
         /**
@@ -153,6 +174,7 @@ public interface ForwardingObjective extends Objective {
          * @param context an objective context
          * @return a forwarding objective
          */
+        @Override
         ForwardingObjective remove(ObjectiveContext context);
     }
 }

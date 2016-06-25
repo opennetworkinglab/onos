@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,9 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
@@ -59,8 +57,7 @@ public class PointToPointIntentCompiler
     }
 
     @Override
-    public List<Intent> compile(PointToPointIntent intent, List<Intent> installable,
-                Set<LinkResourceAllocations> resources) {
+    public List<Intent> compile(PointToPointIntent intent, List<Intent> installable) {
 
         ConnectPoint ingressPoint = intent.ingressPoint();
         ConnectPoint egressPoint = intent.egressPoint();

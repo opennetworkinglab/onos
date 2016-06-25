@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "title": "KafkaSubscription",
+  "required": [
+    "appName",
+    "groupId",
+    "eventType"
+  ],
+  "properties": {
+     "appName": {
+        "type": "string",
+        "example": "forwardingApp"
+     },
+     "groupId": {
+        "type": "string",
+        "example": "18285435-2c62-4684-96dd-fb03b7cd0c83"
+     },
+     "eventType": {
+        "type": "string",
+        "example": "DEVICE"
+     }
+  }
+}

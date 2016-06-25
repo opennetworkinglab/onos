@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ public interface PcepTunnel extends PcepOperator {
         DIAMOND
     }
 
-    enum PATHTYPE {
+    enum PathType {
 
         /**
          * Indicates path is the preferred path.
@@ -179,7 +179,7 @@ public interface PcepTunnel extends PcepOperator {
      *
      * @return the type of a path, the preferred or alternate.
      */
-    PATHTYPE getPathType();
+    PathType getPathType();
 
     /**
      * Get the under lay tunnel id of VLAN tunnel.

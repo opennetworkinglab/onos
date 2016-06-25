@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,21 @@
  */
 package org.onosproject.net.intent.impl;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.event.AbstractListenerManager;
+import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleOperations;
-import org.onosproject.net.flow.FlowRuleOperationsContext;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.net.intent.FlowRuleIntent;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentBatchDelegate;
 import org.onosproject.net.intent.IntentCompiler;
@@ -44,20 +44,22 @@ import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.impl.phase.FinalIntentProcessPhase;
 import org.onosproject.net.intent.impl.phase.IntentProcessPhase;
-import org.onosproject.net.intent.impl.phase.IntentWorker;
+import org.osgi.service.component.ComponentContext;
+import org.onosproject.net.resource.ResourceService;
 import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
@@ -65,9 +67,9 @@ import static org.onosproject.net.intent.IntentState.*;
 import static org.onosproject.net.intent.constraint.PartialFailureConstraint.intentAllowsPartialFailure;
 import static org.onosproject.net.intent.impl.phase.IntentProcessPhase.newInitialPhase;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.INTENT_READ;
+import static org.onosproject.security.AppPermission.Type.INTENT_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.security.AppPermission.Type.*;
-
 
 /**
  * An implementation of intent service.
@@ -80,15 +82,25 @@ public class IntentManager
 
     private static final Logger log = getLogger(IntentManager.class);
 
-    public static final String INTENT_NULL = "Intent cannot be null";
-    public static final String INTENT_ID_NULL = "Intent key cannot be null";
-
-    private static final int NUM_THREADS = 12;
+    private static final String INTENT_NULL = "Intent cannot be null";
+    private static final String INTENT_ID_NULL = "Intent key cannot be null";
 
     private static final EnumSet<IntentState> RECOMPILE
             = EnumSet.of(INSTALL_REQ, FAILED, WITHDRAW_REQ);
     private static final EnumSet<IntentState> WITHDRAW
             = EnumSet.of(WITHDRAW_REQ, WITHDRAWING, WITHDRAWN);
+
+    private static final boolean DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL = false;
+    @Property(name = "skipReleaseResourcesOnWithdrawal",
+            boolValue = DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL,
+            label = "Indicates whether skipping resource releases on withdrawal is enabled or not")
+    private boolean skipReleaseResourcesOnWithdrawal = DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL;
+
+    private static final int DEFAULT_NUM_THREADS = 12;
+    @Property(name = "numThreads",
+            intValue = DEFAULT_NUM_THREADS,
+            label = "Number of worker threads")
+    private int numThreads = DEFAULT_NUM_THREADS;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -102,12 +114,23 @@ public class IntentManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowObjectiveService flowObjectiveService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ResourceService resourceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService configService;
+
     private ExecutorService batchExecutor;
     private ExecutorService workerExecutor;
 
+    private final IntentInstaller intentInstaller = new IntentInstaller();
     private final CompilerRegistry compilerRegistry = new CompilerRegistry();
     private final InternalIntentProcessor processor = new InternalIntentProcessor();
     private final IntentStoreDelegate delegate = new InternalStoreDelegate();
+    private final IntentStoreDelegate testOnlyDelegate = new TestOnlyIntentStoreDelegate();
     private final TopologyChangeDelegate topoDelegate = new InternalTopoChangeDelegate();
     private final IntentBatchDelegate batchDelegate = new InternalBatchDelegate();
     private IdGenerator idGenerator;
@@ -116,11 +139,18 @@ public class IntentManager
 
     @Activate
     public void activate() {
-        store.setDelegate(delegate);
+        configService.registerProperties(getClass());
+
+        intentInstaller.init(store, trackerService, flowRuleService, flowObjectiveService);
+        if (skipReleaseResourcesOnWithdrawal) {
+            store.setDelegate(testOnlyDelegate);
+        } else {
+            store.setDelegate(delegate);
+        }
         trackerService.setDelegate(topoDelegate);
         eventDispatcher.addSink(IntentEvent.class, listenerRegistry);
-        batchExecutor = newSingleThreadExecutor(groupedThreads("onos/intent", "batch"));
-        workerExecutor = newFixedThreadPool(NUM_THREADS, groupedThreads("onos/intent", "worker-%d"));
+        batchExecutor = newSingleThreadExecutor(groupedThreads("onos/intent", "batch", log));
+        workerExecutor = newFixedThreadPool(numThreads, groupedThreads("onos/intent", "worker-%d", log));
         idGenerator = coreService.getIdGenerator("intent-ids");
         Intent.bindIdGenerator(idGenerator);
         log.info("Started");
@@ -128,13 +158,58 @@ public class IntentManager
 
     @Deactivate
     public void deactivate() {
-        store.unsetDelegate(delegate);
+        intentInstaller.init(null, null, null, null);
+        if (skipReleaseResourcesOnWithdrawal) {
+            store.unsetDelegate(testOnlyDelegate);
+        } else {
+            store.unsetDelegate(delegate);
+        }
+        configService.unregisterProperties(getClass(), false);
         trackerService.unsetDelegate(topoDelegate);
         eventDispatcher.removeSink(IntentEvent.class);
         batchExecutor.shutdown();
         workerExecutor.shutdown();
         Intent.unbindIdGenerator(idGenerator);
         log.info("Stopped");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        if (context == null) {
+            skipReleaseResourcesOnWithdrawal = DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL;
+            logConfig("Default config");
+            return;
+        }
+
+        String s = Tools.get(context.getProperties(), "skipReleaseResourcesOnWithdrawal");
+        boolean newTestEnabled = isNullOrEmpty(s) ? skipReleaseResourcesOnWithdrawal : Boolean.parseBoolean(s.trim());
+        if (skipReleaseResourcesOnWithdrawal && !newTestEnabled) {
+            store.unsetDelegate(testOnlyDelegate);
+            store.setDelegate(delegate);
+            skipReleaseResourcesOnWithdrawal = false;
+            logConfig("Reconfigured skip release resources on withdrawal");
+        } else if (!skipReleaseResourcesOnWithdrawal && newTestEnabled) {
+            store.unsetDelegate(delegate);
+            store.setDelegate(testOnlyDelegate);
+            skipReleaseResourcesOnWithdrawal = true;
+            logConfig("Reconfigured skip release resources on withdrawal");
+        }
+
+        s = Tools.get(context.getProperties(), "numThreads");
+        int newNumThreads = isNullOrEmpty(s) ? numThreads : Integer.parseInt(s);
+        if (newNumThreads != numThreads) {
+            numThreads = newNumThreads;
+            ExecutorService oldWorkerExecutor = workerExecutor;
+            workerExecutor = newFixedThreadPool(numThreads, groupedThreads("onos/intent", "worker-%d", log));
+            if (oldWorkerExecutor != null) {
+                oldWorkerExecutor.shutdown();
+            }
+            logConfig("Reconfigured number of worker threads");
+        }
+    }
+
+    private void logConfig(String prefix) {
+        log.info("{} with skipReleaseResourcesOnWithdrawal = {}", prefix, skipReleaseResourcesOnWithdrawal);
     }
 
     @Override
@@ -207,23 +282,25 @@ public class IntentManager
 
     @Override
     public <T extends Intent> void registerCompiler(Class<T> cls, IntentCompiler<T> compiler) {
+        checkPermission(INTENT_WRITE);
         compilerRegistry.registerCompiler(cls, compiler);
     }
 
     @Override
     public <T extends Intent> void unregisterCompiler(Class<T> cls) {
+        checkPermission(INTENT_WRITE);
         compilerRegistry.unregisterCompiler(cls);
     }
 
     @Override
     public Map<Class<? extends Intent>, IntentCompiler<? extends Intent>> getCompilers() {
+        checkPermission(INTENT_READ);
         return compilerRegistry.getCompilers();
     }
 
     @Override
     public Iterable<Intent> getPending() {
         checkPermission(INTENT_READ);
-
         return store.getPending();
     }
 
@@ -232,6 +309,16 @@ public class IntentManager
         @Override
         public void notify(IntentEvent event) {
             post(event);
+            switch (event.type()) {
+                case WITHDRAWN:
+                    // release resources allocated to withdrawn intent
+                    if (!resourceService.release(event.subject().id())) {
+                        log.error("Failed to release resources allocated to {}", event.subject().id());
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
 
         @Override
@@ -242,6 +329,24 @@ public class IntentManager
         @Override
         public void onUpdate(IntentData intentData) {
             trackerService.trackIntent(intentData);
+        }
+    }
+
+    // Store delegate enabled only when performing intent throughput tests
+    private class TestOnlyIntentStoreDelegate implements IntentStoreDelegate {
+        @Override
+        public void process(IntentData data) {
+            accumulator.add(data);
+        }
+
+        @Override
+        public void onUpdate(IntentData data) {
+            trackerService.trackIntent(data);
+        }
+
+        @Override
+        public void notify(IntentEvent event) {
+            post(event);
         }
     }
 
@@ -269,13 +374,6 @@ public class IntentManager
                 }
             }
         }
-
-        //FIXME
-//        for (ApplicationId appId : batches.keySet()) {
-//            if (batchService.isLocalLeader(appId)) {
-//                execute(batches.get(appId).build());
-//            }
-//        }
     }
 
     // Topology change delegate
@@ -287,70 +385,6 @@ public class IntentManager
         }
     }
 
-    private Future<FinalIntentProcessPhase> submitIntentData(IntentData data) {
-        IntentData current = store.getIntentData(data.key());
-        IntentProcessPhase initial = newInitialPhase(processor, data, current);
-        return workerExecutor.submit(new IntentWorker(initial));
-    }
-
-    private class IntentBatchProcess implements Runnable {
-
-        protected final Collection<IntentData> data;
-
-        IntentBatchProcess(Collection<IntentData> data) {
-            this.data = checkNotNull(data);
-        }
-
-        @Override
-        public void run() {
-            try {
-                /*
-                 1. wrap each intentdata in a runnable and submit
-                 2. wait for completion of all the work
-                 3. accumulate results and submit batch write of IntentData to store
-                    (we can also try to update these individually)
-                 */
-                submitUpdates(waitForFutures(createIntentUpdates()));
-            } catch (Exception e) {
-                log.error("Error submitting batches:", e);
-                // FIXME incomplete Intents should be cleaned up
-                //       (transition to FAILED, etc.)
-
-                // the batch has failed
-                // TODO: maybe we should do more?
-                log.error("Walk the plank, matey...");
-                //FIXME
-//            batchService.removeIntentOperations(data);
-            }
-            accumulator.ready();
-        }
-
-        private List<Future<FinalIntentProcessPhase>> createIntentUpdates() {
-            return data.stream()
-                    .map(IntentManager.this::submitIntentData)
-                    .collect(Collectors.toList());
-        }
-
-        private List<FinalIntentProcessPhase> waitForFutures(List<Future<FinalIntentProcessPhase>> futures) {
-            ImmutableList.Builder<FinalIntentProcessPhase> updateBuilder = ImmutableList.builder();
-            for (Future<FinalIntentProcessPhase> future : futures) {
-                try {
-                    updateBuilder.add(future.get());
-                } catch (InterruptedException | ExecutionException e) {
-                    //FIXME
-                    log.warn("Future failed: {}", e);
-                }
-            }
-            return updateBuilder.build();
-        }
-
-        private void submitUpdates(List<FinalIntentProcessPhase> updates) {
-            store.batchWrite(updates.stream()
-                                     .map(FinalIntentProcessPhase::data)
-                                     .collect(Collectors.toList()));
-        }
-    }
-
     private class InternalBatchDelegate implements IntentBatchDelegate {
         @Override
         public void execute(Collection<IntentData> operations) {
@@ -358,8 +392,40 @@ public class IntentManager
             log.trace("Execute operations: {}", operations);
 
             // batchExecutor is single-threaded, so only one batch is in flight at a time
-            batchExecutor.execute(new IntentBatchProcess(operations));
+            CompletableFuture.runAsync(() -> {
+                // process intent until the phase reaches one of the final phases
+                List<CompletableFuture<IntentData>> futures = operations.stream()
+                        .map(x -> CompletableFuture.completedFuture(x)
+                                .thenApply(IntentManager.this::createInitialPhase)
+                                .thenApplyAsync(IntentProcessPhase::process, workerExecutor)
+                                .thenApply(FinalIntentProcessPhase::data)
+                                .exceptionally(e -> {
+                                    //FIXME
+                                    log.warn("Future failed: {}", e);
+                                    return null;
+                                })).collect(Collectors.toList());
+
+                // write multiple data to store in order
+                store.batchWrite(Tools.allOf(futures).join().stream()
+                                         .filter(Objects::nonNull)
+                                         .collect(Collectors.toList()));
+            }, batchExecutor).exceptionally(e -> {
+                log.error("Error submitting batches:", e);
+                // FIXME incomplete Intents should be cleaned up
+                //       (transition to FAILED, etc.)
+
+                // the batch has failed
+                // TODO: maybe we should do more?
+                log.error("Walk the plank, matey...");
+                return null;
+            }).thenRun(accumulator::ready);
+
         }
+    }
+
+    private IntentProcessPhase createInitialPhase(IntentData data) {
+        IntentData current = store.getIntentData(data.key());
+        return newInitialPhase(processor, data, current);
     }
 
     private class InternalIntentProcessor implements IntentProcessor {
@@ -370,120 +436,8 @@ public class IntentManager
 
         @Override
         public void apply(Optional<IntentData> toUninstall, Optional<IntentData> toInstall) {
-            IntentManager.this.apply(toUninstall, toInstall);
+            intentInstaller.apply(toUninstall, toInstall);
         }
-    }
-
-    private enum Direction {
-        ADD,
-        REMOVE
-    }
-
-    private void applyIntentData(Optional<IntentData> intentData,
-                                 FlowRuleOperations.Builder builder,
-                                 Direction direction) {
-        if (!intentData.isPresent()) {
-            return;
-        }
-        IntentData data = intentData.get();
-
-        List<Intent> intentsToApply = data.installables();
-        if (!intentsToApply.stream().allMatch(x -> x instanceof FlowRuleIntent)) {
-            throw new IllegalStateException("installable intents must be FlowRuleIntent");
-        }
-
-        if (direction == Direction.ADD) {
-            trackerService.addTrackedResources(data.key(), data.intent().resources());
-            intentsToApply.forEach(installable ->
-                    trackerService.addTrackedResources(data.key(), installable.resources()));
-        } else {
-            trackerService.removeTrackedResources(data.key(), data.intent().resources());
-            intentsToApply.forEach(installable ->
-                    trackerService.removeTrackedResources(data.intent().key(),
-                            installable.resources()));
-        }
-
-        // FIXME do FlowRuleIntents have stages??? Can we do uninstall work in parallel? I think so.
-        builder.newStage();
-
-        List<Collection<FlowRule>> stages = intentsToApply.stream()
-                .map(x -> (FlowRuleIntent) x)
-                .map(FlowRuleIntent::flowRules)
-                .collect(Collectors.toList());
-
-        for (Collection<FlowRule> rules : stages) {
-            if (direction == Direction.ADD) {
-                rules.forEach(builder::add);
-            } else {
-                rules.forEach(builder::remove);
-            }
-        }
-
-    }
-
-    private void apply(Optional<IntentData> toUninstall, Optional<IntentData> toInstall) {
-        // need to consider if FlowRuleIntent is only one as installable intent or not
-
-        FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
-        applyIntentData(toUninstall, builder, Direction.REMOVE);
-        applyIntentData(toInstall, builder, Direction.ADD);
-
-        FlowRuleOperations operations = builder.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                if (toInstall.isPresent()) {
-                    IntentData installData = toInstall.get();
-                    log.debug("Completed installing: {}", installData.key());
-                    installData.setState(INSTALLED);
-                    store.write(installData);
-                } else if (toUninstall.isPresent()) {
-                    IntentData uninstallData = toUninstall.get();
-                    log.debug("Completed withdrawing: {}", uninstallData.key());
-                    switch (uninstallData.request()) {
-                        case INSTALL_REQ:
-                            uninstallData.setState(FAILED);
-                            break;
-                        case WITHDRAW_REQ:
-                        default: //TODO "default" case should not happen
-                            uninstallData.setState(WITHDRAWN);
-                            break;
-                    }
-                    store.write(uninstallData);
-                }
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                // if toInstall was cause of error, then recompile (manage/increment counter, when exceeded -> CORRUPT)
-                if (toInstall.isPresent()) {
-                    IntentData installData = toInstall.get();
-                    log.warn("Failed installation: {} {} on {}",
-                             installData.key(), installData.intent(), ops);
-                    installData.setState(CORRUPT);
-                    installData.incrementErrorCount();
-                    store.write(installData);
-                }
-                // if toUninstall was cause of error, then CORRUPT (another job will clean this up)
-                if (toUninstall.isPresent()) {
-                    IntentData uninstallData = toUninstall.get();
-                    log.warn("Failed withdrawal: {} {} on {}",
-                             uninstallData.key(), uninstallData.intent(), ops);
-                    uninstallData.setState(CORRUPT);
-                    uninstallData.incrementErrorCount();
-                    store.write(uninstallData);
-                }
-            }
-        });
-
-        if (log.isTraceEnabled()) {
-            log.trace("applying intent {} -> {} with {} rules: {}",
-                      toUninstall.isPresent() ? toUninstall.get().key() : "<empty>",
-                      toInstall.isPresent() ? toInstall.get().key() : "<empty>",
-                      operations.stages().stream().mapToLong(i -> i.size()).sum(),
-                      operations.stages());
-        }
-
-        flowRuleService.apply(operations);
     }
 
 }

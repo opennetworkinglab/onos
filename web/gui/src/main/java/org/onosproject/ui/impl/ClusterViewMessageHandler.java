@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,10 +44,11 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
     private static final String IP = "ip";
     private static final String TCP_PORT = "tcp";
     private static final String STATE_IID = "_iconid_state";
+    private static final String STARTED_IID = "_iconid_started";
     private static final String UPDATED = "updated";
 
     private static final String[] COL_IDS = {
-            ID, IP, TCP_PORT, STATE_IID, UPDATED
+            ID, IP, TCP_PORT, STATE_IID, STARTED_IID, UPDATED
     };
 
     private static final String ICON_ID_ONLINE = "active";
@@ -60,6 +61,8 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
 
     // handler for cluster table requests
     private final class ClusterDataRequest extends TableRequestHandler {
+        private static final String NO_ROWS_MESSAGE = "No cluster nodes found";
+
         private ClusterDataRequest() {
             super(CLUSTER_DATA_REQ, CLUSTER_DATA_RESP, CLUSTERS);
         }
@@ -67,6 +70,11 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage(ObjectNode payload) {
+            return NO_ROWS_MESSAGE;
         }
 
         @Override
@@ -88,13 +96,15 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
                                  ClusterService cs) {
             NodeId id = node.id();
             DateTime lastUpdated = cs.getLastUpdated(id);
-            String iconId = (cs.getState(id) == ControllerNode.State.ACTIVE) ?
-                    ICON_ID_ONLINE : ICON_ID_OFFLINE;
+            ControllerNode.State state = cs.getState(id);
+            String iconId = state.isActive() ? ICON_ID_ONLINE : ICON_ID_OFFLINE;
+            String startedId = state.isReady() ? ICON_ID_ONLINE : ICON_ID_OFFLINE;
 
             row.cell(ID, id)
                 .cell(IP, node.ip())
                 .cell(TCP_PORT, node.tcpPort())
                 .cell(STATE_IID, iconId)
+                .cell(STARTED_IID, startedId)
                 .cell(UPDATED, lastUpdated);
         }
     }

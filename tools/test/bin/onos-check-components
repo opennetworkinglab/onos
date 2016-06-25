@@ -6,12 +6,19 @@
 aux=/tmp/stc-$$.log
 trap "rm -f $aux 2>/dev/null" EXIT
 
-onos ${1:-$OCI} scr:list > $aux
-cat $aux
-grep -q UNSATISFIED $aux && exit 1
+for attempt in {1..30}; do
+    onos ${1:-$OCI} scr:list > $aux
 
-if [ -n "$2" ]; then
-    echo "Searching for ACTIVE $2"
-    egrep "ACTIVE.*$2" $aux || exit 1
-fi
-exit 0
+    if grep -q UNSATISFIED $aux; then
+        sleep 1
+    else
+        if [ -n "$2" ]; then
+            echo "Searching for ACTIVE $2"
+            egrep "ACTIVE.*$2" $aux && exit 0 || sleep 1
+        else
+            cat $aux &&  exit 0
+        fi
+    fi
+done
+
+exit 1

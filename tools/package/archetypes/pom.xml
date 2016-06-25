@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2014-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@
 
     <groupId>org.onosproject</groupId>
     <artifactId>onos-archetypes</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>1.7.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <description>ONOS archetypes project</description>
@@ -37,8 +37,10 @@
         <module>api</module>
         <module>bundle</module>
         <module>cli</module>
+        <module>rest</module>
         <module>ui</module>
         <module>uitab</module>
+        <module>uitopo</module>
     </modules>
 
     <build>
@@ -46,7 +48,7 @@
             <extension>
                 <groupId>org.apache.maven.archetype</groupId>
                 <artifactId>archetype-packaging</artifactId>
-                <version>2.2</version>
+                <version>2.4</version>
             </extension>
         </extensions>
 
@@ -54,7 +56,7 @@
             <plugins>
                 <plugin>
                     <artifactId>maven-archetype-plugin</artifactId>
-                    <version>2.2</version>
+                    <version>2.4</version>
                 </plugin>
             </plugins>
         </pluginManagement>

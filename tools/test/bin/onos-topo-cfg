@@ -6,6 +6,8 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
+echo "This facility has been deprecated and will be removed in 1.6.0 (Goldeneye) release!!!"
+
 node="${1:-$OCI}"
 file="${2:-$ONOS_ROOT/tools/test/topos/oe-linear-3.json}"
 url="${3:-config/topology}"

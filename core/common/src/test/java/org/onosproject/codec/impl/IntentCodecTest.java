@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.GridType;
 import org.onosproject.net.HostId;
-import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.OchSignalType;
@@ -45,7 +44,6 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
-import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
@@ -59,12 +57,9 @@ import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.AsymmetricPathConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
-import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
-import org.onosproject.net.resource.link.BandwidthResource;
-import org.onosproject.net.resource.link.LambdaResource;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -173,7 +168,6 @@ public class IntentCodecTest extends AbstractIntentTest {
                 .matchIPDst(IpPrefix.valueOf("1.2.3.4/24"))
                 .build();
         final TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .add(Instructions.modL0Lambda(new IndexedLambda(33)))
                 .setMpls(MplsLabel.mplsLabel(44))
                 .setOutput(PortNumber.CONTROLLER)
                 .setEthDst(MacAddress.BROADCAST)
@@ -181,8 +175,7 @@ public class IntentCodecTest extends AbstractIntentTest {
 
         final List<Constraint> constraints =
                 ImmutableList.of(
-                        new BandwidthConstraint(new BandwidthResource(Bandwidth.bps(1.0))),
-                        new LambdaConstraint(LambdaResource.valueOf(3)),
+                        new BandwidthConstraint(Bandwidth.bps(1.0)),
                         new AnnotationConstraint("key", 33.0),
                         new AsymmetricPathConstraint(),
                         new LatencyConstraint(Duration.ofSeconds(2)),
@@ -217,7 +210,7 @@ public class IntentCodecTest extends AbstractIntentTest {
      * @throws IOException if processing the resource fails
      */
     private Intent getIntent(String resourceName, JsonCodec intentCodec) throws IOException {
-        InputStream jsonStream = FlowRuleCodecTest.class
+        InputStream jsonStream = IntentCodecTest.class
                 .getResourceAsStream(resourceName);
         JsonNode json = context.mapper().readTree(jsonStream);
         assertThat(json, notNullValue());

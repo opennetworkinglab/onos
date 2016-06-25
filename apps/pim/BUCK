@@ -1,0 +1,26 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+    '//incubator/api:onos-incubator-api',
+    '//apps/routing-api:onos-apps-routing-api',
+]
+
+BUNDLES = [
+    '//apps/routing-api:onos-apps-routing-api',
+    ':onos-apps-pim',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
+)
+
+onos_app (
+    title = 'Protocol Independent Multicast Emulation App',
+    category = 'Traffic Steering',
+    url = 'http://onosproject.org',
+    description = 'Protocol independent multicast emulation.',
+    included_bundles = BUNDLES,
+)

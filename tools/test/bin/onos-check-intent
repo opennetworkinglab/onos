@@ -13,9 +13,29 @@ target=${1:-$OCI}
 echo onos-check-intent: $*
 
 set -x
+
+# $1: target host
+# $2: intent key
+# $3: intent state
+# $4: number of expected intents
+re='^[0-9]+$'
+[[ $4 =~ $re ]] && numIntentsExpected=$4 # silently ignore if not positive
+
 for i in {1..15}; do
+    echo "Attempt #$i"
     onos $target "onos:intents" | tee $aux
-    ( cat $aux | grep "key=$2" | grep "state=$3" ) && cat $aux && exit 0
+    if  [ -z "$numIntentsExpected" ]; then
+        ( cat $aux | grep "key=$2" | grep "state=$3" ) && cat $aux && exit 0
+    else 
+        # exit 0 only if expected number of intents (with required key)
+        # are present and all intents match state (if expected no. of intents > 0)
+        numIntents=`grep "key=$2" $aux | wc -l`
+        numIntentsOfState=0
+        [ $numIntentsExpected -gt 0 ] && numIntentsOfState=`grep "key=$2" $aux | grep "state=$3" | wc -l`
+        [ $numIntents -eq $numIntentsOfState ] \
+            && [ $numIntents -eq $numIntentsExpected ] \
+            && cat $aux && exit 0
+    fi 
     sleep 1
 done
 

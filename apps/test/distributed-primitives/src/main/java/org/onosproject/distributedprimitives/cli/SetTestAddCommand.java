@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.Set;
 
 /**
@@ -44,7 +44,6 @@ public class SetTestAddCommand extends AbstractShellCommand {
     String[] values = null;
 
     Set<String> set;
-    Set<String> toAdd = new HashSet<>();
 
 
     Serializer serializer = Serializer.using(
@@ -57,7 +56,8 @@ public class SetTestAddCommand extends AbstractShellCommand {
         set = storageService.<String>setBuilder()
                 .withName(setName)
                 .withSerializer(serializer)
-                .build();
+                .build()
+                .asDistributedSet();
 
         // Add a single element to the set
         if (values.length == 1) {
@@ -68,13 +68,10 @@ public class SetTestAddCommand extends AbstractShellCommand {
             }
         } else if (values.length >= 1) {
             // Add multiple elements to a set
-            for (String value : values) {
-                toAdd.add(value);
-            }
-            if (set.addAll(toAdd)) {
-                print("%s was added to the set %s", toAdd, setName);
+            if (set.addAll(Arrays.asList(values))) {
+                print("%s was added to the set %s", Arrays.asList(values), setName);
             } else {
-                print("%s was already in set %s", toAdd, setName);
+                print("%s was already in set %s", Arrays.asList(values), setName);
             }
         }
     }

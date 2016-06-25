@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,10 @@
  */
 package org.onosproject.store.serializers;
 
-import org.onlab.packet.Ip4Prefix;
+import static com.google.common.base.Preconditions.checkArgument;
 
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
@@ -49,6 +51,7 @@ public final class Ip4PrefixSerializer extends Serializer<Ip4Prefix> {
     public Ip4Prefix read(Kryo kryo, Input input,
             Class<Ip4Prefix> type) {
         int octLen = input.readInt();
+        checkArgument(octLen <= Ip4Address.BYTE_LENGTH);
         byte[] octs = new byte[octLen];
         input.readBytes(octs);
         int prefLen = input.readInt();

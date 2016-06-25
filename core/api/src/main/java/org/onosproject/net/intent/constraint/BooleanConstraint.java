@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import com.google.common.annotations.Beta;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.intent.Constraint;
-import org.onosproject.net.resource.link.LinkResourceService;
+import org.onosproject.net.intent.ResourceContext;
 
 /**
  * Abstract base class for various constraints that evaluate link viability
@@ -32,10 +32,10 @@ public abstract class BooleanConstraint implements Constraint {
      * Returns true if the specified link satisfies the constraint.
      *
      * @param link            link to be validated
-     * @param resourceService resource service for checking available link resources
+     * @param context resource context for checking available resources
      * @return true if link is viable
      */
-    public abstract boolean isValid(Link link, LinkResourceService resourceService);
+    public abstract boolean isValid(Link link, ResourceContext context);
 
     /**
      * {@inheritDoc}
@@ -43,22 +43,18 @@ public abstract class BooleanConstraint implements Constraint {
      * Negative return value means the specified link does not satisfy this constraint.
      *
      * @param link {@inheritDoc}
-     * @param resourceService {@inheritDoc}
+     * @param context {@inheritDoc}
      * @return {@inheritDoc}
      */
     @Override
-    public double cost(Link link, LinkResourceService resourceService) {
-        return isValid(link, resourceService) ? +1 : -1;
+    public double cost(Link link, ResourceContext context) {
+        return isValid(link, context) ? +1 : -1;
     }
 
     @Override
-    public boolean validate(Path path, LinkResourceService resourceService) {
-        for (Link link : path.links()) {
-            if (!isValid(link, resourceService)) {
-                return false;
-            }
-        }
-        return true;
+    public boolean validate(Path path, ResourceContext context) {
+        return path.links().stream()
+                .allMatch(link -> isValid(link, context));
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,6 +143,13 @@
         enabled = !!b;
     }
 
+    function tempDiv(ms) {
+        var div = d3.select('body').append('div').classed('centered', true),
+            delay = (ms === undefined || ms < 100) ? 3000 : ms;
+        $timeout(function () { div.remove(); }, delay);
+        return div;
+    }
+
     angular.module('onosLayer')
         .factory('FlashService', ['$log', '$timeout',
         function (_$log_, _$timeout_) {
@@ -158,7 +165,8 @@
             return {
                 initFlash: initFlash,
                 flash: flash,
-                enable: enable
+                enable: enable,
+                tempDiv: tempDiv
             };
         }]);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,15 @@
  */
 package org.onlab.util;
 
-import static java.nio.file.Files.delete;
-import static java.nio.file.Files.walkFileTree;
-import static org.onlab.util.GroupedThreadFactory.groupedThreadFactory;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
+import com.google.common.primitives.UnsignedLongs;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.slf4j.Logger;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,12 +31,13 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -48,14 +46,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.slf4j.Logger;
-
-import com.google.common.base.Strings;
-import com.google.common.primitives.UnsignedLongs;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import static java.nio.file.Files.delete;
+import static java.nio.file.Files.walkFileTree;
+import static org.onlab.util.GroupedThreadFactory.groupedThreadFactory;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Miscellaneous utility methods.
@@ -96,10 +94,31 @@ public abstract class Tools {
      * @return thread factory
      */
     public static ThreadFactory groupedThreads(String groupName, String pattern) {
+        return groupedThreads(groupName, pattern, log);
+    }
+
+    /**
+     * Returns a thread factory that produces threads named according to the
+     * supplied name pattern and from the specified thread-group. The thread
+     * group name is expected to be specified in slash-delimited format, e.g.
+     * {@code onos/intent}. The thread names will be produced by converting
+     * the thread group name into dash-delimited format and pre-pended to the
+     * specified pattern. If a logger is specified, it will use the logger to
+     * print out the exception if it has any.
+     *
+     * @param groupName group name in slash-delimited format to indicate hierarchy
+     * @param pattern   name pattern
+     * @param logger    logger
+     * @return thread factory
+     */
+    public static ThreadFactory groupedThreads(String groupName, String pattern, Logger logger) {
+        if (logger == null) {
+            return groupedThreads(groupName, pattern);
+        }
         return new ThreadFactoryBuilder()
                 .setThreadFactory(groupedThreadFactory(groupName))
                 .setNameFormat(groupName.replace(GroupedThreadFactory.DELIMITER, "-") + "-" + pattern)
-                .setUncaughtExceptionHandler((t, e) -> log.error("Uncaught exception on " + t.getName(), e))
+                .setUncaughtExceptionHandler((t, e) -> logger.error("Uncaught exception on " + t.getName(), e))
                 .build();
     }
 
@@ -138,6 +157,23 @@ public abstract class Tools {
      */
     public static <T> T nullIsNotFound(T item, String message) {
         if (item == null) {
+            throw new ItemNotFoundException(message);
+        }
+        return item;
+    }
+
+    /**
+     * Returns the specified set if the set is not null and not empty;
+     * otherwise throws a not found exception.
+     *
+     * @param item set to check
+     * @param message not found message
+     * @param <T> Set item type
+     * @return item if not null and not empty
+     * @throws org.onlab.util.ItemNotFoundException if set is null or empty
+     */
+    public static <T> Set<T> emptyIsNotFound(Set<T> item, String message) {
+        if (item == null || item.isEmpty()) {
             throw new ItemNotFoundException(message);
         }
         return item;
@@ -192,6 +228,24 @@ public abstract class Tools {
     }
 
     /**
+     * Returns the UTF-8 encoded byte[] representation of a String.
+     * @param input input string
+     * @return UTF-8 encoded byte array
+     */
+    public static byte[] getBytesUtf8(String input) {
+        return input.getBytes(Charsets.UTF_8);
+    }
+
+    /**
+     * Returns the String representation of UTF-8 encoded byte[].
+     * @param input input byte array
+     * @return UTF-8 encoded string
+     */
+    public static String toStringUtf8(byte[] input) {
+        return new String(input, Charsets.UTF_8);
+    }
+
+    /**
      * Returns a copy of the input byte array.
      *
      * @param original input
@@ -213,6 +267,84 @@ public abstract class Tools {
         String s = (v instanceof String) ? (String) v :
                 v != null ? v.toString() : null;
         return Strings.isNullOrEmpty(s) ? null : s.trim();
+    }
+
+    /**
+     * Get Integer property from the propertyName
+     * Return null if propertyName is not found.
+     *
+     * @param properties   properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @return value when the propertyName is defined or return null
+     */
+    public static Integer getIntegerProperty(Dictionary<?, ?> properties,
+                                             String propertyName) {
+        Integer value;
+        try {
+            String s = get(properties, propertyName);
+            value = Strings.isNullOrEmpty(s) ? null : Integer.valueOf(s);
+        } catch (NumberFormatException | ClassCastException e) {
+            value = null;
+        }
+        return value;
+    }
+
+    /**
+     * Get Integer property from the propertyName
+     * Return default value if propertyName is not found.
+     *
+     * @param properties   properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @param defaultValue the default value that to be assigned
+     * @return value when the propertyName is defined or return default value
+     */
+    public static int getIntegerProperty(Dictionary<?, ?> properties,
+                                         String propertyName,
+                                         int defaultValue) {
+        try {
+            String s = get(properties, propertyName);
+            return Strings.isNullOrEmpty(s) ? defaultValue : Integer.valueOf(s);
+        } catch (NumberFormatException | ClassCastException e) {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * Check property name is defined and set to true.
+     *
+     * @param properties   properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @return value when the propertyName is defined or return null
+     */
+    public static Boolean isPropertyEnabled(Dictionary<?, ?> properties,
+                                             String propertyName) {
+        Boolean value;
+        try {
+            String s = get(properties, propertyName);
+            value = Strings.isNullOrEmpty(s) ? null : Boolean.valueOf(s);
+        } catch (ClassCastException e) {
+            value = null;
+        }
+        return value;
+    }
+
+    /**
+     * Check property name is defined as set to true.
+     *
+     * @param properties   properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @param defaultValue the default value that to be assigned
+     * @return value when the propertyName is defined or return the default value
+     */
+    public static boolean isPropertyEnabled(Dictionary<?, ?> properties,
+                                            String propertyName,
+                                            boolean defaultValue) {
+        try {
+            String s = get(properties, propertyName);
+            return Strings.isNullOrEmpty(s) ? defaultValue : Boolean.valueOf(s);
+        } catch (ClassCastException e) {
+            return defaultValue;
+        }
     }
 
     /**
@@ -291,29 +423,6 @@ public abstract class Tools {
             Thread.sleep(ms, nanos);
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted", e);
-        }
-    }
-
-    /**
-     * Slurps the contents of a file into a list of strings, one per line.
-     *
-     * @param path file path
-     * @return file contents
-     */
-    public static List<String> slurp(File path) {
-        try {
-            BufferedReader br = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8));
-
-            List<String> lines = new ArrayList<>();
-            String line;
-            while ((line = br.readLine()) != null) {
-                lines.add(line);
-            }
-            return lines;
-
-        } catch (IOException e) {
-            return null;
         }
     }
 
@@ -497,6 +606,22 @@ public abstract class Tools {
     }
 
     /**
+     * Returns a new CompletableFuture completed with a list of computed values
+     * when all of the given CompletableFuture complete.
+     *
+     * @param futures the CompletableFutures
+     * @param <T> value type of CompletableFuture
+     * @return a new CompletableFuture that is completed when all of the given CompletableFutures complete
+     */
+    public static <T> CompletableFuture<List<T>> allOf(List<CompletableFuture<T>> futures) {
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
+                .thenApply(v -> futures.stream()
+                                .map(CompletableFuture::join)
+                                .collect(Collectors.toList())
+                );
+    }
+
+    /**
      * Returns the contents of {@code ByteBuffer} as byte array.
      * <p>
      * WARNING: There is a performance cost due to array copy
@@ -525,6 +650,17 @@ public abstract class Tools {
      */
     public static <T> Stream<T> stream(Iterable<T> it) {
         return StreamSupport.stream(it.spliterator(), false);
+    }
+
+    /**
+     * Converts an optional to a stream.
+     *
+     * @param optional optional to convert
+     * @param <T> type of enclosed value
+     * @return optional as a stream
+     */
+    public static <T> Stream<T> stream(Optional<? extends T> optional) {
+        return optional.map(x -> Stream.<T>of(x)).orElse(Stream.empty());
     }
 
     // Auxiliary path visitor for recursive directory structure copying.

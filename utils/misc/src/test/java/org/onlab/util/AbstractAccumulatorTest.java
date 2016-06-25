@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,27 @@
  */
 package org.onlab.util;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.Timer;
 import java.util.stream.IntStream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.onlab.junit.TestTools.assertAfter;
-import static org.onlab.junit.TestTools.delay;
 
 /**
  * Tests the operation of the accumulator.
  */
 public class AbstractAccumulatorTest {
 
-    private final Timer timer = new Timer();
+
+    private final ManuallyAdvancingTimer timer = new ManuallyAdvancingTimer(true);
+
+    private static final int LONG_REAL_TIME_DELAY = 30;
+    private static final int SHORT_REAL_TIME_DELAY = 5;
+
 
     @Test
     public void basics() throws Exception {
@@ -42,7 +46,6 @@ public class AbstractAccumulatorTest {
         assertEquals("incorrect idle ms", 70, accumulator.maxIdleMillis());
     }
 
-    @Ignore("FIXME: timing sensitive test failing randomly.")
     @Test
     public void eventTrigger() {
         TestAccumulator accumulator = new TestAccumulator();
@@ -52,43 +55,40 @@ public class AbstractAccumulatorTest {
         accumulator.add(new TestItem("d"));
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.add(new TestItem("e"));
-        delay(20);
+        timer.advanceTimeMillis(20, LONG_REAL_TIME_DELAY);
         assertFalse("should have fired", accumulator.batch.isEmpty());
         assertEquals("incorrect batch", "abcde", accumulator.batch);
     }
 
-    @Ignore("FIXME: timing sensitive test failing randomly.")
     @Test
     public void timeTrigger() {
         TestAccumulator accumulator = new TestAccumulator();
         accumulator.add(new TestItem("a"));
-        delay(30);
+        timer.advanceTimeMillis(30, SHORT_REAL_TIME_DELAY);
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.add(new TestItem("b"));
-        delay(30);
+        timer.advanceTimeMillis(30, SHORT_REAL_TIME_DELAY);
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.add(new TestItem("c"));
-        delay(30);
+        timer.advanceTimeMillis(30, SHORT_REAL_TIME_DELAY);
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.add(new TestItem("d"));
-        delay(60);
+        timer.advanceTimeMillis(10, LONG_REAL_TIME_DELAY);
         assertFalse("should have fired", accumulator.batch.isEmpty());
         assertEquals("incorrect batch", "abcd", accumulator.batch);
     }
 
-    @Ignore("FIXME: timing sensitive test failing randomly.")
     @Test
     public void idleTrigger() {
         TestAccumulator accumulator = new TestAccumulator();
         accumulator.add(new TestItem("a"));
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.add(new TestItem("b"));
-        delay(80);
+        timer.advanceTimeMillis(70, LONG_REAL_TIME_DELAY);
         assertFalse("should have fired", accumulator.batch.isEmpty());
         assertEquals("incorrect batch", "ab", accumulator.batch);
     }
 
-    @Ignore("FIXME: timing sensitive test failing randomly.")
     @Test
     public void readyIdleTrigger() {
         TestAccumulator accumulator = new TestAccumulator();
@@ -96,30 +96,28 @@ public class AbstractAccumulatorTest {
         accumulator.add(new TestItem("a"));
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.add(new TestItem("b"));
-        delay(80);
+        timer.advanceTimeMillis(80, SHORT_REAL_TIME_DELAY);
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.ready = true;
-        delay(80);
+        timer.advanceTimeMillis(80, LONG_REAL_TIME_DELAY);
         assertFalse("should have fired", accumulator.batch.isEmpty());
         assertEquals("incorrect batch", "ab", accumulator.batch);
     }
 
-    @Ignore("FIXME: timing sensitive test failing randomly.")
     @Test
     public void readyLongTrigger() {
         TestAccumulator accumulator = new TestAccumulator();
         accumulator.ready = false;
-        delay(120);
+        timer.advanceTimeMillis(120, SHORT_REAL_TIME_DELAY);
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.add(new TestItem("a"));
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.ready = true;
-        delay(80);
+        timer.advanceTimeMillis(120, LONG_REAL_TIME_DELAY);
         assertFalse("should have fired", accumulator.batch.isEmpty());
         assertEquals("incorrect batch", "a", accumulator.batch);
     }
 
-    @Ignore("FIXME: timing sensitive test failing randomly.")
     @Test
     public void readyMaxTrigger() {
         TestAccumulator accumulator = new TestAccumulator();
@@ -133,16 +131,16 @@ public class AbstractAccumulatorTest {
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.ready = true;
         accumulator.add(new TestItem("g"));
-        delay(5);
+        timer.advanceTimeMillis(10, LONG_REAL_TIME_DELAY);
         assertFalse("should have fired", accumulator.batch.isEmpty());
         assertEquals("incorrect batch", "abcdefg", accumulator.batch);
     }
 
-    @Ignore("FIXME: timing sensitive test failing randomly.")
     @Test
     public void stormTest() {
         TestAccumulator accumulator = new TestAccumulator();
         IntStream.range(0, 1000).forEach(i -> accumulator.add(new TestItem("#" + i)));
+        timer.advanceTimeMillis(1);
         assertAfter(100, () -> assertEquals("wrong item count", 1000, accumulator.itemCount));
         assertEquals("wrong batch count", 200, accumulator.batchCount);
     }
@@ -180,5 +178,4 @@ public class AbstractAccumulatorTest {
             return ready;
         }
     }
-
 }

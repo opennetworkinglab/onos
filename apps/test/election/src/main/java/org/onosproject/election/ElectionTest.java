@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,11 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.CoreService;
-import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.LeadershipEvent;
 import org.onosproject.cluster.LeadershipEventListener;
 import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
-
 import org.slf4j.Logger;
 
 
@@ -56,7 +55,7 @@ public class ElectionTest {
     private LeadershipEventListener leadershipEventListener =
             new InnerLeadershipEventListener();
 
-    private ControllerNode localControllerNode;
+    private NodeId localNodeId;
 
 
     @Activate
@@ -65,7 +64,7 @@ public class ElectionTest {
 
         appId = coreService.registerApplication(ELECTION_APP);
 
-        localControllerNode = clusterService.getLocalNode();
+        localNodeId = clusterService.getLocalNode().id();
 
         leadershipService.addListener(leadershipEventListener);
     }
@@ -100,20 +99,10 @@ public class ElectionTest {
             log.debug("Leadership Event: time = {} type = {} event = {}",
                     event.time(), event.type(), event);
 
-            if (!event.subject().leader().equals(
-                    localControllerNode.id())) {
-                return;         // The event is not about this instance: ignore
-            }
-
             switch (event.type()) {
-                case LEADER_ELECTED:
-                    log.info("Election-test app leader elected");
-                    break;
-                case LEADER_BOOTED:
-                    log.info("Election-test app lost election");
-                    break;
-                case LEADER_REELECTED:
-                    log.debug("Election-test app was re-elected");
+                case LEADER_CHANGED:
+                case LEADER_AND_CANDIDATES_CHANGED:
+                    log.info("Election-test app leader changed. New leadership: {}", event.subject());
                     break;
                 default:
                     break;

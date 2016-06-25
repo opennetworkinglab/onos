@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,7 @@ import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
-import org.onosproject.routing.RouteListener;
-import org.onosproject.routing.RouteUpdate;
+import org.onosproject.incubator.net.routing.RouteAdminService;
 import org.osgi.service.component.ComponentContext;
 
 import java.net.InetAddress;
@@ -48,6 +47,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.hamcrest.Matchers.hasSize;
@@ -85,6 +85,8 @@ public class BgpSessionManagerTest {
     // Timeout waiting for a message to be received
     private static final int MESSAGE_TIMEOUT_MS = 5000; // 5s
 
+    private RouteAdminService routeService;
+
     // The BGP Session Manager to test
     private BgpSessionManager bgpSessionManager;
 
@@ -101,19 +103,6 @@ public class BgpSessionManagerTest {
 
     // The socket that the remote peers should connect to
     private InetSocketAddress connectToSocket;
-
-    private final DummyRouteListener dummyRouteListener =
-        new DummyRouteListener();
-
-    /**
-     * Dummy implementation for the RouteListener interface.
-     */
-    private class DummyRouteListener implements RouteListener {
-        @Override
-        public void update(Collection<RouteUpdate> routeUpdate) {
-            // Nothing to do
-        }
-    }
 
     /**
      * A class to capture the state for a BGP peer.
@@ -136,7 +125,7 @@ public class BgpSessionManagerTest {
         }
 
         /**
-         * Starts up the BGP peer and connects it to the tested SDN-IP
+         * Starts up the BGP peer and connects it to the tested BgpSessionManager
          * instance.
          *
          * @param connectToSocket the socket to connect to
@@ -238,13 +227,11 @@ public class BgpSessionManagerTest {
     }
 
     @SuppressWarnings("unchecked")
-    private Dictionary<String, String>
-            getDictionaryMock(ComponentContext componentContext) {
-        Dictionary<String, String> dictionary = createMock(Dictionary.class);
+    private void getDictionaryMock(ComponentContext componentContext) {
+        Dictionary dictionary = createMock(Dictionary.class);
         expect(dictionary.get("bgpPort")).andReturn("0");
         replay(dictionary);
         expect(componentContext.getProperties()).andReturn(dictionary);
-        return dictionary;
     }
 
     @Before
@@ -262,12 +249,16 @@ public class BgpSessionManagerTest {
         // connections.
         //
         bgpSessionManager = new BgpSessionManager();
+
+        routeService = createNiceMock(RouteAdminService.class);
+        replay(routeService);
+        bgpSessionManager.routeService = routeService;
+
         // NOTE: We use port 0 to bind on any available port
         ComponentContext componentContext = createMock(ComponentContext.class);
-        Dictionary<String, String> dictionary = getDictionaryMock(componentContext);
+        getDictionaryMock(componentContext);
         replay(componentContext);
         bgpSessionManager.activate(componentContext);
-        bgpSessionManager.start(dummyRouteListener);
 
         // Get the port number the BGP Session Manager is listening on
         Channel serverChannel = TestUtils.getField(bgpSessionManager,
@@ -547,6 +538,7 @@ public class BgpSessionManagerTest {
         withdrawnRoutes.add(Ip4Prefix.valueOf("70.0.0.0/16"));
         withdrawnRoutes.add(Ip4Prefix.valueOf("80.0.0.0/24"));
         withdrawnRoutes.add(Ip4Prefix.valueOf("90.0.0.0/32"));
+
         // Write the routes
         message = peer1.peerChannelHandler.prepareBgpUpdate(
                         NEXT_HOP1_ROUTER,

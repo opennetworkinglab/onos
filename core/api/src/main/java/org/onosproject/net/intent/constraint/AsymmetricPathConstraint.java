@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import com.google.common.annotations.Beta;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.intent.Constraint;
-import org.onosproject.net.resource.link.LinkResourceService;
+import org.onosproject.net.intent.ResourceContext;
 
 import java.util.Objects;
 
@@ -31,13 +31,15 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 @Beta
 public class AsymmetricPathConstraint implements Constraint {
 
+    // doesn't use LinkResourceService
     @Override
-    public double cost(Link link, LinkResourceService resourceService) {
+    public double cost(Link link, ResourceContext context) {
         return 1;
     }
 
+    // doesn't use LinkResourceService
     @Override
-    public boolean validate(Path path, LinkResourceService resourceService) {
+    public boolean validate(Path path, ResourceContext context) {
         return true;
     }
 

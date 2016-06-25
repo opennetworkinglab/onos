@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -24,12 +24,14 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
+import org.onosproject.net.LinkKey;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -46,26 +48,31 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.MplsPathIntent;
-import org.onosproject.net.link.LinkStore;
-import org.onosproject.net.resource.link.DefaultLinkResourceRequest;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
-import org.onosproject.net.resource.link.LinkResourceRequest;
-import org.onosproject.net.resource.link.LinkResourceService;
-import org.onosproject.net.resource.link.MplsLabel;
-import org.onosproject.net.resource.link.MplsLabelResourceAllocation;
+import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceAllocation;
-import org.onosproject.net.resource.ResourceType;
+import org.onosproject.net.resource.ResourceService;
+import org.onosproject.net.resource.Resources;
 import org.slf4j.Logger;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.LinkKey.linkKey;
 import static org.slf4j.LoggerFactory.getLogger;
 
+/**
+ * @deprecated in Goldeneye Release, in favour of encapsulation
+ * constraint {@link org.onosproject.net.intent.constraint.EncapsulationConstraint}
+ */
+@Deprecated
 @Component(immediate = true)
 public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
 
@@ -78,18 +85,14 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LinkResourceService resourceService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LinkStore linkStore;
+    protected ResourceService resourceService;
 
     protected ApplicationId appId;
 
     @Override
-    public List<Intent> compile(MplsPathIntent intent, List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
-        LinkResourceAllocations allocations = assignMplsLabel(intent);
-        List<FlowRule> rules = generateRules(intent, allocations);
+    public List<Intent> compile(MplsPathIntent intent, List<Intent> installable) {
+        Map<LinkKey, MplsLabel> labels = assignMplsLabel(intent);
+        List<FlowRule> rules = generateRules(intent, labels);
 
         return Collections.singletonList(new FlowRuleIntent(appId, rules, intent.resources()));
     }
@@ -105,39 +108,69 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
         intentExtensionService.unregisterCompiler(MplsPathIntent.class);
     }
 
-    private LinkResourceAllocations assignMplsLabel(MplsPathIntent intent) {
+    private Map<LinkKey, MplsLabel> assignMplsLabel(MplsPathIntent intent) {
         // TODO: do it better... Suggestions?
-        Set<Link> linkRequest = Sets.newHashSetWithExpectedSize(intent.path()
+        Set<LinkKey> linkRequest = Sets.newHashSetWithExpectedSize(intent.path()
                 .links().size() - 2);
         for (int i = 1; i <= intent.path().links().size() - 2; i++) {
-            Link link = intent.path().links().get(i);
+            LinkKey link = linkKey(intent.path().links().get(i));
             linkRequest.add(link);
             // add the inverse link. I want that the label is reserved both for
             // the direct and inverse link
-            linkRequest.add(linkStore.getLink(link.dst(), link.src()));
+            linkRequest.add(linkKey(link.dst(), link.src()));
         }
 
-        LinkResourceRequest.Builder request = DefaultLinkResourceRequest
-                .builder(intent.id(), linkRequest).addMplsRequest();
-        LinkResourceAllocations reqMpls = resourceService
-                .requestResources(request.build());
-        return reqMpls;
+        Map<LinkKey, MplsLabel> labels = findMplsLabels(linkRequest);
+        if (labels.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        // for short term solution: same label is used for both directions
+        // TODO: introduce the concept of Tx and Rx resources of a port
+        Set<Resource> resources = labels.entrySet().stream()
+                .flatMap(x -> Stream.of(
+                        Resources.discrete(x.getKey().src().deviceId(), x.getKey().src().port(), x.getValue())
+                                .resource(),
+                        Resources.discrete(x.getKey().dst().deviceId(), x.getKey().dst().port(), x.getValue())
+                                .resource()
+                ))
+                .collect(Collectors.toSet());
+        List<ResourceAllocation> allocations =
+                resourceService.allocate(intent.id(), ImmutableList.copyOf(resources));
+        if (allocations.isEmpty()) {
+            Collections.emptyMap();
+        }
+
+        return labels;
     }
 
-    private MplsLabel getMplsLabel(LinkResourceAllocations allocations, Link link) {
-        for (ResourceAllocation allocation : allocations
-                .getResourceAllocation(link)) {
-            if (allocation.type() == ResourceType.MPLS_LABEL) {
-                return ((MplsLabelResourceAllocation) allocation).mplsLabel();
-
+    private Map<LinkKey, MplsLabel> findMplsLabels(Set<LinkKey> links) {
+        Map<LinkKey, MplsLabel> labels = new HashMap<>();
+        for (LinkKey link : links) {
+            Set<MplsLabel> forward = findMplsLabel(link.src());
+            Set<MplsLabel> backward = findMplsLabel(link.dst());
+            Set<MplsLabel> common = Sets.intersection(forward, backward);
+            if (common.isEmpty()) {
+                continue;
             }
+            labels.put(link, common.iterator().next());
         }
-        log.warn("MPLS label was not assigned successfully");
-        return null;
+
+        return labels;
+    }
+
+    private Set<MplsLabel> findMplsLabel(ConnectPoint cp) {
+        return resourceService.getAvailableResourceValues(
+                Resources.discrete(cp.deviceId(), cp.port()).id(),
+                MplsLabel.class);
+    }
+
+    private MplsLabel getMplsLabel(Map<LinkKey, MplsLabel> labels, LinkKey link) {
+        return labels.get(link);
     }
 
     private List<FlowRule> generateRules(MplsPathIntent intent,
-                                         LinkResourceAllocations allocations) {
+                                         Map<LinkKey, MplsLabel> labels) {
 
         Iterator<Link> links = intent.path().links().iterator();
         Link srcLink = links.next();
@@ -149,7 +182,7 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
 
         // Ingress traffic
         // Get the new MPLS label
-        MplsLabel mpls = getMplsLabel(allocations, link);
+        MplsLabel mpls = getMplsLabel(labels, linkKey(link));
         checkNotNull(mpls);
         MplsLabel prevLabel = mpls;
         rules.add(ingressFlow(prev.port(), link, intent, mpls));
@@ -163,7 +196,7 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
             if (links.hasNext()) {
                 // Transit traffic
                 // Get the new MPLS label
-                mpls = getMplsLabel(allocations, link);
+                mpls = getMplsLabel(labels, linkKey(link));
                 checkNotNull(mpls);
                 rules.add(transitFlow(prev.port(), link, intent,
                         prevLabel, mpls));
@@ -181,7 +214,8 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
     }
 
     private FlowRule ingressFlow(PortNumber inPort, Link link,
-                                 MplsPathIntent intent, MplsLabel label) {
+                                 MplsPathIntent intent,
+                                 MplsLabel label) {
 
         TrafficSelector.Builder ingressSelector = DefaultTrafficSelector
                 .builder(intent.selector());
@@ -193,10 +227,10 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
                     .matchMplsLabel(intent.ingressLabel().get());
 
             // Swap the MPLS label
-            treat.setMpls(label.label());
+            treat.setMpls(label);
         } else {
             // Push and set the MPLS label
-            treat.pushMpls().setMpls(label.label());
+            treat.pushMpls().setMpls(label);
         }
         // Add the output action
         treat.setOutput(link.src().port());
@@ -205,21 +239,21 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
     }
 
     private FlowRule transitFlow(PortNumber inPort, Link link,
-                                          MplsPathIntent intent,
-                                          MplsLabel prevLabel,
-                                          MplsLabel outLabel) {
+                                 MplsPathIntent intent,
+                                 MplsLabel prevLabel,
+                                 MplsLabel outLabel) {
 
         // Ignore the ingress Traffic Selector and use only the MPLS label
         // assigned in the previous link
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         selector.matchInPort(inPort).matchEthType(Ethernet.MPLS_UNICAST)
-                .matchMplsLabel(prevLabel.label());
+                .matchMplsLabel(prevLabel);
         TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder();
 
         // Set the new label only if the label on the packet is
         // different
         if (!prevLabel.equals(outLabel)) {
-            treat.setMpls(outLabel.label());
+            treat.setMpls(outLabel);
         }
 
         treat.setOutput(link.src().port());
@@ -227,14 +261,14 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
     }
 
     private FlowRule egressFlow(PortNumber inPort, Link link,
-                                         MplsPathIntent intent,
-                                         MplsLabel prevLabel) {
+                                MplsPathIntent intent,
+                                MplsLabel prevLabel) {
         // egress point: either set the egress MPLS label or pop the
         // MPLS label based on the intent annotations
 
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         selector.matchInPort(inPort).matchEthType(Ethernet.MPLS_UNICAST)
-                .matchMplsLabel(prevLabel.label());
+                .matchMplsLabel(prevLabel);
 
         // apply the intent's treatments
         TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder(intent

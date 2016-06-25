@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,118 +15,37 @@
  */
 package org.onosproject.store.service;
 
-import org.onosproject.core.ApplicationId;
+import org.onosproject.store.primitives.DistributedPrimitiveBuilder;
 
 /**
  * Builder for distributed set.
  *
  * @param <E> type set elements.
  */
-public interface DistributedSetBuilder<E> {
+public abstract class DistributedSetBuilder<E> extends DistributedPrimitiveBuilder<DistributedSetBuilder<E>,
+                                                                                   AsyncDistributedSet<E>> {
+
+    private boolean purgeOnUninstall = false;
+
+    public DistributedSetBuilder() {
+        super(DistributedPrimitive.Type.SET);
+    }
 
     /**
-     * Sets the name of the set.
-     * <p>
-     * Each set is identified by a unique name.
-     * </p>
-     * <p>
-     * Note: This is a mandatory parameter.
-     * </p>
+     * Enables clearing set contents when the owning application is uninstalled.
      *
-     * @param name name of the set
-     * @return this DistributedSetBuilder
+     * @return this builder
      */
-    DistributedSetBuilder<E> withName(String name);
+    public DistributedSetBuilder<E> withPurgeOnUninstall() {
+        purgeOnUninstall = true;
+        return this;
+    }
 
     /**
-     * Sets the owner applicationId for the set.
-     * <p>
-     * Note: If {@code purgeOnUninstall} option is enabled, applicationId
-     * must be specified.
-     * </p>
-     *
-     * @param id applicationId owning the set
-     * @return this DistributedSetBuilder
+     * Returns if set contents need to be cleared when owning application is uninstalled.
+     * @return {@code true} if yes; {@code false} otherwise.
      */
-    DistributedSetBuilder<E> withApplicationId(ApplicationId id);
-
-    /**
-     * Sets a serializer that can be used to serialize
-     * the elements add to the set. The serializer
-     * builder should be pre-populated with any classes that will be
-     * put into the set.
-     * <p>
-     * Note: This is a mandatory parameter.
-     * </p>
-     *
-     * @param serializer serializer
-     * @return this DistributedSetBuilder
-     */
-    DistributedSetBuilder<E> withSerializer(Serializer serializer);
-
-    /**
-     * Disables set updates.
-     * <p>
-     * Attempt to update the built set will throw {@code UnsupportedOperationException}.
-     *
-     * @return this DistributedSetBuilder
-     */
-    DistributedSetBuilder<E> withUpdatesDisabled();
-
-    /**
-     * Provides weak consistency for set reads.
-     * <p>
-     * While this can lead to improved read performance, it can also make the behavior
-     * heard to reason. Only turn this on if you know what you are doing. By default
-     * reads are strongly consistent.
-     *
-     * @return this DistributedSetBuilder
-     */
-    DistributedSetBuilder<E> withRelaxedReadConsistency();
-
-    /**
-     * Disables distribution of set entries across multiple database partitions.
-     * <p>
-     * When partitioning is disabled, the returned set will have a single partition
-     * that spans the entire cluster. Furthermore, the changes made to the set are
-     * ephemeral and do not survive a full cluster restart.
-     * </p>
-     * <p>
-     * Disabling partitions is more appropriate when the returned set is used for
-     * simple coordination activities and not for long term data persistence.
-     * </p>
-     * <p>
-     * Note: By default partitions are enabled and entries in the set are durable.
-     * </p>
-     * @return this DistributedSetBuilder
-     */
-    DistributedSetBuilder<E> withPartitionsDisabled();
-
-    /**
-     * Instantiate Metrics service to gather usage and performance metrics.
-     * By default usage information is enabled
-     * @return this DistributedSetBuilder
-     */
-    DistributedSetBuilder<E> withMeteringDisabled();
-
-    /**
-     * Purges set contents when the application owning the set is uninstalled.
-     * <p>
-     * When this option is enabled, the caller must provide a applicationId via
-     * the {@code withAppliationId} builder method.
-     * <p>
-     * By default set contents will NOT be purged when owning application is uninstalled.
-     *
-     * @return this DistributedSetBuilder
-     */
-    DistributedSetBuilder<E> withPurgeOnUninstall();
-
-    /**
-     * Builds an set based on the configuration options
-     * supplied to this builder.
-     *
-     * @return new set
-     * @throws java.lang.RuntimeException if a mandatory parameter is missing
-     */
-    DistributedSet<E> build();
+    public boolean purgeOnUninstall() {
+        return purgeOnUninstall;
+    }
 }

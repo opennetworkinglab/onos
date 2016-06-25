@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,15 +29,25 @@ public class AppPermission extends BasicPermission {
     public enum Type {
         APP_READ,
         APP_EVENT,
+        APP_WRITE,
         CONFIG_READ,
         CONFIG_WRITE,
+        CONFIG_EVENT,
         CLUSTER_READ,
         CLUSTER_WRITE,
         CLUSTER_EVENT,
+        CODEC_READ,
+        CODEC_WRITE,
+        CLOCK_WRITE,
+        DEVICE_KEY_EVENT,
+        DEVICE_KEY_READ,
+        DEVICE_KEY_WRITE,
         DEVICE_READ,
         DEVICE_EVENT,
         DRIVER_READ,
         DRIVER_WRITE,
+        EVENT_READ,
+        EVENT_WRITE,
         FLOWRULE_READ,
         FLOWRULE_WRITE,
         FLOWRULE_EVENT,
@@ -53,16 +63,26 @@ public class AppPermission extends BasicPermission {
         LINK_READ,
         LINK_WRITE,
         LINK_EVENT,
+        MUTEX_WRITE,
         PACKET_READ,
         PACKET_WRITE,
         PACKET_EVENT,
+        PERSISTENCE_WRITE,
+        PARTITION_READ,
+        PARTITION_EVENT,
+        RESOURCE_READ,
+        RESOURCE_WRITE,
+        RESOURCE_EVENT,
+        REGION_READ,
         STATISTIC_READ,
+        STORAGE_WRITE,
         TOPOLOGY_READ,
         TOPOLOGY_EVENT,
         TUNNEL_READ,
         TUNNEL_WRITE,
         TUNNEL_EVENT,
-        STORAGE_WRITE
+        UI_READ,
+        UI_WRITE
     }
 
     protected Type type;

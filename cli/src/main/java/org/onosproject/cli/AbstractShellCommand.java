@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,9 @@ import org.onosproject.net.Annotations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Base abstraction of Karaf shell commands.
@@ -89,6 +92,24 @@ public abstract class AbstractShellCommand extends AbstractAction implements Cod
     public static String annotations(Annotations annotations) {
         StringBuilder sb = new StringBuilder();
         for (String key : annotations.keys()) {
+            sb.append(", ").append(key).append('=').append(annotations.value(key));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Produces a string image of the specified key/value annotations.
+     * Excludes the keys in the given Set.
+     *
+     * @param annotations  key/value annotations
+     * @param excludedKeys keys not to add in the resulting string
+     * @return string image with ", k1=v1, k2=v2, ..." pairs
+     */
+    public static String annotations(Annotations annotations, Set<String> excludedKeys) {
+        StringBuilder sb = new StringBuilder();
+        Set<String> keys = new TreeSet<>(annotations.keys());
+        keys.removeAll(excludedKeys);
+        for (String key : keys) {
             sb.append(", ").append(key).append('=').append(annotations.value(key));
         }
         return sb.toString();

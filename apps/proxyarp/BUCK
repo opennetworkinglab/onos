@@ -1,0 +1,14 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+]
+
+osgi_jar (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'Proxy ARP/NDP App',
+    category = 'Traffic Steering',
+    url = 'http://onosproject.org',
+    description = 'Proxy ARP/NDP application.',
+)

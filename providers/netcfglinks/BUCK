@@ -1,0 +1,27 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//providers/lldpcommon:onos-providers-lldpcommon',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+]
+
+BUNDLES = [
+    '//providers/lldpcommon:onos-providers-lldpcommon',
+    '//providers/netcfglinks:onos-providers-netcfglinks',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
+
+onos_app (
+    app_name = 'org.onosproject.netcfglinksprovider',
+    title = 'Network Config Link Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    description = 'Links provider that uses network config service to predefine devices and links.',
+    included_bundles = BUNDLES,
+)

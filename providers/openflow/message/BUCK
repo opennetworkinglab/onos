@@ -1,0 +1,23 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:openflowj',
+    '//protocols/openflow/api:onos-protocols-openflow-api',
+    '//apps/cpman/api:onos-apps-cpman-api',
+]
+
+BUNDLES = [
+    '//apps/cpman/api:onos-apps-cpman-api',
+    ':onos-providers-openflow-message',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'Control Message Stats Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    description = 'ONOS OpenFlow control message provider.',
+    included_bundles = BUNDLES,
+)

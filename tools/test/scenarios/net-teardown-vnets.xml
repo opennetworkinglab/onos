@@ -1,0 +1,59 @@
+<!--
+  ~  Copyright 2016-present Open Networking Laboratory
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+<scenario name="net-teardown-vnets" description="Network (vnets) teardown steps">
+    <group name="Net-Teardown-Vnets">
+
+        <step name="Check-NetworkId-Variable-Exists" 
+              exec="test '${networkId}' != ''"/>
+
+        <step name="Check-Vnet-Link" requires="^"
+              exec="onos ${OCI} vnet-links ${networkId}"/>
+
+        <step name="Remove-Bidirectional-Link" requires="^"
+              exec="onos -f ${OCI} vnet-remove-link --bidirectional ${networkId} device2 2 device1 1"/>
+
+        <step name="Check-intents-removed" requires="^"
+              exec="onos-check-intent ${OCI} networkId=${networkId} IGNORE_STATE 0"/>
+
+        <step name="Ping-hosts-2" requires="^"
+              exec="onos-mininet sendAndExpect h4 ping -c1 h9 --expect \ 100% packet loss"/>
+
+        <step name="Remove-Port-2" requires="^"
+              exec="onos ${OCI} vnet-remove-port ${networkId} device2 2"/>
+
+        <step name="Remove-Port-1" requires="^"
+              exec="onos ${OCI} vnet-remove-port ${networkId} device1 1"/>
+
+        <step name="Remove-Device-2" requires="^"
+              exec="onos ${OCI} vnet-remove-device ${networkId} device2"/>
+
+        <step name="Remove-Device-1" requires="^"
+              exec="onos ${OCI} vnet-remove-device ${networkId} device1"/>
+
+        <step name="Remove-Vnet" requires="^"
+              exec="onos ${OCI} vnet-remove ${networkId}"/>
+
+        <step name="Check-TenantId-Variable-Exists" requires="^" 
+              exec="test '${tenantId}' != ''"/>
+
+        <step name="Remove-Tenant" requires="Check-TenantId-Variable-Exists"
+              exec="onos ${OCI} vnet-remove-tenant ${tenantId}"/>
+
+        <step name="Enable-FwdApp" requires="^" if="echo $ONOS_APPS | grep -w fwd"
+              exec="onos ${OCI} onos:app activate org.onosproject.fwd"/>
+
+    </group>
+</scenario>

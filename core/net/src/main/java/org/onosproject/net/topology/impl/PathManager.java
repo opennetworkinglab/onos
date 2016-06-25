@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,11 +134,13 @@ public class PathManager implements PathService {
 
     @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst) {
+        checkPermission(TOPOLOGY_READ);
         return getDisjointPaths(src, dst, (LinkWeight) null);
     }
 
     @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeight weight) {
+        checkPermission(TOPOLOGY_READ);
         checkNotNull(src, ELEMENT_ID_NULL);
         checkNotNull(dst, ELEMENT_ID_NULL);
 
@@ -173,12 +175,14 @@ public class PathManager implements PathService {
     @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst,
                                               Map<Link, Object> riskProfile) {
+        checkPermission(TOPOLOGY_READ);
         return getDisjointPaths(src, dst, null, riskProfile);
     }
 
     @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeight weight,
                                               Map<Link, Object> riskProfile) {
+        checkPermission(TOPOLOGY_READ);
         checkNotNull(src, ELEMENT_ID_NULL);
         checkNotNull(dst, ELEMENT_ID_NULL);
 
@@ -261,24 +265,35 @@ public class PathManager implements PathService {
     // Produces a direct edge-to-edge path.
     private Path edgeToEdgePath(EdgeLink srcLink, EdgeLink dstLink, Path path) {
         List<Link> links = Lists.newArrayListWithCapacity(2);
+        double cost = 0;
+
         // Add source and destination edge links only if they are real and
         // add the infrastructure path only if it is not null.
         if (srcLink != NOT_HOST) {
             links.add(srcLink);
+            cost++;
         }
         if (path != null) {
             links.addAll(path.links());
+            cost += path.cost();
         }
         if (dstLink != NOT_HOST) {
             links.add(dstLink);
+            cost++;
         }
-        return new DefaultPath(PID, links, 2);
+        return new DefaultPath(PID, links, cost);
     }
 
     // Produces a direct edge-to-edge path.
     private DisjointPath edgeToEdgePathD(EdgeLink srcLink, EdgeLink dstLink, DisjointPath path) {
-        return new DefaultDisjointPath(PID, (DefaultPath) edgeToEdgePath(srcLink, dstLink, path.primary()),
-                                       (DefaultPath) edgeToEdgePath(srcLink, dstLink, path.backup()));
+        Path primary = null;
+        Path backup = null;
+        if (path != null) {
+            primary = path.primary();
+            backup = path.backup();
+        }
+        return new DefaultDisjointPath(PID, (DefaultPath) edgeToEdgePath(srcLink, dstLink, primary),
+                                       (DefaultPath) edgeToEdgePath(srcLink, dstLink, backup));
     }
 
 

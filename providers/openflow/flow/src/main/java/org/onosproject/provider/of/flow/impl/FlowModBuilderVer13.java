@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,40 +19,57 @@ import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.driver.DefaultDriverData;
+import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.Instructions.GroupInstruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
+import org.onosproject.net.flow.instructions.Instructions.SetQueueInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
-import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModOchSignalInstruction;
+import org.onosproject.net.flow.instructions.L1ModificationInstruction;
+import org.onosproject.net.flow.instructions.L1ModificationInstruction.ModOduSignalIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsBosInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsHeaderInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModTunnelIdInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanHeaderInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.PushHeaderInstructions;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModTunnelIdInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpEthInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpIPInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpOpInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransportPortInstruction;
+import org.onosproject.openflow.controller.ExtensionTreatmentInterpreter;
+import org.onosproject.provider.of.flow.util.NoMappingFoundException;
+import org.onosproject.provider.of.flow.util.OpenFlowValueMapper;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
-import org.projectfloodlight.openflow.protocol.OFFlowDelete;
+import org.projectfloodlight.openflow.protocol.OFFlowDeleteStrict;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowModFlags;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionGroup;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
+import org.projectfloodlight.openflow.protocol.action.OFActionSetQueue;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
+import org.projectfloodlight.openflow.types.ArpOpcode;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.EthType;
 import org.projectfloodlight.openflow.types.IPv4Address;
@@ -64,6 +81,7 @@ import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
+import org.projectfloodlight.openflow.types.OduSignalID;
 import org.projectfloodlight.openflow.types.TableId;
 import org.projectfloodlight.openflow.types.TransportPort;
 import org.projectfloodlight.openflow.types.U32;
@@ -93,15 +111,17 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
      * @param flowRule the flow rule to transform into a flow mod
      * @param factory the OpenFlow factory to use to build the flow mod
      * @param xid the transaction ID
+     * @param driverService the device driver service
      */
-    protected FlowModBuilderVer13(FlowRule flowRule, OFFactory factory, Optional<Long> xid) {
-        super(flowRule, factory, xid);
+    protected FlowModBuilderVer13(FlowRule flowRule, OFFactory factory, Optional<Long> xid,
+                                  Optional<DriverService> driverService) {
+        super(flowRule, factory, xid, driverService);
 
         this.treatment = flowRule.treatment();
     }
 
     @Override
-    public OFFlowAdd buildFlowAdd() {
+    public OFFlowMod buildFlowAdd() {
         Match match = buildMatch();
         List<OFAction> deferredActions = buildActions(treatment.deferred());
         List<OFAction> immediateActions = buildActions(treatment.immediate());
@@ -122,6 +142,9 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         }
         if (treatment.writeMetadata() != null) {
             instructions.add(buildMetadata(treatment.writeMetadata()));
+        }
+        if (treatment.metered() != null) {
+            instructions.add(buildMeter(treatment.metered()));
         }
 
         long cookie = flowRule().id().value();
@@ -184,12 +207,12 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
     }
 
     @Override
-    public OFFlowDelete buildFlowDel() {
+    public OFFlowMod buildFlowDel() {
         Match match = buildMatch();
 
         long cookie = flowRule().id().value();
 
-        OFFlowDelete fm = factory().buildFlowDelete()
+        OFFlowDeleteStrict fm = factory().buildFlowDeleteStrict()
                 .setXid(xid)
                 .setCookie(U64.of(cookie))
                 .setBufferId(OFBufferId.NO_BUFFER)
@@ -211,10 +234,13 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         List<OFAction> actions = new LinkedList<>();
         for (Instruction i : treatments) {
             switch (i.type()) {
-                case DROP:
+                case NOACTION:
                     return Collections.emptyList();
                 case L0MODIFICATION:
                     actions.add(buildL0Modification(i));
+                    break;
+                case L1MODIFICATION:
+                    actions.add(buildL1Modification(i));
                     break;
                 case L2MODIFICATION:
                     actions.add(buildL2Modification(i));
@@ -240,9 +266,19 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                             .setGroup(OFGroup.of(group.groupId().id()));
                     actions.add(groupBuilder.build());
                     break;
+                case QUEUE:
+                    SetQueueInstruction queue = (SetQueueInstruction) i;
+                    OFActionSetQueue.Builder queueBuilder = factory().actions().buildSetQueue()
+                            .setQueueId(queue.queueId());
+                    actions.add(queueBuilder.build());
+                    break;
                 case TABLE:
                     //FIXME: should not occur here.
                     tableFound = true;
+                    break;
+                case EXTENSION:
+                    actions.add(buildExtensionAction(((Instructions.ExtensionInstructionWrapper) i)
+                            .extensionInstruction()));
                     break;
                 default:
                     log.warn("Instruction type {} not yet implemented.", i.type());
@@ -275,26 +311,30 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
 
     private OFAction buildL0Modification(Instruction i) {
         L0ModificationInstruction l0m = (L0ModificationInstruction) i;
+        OFOxm<?> oxm = null;
         switch (l0m.subtype()) {
-            case LAMBDA:
-                return buildModLambdaInstruction((ModLambdaInstruction) i);
             case OCH:
                 try {
-                    return buildModOchSignalInstruction((ModOchSignalInstruction) i);
+                    ModOchSignalInstruction modOchSignalInstruction = (ModOchSignalInstruction) l0m;
+                    OchSignal signal = modOchSignalInstruction.lambda();
+                    byte gridType = OpenFlowValueMapper.lookupGridType(signal.gridType());
+                    byte channelSpacing = OpenFlowValueMapper.lookupChannelSpacing(signal.channelSpacing());
+                    oxm = factory().oxms().expOchSigId(
+                            new CircuitSignalID(gridType, channelSpacing,
+                                    (short) signal.spacingMultiplier(), (short) signal.slotGranularity()));
                 } catch (NoMappingFoundException e) {
                     log.warn(e.getMessage());
                     break;
                 }
+                break;
             default:
                 log.warn("Unimplemented action type {}.", l0m.subtype());
                 break;
         }
+        if (oxm != null) {
+            return factory().actions().buildSetField().setField(oxm).build();
+        }
         return null;
-    }
-
-    private OFAction buildModLambdaInstruction(ModLambdaInstruction instruction) {
-        return factory().actions().circuit(factory().oxms().ochSigidBasic(
-                new CircuitSignalID((byte) 1, (byte) 2, instruction.lambda(), (short) 1)));
     }
 
     private OFAction buildModOchSignalInstruction(ModOchSignalInstruction instruction) {
@@ -302,10 +342,35 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         byte gridType = OpenFlowValueMapper.lookupGridType(signal.gridType());
         byte channelSpacing = OpenFlowValueMapper.lookupChannelSpacing(signal.channelSpacing());
 
-        return factory().actions().circuit(factory().oxms().ochSigidBasic(
+        return factory().actions().circuit(factory().oxms().expOchSigId(
                 new CircuitSignalID(gridType, channelSpacing,
                         (short) signal.spacingMultiplier(), (short) signal.slotGranularity())
         ));
+    }
+
+    private OFAction buildL1Modification(Instruction i) {
+        L1ModificationInstruction l1m = (L1ModificationInstruction) i;
+        OFOxm<?> oxm = null;
+        switch (l1m.subtype()) {
+        case ODU_SIGID:
+            ModOduSignalIdInstruction modOduSignalIdInstruction = (ModOduSignalIdInstruction) l1m;
+            OduSignalId oduSignalId = modOduSignalIdInstruction.oduSignalId();
+
+            OduSignalID oduSignalID = new OduSignalID((short) oduSignalId.tributaryPortNumber(),
+                    (short) oduSignalId.tributarySlotLength(),
+                    oduSignalId.tributarySlotBitmap());
+
+            oxm = factory().oxms().expOduSigId(oduSignalID);
+            break;
+        default:
+            log.warn("Unimplemented action type {}.", l1m.subtype());
+            break;
+        }
+
+        if (oxm != null) {
+            return factory().actions().buildSetField().setField(oxm).build();
+        }
+        return null;
     }
 
     private OFAction buildL2Modification(Instruction i) {
@@ -330,19 +395,19 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 oxm = factory().oxms().vlanPcp(VlanPcp.of(vlanPcp.vlanPcp()));
                 break;
             case MPLS_PUSH:
-                PushHeaderInstructions pushHeaderInstructions =
-                        (PushHeaderInstructions) l2m;
+                ModMplsHeaderInstruction pushHeaderInstructions =
+                        (ModMplsHeaderInstruction) l2m;
                 return factory().actions().pushMpls(EthType.of(pushHeaderInstructions
                                                                .ethernetType().toShort()));
             case MPLS_POP:
-                PushHeaderInstructions popHeaderInstructions =
-                        (PushHeaderInstructions) l2m;
+                ModMplsHeaderInstruction popHeaderInstructions =
+                        (ModMplsHeaderInstruction) l2m;
                 return factory().actions().popMpls(EthType.of(popHeaderInstructions
                                                               .ethernetType().toShort()));
             case MPLS_LABEL:
                 ModMplsLabelInstruction mplsLabel =
                         (ModMplsLabelInstruction) l2m;
-                oxm = factory().oxms().mplsLabel(U32.of(mplsLabel.mplsLabel().toInt()));
+                oxm = factory().oxms().mplsLabel(U32.of(mplsLabel.label().toInt()));
                 break;
             case MPLS_BOS:
                 ModMplsBosInstruction mplsBos = (ModMplsBosInstruction) l2m;
@@ -355,7 +420,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
             case VLAN_POP:
                 return factory().actions().popVlan();
             case VLAN_PUSH:
-                PushHeaderInstructions pushVlanInstruction = (PushHeaderInstructions) l2m;
+                ModVlanHeaderInstruction pushVlanInstruction = (ModVlanHeaderInstruction) l2m;
                 return factory().actions().pushVlan(
                         EthType.of(pushVlanInstruction.ethernetType().toShort()));
             case TUNNEL_ID:
@@ -406,6 +471,19 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 int flowLabel = flowLabelInstruction.flowLabel();
                 oxm = factory().oxms().ipv6Flabel(IPv6FlowLabel.of(flowLabel));
                 break;
+            case ARP_SPA:
+                ModArpIPInstruction aip = (ModArpIPInstruction) i;
+                ip4 = aip.ip().getIp4Address();
+                oxm = factory().oxms().arpSpa(IPv4Address.of(ip4.toInt()));
+                break;
+            case ARP_SHA:
+                ModArpEthInstruction ei = (ModArpEthInstruction) i;
+                oxm = factory().oxms().arpSha(MacAddress.of(ei.mac().toLong()));
+                break;
+            case ARP_OP:
+                ModArpOpInstruction oi = (ModArpOpInstruction) i;
+                oxm = factory().oxms().arpOp(ArpOpcode.of((int) oi.op()));
+                break;
             case DEC_TTL:
                 return factory().actions().decNwTtl();
             case TTL_IN:
@@ -452,6 +530,22 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         if (oxm != null) {
             return factory().actions().buildSetField().setField(oxm).build();
         }
+        return null;
+    }
+
+    private OFAction buildExtensionAction(ExtensionTreatment i) {
+        if (!driverService.isPresent()) {
+            log.error("No driver service present");
+            return null;
+        }
+        Driver driver = driverService.get().getDriver(deviceId);
+        if (driver.hasBehaviour(ExtensionTreatmentInterpreter.class)) {
+            DefaultDriverHandler handler =
+                    new DefaultDriverHandler(new DefaultDriverData(driver, deviceId));
+            ExtensionTreatmentInterpreter interpreter = handler.behaviour(ExtensionTreatmentInterpreter.class);
+            return interpreter.mapInstruction(factory(), i);
+        }
+
         return null;
     }
 

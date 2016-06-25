@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,13 @@ public interface TransactionalMap<K, V> {
      * this map contains no mapping for the key
      */
     V get(K key);
+
+    /**
+     * Returns true if this map contains a mapping for the specified key.
+     * @param key key whose presence in this map to be tested
+     * @return true if this map contains a mapping for the specified key
+     */
+    boolean containsKey(K key);
 
     /**
      * Associates the specified value with the specified key in this map (optional operation).

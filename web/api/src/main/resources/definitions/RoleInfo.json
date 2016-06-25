@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "title": "roleInfo",
+  "required": [
+    "master",
+    "backups"
+  ],
+  "properties": {
+    "master": {
+      "type": "string",
+      "example": "1"
+    },
+    "backups": {
+      "type": "array",
+      "xml": {
+        "name": "backups",
+        "wrapped": true
+      },
+      "items": {
+        "type": "string",
+        "example": "1"
+      }
+    }
+  }
+}

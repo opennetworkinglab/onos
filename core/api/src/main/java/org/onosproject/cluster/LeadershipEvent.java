@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,30 +27,25 @@ import com.google.common.base.MoreObjects;
 public class LeadershipEvent extends AbstractEvent<LeadershipEvent.Type, Leadership> {
 
     /**
-     * Type of leadership-related events.
+     * Type of leadership events.
      */
     public enum Type {
         /**
-         * Signifies that the leader has been elected. The event subject is the
-         * new leader.
+         * Signifies a change in both the leader as well as change to the list of candidates. Keep in mind though that
+         * the first node entering the race will trigger this event as it will become a candidate and automatically get
+         * promoted to become leader.
          */
-        LEADER_ELECTED,
+        LEADER_AND_CANDIDATES_CHANGED,
 
         /**
-         * Signifies that the leader has been re-elected. The event subject is the
-         * leader.
+         * Signifies that the leader for a topic has changed.
          */
-        LEADER_REELECTED,
+        // TODO: We may not need this. We currently do not support a way for a current leader to step down
+        // while still reamining a candidate
+        LEADER_CHANGED,
 
         /**
-         * Signifies that the leader has been booted and lost leadership. The
-         * event subject is the former leader.
-         */
-        LEADER_BOOTED,
-
-        /**
-         * Signifies that the list of candidates for leadership for a topic has
-         * changed. This event does not guarantee accurate leader information.
+         * Signifies a change in the list of candidates for a topic.
          */
         CANDIDATES_CHANGED
     }

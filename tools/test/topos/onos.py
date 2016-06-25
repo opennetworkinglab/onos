@@ -36,7 +36,7 @@ class ONOS( Controller ):
         #self.checkListening()
 
         self.onosDir = onosDir
-        self.karafDir = onosDir + 'apache-karaf-3.0.3/'
+        self.karafDir = onosDir + 'apache-karaf-3.0.5/'
         self.instanceDir = self.karafDir
 
         # add default modules
@@ -62,7 +62,7 @@ class ONOS( Controller ):
    
     def start( self ):
         if self.inNamespace:
-            instanceOpts = ( '-furl mvn:org.onosproject/onos-features/1.4.0-SNAPSHOT/xml/features '
+            instanceOpts = ( '-furl mvn:org.onosproject/onos-features/1.7.0-SNAPSHOT/xml/features '
                              '-s 8101' )
             if self.ip is not None:
                 instanceOpts += (' -a %s' % self.IP() )

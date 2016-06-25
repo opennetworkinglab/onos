@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,12 @@ public interface Instruction {
      */
     enum Type {
         /**
-         * Signifies that the traffic should be dropped.
+         * Signifies that the traffic requires no action.
+         *
+         * In OF10, the behavior of NOACTION is DROP.
+         * In OF13, the behavior depends on current Action Set.
          */
-        DROP,
+        NOACTION,
 
         /**
          * Signifies that the traffic should be output to a port.
@@ -40,6 +43,12 @@ public interface Instruction {
         GROUP,
 
         /**
+         * Signifies that the traffic should be enqueued to an already-configured
+         queue on a port.
+         */
+        QUEUE,
+
+        /**
          * Signifies that traffic should be metered according to a meter.
          */
         METER,
@@ -48,6 +57,11 @@ public interface Instruction {
          * Signifies that the traffic should be modified in L0 way.
          */
         L0MODIFICATION,
+
+        /**
+         * Signifies that the traffic should be modified in L1 way.
+         */
+        L1MODIFICATION,
 
         /**
          * Signifies that the traffic should be modified in L2 way.
@@ -72,11 +86,17 @@ public interface Instruction {
         /**
          * Signifies that the traffic should be modified in L4 way.
          */
-        L4MODIFICATION
+        L4MODIFICATION,
+
+        /**
+         * Signifies that an extension instruction will be used.
+         */
+        EXTENSION
     }
 
     /**
      * Returns the type of instruction.
+     *
      * @return type of instruction
      */
     Type type();

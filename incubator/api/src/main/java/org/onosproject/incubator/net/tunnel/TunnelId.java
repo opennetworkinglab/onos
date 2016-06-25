@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,73 +17,41 @@
 package org.onosproject.incubator.net.tunnel;
 
 import com.google.common.annotations.Beta;
+import org.onlab.util.Identifier;
 
 /**
  * Representation of a Tunnel Id.
  */
 @Beta
-public final class TunnelId {
-    private final long value;
-
+public final class TunnelId extends Identifier<String> {
     /**
      * Creates an tunnel identifier from the specified tunnel.
      *
-     * @param value long value
+     * @param value string value
      * @return tunnel identifier
      */
-    public static TunnelId valueOf(long value) {
-        return new TunnelId(value);
-    }
-
     public static TunnelId valueOf(String value) {
-         return new TunnelId(Long.parseLong(value));
+        return new TunnelId(value);
     }
 
     /**
      * Constructor for serializer.
      */
     TunnelId() {
-        this.value = 0;
+        super("0");
     }
 
     /**
-     * Constructs the ID corresponding to a given long value.
+     * Constructs the ID corresponding to a given string value.
      *
      * @param value the underlying value of this ID
      */
-    TunnelId(long value) {
-        this.value = value;
-    }
-
-    /**
-     * Returns the backing value.
-     *
-     * @return the value
-     */
-    public long id() {
-        return value;
-    }
-
-    @Override
-    public int hashCode() {
-        return Long.hashCode(value);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (!(obj instanceof TunnelId)) {
-            return false;
-        }
-        TunnelId that = (TunnelId) obj;
-        return this.value == that.value;
+    TunnelId(String value) {
+        super(value);
     }
 
     @Override
     public String toString() {
-        return "0x" + Long.toHexString(value);
+        return id();
     }
-
 }

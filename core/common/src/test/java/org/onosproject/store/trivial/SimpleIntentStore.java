@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,14 +126,8 @@ public class SimpleIntentStore
                         pending.remove(newData.key());
                     }
                 }
-                notifyDelegateIfNotNull(IntentEvent.getEvent(newData));
+                IntentEvent.getEvent(newData).ifPresent(this::notifyDelegate);
             }
-        }
-    }
-
-    private void notifyDelegateIfNotNull(IntentEvent event) {
-        if (event != null) {
-            notifyDelegate(event);
         }
     }
 
@@ -162,7 +156,7 @@ public class SimpleIntentStore
     @Override
     public void addPending(IntentData data) {
         if (data.version() == null) { // recompiled intents will already have a version
-            data.setVersion(new SystemClockTimestamp());
+            data = new IntentData(data.intent(), data.state(), new SystemClockTimestamp());
         }
         synchronized (this) {
             IntentData existingData = pending.get(data.key());
@@ -174,7 +168,7 @@ public class SimpleIntentStore
                 pending.put(data.key(), data);
                 checkNotNull(delegate, "Store delegate is not set")
                         .process(new IntentData(data));
-                notifyDelegateIfNotNull(IntentEvent.getEvent(data));
+                IntentEvent.getEvent(data).ifPresent(this::notifyDelegate);
             } else {
                 log.debug("IntentData {} is older than existing: {}",
                           data, existingData);

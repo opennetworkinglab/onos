@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,20 +24,15 @@
     var $log, $window, fs, mast, is;
 
     // constants
-    var tableIconTdSize = 33,
+    var tableIconTdSize = 40,
         pdg = 22,
         flashTime = 1500,
         colWidth = 'col-width',
-        tableIcon = 'table-icon',
-        asc = 'asc',
-        desc = 'desc',
-        none = 'none';
+        tableIcon = 'table-icon';
 
     // internal state
-    var currCol = {},
-        prevCol = {},
-        cstmWidths = {},
-        sortIconAPI;
+    var cstmWidths = {},
+        api;
 
     // Functions for resizing a tabular view to the window
 
@@ -94,179 +89,208 @@
         }
     }
 
+    // sort columns state model and functions
+    var sortState = {
+        s: {
+            first: null,
+            second: null,
+            touched: null
+        },
+
+        reset: function () {
+            var s = sortState.s;
+            s.first && api.none(s.first.adiv);
+            s.second && api.none(s.second.adiv);
+            sortState.s = { first: null, second: null, touched: null };
+        },
+
+        touch: function (id, adiv) {
+            var s = sortState.s,
+                s1 = s.first,
+                d;
+
+            if (!s.touched) {
+                s.first = { id: id, dir: 'asc', adiv: adiv };
+                s.touched = id;
+            } else {
+                if (id === s.touched) {
+                    d = s1.dir === 'asc' ? 'desc' : 'asc';
+                    s1.dir = d;
+                    s1.adiv = adiv;
+
+                } else {
+                    s.second = s.first;
+                    s.first = { id: id, dir: 'asc', adiv: adiv };
+                    s.touched = id;
+                }
+            }
+        },
+
+        update: function () {
+            var s = sortState.s,
+                s1 = s.first,
+                s2 = s.second;
+            api[s1.dir](s1.adiv);
+            s2 && api.none(s2.adiv);
+        }
+    };
+
     // Functions for sorting table rows by header
 
     function updateSortDirection(thElem) {
-        sortIconAPI.sortNone(thElem.select('div'));
-        currCol.div = thElem.append('div');
-        currCol.colId = thElem.attr('colId');
+        var adiv = thElem.select('div'),
+            id = thElem.attr('colId');
 
-        if (currCol.colId === prevCol.colId) {
-            (currCol.dir === desc) ? currCol.dir = asc : currCol.dir = desc;
-            prevCol.dir = currCol.dir;
-        } else {
-            currCol.dir = asc;
-            prevCol.dir = none;
-        }
-        (currCol.dir === asc) ?
-            sortIconAPI.sortAsc(currCol.div) : sortIconAPI.sortDesc(currCol.div);
-
-        if (prevCol.colId && prevCol.dir === none) {
-            sortIconAPI.sortNone(prevCol.div);
-        }
-
-        prevCol.colId = currCol.colId;
-        prevCol.div = currCol.div;
+        api.none(adiv);
+        adiv = thElem.append('div');
+        sortState.touch(id, adiv);
+        sortState.update();
     }
 
     function sortRequestParams() {
+        var s = sortState.s,
+            s1 = s.first,
+            s2 = s.second,
+            id2 = s2 && s2.id,
+            dir2 = s2 && s2.dir;
         return {
-            sortCol: currCol.colId,
-            sortDir: currCol.dir
+            firstCol: s1.id,
+            firstDir: s1.dir,
+            secondCol: id2,
+            secondDir: dir2
         };
     }
 
-    function resetSort() {
-        if (currCol.div) {
-            sortIconAPI.sortNone(currCol.div);
-        }
-        if (prevCol.div) {
-            sortIconAPI.sortNone(prevCol.div);
-        }
-        currCol = {};
-        prevCol = {};
-    }
-
     angular.module('onosWidget')
-        .directive('onosTableResize', ['$log','$window',
-            'FnService', 'MastService',
+    .directive('onosTableResize', ['$log','$window', 'FnService', 'MastService',
 
-            function (_$log_, _$window_, _fs_, _mast_) {
-            return function (scope, element) {
-                $log = _$log_;
-                $window = _$window_;
-                fs = _fs_;
-                mast = _mast_;
+        function (_$log_, _$window_, _fs_, _mast_) {
+        return function (scope, element) {
+            $log = _$log_;
+            $window = _$window_;
+            fs = _fs_;
+            mast = _mast_;
 
-                var table = d3.select(element[0]),
-                    tableElems = {
-                        table: table,
-                        thead: table.select('.table-header').select('table'),
-                        tbody: table.select('.table-body').select('table')
-                    },
-                    wsz;
+            var table = d3.select(element[0]),
+                tableElems = {
+                    table: table,
+                    thead: table.select('.table-header').select('table'),
+                    tbody: table.select('.table-body').select('table')
+                },
+                wsz;
 
-                findCstmWidths(table);
+            findCstmWidths(table);
 
-                // adjust table on window resize
-                scope.$watchCollection(function () {
-                    return {
-                        h: $window.innerHeight,
-                        w: $window.innerWidth
-                    };
-                }, function () {
-                    wsz = fs.windowSize(0, 30);
-                    adjustTable(
-                        scope.tableData.length,
-                        tableElems,
-                        wsz.width, wsz.height
-                    );
-                });
+            // adjust table on window resize
+            scope.$watchCollection(function () {
+                return {
+                    h: $window.innerHeight,
+                    w: $window.innerWidth
+                };
+            }, function () {
+                wsz = fs.windowSize(0, 30);
+                adjustTable(
+                    scope.tableData.length,
+                    tableElems,
+                    wsz.width, wsz.height
+                );
+            });
 
-                // adjust table when data changes
-                scope.$watchCollection('tableData', function () {
-                    adjustTable(
-                        scope.tableData.length,
-                        tableElems,
-                        wsz.width, wsz.height
-                    );
-                });
+            // adjust table when data changes
+            scope.$watchCollection('tableData', function () {
+                adjustTable(
+                    scope.tableData.length,
+                    tableElems,
+                    wsz.width, wsz.height
+                );
+            });
 
-                scope.$on('$destroy', function () {
-                    cstmWidths = {};
-                });
-            };
-        }])
+            scope.$on('$destroy', function () {
+                cstmWidths = {};
+            });
+        };
+    }])
 
-        .directive('onosSortableHeader', ['$log', 'IconService',
-            function (_$log_, _is_) {
-            return function (scope, element) {
-                $log = _$log_;
-                is = _is_;
-                var header = d3.select(element[0]);
-                    sortIconAPI = is.sortIcons();
+    .directive('onosSortableHeader', ['$log', 'IconService',
+        function (_$log_, _is_) {
+        return function (scope, element) {
+            $log = _$log_;
+            is = _is_;
+            var header = d3.select(element[0]);
 
-                header.selectAll('td').on('click', function () {
-                    var col = d3.select(this);
+            api = is.sortIcons();
 
-                    if (col.attr('sortable') === '') {
-                        updateSortDirection(col);
-                        scope.sortParams = sortRequestParams();
-                        scope.sortCallback(scope.sortParams);
-                    }
-                });
+            header.selectAll('td').on('click', function () {
+                var col = d3.select(this);
 
-                scope.$on('$destroy', function () {
-                    resetSort();
-                });
-            };
-        }])
-
-        .directive('onosFlashChanges',
-            ['$log', '$parse', '$timeout', 'FnService',
-            function ($log, $parse, $timeout, fs) {
-
-            return function (scope, element, attrs) {
-                var idProp = attrs.idProp,
-                    table = d3.select(element[0]),
-                    trs, promise;
-
-                function highlightRows() {
-                    var changedRows = [];
-                    function classRows(b) {
-                        if (changedRows.length) {
-                            angular.forEach(changedRows, function (tr) {
-                                tr.classed('data-change', b);
-                            });
-                        }
-                    }
-                    // timeout because 'row-id' was the un-interpolated value
-                    // "{{link.one}}" for example, instead of link.one evaluated
-                    // timeout executes on the next digest -- after evaluation
-                    $timeout(function () {
-                        if (scope.tableData.length) {
-                            trs = table.selectAll('tr');
-                        }
-
-                        if (trs && !trs.empty()) {
-                            trs.each(function () {
-                                var tr = d3.select(this);
-                                if (fs.find(tr.attr('row-id'),
-                                        scope.changedData,
-                                        idProp) > -1) {
-                                    changedRows.push(tr);
-                                }
-                            });
-                            classRows(true);
-                            promise = $timeout(function () {
-                                classRows(false);
-                            }, flashTime);
-                            trs = undefined;
-                        }
-                    });
+                if (col.attr('sortable') === '') {
+                    updateSortDirection(col);
+                    scope.sortParams = sortRequestParams();
+                    scope.sortCallback(scope.sortParams);
                 }
+            });
 
-                // new items added:
-                scope.$on('ngRepeatComplete', highlightRows);
-                // items changed in existing set:
-                scope.$watchCollection('changedData', highlightRows);
+            scope.$on('$destroy', function () {
+                sortState.reset();
+            });
+        };
+    }])
 
-                scope.$on('$destroy', function () {
-                    if (promise) {
-                        $timeout.cancel(promise);
+    .directive('onosFlashChanges',
+        ['$log', '$parse', '$timeout', 'FnService',
+        function ($log, $parse, $timeout, fs) {
+
+        return function (scope, element, attrs) {
+            var idProp = attrs.idProp,
+                table = d3.select(element[0]),
+                trs, promise;
+
+            function highlightRows() {
+                var changedRows = [];
+                function classRows(b) {
+                    if (changedRows.length) {
+                        angular.forEach(changedRows, function (tr) {
+                            tr.classed('data-change', b);
+                        });
+                    }
+                }
+                // timeout because 'row-id' was the un-interpolated value
+                // "{{link.one}}" for example, instead of link.one evaluated
+                // timeout executes on the next digest -- after evaluation
+                $timeout(function () {
+                    if (scope.tableData.length) {
+                        trs = table.selectAll('tr');
+                    }
+
+                    if (trs && !trs.empty()) {
+                        trs.each(function () {
+                            var tr = d3.select(this);
+                            if (fs.find(tr.attr('row-id'),
+                                    scope.changedData,
+                                    idProp) > -1) {
+                                changedRows.push(tr);
+                            }
+                        });
+                        classRows(true);
+                        promise = $timeout(function () {
+                            classRows(false);
+                        }, flashTime);
+                        trs = undefined;
                     }
                 });
-            };
-        }]);
+            }
+
+            // new items added:
+            scope.$on('ngRepeatComplete', highlightRows);
+            // items changed in existing set:
+            scope.$watchCollection('changedData', highlightRows);
+
+            scope.$on('$destroy', function () {
+                if (promise) {
+                    $timeout.cancel(promise);
+                }
+            });
+        };
+    }]);
 
 }());

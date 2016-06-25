@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,12 @@ import java.util.function.BiFunction;
  * Null values are not allowed in this map.
  * </p>
  */
-public interface EventuallyConsistentMap<K, V> {
+public interface EventuallyConsistentMap<K, V> extends DistributedPrimitive {
+
+    @Override
+    default DistributedPrimitive.Type primitiveType() {
+        return DistributedPrimitive.Type.EVENTUALLY_CONSISTENT_MAP;
+    }
 
     /**
      * Returns the number of key-value mappings in this map.
@@ -196,12 +201,4 @@ public interface EventuallyConsistentMap<K, V> {
      * @param listener listener to deregister for events
      */
     void removeListener(EventuallyConsistentMapListener<K, V> listener);
-
-    /**
-     * Shuts down the map and breaks communication between different instances.
-     * This allows the map objects to be cleaned up and garbage collected.
-     * Calls to any methods on the map subsequent to calling destroy() will
-     * throw a {@link java.lang.RuntimeException}.
-     */
-    void destroy();
 }

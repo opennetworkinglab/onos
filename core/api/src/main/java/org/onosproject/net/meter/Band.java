@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ public interface Band {
      *
      * @return the long value of the size
      */
-    long burst();
+    Long burst();
 
     /**
      * Only meaningful in the case of a REMARK band type.
@@ -60,7 +60,7 @@ public interface Band {
      *
      * @return a short value
      */
-    short dropPrecedence();
+    Short dropPrecedence();
 
     /**
      * Signals the type of band to create.

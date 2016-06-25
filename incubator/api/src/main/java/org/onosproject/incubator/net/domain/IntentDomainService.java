@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 package org.onosproject.incubator.net.domain;
 
 import com.google.common.annotations.Beta;
-import org.onlab.graph.Graph;
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -26,7 +27,8 @@ import java.util.Set;
  * domain providers.
  */
 @Beta
-public interface IntentDomainService {
+public interface IntentDomainService
+        extends ListenerService<IntentDomainEvent, IntentDomainListener> {
 
     /**
      * Returns the intent domain for the given id.
@@ -52,25 +54,21 @@ public interface IntentDomainService {
     Set<IntentDomain> getDomains(DeviceId deviceId);
 
     /**
-     * Returns the graph of intent domains and connection devices.
+     * Requests an intent primitive from the intent domain.
      *
-     * @return graph of network domains
+     * @param domainId id of target domain
+     * @param primitive intent primitive
+     * @return set of intent resources that satisfy the primitive
      */
-    Graph<DomainVertex, DomainEdge> getDomainGraph();
+    List<IntentResource> request(IntentDomainId domainId, IntentPrimitive primitive);
 
     /**
-     * Adds the specified listener for intent domain events.
+     * Submits an intent resource to the intent domain for installation.
      *
-     * @param listener listener to be added
+     * @param domainId id of target domain
+     * @param resource intent resource
      */
-    void addListener(IntentDomainListener listener);
-
-    /**
-     * Removes the specified listener for intent domain events.
-     *
-     * @param listener listener to be removed
-     */
-    void removeListener(IntentDomainListener listener);
+    void submit(IntentDomainId domainId, IntentResource resource);
 }
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,24 +19,18 @@ package org.onosproject.ui.topo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
-import org.onlab.packet.ChassisId;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
-import org.onosproject.net.Annotations;
+import org.onosproject.net.DefaultDevice;
+import org.onosproject.net.DefaultHost;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
-import org.onosproject.net.HostLocation;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.HostServiceAdapter;
-import org.onosproject.net.provider.ProviderId;
-
-import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -45,105 +39,17 @@ import static org.junit.Assert.*;
  */
 public class NodeSelectionTest {
 
-    private static class FakeDevice implements Device {
-
-        private final DeviceId id;
-
+    private static class FakeDevice extends DefaultDevice {
         FakeDevice(DeviceId id) {
-            this.id = id;
-        }
-
-        @Override
-        public DeviceId id() {
-            return id;
-        }
-
-        @Override
-        public Type type() {
-            return null;
-        }
-
-        @Override
-        public String manufacturer() {
-            return null;
-        }
-
-        @Override
-        public String hwVersion() {
-            return null;
-        }
-
-        @Override
-        public String swVersion() {
-            return null;
-        }
-
-        @Override
-        public String serialNumber() {
-            return null;
-        }
-
-        @Override
-        public ChassisId chassisId() {
-            return null;
-        }
-
-        @Override
-        public Annotations annotations() {
-            return null;
-        }
-
-        @Override
-        public ProviderId providerId() {
-            return null;
+            super(null, id, null, null, null, null, null, null);
         }
     }
 
-    private static class FakeHost implements Host {
-
-        private final HostId id;
-
+    private static class FakeHost extends DefaultHost {
         FakeHost(HostId id) {
-            this.id = id;
-        }
-
-        @Override
-        public HostId id() {
-            return id;
-        }
-
-        @Override
-        public MacAddress mac() {
-            return null;
-        }
-
-        @Override
-        public VlanId vlan() {
-            return null;
-        }
-
-        @Override
-        public Set<IpAddress> ipAddresses() {
-            return null;
-        }
-
-        @Override
-        public HostLocation location() {
-            return null;
-        }
-
-        @Override
-        public Annotations annotations() {
-            return null;
-        }
-
-        @Override
-        public ProviderId providerId() {
-            return null;
+            super(null, id, null, null, null, ImmutableSet.of());
         }
     }
-
-
 
     private final ObjectMapper mapper = new ObjectMapper();
 

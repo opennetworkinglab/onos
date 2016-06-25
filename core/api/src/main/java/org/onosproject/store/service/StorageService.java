@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,9 +75,36 @@ public interface StorageService {
     <V> AtomicValueBuilder<V> atomicValueBuilder();
 
     /**
+     * Creates a new LeaderElectorBuilder.
+     *
+     * @return leader elector builder
+     */
+    LeaderElectorBuilder leaderElectorBuilder();
+
+    /**
      * Creates a new transaction context builder.
      *
      * @return a builder for a transaction context.
      */
     TransactionContextBuilder transactionContextBuilder();
+
+    /**
+     * Returns an instance of {@code AsyncAtomicCounter} with specified name.
+     * @param name counter name
+     *
+     * @return AsyncAtomicCounter instance
+     */
+    default AsyncAtomicCounter getAsyncAtomicCounter(String name) {
+        return atomicCounterBuilder().withName(name).build();
+    }
+
+    /**
+     * Returns an instance of {@code AtomicCounter} with specified name.
+     * @param name counter name
+     *
+     * @return AtomicCounter instance
+     */
+    default AtomicCounter getAtomicCounter(String name) {
+        return getAsyncAtomicCounter(name).asAtomicCounter();
+    }
 }

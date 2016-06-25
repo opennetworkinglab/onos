@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ public abstract class AbstractProvider implements Provider {
     private final ProviderId providerId;
 
     /**
-     * Creates a provider with the supplier identifier.
+     * Creates a provider with the supplied identifier.
      *
      * @param id provider id
      */

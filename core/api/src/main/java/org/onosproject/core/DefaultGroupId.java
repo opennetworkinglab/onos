@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Objects;
 /**
  * Default implementation of {@link GroupId}.
  */
+// TODO: require refactor to extend from Identifier base class
 public class DefaultGroupId implements GroupId {
 
     private final int id;
@@ -42,7 +43,7 @@ public class DefaultGroupId implements GroupId {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return id;
     }
 
     @Override
@@ -60,7 +61,7 @@ public class DefaultGroupId implements GroupId {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("id", id)
+                .add("id", "0x" + Integer.toHexString(id))
                 .toString();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.intent.ResourceContext;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.link.LinkResourceService;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -56,7 +56,7 @@ public class LatencyConstraintTest {
     private static final String LATENCY2 = "4.0";
 
     private LatencyConstraint sut;
-    private LinkResourceService linkResourceService;
+    private ResourceContext resourceContext;
 
     private Path path;
     private Link link1;
@@ -64,13 +64,25 @@ public class LatencyConstraintTest {
 
     @Before
     public void setUp() {
-        linkResourceService = createMock(LinkResourceService.class);
+        resourceContext = createMock(ResourceContext.class);
 
         Annotations annotations1 = DefaultAnnotations.builder().set(LATENCY, LATENCY1).build();
         Annotations annotations2 = DefaultAnnotations.builder().set(LATENCY, LATENCY2).build();
 
-        link1 = new DefaultLink(PROVIDER_ID, cp(DID1, PN1), cp(DID2, PN2), DIRECT, annotations1);
-        link2 = new DefaultLink(PROVIDER_ID, cp(DID2, PN3), cp(DID3, PN4), DIRECT, annotations2);
+        link1 = DefaultLink.builder()
+                .providerId(PROVIDER_ID)
+                .src(cp(DID1, PN1))
+                .dst(cp(DID2, PN2))
+                .type(DIRECT)
+                .annotations(annotations1)
+                .build();
+        link2 = DefaultLink.builder()
+                .providerId(PROVIDER_ID)
+                .src(cp(DID2, PN3))
+                .dst(cp(DID3, PN4))
+                .type(DIRECT)
+                .annotations(annotations2)
+                .build();
         path = new DefaultPath(PROVIDER_ID, Arrays.asList(link1, link2), 10);
     }
 
@@ -81,7 +93,7 @@ public class LatencyConstraintTest {
     public void testLessThanLatency() {
         sut = new LatencyConstraint(Duration.of(10, ChronoUnit.MICROS));
 
-        assertThat(sut.validate(path, linkResourceService), is(true));
+        assertThat(sut.validate(path, resourceContext), is(true));
     }
 
     /**
@@ -91,7 +103,7 @@ public class LatencyConstraintTest {
     public void testMoreThanLatency() {
         sut = new LatencyConstraint(Duration.of(3, ChronoUnit.MICROS));
 
-        assertThat(sut.validate(path, linkResourceService), is(false));
+        assertThat(sut.validate(path, resourceContext), is(false));
     }
 
     /**
@@ -101,8 +113,8 @@ public class LatencyConstraintTest {
     public void testCost() {
         sut = new LatencyConstraint(Duration.of(10, ChronoUnit.MICROS));
 
-        assertThat(sut.cost(link1, linkResourceService), is(closeTo(Double.parseDouble(LATENCY1), 1.0e-6)));
-        assertThat(sut.cost(link2, linkResourceService), is(closeTo(Double.parseDouble(LATENCY2), 1.0e-6)));
+        assertThat(sut.cost(link1, resourceContext), is(closeTo(Double.parseDouble(LATENCY1), 1.0e-6)));
+        assertThat(sut.cost(link2, resourceContext), is(closeTo(Double.parseDouble(LATENCY2), 1.0e-6)));
     }
 
     /**

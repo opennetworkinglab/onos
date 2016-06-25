@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,8 @@ public class IntentViewMessageHandler extends UiMessageHandler {
 
     // handler for intent table requests
     private final class IntentDataRequest extends TableRequestHandler {
+        private static final String NO_ROWS_MESSAGE = "No intents found";
+
         private IntentDataRequest() {
             super(INTENT_DATA_REQ, INTENT_DATA_RESP, INTENTS);
         }
@@ -83,6 +85,11 @@ public class IntentViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage(ObjectNode payload) {
+            return NO_ROWS_MESSAGE;
         }
 
         @Override

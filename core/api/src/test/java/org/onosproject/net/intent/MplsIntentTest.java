@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,6 +112,5 @@ public class MplsIntentTest extends AbstractIntentTest {
         assertThat(intent1.selector(), equalTo(intent2.selector()));
         assertThat(intent1.treatment(), equalTo(intent2.treatment()));
         assertThat(intent1.priority(), is(PRIORITY));
-
     }
 }

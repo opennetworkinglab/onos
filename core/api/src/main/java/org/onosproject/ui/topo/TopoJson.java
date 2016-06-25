@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,10 +33,16 @@ public final class TopoJson {
     static final String HOSTS = "hosts";
     static final String LINKS = "links";
     static final String SUBDUE = "subdue";
+    static final String DELAY = "delay";
 
     static final String ID = "id";
     static final String LABEL = "label";
     static final String CSS = "css";
+    static final String BADGE = "badge";
+    static final String STATUS = "status";
+    static final String TXT = "txt";
+    static final String GID = "gid";
+    static final String MSG = "msg";
 
     static final String TITLE = "title";
     static final String TYPE = "type";
@@ -94,7 +100,21 @@ public final class TopoJson {
         if (!toSubdue.equals(Highlights.Amount.ZERO)) {
             payload.put(SUBDUE, toSubdue.toString());
         }
+        int delay = highlights.delayMs();
+        if (delay > 0) {
+            payload.put(DELAY, delay);
+        }
         return payload;
+    }
+
+    private static ObjectNode json(NodeBadge b) {
+        ObjectNode n = objectNode()
+                .put(STATUS, b.status().code())
+                .put(b.isGlyph() ? GID : TXT, b.text());
+        if (b.message() != null) {
+            n.put(MSG, b.message());
+        }
+        return n;
     }
 
     private static ObjectNode json(DeviceHighlight dh) {
@@ -102,6 +122,10 @@ public final class TopoJson {
                 .put(ID, dh.elementId());
         if (dh.subdued()) {
             n.put(SUBDUE, true);
+        }
+        NodeBadge badge = dh.badge();
+        if (badge != null) {
+            n.set(BADGE, json(badge));
         }
         return n;
     }
@@ -111,6 +135,10 @@ public final class TopoJson {
                 .put(ID, hh.elementId());
         if (hh.subdued()) {
             n.put(SUBDUE, true);
+        }
+        NodeBadge badge = hh.badge();
+        if (badge != null) {
+            n.set(BADGE, json(badge));
         }
         return n;
     }

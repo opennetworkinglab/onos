@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,13 @@
 package org.onosproject.mastership;
 
 import static org.onosproject.net.MastershipRole.MASTER;
+import static org.onosproject.net.MastershipRole.NONE;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
+import org.onlab.util.Tools;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
 import org.onosproject.event.ListenerService;
@@ -35,11 +38,13 @@ import org.onosproject.net.MastershipRole;
 public interface MastershipService
     extends ListenerService<MastershipEvent, MastershipListener> {
 
+    long TIMEOUT_MILLIS = 3000;
+
     /**
      * Returns the role of the local node for the specified device, without
      * triggering master selection.
      *
-     * @param deviceId the the identifier of the device
+     * @param deviceId the identifier of the device
      * @return role of the current node
      */
     MastershipRole getLocalRole(DeviceId deviceId);
@@ -47,7 +52,7 @@ public interface MastershipService
     /**
      * Returns true if the local controller is the Master for the specified deviceId.
      *
-     * @param deviceId the the identifier of the device
+     * @param deviceId the identifier of the device
      * @return true if local node is master; false otherwise
      */
     default boolean isLocalMaster(DeviceId deviceId) {
@@ -58,10 +63,22 @@ public interface MastershipService
      * Returns the mastership status of the local controller for a given
      * device forcing master selection if necessary.
      *
-     * @param deviceId the the identifier of the device
-     * @return the role of this controller instance
+     * @param deviceId the identifier of the device
+     * @return future object of this controller instance role
      */
     CompletableFuture<MastershipRole> requestRoleFor(DeviceId deviceId);
+
+    /**
+     * Synchronous version of requestRoleFor. Returns the mastership status of
+     * the local controller for a given device forcing master selection if necessary.
+     *
+     * @param deviceId the identifier of the device
+     * @return the role of this controller instance
+     */
+    default MastershipRole requestRoleForSync(DeviceId deviceId) {
+        return Tools.futureGetOrElse(requestRoleFor(deviceId),
+                TIMEOUT_MILLIS, TimeUnit.MILLISECONDS, NONE);
+    }
 
     /**
      * Abandons mastership of the specified device on the local node thus
@@ -72,6 +89,18 @@ public interface MastershipService
      * @return future that is completed when relinquish is complete
      */
     CompletableFuture<Void> relinquishMastership(DeviceId deviceId);
+
+    /**
+     * Synchronous version of relinquishMastership. Abandons mastership of the
+     * specified device on the local node thus forcing selection of a new master.
+     * If the local node is not a master for this device, no master selection will occur.
+     *
+     * @param deviceId the identifier of the device
+     */
+    default void relinquishMastershipSync(DeviceId deviceId) {
+        Tools.futureGetOrElse(relinquishMastership(deviceId),
+                TIMEOUT_MILLIS, TimeUnit.MILLISECONDS, null);
+    }
 
     /**
      * Returns the current master for a given device.
@@ -95,7 +124,9 @@ public interface MastershipService
      *
      * @param nodeId the ID of the controller
      * @return a set of device IDs
+     * @deprecated 1.6.0 Goldeneye release.
      */
+    @Deprecated
     Set<DeviceId> getDevicesOf(NodeId nodeId);
 
 }

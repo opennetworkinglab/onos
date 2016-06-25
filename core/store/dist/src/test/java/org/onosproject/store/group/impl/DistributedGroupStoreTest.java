@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
+import org.onosproject.cfg.ComponentConfigAdapter;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.mastership.MastershipServiceAdapter;
@@ -45,7 +47,7 @@ import org.onosproject.net.group.GroupOperation;
 import org.onosproject.net.group.GroupStore;
 import org.onosproject.net.group.GroupStoreDelegate;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationServiceAdapter;
-import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.TestStorageService;
 
 import com.google.common.collect.ImmutableList;
@@ -70,8 +72,10 @@ public class DistributedGroupStoreTest {
     DeviceId deviceId2 = did("dev2");
     GroupId groupId1 = new DefaultGroupId(1);
     GroupId groupId2 = new DefaultGroupId(2);
+    GroupId groupId3 = new DefaultGroupId(3);
     GroupKey groupKey1 = new DefaultGroupKey("abc".getBytes());
     GroupKey groupKey2 = new DefaultGroupKey("def".getBytes());
+    GroupKey groupKey3 = new DefaultGroupKey("ghi".getBytes());
 
     TrafficTreatment treatment =
             DefaultTrafficTreatment.emptyTreatment();
@@ -96,15 +100,27 @@ public class DistributedGroupStoreTest {
             groupKey2,
             groupId2.id(),
             APP_ID);
+    GroupDescription groupDescription3 = new DefaultGroupDescription(
+            deviceId2,
+            GroupDescription.Type.INDIRECT,
+            buckets,
+            groupKey3,
+            groupId3.id(),
+            APP_ID);
 
     DistributedGroupStore groupStoreImpl;
     GroupStore groupStore;
-    EventuallyConsistentMap auditPendingReqQueue;
+    ConsistentMap auditPendingReqQueue;
 
     static class MasterOfAll extends MastershipServiceAdapter {
         @Override
         public MastershipRole getLocalRole(DeviceId deviceId) {
             return MastershipRole.MASTER;
+        }
+
+        @Override
+        public NodeId getMasterFor(DeviceId deviceId) {
+            return new NodeId("foo");
         }
     }
 
@@ -114,6 +130,7 @@ public class DistributedGroupStoreTest {
         groupStoreImpl.storageService = new TestStorageService();
         groupStoreImpl.clusterCommunicator = new ClusterCommunicationServiceAdapter();
         groupStoreImpl.mastershipService = new MasterOfAll();
+        groupStoreImpl.cfgService = new ComponentConfigAdapter();
         groupStoreImpl.activate();
         groupStore = groupStoreImpl;
         auditPendingReqQueue =
@@ -193,6 +210,30 @@ public class DistributedGroupStoreTest {
 
         // Make sure that nothing is pending
         assertThat(auditPendingReqQueue.size(), is(0));
+    }
+
+    /**
+     * Tests removing all groups on the given device.
+     */
+    @Test
+    public void testRemoveGroupOnDevice() throws Exception {
+        groupStore.deviceInitialAuditCompleted(deviceId1, true);
+        assertThat(groupStore.deviceInitialAuditStatus(deviceId1), is(true));
+        groupStore.deviceInitialAuditCompleted(deviceId2, true);
+        assertThat(groupStore.deviceInitialAuditStatus(deviceId2), is(true));
+
+        // Make sure the pending list starts out empty
+        assertThat(auditPendingReqQueue.size(), is(0));
+
+        groupStore.storeGroupDescription(groupDescription1);
+        groupStore.storeGroupDescription(groupDescription2);
+        groupStore.storeGroupDescription(groupDescription3);
+        assertThat(groupStore.getGroupCount(deviceId1), is(1));
+        assertThat(groupStore.getGroupCount(deviceId2), is(2));
+
+        groupStore.purgeGroupEntry(deviceId2);
+        assertThat(groupStore.getGroupCount(deviceId1), is(1));
+        assertThat(groupStore.getGroupCount(deviceId2), is(0));
     }
 
     /**

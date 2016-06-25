@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ public final class GroupOperation {
     private final GroupId groupId;
     private final GroupDescription.Type groupType;
     private final GroupBuckets buckets;
+    private final GroupMsgErrorCode failureCode;
 
     public enum Type {
         /**
@@ -45,6 +46,28 @@ public final class GroupOperation {
          * Delete a specified group.
          */
         DELETE
+    }
+
+    /**
+     * Possible error codes for a failure of a group operation.
+     *
+     */
+    public enum GroupMsgErrorCode {
+        GROUP_EXISTS,
+        INVALID_GROUP,
+        WEIGHT_UNSUPPORTED,
+        OUT_OF_GROUPS,
+        OUT_OF_BUCKETS,
+        CHAINING_UNSUPPORTED,
+        WATCH_UNSUPPORTED,
+        LOOP,
+        UNKNOWN_GROUP,
+        CHAINED_GROUP,
+        BAD_TYPE,
+        BAD_COMMAND,
+        BAD_BUCKET,
+        BAD_WATCH,
+        EPERM;
     }
 
     /**
@@ -63,6 +86,23 @@ public final class GroupOperation {
         this.groupId = checkNotNull(groupId);
         this.groupType = checkNotNull(groupType);
         this.buckets = buckets;
+        this.failureCode = null;
+    }
+
+    /**
+     * Group operation copy-constructor with additional field to set failure code.
+     * Typically used by provider to return information to the core about
+     * the failure reason for a group operation.
+     *
+     * @param groupOp the original group operation
+     * @param failureCode failure code for a failed group operation
+     */
+    private GroupOperation(GroupOperation groupOp, GroupMsgErrorCode failureCode) {
+        this.opType = groupOp.opType;
+        this.groupId = groupOp.groupId;
+        this.groupType = groupOp.groupType;
+        this.buckets = groupOp.buckets;
+        this.failureCode = failureCode;
     }
 
     /**
@@ -110,6 +150,20 @@ public final class GroupOperation {
     }
 
     /**
+     * Creates failure group operation object by setting failure code
+     * to inform the failure reason.
+     *
+     * @param groupOperation the original group operation
+     * @param failureCode failure code for a failed group operation
+     * @return failed group operation object
+     */
+    public static GroupOperation createFailedGroupOperation(GroupOperation groupOperation,
+                                                            GroupMsgErrorCode failureCode) {
+        checkNotNull(groupOperation);
+        return new GroupOperation(groupOperation, failureCode);
+    }
+
+    /**
      * Returns group operation type.
      *
      * @return GroupOpType group operation type
@@ -143,6 +197,15 @@ public final class GroupOperation {
      */
     public GroupBuckets buckets() {
         return this.buckets;
+    }
+
+    /**
+     * Returns the failure code representing the failure of a group operation.
+     *
+     * @return error code for failure of group operation
+     */
+    public GroupMsgErrorCode failureCode() {
+        return failureCode;
     }
 
     @Override

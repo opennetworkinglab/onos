@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,26 +20,24 @@
     <parent>
         <artifactId>onos-apps</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.4.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.7.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>onos-app-bgprouter</artifactId>
 
     <packaging>bundle</packaging>
     <description>BGP router application</description>
 
     <dependencies>
-        <dependency>
+      <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-routing-api</artifactId>
+            <artifactId>onos-app-routing</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-routing</artifactId>
+            <artifactId>onos-app-routing-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 

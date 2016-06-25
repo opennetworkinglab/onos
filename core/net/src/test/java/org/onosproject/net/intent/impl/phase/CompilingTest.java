@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,8 @@ public class CompilingTest {
     private final ConnectPoint cp3 = new ConnectPoint(deviceId("2"), portNumber(1));
     private final ConnectPoint cp4 = new ConnectPoint(deviceId("2"), portNumber(2));
 
-    private final List<Link> links = Collections.singletonList(new DefaultLink(pid, cp2, cp4, DIRECT));
+    private final List<Link> links = Collections.singletonList(
+            DefaultLink.builder().providerId(pid).src(cp2).dst(cp4).type(DIRECT).build());
     private final Path path = new DefaultPath(pid, links, 10);
 
     private PointToPointIntent input;

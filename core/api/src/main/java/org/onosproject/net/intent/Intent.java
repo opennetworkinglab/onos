@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
  */
 package org.onosproject.net.intent;
 
-import java.util.Collection;
-import java.util.Objects;
-
 import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.net.NetworkResource;
+
+import java.util.Collection;
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -89,6 +89,24 @@ public abstract class Intent {
         protected ApplicationId appId;
         protected Key key;
         protected int priority = Intent.DEFAULT_INTENT_PRIORITY;
+
+        /**
+         * Creates a new empty builder.
+         */
+        protected Builder() {
+        }
+
+        /**
+         * Creates a new builder pre-populated with the information in the given
+         * intent.
+         *
+         * @param intent initial intent
+         */
+        protected Builder(Intent intent) {
+            this.appId(intent.appId())
+                    .key(intent.key())
+                    .priority(intent.priority());
+        }
 
         /**
          * Sets the application id for the intent that will be built.

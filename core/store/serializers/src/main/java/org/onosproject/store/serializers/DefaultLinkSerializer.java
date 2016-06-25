@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,13 @@ public class DefaultLinkSerializer extends Serializer<DefaultLink> {
         Type linkType = (Type) kryo.readClassAndObject(input);
         State state = (State) kryo.readClassAndObject(input);
         boolean isDurable = input.readBoolean();
-        return new DefaultLink(providerId, src, dst, linkType, state, isDurable);
+        return DefaultLink.builder()
+                .providerId(providerId)
+                .src(src)
+                .dst(dst)
+                .type(linkType)
+                .state(state)
+                .isExpected(isDurable)
+                .build();
     }
 }

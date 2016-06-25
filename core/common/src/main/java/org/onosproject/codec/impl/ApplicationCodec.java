@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,15 @@
  */
 package org.onosproject.codec.impl;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.Application;
+
+import java.net.URI;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -32,18 +36,31 @@ public final class ApplicationCodec extends JsonCodec<Application> {
     public ObjectNode encode(Application app, CodecContext context) {
         checkNotNull(app, "Application cannot be null");
         ApplicationService service = context.getService(ApplicationService.class);
+
+        ArrayNode permissions = context.mapper().createArrayNode();
+        ArrayNode features = context.mapper().createArrayNode();
+        ArrayNode requiredApps = context.mapper().createArrayNode();
+
+        app.permissions().forEach(p -> permissions.add(p.toString()));
+        app.features().forEach(f -> features.add(f));
+        app.requiredApps().forEach(a -> requiredApps.add(a));
+
         ObjectNode result = context.mapper().createObjectNode()
                 .put("name", app.id().name())
                 .put("id", app.id().id())
                 .put("version", app.version().toString())
-                .put("description", app.description())
+                .put("category", app.category())
+                .put("description", StringEscapeUtils.escapeJson(app.description()))
+                .put("readme", StringEscapeUtils.escapeJson(app.readme()))
                 .put("origin", app.origin())
-                .put("permissions", app.permissions().toString())
-                .put("featuresRepo", app.featuresRepo().isPresent() ?
-                        app.featuresRepo().get().toString() : "")
-                .put("features", app.features().toString())
+                .put("url", app.url())
+                .put("featuresRepo", app.featuresRepo().map(URI::toString).orElse(""))
                 .put("state", service.getState(app.id()).toString());
+
+        result.set("features", features);
+        result.set("permissions", permissions);
+        result.set("requiredApps", requiredApps);
+
         return result;
     }
-
 }

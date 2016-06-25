@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ describe('factory: fw/layer/panel.js', function () {
         $timeout = _$timeout_;
         fs = FnService;
         ps = PanelService;
+
+        spyOn(fs, 'debugOn').and.returnValue(true);
         d3Elem = d3.select('body').append('div').attr('id', 'floatpanels');
         ps.init();
     }));
@@ -90,7 +92,7 @@ describe('factory: fw/layer/panel.js', function () {
         var p = ps.createPanel('foo');
         expect(fs.areFunctions(p, [
             'show', 'hide', 'toggle', 'empty', 'append',
-            'width', 'height', 'isVisible', 'classed', 'el'
+            'width', 'height', 'bbox', 'isVisible', 'classed', 'el'
         ])).toBeTruthy();
     });
 

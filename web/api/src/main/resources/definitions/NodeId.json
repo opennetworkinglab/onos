@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "title": "nodeId",
+  "required": [
+    "nodeId"
+  ],
+  "properties": {
+    "nodeId": {
+      "type": "string",
+      "example": "1"
+    }
+  }
+}

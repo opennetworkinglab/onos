@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.onosproject.net.config.Config;
  */
 public abstract class AllowedEntityConfig<S> extends Config<S> {
 
-    private static final String ALLOWED = "allowed";
+    protected static final String ALLOWED = "allowed";
 
     /**
      * Indicates whether the element is allowed for admission into the control

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,12 @@ package org.onosproject.provider.of.flow.impl;
 
 import org.onlab.packet.Ip4Address;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
+import org.onosproject.net.flow.instructions.Instructions.SetQueueInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
@@ -34,6 +36,7 @@ import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowModFlags;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
+import org.projectfloodlight.openflow.protocol.action.OFActionEnqueue;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.MacAddress;
@@ -66,10 +69,12 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
      * @param flowRule the flow rule to transform into a flow mod
      * @param factory the OpenFlow factory to use to build the flow mod
      * @param xid the transaction ID
+     * @param driverService the device driver service
      */
     protected FlowModBuilderVer10(FlowRule flowRule,
-                                  OFFactory factory, Optional<Long> xid) {
-        super(flowRule, factory, xid);
+                                  OFFactory factory, Optional<Long> xid,
+                                  Optional<DriverService> driverService) {
+        super(flowRule, factory, xid, driverService);
 
         this.treatment = flowRule.treatment();
     }
@@ -141,8 +146,7 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
         }
         for (Instruction i : treatment.immediate()) {
             switch (i.type()) {
-            case DROP:
-                log.warn("Saw drop action; assigning drop action");
+            case NOACTION:
                 return Collections.emptyList();
             case L2MODIFICATION:
                 act = buildL2Modification(i);
@@ -165,7 +169,18 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
                 }
                 acts.add(action.build());
                 break;
+            case QUEUE:
+                SetQueueInstruction queue = (SetQueueInstruction) i;
+                if (queue.port() == null) {
+                    log.warn("Required argument 'port' undefined for OFActionEnqueue");
+                }
+                OFActionEnqueue.Builder queueBuilder = factory().actions().buildEnqueue()
+                        .setQueueId(queue.queueId())
+                        .setPort(OFPort.ofInt((int) queue.port().toLong()));
+                acts.add(queueBuilder.build());
+                break;
             case L0MODIFICATION:
+            case L1MODIFICATION:
             case GROUP:
             case TABLE:
             case METADATA:

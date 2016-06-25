@@ -1,0 +1,15 @@
+{"port_pair": {
+    "id": "1278dcd4-459f-62ed-754b-87fc5e4a6751",
+    "name": "PC2",
+    "tenant_id": "d382007aa9904763a801f68ecf065cf5",
+    "description": "Two flows and two port-pair-groups",
+    "flow_classifiers": [
+        "456a4a34-2e9c-14ae-37fb-765feae2eb05",
+        "4a334cd4-fe9c-4fae-af4b-321c5e2eb051"
+    ],
+    "port_pair_groups": [
+        "4512d643-24fc-4fae-af4b-321c5e2eb3d1",
+        "4a634d49-76dc-4fae-af4b-321c5e23d651"
+    ]
+  }
+}

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright 2016-present Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!--
+  Testing transformations for transitioning between overhead and
+  perspective projections of two layers.
+  -->
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Layer Transformations</title>
+
+    <script src="../tp/d3.js"></script>
+    <script src="../tp/jquery-2.1.1.min.js"></script>
+
+    <style>
+        html,
+        body {
+            background-color: #ccc;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 9pt;
+        }
+
+        svg {
+            position: absolute;
+            background-color: #fff;
+            top: 30px;
+            left: 60px;
+        }
+
+        svg text {
+            font-size: 3pt;
+        }
+
+    </style>
+</head>
+<body>
+    <svg width="1000px" height="600px" viewBox="0 0 160 120"></svg>
+
+    <script>
+        (function (){
+
+            // Configuration...
+            var w = 160,
+                h = 120,
+                time = 1500;
+
+            var pktData = [
+                    [20,60,'a'],
+                    [60,20,'b'],
+                    [100,20,'c'],
+                    [140,60,'d'],
+                    [100,100,'e'],
+                    [60,100,'f'],
+                    [20,20,'w'],
+                    [140,20,'x'],
+                    [20,100,'y'],
+                    [140,100,'z']
+                ],
+                optData = [
+                    [40,40,'p'],
+                    [120,40,'q'],
+                    [120,80,'r'],
+                    [40,80,'s'],
+                    [20,20,'j'],
+                    [140,20,'k'],
+                    [20,100,'l'],
+                    [140,100,'m']
+                ],
+                linkData = [
+                    ['a','p'],
+                    ['p','b'],
+                    ['b','c'],
+                    ['c','q'],
+                    ['q','d'],
+                    ['d','r'],
+                    ['r','e'],
+                    ['e','f'],
+                    ['f','s'],
+                    ['s','a'],
+                    ['s','q'],
+                    ['p','r'],
+                    ['b','f'],
+                    ['c','e'],
+                    ['w','j'],
+                    ['x','k'],
+                    ['z','m'],
+                    ['y','l']
+                ];
+
+            // Transform parameters
+            var tf = {
+                    tt:  -.7,     // x skew y factor
+                    xsk: -35,     // x skew angle
+                    ysc: 0.5,     // y scale
+                    ytr: 50,      // y translate
+                    pad: 5
+                },
+                rectFill = {
+                    pkt: 'rgba(130,130,170,0.3)',
+                    opt: 'rgba(170,130,170,0.3)'
+                };
+
+            // Internal state...
+            var nodes = [],
+                links = [],
+                overhead = true,
+                xffn;
+
+            // D3/DOM magic...
+            var svg = d3.select('svg'),
+                nodeG,
+                linkG,
+                node,
+                link,
+                force,
+                pktLayer,
+                optLayer;
+
+
+            // General functions ...
+            function isF(f) {
+                return $.isFunction(f) ? f : null;
+            }
+
+            function translate(x,y) {
+                return 'translate(' + x + ',' + y + ')';
+            }
+
+            function scale(x,y) {
+                return 'scale(' + x + ',' + y + ')';
+            }
+            function skewX(x) {
+                return 'skewX(' + x + ')';
+            }
+
+
+            // Key Bindings...
+            var keyHandler = {
+                T: transform
+            };
+
+            function whatKey(code) {
+                switch (code) {
+                    case 13: return 'enter';
+                    case 16: return 'shift';
+                    case 17: return 'ctrl';
+                    case 18: return 'alt';
+                    case 27: return 'esc';
+                    case 32: return 'space';
+                    case 37: return 'leftArrow';
+                    case 38: return 'upArrow';
+                    case 39: return 'rightArrow';
+                    case 40: return 'downArrow';
+                    case 91: return 'cmdLeft';
+                    case 93: return 'cmdRight';
+                    case 187: return 'equals';
+                    case 189: return 'dash';
+                    case 191: return 'slash';
+                    default:
+                        if ((code >= 48 && code <= 57) ||
+                                (code >= 65 && code <= 90)) {
+                            return String.fromCharCode(code);
+                        } else if (code >= 112 && code <= 123) {
+                            return 'F' + (code - 111);
+                        }
+                        return '.';
+                }
+            }
+
+            function keyIn() {
+                var event = d3.event,
+                        keyCode = event.keyCode,
+                        key = whatKey(keyCode),
+                        fn = isF(keyHandler[key]);
+                if (fn) {
+                    fn(key, keyCode, event);
+                }
+            }
+
+            // Key events....
+            function transform() {
+                overhead = !overhead;
+                if (overhead) {
+                    toOverhead();
+                } else {
+                    toOblique();
+                }
+            }
+
+            function toOverhead() {
+                xffn = null;
+                hidePlane(pktLayer);
+                hidePlane(optLayer);
+                transitionNodes();
+            }
+
+            function padBox(box, p) {
+                box.x -= p;
+                box.y -= p;
+                box.width += p*2;
+                box.height += p*2;
+            }
+
+            function toOblique() {
+                var box = nodeG.node().getBBox();
+                padBox(box, tf.pad);
+
+                xffn = function (xy, dir) {
+                    var x = xy.x + xy.y*tf.tt,
+                        y = xy.y*tf.ysc + tf.ysc*tf.ytr*dir;
+                    return { x: x, y: y};
+                };
+
+                showPlane(pktLayer, box, -1);
+                showPlane(optLayer, box, 1);
+                transitionNodes();
+            }
+
+            function transitionNodes() {
+            // note: turn off force layout while transitioning.. if it is on
+//                force.stop();
+
+                if (xffn) {
+                    nodes.forEach(function (d) {
+                        var dir = d.type === 'pkt' ? -1 : 1,
+                            oldxy = {x: d.x, y: d.y},
+                            coords = xffn(oldxy, dir);
+                        d.oldxy = oldxy;
+                        d.x = coords.x;
+                        d.y = coords.y;
+                    });
+                } else {
+                    nodes.forEach(function (d) {
+                        d.x = d.oldxy.x;
+                        d.y = d.oldxy.y;
+                        delete d.oldxy;
+                    });
+                }
+
+                nodeG.selectAll('.node')
+                        .transition()
+                        .duration(time)
+                        .attr({
+                            transform: function (d) {
+                                return translate(d.x, d.y);
+                            }
+                        });
+
+                linkG.selectAll('.link')
+                        .transition()
+                        .duration(time)
+                        .attr({
+                            x1: function (d) { return d.source.x; },
+                            y1: function (d) { return d.source.y; },
+                            x2: function (d) { return d.target.x; },
+                            y2: function (d) { return d.target.y; }
+                        });
+            }
+
+            function showPlane(layer, box, dir) {
+                layer.select('rect')
+                    .attr(box)
+                    .attr('opacity', 0)
+                    .transition()
+                        .duration(time)
+                        .attr('opacity', 1)
+                        .attr('transform', obliqueXform(dir));
+            }
+
+            function hidePlane(layer) {
+                var rect = layer.select('rect');
+                rect.transition()
+                        .duration(time)
+                        .attr('opacity', 0)
+                        .attr('transform', overheadXform());
+
+            }
+
+            function obliqueXform(dir) {
+                return scale(1, tf.ysc) + translate(0, dir * tf.ytr) + skewX(tf.xsk);
+            }
+
+
+            function overheadXform() {
+                return skewX(0) + translate(0,0) + scale(1,1);
+            }
+
+            // Nodes and Links...
+            function prepareNodes() {
+                var hw = w/2,
+                    hh = h/2;
+
+                function addNode(t, d) {
+                    nodes.push({
+                        type: t,
+                        x: d[0] - hw,
+                        y: d[1] - hh,
+                        id: d[2],
+                        fixed: true
+                    });
+                }
+
+                optData.forEach(function (d) {
+                    addNode('opt', d);
+                });
+                pktData.forEach(function (d) {
+                    addNode('pkt', d);
+                });
+            }
+
+            function findNode(id) {
+                for (var i=0,n=nodes.length; i<n; i++) {
+                    if (nodes[i].id === id) {
+                        return nodes[i];
+                    }
+                }
+                return null;
+            }
+
+            function prepareLinks() {
+                linkData.forEach(function (d) {
+                    var src = d[0],
+                        dst = d[1];
+                    links.push({
+                        id: src + '-' + dst,
+                        source: findNode(src),
+                        target: findNode(dst)
+                    });
+                });
+
+            }
+
+            function updateNodes() {
+                node = nodeG.selectAll('.node')
+                        .data(nodes, function (d) { return d.id; });
+
+                var entering = node.enter()
+                        .append('g').attr({
+                            id: function (d) { return d.id; },
+                            'class': function (d) { return 'node ' + d.type; }
+                        });
+
+                entering.each(function (d) {
+                    var el = d3.select(this);
+                    d.el = el;
+
+                    el.append('rect').attr({
+                        width: 5,
+                        height: 5,
+                        fill: function (d) {
+                            return d.type === 'pkt' ? '#669' : '#969';
+                        },
+                        rx: 1,
+                        transform: 'translate(-2.5,-2.5)'
+                    });
+                    el.append('text')
+                            .text(d.id)
+                            .attr({
+                                dy: '0.9em',
+                                'text-anchor': 'middle',
+                                transform: 'translate(0,-2.5)',
+                                fill: 'white'
+                            });
+                });
+            }
+
+            function updateLinks() {
+                link = linkG.selectAll('.link')
+                        .data(links, function (d) { return d.id; });
+
+                var entering = link.enter()
+                        .append('line').attr({
+                            id: function (d) { return d.id; },
+                            class: 'link',
+                            stroke: '#888',
+                            'stroke-width': 0.4,
+                            opacity: 0.7
+                        });
+
+                entering.each(function (d) {
+                    d.el = d3.select(this);
+
+                });
+            }
+
+            function update() {
+                updateNodes();
+                updateLinks();
+            }
+
+            var ntick = 0;
+            function tick() {
+                console.log('tick ' + (++ntick));
+                node.attr({
+                    transform: function (d) { return translate(d.x, d.y); }
+                });
+
+                link.attr({
+                    x1: function (d) { return d.source.x; },
+                    y1: function (d) { return d.source.y; },
+                    x2: function (d) { return d.target.x; },
+                    y2: function (d) { return d.target.y; }
+                });
+            }
+
+            function setOrigin(/*varargs*/) {
+                var i, n, g;
+                for (i= 0,n=arguments.length; i< n; i++) {
+                     g = arguments[i];
+                    g.attr('transform', translate(w/2, h/2));
+                }
+            }
+
+            function initLayers() {
+                optLayer.attr('class', 'layer').append('rect')
+                        .attr('fill', rectFill.opt);
+                pktLayer.attr('class', 'layer').append('rect')
+                        .attr('fill', rectFill.pkt);
+            }
+
+            function init() {
+                svg.append('text')
+                        .text('Press the "T" key....')
+                        .attr({ dy: '1.2em', fill: '#999'})
+                        .style('font-size', '2.4pt')
+                        .style('font-style', 'italic');
+
+                optLayer = svg.append('g').attr('id', 'optLayer');
+                pktLayer = svg.append('g').attr('id', 'pktLayer');
+                linkG = svg.append('g').attr('id', 'links');
+                nodeG = svg.append('g').attr('id', 'nodes');
+
+                setOrigin(optLayer, pktLayer, linkG, nodeG);
+
+                node = nodeG.selectAll('.node');
+                link = linkG.selectAll('.link');
+
+                initLayers();
+                prepareNodes();
+                prepareLinks();
+
+                force = d3.layout.force()
+                        .size([w,h])
+                        .nodes(nodes)
+                        .links(links)
+                        .gravity(0.4)
+                        .friction(0.7)
+                        .on('tick', tick);
+                update();
+                tick();
+                d3.select('body').on('keydown', keyIn);
+            }
+
+            init();
+        })();
+    </script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -190,7 +191,7 @@ public class DistributedSecurityModeStore
         }
 
         states.computeIf(appId,
-                securityInfo -> (securityInfo != null),
+                Objects::nonNull,
                 (id, securityInfo) -> {
                     switch (securityInfo.getState()) {
                         case POLICY_VIOLATED:
@@ -232,6 +233,7 @@ public class DistributedSecurityModeStore
                         break;
                     case SECURED:
                         notifyDelegate(new SecurityModeEvent(SecurityModeEvent.Type.POLICY_ACCEPTED, appId));
+                        break;
                     default:
                         break;
                 }
@@ -301,15 +303,5 @@ public class DistributedSecurityModeStore
             }
         }
         return locations;
-    }
-
-    @Override
-    public void setDelegate(SecurityModeStoreDelegate delegate) {
-        super.setDelegate(delegate);
-    }
-
-    @Override
-    public void unsetDelegate(SecurityModeStoreDelegate delegate) {
-        super.setDelegate(delegate);
     }
 }

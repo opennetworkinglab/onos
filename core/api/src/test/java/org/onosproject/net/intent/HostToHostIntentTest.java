@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,18 @@
 package org.onosproject.net.intent;
 
 import org.junit.Test;
+import org.onlab.util.DataRateUnit;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.flow.TrafficSelector;
-
+import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import com.google.common.collect.ImmutableList;
 import com.google.common.testing.EqualsTester;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onosproject.net.NetTestTools.hid;
@@ -100,6 +103,55 @@ public class HostToHostIntentTest extends IntentTest {
                 .addEqualityGroup(intent1)
                 .addEqualityGroup(intent2)
                 .testEquals();
+    }
+
+    @Test
+    public void testImplicitConstraintsAreAdded() {
+        final Constraint other = BandwidthConstraint.of(1, DataRateUnit.GBPS);
+        final HostToHostIntent intent = HostToHostIntent.builder()
+                .appId(APPID)
+                .one(id1)
+                .two(id2)
+                .selector(selector)
+                .treatment(treatment)
+                .constraints(ImmutableList.of(other))
+                .build();
+
+        assertThat(intent.constraints(), hasItem(HostToHostIntent.NOT_OPTICAL));
+    }
+
+    @Test
+    public void testImplicitConstraints() {
+        final HostToHostIntent implicit = HostToHostIntent.builder()
+                .appId(APPID)
+                .one(id1)
+                .two(id2)
+                .selector(selector)
+                .treatment(treatment)
+                .build();
+        final HostToHostIntent empty = HostToHostIntent.builder()
+                .appId(APPID)
+                .one(id1)
+                .two(id2)
+                .selector(selector)
+                .treatment(treatment)
+                .constraints(ImmutableList.of())
+                .build();
+        final HostToHostIntent exact = HostToHostIntent.builder()
+                .appId(APPID)
+                .one(id1)
+                .two(id2)
+                .selector(selector)
+                .treatment(treatment)
+                .constraints(ImmutableList.of(HostToHostIntent.NOT_OPTICAL))
+                .build();
+
+        new EqualsTester()
+            .addEqualityGroup(implicit.constraints(),
+                              empty.constraints(),
+                              exact.constraints())
+            .testEquals();
+
     }
 
     @Override

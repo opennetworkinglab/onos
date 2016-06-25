@@ -1,0 +1,3468 @@
+{
+  "type": "Topology",
+  "objects": {
+    "taiwan": {
+      "type": "GeometryCollection",
+      "geometries": [
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 3,
+            "County_ID": 10002,
+            "Shape_Leng": 3.31630685363,
+            "Shape_Area": 0.196220636183,
+            "C_Name": "Yilan County",
+            "C_Desc": "Yilan County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 6,
+            "County_ID": 10007,
+            "Shape_Leng": 1.97922363136,
+            "Shape_Area": 0.110416061855,
+            "C_Name": "Changhua County",
+            "C_Desc": "Changhua County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              6,
+              7,
+              8,
+              9
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 7,
+            "County_ID": 10008,
+            "Shape_Leng": 3.82556002026,
+            "Shape_Area": 0.363242721372,
+            "C_Name": "Nantou County",
+            "C_Desc": "Nantou County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              10,
+              11,
+              12,
+              13,
+              -8,
+              14
+            ]
+          ]
+        },
+        {
+          "type": "MultiPolygon",
+          "properties": {
+            "OBJECTID": 8,
+            "County_ID": 10009,
+            "Shape_Leng": 3.14065592064,
+            "Shape_Area": 0.123905939707,
+            "C_Name": "Yunlin County",
+            "C_Desc": "Yunlin County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              [
+                15
+              ]
+            ],
+            [
+              [
+                -14,
+                16,
+                17,
+                -9
+              ]
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 10,
+            "County_ID": 10013,
+            "Shape_Leng": 3.55981370856,
+            "Shape_Area": 0.246188466446,
+            "C_Name": "Pingtung County",
+            "C_Desc": "Pingtung County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              18,
+              19,
+              20
+            ]
+          ]
+        },
+        {
+          "type": "MultiPolygon",
+          "properties": {
+            "OBJECTID": 11,
+            "County_ID": 10014,
+            "Shape_Leng": 4.97518675765,
+            "Shape_Area": 0.315228038452,
+            "C_Name": "Taitung County",
+            "C_Desc": "Taitung County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              [
+                21
+              ]
+            ],
+            [
+              [
+                22
+              ]
+            ],
+            [
+              [
+                23,
+                -19,
+                24,
+                25
+              ]
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 12,
+            "County_ID": 10015,
+            "Shape_Leng": 4.38522391544,
+            "Shape_Area": 0.40798475296,
+            "C_Name": "Hualien County",
+            "C_Desc": "Hualien County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              26,
+              -26,
+              27,
+              -11,
+              28,
+              -2
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 14,
+            "County_ID": 10017,
+            "Shape_Leng": 0.813745445094,
+            "Shape_Area": 0.0123150463725,
+            "C_Name": "Keelung County",
+            "C_Desc": "Keelung County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              29,
+              30
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 15,
+            "County_ID": 10018,
+            "Shape_Leng": 0.636322280258,
+            "Shape_Area": 0.0111070552983,
+            "C_Name": "Hsinchu City",
+            "C_Desc": "Hsinchu City",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              31,
+              32,
+              33
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 17,
+            "County_ID": 63,
+            "Shape_Leng": 1.02665069229,
+            "Shape_Area": 0.0241500874157,
+            "C_Name": "Taipei City",
+            "C_Desc": "Taipei City",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              34
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 19,
+            "County_ID": 65,
+            "Shape_Leng": 4.92044430341,
+            "Shape_Area": 0.184776642728,
+            "C_Name": "New Taipei City",
+            "C_Desc": "New Taipei City",
+            "Add_Date": "2010-12-24T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -30,
+              35,
+              -6,
+              36,
+              37
+            ],
+            [
+              -35
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 20,
+            "County_ID": 66,
+            "Shape_Leng": 3.17160273601,
+            "Shape_Area": 0.199139592398,
+            "C_Name": "Taichung City",
+            "C_Desc": "Taichung City",
+            "Add_Date": "2010-12-24T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -29,
+              -15,
+              -7,
+              38,
+              39,
+              40,
+              -3
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 21,
+            "County_ID": 67,
+            "Shape_Leng": 2.43719465291,
+            "Shape_Area": 0.199182650564,
+            "C_Name": "Tainan City",
+            "C_Desc": "Tainan City",
+            "Add_Date": "2010-12-24T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              41,
+              42,
+              43
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 22,
+            "County_ID": 68,
+            "Shape_Leng": 2.54622760814,
+            "Shape_Area": 0.108786722433,
+            "C_Name": "Taoyuan City",
+            "C_Desc": "Taoyuan City",
+            "Add_Date": "2014-12-24T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -37,
+              -5,
+              44,
+              45
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 23,
+            "County_ID": 10005,
+            "Shape_Leng": 2.17566600592,
+            "Shape_Area": 0.162720852004,
+            "C_Name": "Miaoli County",
+            "C_Desc": "Miaoli County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -40,
+              46,
+              -32,
+              47
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 24,
+            "County_ID": 10004,
+            "Shape_Leng": 2.36186853491,
+            "Shape_Area": 0.12593602249,
+            "C_Name": "Hsinchu County",
+            "C_Desc": "Hsinchu County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -34,
+              48,
+              -45,
+              -4,
+              -41,
+              -48
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 25,
+            "County_ID": 10020,
+            "Shape_Leng": 0.434647674332,
+            "Shape_Area": 0.00527931361016,
+            "C_Name": "Chiayi City",
+            "C_Desc": "Chiayi City",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              49
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 26,
+            "County_ID": 10010,
+            "Shape_Leng": 3.9573376124,
+            "Shape_Area": 0.172581671962,
+            "C_Name": "Chiayi County",
+            "C_Desc": "Chiayi County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -13,
+              50,
+              -44,
+              51,
+              -17
+            ],
+            [
+              -50
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 27,
+            "County_ID": 64,
+            "Shape_Leng": 4.20370748664,
+            "Shape_Area": 0.263983924696,
+            "C_Name": "Kaohsiung City",
+            "C_Desc": "Kaohsiung City",
+            "Add_Date": "2015-04-20T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -42,
+              -51,
+              -12,
+              -28,
+              -25,
+              -21,
+              52
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 3,
+            "County_ID": 10002,
+            "Shape_Leng": 3.31630685363,
+            "Shape_Area": 0.196220636183,
+            "C_Name": "Yilan County",
+            "C_Desc": "Yilan County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 6,
+            "County_ID": 10007,
+            "Shape_Leng": 1.97922363136,
+            "Shape_Area": 0.110416061855,
+            "C_Name": "Changhua County",
+            "C_Desc": "Changhua County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              6,
+              7,
+              8,
+              9
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 7,
+            "County_ID": 10008,
+            "Shape_Leng": 3.82556002026,
+            "Shape_Area": 0.363242721372,
+            "C_Name": "Nantou County",
+            "C_Desc": "Nantou County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              10,
+              11,
+              12,
+              13,
+              -8,
+              14
+            ]
+          ]
+        },
+        {
+          "type": "MultiPolygon",
+          "properties": {
+            "OBJECTID": 8,
+            "County_ID": 10009,
+            "Shape_Leng": 3.14065592064,
+            "Shape_Area": 0.123905939707,
+            "C_Name": "Yunlin County",
+            "C_Desc": "Yunlin County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              [
+                15
+              ]
+            ],
+            [
+              [
+                -14,
+                16,
+                17,
+                -9
+              ]
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 10,
+            "County_ID": 10013,
+            "Shape_Leng": 3.55981370856,
+            "Shape_Area": 0.246188466446,
+            "C_Name": "Pingtung County",
+            "C_Desc": "Pingtung County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              18,
+              19,
+              20
+            ]
+          ]
+        },
+        {
+          "type": "MultiPolygon",
+          "properties": {
+            "OBJECTID": 11,
+            "County_ID": 10014,
+            "Shape_Leng": 4.97518675765,
+            "Shape_Area": 0.315228038452,
+            "C_Name": "Taitung County",
+            "C_Desc": "Taitung County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              [
+                21
+              ]
+            ],
+            [
+              [
+                22
+              ]
+            ],
+            [
+              [
+                23,
+                -19,
+                24,
+                25
+              ]
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 12,
+            "County_ID": 10015,
+            "Shape_Leng": 4.38522391544,
+            "Shape_Area": 0.40798475296,
+            "C_Name": "Hualien County",
+            "C_Desc": "Hualien County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              26,
+              -26,
+              27,
+              -11,
+              28,
+              -2
+            ]
+          ]
+        },
+        {
+          "type": "MultiPolygon",
+          "properties": {
+            "OBJECTID": 13,
+            "County_ID": 10016,
+            "Shape_Leng": 5.4979779607,
+            "Shape_Area": 0.0119537443823,
+            "C_Name": "Penghu County",
+            "C_Desc": "Penghu County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              [
+                53
+              ]
+            ],
+            [
+              [
+                54
+              ]
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 14,
+            "County_ID": 10017,
+            "Shape_Leng": 0.813745445094,
+            "Shape_Area": 0.0123150463725,
+            "C_Name": "Keelung City",
+            "C_Desc": "Keelung City",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              29,
+              30
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 15,
+            "County_ID": 10018,
+            "Shape_Leng": 0.636322280258,
+            "Shape_Area": 0.0111070552983,
+            "C_Name": "Hsinchu City",
+            "C_Desc": "Hsinchu City",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              31,
+              32,
+              33
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 17,
+            "County_ID": 63,
+            "Shape_Leng": 1.02665069229,
+            "Shape_Area": 0.0241500874157,
+            "C_Name": "Taipei City",
+            "C_Desc": "Taipei City",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              34
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 19,
+            "County_ID": 65,
+            "Shape_Leng": 4.92044430341,
+            "Shape_Area": 0.184776642728,
+            "C_Name": "New Taipei City",
+            "C_Desc": "New Taipei City",
+            "Add_Date": "2010-12-24T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -30,
+              35,
+              -6,
+              36,
+              37
+            ],
+            [
+              -35
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 20,
+            "County_ID": 66,
+            "Shape_Leng": 3.17160273601,
+            "Shape_Area": 0.199139592398,
+            "C_Name": "Taichung City",
+            "C_Desc": "Tiachung City",
+            "Add_Date": "2010-12-24T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -29,
+              -15,
+              -7,
+              38,
+              39,
+              40,
+              -3
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 21,
+            "County_ID": 67,
+            "Shape_Leng": 2.43719465291,
+            "Shape_Area": 0.199182650564,
+            "C_Name": "Tainan City",
+            "C_Desc": "Tainan City",
+            "Add_Date": "2010-12-24T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              41,
+              42,
+              43
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 22,
+            "County_ID": 68,
+            "Shape_Leng": 2.54622760814,
+            "Shape_Area": 0.108786722433,
+            "C_Name": "Taoyuan City",
+            "C_Desc": "Taoyuan City",
+            "Add_Date": "2014-12-24T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -37,
+              -5,
+              44,
+              45
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 23,
+            "County_ID": 10005,
+            "Shape_Leng": 2.17566600592,
+            "Shape_Area": 0.162720852004,
+            "C_Name": "Miaoli County",
+            "C_Desc": "Miaoli County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -40,
+              46,
+              -32,
+              47
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 24,
+            "County_ID": 10004,
+            "Shape_Leng": 2.36186853491,
+            "Shape_Area": 0.12593602249,
+            "C_Name": "Hsinchu County",
+            "C_Desc": "Hsinchu County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -34,
+              48,
+              -45,
+              -4,
+              -41,
+              -48
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 25,
+            "County_ID": 10020,
+            "Shape_Leng": 0.434647674332,
+            "Shape_Area": 0.00527931361016,
+            "C_Name": "Chiayi City",
+            "C_Desc": "Chiayi City",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              49
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 26,
+            "County_ID": 10010,
+            "Shape_Leng": 3.9573376124,
+            "Shape_Area": 0.172581671962,
+            "C_Name": "Chiayi County",
+            "C_Desc": "Chiayi County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -13,
+              50,
+              -44,
+              51,
+              -17
+            ],
+            [
+              -50
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 27,
+            "County_ID": 64,
+            "Shape_Leng": 4.20370748664,
+            "Shape_Area": 0.263983924696,
+            "C_Name": "Kaohsiung City",
+            "C_Desc": "Kaohsiung City",
+            "Add_Date": "2015-04-20T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -42,
+              -51,
+              -12,
+              -28,
+              -25,
+              -21,
+              52
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 3,
+            "County_ID": 10002,
+            "Shape_Leng": 3.31630685363,
+            "Shape_Area": 0.196220636183,
+            "C_Name": "Yilan County",
+            "C_Desc": "Yilan County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 6,
+            "County_ID": 10007,
+            "Shape_Leng": 1.97922363136,
+            "Shape_Area": 0.110416061855,
+            "C_Name": "Changhua County",
+            "C_Desc": "Changhua County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              6,
+              7,
+              8,
+              9
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 7,
+            "County_ID": 10008,
+            "Shape_Leng": 3.82556002026,
+            "Shape_Area": 0.363242721372,
+            "C_Name": "Nantou County",
+            "C_Desc": "Nantou County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              10,
+              11,
+              12,
+              13,
+              -8,
+              14
+            ]
+          ]
+        },
+        {
+          "type": "MultiPolygon",
+          "properties": {
+            "OBJECTID": 8,
+            "County_ID": 10009,
+            "Shape_Leng": 3.14065592064,
+            "Shape_Area": 0.123905939707,
+            "C_Name": "Yunlin County",
+            "C_Desc": "Yunlin County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              [
+                15
+              ]
+            ],
+            [
+              [
+                -14,
+                16,
+                17,
+                -9
+              ]
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 10,
+            "County_ID": 10013,
+            "Shape_Leng": 3.55981370856,
+            "Shape_Area": 0.246188466446,
+            "C_Name": "Pingtung County",
+            "C_Desc": "Pingtung County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              18,
+              19,
+              20
+            ]
+          ]
+        },
+        {
+          "type": "MultiPolygon",
+          "properties": {
+            "OBJECTID": 11,
+            "County_ID": 10014,
+            "Shape_Leng": 4.97518675765,
+            "Shape_Area": 0.315228038452,
+            "C_Name": "Taitung County",
+            "C_Desc": "Taitung County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              [
+                21
+              ]
+            ],
+            [
+              [
+                22
+              ]
+            ],
+            [
+              [
+                23,
+                -19,
+                24,
+                25
+              ]
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 12,
+            "County_ID": 10015,
+            "Shape_Leng": 4.38522391544,
+            "Shape_Area": 0.40798475296,
+            "C_Name": "Hualien County",
+            "C_Desc": "Hualien County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              26,
+              -26,
+              27,
+              -11,
+              28,
+              -2
+            ]
+          ]
+        },
+        {
+          "type": "MultiPolygon",
+          "properties": {
+            "OBJECTID": 13,
+            "County_ID": 10016,
+            "Shape_Leng": 5.4979779607,
+            "Shape_Area": 0.0119537443823,
+            "C_Name": "Penghu County",
+            "C_Desc": "Penghu County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              [
+                53
+              ]
+            ],
+            [
+              [
+                54
+              ]
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 14,
+            "County_ID": 10017,
+            "Shape_Leng": 0.813745445094,
+            "Shape_Area": 0.0123150463725,
+            "C_Name": "Keelung City",
+            "C_Desc": "Keelung City",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              29,
+              30
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 15,
+            "County_ID": 10018,
+            "Shape_Leng": 0.636322280258,
+            "Shape_Area": 0.0111070552983,
+            "C_Name": "Hsinchu City",
+            "C_Desc": "Hsinchu City",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              31,
+              32,
+              33
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 17,
+            "County_ID": 63,
+            "Shape_Leng": 1.02665069229,
+            "Shape_Area": 0.0241500874157,
+            "C_Name": "Taipei City",
+            "C_Desc": "Taipei City",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              34
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 19,
+            "County_ID": 65,
+            "Shape_Leng": 4.92044430341,
+            "Shape_Area": 0.184776642728,
+            "C_Name": "New Taipei City",
+            "C_Desc": "New Taipei City",
+            "Add_Date": "2010-12-24T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -30,
+              35,
+              -6,
+              36,
+              37
+            ],
+            [
+              -35
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 20,
+            "County_ID": 66,
+            "Shape_Leng": 3.17160273601,
+            "Shape_Area": 0.199139592398,
+            "C_Name": "Taichung City",
+            "C_Desc": "Taichung City",
+            "Add_Date": "2010-12-24T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -29,
+              -15,
+              -7,
+              38,
+              39,
+              40,
+              -3
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 21,
+            "County_ID": 67,
+            "Shape_Leng": 2.43719465291,
+            "Shape_Area": 0.199182650564,
+            "C_Name": "Tainan City",
+            "C_Desc": "Tainan City",
+            "Add_Date": "2010-12-24T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              41,
+              42,
+              43
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 22,
+            "County_ID": 68,
+            "Shape_Leng": 2.54622760814,
+            "Shape_Area": 0.108786722433,
+            "C_Name": "Taoyuan City",
+            "C_Desc": "Taoyuan City",
+            "Add_Date": "2014-12-24T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -37,
+              -5,
+              44,
+              45
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 23,
+            "County_ID": 10005,
+            "Shape_Leng": 2.17566600592,
+            "Shape_Area": 0.162720852004,
+            "C_Name": "Miaoli County",
+            "C_Desc": "Miaoli County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -40,
+              46,
+              -32,
+              47
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 24,
+            "County_ID": 10004,
+            "Shape_Leng": 2.36186853491,
+            "Shape_Area": 0.12593602249,
+            "C_Name": "Hsinchu County",
+            "C_Desc": "Hsinchu County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -34,
+              48,
+              -45,
+              -4,
+              -41,
+              -48
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 25,
+            "County_ID": 10020,
+            "Shape_Leng": 0.434647674332,
+            "Shape_Area": 0.00527931361016,
+            "C_Name": "Chiayi City",
+            "C_Desc": "Chiayi City",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              49
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 26,
+            "County_ID": 10010,
+            "Shape_Leng": 3.9573376124,
+            "Shape_Area": 0.172581671962,
+            "C_Name": "Chiayi County",
+            "C_Desc": "Chiayi County",
+            "Add_Date": "1899-11-29T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -13,
+              50,
+              -44,
+              51,
+              -17
+            ],
+            [
+              -50
+            ]
+          ]
+        },
+        {
+          "type": "Polygon",
+          "properties": {
+            "OBJECTID": 27,
+            "County_ID": 64,
+            "Shape_Leng": 4.20370748664,
+            "Shape_Area": 0.263983924696,
+            "C_Name": "Kaohsiung City",
+            "C_Desc": "Kaohsiung City",
+            "Add_Date": "2015-04-20T16:00:00.000Z"
+          },
+          "arcs": [
+            [
+              -42,
+              -51,
+              -12,
+              -28,
+              -25,
+              -21,
+              52
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "arcs": [
+    [
+      [
+        9846,
+        9068
+      ],
+      [
+        -165,
+        -43
+      ],
+      [
+        -296,
+        -230
+      ],
+      [
+        -122,
+        -257
+      ],
+      [
+        13,
+        -187
+      ],
+      [
+        140,
+        -359
+      ],
+      [
+        112,
+        -51
+      ],
+      [
+        -69,
+        -71
+      ],
+      [
+        18,
+        -121
+      ],
+      [
+        -123,
+        -39
+      ],
+      [
+        36,
+        -108
+      ],
+      [
+        -201,
+        -151
+      ],
+      [
+        -110,
+        -346
+      ]
+    ],
+    [
+      [
+        9079,
+        7105
+      ],
+      [
+        -387,
+        66
+      ],
+      [
+        -178,
+        98
+      ],
+      [
+        -94,
+        -176
+      ],
+      [
+        -329,
+        94
+      ],
+      [
+        -117,
+        -7
+      ],
+      [
+        -168,
+        70
+      ]
+    ],
+    [
+      [
+        7806,
+        7250
+      ],
+      [
+        -62,
+        56
+      ],
+      [
+        -249,
+        -46
+      ],
+      [
+        -186,
+        91
+      ],
+      [
+        -41,
+        126
+      ]
+    ],
+    [
+      [
+        7268,
+        7477
+      ],
+      [
+        97,
+        115
+      ],
+      [
+        239,
+        140
+      ],
+      [
+        5,
+        186
+      ]
+    ],
+    [
+      [
+        7609,
+        7918
+      ],
+      [
+        100,
+        41
+      ],
+      [
+        122,
+        200
+      ],
+      [
+        82,
+        1
+      ]
+    ],
+    [
+      [
+        7913,
+        8160
+      ],
+      [
+        226,
+        44
+      ],
+      [
+        227,
+        118
+      ],
+      [
+        0,
+        172
+      ],
+      [
+        127,
+        63
+      ],
+      [
+        253,
+        21
+      ],
+      [
+        173,
+        118
+      ],
+      [
+        109,
+        1
+      ],
+      [
+        87,
+        97
+      ],
+      [
+        283,
+        105
+      ],
+      [
+        -31,
+        102
+      ],
+      [
+        479,
+        67
+      ]
+    ],
+    [
+      [
+        3852,
+        6788
+      ],
+      [
+        191,
+        -47
+      ],
+      [
+        109,
+        -192
+      ],
+      [
+        319,
+        -70
+      ],
+      [
+        51,
+        -212
+      ],
+      [
+        214,
+        -48
+      ]
+    ],
+    [
+      [
+        4736,
+        6219
+      ],
+      [
+        -161,
+        -19
+      ],
+      [
+        31,
+        -129
+      ],
+      [
+        -74,
+        -33
+      ],
+      [
+        26,
+        -178
+      ],
+      [
+        -57,
+        -144
+      ],
+      [
+        235,
+        -121
+      ],
+      [
+        -153,
+        -45
+      ]
+    ],
+    [
+      [
+        4583,
+        5550
+      ],
+      [
+        -352,
+        44
+      ],
+      [
+        -170,
+        -2
+      ],
+      [
+        -309,
+        87
+      ],
+      [
+        -496,
+        -29
+      ],
+      [
+        -204,
+        41
+      ],
+      [
+        -135,
+        95
+      ]
+    ],
+    [
+      [
+        2917,
+        5786
+      ],
+      [
+        148,
+        94
+      ],
+      [
+        91,
+        158
+      ],
+      [
+        217,
+        188
+      ],
+      [
+        13,
+        127
+      ],
+      [
+        170,
+        111
+      ],
+      [
+        171,
+        254
+      ],
+      [
+        125,
+        70
+      ]
+    ],
+    [
+      [
+        7370,
+        6837
+      ],
+      [
+        25,
+        -72
+      ],
+      [
+        -252,
+        -65
+      ],
+      [
+        -18,
+        -122
+      ],
+      [
+        189,
+        -62
+      ],
+      [
+        -23,
+        -87
+      ],
+      [
+        -161,
+        -92
+      ],
+      [
+        -91,
+        -186
+      ],
+      [
+        56,
+        -44
+      ],
+      [
+        -18,
+        -271
+      ],
+      [
+        -117,
+        -126
+      ],
+      [
+        -36,
+        -149
+      ],
+      [
+        -99,
+        -52
+      ],
+      [
+        109,
+        -62
+      ],
+      [
+        13,
+        -264
+      ],
+      [
+        -92,
+        -181
+      ],
+      [
+        -239,
+        -39
+      ],
+      [
+        -8,
+        -177
+      ],
+      [
+        -61,
+        -35
+      ],
+      [
+        -265,
+        12
+      ],
+      [
+        -120,
+        -131
+      ],
+      [
+        54,
+        -68
+      ],
+      [
+        -148,
+        -45
+      ]
+    ],
+    [
+      [
+        6068,
+        4519
+      ],
+      [
+        -30,
+        80
+      ],
+      [
+        -197,
+        20
+      ]
+    ],
+    [
+      [
+        5841,
+        4619
+      ],
+      [
+        -471,
+        6
+      ],
+      [
+        -120,
+        216
+      ],
+      [
+        64,
+        122
+      ],
+      [
+        -48,
+        42
+      ],
+      [
+        -326,
+        30
+      ]
+    ],
+    [
+      [
+        4940,
+        5035
+      ],
+      [
+        -388,
+        24
+      ],
+      [
+        62,
+        179
+      ],
+      [
+        -36,
+        146
+      ],
+      [
+        66,
+        14
+      ],
+      [
+        -61,
+        152
+      ]
+    ],
+    [
+      [
+        4736,
+        6219
+      ],
+      [
+        265,
+        -43
+      ],
+      [
+        97,
+        30
+      ],
+      [
+        152,
+        166
+      ],
+      [
+        82,
+        16
+      ],
+      [
+        25,
+        135
+      ],
+      [
+        74,
+        22
+      ],
+      [
+        146,
+        -81
+      ],
+      [
+        229,
+        84
+      ],
+      [
+        170,
+        -14
+      ],
+      [
+        82,
+        96
+      ],
+      [
+        158,
+        4
+      ],
+      [
+        229,
+        128
+      ],
+      [
+        105,
+        -7
+      ],
+      [
+        127,
+        85
+      ],
+      [
+        54,
+        -37
+      ],
+      [
+        290,
+        91
+      ],
+      [
+        349,
+        -57
+      ]
+    ],
+    [
+      [
+        2364,
+        4779
+      ],
+      [
+        -92,
+        -132
+      ],
+      [
+        -244,
+        -40
+      ],
+      [
+        336,
+        172
+      ]
+    ],
+    [
+      [
+        4940,
+        5035
+      ],
+      [
+        23,
+        -119
+      ],
+      [
+        -253,
+        20
+      ],
+      [
+        -96,
+        45
+      ],
+      [
+        -148,
+        -29
+      ],
+      [
+        -288,
+        34
+      ],
+      [
+        -135,
+        120
+      ],
+      [
+        -405,
+        -23
+      ],
+      [
+        -143,
+        -58
+      ],
+      [
+        -374,
+        -225
+      ],
+      [
+        -123,
+        21
+      ],
+      [
+        -73,
+        -99
+      ],
+      [
+        -304,
+        49
+      ]
+    ],
+    [
+      [
+        2621,
+        4771
+      ],
+      [
+        -35,
+        337
+      ],
+      [
+        -49,
+        30
+      ],
+      [
+        174,
+        331
+      ],
+      [
+        -46,
+        76
+      ],
+      [
+        198,
+        154
+      ],
+      [
+        54,
+        87
+      ]
+    ],
+    [
+      [
+        5472,
+        2776
+      ],
+      [
+        -10,
+        -50
+      ],
+      [
+        165,
+        -76
+      ],
+      [
+        -81,
+        -243
+      ],
+      [
+        -344,
+        -83
+      ],
+      [
+        -140,
+        -175
+      ],
+      [
+        -87,
+        -229
+      ],
+      [
+        97,
+        -154
+      ],
+      [
+        -48,
+        -120
+      ],
+      [
+        153,
+        -119
+      ],
+      [
+        -141,
+        -40
+      ],
+      [
+        -43,
+        -110
+      ],
+      [
+        166,
+        -63
+      ],
+      [
+        43,
+        -82
+      ],
+      [
+        -74,
+        -57
+      ],
+      [
+        352,
+        -202
+      ],
+      [
+        117,
+        49
+      ]
+    ],
+    [
+      [
+        5597,
+        1022
+      ],
+      [
+        -20,
+        -148
+      ],
+      [
+        33,
+        -263
+      ],
+      [
+        -39,
+        -235
+      ],
+      [
+        -170,
+        -115
+      ],
+      [
+        -21,
+        -89
+      ],
+      [
+        95,
+        -172
+      ],
+      [
+        -169,
+        104
+      ],
+      [
+        -275,
+        62
+      ],
+      [
+        -56,
+        -105
+      ],
+      [
+        -117,
+        43
+      ],
+      [
+        20,
+        115
+      ],
+      [
+        -112,
+        170
+      ],
+      [
+        118,
+        183
+      ],
+      [
+        -123,
+        332
+      ],
+      [
+        -142,
+        138
+      ],
+      [
+        -54,
+        175
+      ],
+      [
+        -199,
+        167
+      ],
+      [
+        -514,
+        212
+      ],
+      [
+        -125,
+        79
+      ]
+    ],
+    [
+      [
+        3727,
+        1675
+      ],
+      [
+        -10,
+        149
+      ],
+      [
+        79,
+        123
+      ],
+      [
+        -23,
+        305
+      ],
+      [
+        79,
+        161
+      ],
+      [
+        -13,
+        140
+      ],
+      [
+        61,
+        188
+      ],
+      [
+        334,
+        -8
+      ],
+      [
+        214,
+        133
+      ],
+      [
+        148,
+        34
+      ],
+      [
+        132,
+        -81
+      ],
+      [
+        100,
+        66
+      ],
+      [
+        208,
+        -43
+      ],
+      [
+        82,
+        -85
+      ],
+      [
+        196,
+        88
+      ],
+      [
+        158,
+        -69
+      ]
+    ],
+    [
+      [
+        8014,
+        548
+      ],
+      [
+        260,
+        -7
+      ],
+      [
+        -12,
+        -126
+      ],
+      [
+        140,
+        -56
+      ],
+      [
+        -128,
+        -54
+      ],
+      [
+        -239,
+        132
+      ],
+      [
+        -21,
+        111
+      ]
+    ],
+    [
+      [
+        7961,
+        2289
+      ],
+      [
+        79,
+        -22
+      ],
+      [
+        -69,
+        -105
+      ],
+      [
+        -120,
+        111
+      ],
+      [
+        110,
+        16
+      ]
+    ],
+    [
+      [
+        7974,
+        4508
+      ],
+      [
+        -69,
+        -110
+      ],
+      [
+        -61,
+        -239
+      ],
+      [
+        -122,
+        -82
+      ],
+      [
+        -135,
+        -230
+      ],
+      [
+        61,
+        -244
+      ],
+      [
+        -227,
+        -131
+      ],
+      [
+        -74,
+        -176
+      ],
+      [
+        -217,
+        -209
+      ],
+      [
+        -196,
+        -249
+      ],
+      [
+        -165,
+        -41
+      ],
+      [
+        38,
+        -161
+      ],
+      [
+        -99,
+        -107
+      ],
+      [
+        -197,
+        -118
+      ],
+      [
+        -400,
+        -181
+      ],
+      [
+        -68,
+        -206
+      ],
+      [
+        -110,
+        -73
+      ],
+      [
+        -135,
+        -305
+      ],
+      [
+        -209,
+        -367
+      ],
+      [
+        8,
+        -257
+      ]
+    ],
+    [
+      [
+        5472,
+        2776
+      ],
+      [
+        -97,
+        115
+      ],
+      [
+        -79,
+        233
+      ],
+      [
+        245,
+        237
+      ],
+      [
+        -49,
+        54
+      ],
+      [
+        79,
+        119
+      ],
+      [
+        -51,
+        151
+      ],
+      [
+        135,
+        85
+      ],
+      [
+        21,
+        168
+      ],
+      [
+        227,
+        131
+      ],
+      [
+        221,
+        42
+      ]
+    ],
+    [
+      [
+        6124,
+        4111
+      ],
+      [
+        123,
+        -29
+      ],
+      [
+        81,
+        -157
+      ],
+      [
+        196,
+        -30
+      ],
+      [
+        41,
+        -64
+      ],
+      [
+        204,
+        3
+      ],
+      [
+        81,
+        -171
+      ],
+      [
+        153,
+        -39
+      ],
+      [
+        87,
+        -98
+      ],
+      [
+        170,
+        36
+      ],
+      [
+        248,
+        562
+      ],
+      [
+        178,
+        174
+      ],
+      [
+        -87,
+        70
+      ],
+      [
+        179,
+        175
+      ],
+      [
+        196,
+        -35
+      ]
+    ],
+    [
+      [
+        9079,
+        7105
+      ],
+      [
+        -117,
+        -161
+      ],
+      [
+        -278,
+        -154
+      ],
+      [
+        -61,
+        -110
+      ],
+      [
+        21,
+        -106
+      ],
+      [
+        -174,
+        -125
+      ],
+      [
+        -17,
+        -83
+      ],
+      [
+        127,
+        -159
+      ],
+      [
+        -140,
+        -225
+      ],
+      [
+        -56,
+        -223
+      ],
+      [
+        -105,
+        -173
+      ],
+      [
+        6,
+        -119
+      ],
+      [
+        -166,
+        -387
+      ],
+      [
+        -5,
+        -92
+      ],
+      [
+        -105,
+        -230
+      ],
+      [
+        39,
+        -86
+      ],
+      [
+        -74,
+        -164
+      ]
+    ],
+    [
+      [
+        6124,
+        4111
+      ],
+      [
+        79,
+        78
+      ],
+      [
+        -244,
+        139
+      ],
+      [
+        158,
+        104
+      ],
+      [
+        -49,
+        87
+      ]
+    ],
+    [
+      [
+        7370,
+        6837
+      ],
+      [
+        168,
+        93
+      ],
+      [
+        -20,
+        70
+      ],
+      [
+        216,
+        125
+      ],
+      [
+        72,
+        125
+      ]
+    ],
+    [
+      [
+        9197,
+        9518
+      ],
+      [
+        -21,
+        -63
+      ],
+      [
+        -165,
+        -16
+      ],
+      [
+        30,
+        -152
+      ],
+      [
+        -130,
+        -13
+      ],
+      [
+        -328,
+        143
+      ],
+      [
+        -82,
+        115
+      ],
+      [
+        326,
+        105
+      ]
+    ],
+    [
+      [
+        8827,
+        9637
+      ],
+      [
+        209,
+        -35
+      ],
+      [
+        161,
+        -84
+      ]
+    ],
+    [
+      [
+        5755,
+        8274
+      ],
+      [
+        -110,
+        83
+      ],
+      [
+        -135,
+        -8
+      ]
+    ],
+    [
+      [
+        5510,
+        8349
+      ],
+      [
+        79,
+        70
+      ],
+      [
+        31,
+        177
+      ],
+      [
+        92,
+        95
+      ]
+    ],
+    [
+      [
+        5712,
+        8691
+      ],
+      [
+        221,
+        -69
+      ],
+      [
+        161,
+        -87
+      ],
+      [
+        25,
+        -128
+      ],
+      [
+        -137,
+        67
+      ],
+      [
+        -197,
+        -107
+      ],
+      [
+        -30,
+        -93
+      ]
+    ],
+    [
+      [
+        8274,
+        9699
+      ],
+      [
+        54,
+        -6
+      ],
+      [
+        94,
+        -196
+      ],
+      [
+        -43,
+        -54
+      ],
+      [
+        122,
+        -63
+      ],
+      [
+        -13,
+        -149
+      ],
+      [
+        156,
+        -45
+      ],
+      [
+        -265,
+        -23
+      ],
+      [
+        23,
+        -159
+      ],
+      [
+        -171,
+        13
+      ],
+      [
+        -25,
+        61
+      ],
+      [
+        -276,
+        141
+      ],
+      [
+        87,
+        55
+      ],
+      [
+        -25,
+        103
+      ],
+      [
+        -166,
+        57
+      ],
+      [
+        178,
+        195
+      ],
+      [
+        72,
+        -13
+      ],
+      [
+        168,
+        119
+      ],
+      [
+        30,
+        -36
+      ]
+    ],
+    [
+      [
+        9197,
+        9518
+      ],
+      [
+        384,
+        -46
+      ],
+      [
+        94,
+        31
+      ],
+      [
+        -38,
+        -119
+      ],
+      [
+        123,
+        -200
+      ],
+      [
+        208,
+        -7
+      ],
+      [
+        31,
+        -55
+      ],
+      [
+        -153,
+        -54
+      ]
+    ],
+    [
+      [
+        7913,
+        8160
+      ],
+      [
+        -118,
+        92
+      ],
+      [
+        -104,
+        167
+      ],
+      [
+        104,
+        70
+      ],
+      [
+        -191,
+        169
+      ],
+      [
+        -257,
+        16
+      ],
+      [
+        71,
+        72
+      ],
+      [
+        -145,
+        130
+      ],
+      [
+        87,
+        33
+      ],
+      [
+        -51,
+        147
+      ],
+      [
+        165,
+        -5
+      ],
+      [
+        135,
+        65
+      ],
+      [
+        -22,
+        153
+      ],
+      [
+        -454,
+        195
+      ]
+    ],
+    [
+      [
+        7133,
+        9464
+      ],
+      [
+        423,
+        89
+      ],
+      [
+        252,
+        310
+      ],
+      [
+        324,
+        114
+      ],
+      [
+        173,
+        22
+      ],
+      [
+        204,
+        -96
+      ],
+      [
+        18,
+        -80
+      ],
+      [
+        300,
+        -186
+      ]
+    ],
+    [
+      [
+        3852,
+        6788
+      ],
+      [
+        97,
+        77
+      ],
+      [
+        168,
+        241
+      ],
+      [
+        91,
+        59
+      ],
+      [
+        301,
+        307
+      ]
+    ],
+    [
+      [
+        4509,
+        7472
+      ],
+      [
+        275,
+        -210
+      ],
+      [
+        265,
+        -116
+      ],
+      [
+        186,
+        -37
+      ],
+      [
+        110,
+        -75
+      ],
+      [
+        282,
+        4
+      ],
+      [
+        128,
+        149
+      ],
+      [
+        272,
+        -34
+      ],
+      [
+        176,
+        -105
+      ],
+      [
+        26,
+        43
+      ],
+      [
+        265,
+        60
+      ],
+      [
+        73,
+        85
+      ],
+      [
+        110,
+        4
+      ],
+      [
+        153,
+        108
+      ],
+      [
+        99,
+        -41
+      ],
+      [
+        110,
+        159
+      ]
+    ],
+    [
+      [
+        7039,
+        7466
+      ],
+      [
+        229,
+        11
+      ]
+    ],
+    [
+      [
+        4631,
+        3900
+      ],
+      [
+        -66,
+        -145
+      ],
+      [
+        -137,
+        -95
+      ],
+      [
+        -105,
+        -154
+      ],
+      [
+        -379,
+        -257
+      ],
+      [
+        -79,
+        0
+      ],
+      [
+        -169,
+        -256
+      ],
+      [
+        -140,
+        12
+      ],
+      [
+        -122,
+        -91
+      ],
+      [
+        -290,
+        43
+      ],
+      [
+        -97,
+        -29
+      ],
+      [
+        -235,
+        77
+      ],
+      [
+        -79,
+        -27
+      ]
+    ],
+    [
+      [
+        2733,
+        2978
+      ],
+      [
+        -17,
+        130
+      ],
+      [
+        -105,
+        105
+      ],
+      [
+        -466,
+        225
+      ],
+      [
+        214,
+        413
+      ],
+      [
+        61,
+        267
+      ],
+      [
+        87,
+        120
+      ]
+    ],
+    [
+      [
+        2507,
+        4238
+      ],
+      [
+        283,
+        -147
+      ],
+      [
+        127,
+        17
+      ],
+      [
+        283,
+        234
+      ],
+      [
+        221,
+        75
+      ],
+      [
+        370,
+        36
+      ],
+      [
+        232,
+        -77
+      ],
+      [
+        20,
+        -118
+      ],
+      [
+        127,
+        -40
+      ],
+      [
+        -53,
+        -59
+      ],
+      [
+        -18,
+        -217
+      ],
+      [
+        237,
+        -73
+      ],
+      [
+        295,
+        31
+      ]
+    ],
+    [
+      [
+        7609,
+        7918
+      ],
+      [
+        -158,
+        33
+      ],
+      [
+        -38,
+        191
+      ],
+      [
+        -214,
+        81
+      ],
+      [
+        31,
+        176
+      ],
+      [
+        -627,
+        263
+      ],
+      [
+        26,
+        105
+      ],
+      [
+        -168,
+        7
+      ],
+      [
+        -225,
+        69
+      ],
+      [
+        5,
+        91
+      ],
+      [
+        -303,
+        8
+      ]
+    ],
+    [
+      [
+        5938,
+        8942
+      ],
+      [
+        273,
+        303
+      ],
+      [
+        293,
+        99
+      ],
+      [
+        535,
+        135
+      ],
+      [
+        94,
+        -15
+      ]
+    ],
+    [
+      [
+        4509,
+        7472
+      ],
+      [
+        171,
+        130
+      ],
+      [
+        178,
+        316
+      ],
+      [
+        265,
+        205
+      ],
+      [
+        183,
+        33
+      ],
+      [
+        204,
+        193
+      ]
+    ],
+    [
+      [
+        5755,
+        8274
+      ],
+      [
+        153,
+        -2
+      ],
+      [
+        -31,
+        -78
+      ],
+      [
+        117,
+        -88
+      ],
+      [
+        314,
+        -128
+      ],
+      [
+        -49,
+        -159
+      ],
+      [
+        69,
+        -48
+      ],
+      [
+        -33,
+        -125
+      ],
+      [
+        204,
+        33
+      ],
+      [
+        183,
+        -22
+      ],
+      [
+        184,
+        38
+      ],
+      [
+        186,
+        -175
+      ],
+      [
+        -13,
+        -54
+      ]
+    ],
+    [
+      [
+        5712,
+        8691
+      ],
+      [
+        226,
+        251
+      ]
+    ],
+    [
+      [
+        3816,
+        4763
+      ],
+      [
+        214,
+        -83
+      ],
+      [
+        -25,
+        -110
+      ],
+      [
+        -105,
+        27
+      ],
+      [
+        -109,
+        -66
+      ],
+      [
+        -49,
+        62
+      ],
+      [
+        -137,
+        5
+      ],
+      [
+        -10,
+        111
+      ],
+      [
+        221,
+        54
+      ]
+    ],
+    [
+      [
+        5841,
+        4619
+      ],
+      [
+        -191,
+        -34
+      ],
+      [
+        -239,
+        -114
+      ],
+      [
+        -97,
+        -140
+      ],
+      [
+        -448,
+        -186
+      ],
+      [
+        -74,
+        -70
+      ],
+      [
+        -204,
+        23
+      ],
+      [
+        43,
+        -198
+      ]
+    ],
+    [
+      [
+        2507,
+        4238
+      ],
+      [
+        56,
+        132
+      ],
+      [
+        114,
+        13
+      ],
+      [
+        -109,
+        182
+      ],
+      [
+        99,
+        130
+      ],
+      [
+        -130,
+        -20
+      ],
+      [
+        -25,
+        83
+      ],
+      [
+        109,
+        13
+      ]
+    ],
+    [
+      [
+        3727,
+        1675
+      ],
+      [
+        -115,
+        27
+      ],
+      [
+        -295,
+        148
+      ],
+      [
+        -263,
+        264
+      ],
+      [
+        36,
+        166
+      ],
+      [
+        -30,
+        132
+      ],
+      [
+        -174,
+        260
+      ],
+      [
+        -153,
+        306
+      ]
+    ],
+    [
+      [
+        31,
+        4405
+      ],
+      [
+        81,
+        -128
+      ],
+      [
+        -112,
+        8
+      ],
+      [
+        31,
+        120
+      ]
+    ],
+    [
+      [
+        392,
+        5227
+      ],
+      [
+        156,
+        -282
+      ],
+      [
+        104,
+        85
+      ],
+      [
+        176,
+        -160
+      ],
+      [
+        -194,
+        16
+      ],
+      [
+        -285,
+        -156
+      ],
+      [
+        -71,
+        61
+      ],
+      [
+        140,
+        9
+      ],
+      [
+        -117,
+        160
+      ],
+      [
+        178,
+        0
+      ],
+      [
+        -99,
+        223
+      ],
+      [
+        -250,
+        -94
+      ],
+      [
+        -8,
+        -191
+      ],
+      [
+        -97,
+        16
+      ],
+      [
+        87,
+        253
+      ],
+      [
+        105,
+        -45
+      ],
+      [
+        175,
+        105
+      ]
+    ]
+  ],
+  "transform": {
+    "scale": [
+      0.0002519362682792925,
+      0.0003401162660337433
+    ],
+    "translate": [
+      119.48570293095116,
+      21.898293751480733
+    ]
+  },
+  "bbox": [
+    119.48570293095116,
+    21.898293751480733,
+    122.00481367747581,
+    25.299116295552132
+  ]
+}

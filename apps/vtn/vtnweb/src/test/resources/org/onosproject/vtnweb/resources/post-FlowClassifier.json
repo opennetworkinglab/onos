@@ -1,0 +1,15 @@
+{"flow_classifier": {
+    "id": "4a334cd4-fe9c-4fae-af4b-321c5e2eb051",
+    "name": "flow1",
+    "tenant_id": "1814726e2d22407b8ca76db5e567dcf1",
+    "description": "flow classifier",
+    "ethertype": "IPv4",
+    "protocol": "tcp",
+    "priority": 10000,
+    "source_port_range_min": 22, "source_port_range_max": 4000,
+    "destination_port_range_min": 80, "destination_port_range_max": 80,
+    "source_ip_prefix": "1.1.1.1/16" , "destination_ip_prefix": "22.12.34.45/16",
+    "logical_destination_port": "dace4513-24fc-4fae-af4b-321c5e2eb3d1", 
+    "logical_source_port": "aef3478a-4a56-2a6e-cd3a-9dee4e2ec345"
+   }
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.onosproject.store.serializers;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 import org.onlab.packet.Ip6Address;
 import com.esotericsoftware.kryo.Kryo;
@@ -45,6 +47,7 @@ public class Ip6AddressSerializer extends Serializer<Ip6Address> {
     @Override
     public Ip6Address read(Kryo kryo, Input input, Class<Ip6Address> type) {
         final int octLen = input.readInt();
+        checkArgument(octLen == Ip6Address.BYTE_LENGTH);
         byte[] octs = new byte[octLen];
         input.readBytes(octs);
         return Ip6Address.valueOf(octs);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,12 @@ import static org.onosproject.net.PortNumber.portNumber;
 public class LinkEventTest extends AbstractEventTest {
 
     private Link createLink() {
-        return new DefaultLink(new ProviderId("of", "foo"),
-                               new ConnectPoint(deviceId("of:foo"), portNumber(1)),
-                               new ConnectPoint(deviceId("of:bar"), portNumber(2)),
-                               Link.Type.INDIRECT);
+        return DefaultLink.builder()
+                .providerId(new ProviderId("of", "foo"))
+                .src(new ConnectPoint(deviceId("of:foo"), portNumber(1)))
+                .dst(new ConnectPoint(deviceId("of:bar"), portNumber(2)))
+                .type(Link.Type.INDIRECT)
+                .build();
     }
 
     @Test

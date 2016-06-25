@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.onlab.packet.ipv6;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -100,5 +101,17 @@ public class EncapSecurityPayloadTest {
 
         assertTrue(esp1.equals(esp1));
         assertFalse(esp1.equals(esp2));
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringESP() throws Exception {
+        EncapSecurityPayload esp = deserializer.deserialize(bytePacket, 0, bytePacket.length);
+        String str = esp.toString();
+
+        assertTrue(StringUtils.contains(str, "securityParamIndex=" + 0x13572468));
+        assertTrue(StringUtils.contains(str, "sequence=" + 0xffff00));
     }
 }

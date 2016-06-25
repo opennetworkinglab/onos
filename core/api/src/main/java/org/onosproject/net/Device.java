@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ public interface Device extends Element {
      */
     enum Type {
         SWITCH, ROUTER, ROADM, OTN, ROADM_OTN, FIREWALL, BALANCER, IPS, IDS, CONTROLLER,
-        VIRTUAL, FIBER_SWITCH, MICROWAVE, OTHER
+        VIRTUAL, FIBER_SWITCH, MICROWAVE, OLT, ONU, OTHER
     }
 
     /**

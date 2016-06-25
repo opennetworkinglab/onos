@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.onosproject.segmentrouting.TunnelPolicy;
 /**
  * Command to remove a policy.
  */
-@Command(scope = "onos", name = "srpolicy-remove",
+@Command(scope = "onos", name = "sr-policy-remove",
         description = "Remove a policy")
 public class PolicyRemoveCommand extends AbstractShellCommand {
 

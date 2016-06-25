@@ -1,0 +1,25 @@
+{
+  "name": "Onos-GUI-tests",
+  "version": "1.0.0",
+  "description": "Tests for the ONOS GUI",
+  "main": "karma.conf.js",
+  "scripts": {
+    "test:dev": "karma start",
+    "test": "karma start karma.ci.js"
+  },
+  "author": "ON.Lab",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "opennetworkinglab/onos"
+  },
+  "devDependencies": {
+    "jasmine-core": "^2.4.1",
+    "karma": "^0.13.22",
+    "karma-jasmine": "^0.3.8",
+    "karma-mocha-reporter": "^1.1.3",
+    "karma-chrome-launcher": "^0.2.3",
+    "karma-phantomjs-launcher": "^0.2.1",
+    "phantomjs": "^1.9.19"
+  }
+}

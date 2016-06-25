@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -29,20 +29,31 @@
         <import file="${ONOS_SCENARIOS}/net-point-intent.xml"/>
         <dependency name="P2P-Intent-Connectivity" requires="Net-Setup,~Reactive-Forwarding.Net-Link-Down-Up,Host-Intent-Connectivity"/>
 
+        <import file="${ONOS_SCENARIOS}/net-single-to-multi-intent.xml"/>
+        <dependency name="S2M-Intent-Connectivity"
+                    requires="Net-Setup,~Reactive-Forwarding.Net-Link-Down-Up,Host-Intent-Connectivity,P2P-Intent-Connectivity"/>
+
+        <import file="${ONOS_SCENARIOS}/net-multi-to-single-intent.xml"/>
+        <dependency name="M2S-Intent-Connectivity"
+                    requires="S2M-Intent-Connectivity"/>
+        
         <import file="${ONOS_SCENARIOS}/net-rest.xml"/>
-        <dependency name="Net-REST" requires="Net-Setup,P2P-Intent-Connectivity"/>
+        <dependency name="Net-REST" requires="Net-Setup,P2P-Intent-Connectivity,M2S-Intent-Connectivity"/>
 
         <import file="${ONOS_SCENARIOS}/net-create-flows.xml"/>
         <dependency name="Net-Create-Flows" requires="Net-Setup,P2P-Intent-Connectivity,Net-REST"/>
 
+        <import file="${ONOS_SCENARIOS}/net-flow-objectives.xml"/>
+        <dependency name="Net-Flow-Objectives" requires="Net-Setup,P2P-Intent-Connectivity,Net-REST,Net-Create-Flows"/>
+
         <import file="${ONOS_SCENARIOS}/net-topo.xml"/>
-        <dependency name="Net-topo" requires="Net-Setup,Net-Create-Flows"/>
+        <dependency name="Net-Topo" requires="Net-Setup,Net-Create-Flows,Net-Flow-Objectives"/>
 
         <import file="${ONOS_SCENARIOS}/net-teardown.xml"/>
         <dependency name="Net-Teardown" requires="~Host-Intent-Connectivity,
                                                   ~P2P-Intent-Connectivity,
                                                   ~Net-REST,
                                                   ~Net-Create-Flows,
-                                                  ~Net-topo"/>
+                                                  ~Net-Topo"/>
     </group>
 </scenario>

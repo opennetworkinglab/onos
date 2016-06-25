@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.onosproject.net.flowobjective;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -34,7 +36,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Beta
 public final class DefaultFilteringObjective implements FilteringObjective {
-
 
     private final Type type;
     private final boolean permanent;
@@ -46,6 +47,7 @@ public final class DefaultFilteringObjective implements FilteringObjective {
     private final int id;
     private final Operation op;
     private final Optional<ObjectiveContext> context;
+    private final TrafficTreatment meta;
 
     private DefaultFilteringObjective(Builder builder) {
         this.key = builder.key;
@@ -57,9 +59,10 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         this.conditions = builder.conditions;
         this.op = builder.op;
         this.context = Optional.ofNullable(builder.context);
+        this.meta = builder.meta;
 
         this.id = Objects.hash(type, key, conditions, permanent,
-                timeout, appId, priority);
+                               timeout, appId, priority);
     }
 
     @Override
@@ -81,6 +84,12 @@ public final class DefaultFilteringObjective implements FilteringObjective {
     public int id() {
         return id;
     }
+
+    @Override
+    public TrafficTreatment meta() {
+        return meta;
+    }
+
 
     @Override
     public int priority() {
@@ -112,6 +121,48 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         return context;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, permanent, timeout, appId, priority, key,
+                            conditions, op, meta);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof DefaultFilteringObjective) {
+            final DefaultFilteringObjective other = (DefaultFilteringObjective) obj;
+            return Objects.equals(this.type, other.type)
+                    && Objects.equals(this.permanent, other.permanent)
+                    && Objects.equals(this.timeout, other.timeout)
+                    && Objects.equals(this.appId, other.appId)
+                    && Objects.equals(this.priority, other.priority)
+                    && Objects.equals(this.key, other.key)
+                    && Objects.equals(this.conditions, other.conditions)
+                    && Objects.equals(this.op, other.op)
+                    && Objects.equals(this.meta, other.meta);
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("id", id())
+                .add("type", type())
+                .add("op", op())
+                .add("priority", priority())
+                .add("key", key())
+                .add("conditions", conditions())
+                .add("meta", meta())
+                .add("appId", appId())
+                .add("permanent", permanent())
+                .add("timeout", timeout())
+                .toString();
+    }
+
     /**
      * Returns a new builder.
      *
@@ -121,6 +172,10 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         return new Builder();
     }
 
+    @Override
+    public Builder copy() {
+        return new Builder(this);
+    }
 
     public static final class Builder implements FilteringObjective.Builder {
         private final ImmutableList.Builder<Criterion> listBuilder
@@ -135,6 +190,24 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         private List<Criterion> conditions;
         private Operation op;
         private ObjectiveContext context;
+        private TrafficTreatment meta;
+
+        // Creates an empty builder
+        private Builder() {
+        }
+
+        // Creates a builder set to create a copy of the specified objective.
+        private Builder(FilteringObjective objective) {
+            this.type = objective.type();
+            this.key = objective.key();
+            objective.conditions().forEach(this::addCondition);
+            this.permanent = objective.permanent();
+            this.timeout = objective.timeout();
+            this.priority = objective.priority();
+            this.appId = objective.appId();
+            this.meta = objective.meta();
+            this.op = objective.op();
+        }
 
         @Override
         public Builder withKey(Criterion key) {
@@ -186,15 +259,22 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         }
 
         @Override
+        public Builder withMeta(TrafficTreatment treatment) {
+            this.meta = treatment;
+            return this;
+        }
+
+        @Override
         public FilteringObjective add() {
             conditions = listBuilder.build();
             op = Operation.ADD;
             checkNotNull(type, "Must have a type.");
             checkArgument(!conditions.isEmpty(), "Must have at least one condition.");
             checkNotNull(appId, "Must supply an application id");
+            checkArgument(priority <= MAX_PRIORITY && priority >= MIN_PRIORITY, "Priority " +
+                    "out of range");
 
             return new DefaultFilteringObjective(this);
-
         }
 
         @Override
@@ -206,7 +286,6 @@ public final class DefaultFilteringObjective implements FilteringObjective {
             op = Operation.REMOVE;
 
             return new DefaultFilteringObjective(this);
-
         }
 
         @Override
@@ -232,7 +311,6 @@ public final class DefaultFilteringObjective implements FilteringObjective {
 
             return new DefaultFilteringObjective(this);
         }
-
 
     }
 

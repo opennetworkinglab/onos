@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,12 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onosproject.incubator.net.domain.IntentDomainConfig;
-import org.onosproject.incubator.net.domain.IntentDomainId;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
-
-import static org.onosproject.incubator.net.config.basics.ExtraSubjectFactories.INTENT_DOMAIN_SUBJECT_FACTORY;
 
 /**
  * Component for registration of builtin basic network configurations.
@@ -40,16 +36,7 @@ public class ExtraNetworkConfigs {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Set<ConfigFactory> factories = ImmutableSet.of(
-            new ConfigFactory<IntentDomainId, IntentDomainConfig>(INTENT_DOMAIN_SUBJECT_FACTORY,
-                                                                  IntentDomainConfig.class,
-                                                                  "basic") {
-                @Override
-                public IntentDomainConfig createConfig() {
-                    return new IntentDomainConfig();
-                }
-            }
-    );
+    private final Set<ConfigFactory> factories = ImmutableSet.of();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry registry;

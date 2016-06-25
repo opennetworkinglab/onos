@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,16 +24,24 @@ public interface Policy {
      * Enums for policy type.
      */
     enum Type {
-        // Tunnel flow policy type
+        /**
+         * Tunnel flow policy type.
+         */
         TUNNEL_FLOW,
 
-        // Load balancing policy type
+        /**
+         * Load balancing policy type.
+         */
         LOADBALANCE,
 
-        // policy to avoid specific routers or links
+        /**
+         * policy to avoid specific routers or links.
+         */
         AVOID,
 
-        // Access Control policy type
+        /**
+         * Access Control policy type.
+         */
         DENY
     }
 

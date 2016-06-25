@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,14 +33,16 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.PartitionEvent;
-import org.onosproject.net.intent.PartitionEventListener;
-import org.onosproject.net.intent.PartitionService;
+import org.onosproject.net.intent.IntentPartitionEvent;
+import org.onosproject.net.intent.IntentPartitionEventListener;
+import org.onosproject.net.intent.IntentPartitionService;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
 import java.util.Set;
 
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -51,7 +53,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Service
 public class SimpleClusterStore
         extends AbstractStore<ClusterEvent, ClusterStoreDelegate>
-        implements ClusterStore, PartitionService {
+        implements ClusterStore, IntentPartitionService {
 
     public static final IpAddress LOCALHOST = IpAddress.valueOf("127.0.0.1");
 
@@ -64,21 +66,22 @@ public class SimpleClusterStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
 
-    private ListenerRegistry<PartitionEvent, PartitionEventListener> listenerRegistry;
+    private ListenerRegistry<IntentPartitionEvent, IntentPartitionEventListener> listenerRegistry;
+    private boolean started = false;
 
     @Activate
     public void activate() {
         instance = new DefaultControllerNode(new NodeId("local"), LOCALHOST);
 
         listenerRegistry = new ListenerRegistry<>();
-        eventDispatcher.addSink(PartitionEvent.class, listenerRegistry);
+        eventDispatcher.addSink(IntentPartitionEvent.class, listenerRegistry);
 
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        eventDispatcher.removeSink(PartitionEvent.class);
+        eventDispatcher.removeSink(IntentPartitionEvent.class);
         log.info("Stopped");
     }
 
@@ -104,6 +107,11 @@ public class SimpleClusterStore
     }
 
     @Override
+    public void markFullyStarted(boolean started) {
+        this.started = started;
+    }
+
+    @Override
     public DateTime getLastUpdated(NodeId nodeId) {
         return creationTime;
     }
@@ -119,21 +127,25 @@ public class SimpleClusterStore
 
     @Override
     public boolean isMine(Key intentKey) {
+        checkPermission(INTENT_READ);
         return true;
     }
 
     @Override
     public NodeId getLeader(Key intentKey) {
+        checkPermission(INTENT_READ);
         return instance.id();
     }
 
     @Override
-    public void addListener(PartitionEventListener listener) {
+    public void addListener(IntentPartitionEventListener listener) {
+        checkPermission(INTENT_EVENT);
         listenerRegistry.addListener(listener);
     }
 
     @Override
-    public void removeListener(PartitionEventListener listener) {
+    public void removeListener(IntentPartitionEventListener listener) {
+        checkPermission(INTENT_EVENT);
         listenerRegistry.removeListener(listener);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,9 @@ public interface FlowRuleProvider extends Provider {
     /**
      * Instructs the provider to apply the specified flow rules to their
      * respective devices.
+     *
      * @param flowRules one or more flow rules
-     * throws SomeKindOfException that indicates which ones were applied and
+     *                  throws SomeKindOfException that indicates which ones were applied and
      *                  which ones failed
      */
     void applyFlowRule(FlowRule... flowRules);
@@ -35,22 +36,27 @@ public interface FlowRuleProvider extends Provider {
     /**
      * Instructs the provider to remove the specified flow rules to their
      * respective devices.
+     *
      * @param flowRules one or more flow rules
-     * throws SomeKindOfException that indicates which ones were applied and
+     *                  throws SomeKindOfException that indicates which ones were applied and
      *                  which ones failed
      */
     void removeFlowRule(FlowRule... flowRules);
 
     /**
      * Removes rules by their id.
-     * @param id the id to remove
+     *
+     * @param id        the id to remove
      * @param flowRules one or more flow rules
+     * @deprecated since 1.5.0 Falcon
      */
+    @Deprecated
     void removeRulesById(ApplicationId id, FlowRule... flowRules);
 
     /**
      * Installs a batch of flow rules. Each flowrule is associated to an
      * operation which results in either addition, removal or modification.
+     *
      * @param batch a batch of flow rules
      */
     void executeBatch(FlowRuleBatchOperation batch);

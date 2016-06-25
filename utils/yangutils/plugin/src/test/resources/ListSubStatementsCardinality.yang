@@ -1,0 +1,16 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+    list valid {
+        key "invalid-interval";
+        reference "RFC 6020";
+        reference "RFC 6020";
+        leaf invalid-interval {
+            type "uint16";
+            units "seconds";
+            status current;
+            reference "RFC 6020";
+        }
+    }
+}

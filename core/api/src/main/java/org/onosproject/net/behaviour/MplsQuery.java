@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,10 @@
 package org.onosproject.net.behaviour;
 
 import com.google.common.annotations.Beta;
+
+import java.util.Set;
+
+import org.onlab.packet.MplsLabel;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.HandlerBehaviour;
 
@@ -26,10 +30,11 @@ import org.onosproject.net.driver.HandlerBehaviour;
 public interface MplsQuery extends HandlerBehaviour {
 
     /**
-     * Indicates if MPLS can be used at the port.
-
-     * @param port port to be checked for the capability
-     * @return true if MPLS can be used at the port, false otherwise.
+     * Returns set of MplsLabels which can be used at the port.
+     *
+     * @param port to be checked for the available resources.
+     * @return Set of MplsLabels which can be used at the port.
      */
-    boolean isEnabled(PortNumber port);
+    Set<MplsLabel> queryMplsLabels(PortNumber port);
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ package org.onosproject.store.service;
  *
  * @param <V> value type
  */
-public interface AtomicValue<V> {
+public interface AtomicValue<V> extends DistributedPrimitive  {
 
     /**
      * Atomically sets the value to the given updated value if the current value is equal to the expected value.

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2014-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,17 +13,13 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos</artifactId>
-        <version>1.4.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.7.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>onos-apps</artifactId>
@@ -32,13 +28,14 @@
     <description>ONOS sample applications</description>
 
     <modules>
-        <module>aaa</module>
         <module>acl</module>
+        <module>faultmanagement</module>
         <module>fwd</module>
         <module>mobility</module>
         <module>proxyarp</module>
         <module>sdnip</module>
         <module>optical</module>
+        <module>newoptical</module>
         <module>metrics</module>
         <module>routing</module>
         <module>routing-api</module>
@@ -47,22 +44,35 @@
         <module>bgprouter</module>
         <module>test</module>
         <module>segmentrouting</module>
-        <module>cordfabric</module>
-        <module>xos-integration</module>
+        <module>kafka-integration</module>
         <module>pcep-api</module>
-        <module>olt</module>
+        <module>iptopology-api</module>
+        <module>pce</module>
         <module>cip</module>
         <module>flowanalyzer</module>
-        <module>vtnrsc</module>
         <module>vtn</module>
-        <module>vtnweb</module>
         <module>dhcp</module>
-        <module>cordvtn</module>
+        <module>dhcprelay</module>
         <module>mfwd</module>
-        <module>igmp</module>
         <module>pim</module>
-        <module>mcast</module>
-  </modules>
+        <module>mlb</module>
+        <module>pathpainter</module>
+        <module>drivermatrix</module>
+        <module>cpman</module>
+        <module>events</module>
+        <module>vrouter</module>
+        <module>vpls</module>
+        <module>openstacknode</module>
+        <module>openstacknetworking</module>
+        <module>openstackinterface</module>
+        <module>influxdbmetrics</module>
+        <module>gangliametrics</module>
+        <module>graphitemetrics</module>
+        <module>xosclient</module>
+        <module>scalablegateway</module>
+        <module>bmv2-demo</module>
+    </modules>
+
 
     <properties>
         <web.context>default</web.context>

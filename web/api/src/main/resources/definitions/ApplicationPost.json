@@ -1,0 +1,95 @@
+{
+  "type": "object",
+  "title": "application",
+  "required": [
+    "name",
+    "id",
+    "version",
+    "category",
+    "description",
+    "readme",
+    "origin",
+    "url",
+    "permissions",
+    "featuresRepo",
+    "features",
+    "requiredApps",
+    "state"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "example": "org.onosproject.distributedprimitives"
+    },
+    "id": {
+      "type": "integer",
+      "format": "int64",
+      "example": 1
+    },
+    "version": {
+      "type": "string",
+      "example": "1.2.3"
+    },
+    "category": {
+      "type": "string",
+      "example": "default"
+    },
+    "description": {
+      "type": "string",
+      "example": "ONOS app to test distributed primitives"
+    },
+    "readme": {
+      "type": "string",
+      "example": "ONOS app to test distributed primitives."
+    },
+    "origin": {
+      "type": "string",
+      "example": "ON.Lab"
+    },
+    "url": {
+      "type": "string",
+      "example": "http://onosproject.org"
+    },
+    "permissions": {
+      "type": "array",
+      "xml": {
+        "name": "permissions",
+        "wrapped": true
+      },
+      "items": {
+        "type": "string",
+        "example": ""
+      }
+    },
+    "featuresRepo": {
+      "type": "string",
+      "example": "mvn:org.onosproject/onos-app-cip/1.2.3/xml/features"
+    },
+    "features": {
+      "type": "array",
+      "xml": {
+        "name": "features",
+        "wrapped": true
+      },
+      "items": {
+        "type": "string",
+        "example": "onos-app-distributed-primitives"
+      }
+    },
+    "requiredApps": {
+      "type": "array",
+      "xml": {
+        "name": "requiredApps",
+        "wrapped": true
+      },
+      "items": {
+        "type": "string",
+        "example": ""
+      }
+    },
+    "state": {
+      "type": "string",
+      "example": "ACTIVE"
+    }
+  }
+}

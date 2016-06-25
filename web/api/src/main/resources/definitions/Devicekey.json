@@ -1,0 +1,35 @@
+{
+  "type": "object",
+  "title": "Devicekey",
+  "required": [
+    "id",
+    "type",
+    "label"
+  ],
+  "properties": {
+    "id": {
+      "type": "String",
+      "example": "Device key unique identifier"
+    },
+    "type": {
+      "type": "String",
+      "example": "COMMUNITY_NAME, OR USERNAME_PASSWORD"
+    },
+    "label": {
+      "type": "String",
+      "example": "Device key user label"
+    },
+    "community_name": {
+      "type": "String",
+      "example": "Device key community name"
+    },
+    "username": {
+      "type": "String",
+      "example": "Device key username"
+    },
+    "password": {
+      "type": "String",
+      "example": "Device key password"
+    }
+  }
+}

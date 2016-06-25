@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,20 +25,20 @@ import static org.onosproject.net.intent.IntentState.CORRUPT;
  */
 public class Corrupt extends FinalIntentProcessPhase {
 
-    private final IntentData intentData;
+    private final IntentData data;
 
     /**
      * Create an instance with the specified data.
      *
-     * @param intentData intentData
+     * @param data intentData
      */
-    Corrupt(IntentData intentData) {
-        this.intentData = checkNotNull(intentData);
-        this.intentData.setState(CORRUPT);
+    Corrupt(IntentData data) {
+        this.data = checkNotNull(data);
+        this.data.setState(CORRUPT);
     }
 
     @Override
     public IntentData data() {
-        return intentData;
+        return data;
     }
 }

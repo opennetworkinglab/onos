@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,10 +55,13 @@
             removeDevice: tfs,
             addHost: tfs,
             updateHost: tfs,
+            moveHost: tfs,
             removeHost: tfs,
             addLink: tfs,
             updateLink: tfs,
             removeLink: tfs,
+
+            topoStartDone: tfs,
 
             spriteListResponse: tspr,
             spriteDataResponse: tspr
@@ -106,9 +109,14 @@
 
             createHandlerMap();
 
-            function start() {
-                openListener = wss.addOpenListener(wsOpen);
+            function bindHandlers() {
                 wss.bindHandlers(handlerMap);
+                $log.debug('topo event handlers bound');
+            }
+
+            function start() {
+                // in case we fail over to a new server, listen for wsock-open
+                openListener = wss.addOpenListener(wsOpen);
                 wss.sendEvent('topoStart');
                 scheduleHeartbeat();
                 $log.debug('topo comms started');
@@ -124,6 +132,7 @@
             }
 
             return {
+                bindHandlers: bindHandlers,
                 start: start,
                 stop: stop
             };

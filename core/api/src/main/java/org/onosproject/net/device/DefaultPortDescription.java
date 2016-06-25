@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,9 @@ import org.onosproject.net.AbstractDescription;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.Port.Type;
+import com.google.common.base.Objects;
 
 /**
  * Default implementation of immutable port description.
@@ -36,7 +38,7 @@ public class DefaultPortDescription extends AbstractDescription
     private final long portSpeed;
 
     /**
-     * Creates a port description using the supplied information.
+     * Creates a DEFAULT_SPEED COPPER port description using the supplied information.
      *
      * @param number      port number
      * @param isEnabled   port enabled state
@@ -60,7 +62,7 @@ public class DefaultPortDescription extends AbstractDescription
                                   Type type, long portSpeed,
                                   SparseAnnotations...annotations) {
         super(annotations);
-        this.number = number;
+        this.number = checkNotNull(number);
         this.isEnabled = isEnabled;
         this.type = type;
         this.portSpeed = portSpeed;
@@ -115,6 +117,27 @@ public class DefaultPortDescription extends AbstractDescription
                 .add("portSpeed", portSpeed)
                 .add("annotations", annotations())
                 .toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), number, isEnabled, type,
+                                portSpeed);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object != null && getClass() == object.getClass()) {
+            if (!super.equals(object)) {
+                return false;
+            }
+            DefaultPortDescription that = (DefaultPortDescription) object;
+            return Objects.equal(this.number, that.number)
+                    && Objects.equal(this.isEnabled, that.isEnabled)
+                    && Objects.equal(this.type, that.type)
+                    && Objects.equal(this.portSpeed, that.portSpeed);
+        }
+        return false;
     }
 
 }

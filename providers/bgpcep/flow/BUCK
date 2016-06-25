@@ -1,0 +1,18 @@
+# FIXME - BGCEP got moved
+
+#SRC = 'src/main/java/org/onosproject/**/'
+
+#CURRENT_NAME = 'onos-bgpcep-provider-flow'
+#CURRENT_TARGET = ':' + CURRENT_NAME
+
+#COMPILE_DEPS = [
+#    '//lib:CORE_DEPS',
+#    '//protocols/bgp/api:onos-bgp-api',
+#]
+
+#osgi_jar(
+#    name = CURRENT_NAME,
+#    srcs = glob([SRC + '/*.java']),
+#    deps = COMPILE_DEPS,
+#    visibility = ['PUBLIC'],
+#)

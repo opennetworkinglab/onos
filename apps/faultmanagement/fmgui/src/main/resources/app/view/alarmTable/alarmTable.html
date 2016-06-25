@@ -1,0 +1,54 @@
+<!-- partial HTML -->
+<div id="ov-alarm-table">
+    <div class="tabular-header">
+        <h2>Alarms  for {{devId || "all devices."}} ({{tableData.length}} total)</h2>
+        <div class="ctrl-btns">
+            <div class="refresh" ng-class="{active: autoRefresh}"
+                 icon icon-id="refresh" icon-size="36"
+                 tooltip tt-msg="autoRefreshTip"
+                 ng-click="toggleRefresh()"></div>
+        </div>
+    </div>
+
+    <div class="summary-list" onos-table-resize>
+
+        <div class="table-header" onos-sortable-header>
+            <table>
+                <tr>
+
+                    <td colId="id" sortable>Id </td>
+                    <td colId="alarmDeviceId" sortable>Device </td>
+                    <td colId="alarmDesc" sortable>Description </td>
+                    <td colId="alarmSource" sortable>Source </td>
+                    <td colId="alarmTimeRaised" sortable>Time Raised </td>
+                    <td colId="alarmSeverity" sortable>Severity </td>
+
+                </tr>
+            </table>
+        </div>
+
+        <div class="table-body">
+            <table>
+                <tr ng-if="!tableData.length" class="no-data">
+                    <td colspan="3">
+                        No Alarms found
+                    </td>
+                </tr>
+
+                <tr ng-repeat="item in tableData track by $index"
+                    ng-click="selectCallback($event, item)"
+                    ng-class="{selected: item.id === selId}">
+                    <td>{{item.id}}</td>
+                    <td>{{item.alarmDeviceId}}</td>
+                    <td>{{item.alarmDesc}}</td>
+                    <td>{{item.alarmSource}}</td>
+                    <td>{{item.alarmTimeRaised}}</td>
+                    <td>{{item.alarmSeverity}}</td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
+    <ov-alarm-table-item-details-panel></ov-alarm-table-item-details-panel>
+</div>

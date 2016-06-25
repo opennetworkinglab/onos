@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceAdminService;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
@@ -54,6 +55,7 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
+import java.util.Objects;
 import java.util.Properties;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -116,7 +118,6 @@ public class NullProviders {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketProviderRegistry packetProviderRegistry;
 
-
     private final NullDeviceProvider deviceProvider = new NullDeviceProvider();
     private final NullLinkProvider linkProvider = new NullLinkProvider();
     private final NullHostProvider hostProvider = new NullHostProvider();
@@ -138,7 +139,7 @@ public class NullProviders {
 
     private static final String DEFAULT_TOPO_SHAPE = "configured";
     @Property(name = "topoShape", value = DEFAULT_TOPO_SHAPE,
-            label = "Topology shape: configured, linear, reroute, tree, spineleaf, mesh")
+            label = "Topology shape: configured, linear, reroute, tree, spineleaf, mesh, grid")
     private String topoShape = DEFAULT_TOPO_SHAPE;
 
     private static final int DEFAULT_DEVICE_COUNT = 10;
@@ -151,7 +152,7 @@ public class NullProviders {
             label = "Number of host to generate per device")
     private int hostCount = DEFAULT_HOST_COUNT;
 
-    private static final int DEFAULT_PACKET_RATE = 5;
+    private static final int DEFAULT_PACKET_RATE = 0;
     @Property(name = "packetRate", intValue = DEFAULT_PACKET_RATE,
             label = "Packet-in/s rate; 0 for no packets")
     private int packetRate = DEFAULT_PACKET_RATE;
@@ -168,7 +169,7 @@ public class NullProviders {
 
 
     @Activate
-    public void activate(ComponentContext context) {
+    public void activate() {
         cfgService.registerProperties(getClass());
 
         deviceProviderService = deviceProviderRegistry.register(deviceProvider);
@@ -180,7 +181,7 @@ public class NullProviders {
     }
 
     @Deactivate
-    public void deactivate(ComponentContext context) {
+    public void deactivate() {
         cfgService.unregisterProperties(getClass(), false);
         tearDown();
 
@@ -238,7 +239,7 @@ public class NullProviders {
         }
 
         // Any change in the following parameters implies hard restart
-        if (newEnabled != enabled || !newTopoShape.equals(topoShape) ||
+        if (newEnabled != enabled || !Objects.equals(newTopoShape, topoShape) ||
                 newDeviceCount != deviceCount || newHostCount != hostCount) {
             enabled = newEnabled;
             topoShape = newTopoShape;
@@ -257,7 +258,7 @@ public class NullProviders {
         }
 
         // Any change in mastership implies just reassignments.
-        if (!newMastership.equals(mastership)) {
+        if (!Objects.equals(newMastership, mastership)) {
             mastership = newMastership;
             reassignMastership();
         }
@@ -290,6 +291,29 @@ public class NullProviders {
         }
     }
 
+    /**
+     * Fails the specified device.
+     *
+     * @param deviceId device identifier
+     */
+    public void failDevice(DeviceId deviceId) {
+        if (enabled) {
+            topologyMutationDriver.failDevice(deviceId);
+        }
+    }
+
+    /**
+     * Repairs the specified device.
+     *
+     * @param deviceId device identifier
+     */
+    public void repairDevice(DeviceId deviceId) {
+        if (enabled) {
+            topologyMutationDriver.repairDevice(deviceId);
+        }
+    }
+
+
     // Resets simulation based on the current configuration parameters.
     private void restartSimulation() {
         tearDown();
@@ -310,7 +334,8 @@ public class NullProviders {
         packetProvider.start(packetRate, hostService, deviceService,
                              packetProviderService);
         topologyMutationDriver.start(mutationRate, linkService, deviceService,
-                                     linkProviderService);
+                                     linkProviderService, deviceProviderService,
+                                     simulator);
     }
 
     // Selects the simulator based on the specified name.
@@ -329,6 +354,8 @@ public class NullProviders {
             return new SpineLeafTopologySimulator();
         } else if (topoShape.matches("mesh([,].*|$)")) {
             return new MeshTopologySimulator();
+        } else if (topoShape.matches("grid([,].*|$)")) {
+            return new GridTopologySimulator();
         } else {
             return new ConfiguredTopologySimulator();
         }
@@ -398,11 +425,18 @@ public class NullProviders {
         @Override
         public boolean isReachable(DeviceId deviceId) {
             return topoShape.equals("configured") ||
-                    (simulator != null && simulator.contains(deviceId));
+                    (simulator != null && simulator.contains(deviceId) &&
+                            topologyMutationDriver.isReachable(deviceId));
         }
 
         @Override
         public void triggerProbe(DeviceId deviceId) {
+        }
+
+        @Override
+        public void changePortState(DeviceId deviceId, PortNumber portNumber,
+                                    boolean enable) {
+            // TODO maybe required
         }
     }
 

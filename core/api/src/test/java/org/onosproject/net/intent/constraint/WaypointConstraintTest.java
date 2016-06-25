@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.intent.ResourceContext;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.link.LinkResourceService;
 
 import java.util.Arrays;
 
@@ -52,7 +52,7 @@ public class WaypointConstraintTest {
     private static final ProviderId PROVIDER_ID = new ProviderId("of", "foo");
 
     private WaypointConstraint sut;
-    private LinkResourceService linkResourceService;
+    private ResourceContext resourceContext;
 
     private Path path;
     private DefaultLink link2;
@@ -60,10 +60,21 @@ public class WaypointConstraintTest {
 
     @Before
     public void setUp() {
-        linkResourceService = createMock(LinkResourceService.class);
+        resourceContext = createMock(ResourceContext.class);
 
-        link1 = new DefaultLink(PROVIDER_ID, cp(DID1, PN1), cp(DID2, PN2), DIRECT);
-        link2 = new DefaultLink(PROVIDER_ID, cp(DID2, PN3), cp(DID3, PN4), DIRECT);
+        link1 = DefaultLink.builder()
+                .providerId(PROVIDER_ID)
+                .src(cp(DID1, PN1))
+                .dst(cp(DID2, PN2))
+                .type(DIRECT)
+                .build();
+        link2 = DefaultLink.builder()
+                .providerId(PROVIDER_ID)
+                .src(cp(DID2, PN3))
+                .dst(cp(DID3, PN4))
+                .type(DIRECT)
+                .build();
+
         path = new DefaultPath(PROVIDER_ID, Arrays.asList(link1, link2), 10);
     }
 
@@ -74,7 +85,7 @@ public class WaypointConstraintTest {
     public void testSatisfyWaypoints() {
         sut = new WaypointConstraint(DID1, DID2, DID3);
 
-        assertThat(sut.validate(path, linkResourceService), is(true));
+        assertThat(sut.validate(path, resourceContext), is(true));
     }
 
     /**
@@ -84,7 +95,7 @@ public class WaypointConstraintTest {
     public void testNotSatisfyWaypoint() {
         sut = new WaypointConstraint(DID4);
 
-        assertThat(sut.validate(path, linkResourceService), is(false));
+        assertThat(sut.validate(path, resourceContext), is(false));
     }
 
     @Test

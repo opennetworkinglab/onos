@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,11 @@ public class ClusterEvent extends AbstractEvent<ClusterEvent.Type, ControllerNod
          * Signifies that a cluster instance became active.
          */
         INSTANCE_ACTIVATED,
+
+        /**
+         * Signifies that a cluster instance became ready.
+         */
+        INSTANCE_READY,
 
         /**
          * Signifies that a cluster instance became inactive.

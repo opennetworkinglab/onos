@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,17 @@ public interface DriverHandler {
      * @return behaviour
      */
     <T extends Behaviour> T behaviour(Class<T> behaviourClass);
+
+    /**
+     * Indicates whether or not the driver, or any of its parents, support
+     * the specified class of behaviour.
+     *
+     * @param behaviourClass behaviour class
+     * @return true if behaviour is supported
+     */
+    default boolean hasBehaviour(Class<? extends Behaviour> behaviourClass) {
+        return driver().hasBehaviour(behaviourClass);
+    }
 
     /**
      * Returns the reference to the implementation of the specified service.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,13 @@ public interface LinkDescription extends Description {
      * @return link type
      */
     Link.Type type();
+
+    /**
+     * Returns true if the link is expected, false otherwise.
+     *
+     * @return expected flag
+     */
+    boolean isExpected();
 
     // Add further link attributes
 }

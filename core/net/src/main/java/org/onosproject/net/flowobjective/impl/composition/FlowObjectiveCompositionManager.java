@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 package org.onosproject.net.flowobjective.impl.composition;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -64,7 +64,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.security.AppGuard.checkPermission;
-import static org.onosproject.security.AppPermission.Type.*;
+import static org.onosproject.security.AppPermission.Type.FLOWRULE_WRITE;
 
 
 /**
@@ -79,7 +79,7 @@ import static org.onosproject.security.AppPermission.Type.*;
  * Therefore, it is safest to use this component in a single instance scenario.
  * This comment will be removed when a distributed implementation is available.
  */
-@Component(immediate = true, enabled = false)
+//@Component(immediate = true, enabled = false)
 @Service
 public class FlowObjectiveCompositionManager implements FlowObjectiveService {
 
@@ -202,12 +202,12 @@ public class FlowObjectiveCompositionManager implements FlowObjectiveService {
                     }
                 } else if (numAttempts < INSTALL_RETRY_ATTEMPTS) {
                     Thread.sleep(INSTALL_RETRY_INTERVAL);
-                    executorService.submit(new ObjectiveInstaller(deviceId, objective, numAttempts + 1));
+                    executorService.execute(new ObjectiveInstaller(deviceId, objective, numAttempts + 1));
                 } else {
                     // Otherwise we've tried a few times and failed, report an
                     // error back to the user.
                     objective.context().ifPresent(
-                            c -> c.onError(objective, ObjectiveError.DEVICEMISSING));
+                            c -> c.onError(objective, ObjectiveError.NOPIPELINER));
                 }
             } catch (Exception e) {
                 log.warn("Exception while installing flow objective", e);
@@ -222,7 +222,7 @@ public class FlowObjectiveCompositionManager implements FlowObjectiveService {
         List<FilteringObjective> filteringObjectives
                 = this.deviceCompositionTreeMap.get(deviceId).updateFilter(filteringObjective);
         for (FilteringObjective tmp : filteringObjectives) {
-            executorService.submit(new ObjectiveInstaller(deviceId, tmp));
+            executorService.execute(new ObjectiveInstaller(deviceId, tmp));
         }
     }
 
@@ -236,7 +236,7 @@ public class FlowObjectiveCompositionManager implements FlowObjectiveService {
         List<ForwardingObjective> forwardingObjectives
                 = this.deviceCompositionTreeMap.get(deviceId).updateForward(forwardingObjective);
         for (ForwardingObjective tmp : forwardingObjectives) {
-            executorService.submit(new ObjectiveInstaller(deviceId, tmp));
+            executorService.execute(new ObjectiveInstaller(deviceId, tmp));
         }
     }
 
@@ -246,7 +246,7 @@ public class FlowObjectiveCompositionManager implements FlowObjectiveService {
 
         List<NextObjective> nextObjectives = this.deviceCompositionTreeMap.get(deviceId).updateNext(nextObjective);
         for (NextObjective tmp : nextObjectives) {
-            executorService.submit(new ObjectiveInstaller(deviceId, tmp));
+            executorService.execute(new ObjectiveInstaller(deviceId, tmp));
         }
     }
 
@@ -273,6 +273,7 @@ public class FlowObjectiveCompositionManager implements FlowObjectiveService {
 
     @Override
     public void initPolicy(String policy) {
+        checkPermission(FLOWRULE_WRITE);
         this.policy = policy;
         deviceService.getDevices().forEach(device ->
                 this.deviceCompositionTreeMap.put(device.id(), FlowObjectiveCompositionUtil.parsePolicyString(policy)));
@@ -435,5 +436,17 @@ public class FlowObjectiveCompositionManager implements FlowObjectiveService {
         }
         str += ")";
         return str;
+    }
+
+    @Override
+    public List<String> getNextMappings() {
+        // TODO Implementation deferred as this is an experimental component.
+        return ImmutableList.of();
+    }
+
+    @Override
+    public List<String> getPendingNexts() {
+        // TODO Implementation deferred as this is an experimental component.
+        return ImmutableList.of();
     }
 }

@@ -1,0 +1,41 @@
+{
+  "type": "object",
+  "title": "disks",
+  "required": [
+    "disks"
+  ],
+  "properties": {
+    "disks": {
+      "type": "array",
+      "xml": {
+        "name": "disks",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "disks",
+        "required": [
+          "resourceName",
+          "readBytes",
+          "writeBytes"
+        ],
+        "properties": {
+          "resourceName": {
+            "type": "string",
+            "example": "disk1"
+          },
+          "readBytes": {
+            "type": "integer",
+            "format": "int64",
+            "example": "500"
+          },
+          "writeBytes": {
+            "type": "integer",
+            "format": "int64",
+            "example": "300"
+          }
+        }
+      }
+    }
+  }
+}

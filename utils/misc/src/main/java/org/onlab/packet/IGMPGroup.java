@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@ public abstract class IGMPGroup {
     /**
      * Initialize this object with a multicast group address and additional info.
      *
-     * @param gaddr: the multicast group address for this message type.
-     * @param auxInfo: additional info potentially used by IGMPQuery
+     * @param gaddr the multicast group address for this message type.
+     * @param auxInfo additional info potentially used by IGMPQuery
      */
     public IGMPGroup(IpAddress gaddr, int auxInfo) {
         this.gaddr = gaddr;
@@ -95,4 +95,18 @@ public abstract class IGMPGroup {
      * @return The serialized message
      */
     public abstract byte[] serialize(ByteBuffer bb);
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        sb.append("auxInfo= ");
+        sb.append(auxInfo);
+        sb.append("gaddr= ");
+        sb.append(gaddr);
+        sb.append("sources= ");
+        sb.append(sources.toString());
+        sb.append("]");
+        return sb.toString();
+    }
 }

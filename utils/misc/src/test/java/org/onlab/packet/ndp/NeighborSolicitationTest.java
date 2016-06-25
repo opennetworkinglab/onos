@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,7 @@ import org.onlab.packet.PacketTestUtils;
 import java.nio.ByteBuffer;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Tests for class {@link NeighborSolicitation}.
@@ -130,5 +127,16 @@ public class NeighborSolicitationTest {
 
         assertTrue(ns1.equals(ns1));
         assertFalse(ns1.equals(ns2));
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringNS() throws Exception {
+        NeighborSolicitation ns = deserializer.deserialize(bytePacket, 0, bytePacket.length);
+        String str = ns.toString();
+
+        // TODO: need to handle TARGET_ADDRESS and Options
     }
 }

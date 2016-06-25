@@ -2,7 +2,7 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright ${year}-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,9 @@ import java.util.List;
 @Component(immediate = true)
 public class AppUiComponent {
 
+    private static final String VIEW_ID = "sampleCustom";
+    private static final String VIEW_TEXT = "Sample Custom";
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -46,7 +49,7 @@ public class AppUiComponent {
 
     // List of application views
     private final List<UiView> uiViews = ImmutableList.of(
-            new UiView(UiView.Category.OTHER, "sampleCustom", "Sample Custom")
+            new UiView(UiView.Category.OTHER, VIEW_ID, VIEW_TEXT)
     );
 
     // Factory for UI message handlers
@@ -58,6 +61,7 @@ public class AppUiComponent {
     // Application UI extension
     protected UiExtension extension =
             new UiExtension.Builder(getClass().getClassLoader(), uiViews)
+                    .resourcePath(VIEW_ID)
                     .messageHandlerFactory(messageHandlerFactory)
                     .build();
 

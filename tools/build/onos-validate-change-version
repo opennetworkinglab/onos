@@ -1,0 +1,20 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Validates that no pom versions contain SNAPSHOT.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+
+aux=$(mktemp)
+trap "rm -f $aux 2>/dev/null" EXIT
+
+cd $ONOS_ROOT
+grep -r SNAPSHOT . | \
+    egrep -v -f $ONOS_ROOT/tools/build/onos-validate-change-version.excludes >$aux
+
+if [ -s $aux ]; then
+    echo "There are files containing SNAPSHOT references:"
+    cat $aux
+    exit 1
+fi
+exit 0

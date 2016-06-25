@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-/*
- * Sends Group Stats Request and collect the group statistics with a time interval.
+/**
+ * Sends Port Stats Request and collect the port statistics with a time interval.
  */
 public class PortStatsCollector implements TimerTask {
 
@@ -48,10 +48,10 @@ public class PortStatsCollector implements TimerTask {
     private volatile boolean stopped;
 
     /**
-     * Creates a GroupStatsCollector object.
+     * Creates a PortStatsCollector object.
      *
      * @param sw Open Flow switch
-     * @param interval time interval for collecting group statistic
+     * @param interval time interval for collecting port statistic
      */
     public PortStatsCollector(OpenFlowSwitch sw, int interval) {
         this.sw = sw;
@@ -81,6 +81,9 @@ public class PortStatsCollector implements TimerTask {
         // timer.scheduleAtFixedRate(task, pollInterval * SECONDS, pollInterval * 1000);
     }
 
+    /**
+     * Sends port statistic request to switch.
+     */
     private void sendPortStatistic() {
         if (sw.getRole() != RoleState.MASTER) {
             return;

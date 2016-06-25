@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,11 @@
  */
 package org.onosproject.codec.impl;
 
-import java.util.EnumMap;
-
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onlab.util.HexString;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalId;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
@@ -38,6 +39,8 @@ import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
+import org.onosproject.net.flow.criteria.OduSignalIdCriterion;
+import org.onosproject.net.flow.criteria.OduSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
@@ -46,7 +49,7 @@ import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.EnumMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -65,7 +68,7 @@ public final class EncodeCriterionCodecHelper {
      * Initializes the formatter lookup map for the criterion subclasses.
      *
      * @param criterion Criterion to encode
-     * @param context context of the JSON encoding
+     * @param context   context of the JSON encoding
      */
     public EncodeCriterionCodecHelper(Criterion criterion, CodecContext context) {
         this.criterion = criterion;
@@ -81,6 +84,8 @@ public final class EncodeCriterionCodecHelper {
         formatMap.put(Criterion.Type.ETH_TYPE, new FormatEthType());
         formatMap.put(Criterion.Type.VLAN_VID, new FormatVlanVid());
         formatMap.put(Criterion.Type.VLAN_PCP, new FormatVlanPcp());
+        formatMap.put(Criterion.Type.INNER_VLAN_VID, new FormatInnerVlanVid());
+        formatMap.put(Criterion.Type.INNER_VLAN_PCP, new FormatInnerVlanPcp());
         formatMap.put(Criterion.Type.IP_DSCP, new FormatIpDscp());
         formatMap.put(Criterion.Type.IP_ECN, new FormatIpEcn());
         formatMap.put(Criterion.Type.IP_PROTO, new FormatIpProto());
@@ -108,7 +113,8 @@ public final class EncodeCriterionCodecHelper {
         formatMap.put(Criterion.Type.OCH_SIGTYPE, new FormatOchSigType());
         formatMap.put(Criterion.Type.TUNNEL_ID, new FormatTunnelId());
         formatMap.put(Criterion.Type.DUMMY, new FormatDummyType());
-
+        formatMap.put(Criterion.Type.ODU_SIGID, new FormatOduSignalId());
+        formatMap.put(Criterion.Type.ODU_SIGTYPE, new FormatOduSignalType());
         // Currently unimplemented
         formatMap.put(Criterion.Type.ARP_OP, new FormatUnknown());
         formatMap.put(Criterion.Type.ARP_SPA, new FormatUnknown());
@@ -123,6 +129,10 @@ public final class EncodeCriterionCodecHelper {
         formatMap.put(Criterion.Type.TCP_FLAGS, new FormatUnknown());
         formatMap.put(Criterion.Type.ACTSET_OUTPUT, new FormatUnknown());
         formatMap.put(Criterion.Type.PACKET_TYPE, new FormatUnknown());
+        formatMap.put(Criterion.Type.EXTENSION, new FormatUnknown());
+        formatMap.put(Criterion.Type.ETH_DST_MASKED, new FormatUnknown());
+        formatMap.put(Criterion.Type.ETH_SRC_MASKED, new FormatUnknown());
+
     }
 
     private interface CriterionTypeFormatter {
@@ -166,7 +176,8 @@ public final class EncodeCriterionCodecHelper {
         public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
             final EthTypeCriterion ethTypeCriterion =
                     (EthTypeCriterion) criterion;
-            return root.put(CriterionCodec.ETH_TYPE, ethTypeCriterion.ethType().toShort());
+            return root.put(CriterionCodec.ETH_TYPE, "0x"
+                    + Integer.toHexString(ethTypeCriterion.ethType().toShort() & 0xffff));
         }
     }
 
@@ -185,6 +196,24 @@ public final class EncodeCriterionCodecHelper {
             final VlanPcpCriterion vlanPcpCriterion =
                     (VlanPcpCriterion) criterion;
             return root.put(CriterionCodec.PRIORITY, vlanPcpCriterion.priority());
+        }
+    }
+
+    private static class FormatInnerVlanVid implements CriterionTypeFormatter {
+        @Override
+        public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
+            final VlanIdCriterion vlanIdCriterion =
+                    (VlanIdCriterion) criterion;
+            return root.put(CriterionCodec.INNER_VLAN_ID, vlanIdCriterion.vlanId().toShort());
+        }
+    }
+
+    private static class FormatInnerVlanPcp implements CriterionTypeFormatter {
+        @Override
+        public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
+            final VlanPcpCriterion vlanPcpCriterion =
+                    (VlanPcpCriterion) criterion;
+            return root.put(CriterionCodec.INNER_PRIORITY, vlanPcpCriterion.priority());
         }
     }
 
@@ -351,7 +380,7 @@ public final class EncodeCriterionCodecHelper {
         public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
             final OchSignalTypeCriterion ochSignalTypeCriterion =
                     (OchSignalTypeCriterion) criterion;
-            return root.put("ochSignalType", ochSignalTypeCriterion.signalType().name());
+            return root.put(CriterionCodec.OCH_SIGNAL_TYPE, ochSignalTypeCriterion.signalType().name());
         }
     }
 
@@ -361,6 +390,30 @@ public final class EncodeCriterionCodecHelper {
             final TunnelIdCriterion tunnelIdCriterion =
                     (TunnelIdCriterion) criterion;
             return root.put(CriterionCodec.TUNNEL_ID, tunnelIdCriterion.tunnelId());
+        }
+    }
+
+    private static class FormatOduSignalId implements CriterionTypeFormatter {
+        @Override
+        public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
+            OduSignalId oduSignalId = ((OduSignalIdCriterion) criterion).oduSignalId();
+            ObjectNode child = root.putObject(CriterionCodec.ODU_SIGNAL_ID);
+
+            child.put(CriterionCodec.TRIBUTARY_PORT_NUMBER, oduSignalId.tributaryPortNumber());
+            child.put(CriterionCodec.TRIBUTARY_SLOT_LEN, oduSignalId.tributarySlotLength());
+            child.put(CriterionCodec.TRIBUTARY_SLOT_BITMAP, HexString.toHexString(oduSignalId.tributarySlotBitmap()));
+
+            return root;
+        }
+    }
+
+
+    private static class FormatOduSignalType implements CriterionTypeFormatter {
+        @Override
+        public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
+            final OduSignalTypeCriterion oduSignalTypeCriterion =
+                    (OduSignalTypeCriterion) criterion;
+            return root.put(CriterionCodec.ODU_SIGNAL_TYPE, oduSignalTypeCriterion.signalType().name());
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import org.onosproject.net.proxyarp.ProxyArpStoreDelegate;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.KryoSerializer;
+import org.onosproject.store.serializers.StoreSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,23 +60,20 @@ public class DistributedProxyArpStore implements ProxyArpStore {
     private static final MessageSubject ARP_RESPONSE_MESSAGE =
             new MessageSubject("onos-arp-response");
 
-    protected final KryoSerializer serializer = new KryoSerializer() {
-        @Override
-        protected void setupKryoPool() {
-            serializerPool = KryoNamespace.newBuilder()
+    protected final StoreSerializer serializer = StoreSerializer.using(
+            KryoNamespace.newBuilder()
                     .register(KryoNamespaces.API)
+                    .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
                     .register(ArpResponseMessage.class)
                     .register(ByteBuffer.class)
-                    .build();
-        }
-    };
+                    .build("ProxyArpStore"));
 
     private ProxyArpStoreDelegate delegate;
 
     private Map<HostId, ArpResponseMessage> pendingMessages = Maps.newConcurrentMap();
 
     private ExecutorService executor =
-            newFixedThreadPool(4, groupedThreads("onos/arp", "sender-%d"));
+            newFixedThreadPool(4, groupedThreads("onos/arp", "sender-%d", log));
 
     private NodeId localNodeId;
 
@@ -113,7 +110,7 @@ public class DistributedProxyArpStore implements ProxyArpStore {
 
     @Override
     public void forward(ConnectPoint outPort, Host subject, ByteBuffer packet) {
-        NodeId nodeId = mastershipService.getMasterFor(outPort.deviceId());
+        /*NodeId nodeId = mastershipService.getMasterFor(outPort.deviceId());
         if (nodeId.equals(localNodeId)) {
             if (delegate != null) {
                 delegate.emitResponse(outPort, packet);
@@ -122,7 +119,10 @@ public class DistributedProxyArpStore implements ProxyArpStore {
             log.info("Forwarding ARP response from {} to {}", subject.id(), outPort);
             commService.unicast(new ArpResponseMessage(outPort, subject, packet.array()),
                                 ARP_RESPONSE_MESSAGE, serializer::encode, nodeId);
-        }
+        }*/
+        //FIXME: Code above may be unnecessary and therefore cluster messaging
+        // and pendingMessages could be pruned as well.
+        delegate.emitResponse(outPort, packet);
     }
 
     @Override

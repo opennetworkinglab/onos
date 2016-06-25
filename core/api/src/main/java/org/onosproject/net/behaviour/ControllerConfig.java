@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,27 @@
  */
 package org.onosproject.net.behaviour;
 
+import org.onosproject.net.driver.HandlerBehaviour;
+
 import java.util.List;
 
 /**
  * Device behaviour to obtain and set controllers at the device.
  */
-public interface ControllerConfig {
+public interface ControllerConfig extends HandlerBehaviour {
 
     //TODO: add other controller parameters as needed.
 
     /**
      * Obtain the list of controller which are currently configured.
+     *
      * @return a list for controller descriptions
      */
     List<ControllerInfo> getControllers();
 
     /**
      * Set a list of controllers on a device.
+     *
      * @param controllers a list of controller descriptions
      */
     void setControllers(List<ControllerInfo> controllers);

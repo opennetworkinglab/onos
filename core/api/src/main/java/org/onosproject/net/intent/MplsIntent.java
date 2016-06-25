@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Abstraction of MPLS label-switched connectivity.
+ *
+ * @deprecated in Goldeneye Release, in favour of encapsulation
+ * constraint {@link org.onosproject.net.intent.constraint.EncapsulationConstraint}
+ * with Encasulation type {@link org.onosproject.net.EncapsulationType} MPLS.
+ *
  */
 @Beta
+@Deprecated
 public final class MplsIntent extends ConnectivityIntent {
 
     private final ConnectPoint ingressPoint;

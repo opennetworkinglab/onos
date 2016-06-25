@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "title": "mastershipRole",
+  "required": [
+    "role"
+  ],
+  "properties": {
+    "role": {
+      "type": "string",
+      "example": "MASTER"
+    }
+  }
+}

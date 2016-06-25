@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,8 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.link.LinkService;
-import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.segmentrouting.SegmentRoutingManager;
+import org.onosproject.segmentrouting.config.DeviceProperties;
 
 /**
  * Default ECMP group handler creation module for an edge device.
@@ -35,25 +36,23 @@ import org.onosproject.store.service.EventuallyConsistentMap;
  * where D0 and D3 are edge devices and D1 and D2 are transit devices.
  * Assume device D0 is connected to 2 neighbors (D1 and D2 ).
  * The following groups will be created in D0:
- * 1) all ports to D1 + with no label push,
- * 2) all ports to D1 + with label 102 pushed,
- * 3) all ports to D1 + with label 103 pushed,
+ * 1) all ports to D1 + with no label push, // direct attach case, seen
+ * 2) all ports to D1 + with label 102 pushed, // this is not needed
+ * 3) all ports to D1 + with label 103 pushed, // maybe needed, sometimes seen
  * 4) all ports to D2 + with no label push,
  * 5) all ports to D2 + with label 101 pushed,
  * 6) all ports to D2 + with label 103 pushed,
- * 7) all ports to D1 and D2 + with label 103 pushed
+ * 7) all ports to D1 and D2 + with label 103 pushed // ecmp case
+ * 8) what about ecmp no label case
  */
 public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
-
     protected DefaultEdgeGroupHandler(DeviceId deviceId,
                                   ApplicationId appId,
                                   DeviceProperties config,
                                   LinkService linkService,
                                   FlowObjectiveService flowObjService,
-                                  EventuallyConsistentMap<
-                                  NeighborSetNextObjectiveStoreKey,
-                                  Integer> nsNextObjStore) {
-        super(deviceId, appId, config, linkService, flowObjService, nsNextObjStore);
+                                  SegmentRoutingManager srManager) {
+        super(deviceId, appId, config, linkService, flowObjService, srManager);
     }
 
     @Override
@@ -88,7 +87,7 @@ public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
                 + "with label for sw {} is {}",
                 deviceId, nsSet);
 
-        createGroupsFromNeighborsets(nsSet);
+        //createGroupsFromNeighborsets(nsSet);
     }
 
     @Override
@@ -102,7 +101,7 @@ public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
         Set<NeighborSet> nsSet = computeImpactedNeighborsetForPortEvent(
                                              newNeighborLink.dst().deviceId(),
                                              devicePortMap.keySet());
-        createGroupsFromNeighborsets(nsSet);
+        //createGroupsFromNeighborsets(nsSet);
     }
 
     @Override

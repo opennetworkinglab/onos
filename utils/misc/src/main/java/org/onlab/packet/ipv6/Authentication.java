@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.onlab.packet.IPv6;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
@@ -296,5 +297,16 @@ public class Authentication extends BasePacket implements IExtensionHeader {
 
             return authentication;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("nextHeader", Byte.toString(nextHeader))
+                .add("payloadLength", Byte.toString(payloadLength))
+                .add("securityParamIndex", Integer.toString(securityParamIndex))
+                .add("sequence", Integer.toString(sequence))
+                .add("integrityCheck", Arrays.toString(integrityCheck))
+                .toString();
     }
 }

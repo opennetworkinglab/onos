@@ -1,0 +1,88 @@
+<!--
+  ~ Copyright 2016-present Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="net-flow-objectives"
+          description="Network REST API test">
+    <!-- TODO: parametrize this via recipes -->
+    <group name="Net-Flow-Objectives">
+
+        <!-- Make sure that reactive forwarding is off -->
+        <step name="Net-Flow-Objectives.Uninstall-Reactive-Forwarding"
+              exec="onos ${OC1} app deactivate org.onosproject.fwd org.onosproject.ifwd"/>
+        <step name="Net-Flow-Objectives.Check-Apps" requires="^"
+              exec="onos-check-apps ${OC1} fwd,ifwd excludes"/>
+
+        <!-- Force discovery of hosts -->
+        <step name="Net-Flow-Objectives.Find-Host-1" requires="^"
+              exec="onos-mininet sendAndExpect h1 ping -c1 -w1 h4 --expect ."/>
+        <step name="Net-Flow-Objectives.Find-Host-2" requires="^"
+              exec="onos-mininet sendAndExpect h4 ping -c1 -w1 h1 --expect ."/>
+
+        <!-- Verify the hosts using the REST API -->
+        <step name="Net-Flow-Objectives.Query-Host-1" requires="Net-Flow-Objectives.Find-Host-1"
+              exec="find-host.py ${OC1} host1 00:00:00:00:00:01/None"/>
+        <step name="Net-Flow-Objectives.Validate-Host-1-Id" requires="^"
+              exec="test '${host1Id}' == '00:00:00:00:00:01/None'"/>
+        <step name="Net-Flow-Objectives.Validate-Host-1-Mac" requires="^"
+              exec="test '${host1Mac}' == '00:00:00:00:00:01'"/>
+        <step name="Net-Flow-Objectives.Validate-Host-1-Ip" requires="^"
+              exec="test '${host1IpAddress}' == '10.0.0.1'"/>
+
+        <step name="Net-Flow-Objectives.Query-Host-2" requires="Net-Flow-Objectives.Find-Host-2"
+              exec="find-host.py ${OC1} host2 00:00:00:00:00:04/None"/>
+        <step name="Net-Flow-Objectives.Validate-Host-2-Id" requires="^"
+              exec="test '${host2Id}' == '00:00:00:00:00:04/None'"/>
+        <step name="Net-Flow-Objectives.Validate-Host-2-Mac" requires="^"
+              exec="test '${host2Mac}' == '00:00:00:00:00:04'"/>
+        <step name="Net-Flow-Objectives.Validate-Host-2-Ip" requires="^"
+              exec="test '${host2IpAddress}' == '10.0.0.4'"/>
+
+        <!-- Use REST API to create flow objectives to connect h1 and h4 -->
+        <step name="Net-Flow-Objectives.Objective-1F" requires="Net-Flow-Objectives.Find-Host-2"
+              exec="create-forward-objective.sh ${OC1} of:0000000000000001 00:00:00:00:00:01 00:00:00:00:00:04 1 2"/>
+        <step name="Net-Flow-Objectives.Objective-1R" requires="Net-Flow-Objectives.Find-Host-2"
+              exec="create-forward-objective.sh ${OC1} of:0000000000000001 00:00:00:00:00:04 00:00:00:00:00:01 2 1"/>
+
+        <step name="Net-Flow-Objectives.Objective-19F" requires="Net-Flow-Objectives.Find-Host-2"
+              exec="create-forward-objective.sh ${OC1} of:0000000000000019 00:00:00:00:00:01 00:00:00:00:00:04 2 8"/>
+        <step name="Net-Flow-Objectives.Objective-19R" requires="^"
+              exec="create-forward-objective.sh ${OC1} of:0000000000000019 00:00:00:00:00:04 00:00:00:00:00:01 8 2"/>
+
+        <step name="Net-Flow-Objectives.Objective-7F" requires="Net-Flow-Objectives.Find-Host-2"
+              exec="create-forward-objective.sh ${OC1} of:0000000000000007 00:00:00:00:00:01 00:00:00:00:00:04 2 3"/>
+        <step name="Net-Flow-Objectives.Objective-7R" requires="Net-Flow-Objectives.Find-Host-2"
+              exec="create-forward-objective.sh ${OC1} of:0000000000000007 00:00:00:00:00:04 00:00:00:00:00:01 3 2"/>
+
+        <step name="Net-Flow-Objectives.Objective-4F" requires="Net-Flow-Objectives.Find-Host-2"
+              exec="create-forward-objective.sh ${OC1} of:0000000000000004 00:00:00:00:00:01 00:00:00:00:00:04 3 1"/>
+        <step name="Net-Flow-Objectives.Objective-4R" requires="Net-Flow-Objectives.Find-Host-2"
+              exec="create-forward-objective.sh ${OC1} of:0000000000000004 00:00:00:00:00:04 00:00:00:00:00:01 1 3"/>
+
+
+        <!-- Check that connectivity was established -->
+        <step name="Net-Flow-Objectives.Ping-XY" requires="Net-Flow-Objectives.Objective-1F,
+                                                           Net-Flow-Objectives.Objective-1R,
+                                                           Net-Flow-Objectives.Objective-19F,
+                                                           Net-Flow-Objectives.Objective-19R
+                                                           Net-Flow-Objectives.Objective-7F,
+                                                           Net-Flow-Objectives.Objective-7R
+                                                           Net-Flow-Objectives.Objective-4F,
+                                                           Net-Flow-Objectives.Objective-4R"
+              exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"/>
+        <step name="Net-Flow-Objectives.Ping-YX" requires="^"
+              exec="onos-mininet sendAndExpect h4 ping -c1 h1 --expect \ 0% packet loss"/>
+
+    </group>
+</scenario>

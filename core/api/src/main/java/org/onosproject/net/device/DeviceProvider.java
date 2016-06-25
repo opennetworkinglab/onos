@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.onosproject.net.device;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.Provider;
 
 /**
@@ -49,9 +50,21 @@ public interface DeviceProvider extends Provider {
 
     /**
      * Checks the reachability (connectivity) of a device from this provider.
+     * Reachability, unlike availability, denotes whether THIS particular node
+     * can send messages and receive replies from the specified device.
      *
      * @param deviceId  device identifier
      * @return true if reachable, false otherwise
      */
     boolean isReachable(DeviceId deviceId);
+
+    /**
+     * Administratively enables or disables a port.
+     *
+     * @param deviceId device identifier
+     * @param portNumber device identifier
+     * @param enable true if port is to be enabled, false to disable
+     */
+    void changePortState(DeviceId deviceId, PortNumber portNumber,
+                         boolean enable);
 }

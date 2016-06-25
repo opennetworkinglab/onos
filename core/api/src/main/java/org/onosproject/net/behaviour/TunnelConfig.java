@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,13 @@ import org.onosproject.net.driver.HandlerBehaviour;
 public interface TunnelConfig extends HandlerBehaviour {
 
     /**
-     * Creates a tunnel on this device.
+     * Creates a tunnel interface on a given bridge of this device.
      *
-     * @param tunnel tunnel descriptor
+     * @param bridgeName bridge name
+     * @param tunnel tunnel description
+     * @return true if succeeds, false otherwise
      */
-    void createTunnel(TunnelDescription tunnel);
+    boolean createTunnelInterface(BridgeName bridgeName, TunnelDescription tunnel);
 
     /**
      * Removes a tunnel on this device.

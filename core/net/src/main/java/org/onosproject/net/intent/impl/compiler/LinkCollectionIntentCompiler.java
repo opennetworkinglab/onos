@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
-import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.LinkCollectionIntent;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,7 +49,7 @@ import java.util.stream.Collectors;
 public class LinkCollectionIntentCompiler implements IntentCompiler<LinkCollectionIntent> {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected IntentExtensionService intentManager;
+    protected IntentConfigurableRegistrator registrator;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -61,17 +59,16 @@ public class LinkCollectionIntentCompiler implements IntentCompiler<LinkCollecti
     @Activate
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.net.intent");
-        intentManager.registerCompiler(LinkCollectionIntent.class, this);
+        registrator.registerCompiler(LinkCollectionIntent.class, this, false);
     }
 
     @Deactivate
     public void deactivate() {
-        intentManager.unregisterCompiler(LinkCollectionIntent.class);
+        registrator.unregisterCompiler(LinkCollectionIntent.class, false);
     }
 
     @Override
-    public List<Intent> compile(LinkCollectionIntent intent, List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
+    public List<Intent> compile(LinkCollectionIntent intent, List<Intent> installable) {
         SetMultimap<DeviceId, PortNumber> inputPorts = HashMultimap.create();
         SetMultimap<DeviceId, PortNumber> outputPorts = HashMultimap.create();
 

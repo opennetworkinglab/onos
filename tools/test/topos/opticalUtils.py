@@ -3,7 +3,7 @@
 '''
 Notes:
 
-This file contains classes and methods useful for integrating LincOE with Mininet, 
+This file contains classes and methods useful for integrating LincOE with Mininet,
 such as startOE, stopOE, LINCLink, and OpticalSwitch
 
 - $ONOS_ROOT ust be set
@@ -24,7 +24,7 @@ such as startOE, stopOE, LINCLink, and OpticalSwitch
         ------------
     - import LINCLink and OpticalSwitch from this module
     - import startOE and stopOE from this module
-    - create topology as you would a normal topology. when 
+    - create topology as you would a normal topology. when
       to an optical switch with topo.addLink, always specify cls=LINCLink
     - when creating an optical switch, use cls=OpticalSwitch in topo.addSwitch
     - for annotations on links and switches, a dictionary must be passed in as
@@ -41,13 +41,13 @@ we need to add another object to Mininet that contains all of the json object
 information for each switch. We would still subclass switch and link, but these
 classes would basically be dummy classes that store their own json information
 in the Mininet class object. We may also change the default switch class to add
-it's tap interfaces from lincOE during startup. The start() method for mininet would 
+it's tap interfaces from lincOE during startup. The start() method for mininet would
 grab all of the information from these switches and links, write configuration files
 for lincOE using the json module, start lincOE, then run the start methodfor each
 switch. The new start() method for each switch would parse through the sys.config
-file that was created and find the tap interface it needs to connect to, similar 
-to the findTap function that I currently use. After all of the controllers and 
-switches have been started, the new Mininet start() method should also push the 
+file that was created and find the tap interface it needs to connect to, similar
+to the findTap function that I currently use. After all of the controllers and
+switches have been started, the new Mininet start() method should also push the
 Topology configuration file to ONOS.
 
 '''
@@ -58,7 +58,7 @@ import os
 from time import sleep
 import urllib2
 
-from mininet.node import Switch, RemoteController
+from mininet.node import Switch, OVSSwitch, RemoteController
 from mininet.topo import Topo
 from mininet.util import quietRun
 from mininet.net import Mininet
@@ -119,7 +119,7 @@ class LINCSwitch(OpticalSwitch):
                     if dpid:
                         dpids_to_ids[dpid.group().replace(':', '')] = switch_id
                         switch_id += 1
-            return dpids_to_ids     
+            return dpids_to_ids
         except:
             print "Error working with {}\nError: {}\n".format(sysConfig, sys.exc_info())
             fd.close()
@@ -197,9 +197,6 @@ class LINCSwitch(OpticalSwitch):
         self.configDict[ 'uri' ] = 'of:' + self.dpid
         self.configDict[ 'annotations' ] = self.annotations
         self.configDict[ 'annotations' ].setdefault('name', self.name)
-        self.configDict[ 'hw' ] = 'LINC-OE'
-        self.configDict[ 'mfr' ] = 'Linc'
-        self.configDict[ 'mac' ] = 'ffffffffffff' + self.dpid[-2] + self.dpid[-1]
         self.configDict[ 'type' ] = self.switchType
         self.configDict[ 'ports' ] = []
         for port, intf in self.intfs.items():
@@ -290,8 +287,8 @@ class LINCSwitch(OpticalSwitch):
         with open("crossConnect.json", 'w') as fd:
             json.dump(crossConnectJSON, fd, indent=4, separators=(',', ': '))
         info('*** Pushing crossConnect.json to ONOS\n')
-        output = quietRun('%s/tools/test/bin/onos-topo-cfg %s\
-         Topology.json network/configuration/' % (self.onosDir, self.controllers[ 0 ].ip), shell=True)
+        output = quietRun('%s/tools/test/bin/onos-netcfg %s\
+         Topology.json' % (self.onosDir, self.controllers[ 0 ].ip), shell=True)
 
     def stop_oe(self):
         '''
@@ -331,10 +328,7 @@ class LINCSwitch(OpticalSwitch):
         "Returns the json configuration for a packet switch"
         configDict = {}
         configDict[ 'uri' ] = 'of:' + switch.dpid
-        configDict[ 'mac' ] = quietRun('cat /sys/class/net/%s/address' % switch.name).strip('\n').translate(None, ':')
-        configDict[ 'hw' ] = 'PK'  # FIXME what about OVS?
-        configDict[ 'mfr' ] = 'Linc'  # FIXME what about OVS?
-        configDict[ 'type' ] = 'SWITCH'  # FIXME what about OVS?
+        configDict[ 'type' ] = 'SWITCH'
         annotations = switch.params.get('annotations', {})
         annotations.setdefault('name', switch.name)
         configDict[ 'annotations' ] = annotations
@@ -344,7 +338,10 @@ class LINCSwitch(OpticalSwitch):
                 continue
             portDict = {}
             portDict[ 'port' ] = port
-            portDict[ 'type' ] = 'FIBER' if isinstance(intf.link, LINCLink) else 'COPPER'
+            portType = 'COPPER'
+            if isinstance(intf.link, LINCLink):
+                portType = 'OCH' if intf.link.isCrossConnect() else 'OMS'
+            portDict[ 'type' ] = portType
             intfList = [ intf.link.intf1, intf.link.intf2 ]
             intfList.remove(intf)
             portDict[ 'speed' ] = intfList[ 0 ].speed if isinstance(intf.link, LINCLink) else 0
@@ -353,8 +350,18 @@ class LINCSwitch(OpticalSwitch):
         return configDict
 
     @staticmethod
-    def bootOE(net):
-        "Start the LINC optical emulator within a mininet instance"
+    def bootOE(net, domain=None):
+        """
+        Start the LINC optical emulator within a mininet instance
+
+        This involves 1. converting the information stored in Linc* to configs
+        for both LINC and the network config system, 2. starting Linc, 3. connecting
+        cross-connects, and finally pushing the network configs to ONOS.
+
+        Inevitably, there are times when we have OVS switches that should not be
+        under the control of the controller in charge of the Linc switches. We
+        hint at these by passing domain information.
+        """
         LINCSwitch.opticalJSON = {}
         linkConfig = []
         devices = []
@@ -362,9 +369,11 @@ class LINCSwitch(OpticalSwitch):
         LINCSwitch.controllers = net.controllers
 
         for switch in net.switches:
+            if domain and switch not in domain:
+                continue
             if isinstance(switch, OpticalSwitch):
                 devices.append(switch.json())
-            else:
+            elif isinstance(switch, OVSSwitch):
                 devices.append(LINCSwitch.switchJSON(switch))
         LINCSwitch.opticalJSON[ 'devices' ] = devices
 
@@ -379,12 +388,11 @@ class LINCSwitch(OpticalSwitch):
             json.dump(topoJSON, outfile, indent=4, separators=(',', ': '))
 
         info('*** Converting Topology.json to linc-oe format (TopoConfig.json) file (no oecfg) \n')
-        
-        topoConfigJson = {}
-        dpIdToName = {}
 
-        topoConfigJson["switchConfig"] = LINCSwitch.getSwitchConfig(dpIdToName)
-        topoConfigJson["linkConfig"] = LINCSwitch.getLinkConfig(dpIdToName)
+        topoConfigJson = {}
+
+        topoConfigJson["switchConfig"] = LINCSwitch.getSwitchConfig(net.switches)
+        topoConfigJson["linkConfig"] = LINCSwitch.getLinkConfig(net.links)
 
         #Writing to TopoConfig.json
         with open( 'TopoConfig.json', 'w' ) as outfile:
@@ -428,14 +436,13 @@ class LINCSwitch(OpticalSwitch):
 
         info('*** Adding cross-connect (tap) interfaces to packet switches...\n')
         for link in net.links:
-            if isinstance(link, LINCLink):
-                if link.annotations[ 'optical.type' ] == 'cross-connect':
-                    for intf in [ link.intf1, link.intf2 ]:
-                        if not isinstance(intf, LINCIntf):
-                            intfList = [ intf.link.intf1, intf.link.intf2 ]
-                            intfList.remove(intf)
-                            intf2 = intfList[ 0 ]
-                            intf.node.attach(LINCSwitch.findTap(intf2.node, intf2.node.ports[ intf2 ]))
+            if isinstance(link, LINCLink) and link.isCrossConnect():
+                for intf in [ link.intf1, link.intf2 ]:
+                    if not isinstance(intf, LINCIntf):
+                        intfList = [ intf.link.intf1, intf.link.intf2 ]
+                        intfList.remove(intf)
+                        intf2 = intfList[ 0 ]
+                        intf.node.attach(LINCSwitch.findTap(intf2.node, intf2.node.ports[ intf2 ]))
 
         info('*** Waiting for all devices to be available in ONOS...\n')
         url = 'http://%s:8181/onos/v1/devices' % LINCSwitch.controllers[0].ip
@@ -447,20 +454,21 @@ class LINCSwitch(OpticalSwitch):
         opener = urllib2.build_opener(handler)
         opener.open(url)
         urllib2.install_opener(opener)
+        # focus on just checking the state of devices we're interested in
+        # expected devices availability map
+        devMap =  dict.fromkeys(map( lambda x: x['uri'], devices ), False)
         while True:
             response = json.load(urllib2.urlopen(url))
             devs = response.get('devices')
 
-            # Wait for all devices to be registered
-            if (len(devices) != len(devs)):
-                continue
-
-            # Wait for all devices to available
-            available = True
+            # update availability map
             for d in devs:
-                available &= d['available']
-            if available:
-                break
+                if devMap.has_key(d['id']):
+                    devMap[d['id']] = d['available']
+
+            # Check if all devices we're interested became available
+            if all(devMap.viewvalues()):
+                break;
 
             if (time >= TIMEOUT):
                 error('***ERROR: ONOS did not register devices within %s seconds\n' % TIMEOUT)
@@ -471,7 +479,7 @@ class LINCSwitch(OpticalSwitch):
 
         info('*** Pushing Topology.json to ONOS\n')
         for index in range(len(LINCSwitch.controllers)):
-            output = quietRun('%s/tools/test/bin/onos-topo-cfg %s Topology.json network/configuration/ &'\
+            output = quietRun('%s/tools/test/bin/onos-netcfg %s Topology.json &'\
                                % (LINCSwitch.onosDir, LINCSwitch.controllers[ index ].ip), shell=True)
             # successful output contains the two characters '{}'
             # if there is more output than this, there is an issue
@@ -485,41 +493,43 @@ class LINCSwitch(OpticalSwitch):
         id = id.split("/", 1)[0]
         for i in range(3, len(id) - 1, 2):
             nodeDpid += (id[i:(i + 2):]) + ":"
-        return nodeDpid[0:-1];
+        return nodeDpid[0:-1]
 
     @staticmethod
     def makeTopoJSON():
         """
-        Builds ONOS network conifg system compatible dicts to be written as Topology.json file.
+        Builds ONOS network config system compatible dicts to be written as Topology.json file.
         """
         topology = {}
         links = {}
         devices = {}
         ports = {}
+        BasicDevConfigKeys = ['name', 'type', 'latitude', 'longitude', 'allowed',
+                              'rackAddress', 'owner', 'driver', 'manufacturer',
+                              'hwVersion', 'swVersion', 'serial',
+                              'managementAddress']
 
         for switch in LINCSwitch.opticalJSON[ 'devices' ]:
-            # build device entries - keyed on uri (DPID) and config key 'basic'
+            # Build device entries - keyed on uri (DPID) and config key 'basic'
+            # 'type' is necessary field, else ONOS assumes it's a SWITCH
+            # Annotations hold switch name and latitude/longitude
             devDict = {}
-            devDict[ 'driver' ] = switch[ 'hw' ]
-            devDict[ 'mfr' ] = switch[ 'mfr' ]
-            devDict[ 'mac' ] = switch[ 'mac' ]
             devDict[ 'type' ] = switch[ 'type' ]
-            devDict.update(switch[ 'annotations' ])
-
+            devDict.update({k: v for k, v in switch[ 'annotations' ].iteritems() if k in BasicDevConfigKeys})
             devSubj = switch[ 'uri' ]
             devices[ devSubj ] = { 'basic': devDict }
 
-            # build port entries - keyed on "uri/port" and config key 'optical'
+            # Build port entries - keyed on "uri/port" and config key 'optical'
             for port in switch[ 'ports' ]:
                 portSubj = devSubj + '/' + str(port[ 'port' ])
                 ports[ portSubj ] = { 'optical': port }
 
-        # build link entries - keyed on "uri/port-uri/port" and config key 'basic'
+        # Build link entries - keyed on "uri/port-uri/port" and config key 'basic'
+        # Annotations hold the 'durable' field, which is necessary as long as we don't discover optical links
         for link in LINCSwitch.opticalJSON[ 'links' ]:
             linkDict = {}
             linkDict[ 'type' ] = link[ 'type' ]
             linkDict.update(link[ 'annotations' ])
-
             linkSubj = link[ 'src' ] + '-' + link[ 'dst' ]
             links[ linkSubj ] = { 'basic': linkDict }
 
@@ -530,77 +540,68 @@ class LINCSwitch(OpticalSwitch):
         return topology
 
     @staticmethod
-    def getSwitchConfig (dpIdToName):
-        switchConfig = [];
-        #Iterate through all switches and convert the ROADM switches to linc-oe format
-        for switch in LINCSwitch.opticalJSON["devices"]:
-            if switch.get("type", "none") == "ROADM":
+    def getSwitchConfig(switches):
+        switchConfig = []
+
+        # Iterate through all switches and convert the ROADM switches to linc-oe format
+        for switch in switches:
+            if isinstance(switch, LINCSwitch):
                 builtSwitch = {}
 
-                #set basic switch params based on annotations
-                builtSwitch["allowed"] = True;
-                builtSwitch["latitude"] = switch["annotations"].get("latitude", 0.0);
-                builtSwitch["longitude"] = switch["annotations"].get("longitude", 0.0);
+                # Set basic switch params based on annotations
+                builtSwitch["allowed"] = True
+                builtSwitch["latitude"] = switch.annotations.get("latitude", 0.0)
+                builtSwitch["longitude"] = switch.annotations.get("longitude", 0.0)
 
-                #assumed that all switches have this entry
-                nodeId = switch["uri"]
+                # Convert dpid to linc-oe format
+                builtSwitch["name"] = switch.name
+                builtSwitch["nodeDpid"] = LINCSwitch.dpId('of:' + switch.dpid)
 
-                #convert the nodeId to linc-oe format
-                nodeDpid = LINCSwitch.dpId(nodeId);
-
-                builtSwitch["name"] = switch.get("name", "none");
-
-                #keep track of the name corresponding to each switch dpid
-                dpIdToName[nodeDpid] = builtSwitch["name"];
-
-                builtSwitch["nodeDpid"] = nodeDpid
-
-                #set switch params and type
-                builtSwitch["params"] = {};
-                builtSwitch["params"]["numregens"] = switch["annotations"].get("optical.regens", 0);
+                # Set switch params and type
+                builtSwitch["params"] = {}
+                builtSwitch["params"]["numregens"] = switch.annotations.get("optical.regens", 0)
                 builtSwitch["type"] = "Roadm"
 
-                #append to list of switches
-                switchConfig.append(builtSwitch);
+                switchConfig.append(builtSwitch)
+
         return switchConfig
 
     @staticmethod
-    def getLinkConfig (dpIdToName):
-        newLinkConfig = [];
-        #Iterate through all optical links and convert them to linc-oe format
-        for link in LINCSwitch.opticalJSON["links"]:
-            if link.get("type", "none") == "OPTICAL":
+    def getLinkConfig(links):
+        linkConfig = []
+
+        # Iterate through all non-edge links and convert them to linc-oe format
+        for link in links:
+            if isinstance(link, LINCLink):
                 builtLink = {}
 
-                #set basic link params for src and dst
-                builtLink["allowed"] = True;
-                builtLink["nodeDpid1"] = LINCSwitch.dpId(link["src"])
-                builtLink["nodeDpid2"] = LINCSwitch.dpId(link["dst"])
+                # Set basic link params for src and dst
+                builtLink["allowed"] = True
+                builtLink["nodeDpid1"] = LINCSwitch.dpId('of:' + link.intf1.node.dpid)
+                builtLink["nodeDpid2"] = LINCSwitch.dpId('of:' + link.intf2.node.dpid)
 
-                #set more params such as name/bandwidth/port/waves if they exist
+                # Set more params such as name/bandwidth/port if they exist
                 params = {}
-                params["nodeName1"] = dpIdToName.get(builtLink["nodeDpid1"], "none")
-                params["nodeName2"] = dpIdToName.get(builtLink["nodeDpid2"], "none")
-                
-                params["port1"] = int(link["src"].split("/")[1])
-                params["port2"]  = int(link["dst"].split("/")[1])
+                params["nodeName1"] = link.intf1.node.name
+                params["nodeName2"] = link.intf2.node.name
 
-                if "bandwidth" in link["annotations"]:
-                    params["bandwidth"] = link["annotations"]["bandwidth"]
+                params["port1"] = link.port1
+                params["port2"]  = link.port2
 
-                if "optical.waves" in link["annotations"]:
-                    params["numWaves"] = link["annotations"]["optical.waves"]
-                
+                if "bandwidth" in link.annotations:
+                    params["bandwidth"] = link.annotations["bandwidth"]
+
                 builtLink["params"] = params
 
-                #set type of link (WDM or pktOpt)
-                if link["annotations"].get("optical.type", "cross-connect") == "WDM":
+                # Set link type to WDM or packet (LINC-config-generator relies on it)
+                if link.isTransportLayer():
                     builtLink["type"] = "wdmLink"
                 else:
                     builtLink["type"] = "pktOptLink"
 
-                newLinkConfig.append(builtLink);
-        return newLinkConfig
+                linkConfig.append(builtLink)
+
+        return linkConfig
 
 
     @staticmethod
@@ -609,12 +610,14 @@ class LINCSwitch(OpticalSwitch):
         tapCount = 0
         time = 0
         for link in net.links:
-            if isinstance(link, LINCLink):
-                if link.annotations[ 'optical.type' ] == 'cross-connect':
-                    tapCount += 1
+            if isinstance(link, LINCLink) and link.isCrossConnect():
+                tapCount += 1
 
         while True:
-            if str(tapCount) == quietRun('ip addr | grep tap | wc -l', shell=True).strip('\n'):
+            # tapCount can be less than the actual number of taps if the optical network
+            # is a subgraph of a larger multidomain network.
+            tapNum = int(quietRun('ip addr | grep tap | wc -l', shell=True).strip('\n'))
+            if tapCount <= tapNum:
                 return True
             if timeout:
                 if time >= TIMEOUT:
@@ -642,7 +645,7 @@ class LINCSwitch(OpticalSwitch):
     @staticmethod
     def getTaps(path=None):
         '''
-        return list of all the tops in sys.config
+        return list of all the taps in sys.config
         '''
         if path is None:
             path = '%s/rel/linc/releases/1.0/sys.config' % LINCSwitch.lincDir
@@ -651,21 +654,6 @@ class LINCSwitch(OpticalSwitch):
         taps = re.findall('tap\d+', sys_data)
         fd.close()
         return taps
-
-    @staticmethod
-    def findUser():
-        "Try to return logged-in (usually non-root) user"
-        try:
-            # If we're running sudo
-            return os.environ[ 'SUDO_USER' ]
-        except:
-            try:
-                # Logged-in user (if we have a tty)
-                return quietRun('who am i').split()[ 0 ]
-            except:
-                # Give up and return effective user
-                return quietRun('whoami')
-
 
     @staticmethod
     def findTap(node, port, path=None):
@@ -727,23 +715,22 @@ class LINCLink(Link):
         self.port2 = port2
         params1 = { 'speed': speed1 }
         params2 = { 'speed': speed2 }
-        # self.isCrossConnect = True if self.annotations.get('optical.type') == 'cross-connect' else False
         if isinstance(node1, LINCSwitch) and isinstance(node2, LINCSwitch):
-            self.isCrossConnect = False
+            self.isXC = False
         else:
-            self.isCrossConnect = True
+            self.isXC = True
         if isinstance(node1, LINCSwitch):
             cls1 = LINCIntf
-            if self.isCrossConnect:
+            if self.isXC:
                 node1.crossConnects.append(self)
         else:
             cls1 = Intf
-            # bad hack to stop error message from appearing when we try to set up intf in a packet switch, 
+            # bad hack to stop error message from appearing when we try to set up intf in a packet switch,
             # and there is no interface there( because we do not run makeIntfPair ). This way, we just set lo up
             intfName1 = 'lo'
         if isinstance(node2, LINCSwitch):
             cls2 = LINCIntf
-            if self.isCrossConnect:
+            if self.isXC:
                 node2.crossConnects.append(self)
         else:
             cls2 = Intf
@@ -767,6 +754,18 @@ class LINCLink(Link):
         configData[ 'annotations' ] = self.annotations
         return configData
 
+    def isCrossConnect(self):
+        if isinstance(self.intf1.node, LINCSwitch) ^ isinstance(self.intf2.node, LINCSwitch):
+            return True
+
+        return False
+
+    def isTransportLayer(self):
+        if isinstance(self.intf1.node, LINCSwitch) and isinstance(self.intf2.node, LINCSwitch):
+            return True
+
+        return False
+
 class LINCIntf(OpticalIntf):
     """
     LINC interface class
@@ -787,7 +786,10 @@ class LINCIntf(OpticalIntf):
         configDict = {}
         configDict[ 'port' ] = self.port
         configDict[ 'speed' ] = self.speed
-        configDict[ 'type' ] = 'FIBER'
+        portType = 'COPPER'
+        if isinstance(self.link, LINCLink):
+            portType = 'OCH' if self.link.isCrossConnect() else 'OMS'
+        configDict[ 'type' ] = portType
         return configDict
 
     def config(self, *args, **kwargs):

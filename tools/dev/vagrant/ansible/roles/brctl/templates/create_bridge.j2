@@ -1,0 +1,17 @@
+#!/bin/bash
+
+REPORT_CHANGED=0
+if [ $# -gt 0 ]; then
+    REPORT_CHANGED=1
+fi
+CHANGED='false'
+
+FOUND=$(brctl show | grep "^{{ networks.bridge_name }}" | wc -l)
+if [ $FOUND -eq 0 ]; then
+    CHANGED='true'
+    brctl addbr {{ networks.bridge_name }}
+fi
+
+if [ $REPORT_CHANGED -ne 0 ]; then
+    echo -n $CHANGED
+fi

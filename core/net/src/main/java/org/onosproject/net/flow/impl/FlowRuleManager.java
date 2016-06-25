@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.flow.impl;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -32,12 +31,14 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.DefaultFlowEntry;
@@ -58,6 +59,8 @@ import org.onosproject.net.flow.FlowRuleProviderService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.FlowRuleStore;
 import org.onosproject.net.flow.FlowRuleStoreDelegate;
+import org.onosproject.net.flow.TableStatisticsEntry;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -73,12 +76,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_ADD_REQUESTED;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVE_REQUESTED;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.FLOWRULE_READ;
+import static org.onosproject.security.AppPermission.Type.FLOWRULE_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.security.AppPermission.Type.*;
 
 
 
@@ -92,6 +98,8 @@ public class FlowRuleManager
                                                  FlowRuleProvider, FlowRuleProviderService>
         implements FlowRuleService, FlowRuleProviderRegistry {
 
+    private final Logger log = getLogger(getClass());
+
     public static final String FLOW_RULE_NULL = "FlowRule cannot be null";
     private static final boolean ALLOW_EXTRANEOUS_RULES = false;
 
@@ -99,15 +107,25 @@ public class FlowRuleManager
             label = "Allow flow rules in switch not installed by ONOS")
     private boolean allowExtraneousRules = ALLOW_EXTRANEOUS_RULES;
 
-    private final Logger log = getLogger(getClass());
+    @Property(name = "purgeOnDisconnection", boolValue = false,
+            label = "Purge entries associated with a device when the device goes offline")
+    private boolean purgeOnDisconnection = false;
+
+    private static final int DEFAULT_POLL_FREQUENCY = 30;
+    @Property(name = "fallbackFlowPollFrequency", intValue = DEFAULT_POLL_FREQUENCY,
+            label = "Frequency (in seconds) for polling flow statistics via fallback provider")
+    private int fallbackFlowPollFrequency = DEFAULT_POLL_FREQUENCY;
 
     private final FlowRuleStoreDelegate delegate = new InternalStoreDelegate();
+    private final DeviceListener deviceListener = new InternalDeviceListener();
+
+    private final FlowRuleDriverProvider defaultProvider = new FlowRuleDriverProvider();
 
     protected ExecutorService deviceInstallers =
-            Executors.newFixedThreadPool(32, groupedThreads("onos/flowservice", "device-installer-%d"));
+            Executors.newFixedThreadPool(32, groupedThreads("onos/flowservice", "device-installer-%d", log));
 
     protected ExecutorService operationsService =
-            Executors.newFixedThreadPool(32, groupedThreads("onos/flowservice", "operations-%d"));
+            Executors.newFixedThreadPool(32, groupedThreads("onos/flowservice", "operations-%d", log));
 
     private IdGenerator idGenerator;
 
@@ -124,22 +142,25 @@ public class FlowRuleManager
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
 
     @Activate
     public void activate(ComponentContext context) {
-        cfgService.registerProperties(getClass());
-        idGenerator = coreService.getIdGenerator(FLOW_OP_TOPIC);
-
         modified(context);
-
         store.setDelegate(delegate);
         eventDispatcher.addSink(FlowRuleEvent.class, listenerRegistry);
+        deviceService.addListener(deviceListener);
+        cfgService.registerProperties(getClass());
+        idGenerator = coreService.getIdGenerator(FLOW_OP_TOPIC);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        deviceService.removeListener(deviceListener);
         cfgService.unregisterProperties(getClass(), false);
         deviceInstallers.shutdownNow();
         operationsService.shutdownNow();
@@ -150,17 +171,52 @@ public class FlowRuleManager
 
     @Modified
     public void modified(ComponentContext context) {
-        if (context == null) {
-            return;
+        if (context != null) {
+            readComponentConfiguration(context);
+        }
+        defaultProvider.init(new InternalFlowRuleProviderService(defaultProvider),
+                             deviceService, mastershipService, fallbackFlowPollFrequency);
+    }
+
+    @Override
+    protected FlowRuleProvider defaultProvider() {
+        return defaultProvider;
+    }
+
+    /**
+     * Extracts properties from the component configuration context.
+     *
+     * @param context the component context
+     */
+    private void readComponentConfiguration(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        Boolean flag;
+
+        flag = Tools.isPropertyEnabled(properties, "allowExtraneousRules");
+        if (flag == null) {
+            log.info("AllowExtraneousRules is not configured, " +
+                    "using current value of {}", allowExtraneousRules);
+        } else {
+            allowExtraneousRules = flag;
+            log.info("Configured. AllowExtraneousRules is {}",
+                    allowExtraneousRules ? "enabled" : "disabled");
         }
 
-        Dictionary<?, ?> properties = context.getProperties();
+        flag = Tools.isPropertyEnabled(properties, "purgeOnDisconnection");
+        if (flag == null) {
+            log.info("PurgeOnDisconnection is not configured, " +
+                    "using current value of {}", purgeOnDisconnection);
+        } else {
+            purgeOnDisconnection = flag;
+            log.info("Configured. PurgeOnDisconnection is {}",
+                    purgeOnDisconnection ? "enabled" : "disabled");
+        }
 
-        String s = Tools.get(properties, "allowExtraneousRules");
-        allowExtraneousRules = Strings.isNullOrEmpty(s) ? ALLOW_EXTRANEOUS_RULES : Boolean.valueOf(s);
-
-        if (allowExtraneousRules) {
-            log.info("Allowing flow rules not installed by ONOS");
+        String s = get(properties, "fallbackFlowPollFrequency");
+        try {
+            fallbackFlowPollFrequency = isNullOrEmpty(s) ? DEFAULT_POLL_FREQUENCY : Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            fallbackFlowPollFrequency = DEFAULT_POLL_FREQUENCY;
         }
     }
 
@@ -181,8 +237,8 @@ public class FlowRuleManager
         checkPermission(FLOWRULE_WRITE);
 
         FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
-        for (int i = 0; i < flowRules.length; i++) {
-            builder.add(flowRules[i]);
+        for (FlowRule flowRule : flowRules) {
+            builder.add(flowRule);
         }
         apply(builder.build());
     }
@@ -192,8 +248,8 @@ public class FlowRuleManager
         checkPermission(FLOWRULE_WRITE);
 
         FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
-        for (int i = 0; i < flowRules.length; i++) {
-            builder.remove(flowRules[i]);
+        for (FlowRule flowRule : flowRules) {
+            builder.remove(flowRule);
         }
         apply(builder.build());
     }
@@ -238,7 +294,7 @@ public class FlowRuleManager
     @Override
     public void apply(FlowRuleOperations ops) {
         checkPermission(FLOWRULE_WRITE);
-        operationsService.submit(new FlowOperationsProcessor(ops));
+        operationsService.execute(new FlowOperationsProcessor(ops));
     }
 
     @Override
@@ -300,15 +356,16 @@ public class FlowRuleManager
                 case PENDING_REMOVE:
                 case REMOVED:
                     event = store.removeFlowRule(flowRule);
-                    frp.removeFlowRule(flowRule);
                     break;
                 case ADDED:
                 case PENDING_ADD:
+                    event = store.pendingFlowRule(flowRule);
                     try {
                         frp.applyFlowRule(flowRule);
                     } catch (UnsupportedOperationException e) {
                         log.warn(e.getMessage());
                         if (flowRule instanceof DefaultFlowEntry) {
+                            //FIXME modification of "stored" flow entry outside of store
                             ((DefaultFlowEntry) flowRule).setState(FlowEntry.FlowEntryState.FAILED);
                         }
                     }
@@ -321,9 +378,7 @@ public class FlowRuleManager
                 log.debug("Flow {} removed", flowRule);
                 post(event);
             }
-
         }
-
 
         private void extraneousFlow(FlowRule flowRule) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
@@ -333,13 +388,11 @@ public class FlowRuleManager
             log.debug("Flow {} is on switch but not in store.", flowRule);
         }
 
-
         private void flowAdded(FlowEntry flowEntry) {
             checkNotNull(flowEntry, FLOW_RULE_NULL);
             checkValidity();
 
             if (checkRuleLiveness(flowEntry, store.getFlowEntry(flowEntry))) {
-
                 FlowRuleEvent event = store.addOrUpdateFlowRule(flowEntry);
                 if (event == null) {
                     log.debug("No flow store event generated.");
@@ -351,7 +404,6 @@ public class FlowRuleManager
                 log.debug("Removing flow rules....");
                 removeFlowRules(flowEntry);
             }
-
         }
 
         private boolean checkRuleLiveness(FlowEntry swRule, FlowEntry storedRule) {
@@ -375,15 +427,9 @@ public class FlowRuleManager
                 //lastSeen.put(storedRule, currentTime);
             }
             Long last = lastSeen.get(storedRule);
-            if (last == null) {
-                // concurrently removed? let the liveness check fail
-                return false;
-            }
 
-            if ((currentTime - last) <= timeout) {
-                return true;
-            }
-            return false;
+            // concurrently removed? let the liveness check fail
+            return last != null && (currentTime - last) <= timeout;
         }
 
         @Override
@@ -422,7 +468,6 @@ public class FlowRuleManager
                     }
                 } catch (Exception e) {
                     log.debug("Can't process added or extra rule {}", e.getMessage());
-                    continue;
                 }
             }
 
@@ -434,8 +479,7 @@ public class FlowRuleManager
                         log.debug("Adding rule in store, but not on switch {}", rule);
                         flowMissing(rule);
                     } catch (Exception e) {
-                        log.debug("Can't add missing flow rule {}", e.getMessage());
-                        continue;
+                        log.debug("Can't add missing flow rule:", e);
                     }
                 }
             }
@@ -447,6 +491,12 @@ public class FlowRuleManager
                     new FlowRuleBatchRequest(batchId, Collections.emptySet()),
                     operation
             ));
+        }
+
+        @Override
+        public void pushTableStatistics(DeviceId deviceId,
+                                          List<TableStatisticsEntry> tableStats) {
+            store.updateTableStatistics(deviceId, tableStats);
         }
     }
 
@@ -573,14 +623,14 @@ public class FlowRuleManager
                 final FlowRuleBatchOperation b = new FlowRuleBatchOperation(perDeviceBatches.get(deviceId),
                                                deviceId, id);
                 pendingFlowOperations.put(id, this);
-                deviceInstallers.submit(() -> store.storeBatch(b));
+                deviceInstallers.execute(() -> store.storeBatch(b));
             }
         }
 
         public void satisfy(DeviceId devId) {
             pendingDevices.remove(devId);
             if (pendingDevices.isEmpty()) {
-                operationsService.submit(this);
+                operationsService.execute(this);
             }
         }
 
@@ -590,7 +640,7 @@ public class FlowRuleManager
             hasFailed.set(true);
             pendingDevices.remove(devId);
             if (pendingDevices.isEmpty()) {
-                operationsService.submit(this);
+                operationsService.execute(this);
             }
 
             if (context != null) {
@@ -602,5 +652,30 @@ public class FlowRuleManager
             }
         }
 
+    }
+
+    @Override
+    public Iterable<TableStatisticsEntry> getFlowTableStatistics(DeviceId deviceId) {
+        checkPermission(FLOWRULE_READ);
+        return store.getTableStatistics(deviceId);
+    }
+
+    private class InternalDeviceListener implements DeviceListener {
+        @Override
+        public void event(DeviceEvent event) {
+            switch (event.type()) {
+                case DEVICE_REMOVED:
+                case DEVICE_AVAILABILITY_CHANGED:
+                    DeviceId deviceId = event.subject().id();
+                    if (!deviceService.isAvailable(deviceId)) {
+                        if (purgeOnDisconnection) {
+                            store.purgeFlowRule(deviceId);
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 }

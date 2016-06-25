@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,31 +20,21 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import com.google.common.util.concurrent.MoreExecutors;
+
 /**
- * A distributed, strongly consistent key-value map.
- * <p>
- * This map offers strong read-after-update (where update == create/update/delete)
- * consistency. All operations to the map are serialized and applied in a consistent
- * manner.
- * <p>
- * The stronger consistency comes at the expense of availability in
- * the event of a network partition. A network partition can be either due to
- * a temporary disruption in network connectivity between participating nodes
- * or due to a node being temporarily down.
- * </p><p>
- * All values stored in this map are versioned and the API supports optimistic
- * concurrency by allowing conditional updates that take into consideration
- * the version or value that was previously read.
- * </p><p>
- * This map does not allow null values. All methods can throw a ConsistentMapException
- * (which extends RuntimeException) to indicate failures.
+ * {@code ConsistentMap} provides the same functionality as {@link AsyncConsistentMap} with
+ * the only difference that all its methods block until the corresponding operation completes.
  *
+ * @param <K> type of key
+ * @param <V> type of value
  */
-public interface ConsistentMap<K, V> {
+public interface ConsistentMap<K, V> extends DistributedPrimitive {
 
     /**
      * Returns the number of entries in the map.
@@ -247,6 +237,16 @@ public interface ConsistentMap<K, V> {
     boolean remove(K key, long version);
 
     /**
+     * Replaces the entry for the specified key only if there is any value
+     * which associated with specified key.
+     *
+     * @param key key with which the specified value is associated
+     * @param value value expected to be associated with the specified key
+     * @return the previous value associated with the specified key or null
+     */
+    Versioned<V> replace(K key, V value);
+
+    /**
      * Replaces the entry for the specified key only if currently mapped
      * to the specified value.
      *
@@ -273,7 +273,17 @@ public interface ConsistentMap<K, V> {
      *
      * @param listener listener to notify about map events
      */
-    void addListener(MapEventListener<K, V> listener);
+    default void addListener(MapEventListener<K, V> listener) {
+        addListener(listener, MoreExecutors.directExecutor());
+    }
+
+    /**
+     * Registers the specified listener to be notified whenever the map is updated.
+     *
+     * @param listener listener to notify about map events
+     * @param executor executor to use for handling incoming map events
+     */
+    void addListener(MapEventListener<K, V> listener, Executor executor);
 
     /**
      * Unregisters the specified listener such that it will no longer

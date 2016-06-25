@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,19 @@
 package org.onosproject.store.service;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import org.onosproject.store.primitives.DefaultConsistentMap;
+import org.onosproject.store.primitives.TransactionId;
+
+import com.google.common.util.concurrent.MoreExecutors;
 
 /**
  * A distributed, strongly consistent map whose methods are all executed asynchronously.
@@ -36,15 +43,29 @@ import java.util.function.Predicate;
  * a temporary disruption in network connectivity between participating nodes
  * or due to a node being temporarily down.
  * </p><p>
- * All values stored in this map are versioned and the API supports optimistic
- * concurrency by allowing conditional updates that take into consideration
- * the version or value that was previously read.
+ * All values stored in this map are {@link Versioned versioned} and the API
+ * supports optimistic concurrency by allowing conditional updates that take into
+ * consideration the version or value that was previously read.
  * </p><p>
  * This map does not allow null values. All methods can throw a ConsistentMapException
- * (which extends RuntimeException) to indicate failures.
- *
+ * (which extends {@code RuntimeException}) to indicate failures.
+ * <p>
+ * All methods of this interface return a {@link CompletableFuture future} immediately
+ * after a successful invocation. The operation itself is executed asynchronous and
+ * the returned future will be {@link CompletableFuture#complete completed} when the
+ * operation finishes.
  */
-public interface AsyncConsistentMap<K, V> {
+public interface AsyncConsistentMap<K, V> extends DistributedPrimitive {
+
+    @Override
+    default DistributedPrimitive.Type primitiveType() {
+        return DistributedPrimitive.Type.CONSISTENT_MAP;
+    }
+
+    @Override
+    default CompletableFuture<Void> destroy() {
+        return clear();
+    }
 
     /**
      * Returns the number of entries in the map.
@@ -58,7 +79,9 @@ public interface AsyncConsistentMap<K, V> {
      *
      * @return a future whose value will be true if map has no entries, false otherwise.
      */
-    CompletableFuture<Boolean> isEmpty();
+    default CompletableFuture<Boolean> isEmpty() {
+        return size().thenApply(s -> s == 0);
+    }
 
     /**
      * Returns true if this map contains a mapping for the specified key.
@@ -97,8 +120,10 @@ public interface AsyncConsistentMap<K, V> {
      * @return the current (existing or computed) value associated with the specified key,
      * or null if the computed value is null
      */
-    CompletableFuture<Versioned<V>> computeIfAbsent(K key,
-            Function<? super K, ? extends V> mappingFunction);
+    default CompletableFuture<Versioned<V>> computeIfAbsent(K key,
+            Function<? super K, ? extends V> mappingFunction) {
+        return computeIf(key, Objects::isNull, (k, v) -> mappingFunction.apply(k));
+    }
 
     /**
      * If the value for the specified key is present and non-null, attempts to compute a new
@@ -110,8 +135,10 @@ public interface AsyncConsistentMap<K, V> {
      * @param remappingFunction the function to compute a value
      * @return the new value associated with the specified key, or null if computed value is null
      */
-    CompletableFuture<Versioned<V>> computeIfPresent(K key,
-            BiFunction<? super K, ? super V, ? extends V> remappingFunction);
+    default CompletableFuture<Versioned<V>> computeIfPresent(K key,
+            BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        return computeIf(key, Objects::nonNull, remappingFunction);
+    }
 
     /**
      * Attempts to compute a mapping for the specified key and its current mapped value (or
@@ -123,8 +150,10 @@ public interface AsyncConsistentMap<K, V> {
      * @param remappingFunction the function to compute a value
      * @return the new value associated with the specified key, or null if computed value is null
      */
-    CompletableFuture<Versioned<V>> compute(K key,
-            BiFunction<? super K, ? super V, ? extends V> remappingFunction);
+    default CompletableFuture<Versioned<V>> compute(K key,
+            BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        return computeIf(key, v -> true, remappingFunction);
+    }
 
     /**
      * If the value for the specified key satisfies a condition, attempts to compute a new
@@ -245,6 +274,16 @@ public interface AsyncConsistentMap<K, V> {
     CompletableFuture<Boolean> remove(K key, long version);
 
     /**
+     * Replaces the entry for the specified key only if there is any value
+     * which associated with specified key.
+     *
+     * @param key key with which the specified value is associated
+     * @param value value expected to be associated with the specified key
+     * @return the previous value associated with the specified key or null
+     */
+    CompletableFuture<Versioned<V>> replace(K key, V value);
+
+    /**
      * Replaces the entry for the specified key only if currently mapped
      * to the specified value.
      *
@@ -270,14 +309,76 @@ public interface AsyncConsistentMap<K, V> {
      * Registers the specified listener to be notified whenever the map is updated.
      *
      * @param listener listener to notify about map events
+     * @return future that will be completed when the operation finishes
      */
-    void addListener(MapEventListener<K, V> listener);
+    default CompletableFuture<Void> addListener(MapEventListener<K, V> listener) {
+        return addListener(listener, MoreExecutors.directExecutor());
+    }
+
+    /**
+     * Registers the specified listener to be notified whenever the map is updated.
+     *
+     * @param listener listener to notify about map events
+     * @param executor executor to use for handling incoming map events
+     * @return future that will be completed when the operation finishes
+     */
+    CompletableFuture<Void> addListener(MapEventListener<K, V> listener, Executor executor);
 
     /**
      * Unregisters the specified listener such that it will no longer
      * receive map change notifications.
      *
      * @param listener listener to unregister
+     * @return future that will be completed when the operation finishes
      */
-    void removeListener(MapEventListener<K, V> listener);
+    CompletableFuture<Void> removeListener(MapEventListener<K, V> listener);
+
+    /**
+     * Prepares a transaction for commitment.
+     * @param transaction transaction
+     * @return {@code true} if prepare is successful and transaction is ready to be committed;
+     * {@code false} otherwise
+     */
+    CompletableFuture<Boolean> prepare(MapTransaction<K, V> transaction);
+
+    /**
+     * Commits a previously prepared transaction.
+     * @param transactionId transaction identifier
+     * @return future that will be completed when the operation finishes
+     */
+    CompletableFuture<Void> commit(TransactionId transactionId);
+
+    /**
+     * Aborts a previously prepared transaction.
+     * @param transactionId transaction identifier
+     * @return future that will be completed when the operation finishes
+     */
+    CompletableFuture<Void> rollback(TransactionId transactionId);
+
+    /**
+     * Prepares a transaction and commits it in one go.
+     * @param transaction transaction
+     * @return {@code true} if operation is successful and updates are committed
+     * {@code false} otherwise
+     */
+    CompletableFuture<Boolean> prepareAndCommit(MapTransaction<K, V> transaction);
+
+    /**
+     * Returns a new {@link ConsistentMap} that is backed by this instance.
+     *
+     * @return new {@code ConsistentMap} instance
+     */
+    default ConsistentMap<K, V> asConsistentMap() {
+        return asConsistentMap(DistributedPrimitive.DEFAULT_OPERTATION_TIMEOUT_MILLIS);
+    }
+
+    /**
+     * Returns a new {@link ConsistentMap} that is backed by this instance.
+     *
+     * @param timeoutMillis timeout duration for the returned ConsistentMap operations
+     * @return new {@code ConsistentMap} instance
+     */
+    default ConsistentMap<K, V> asConsistentMap(long timeoutMillis) {
+        return new DefaultConsistentMap<>(this, timeoutMillis);
+    }
 }

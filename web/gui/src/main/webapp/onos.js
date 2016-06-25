@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@
 /*
  ONOS GUI -- Main Application Module
  */
-
 (function () {
     'use strict';
+
+    // injected refs
+    var $log;
 
     // define core module dependencies here...
     var coreDependencies = [
@@ -33,37 +35,49 @@
         'onosWidget'
     ];
 
-    // view IDs.. note the first view listed is loaded at startup
+    // view IDs.. injected via the servlet
     var viewIds = [
         // {INJECTED-VIEW-IDS-START}
-        'topo',
-        'device',
-        'flow',
-        'port',
-        'group',
-        'host',
-        'app',
-        'intent',
-        'cluster',
-        'link',
         // {INJECTED-VIEW-IDS-END}
-
         // dummy entry
         ''
     ];
 
-    var viewDependencies = [];
+    // secret sauce
+    var sauce = [
+        '6:69857666',
+        '9:826970',
+        '22:8069828667',
+        '6:698570688669887967',
+        '7:6971806889847186',
+        '22:8369867682',
+        '13:736583',
+        '7:667186698384',
+        '1:857780888778876787',
+        '20:70717066',
+        '24:886774868469'
+    ];
+
+    var defaultView = 'topo',
+        viewDependencies = [];
 
     viewIds.forEach(function (id) {
         if (id) {
-            viewDependencies.push('ov' + capitalize(id));
+            viewDependencies.push('ov' + cap(id));
         }
     });
 
     var moduleDependencies = coreDependencies.concat(viewDependencies);
 
-    function capitalize(word) {
-        return word ? word[0].toUpperCase() + word.slice(1) : word;
+    function saucy(ee, ks) {
+        var map = ee.genMap(sauce);
+        Object.keys(map).forEach(function (k) {
+            ks.addSeq(k, map[k]);
+        });
+    }
+
+    function cap(s) {
+        return s ? s[0].toUpperCase() + s.slice(1) : s;
     }
 
     angular.module('onosApp', moduleDependencies)
@@ -71,17 +85,18 @@
         .controller('OnosCtrl', [
             '$log', '$scope', '$route', '$routeParams', '$location',
             'KeyService', 'ThemeService', 'GlyphService', 'VeilService',
-            'PanelService', 'FlashService', 'QuickHelpService',
+            'PanelService', 'FlashService', 'QuickHelpService', 'EeService',
             'WebSocketService',
 
-            function ($log, $scope, $route, $routeParams, $location,
-                      ks, ts, gs, vs, ps, flash, qhs, wss) {
+            function (_$log_, $scope, $route, $routeParams, $location,
+                      ks, ts, gs, vs, ps, flash, qhs, ee, wss) {
                 var self = this;
+                $log = _$log_;
 
                 self.$route = $route;
                 self.$routeParams = $routeParams;
                 self.$location = $location;
-                self.version = '1.3.0';
+                self.version = '1.5.0';
 
                 // shared object inherited by all views:
                 $scope.onos = {};
@@ -93,10 +108,9 @@
                 gs.init();
                 vs.init();
                 ps.init();
+                saucy(ee, ks);
                 flash.initFlash();
                 qhs.initQuickHelp();
-
-                // TODO: register handler for user settings, etc.
 
                 wss.createWebSocket({
                     wsport: $location.search().wsport
@@ -110,14 +124,14 @@
             }])
 
         .config(['$routeProvider', function ($routeProvider) {
-            // If view ID not provided, route to the first view in the list.
+            // If view ID not provided, route to the default view
             $routeProvider
                 .otherwise({
-                    redirectTo: '/topo'
+                    redirectTo: '/' + defaultView
                 });
 
             function viewCtrlName(vid) {
-                return 'Ov' + capitalize(vid) + 'Ctrl';
+                return 'Ov' + cap(vid) + 'Ctrl';
             }
 
             function viewTemplateUrl(vid) {

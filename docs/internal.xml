@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos</artifactId>
-        <version>1.4.0-SNAPSHOT</version>
+        <version>1.7.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -46,19 +46,23 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.3</version>
                 <configuration>
                     <show>package</show>
                     <docfilessubdirs>true</docfilessubdirs>
-                    <doctitle>ONOS Java API (1.4.0-SNAPSHOT)</doctitle>
+                    <doctitle>ONOS Java API (1.7.0-SNAPSHOT)</doctitle>
                     <excludePackageNames>@internal-excludes</excludePackageNames>
+                    <sourceFileExcludes>
+                        <sourceFileExclude>**/generated-sources/**</sourceFileExclude>
+                    </sourceFileExcludes>
+
                     <groups>
                         <group>
                             <title>Network Model &amp; Services</title>
                             <packages>@internal-apis</packages>
                         </group>
                         <group>
-                            <title>Incubator for Network Model &amp; Services</title>
+                            <title>Incubator for Network Model &amp; Services
+                            </title>
                             <packages>@internal-incubator-apis</packages>
                         </group>
                         <group>
@@ -70,32 +74,9 @@
                             <packages>@internal-stores</packages>
                         </group>
                         <group>
-                            <title>Incubator for Core Subsystems &amp; Distributed Stores</title>
+                            <title>Incubator for Core Subsystems &amp; Distributed Stores
+                            </title>
                             <packages>@internal-incubator</packages>
-                        </group>
-                        <group>
-                            <title>OpenFlow Providers &amp; Controller</title>
-                            <packages>@internal-openflow</packages>
-                        </group>
-                        <group>
-                            <title>NetConf Providers</title>
-                            <packages>@internal-netconf</packages>
-                        </group>
-                        <group>
-                            <title>OVSDB Providers</title>
-                            <packages>@internal-ovsdb</packages>
-                        </group>
-                        <group>
-                            <title>PCEP Providers</title>
-                            <packages>@internal-pcep</packages>
-                        </group>
-                        <group>
-                            <title>Other Providers</title>
-                            <packages>@internal-providers</packages>
-                        </group>
-                        <group>
-                            <title>Built-in Device Drivers</title>
-                            <packages>@internal-drivers</packages>
                         </group>
                         <group>
                             <title>Utilities</title>
@@ -110,10 +91,54 @@
                             <packages>@internal-apps</packages>
                         </group>
                         <group>
-                            <title>Test Instrumentation &amp; Applications</title>
+                            <title>Test Instrumentation &amp; Applications
+                            </title>
                             <packages>@internal-test-apps</packages>
                         </group>
+                        <group>
+                            <title>OpenFlow Providers &amp; Controller</title>
+                            <packages>@internal-openflow</packages>
+                        </group>
+                        <group>
+                            <title>NetConf Protocol &amp; Providers</title>
+                            <packages>@internal-netconf</packages>
+                        </group>
+                        <group>
+                            <title>OVSDB Protocol &amp; Providers</title>
+                            <packages>@internal-ovsdb</packages>
+                        </group>
+                        <group>
+                            <title>PCEP Protocol &amp; Providers</title>
+                            <packages>@internal-pcep</packages>
+                        </group>
+                        <group>
+                            <title>BGP-LS Protocol &amp; Providers</title>
+                            <packages>@internal-bgpls</packages>
+                        </group>
+                        <group>
+                            <title>OSPF Protocol &amp; Providers</title>
+                            <packages>@internal-ospf</packages>
+                        </group>
+                        <group>
+                            <title>REST Protocol &amp; Providers</title>
+                            <packages>@internal-restsb</packages>
+                        </group>
+                        <group>
+                            <title>Other Providers</title>
+                            <packages>@internal-providers</packages>
+                        </group>
+                        <group>
+                            <title>Device Drivers</title>
+                            <packages>@internal-drivers</packages>
+                        </group>
                     </groups>
+                    <tags>
+                        <tag>
+                            <name>onos.rsModel</name>
+                            <placement>m</placement>
+                            <head>Json model for REST api:</head>
+                        </tag>
+                    </tags>
                 </configuration>
             </plugin>
         </plugins>

@@ -1,0 +1,10 @@
+{
+  "title": "Link Update scenario",
+  "description": [
+    "Add two devices and one link (auto).",
+    "Send a couple of updateLink events."
+  ],
+  "params": {
+    "lastAuto": 5
+  }
+}

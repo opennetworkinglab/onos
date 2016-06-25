@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,8 +14,10 @@
   ~ limitations under the License.
   -->
 <app name="org.foo.app" origin="Circus" version="1.2.a"
-        featuresRepo="mvn:org.foo-features/1.2a/xml/features"
-        features="foo,bar">
+     title="Awesome App" category="other"
+     url="http://www.onosproject.org"
+     featuresRepo="mvn:org.foo-features/1.2a/xml/features"
+     features="foo,bar">
     <description>Awesome application from Circus, Inc.</description>
     <security>
         <role>ADMIN</role>
@@ -23,7 +25,5 @@
             <app-perm>FLOWRULE_WRITE</app-perm>
             <app-perm>FLOWRULE_READ</app-perm>
         </permissions>
-
     </security>
-
 </app>

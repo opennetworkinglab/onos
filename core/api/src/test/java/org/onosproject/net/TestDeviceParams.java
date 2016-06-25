@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ public abstract class TestDeviceParams {
     protected static final ProviderId PID = new ProviderId("of", "foo");
     protected static final DeviceId DID1 = deviceId("of:foo");
     protected static final DeviceId DID2 = deviceId("of:bar");
+    protected static final DeviceId DID3 = deviceId("of:who");
+    protected static final DeviceId DID4 = deviceId("of:what");
     protected static final MacAddress MAC1 = MacAddress.valueOf("00:11:00:00:00:01");
     protected static final MacAddress MAC2 = MacAddress.valueOf("00:22:00:00:00:02");
     protected static final VlanId VLAN1 = VlanId.vlanId((short) 11);

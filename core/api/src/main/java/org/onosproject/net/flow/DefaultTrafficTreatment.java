@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  */
 package org.onosproject.net.flow;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Objects;
+
 import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -25,15 +25,16 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
-import org.onosproject.net.IndexedLambda;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.meter.MeterId;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -51,7 +52,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
     private final boolean hasClear;
 
     private static final DefaultTrafficTreatment EMPTY
-            = new DefaultTrafficTreatment(Collections.emptyList());
+            = new DefaultTrafficTreatment(ImmutableList.of(Instructions.createNoAction()));
     private final Instructions.MeterInstruction meter;
 
     /**
@@ -187,6 +188,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                 .add("immediate", immediate)
                 .add("deferred", deferred)
                 .add("transition", table == null ? "None" : table.toString())
+                .add("meter", meter == null ? "None" : meter.toString())
                 .add("cleared", hasClear)
                 .add("metadata", meta)
                 .toString();
@@ -212,8 +214,6 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         List<Instruction> current = immediate;
 
-
-
         // Creates a new builder
         private Builder() {
         }
@@ -224,7 +224,10 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             treatment.deferred().forEach(i -> add(i));
 
             immediate();
-            treatment.immediate().forEach(i -> add(i));
+            treatment.immediate().stream()
+                    // NOACTION will get re-added if there are no other actions
+                    .filter(i -> i.type() != Instruction.Type.NOACTION)
+                    .forEach(i -> add(i));
 
             clear = treatment.clearedDeferred();
         }
@@ -233,13 +236,16 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         public Builder add(Instruction instruction) {
 
             switch (instruction.type()) {
-                case DROP:
+                case NOACTION:
                 case OUTPUT:
                 case GROUP:
+                case QUEUE:
                 case L0MODIFICATION:
+                case L1MODIFICATION:
                 case L2MODIFICATION:
                 case L3MODIFICATION:
                 case L4MODIFICATION:
+                case EXTENSION:
                     current.add(instruction);
                     break;
                 case TABLE:
@@ -250,6 +256,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                     break;
                 case METER:
                     meter = (Instructions.MeterInstruction) instruction;
+                    break;
                 default:
                     throw new IllegalArgumentException("Unknown instruction type: " +
                                                                instruction.type());
@@ -258,9 +265,23 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             return this;
         }
 
+        /**
+         * Add a NOACTION when DROP instruction is explicitly specified.
+         *
+         * @return the traffic treatment builder
+         */
         @Override
         public Builder drop() {
-            return add(Instructions.createDrop());
+            return add(Instructions.createNoAction());
+        }
+
+        /**
+         * Add a NOACTION when no instruction is specified.
+         *
+         * @return the traffic treatment builder
+         */
+        private Builder noAction() {
+            return add(Instructions.createNoAction());
         }
 
         @Override
@@ -329,11 +350,6 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
-        public Builder popMpls(int etherType) {
-            return add(Instructions.popMpls(new EthType(etherType)));
-        }
-
-        @Override
         public Builder popMpls(EthType etherType) {
             return add(Instructions.popMpls(etherType));
         }
@@ -353,15 +369,20 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             return add(Instructions.decMplsTtl());
         }
 
-        @Deprecated
-        @Override
-        public Builder setLambda(short lambda) {
-            return add(Instructions.modL0Lambda(new IndexedLambda(lambda)));
-        }
 
         @Override
         public Builder group(GroupId groupId) {
             return add(Instructions.createGroup(groupId));
+        }
+
+        @Override
+        public Builder setQueue(long queueId) {
+            return add(Instructions.setQueue(queueId, null));
+        }
+
+        @Override
+        public Builder setQueue(long queueId, PortNumber port) {
+            return add(Instructions.setQueue(queueId, port));
         }
 
         @Override
@@ -412,21 +433,9 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             return add(Instructions.modTunnelId(tunnelId));
         }
 
-        @Deprecated
-        @Override
-        public TrafficTreatment.Builder setTcpSrc(short port) {
-            return setTcpSrc(TpPort.tpPort(port));
-        }
-
         @Override
         public TrafficTreatment.Builder setTcpSrc(TpPort port) {
             return add(Instructions.modTcpSrc(port));
-        }
-
-        @Deprecated
-        @Override
-        public TrafficTreatment.Builder setTcpDst(short port) {
-            return setTcpDst(TpPort.tpPort(port));
         }
 
         @Override
@@ -434,21 +443,9 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             return add(Instructions.modTcpDst(port));
         }
 
-        @Deprecated
-        @Override
-        public TrafficTreatment.Builder setUdpSrc(short port) {
-            return setUdpSrc(TpPort.tpPort(port));
-        }
-
         @Override
         public TrafficTreatment.Builder setUdpSrc(TpPort port) {
             return add(Instructions.modUdpSrc(port));
-        }
-
-        @Deprecated
-        @Override
-        public TrafficTreatment.Builder setUdpDst(short port) {
-            return setUdpDst(TpPort.tpPort(port));
         }
 
         @Override
@@ -457,15 +454,33 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
-        public TrafficTreatment build() {
-            //Don't add DROP instruction by default when instruction
-            //set is empty. This will be handled in DefaultSingleTablePipeline
-            //driver.
+        public Builder setArpSpa(IpAddress addr) {
+            return add(Instructions.modArpSpa(addr));
+        }
 
-            //if (deferred.size() == 0 && immediate.size() == 0
-            //        && table == null && !clear) {
-            //    drop();
-            //}
+        @Override
+        public Builder setArpSha(MacAddress addr) {
+            return add(Instructions.modArpSha(addr));
+        }
+
+        @Override
+        public Builder setArpOp(short op) {
+            return add(Instructions.modL3ArpOp(op));
+        }
+
+        @Override
+        public TrafficTreatment.Builder extension(ExtensionTreatment extension,
+                                                  DeviceId deviceId) {
+            return add(Instructions.extension(extension, deviceId));
+        }
+
+        @Override
+        public TrafficTreatment build() {
+            if (deferred.size() == 0 && immediate.size() == 0
+                    && table == null && !clear) {
+                immediate();
+                noAction();
+            }
             return new DefaultTrafficTreatment(deferred, immediate, table, clear, meta, meter);
         }
 

@@ -1,0 +1,28 @@
+{
+  "id": 1,
+  "appId": "org.onosproject.sample",
+  "type": "FAILOVER",
+  "operation": "ADD",
+  "treatments": [
+    {
+      "instructions": [
+        {
+          "type": "OUTPUT",
+          "port": -3
+        },
+        {
+          "type": "NOACTION"
+        }
+      ],
+      "deferred": []
+    }
+  ],
+  "meta": {
+    "criteria": [
+      {
+        "type": "IN_PORT",
+        "port": 23
+      }
+    ]
+  }
+}

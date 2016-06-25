@@ -23,6 +23,7 @@ find $M2_REPO/org/onosproject/ -name "*.oar" -path "*/${ONOS_POM_VERSION}/*" | w
     name=$(grep "name=" $AUX/app.xml | sed 's/<app name="//g;s/".*//g')
     mkdir -p $APPS/$name
     cp $AUX/app.xml $APPS/$name/app.xml
+    [ -f $AUX/app.png ] && cp $AUX/app.png $APPS/$name/app.png
     cp $AUX/*.oar $APPS/$name/$name.oar
     cp -rf $AUX/m2/* $KARAF_M2
     rm -fr $AUX

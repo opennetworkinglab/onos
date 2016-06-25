@@ -1,0 +1,59 @@
+<!--
+  ~  Copyright 2016-present Open Networking Laboratory
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+<scenario name="net-setup-vnets" description="Network (vnets) setup steps">
+    <group name="Net-Setup-Vnets">
+
+        <step name="Disable-FwdApp" if="echo $ONOS_APPS | grep -w fwd"
+              exec="onos ${OCI} onos:app deactivate org.onosproject.fwd"/>
+
+        <step name="Get-TenantId" requires="^" unless="${tenantId}"
+              exec="echo @stc tenantId=TestTenant"/>
+
+        <step name="Create-Tenant" requires="^"
+              exec="onos ${OCI} vnet-add-tenant ${tenantId}"/>
+
+        <step name="Query-Tenant" requires="^"
+              exec="onos-check-vnet ${OCI} checkTenant ${tenantId}"/>
+
+        <step name="Create-Vnet" requires="^"
+              exec="onos ${OCI} vnet-create ${tenantId}"/>
+
+        <step name="Query-Vnet" requires="^"
+              exec="onos-check-vnet ${OCI} getNetworkId ${tenantId}"/>
+
+        <step name="Create-Device-1" requires="^"
+              exec="onos ${OCI} vnet-create-device ${networkId} device1"/>
+
+        <step name="Create-Device-2" requires="^"
+              exec="onos ${OCI} vnet-create-device ${networkId} device2"/>
+
+        <step name="Create-Port-1" requires="^"
+              exec="onos ${OCI} vnet-create-port ${networkId} device1 1 of:0000000000000004 1"/>
+
+        <step name="Create-Port-2" requires="^"
+              exec="onos ${OCI} vnet-create-port ${networkId} device2 2 of:0000000000000009 1"/>
+
+        <step name="Create-Bidirectional-Link" requires="^"
+              exec="onos -f ${OCI} vnet-create-link --bidirectional ${networkId} device2 2 device1 1"/>
+
+        <step name="Check-intents-installed" requires="^"
+              exec="onos-check-intent ${OCI} networkId=${networkId} INSTALLED 2"/>
+
+        <step name="Ping-hosts-1" requires="^"
+              exec="onos-mininet sendAndExpect h4 ping -c1 h9 --expect \ 0% packet loss"/>
+
+    </group>
+</scenario>

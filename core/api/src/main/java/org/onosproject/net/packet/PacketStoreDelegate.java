@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,4 +21,20 @@ import org.onosproject.store.StoreDelegate;
  * Packet store delegate abstraction.
  */
 public interface PacketStoreDelegate extends StoreDelegate<PacketEvent> {
+
+    /**
+     * Requests that packets matching to following request be collected
+     * from all switches.
+     *
+     * @param request packet request
+     */
+    void requestPackets(PacketRequest request);
+
+    /**
+     * Requests that packets matching to following request no longer be
+     * collected from any switches.
+     *
+     * @param request packet request
+     */
+    void cancelPackets(PacketRequest request);
 }

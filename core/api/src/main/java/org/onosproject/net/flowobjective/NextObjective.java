@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.onosproject.net.flowobjective;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
 import java.util.Collection;
@@ -34,7 +35,7 @@ import java.util.Collection;
  * - Failover
  * - Simple
  *
- * These types will indicate to the driver what the intended behaviour is.
+ * These types will indicate to the driver what the intended behavior is.
  * For example, a broadcast next objective with a collection of output
  * treatments will indicate to a driver that all output actions are expected
  * to be executed simultaneously. The driver is then free to implement this
@@ -84,6 +85,16 @@ public interface NextObjective extends Objective {
     Type type();
 
     /**
+     * Auxiliary optional information provided to the device driver. Typically
+     * conveys information about selectors (matches) that are intended to
+     * use this Next Objective.
+     *
+     * @return a selector intended to pass meta information to the device driver.
+     *         Value may be null if no meta information is provided.
+     */
+    TrafficSelector meta();
+
+    /**
      * A next step builder.
      */
     interface Builder extends Objective.Builder {
@@ -131,10 +142,19 @@ public interface NextObjective extends Objective {
         Builder withPriority(int priority);
 
         /**
+         * Set meta information related to this next objective.
+         *
+         * @param selector match conditions
+         * @return an objective builder
+         */
+        Builder withMeta(TrafficSelector selector);
+
+        /**
          * Builds the next objective that will be added.
          *
          * @return a next objective
          */
+        @Override
         NextObjective add();
 
         /**
@@ -142,6 +162,7 @@ public interface NextObjective extends Objective {
          *
          * @return a next objective.
          */
+        @Override
         NextObjective remove();
 
         /**
@@ -151,6 +172,7 @@ public interface NextObjective extends Objective {
          * @param context an objective context
          * @return a next objective
          */
+        @Override
         NextObjective add(ObjectiveContext context);
 
         /**
@@ -160,7 +182,42 @@ public interface NextObjective extends Objective {
          * @param context an objective context
          * @return a next objective
          */
+        @Override
         NextObjective remove(ObjectiveContext context);
+
+        /**
+         * Build the next objective that will be added, with {@link Operation}
+         * ADD_TO_EXISTING.
+         *
+         * @return a next objective
+         */
+        NextObjective addToExisting();
+
+        /**
+         * Build the next objective that will be removed, with {@link Operation}
+         * REMOVE_FROM_EXISTING.
+         *
+         * @return a next objective
+         */
+        NextObjective removeFromExisting();
+
+        /**
+         * Builds the next objective that will be added, with {@link Operation}
+         * ADD_TO_EXISTING. The context will be used to notify the calling application.
+         *
+         * @param context an objective context
+         * @return a next objective
+         */
+        NextObjective addToExisting(ObjectiveContext context);
+
+        /**
+         * Builds the next objective that will be removed, with {@link Operation}
+         * REMOVE_FROM_EXISTING. The context will be used to notify the calling application.
+         *
+         * @param context an objective context
+         * @return a next objective
+         */
+        NextObjective removeFromExisting(ObjectiveContext context);
 
     }
 

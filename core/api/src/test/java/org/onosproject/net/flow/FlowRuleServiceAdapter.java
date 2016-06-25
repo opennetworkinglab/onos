@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,17 +35,14 @@ public class FlowRuleServiceAdapter implements FlowRuleService {
 
     @Override
     public void applyFlowRules(FlowRule... flowRules) {
-
     }
 
     @Override
     public void removeFlowRules(FlowRule... flowRules) {
-
     }
 
     @Override
     public void removeFlowRulesById(ApplicationId appId) {
-
     }
 
     @Override
@@ -60,16 +57,18 @@ public class FlowRuleServiceAdapter implements FlowRuleService {
 
     @Override
     public void apply(FlowRuleOperations ops) {
-
     }
 
     @Override
     public void addListener(FlowRuleListener listener) {
-
     }
 
     @Override
     public void removeListener(FlowRuleListener listener) {
+    }
 
+    @Override
+    public Iterable<TableStatisticsEntry> getFlowTableStatistics(DeviceId deviceId) {
+        return null;
     }
 }

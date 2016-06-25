@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,12 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.ChassisId;
+import org.onlab.packet.IpAddress;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
@@ -40,6 +42,7 @@ import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbController;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.onosproject.ovsdb.controller.OvsdbNodeListener;
@@ -87,8 +90,14 @@ public class OvsdbDeviceProvider extends AbstractProvider
 
     @Override
     public void triggerProbe(DeviceId deviceId) {
-        // TODO: This will be implemented later.
         log.info("Triggering probe on device {}", deviceId);
+        if (!isReachable(deviceId)) {
+            log.error("Failed to probe device {}", deviceId);
+            providerService.deviceDisconnected(deviceId);
+            return;
+        } else {
+            log.trace("Confirmed device {} connection", deviceId);
+        }
     }
 
     @Override
@@ -98,7 +107,8 @@ public class OvsdbDeviceProvider extends AbstractProvider
 
     @Override
     public boolean isReachable(DeviceId deviceId) {
-        return true;
+        OvsdbClientService ovsdbClient = controller.getOvsdbClient(changeDeviceIdToNodeId(deviceId));
+        return !(ovsdbClient == null || !ovsdbClient.isConnected());
     }
 
     private class InnerOvsdbNodeListener implements OvsdbNodeListener {
@@ -130,5 +140,19 @@ public class OvsdbDeviceProvider extends AbstractProvider
             providerService.deviceDisconnected(deviceId);
 
         }
+    }
+
+    private OvsdbNodeId changeDeviceIdToNodeId(DeviceId deviceId) {
+        String[] strings = deviceId.toString().split(":");
+        if (strings.length < 1) {
+            return null;
+        }
+        return new OvsdbNodeId(IpAddress.valueOf(strings[1]), 0);
+    }
+
+    @Override
+    public void changePortState(DeviceId deviceId, PortNumber portNumber,
+                                boolean enable) {
+        // TODO if required
     }
 }

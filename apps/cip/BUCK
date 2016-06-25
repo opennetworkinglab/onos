@@ -1,0 +1,14 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'Cluster IP alias App',
+    category = 'Utility',
+    url = 'http://onosproject.org',
+    description = 'ONOS Cluster IP alias application.',
+)

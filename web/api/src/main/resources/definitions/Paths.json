@@ -1,0 +1,94 @@
+{
+  "type": "object",
+  "title": "paths",
+  "required": [
+    "paths"
+  ],
+  "properties": {
+    "paths": {
+      "type": "array",
+      "xml": {
+        "name": "hosts",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "host",
+        "required": [
+          "cost",
+          "links"
+        ],
+        "properties": {
+          "cost": {
+            "type": "integer",
+            "format": "int64",
+            "example": 2
+          },
+          "links": {
+            "type": "array",
+            "xml": {
+              "name": "links",
+              "wrapped": true
+            },
+            "items": {
+              "type": "object",
+              "title": "link",
+              "required": [
+                "src",
+                "dst",
+                "type",
+                "state"
+              ],
+              "properties": {
+                "src": {
+                  "type": "object",
+                  "title": "src",
+                  "required": [
+                    "port",
+                    "device"
+                  ],
+                  "properties": {
+                    "port": {
+                      "type": "string",
+                      "example": "3"
+                    },
+                    "device": {
+                      "type": "string",
+                      "example": "of:0000000000000002"
+                    }
+                  }
+                },
+                "dst": {
+                  "type": "object",
+                  "title": "dst",
+                  "required": [
+                    "port",
+                    "device"
+                  ],
+                  "properties": {
+                    "port": {
+                      "type": "string",
+                      "example": "2"
+                    },
+                    "device": {
+                      "type": "string",
+                      "example": "of:0000000000000003"
+                    }
+                  }
+                },
+                "type": {
+                  "type": "string",
+                  "example": "DIRECT"
+                },
+                "state": {
+                  "type": "string",
+                  "example": "ACTIVE"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

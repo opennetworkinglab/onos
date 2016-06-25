@@ -1,6 +1,8 @@
 {
   "comments": [
-    "Stepping through showTraffic"
+    "Stepping through showTraffic",
+    "NOTE: showTraffic event is deprecated",
+    "      This needs to be re-worked to use showHighlights"
   ],
   "title": "Show Traffic Scenario",
   "params": {

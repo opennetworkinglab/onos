@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,7 @@
  */
 package org.onosproject.cli.net;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
@@ -41,7 +37,11 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
@@ -90,6 +90,8 @@ public class IntentPushTestCommand extends AbstractShellCommand
     private int count;
     private int keyOffset;
     private boolean add;
+    List<Key> keysForInstall = new ArrayList<>();
+    List<Key> keysForWithdraw = new ArrayList<>();
 
     @Override
     protected void execute() {
@@ -144,14 +146,15 @@ public class IntentPushTestCommand extends AbstractShellCommand
                     .ingressPoint(ingress)
                     .egressPoint(egress)
                     .build());
-
-
+            keysForInstall.add(Key.of(i + keyOffset, appId()));
+            keysForWithdraw.add(Key.of(i + keyOffset, appId()));
         }
         return intents;
     }
 
     private void submitIntents(List<Intent> intents) {
         latch = new CountDownLatch(count);
+        log.info("CountDownLatch is set with count of {}", count);
         start = System.currentTimeMillis();
         for (Intent intent : intents) {
             if (add) {
@@ -162,7 +165,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
         }
 
         try {
-            if (latch.await(500 + count * 30, TimeUnit.MILLISECONDS)) {
+            if (latch.await(1000 + count * 30, TimeUnit.MILLISECONDS)) {
                 printResults(count);
             } else {
                 print("Failure: %d intents not installed", latch.getCount());
@@ -215,13 +218,17 @@ public class IntentPushTestCommand extends AbstractShellCommand
             return;
         }
         Type expected = add ? Type.INSTALLED : Type.WITHDRAWN;
-        if (event.type() == expected) {
+        List keylist = add ? keysForInstall : keysForWithdraw;
+        log.debug("Event generated: {}", event);
+        if (event.type() == expected && keylist.contains(event.subject().key())) {
             end = Math.max(end, event.time());
+            keylist.remove(event.subject().key());
             if (latch != null) {
                 if (latch.getCount() == 0) {
                     log.warn("Latch was already 0 before counting down?");
                 }
                 latch.countDown();
+                log.debug("Latch count is {}", latch.getCount());
             } else {
                 log.warn("install event latch is null");
             }

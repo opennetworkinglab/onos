@@ -1,0 +1,14 @@
+BUNDLES = [
+    '//apps/faultmanagement/fmcli:onos-apps-faultmanagement-fmcli',
+    '//apps/faultmanagement/fmgui:onos-apps-faultmanagement-fmgui',
+    '//apps/faultmanagement/fmmgr:onos-apps-faultmanagement-fmmgr',
+    '//apps/faultmanagement/fmweb:onos-apps-faultmanagement-fmweb',
+]
+
+onos_app (
+  title = 'Fault Management App',
+  description = 'ONOS fault management application',
+  category = 'Monitoring',
+  url = 'https://wiki.onosproject.org/display/ONOS/Fault+Management',
+  included_bundles = BUNDLES,
+)

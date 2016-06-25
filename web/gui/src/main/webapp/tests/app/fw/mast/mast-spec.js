@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,23 @@
 /*
  ONOS GUI -- Masthead Controller - Unit Tests
  */
+
 describe('Controller: MastCtrl', function () {
     // instantiate the masthead module
-    beforeEach(module('onosMast', 'onosUtil'));
+    beforeEach(module('onosMast', 'onosUtil', 'onosLayer', 'onosWidget', 'onosSvg', 'onosRemote'));
 
     var $log, ctrl, ms, fs;
 
     // we need an instance of the controller
     beforeEach(inject(function(_$log_, $controller, MastService, FnService) {
         $log = _$log_;
-        ctrl = $controller('MastCtrl');
+        var $scope = {}
+        ctrl = $controller('MastCtrl', {$scope: $scope});
         ms = MastService;
         fs = FnService;
     }));
 
-    it('should declare height to be 36', function () {
-        expect(ms.mastHeight()).toBe(36);
+    it('should declare height to be 48', function () {
+        expect(ms.mastHeight()).toBe(48);
     })
 });

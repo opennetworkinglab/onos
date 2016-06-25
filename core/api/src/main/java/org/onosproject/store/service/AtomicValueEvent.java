@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,20 +38,20 @@ public final class AtomicValueEvent<V> {
     }
 
     private final String name;
-    private final Type type;
-    private final V value;
+    private final V newValue;
+    private final V oldValue;
 
     /**
      * Creates a new event object.
      *
      * @param name AtomicValue name
-     * @param type the type of the event
-     * @param value the new value
+     * @param newValue the new value
+     * @param oldValue the old value
      */
-    public AtomicValueEvent(String name, Type type, V value) {
+    public AtomicValueEvent(String name, V newValue, V oldValue) {
         this.name = name;
-        this.type = type;
-        this.value = value;
+        this.newValue = newValue;
+        this.oldValue = oldValue;
     }
 
     /**
@@ -69,16 +69,25 @@ public final class AtomicValueEvent<V> {
      * @return the type of the event
      */
     public Type type() {
-        return type;
+        return AtomicValueEvent.Type.UPDATE;
     }
 
     /**
-     * Returns the new updated value.
+     * Returns the newly set value.
      *
-     * @return the value
+     * @return the new value
      */
-    public V value() {
-        return value;
+    public V newValue() {
+        return newValue;
+    }
+
+    /**
+     * Returns the old replaced value.
+     *
+     * @return the old value
+     */
+    public V oldValue() {
+        return oldValue;
     }
 
     @Override
@@ -89,21 +98,21 @@ public final class AtomicValueEvent<V> {
 
         AtomicValueEvent that = (AtomicValueEvent) o;
         return Objects.equals(this.name, that.name) &&
-                Objects.equals(this.type, that.type) &&
-                Objects.equals(this.value, that.value);
+                Objects.equals(this.newValue, that.newValue) &&
+                Objects.equals(this.oldValue, that.oldValue);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, type, value);
+        return Objects.hash(name, newValue, oldValue);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("name", name)
-                .add("type", type)
-                .add("value", value)
+                .add("newValue", newValue)
+                .add("oldValue", oldValue)
                 .toString();
     }
 }

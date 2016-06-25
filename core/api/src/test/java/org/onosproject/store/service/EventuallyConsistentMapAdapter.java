@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,26 @@ package org.onosproject.store.service;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
+
+import org.onosproject.store.service.DistributedPrimitive.Type;
 
 /**
  * Testing adapter for EventuallyConsistentMap.
  */
 public class EventuallyConsistentMapAdapter<K, V> implements EventuallyConsistentMap<K, V> {
+
+    @Override
+    public String name() {
+        return null;
+    }
+
+    @Override
+    public Type primitiveType() {
+        return Type.EVENTUALLY_CONSISTENT_MAP;
+    }
+
     @Override
     public int size() {
         return 0;
@@ -105,7 +119,7 @@ public class EventuallyConsistentMapAdapter<K, V> implements EventuallyConsisten
     }
 
     @Override
-    public void destroy() {
-
+    public CompletableFuture<Void> destroy() {
+        return CompletableFuture.completedFuture(null);
     }
 }

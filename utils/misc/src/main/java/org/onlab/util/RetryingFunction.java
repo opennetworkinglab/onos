@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,8 @@ public class RetryingFunction<U, V> implements Function<U, V> {
         this.maxDelayBetweenRetries = maxDelayBetweenRetries;
     }
 
+    @SuppressWarnings("squid:S1181")
+    // Yes we really do want to catch Throwable
     @Override
     public V apply(U input) {
         int retryAttempts = 0;

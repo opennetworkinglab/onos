@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,22 @@ package org.onosproject.net.flow;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.ExtensionCriterion;
+import org.onosproject.net.flow.criteria.ExtensionSelector;
+import org.onosproject.net.flow.criteria.ExtensionSelectorType;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -35,27 +41,38 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static org.onosproject.net.flow.criteria.Criterion.Type.EXTENSION;
+
 /**
  * Default traffic selector implementation.
  */
 public final class DefaultTrafficSelector implements TrafficSelector {
 
     private static final Comparator<? super Criterion> TYPE_COMPARATOR =
-            (c1, c2) -> c1.type().compareTo(c2.type());
+            (c1, c2) -> {
+                if (c1.type() == EXTENSION && c2.type() == EXTENSION) {
+                    return ((ExtensionCriterion) c1).extensionSelector().type().toInt()
+                            - ((ExtensionCriterion) c2).extensionSelector().type().toInt();
+                } else {
+                    return c1.type().compareTo(c2.type());
+                }
+            };
 
     private final Set<Criterion> criteria;
 
     private static final TrafficSelector EMPTY
-            = new DefaultTrafficSelector(Collections.emptySet());
+            = new DefaultTrafficSelector(Collections.emptySet(), Collections.emptySet());
 
     /**
      * Creates a new traffic selector with the specified criteria.
      *
-     * @param criteria criteria
+     * @param criteria    criteria
+     * @param extCriteria extension criteria
      */
-    private DefaultTrafficSelector(Set<Criterion> criteria) {
+    private DefaultTrafficSelector(Collection<Criterion> criteria, Collection<Criterion> extCriteria) {
         TreeSet<Criterion> elements = new TreeSet<>(TYPE_COMPARATOR);
         elements.addAll(criteria);
+        elements.addAll(extCriteria);
         this.criteria = ImmutableSet.copyOf(elements);
     }
 
@@ -134,6 +151,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
     public static final class Builder implements TrafficSelector.Builder {
 
         private final Map<Criterion.Type, Criterion> selector = new HashMap<>();
+        private final Map<ExtensionSelectorType, Criterion> extSelector = new HashMap<>();
 
         private Builder() {
         }
@@ -146,7 +164,11 @@ public final class DefaultTrafficSelector implements TrafficSelector {
 
         @Override
         public Builder add(Criterion criterion) {
-            selector.put(criterion.type(), criterion);
+            if (criterion.type() == EXTENSION) {
+                extSelector.put(((ExtensionCriterion) criterion).extensionSelector().type(), criterion);
+            } else {
+                selector.put(criterion.type(), criterion);
+            }
             return this;
         }
 
@@ -171,8 +193,18 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchEthDstMasked(MacAddress addr, MacAddress mask) {
+            return add(Criteria.matchEthDstMasked(addr, mask));
+        }
+
+        @Override
         public Builder matchEthSrc(MacAddress addr) {
             return add(Criteria.matchEthSrc(addr));
+        }
+
+        @Override
+        public Builder matchEthSrcMasked(MacAddress addr, MacAddress mask) {
+            return add(Criteria.matchEthSrcMasked(addr, mask));
         }
 
         @Override
@@ -188,6 +220,16 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         @Override
         public Builder matchVlanPcp(byte vlanPcp) {
             return add(Criteria.matchVlanPcp(vlanPcp));
+        }
+
+        @Override
+        public Builder matchInnerVlanId(VlanId vlanId) {
+            return add(Criteria.matchInnerVlanId(vlanId));
+        }
+
+        @Override
+        public Builder matchInnerVlanPcp(byte vlanPcp) {
+            return add(Criteria.matchInnerVlanPcp(vlanPcp));
         }
 
         @Override
@@ -215,21 +257,9 @@ public final class DefaultTrafficSelector implements TrafficSelector {
             return add(Criteria.matchIPDst(ip));
         }
 
-        @Deprecated
-        @Override
-        public Builder matchTcpSrc(short tcpPort) {
-            return matchTcpSrc(TpPort.tpPort(tcpPort));
-        }
-
         @Override
         public Builder matchTcpSrc(TpPort tcpPort) {
             return add(Criteria.matchTcpSrc(tcpPort));
-        }
-
-        @Deprecated
-        @Override
-        public Builder matchTcpDst(short tcpPort) {
-            return matchTcpDst(TpPort.tpPort(tcpPort));
         }
 
         @Override
@@ -237,21 +267,9 @@ public final class DefaultTrafficSelector implements TrafficSelector {
             return add(Criteria.matchTcpDst(tcpPort));
         }
 
-        @Deprecated
-        @Override
-        public Builder matchUdpSrc(short udpPort) {
-            return matchUdpSrc(TpPort.tpPort(udpPort));
-        }
-
         @Override
         public Builder matchUdpSrc(TpPort udpPort) {
             return add(Criteria.matchUdpSrc(udpPort));
-        }
-
-        @Deprecated
-        @Override
-        public Builder matchUdpDst(short udpPort) {
-            return matchUdpDst(TpPort.tpPort(udpPort));
         }
 
         @Override
@@ -259,21 +277,9 @@ public final class DefaultTrafficSelector implements TrafficSelector {
             return add(Criteria.matchUdpDst(udpPort));
         }
 
-        @Deprecated
-        @Override
-        public Builder matchSctpSrc(short sctpPort) {
-            return matchSctpSrc(TpPort.tpPort(sctpPort));
-        }
-
         @Override
         public Builder matchSctpSrc(TpPort sctpPort) {
             return add(Criteria.matchSctpSrc(sctpPort));
-        }
-
-        @Deprecated
-        @Override
-        public Builder matchSctpDst(short sctpPort) {
-            return matchSctpDst(TpPort.tpPort(sctpPort));
         }
 
         @Override
@@ -338,7 +344,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
 
         @Override
         public Builder matchMplsBos(boolean mplsBos) {
-            return add(Criteria.matchMplsLabel(mplsBos));
+            return add(Criteria.matchMplsBos(mplsBos));
         }
 
         @Override
@@ -352,8 +358,39 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchArpTpa(Ip4Address addr) {
+            return add(Criteria.matchArpTpa(addr));
+        }
+
+        @Override
+        public Builder matchArpSpa(Ip4Address addr) {
+            return add(Criteria.matchArpSpa(addr));
+        }
+
+        @Override
+        public Builder matchArpTha(MacAddress addr) {
+            return add(Criteria.matchArpTha(addr));
+        }
+
+        @Override
+        public Builder matchArpSha(MacAddress addr) {
+            return add(Criteria.matchArpSha(addr));
+        }
+
+        @Override
+        public Builder matchArpOp(int arpOp) {
+            return add(Criteria.matchArpOp(arpOp));
+        }
+
+        @Override
+        public TrafficSelector.Builder extension(ExtensionSelector extensionSelector,
+                                                 DeviceId deviceId) {
+            return add(Criteria.extension(extensionSelector, deviceId));
+        }
+
+        @Override
         public TrafficSelector build() {
-            return new DefaultTrafficSelector(ImmutableSet.copyOf(selector.values()));
+            return new DefaultTrafficSelector(selector.values(), extSelector.values());
         }
     }
 }

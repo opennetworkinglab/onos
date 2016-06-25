@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,14 +49,18 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class SimpleApplicationStore extends ApplicationArchive implements ApplicationStore {
+public class SimpleApplicationStore extends ApplicationArchive
+        implements ApplicationStore {
 
     private final Logger log = getLogger(getClass());
 
     // App inventory & states
-    private final ConcurrentMap<ApplicationId, DefaultApplication> apps = new ConcurrentHashMap<>();
-    private final ConcurrentMap<ApplicationId, ApplicationState> states = new ConcurrentHashMap<>();
-    private final ConcurrentMap<ApplicationId, Set<Permission>> permissions = new ConcurrentHashMap<>();
+    private final ConcurrentMap<ApplicationId, DefaultApplication> apps =
+            new ConcurrentHashMap<>();
+    private final ConcurrentMap<ApplicationId, ApplicationState> states =
+            new ConcurrentHashMap<>();
+    private final ConcurrentMap<ApplicationId, Set<Permission>> permissions =
+            new ConcurrentHashMap<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ApplicationIdStore idStore;
@@ -72,10 +76,20 @@ public class SimpleApplicationStore extends ApplicationArchive implements Applic
             ApplicationId appId = idStore.registerApplication(name);
             ApplicationDescription appDesc = getApplicationDescription(name);
             DefaultApplication app =
-                    new DefaultApplication(appId, appDesc.version(),
-                                           appDesc.description(), appDesc.origin(),
-                                           appDesc.role(), appDesc.permissions(),
-                                           appDesc.featuresRepo(), appDesc.features());
+                    new DefaultApplication(appId,
+                            appDesc.version(),
+                            appDesc.title(),
+                            appDesc.description(),
+                            appDesc.origin(),
+                            appDesc.category(),
+                            appDesc.url(),
+                            appDesc.readme(),
+                            appDesc.icon(),
+                            appDesc.role(),
+                            appDesc.permissions(),
+                            appDesc.featuresRepo(),
+                            appDesc.features(),
+                            appDesc.requiredApps());
             apps.put(appId, app);
             states.put(appId, isActive(name) ? INSTALLED : ACTIVE);
             // load app permissions
@@ -115,9 +129,20 @@ public class SimpleApplicationStore extends ApplicationArchive implements Applic
         ApplicationDescription appDesc = saveApplication(appDescStream);
         ApplicationId appId = idStore.registerApplication(appDesc.name());
         DefaultApplication app =
-                new DefaultApplication(appId, appDesc.version(), appDesc.description(),
-                                       appDesc.origin(), appDesc.role(), appDesc.permissions(),
-                                       appDesc.featuresRepo(), appDesc.features());
+                new DefaultApplication(appId,
+                        appDesc.version(),
+                        appDesc.title(),
+                        appDesc.description(),
+                        appDesc.origin(),
+                        appDesc.category(),
+                        appDesc.url(),
+                        appDesc.readme(),
+                        appDesc.icon(),
+                        appDesc.role(),
+                        appDesc.permissions(),
+                        appDesc.featuresRepo(),
+                        appDesc.features(),
+                        appDesc.requiredApps());
         apps.put(appId, app);
         states.put(appId, INSTALLED);
         delegate.notify(new ApplicationEvent(APP_INSTALLED, app));

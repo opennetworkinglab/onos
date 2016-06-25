@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.onosproject.net.packet;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 
 import org.junit.Test;
 import org.onlab.packet.Ethernet;
@@ -41,15 +42,22 @@ public class DefaultInboundPacketTest {
     final DefaultInboundPacket packet1 =
             new DefaultInboundPacket(connectPoint("d1", 1),
                     eth,
-                    byteBuffer);
+                    byteBuffer,
+                    Optional.of(1L));
     final DefaultInboundPacket sameAsPacket1 =
             new DefaultInboundPacket(connectPoint("d1", 1),
                     eth,
-                    byteBuffer);
+                    byteBuffer,
+                    Optional.of(1L));
     final DefaultInboundPacket packet2 =
             new DefaultInboundPacket(connectPoint("d2", 1),
                     eth,
                     byteBuffer);
+    final DefaultInboundPacket sameAsPacket2 =
+            new DefaultInboundPacket(connectPoint("d2", 1),
+                    eth,
+                    byteBuffer,
+                    Optional.empty());
     /**
      * Checks that the DefaultInboundPacket class is immutable.
      */
@@ -65,7 +73,7 @@ public class DefaultInboundPacketTest {
     public void testEquals() {
         new EqualsTester()
                 .addEqualityGroup(packet1, sameAsPacket1)
-                .addEqualityGroup(packet2)
+                .addEqualityGroup(packet2, sameAsPacket2)
                 .testEquals();
     }
 
@@ -77,5 +85,6 @@ public class DefaultInboundPacketTest {
         assertThat(packet1.receivedFrom(), equalTo(connectPoint("d1", 1)));
         assertThat(packet1.parsed(), equalTo(eth));
         assertThat(packet1.unparsed(), notNullValue());
+        assertThat(packet1.cookie(), equalTo(Optional.of(1L)));
     }
 }

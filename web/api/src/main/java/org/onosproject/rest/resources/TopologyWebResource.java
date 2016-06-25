@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,12 +44,13 @@ import static org.onlab.util.Tools.nullIsNotFound;
 @Path("topology")
 public class TopologyWebResource extends AbstractWebResource {
 
-    public static final String CLUSTER_NOT_FOUND = "Cluster is not found";
+    private static final String CLUSTER_NOT_FOUND = "Cluster is not found";
 
     /**
-     * Get overview of current topology.
+     * Gets overview of current topology.
      *
-     * @return topology overview
+     * @return 200 OK with topology overview
+     * @onos.rsModel Topology
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -60,9 +61,10 @@ public class TopologyWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get overview of topology SCCs.
+     * Gets overview of topology SCCs.
      *
-     * @return topology clusters overview
+     * @return 200 OK with topology clusters overview
+     * @onos.rsModel TopologyClusters
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -76,10 +78,11 @@ public class TopologyWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get details of a specific SCC.
+     * Gets details of a specific SCC.
      *
      * @param clusterId id of the cluster to query
-     * @return topology cluster details
+     * @return 200 OK with topology cluster details
+     * @onos.rsModel TopologyCluster
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -99,10 +102,11 @@ public class TopologyWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get devices in a specific SCC.
+     * Gets devices in a specific SCC.
      *
      * @param clusterId id of the cluster to query
-     * @return topology cluster devices
+     * @return 200 OK with topology cluster devices
+     * @onos.rsModel TopologyClustersDevices
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -122,10 +126,11 @@ public class TopologyWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get links in specific SCC.
+     * Gets links in specific SCC.
      *
      * @param clusterId id of the cluster to query
-     * @return topology cluster links
+     * @return 200 OK with topology cluster links
+     * @onos.rsModel LinksGet
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -136,7 +141,7 @@ public class TopologyWebResource extends AbstractWebResource {
 
         List<Link> links =
                 Lists.newArrayList(get(TopologyService.class)
-                        .getClusterLinks(topology, cluster));
+                                           .getClusterLinks(topology, cluster));
 
         return ok(encodeArray(Link.class, "links", links)).build();
     }
@@ -170,11 +175,12 @@ public class TopologyWebResource extends AbstractWebResource {
     }
 
     /**
-     * Test if a connect point is in broadcast set.
+     * Tests if a connect point is in broadcast set.
      *
      * @param connectPointString deviceid:portnumber
-     * @return JSON representation of true if the connect point is broadcast,
-     *         false otherwise
+     * @return 200 OK with JSON representation of true if the connect point is
+     * broadcast, false otherwise
+     * @onos.rsModel TopologyBroadcast
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -187,18 +193,18 @@ public class TopologyWebResource extends AbstractWebResource {
         ConnectPoint connectPoint = new ConnectPoint(deviceId, portNumber);
         boolean isBroadcast = get(TopologyService.class).isBroadcastPoint(topology, connectPoint);
 
-        return ok(mapper()
-                .createObjectNode()
-                .put("broadcast", isBroadcast))
+        return ok(mapper().createObjectNode()
+                          .put("broadcast", isBroadcast))
                 .build();
     }
 
     /**
-     * Test if a connect point is infrastructure or edge.
+     * Tests if a connect point is infrastructure or edge.
      *
      * @param connectPointString deviceid:portnumber
-     * @return JSON representation of true if the connect point is broadcast,
-     *         false otherwise
+     * @return 200 OK with JSON representation of true if the connect point is broadcast,
+     * false otherwise
+     * @onos.rsModel TopologyInfrastructure
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -211,10 +217,8 @@ public class TopologyWebResource extends AbstractWebResource {
         ConnectPoint connectPoint = new ConnectPoint(deviceId, portNumber);
         boolean isInfrastructure = get(TopologyService.class).isInfrastructure(topology, connectPoint);
 
-        return ok(mapper()
-                .createObjectNode()
-                .put("infrastructure", isInfrastructure))
+        return ok(mapper().createObjectNode()
+                          .put("infrastructure", isInfrastructure))
                 .build();
     }
-
 }

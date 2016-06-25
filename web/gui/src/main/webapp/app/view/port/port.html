@@ -1,64 +1,55 @@
-<!--
-  ~ Copyright 2015 Open Networking Laboratory
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
-
 <!-- Port partial HTML -->
 <div id="ov-port">
     <div class="tabular-header">
         <h2>
-            Port Statistics for Device {{devId || "(No device selected)"}}
+            Ports for Device {{devId || "(No device selected)"}}
             ({{tableData.length}} Ports total)
         </h2>
         <div class="ctrl-btns">
             <div class="refresh" ng-class="{active: autoRefresh}"
-                 icon icon-size="36" icon-id="refresh"
+                 icon icon-size="42" icon-id="refresh"
                  tooltip tt-msg="autoRefreshTip"
                  ng-click="toggleRefresh()"></div>
 
             <div class="separator"></div>
 
             <div class="active"
-                 icon icon-id="flowTable" icon-size="36"
+                 icon icon-id="deviceTable" icon-size="42"
+                 tooltip tt-msg="deviceTip"
+                 ng-click="nav('device')"></div>
+
+            <div class="active"
+                 icon icon-id="flowTable" icon-size="42"
                  tooltip tt-msg="flowTip"
                  ng-click="nav('flow')"></div>
 
             <div class="current-view"
-                 icon icon-id="portTable" icon-size="36"></div>
+                 icon icon-id="portTable" icon-size="42"></div>
 
             <div class="active"
-                 icon icon-id="groupTable" icon-size="36"
+                 icon icon-id="groupTable" icon-size="42"
                  tooltip tt-msg="groupTip"
                  ng-click="nav('group')"></div>
+
+            <div class="active"
+                 icon icon-id="meterTable" icon-size="42"
+                 tooltip tt-msg="meterTip"
+                 ng-click="nav('meter')"></div>
         </div>
     </div>
 
     <div class="summary-list" onos-table-resize>
-        <div ng-show="loading" class="loading-wheel"
-             icon icon-id="loading" icon-size="75"></div>
-
         <div class="table-header" onos-sortable-header>
             <table>
                 <tr>
                     <td colId="id" col-width="60px" sortable>Port ID </td>
-                    <td colId="pkt_rx" sortable>Pkts Received </td>
-                    <td colId="pkt_tx" sortable>Pkts Sent </td>
-                    <td colId="bytes_rx" sortable>Bytes Received </td>
-                    <td colId="bytes_tx" sortable>Bytes Sent </td>
-                    <td colId="pkt_rx_drp" sortable>Pkts Received Dropped </td>
-                    <td colId="pkt_tx_drp" sortable>Pkts Sent Dropped </td>
-                    <td colId="duration" sortable>Duration (sec) </td>
+                    <td class="right" colId="pkt_rx" sortable>Pkts Received </td>
+                    <td class="right" colId="pkt_tx" sortable>Pkts Sent </td>
+                    <td class="right" colId="bytes_rx" sortable>Bytes Received </td>
+                    <td class="right" colId="bytes_tx" sortable>Bytes Sent </td>
+                    <td class="right" colId="pkt_rx_drp" sortable>Pkts Received Dropped </td>
+                    <td class="right" colId="pkt_tx_drp" sortable>Pkts Sent Dropped </td>
+                    <td class="right" colId="duration" sortable>Duration (sec) </td>
                 </tr>
             </table>
         </div>
@@ -67,20 +58,20 @@
             <table onos-flash-changes id-prop="id">
                 <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="8">
-                        No Ports found
+                        {{annots.no_rows_msg}}
                     </td>
                 </tr>
 
                 <tr ng-repeat="port in tableData track by $index"
                     ng-repeat-complete row-id="{{port.id}}">
                     <td>{{port.id}}</td>
-                    <td>{{port.pkt_rx}}</td>
-                    <td>{{port.pkt_tx}}</td>
-                    <td>{{port.bytes_rx}}</td>
-                    <td>{{port.bytes_tx}}</td>
-                    <td>{{port.pkt_rx_drp}}</td>
-                    <td>{{port.pkt_tx_drp}}</td>
-                    <td>{{port.duration}}</td>
+                    <td class="right">{{port.pkt_rx}}</td>
+                    <td class="right">{{port.pkt_tx}}</td>
+                    <td class="right">{{port.bytes_rx}}</td>
+                    <td class="right">{{port.bytes_tx}}</td>
+                    <td class="right">{{port.pkt_rx_drp}}</td>
+                    <td class="right">{{port.pkt_tx_drp}}</td>
+                    <td class="right">{{port.duration}}</td>
                 </tr>
             </table>
         </div>

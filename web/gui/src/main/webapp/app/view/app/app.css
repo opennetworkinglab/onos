@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Host View -- CSS file
+ ONOS GUI -- Applications View (layout) -- CSS file
  */
 
 #ov-app h2 {
@@ -23,10 +23,133 @@
 }
 
 #ov-app div.ctrl-btns {
-    width: 290px;
+    width: 250px;
 }
 
+/* -- Drag-n-Drop oar file upload -- */
 #ov-app form#inputFileForm,
 #ov-app input#uploadFile {
     display: none;
 }
+
+.dropping {
+
+}
+
+/* -- Confirmation Dialog -- */
+#app-dialog {
+    top: 140px;
+    padding: 12px;
+}
+
+#app-dialog p {
+    font-size: 12pt;
+}
+
+#app-dialog p.strong {
+    font-weight: bold;
+    padding: 8px;
+    text-align: center;
+}
+
+/* -- Details Panel -- */
+#application-details-panel.floatpanel {
+    z-index: 0;
+    font-size: 12pt;
+}
+
+#application-details-panel.floatpanel a {
+    font-weight: bold;
+}
+
+#application-details-panel .container {
+    padding: 0 30px;
+    overflow-y: scroll;
+}
+
+#application-details-panel .close-btn {
+    position: absolute;
+    right: 26px;
+    top: 26px;
+    cursor: pointer;
+}
+
+#application-details-panel .app-icon {
+    display: inline-block;
+    padding: 0 6px 0 0;
+    vertical-align: middle;
+}
+
+#application-details-panel h2 {
+    display: inline-block;
+    margin: 12px 0 6px 0;
+    font-size: 15pt;
+    font-variant: small-caps;
+    text-transform: uppercase;
+}
+
+#application-details-panel .top .app-title {
+    width: 90%;
+    height: 62px;
+    font-size: 30pt;
+    font-weight: lighter;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 0 12px 0 2px;
+    margin-top: 19px;
+    margin-bottom: 5px;
+}
+
+#application-details-panel .top div.left {
+    float: left;
+    padding: 12px 12px 0 3px;
+}
+
+#application-details-panel .top div.right {
+    display: inline-block;
+    overflow: hidden;
+    width: 320px;
+}
+
+#application-details-panel td.label,
+#application-details-panel .app-url i {
+    font-weight: bold;
+    text-align: right;
+    font-size: 12pt;
+
+    padding-right: 6px;
+}
+
+#application-details-panel td.value-bold {
+    font-weight: bold;
+}
+
+#application-details-panel .app-url {
+    padding: 10px 6px 6px;
+    overflow: hidden;
+}
+
+#application-details-panel hr {
+    width: 100%;
+    margin: 12px auto;
+}
+
+#application-details-panel .middle {
+    padding: 7px 0 7px 6px;
+}
+
+#application-details-panel .bottom {
+    padding: 12px 0 0 6px;
+}
+
+#application-details-panel .bottom table {
+    border-spacing: 0;
+    width: 100%;
+}
+
+#application-details-panel .bottom td {
+    margin-left: -6px;
+    padding: 6px 6px;
+    text-align: left;
+}
+

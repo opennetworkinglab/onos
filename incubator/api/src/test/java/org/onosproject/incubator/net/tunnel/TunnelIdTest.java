@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,9 @@ import com.google.common.testing.EqualsTester;
  */
 public class TunnelIdTest {
 
-    final TunnelId tunnelId1 = TunnelId.valueOf(1);
-    final TunnelId sameAstunnelId1 = TunnelId.valueOf(1);
-    final TunnelId tunnelId2 = TunnelId.valueOf(2);
+    final TunnelId tunnelId1 = TunnelId.valueOf("1");
+    final TunnelId sameAstunnelId1 = TunnelId.valueOf("1");
+    final TunnelId tunnelId2 = TunnelId.valueOf("2");
 
     /**
      * Checks that the TunnelId class is immutable.
@@ -58,7 +58,7 @@ public class TunnelIdTest {
      */
     @Test
     public void testConstruction() {
-        final long tunnelIdValue = 7777L;
+        final String tunnelIdValue = "7777";
         final TunnelId tunnelId = TunnelId.valueOf(tunnelIdValue);
         assertThat(tunnelId, is(notNullValue()));
         assertThat(tunnelId.id(), is(tunnelIdValue));

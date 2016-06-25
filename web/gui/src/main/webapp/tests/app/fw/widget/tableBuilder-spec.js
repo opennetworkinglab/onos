@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,14 @@ describe('factory: fw/widget/tableBuilder.js', function () {
         mockWss = {
             bindHandlers: function () {},
             sendEvent: function () {},
-            unbindHandlers: function () {}
+            unbindHandlers: function () {},
+            _setLoadingDelegate: function(){},
+            isConnected: function() {
+                return true;
+            }
         };
 
-    beforeEach(module('onosWidget', 'onosUtil', 'onosRemote', 'onosSvg'));
+    beforeEach(module('onosWidget', 'onosUtil', 'onosRemote', 'onosSvg', 'onosLayer'));
 
     beforeEach(function () {
         module(function ($provide) {

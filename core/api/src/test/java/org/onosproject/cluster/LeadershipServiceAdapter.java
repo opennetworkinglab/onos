@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.onosproject.cluster;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Test adapter for leadership service.
@@ -41,13 +40,12 @@ public class LeadershipServiceAdapter implements LeadershipService {
     }
 
     @Override
-    public CompletableFuture<Leadership> runForLeadership(String path) {
+    public Leadership runForLeadership(String path) {
         return null;
     }
 
     @Override
-    public CompletableFuture<Void> withdraw(String path) {
-        return null;
+    public void withdraw(String path) {
     }
 
     @Override
@@ -73,15 +71,5 @@ public class LeadershipServiceAdapter implements LeadershipService {
     @Override
     public List<NodeId> getCandidates(String path) {
         return null;
-    }
-
-    @Override
-    public boolean stepdown(String path) {
-        return false;
-    }
-
-    @Override
-    public boolean makeTopCandidate(String path, NodeId nodeId) {
-        return false;
     }
 }

@@ -1,0 +1,25 @@
+{
+  "priority": 1,
+  "isPermanent": false,
+  "deviceId": "of:0000000000000001",
+  "timeout": 1,
+  "type": "PERMIT",
+  "operation": "ADD",
+  "conditions": [
+    {
+      "type": "IN_PORT",
+      "port": 23
+    }
+  ],
+  "meta": {
+    "instructions": [
+      {
+        "type": "OUTPUT",
+        "port": -3
+      },
+      {
+        "type": "NOACTION"
+      }
+    ]
+  }
+}

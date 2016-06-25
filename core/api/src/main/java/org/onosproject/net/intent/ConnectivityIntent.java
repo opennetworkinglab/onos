@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,6 +96,26 @@ public abstract class ConnectivityIntent extends Intent {
         protected TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
         protected List<Constraint> constraints = ImmutableList.of();
 
+        /**
+         * Creates a new empty builder.
+         */
+        protected Builder() {
+        }
+
+        /**
+         * Creates a new builder pre-populated with the information in the given
+         * intent.
+         *
+         * @param intent initial intent
+         */
+        protected Builder(ConnectivityIntent intent) {
+            super(intent);
+
+            this.selector(intent.selector())
+                    .treatment(intent.treatment())
+                    .constraints(intent.constraints());
+        }
+
         @Override
         public Builder appId(ApplicationId appId) {
             return (Builder) super.appId(appId);
@@ -110,7 +130,6 @@ public abstract class ConnectivityIntent extends Intent {
         public Builder priority(int priority) {
             return (Builder) super.priority(priority);
         }
-
 
         /**
          * Sets the traffic selector for the intent that will be built.
@@ -145,7 +164,6 @@ public abstract class ConnectivityIntent extends Intent {
             return this;
         }
     }
-
 
     /**
      * Returns the match specifying the type of traffic.

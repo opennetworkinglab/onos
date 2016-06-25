@@ -1,0 +1,12 @@
+export OCI=10.100.198.201
+export OC1=10.100.198.201
+export OC2=10.100.198.202
+export OC3=10.100.198.203
+export OCN=10.100.198.100
+export ONOS_APPS=drivers,openflow,proxyarp
+export ONOS_NIC=10.100.198.*
+export ONOS_SCENARIOS=$ONOS_ROOT/tools/test/scenarios
+export ONOS_USER=ubuntu
+export ONOS_GROUP=ubuntu
+export ONOS_WEB_PASS=rocks
+export ONOS_WEB_USER=onos

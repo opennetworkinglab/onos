@@ -1,0 +1,63 @@
+<!--
+  ~ Copyright 2016-present Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="net-multi-to-single-intent"
+          description="Network single point to multi point intent connectivity test">
+    <!-- TODO: parametrize this via recipes -->
+    <group name="M2S-Intent-Connectivity">
+        <step name="M2S-Intent.Uninstall-Reactive-Forwarding"
+              exec="onos ${OC1} app deactivate org.onosproject.fwd org.onosproject.ifwd"/>
+        <step name="M2S-Intent.Check-Apps" requires="^"
+              exec="onos-check-apps ${OC1} fwd,ifwd excludes"/>
+
+        <!-- Create a single point to three points intent -->
+        <step name="M2S-Intent.Create-Intent-forward" requires="^"
+              exec="onos-create-intent ${OC1} forward multi-to-single of:0000000000000014/1 of:0000000000000002/1 of:000000000000000E/1 of:0000000000000011/1"/>
+
+        <!-- Create back links from the 3 points back to the source using a single to multi intent -->
+        <step name="M2S-Intent.Create-Intent-back" requires="^"
+              exec="onos-create-intent ${OC1} back single-to-multi of:0000000000000011/1 of:0000000000000014/1 of:0000000000000002/1 of:000000000000000E/1"/>
+
+        <!-- Make sure intents installed properly -->
+        <step name="M2S-Intent.Validate-Intent-forward-Installed" requires="^"
+              exec="onos-check-intent ${OC1} forward INSTALLED"/>
+        <step name="M2S-Intent.Validate-Intent-back1-Installed" requires="^"
+              exec="onos-check-intent ${OC1} back INSTALLED"/>
+
+        <!-- Check the connectivity of the 11 <-> 14 intent -->
+        <step name="M2S-Intent.Ping-1-forward"
+              exec="onos-mininet sendAndExpect h17 ping -c1 h20 --expect \ 0% packet loss" requires="^" />
+        <step name="M2S-Intent.Ping-1-back"
+              exec="onos-mininet sendAndExpect h20 ping -c1 h17 --expect \ 0% packet loss" requires="^" />
+
+        <!-- Check the connectivity of the 11 <-> 2 intent -->
+        <step name="M2S-Intent.Ping-2-forward"
+              exec="onos-mininet sendAndExpect h17 ping -c1 h2 --expect \ 0% packet loss" requires="^" />
+        <step name="M2S-Intent.Ping-2-back"
+              exec="onos-mininet sendAndExpect h2 ping -c1 h17 --expect \ 0% packet loss" requires="^" />
+
+        <!-- Check the connectivity of the 11 <-> E intent -->
+        <step name="M2S-Intent.Ping-3-forward"
+              exec="onos-mininet sendAndExpect h17 ping -c1 h14 --expect \ 0% packet loss" requires="^" />
+        <step name="M2S-Intent.Ping-3-back"
+              exec="onos-mininet sendAndExpect h14 ping -c1 h17 --expect \ 0% packet loss" requires="^" />
+
+        <!-- Clean up intents -->
+        <step name="M2S-Intent.Remove-Intent-forward" requires="~M2S-Intent.Ping-3-back"
+              exec="onos ${OC1} remove-intent -p org.onosproject.cli forward"/>
+        <step name="M2S-Intent.Remove-Intent-back" requires="~M2S-Intent.Ping-3-back"
+              exec="onos ${OC1} remove-intent -p org.onosproject.cli back"/>
+    </group>
+</scenario>

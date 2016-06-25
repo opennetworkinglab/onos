@@ -1,0 +1,42 @@
+{
+  "type": "object",
+  "title": "routes",
+  "required": [
+    "routes"
+  ],
+  "properties": {
+    "routes": {
+      "type": "array",
+      "xml": {
+        "name": "routes",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "route",
+        "required": [
+          "source",
+          "group",
+          "type"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "example": "10.1.1.0",
+            "description": "Multicast source IP address"
+          },
+          "group": {
+            "type": "string",
+            "example": "10.1.1.0",
+            "description": "Multicast group IP address"
+          },
+          "type": {
+            "type": "string",
+            "example": "STATIC",
+            "description": "Type of the multicast route"
+          }
+        }
+      }
+    }
+  }
+}

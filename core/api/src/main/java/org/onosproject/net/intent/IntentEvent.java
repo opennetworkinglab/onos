@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ package org.onosproject.net.intent;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.event.AbstractEvent;
+
+import java.util.Optional;
 
 /**
  * A class to represent an intent related event.
@@ -95,7 +97,7 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
      * @param data the intent data to create an event for
      * @return new intent event if the state is valid, otherwise null.
      */
-    public static IntentEvent getEvent(IntentData data) {
+    public static Optional<IntentEvent> getEvent(IntentData data) {
         return getEvent(data.state(), data.intent());
     }
 
@@ -107,7 +109,7 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
      * @param intent intent to put in event
      * @return new intent event if the state is valid, otherwise null.
      */
-    public static IntentEvent getEvent(IntentState state, Intent intent) {
+    public static Optional<IntentEvent> getEvent(IntentState state, Intent intent) {
         Type type;
         switch (state) {
             case INSTALL_REQ:
@@ -138,9 +140,9 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
             case RECOMPILING:
             case WITHDRAWING:
             default:
-                return null;
+                return Optional.empty();
         }
-        return new IntentEvent(type, intent);
+        return Optional.of(new IntentEvent(type, intent));
     }
 
 }

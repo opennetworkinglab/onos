@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,19 @@ package org.onosproject.net.packet.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -57,6 +61,7 @@ import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -84,16 +89,19 @@ public class PacketManager
     private final PacketStoreDelegate delegate = new InternalStoreDelegate();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private CoreService coreService;
+    protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private DeviceService deviceService;
+    protected ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private FlowRuleService flowService;
+    protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private PacketStore store;
+    protected FlowRuleService flowService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PacketStore store;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private FlowObjectiveService objectiveService;
@@ -104,16 +112,21 @@ public class PacketManager
 
     private final List<ProcessorEntry> processors = Lists.newCopyOnWriteArrayList();
 
+    private final  PacketDriverProvider defaultProvider = new PacketDriverProvider();
+
     private ApplicationId appId;
+    private NodeId localNodeId;
 
     @Activate
     public void activate() {
         eventHandlingExecutor = Executors.newSingleThreadExecutor(
-                groupedThreads("onos/net/packet", "event-handler"));
+                groupedThreads("onos/net/packet", "event-handler", log));
+        localNodeId = clusterService.getLocalNode().id();
         appId = coreService.getAppId(CoreService.CORE_APP_NAME);
         store.setDelegate(delegate);
         deviceService.addListener(deviceListener);
         store.existingRequests().forEach(this::pushToAllDevices);
+        defaultProvider.init(deviceService);
         log.info("Started");
     }
 
@@ -121,9 +134,13 @@ public class PacketManager
     public void deactivate() {
         store.unsetDelegate(delegate);
         deviceService.removeListener(deviceListener);
-        store.existingRequests().forEach(this::removeFromAllDevices);
         eventHandlingExecutor.shutdown();
         log.info("Stopped");
+    }
+
+    @Override
+    protected PacketProvider defaultProvider() {
+        return defaultProvider;
     }
 
     @Override
@@ -158,6 +175,7 @@ public class PacketManager
 
     @Override
     public List<PacketProcessorEntry> getProcessors() {
+        checkPermission(PACKET_READ);
         return ImmutableList.copyOf(processors);
     }
 
@@ -168,10 +186,24 @@ public class PacketManager
         checkNotNull(selector, "Selector cannot be null");
         checkNotNull(appId, "Application ID cannot be null");
 
-        PacketRequest request = new DefaultPacketRequest(selector, priority, appId);
-        if (store.requestPackets(request)) {
-            pushToAllDevices(request);
-        }
+        PacketRequest request = new DefaultPacketRequest(selector, priority, appId,
+                                                         localNodeId, Optional.empty());
+        store.requestPackets(request);
+    }
+
+    @Override
+    public void requestPackets(TrafficSelector selector, PacketPriority priority,
+                               ApplicationId appId, Optional<DeviceId> deviceId) {
+        checkPermission(PACKET_READ);
+        checkNotNull(selector, "Selector cannot be null");
+        checkNotNull(appId, "Application ID cannot be null");
+
+        PacketRequest request =
+                new DefaultPacketRequest(selector, priority, appId,
+                                         localNodeId, deviceId);
+
+        store.requestPackets(request);
+
     }
 
     @Override
@@ -181,14 +213,28 @@ public class PacketManager
         checkNotNull(selector, "Selector cannot be null");
         checkNotNull(appId, "Application ID cannot be null");
 
-        PacketRequest request = new DefaultPacketRequest(selector, priority, appId);
-        if (store.cancelPackets(request)) {
-            removeFromAllDevices(request);
-        }
+
+        PacketRequest request = new DefaultPacketRequest(selector, priority, appId,
+                                                         localNodeId, Optional.empty());
+        store.cancelPackets(request);
+    }
+
+    @Override
+    public void cancelPackets(TrafficSelector selector, PacketPriority priority,
+                              ApplicationId appId, Optional<DeviceId> deviceId) {
+        checkPermission(PACKET_READ);
+        checkNotNull(selector, "Selector cannot be null");
+        checkNotNull(appId, "Application ID cannot be null");
+
+        PacketRequest request = new DefaultPacketRequest(selector, priority,
+                                                         appId, localNodeId,
+                                                         deviceId);
+        store.cancelPackets(request);
     }
 
     @Override
     public List<PacketRequest> getRequests() {
+        checkPermission(PACKET_READ);
         return store.existingRequests();
     }
 
@@ -200,7 +246,12 @@ public class PacketManager
     private void pushRulesToDevice(Device device) {
         log.debug("Pushing packet requests to device {}", device.id());
         for (PacketRequest request : store.existingRequests()) {
-            pushRule(device, request);
+            if (!request.deviceId().isPresent()) {
+                pushRule(device, request);
+            } else if (request.deviceId().get().equals(device.id())) {
+                pushRule(device, request);
+            }
+
         }
     }
 
@@ -317,21 +368,48 @@ public class PacketManager
         public void processPacket(PacketContext context) {
             // TODO filter packets sent to processors based on registrations
             for (ProcessorEntry entry : processors) {
-                long start = System.nanoTime();
-                entry.processor().process(context);
-                entry.addNanos(System.nanoTime() - start);
+                try {
+                    long start = System.nanoTime();
+                    entry.processor().process(context);
+                    entry.addNanos(System.nanoTime() - start);
+                } catch (Exception e) {
+                    log.warn("Packet processor {} threw an exception", entry.processor(), e);
+                }
             }
         }
 
     }
 
+
     /**
      * Internal callback from the packet store.
      */
-    private class InternalStoreDelegate implements PacketStoreDelegate {
+    protected class InternalStoreDelegate implements PacketStoreDelegate {
         @Override
         public void notify(PacketEvent event) {
             localEmit(event.subject());
+        }
+
+        @Override
+        public void requestPackets(PacketRequest request) {
+            DeviceId deviceid = request.deviceId().orElse(null);
+
+            if (deviceid != null) {
+                pushRule(deviceService.getDevice(deviceid), request);
+            } else {
+                pushToAllDevices(request);
+            }
+        }
+
+        @Override
+        public void cancelPackets(PacketRequest request) {
+            DeviceId deviceid = request.deviceId().orElse(null);
+
+            if (deviceid != null) {
+                removeRule(deviceService.getDevice(deviceid), request);
+            } else {
+                removeFromAllDevices(request);
+            }
         }
     }
 

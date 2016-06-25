@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.*;
 
 /**
@@ -302,5 +303,15 @@ public class UDP extends BasePacket {
             udp.payload.setParent(udp);
             return udp;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("sourcePort", Integer.toString(sourcePort))
+                .add("destinationPort", Integer.toString(destinationPort))
+                .add("length", Short.toString(length))
+                .add("checksum", Short.toString(checksum))
+                .toString();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,11 +107,9 @@ public final class Timestamped<T> {
                     .toString();
     }
 
-    // Default constructor for serialization
     /**
-     * @deprecated in Cardinal Release
+     * Constructs an empty object. Required for serialization.
      */
-    @Deprecated
     private Timestamped() {
         this.value = null;
         this.timestamp = null;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.onosproject.net.flow;
+
+import java.util.List;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.Store;
@@ -93,4 +95,40 @@ public interface FlowRuleStore extends Store<FlowRuleBatchEvent, FlowRuleStoreDe
      * @return flow_removed event, or null if nothing removed
      */
     FlowRuleEvent removeFlowRule(FlowEntry rule);
+
+    /**
+     * Marks a flow rule as PENDING_ADD during retry.
+     *
+     * Emits flow_update event if the state is changed
+     *
+     * @param rule the flow rule that is retrying
+     * @return flow_updated event, or null if nothing updated
+     */
+    FlowRuleEvent pendingFlowRule(FlowEntry rule);
+
+    /**
+     * Removes all flow entries of given device from store.
+     *
+     * @param deviceId device id
+     */
+    void purgeFlowRule(DeviceId deviceId);
+
+    /**
+     * Updates the flow table statistics of the specified device using
+     * the given statistics.
+     *
+     * @param deviceId    device identifier
+     * @param tableStats   list of table statistics
+     * @return ready to send event describing what occurred;
+     */
+    FlowRuleEvent updateTableStatistics(DeviceId deviceId,
+                                        List<TableStatisticsEntry> tableStats);
+
+    /**
+     * Returns the flow table statistics associated with a device.
+     *
+     * @param deviceId the device ID
+     * @return the flow table statistics
+     */
+    Iterable<TableStatisticsEntry> getTableStatistics(DeviceId deviceId);
 }

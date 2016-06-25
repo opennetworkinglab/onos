@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,31 @@
  */
 package org.onosproject.net.config.basics;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
-import com.fasterxml.jackson.databind.JsonNode;
 
 import java.time.Duration;
+
+import static org.onosproject.net.config.Config.FieldPresence.OPTIONAL;
 
 /**
  * Basic configuration for network infrastructure link.
  */
-public class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
+public final class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
 
     public static final String TYPE = "type";
+    public static final String METRIC = "metric";
     public static final String LATENCY = "latency";
     public static final String BANDWIDTH = "bandwidth";
     public static final String IS_DURABLE = "durable";
+
+    @Override
+    public boolean isValid() {
+        return hasOnlyFields(ALLOWED, TYPE, METRIC, LATENCY, BANDWIDTH, IS_DURABLE) &&
+                isBoolean(ALLOWED, OPTIONAL) && isNumber(METRIC, OPTIONAL) &&
+                isNumber(LATENCY, OPTIONAL) && isNumber(BANDWIDTH, OPTIONAL);
+    }
 
     /**
      * Returns the link type.
@@ -48,6 +58,27 @@ public class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
      */
     public BasicLinkConfig type(Link.Type type) {
         return (BasicLinkConfig) setOrClear(TYPE, type);
+    }
+
+    /**
+     * Returns link metric value for use by
+     * {@link org.onosproject.net.topology.MetricLinkWeight} function.
+     *
+     * @return link metric; -1 if not set
+     */
+    public double metric() {
+        return get(METRIC, -1);
+    }
+
+    /**
+     * Sets the link metric for use by
+     * {@link org.onosproject.net.topology.MetricLinkWeight} function.
+     *
+     * @param metric new metric; null to clear
+     * @return self
+     */
+    public BasicLinkConfig metric(Double metric) {
+        return (BasicLinkConfig) setOrClear(METRIC, metric);
     }
 
     /**

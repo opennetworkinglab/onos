@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package org.onosproject.store.trivial;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.onosproject.net.DeviceId.deviceId;
 
 import java.util.ArrayList;
@@ -199,6 +201,11 @@ public class SimpleGroupStoreTest {
 
         // Testing removeGroupEntry operation from southbound
         testRemoveGroupFromSB(currKey);
+
+        // Testing removing all groups on the given device
+        newKey = new DefaultGroupKey("group1".getBytes());
+        testStoreAndGetGroup(newKey);
+        testDeleteGroupOnDevice(newKey);
     }
 
     // Testing storeGroup operation
@@ -374,6 +381,13 @@ public class SimpleGroupStoreTest {
         simpleGroupStore.setDelegate(deleteGroupDescDelegate);
         simpleGroupStore.deleteGroupDescription(D1, currKey);
         simpleGroupStore.unsetDelegate(deleteGroupDescDelegate);
+    }
+
+    // Testing deleteGroupDescription operation from northbound
+    private void testDeleteGroupOnDevice(GroupKey currKey) {
+        assertThat(simpleGroupStore.getGroupCount(D1), is(1));
+        simpleGroupStore.purgeGroupEntry(D1);
+        assertThat(simpleGroupStore.getGroupCount(D1), is(0));
     }
 
     // Testing removeGroupEntry operation from southbound

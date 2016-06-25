@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelProvider;
 import org.onosproject.incubator.net.tunnel.TunnelProviderRegistry;
 import org.onosproject.incubator.net.tunnel.TunnelProviderService;
+import org.onosproject.incubator.net.tunnel.Tunnel.State;
 import org.onosproject.net.provider.ProviderId;
 
 public class TunnelProviderRegistryAdapter implements TunnelProviderRegistry {
@@ -56,11 +57,20 @@ public class TunnelProviderRegistryAdapter implements TunnelProviderRegistry {
         }
 
         @Override
+        public TunnelId tunnelAdded(TunnelDescription tunnel, State state) {
+            return null;
+        }
+
+        @Override
         public void tunnelRemoved(TunnelDescription tunnel) {
         }
 
         @Override
         public void tunnelUpdated(TunnelDescription tunnel) {
+        }
+
+        @Override
+        public void tunnelUpdated(TunnelDescription tunnel, State state) {
         }
 
         @Override

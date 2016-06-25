@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,10 @@
 
 package org.onosproject.store.service;
 
+import java.util.concurrent.CompletableFuture;
+
+import org.onosproject.store.primitives.TransactionId;
+
 /**
  * Provides a context for transactional operations.
  * <p>
@@ -31,14 +35,19 @@ package org.onosproject.store.service;
  * context isolation level is REPEATABLE_READS i.e. only data that is committed can be read.
  * The only uncommitted data that can be read is the data modified by the current transaction.
  */
-public interface TransactionContext {
+public interface TransactionContext extends DistributedPrimitive {
+
+    @Override
+    default DistributedPrimitive.Type primitiveType() {
+        return DistributedPrimitive.Type.TRANSACTION_CONTEXT;
+    }
 
     /**
-     * Returns the unique transactionId.
+     * Returns the transaction identifier.
      *
      * @return transaction id
      */
-    long transactionId();
+    TransactionId transactionId();
 
     /**
      * Returns if this transaction context is open.
@@ -56,9 +65,9 @@ public interface TransactionContext {
      * Commits a transaction that was previously started thereby making its changes permanent
      * and externally visible.
      *
-     * @throws TransactionException if transaction fails to commit
+     * @return A future that will be completed when the operation completes
      */
-    void commit();
+    CompletableFuture<CommitStatus> commit();
 
     /**
      * Aborts any changes made in this transaction context and discarding all locally cached updates.

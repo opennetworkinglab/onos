@@ -1,0 +1,93 @@
+{
+  "type": "object",
+  "title": "nodes",
+  "required": [
+    "devices"
+  ],
+  "properties": {
+    "devices": {
+      "type": "array",
+      "xml": {
+        "name": "device",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "device",
+        "required": [
+          "id",
+          "type",
+          "available",
+          "role",
+          "mfr",
+          "hw",
+          "sw",
+          "serial",
+          "chassisId",
+          "annotations"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "of:0000000000000001"
+          },
+          "type": {
+            "type": "string",
+            "example": "SWITCH"
+          },
+          "available": {
+            "type": "boolean",
+            "example": true
+          },
+          "role": {
+            "type": "string",
+            "example": "of:0000000000000001"
+          },
+          "mfr": {
+            "type": "string",
+            "example": "Nicira, Inc."
+          },
+          "hw": {
+            "type": "string",
+            "example": "Open vSwitch"
+          },
+          "sw": {
+            "type": "string",
+            "example": "2.3.1"
+          },
+          "serial": {
+            "type": "string",
+            "example": "123"
+          },
+          "chassisId": {
+            "type": "string",
+            "example": "1"
+          },
+          "annotations": {
+            "type": "object",
+            "title": "annotations",
+            "required": [
+              "managementAddress",
+              "protocol",
+              "channelId"
+            ],
+            "properties": {
+              "managementAddress": {
+                "type": "string",
+                "example": "123"
+              },
+              "protocol": {
+                "type": "string",
+                "example": "OF_13"
+              },
+              "channelId": {
+                "type": "string",
+                "example": "10.128.12.4:34689"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

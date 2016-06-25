@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,11 @@ public final class AnnotationsUtil {
         }
 
         for (String key : lhs.keys()) {
-            if (!lhs.value(key).equals(rhs.value(key))) {
+            if (lhs.value(key) == null && rhs.value(key) != null) {
+                return false;
+            }
+
+            if (lhs.value(key) != null && !lhs.value(key).equals(rhs.value(key))) {
                 return false;
             }
         }

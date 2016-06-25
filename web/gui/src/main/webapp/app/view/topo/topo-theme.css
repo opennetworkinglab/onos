@@ -1,0 +1,384 @@
+/*
+ * Copyright 2016-present Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ ONOS GUI -- Topology View (theme) -- CSS file
+ */
+
+/* --- Base SVG Layer --- */
+
+#ov-topo svg {
+    background-color: #f4f4f4;
+}
+
+/* --- "No Devices" Layer --- */
+
+#ov-topo svg .noDevsBird {
+    fill: #db7773;
+}
+
+#ov-topo svg #topo-noDevsLayer text {
+    fill: #7e9aa8;
+}
+
+/* --- Topo Map --- */
+
+#ov-topo svg #topo-map {
+    stroke-width: 2px;
+    stroke: #f4f4f4;
+    fill: #e5e5e6;
+}
+
+/* --- general topo-panel styling --- */
+
+.topo-p svg {
+    background: #c0242b;
+}
+
+.topo-p svg .glyph {
+    fill: #ffffff;
+}
+
+.topo-p hr {
+    background-color: #cccccc;
+}
+
+#topo-p-detail svg {
+    background: none;
+}
+
+#topo-p-detail .header svg .glyph {
+    fill: #c0242b;
+}
+
+
+/* --- Topo Instance Panel --- */
+
+#topo-p-instance svg rect {
+    stroke-width: 0;
+    fill: #fbfbfb;
+}
+
+/* body of an instance */
+#topo-p-instance .online svg rect {
+    opacity: 1;
+    fill: #fbfbfb;
+}
+
+#topo-p-instance svg .glyph {
+    fill: #fff;
+}
+#topo-p-instance .online svg .glyph {
+    fill: #fff;
+}
+
+
+/* offline */
+#topo-p-instance svg .badgeIcon {
+    opacity: 0.4;
+    fill: #939598;
+}
+
+/* online */
+#topo-p-instance .online svg .badgeIcon {
+    opacity: 1.0;
+    fill: #939598;
+}
+#topo-p-instance .online svg .badgeIcon.bird {
+    fill: #ffffff;
+}
+
+#topo-p-instance svg .readyBadge {
+    visibility: hidden;
+}
+#topo-p-instance .ready svg .readyBadge {
+    visibility: visible;
+}
+
+#topo-p-instance svg text {
+    text-anchor: left;
+    opacity: 0.5;
+    fill: #3c3a3a;
+}
+
+#topo-p-instance .online svg text {
+    opacity: 1.0;
+    fill: #3c3a3a;
+}
+
+#topo-p-instance .onosInst.mastership {
+    opacity: 0.3;
+}
+#topo-p-instance .onosInst.mastership.affinity {
+    opacity: 1.0;
+}
+#topo-p-instance .onosInst.mastership.affinity svg rect {
+    filter: url(#blue-glow);
+}
+
+.firefox #topo-p-instance .onosInst.mastership.affinity svg rect {
+    filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"blue-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.7 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#blue-glow");
+}
+
+/* --- Topo Nodes --- */
+
+#ov-topo svg .suppressed {
+    opacity: 0.5 !important;
+}
+
+#ov-topo svg .suppressedmax {
+    opacity: 0.2 !important;
+}
+
+/* Device Nodes */
+
+/* note: device without the 'online' class is offline */
+#ov-topo svg .node.device rect {
+    /* TODO: theme */
+    fill: #f0f0f0;
+}
+#ov-topo svg .node.device text {
+    /*TODO: theme*/
+    fill: #bbb;
+}
+#ov-topo svg .node.device use {
+    /*TODO: theme*/
+    fill: #777;
+}
+
+
+#ov-topo svg .node.device.online rect {
+    fill: #ffffff;
+}
+#ov-topo svg .node.device.online text {
+    fill: #3c3a3a;
+}
+#ov-topo svg .node.device.online use {
+    /* NOTE: this gets overridden programatically */
+    fill: #454545;
+}
+
+
+#ov-topo svg .node.device.selected rect {
+    stroke-width: 2.0;
+    stroke: #009fdb;
+}
+
+/* Badges */
+/* (... works for bothand dark themes...) */
+#ov-topo svg .node .badge circle {
+    stroke: #aaa;
+}
+
+#ov-topo svg .node .badge.badgeInfo circle {
+    fill: #99d;
+}
+
+#ov-topo svg .node .badge.badgeWarn circle {
+    fill: #da2;
+}
+
+#ov-topo svg .node .badge.badgeError circle {
+    fill: #e44;
+}
+
+#ov-topo svg .node .badge use {
+    fill: white !important;
+}
+
+#ov-topo svg .node .badge.badgeInfo use {
+    fill: #448;
+}
+
+#ov-topo svg .node .badge text {
+    fill: white !important;
+}
+
+#ov-topo svg .node .badge.badgeInfo text {
+    fill: #448;
+}
+
+/* Host Nodes */
+
+#ov-topo svg .node.host {
+}
+
+#ov-topo svg .node.host text {
+    stroke: none;
+    font: 9pt sans-serif;
+    fill: #846;
+}
+
+#ov-topo svg .node.host circle {
+    stroke: #a3a596;
+    fill: #e0dfd6;
+}
+#ov-topo svg .node.host.selected .hostIcon > circle {
+    stroke-width: 2.0;
+    stroke: #009fdb;
+}
+
+#ov-topo svg .node.host use {
+    fill: #3c3a3a;
+}
+
+/* --- Topo Links --- */
+
+#ov-topo svg .link {
+    opacity: .9;
+}
+
+#ov-topo svg .link.selected,
+#ov-topo svg .link.enhanced {
+    stroke-width: 3.5;
+    stroke: #009fdb;
+}
+
+#ov-topo svg .link.inactive {
+    opacity: .5;
+    stroke-dasharray: 8 4;
+}
+/* TODO: Review for not-permitted links */
+#ov-topo svg .link.not-permitted {
+    stroke: rgb(255,0,0);
+    stroke-width: 5.0;
+    stroke-dasharray: 8 4;
+}
+
+#ov-topo svg .link.secondary {
+    stroke-width: 3px;
+    stroke: rgba(0,153,51,0.5);
+}
+
+/* Port traffic color visualization for Kbps, Mbps, and Gbps */
+
+#ov-topo svg .link.secondary.port-traffic-Kbps {
+    stroke: rgb(0,153,51);
+    stroke-width: 5.0;
+}
+
+#ov-topo svg .link.secondary.port-traffic-Mbps {
+    stroke: rgb(128,145,27);
+    stroke-width: 6.5;
+}
+
+#ov-topo svg .link.secondary.port-traffic-Gbps {
+    stroke: rgb(255, 137, 3);
+    stroke-width: 8.0;
+}
+
+#ov-topo svg .link.secondary.port-traffic-Gbps-choked {
+    stroke: rgb(183, 30, 21);
+    stroke-width: 8.0;
+}
+
+
+
+#ov-topo svg .link.animated {
+    stroke-dasharray: 8 5;
+    animation: ants 5s infinite linear;
+    /* below line could be added via Javascript, based on path, if we cared
+     * enough about the direction of ant-flow
+     */
+    /*animation-direction: reverse;*/
+}
+@keyframes ants {
+    from {
+        stroke-dashoffset: 0;
+    }
+    to {
+        stroke-dashoffset: 400;
+    }
+}
+
+#ov-topo svg .link.primary {
+    stroke-width: 4px;
+    stroke: #ffA300;
+}
+
+#ov-topo svg .link.secondary.optical {
+    stroke-width: 4px;
+    stroke: rgba(128,64,255,0.5);
+}
+
+#ov-topo svg .link.primary.optical {
+    stroke-width: 6px;
+    stroke: #74f;
+}
+
+/* Link Labels */
+#ov-topo svg .linkLabel rect {
+    stroke: none;
+    fill: #ffffff;
+}
+
+#ov-topo svg .linkLabel text {
+    fill: #444;
+}
+
+/* Port Labels */
+
+#ov-topo svg .portLabel rect {
+    stroke: #a3a596;
+    fill: #ffffff;
+}
+
+#ov-topo svg .portLabel text {
+    fill: #444;
+}
+
+/* Number of Links Labels */
+
+
+#ov-topo text.numLinkText {
+    fill: #444;
+}
+
+/* ------------------------------------------------- */
+/* Sprite Layer */
+
+#ov-topo svg #topo-sprites .gold1 use {
+    stroke: #fda;
+    fill: none;
+}
+#ov-topo svg #topo-sprites .gold1 text {
+    fill: #eda;
+}
+
+#ov-topo svg #topo-sprites .blue1 use {
+    stroke: #bbd;
+    fill: none;
+}
+#ov-topo svg #topo-sprites .blue1 text {
+    fill: #cce;
+}
+
+#ov-topo svg #topo-sprites .gray1 use {
+    stroke: #ccc;
+    fill: none;
+}
+#ov-topo svg #topo-sprites .gray1 text {
+    fill: #ddd;
+}
+
+/* fills */
+#ov-topo svg #topo-sprites use.fill-gray2 {
+    fill: #eee;
+}
+
+#ov-topo svg #topo-sprites use.fill-blue2 {
+    fill: #bce;
+}

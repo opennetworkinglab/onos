@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ public class ConnectPointTest {
         String cp = "16:3A:BD:6E:31:E4/-1/1";
 
         ConnectPoint connectPoint = ConnectPoint.hostConnectPoint(cp);
-        assertEquals("16:3A:BD:6E:31:E4/-1", connectPoint.hostId().toString());
+        assertEquals("16:3A:BD:6E:31:E4/None", connectPoint.hostId().toString());
         assertEquals("1", connectPoint.port().toString());
 
         expectHostParseException("");

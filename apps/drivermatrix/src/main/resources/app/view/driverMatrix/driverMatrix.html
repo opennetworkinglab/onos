@@ -1,0 +1,44 @@
+<!-- partial HTML -->
+<div id="ov-driver-matrix">
+    <div class="tabular-header">
+        <h2>Driver Matrix</h2>
+        <div class="ctrl-btns">
+            <!-- TODO: fix (or remove) refresh button -->
+            <div class="refresh" ng-class="{active: autoRefresh}"
+                 icon icon-id="refresh" icon-size="36"
+                 tooltip tt-msg="autoRefreshTip"
+                 ng-click="toggleRefresh()"></div>
+        </div>
+    </div>
+
+    <div class="driver-matrix">
+        <div class="table-header-rotated">
+            <table>
+                <thead>
+                <tr>
+                    <!-- first column header is not rotated -->
+                    <th class="first"></th>
+                    <!-- following headers are rotated -->
+                    <th class="rotate" ng-repeat="beh in behaviours track by $index">
+                        <div><span>{{beh}}</span></div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="table-grid">
+            <table>
+                <thead></thead>
+                <tbody>
+                <tr ng-repeat="drv in drivers track by $index">
+                    <th class="row-header"> {{drv}} </th>
+                    <td ng-repeat="beh in behaviours track by $index"
+                        ng-class="{'xmark':cellMarked(drv, beh)}"
+                        ng-bind-html="checkmark"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

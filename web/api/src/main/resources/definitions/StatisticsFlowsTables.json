@@ -1,0 +1,76 @@
+{
+  "type": "object",
+  "title": "statistics",
+  "required": [
+    "statistics"
+  ],
+  "properties": {
+    "statistics": {
+      "type": "array",
+      "required": [
+        "statistics"
+      ],
+      "xml": {
+        "name": "statistics",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "statistics",
+        "required": [
+          "table"
+        ],
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "example": "of:0000000000000001"
+          },
+          "table": {
+            "type": "array",
+            "xml": {
+              "name": "table",
+              "wrapped": true
+            },
+            "items": {
+              "type": "object",
+              "title": "tables",
+              "required": [
+                "tableId",
+                "deviceId",
+                "activeEntries",
+                "packetsLookedUp",
+                "packetsMathced"
+              ],
+              "properties": {
+                "tableId": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 0
+                },
+                "deviceId": {
+                  "type": "string",
+                  "example": "of:0000000000000001"
+                },
+                "activeEntries": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 3
+                },
+                "packetsLookedUp": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 458530
+                },
+                "packetsMathced": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 458501
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

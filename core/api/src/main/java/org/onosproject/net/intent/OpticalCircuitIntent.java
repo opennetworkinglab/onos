@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.onosproject.net.intent;
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.OduCltPort;
 
 import java.util.Collections;
 
@@ -33,7 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class OpticalCircuitIntent extends Intent {
     private final ConnectPoint src;
     private final ConnectPoint dst;
-    private final OduCltPort.SignalType signalType;
+    private final CltSignalType signalType;
     private final boolean isBidirectional;
 
     /**
@@ -49,7 +49,7 @@ public class OpticalCircuitIntent extends Intent {
      * @param priority priority to use for flows from this intent
      */
     protected OpticalCircuitIntent(ApplicationId appId, Key key, ConnectPoint src, ConnectPoint dst,
-                                   OduCltPort.SignalType signalType, boolean isBidirectional, int priority) {
+                                   CltSignalType signalType, boolean isBidirectional, int priority) {
         super(appId, key, Collections.emptyList(), priority);
         this.src = checkNotNull(src);
         this.dst = checkNotNull(dst);
@@ -73,7 +73,7 @@ public class OpticalCircuitIntent extends Intent {
     public static class Builder extends Intent.Builder {
         private ConnectPoint src;
         private ConnectPoint dst;
-        private OduCltPort.SignalType signalType;
+        private CltSignalType signalType;
         private boolean isBidirectional;
 
         @Override
@@ -119,7 +119,7 @@ public class OpticalCircuitIntent extends Intent {
          * @param signalType signal type to use for built intent
          * @return this builder
          */
-        public Builder signalType(OduCltPort.SignalType signalType) {
+        public Builder signalType(CltSignalType signalType) {
             this.signalType = signalType;
             return this;
         }
@@ -188,7 +188,7 @@ public class OpticalCircuitIntent extends Intent {
      *
      * @return ODU signal type
      */
-    public OduCltPort.SignalType getSignalType() {
+    public CltSignalType getSignalType() {
         return signalType;
     }
 

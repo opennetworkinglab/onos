@@ -1,0 +1,60 @@
+{
+  "type": "object",
+  "title": "intents",
+  "required": [
+    "intents"
+  ],
+  "properties": {
+    "intents": {
+      "type": "array",
+      "xml": {
+        "name": "intents",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "host",
+        "required": [
+          "type",
+          "id",
+          "appId",
+          "state"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "HostToHostIntent"
+          },
+          "id": {
+            "type": "string",
+            "example": "0x6"
+          },
+          "appId": {
+            "type": "string",
+            "example": "org.onosproject.ovsdb"
+          },
+          "priority": {
+            "type": "integer",
+            "format": "int64",
+            "example": 55
+          },
+          "resources": {
+            "type": "array",
+            "xml": {
+              "name": "resources",
+              "wrapped": true
+            },
+            "items": {
+              "type": "string",
+              "example": "46:E4:3C:A4:17:C8/-1"
+            },
+            "state": {
+              "type": "string",
+              "example": "INSTALLED"
+            }
+          }
+        }
+      }
+    }
+  }
+}

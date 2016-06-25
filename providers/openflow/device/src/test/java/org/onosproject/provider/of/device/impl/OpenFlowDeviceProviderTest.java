@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.onosproject.provider.of.device.impl;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
@@ -37,6 +38,7 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowController;
 import org.onosproject.openflow.controller.OpenFlowEventListener;
+import org.onosproject.openflow.controller.OpenFlowMessageListener;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.PacketListener;
@@ -113,9 +115,22 @@ public class OpenFlowDeviceProviderTest {
         assertEquals("Should be SLAVE", RoleState.SLAVE, controller.roleMap.get(DPID1));
     }
 
+    //sending a features req, msg will be added to sent
     @Test
     public void triggerProbe() {
+        int cur = SW1.sent.size();
+        provider.triggerProbe(DID1);
+        assertEquals("OF message not sent", cur + 1, SW1.sent.size());
+    }
 
+    //test receiving features reply
+    @Test
+    public void switchChanged() {
+        controller.listener.switchChanged(DPID1);
+        Collection<PortDescription> updatedDescr = registry.ports.values();
+        for (PortDescription pd : updatedDescr) {
+            assertNotNull("Switch change not handled by the provider service", pd);
+        }
     }
 
     @Test
@@ -236,7 +251,7 @@ public class OpenFlowDeviceProviderTest {
 
         @Override
         public Iterable<OpenFlowSwitch> getMasterSwitches() {
-            return null;
+            return ImmutableSet.of();
         }
 
         @Override
@@ -268,6 +283,16 @@ public class OpenFlowDeviceProviderTest {
         @Override
         public void removeListener(OpenFlowSwitchListener listener) {
             this.listener = null;
+        }
+
+        @Override
+        public void addMessageListener(OpenFlowMessageListener listener) {
+
+        }
+
+        @Override
+        public void removeMessageListener(OpenFlowMessageListener listener) {
+
         }
 
         @Override
@@ -317,6 +342,7 @@ public class OpenFlowDeviceProviderTest {
 
         @Override
         public void handleMessage(OFMessage fromSwitch) {
+
         }
 
         @Override

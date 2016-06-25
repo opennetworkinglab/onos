@@ -1,0 +1,55 @@
+- name: Remove lxc default config
+  become: yes
+  file: path=/etc/lxc/default.conf state=absent
+
+- name: Copy default lxc file
+  become: yes
+  copy:
+    src: files/default.conf
+    dest: /etc/lxc/default.conf
+    mode: 644
+
+- name: Create onos1 container
+  lxc_container:
+    name: onos1
+    container_log: true
+    template: ubuntu
+    state: started
+    template_options: --release trusty
+    container_config:
+      - "lxc.network.ipv4=10.100.198.201/24"
+    container_command: |
+      ln -s /usr/lib/jvm/java/bin/java /usr/bin/java
+      apt-get update
+      apt-get install -y openssh-server
+      echo "ubuntu ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-onos-sudoers
+
+- name: Create onos2 container
+  lxc_container:
+    name: onos2
+    container_log: true
+    template: ubuntu
+    state: started
+    template_options: --release trusty
+    container_config:
+      - "lxc.network.ipv4=10.100.198.202/24"
+    container_command: |
+      ln -s /usr/lib/jvm/java/bin/java /usr/bin/java
+      apt-get update
+      apt-get install -y openssh-server
+      echo "ubuntu ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-onos-sudoers
+
+- name: Create onos3 container
+  lxc_container:
+    name: onos3
+    container_log: true
+    template: ubuntu
+    state: started
+    template_options: --release trusty
+    container_config:
+      - "lxc.network.ipv4=10.100.198.203/24"
+    container_command: |
+      ln -s /usr/lib/jvm/java/bin/java /usr/bin/java
+      apt-get update
+      apt-get install -y openssh-server
+      echo "ubuntu ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-onos-sudoers

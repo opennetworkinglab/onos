@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,8 @@ public class MainModuleResource extends AbstractInjectionResource {
 
     private static final String INJECT_VIEW_IDS_START = "// {INJECTED-VIEW-IDS-START}";
     private static final String INJECT_VIEW_IDS_END = "// {INJECTED-VIEW-IDS-END}";
+    private static final String PREFIX = "        '";
+    private static final String SUFFIX = String.format("',%n");
 
     @GET
     @Produces(SCRIPT)
@@ -51,7 +53,7 @@ public class MainModuleResource extends AbstractInjectionResource {
         InputStream jsTemplate = getClass().getClassLoader().getResourceAsStream(MAIN_JS);
         String js = new String(toByteArray(jsTemplate));
 
-        int p1s = split(js, 0, INJECT_VIEW_IDS_START);
+        int p1s = split(js, 0, INJECT_VIEW_IDS_START) - INJECT_VIEW_IDS_START.length();
         int p1e = split(js, 0, INJECT_VIEW_IDS_END);
         int p2s = split(js, p1e, null);
 
@@ -68,7 +70,7 @@ public class MainModuleResource extends AbstractInjectionResource {
         StringBuilder sb = new StringBuilder("\n");
         for (UiExtension extension : service.getExtensions()) {
             for (UiView view : extension.views()) {
-                sb.append("        '").append(view.id()).append("',");
+                sb.append(PREFIX).append(view.id()).append(SUFFIX);
             }
         }
         return new ByteArrayInputStream(sb.toString().getBytes());

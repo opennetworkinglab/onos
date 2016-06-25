@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 package org.onosproject.net.intent.impl;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -26,7 +25,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.event.Event;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
@@ -34,6 +32,7 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -44,13 +43,13 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.PartitionEvent;
-import org.onosproject.net.intent.PartitionEventListener;
-import org.onosproject.net.intent.PartitionService;
+import org.onosproject.net.intent.IntentPartitionEvent;
+import org.onosproject.net.intent.IntentPartitionEventListener;
+import org.onosproject.net.intent.IntentPartitionService;
 import org.onosproject.net.link.LinkEvent;
-import org.onosproject.net.resource.link.LinkResourceEvent;
-import org.onosproject.net.resource.link.LinkResourceListener;
-import org.onosproject.net.resource.link.LinkResourceService;
+import org.onosproject.net.resource.ResourceEvent;
+import org.onosproject.net.resource.ResourceListener;
+import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyService;
@@ -61,7 +60,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -91,8 +89,6 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
 
     private final Logger log = getLogger(getClass());
 
-    private final ConcurrentMap<Key, Intent> intents = Maps.newConcurrentMap();
-
     private final SetMultimap<LinkKey, Key> intentsByLink =
             //TODO this could be slow as a point of synchronization
             synchronizedSetMultimap(HashMultimap.<LinkKey, Key>create());
@@ -104,7 +100,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     protected TopologyService topologyService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LinkResourceService resourceManager;
+    protected ResourceService resourceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
@@ -117,19 +113,18 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     protected IntentService intentService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected PartitionService partitionService;
+    protected IntentPartitionService partitionService;
 
     private ExecutorService executorService =
-            newSingleThreadExecutor(groupedThreads("onos/intent", "objectivetracker"));
+            newSingleThreadExecutor(groupedThreads("onos/intent", "objectivetracker", log));
     private ScheduledExecutorService executor = Executors
             .newScheduledThreadPool(1);
 
     private TopologyListener listener = new InternalTopologyListener();
-    private LinkResourceListener linkResourceListener =
-            new InternalLinkResourceListener();
+    private ResourceListener resourceListener = new InternalResourceListener();
     private DeviceListener deviceListener = new InternalDeviceListener();
     private HostListener hostListener = new InternalHostListener();
-    private PartitionEventListener partitionListener = new InternalPartitionListener();
+    private IntentPartitionEventListener partitionListener = new InternalPartitionListener();
     private TopologyChangeDelegate delegate;
 
     protected final AtomicBoolean updateScheduled = new AtomicBoolean(false);
@@ -137,7 +132,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     @Activate
     public void activate() {
         topologyService.addListener(listener);
-        resourceManager.addListener(linkResourceListener);
+        resourceService.addListener(resourceListener);
         deviceService.addListener(deviceListener);
         hostService.addListener(hostListener);
         partitionService.addListener(partitionListener);
@@ -147,7 +142,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     @Deactivate
     public void deactivate() {
         topologyService.removeListener(listener);
-        resourceManager.removeListener(linkResourceListener);
+        resourceService.removeListener(resourceListener);
         deviceService.removeListener(deviceListener);
         hostService.removeListener(hostListener);
         partitionService.removeListener(partitionListener);
@@ -302,60 +297,22 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         }
     }
 
-    /**
-     * Internal re-actor to resource available events.
-     */
-    private class InternalLinkResourceListener implements LinkResourceListener {
+    private class InternalResourceListener implements ResourceListener {
         @Override
-        public void event(LinkResourceEvent event) {
-            executorService.execute(new ResourceAvailableHandler(event));
-        }
-    }
+        public void event(ResourceEvent event) {
+            if (event.subject().isSubTypeOf(PortNumber.class)) {
+                executorService.execute(() -> {
+                    if (delegate == null) {
+                        return;
+                    }
 
-    /*
-     * Re-dispatcher of resource available events.
-     */
-    private class ResourceAvailableHandler implements Runnable {
-
-        private final LinkResourceEvent event;
-
-        ResourceAvailableHandler(LinkResourceEvent event) {
-            this.event = event;
-        }
-
-        @Override
-        public void run() {
-            // If there is no delegate, why bother? Just bail.
-            if (delegate == null) {
-                return;
+                    delegate.triggerCompile(Collections.emptySet(), true);
+                });
             }
-
-            delegate.triggerCompile(Collections.emptySet(), true);
         }
     }
 
     //TODO consider adding flow rule event tracking
-
-    private void updateTrackedResources(ApplicationId appId, boolean track) {
-        if (intentService == null) {
-            log.warn("Intent service is not bound yet");
-            return;
-        }
-        intentService.getIntents().forEach(intent -> {
-            if (intent.appId().equals(appId)) {
-                Key key = intent.key();
-                Collection<NetworkResource> resources = Lists.newArrayList();
-                intentService.getInstallableIntents(key).stream()
-                        .map(installable -> installable.resources())
-                        .forEach(resources::addAll);
-                if (track) {
-                    addTrackedResources(key, resources);
-                } else {
-                    removeTrackedResources(key, resources);
-                }
-            }
-        });
-    }
 
     /*
      * Re-dispatcher of device and host events.
@@ -378,7 +335,12 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
             }
 
             // TODO should we recompile on available==true?
-            delegate.triggerCompile(intentsByDevice.get(id), available);
+
+            final ImmutableSet<Key> snapshot;
+            synchronized (intentsByDevice) {
+                snapshot = ImmutableSet.copyOf(intentsByDevice.get(id));
+            }
+            delegate.triggerCompile(snapshot, available);
         }
     }
 
@@ -415,11 +377,21 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         @Override
         public void event(HostEvent event) {
             HostId id = event.subject().id();
-            executorService.execute(new DeviceAvailabilityHandler(id, false));
+            switch (event.type()) {
+                case HOST_ADDED:
+                case HOST_MOVED:
+                case HOST_REMOVED:
+                    executorService.execute(new DeviceAvailabilityHandler(id, false));
+                    break;
+                case HOST_UPDATED:
+                default:
+                    // DO NOTHING
+                    break;
+            }
         }
     }
 
-    protected void doIntentUpdate() {
+    private void doIntentUpdate() {
         updateScheduled.set(false);
         if (intentService == null) {
             log.warn("Intent service is not bound yet");
@@ -445,9 +417,9 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         }
     }
 
-    private final class InternalPartitionListener implements PartitionEventListener {
+    private final class InternalPartitionListener implements IntentPartitionEventListener {
         @Override
-        public void event(PartitionEvent event) {
+        public void event(IntentPartitionEvent event) {
             log.debug("got message {}", event.subject());
             scheduleIntentUpdate(1);
         }

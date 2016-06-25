@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.provider.ProviderId;
 
 /**
@@ -54,11 +55,24 @@ public abstract class BiLinkTestBase {
         @Override public boolean isDurable() {
             return false;
         }
+        @Override public boolean isExpected() {
+            return false;
+        }
         @Override public Annotations annotations() {
             return null;
         }
         @Override public ProviderId providerId() {
             return null;
+        }
+
+        @Override
+        public <B extends Behaviour> B as(Class<B> projectionClass) {
+            return null;
+        }
+
+        @Override
+        public <B extends Behaviour> boolean is(Class<B> projectionClass) {
+            return false;
         }
     }
 

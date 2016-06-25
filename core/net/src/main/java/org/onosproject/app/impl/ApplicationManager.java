@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 package org.onosproject.app.impl;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.util.concurrent.Uninterruptibles;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -30,20 +36,26 @@ import org.onosproject.app.ApplicationService;
 import org.onosproject.app.ApplicationState;
 import org.onosproject.app.ApplicationStore;
 import org.onosproject.app.ApplicationStoreDelegate;
-import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.security.Permission;
 import org.onosproject.security.SecurityUtil;
 import org.slf4j.Logger;
 
 import java.io.InputStream;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.app.ApplicationEvent.Type.*;
-import static org.onosproject.security.AppPermission.Type.*;
+import static org.onosproject.app.ApplicationEvent.Type.APP_ACTIVATED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_DEACTIVATED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_INSTALLED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_UNINSTALLED;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.APP_READ;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -58,6 +70,7 @@ public class ApplicationManager
     private final Logger log = getLogger(getClass());
 
     private static final String APP_ID_NULL = "Application ID cannot be null";
+    private static final long DEFAULT_OPERATION_TIMEOUT_MILLIS = 2000;
 
     private final ApplicationStoreDelegate delegate = new InternalStoreDelegate();
 
@@ -68,6 +81,13 @@ public class ApplicationManager
     protected FeaturesService featuresService;
 
     private boolean initializing;
+
+    // Application supplied hooks for pre-activation processing.
+    private final Multimap<String, Runnable> deactivateHooks = HashMultimap.create();
+    private final Cache<ApplicationId, CountDownLatch> pendingOperations =
+            CacheBuilder.newBuilder()
+                        .expireAfterWrite(DEFAULT_OPERATION_TIMEOUT_MILLIS * 2, TimeUnit.MILLISECONDS)
+                        .build();
 
     @Activate
     public void activate() {
@@ -122,6 +142,14 @@ public class ApplicationManager
     }
 
     @Override
+    public void registerDeactivateHook(ApplicationId appId, Runnable hook) {
+        checkPermission(APP_READ);
+        checkNotNull(appId, APP_ID_NULL);
+        checkNotNull(hook, "Hook cannot be null");
+        deactivateHooks.put(appId.name(), hook);
+    }
+
+    @Override
     public Application install(InputStream appDescStream) {
         checkNotNull(appDescStream, "Application archive stream cannot be null");
         Application app = store.create(appDescStream);
@@ -132,11 +160,7 @@ public class ApplicationManager
     @Override
     public void uninstall(ApplicationId appId) {
         checkNotNull(appId, APP_ID_NULL);
-        try {
-            store.remove(appId);
-        } catch (Exception e) {
-            log.warn("Unable to purge application directory for {}", appId.name());
-        }
+        updateStoreAndWaitForNotificationHandling(appId, store::remove);
     }
 
     @Override
@@ -145,13 +169,13 @@ public class ApplicationManager
         if (!SecurityUtil.isAppSecured(appId)) {
             return;
         }
-        store.activate(appId);
+        updateStoreAndWaitForNotificationHandling(appId, store::activate);
     }
 
     @Override
     public void deactivate(ApplicationId appId) {
         checkNotNull(appId, APP_ID_NULL);
-        store.deactivate(appId);
+        updateStoreAndWaitForNotificationHandling(appId, store::deactivate);
     }
 
     @Override
@@ -161,11 +185,26 @@ public class ApplicationManager
         store.setPermissions(appId, permissions);
     }
 
+    private void updateStoreAndWaitForNotificationHandling(ApplicationId appId,
+                                                           Consumer<ApplicationId> storeUpdateTask) {
+        CountDownLatch latch = new CountDownLatch(1);
+        try {
+            pendingOperations.put(appId, latch);
+            storeUpdateTask.accept(appId);
+        } catch (Exception e) {
+            pendingOperations.invalidate(appId);
+            latch.countDown();
+            log.warn("Failed to update store for {}", appId.name(), e);
+        }
+        Uninterruptibles.awaitUninterruptibly(latch, DEFAULT_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+    }
+
     private class InternalStoreDelegate implements ApplicationStoreDelegate {
         @Override
         public void notify(ApplicationEvent event) {
             ApplicationEvent.Type type = event.type();
             Application app = event.subject();
+            CountDownLatch latch = pendingOperations.getIfPresent(app.id());
             try {
                 if (type == APP_ACTIVATED) {
                     if (installAppFeatures(app)) {
@@ -189,9 +228,13 @@ public class ApplicationManager
 
                 }
                 post(event);
-
             } catch (Exception e) {
                 log.warn("Unable to perform operation on application " + app.id().name(), e);
+            } finally {
+                if (latch != null) {
+                    latch.countDown();
+                    pendingOperations.invalidate(app.id());
+                }
             }
         }
     }
@@ -199,6 +242,7 @@ public class ApplicationManager
     // The following methods are fully synchronized to guard against remote vs.
     // locally induced feature service interactions.
 
+    // Installs all feature repositories required by the specified app.
     private synchronized boolean installAppArtifacts(Application app) throws Exception {
         if (app.featuresRepo().isPresent() &&
                 featuresService.getRepository(app.featuresRepo().get()) == null) {
@@ -208,6 +252,7 @@ public class ApplicationManager
         return false;
     }
 
+    // Uninstalls all the feature repositories required by the specified app.
     private synchronized boolean uninstallAppArtifacts(Application app) throws Exception {
         if (app.featuresRepo().isPresent() &&
                 featuresService.getRepository(app.featuresRepo().get()) != null) {
@@ -217,24 +262,37 @@ public class ApplicationManager
         return false;
     }
 
+    // Installs all features that define the specified app.
     private synchronized boolean installAppFeatures(Application app) throws Exception {
         boolean changed = false;
         for (String name : app.features()) {
             Feature feature = featuresService.getFeature(name);
+
+            // If we see an attempt at activation of a non-existent feature
+            // attempt to install the app artifacts first and then retry.
+            // This can be triggered by a race condition between different ONOS
+            // instances "installing" the apps from disk at their own pace.
+            // Perhaps there is a more elegant solution to be explored in the
+            // future.
+            if (feature == null) {
+                installAppArtifacts(app);
+                feature = featuresService.getFeature(name);
+            }
+
             if (feature != null && !featuresService.isInstalled(feature)) {
                 featuresService.installFeature(name);
                 changed = true;
-            } else if (feature == null && !initializing) {
-                // Suppress feature-not-found reporting during startup since these
-                // can arise naturally from the staggered cluster install.
+            } else if (feature == null) {
                 log.warn("Feature {} not found", name);
             }
         }
         return changed;
     }
 
+    // Uninstalls all features that define the specified app.
     private synchronized boolean uninstallAppFeatures(Application app) throws Exception {
         boolean changed = false;
+        deactivateHooks.removeAll(app.id().name()).forEach(hook -> invokeHook(hook, app.id()));
         for (String name : app.features()) {
             Feature feature = featuresService.getFeature(name);
             if (feature != null && featuresService.isInstalled(feature)) {
@@ -245,6 +303,19 @@ public class ApplicationManager
             }
         }
         return changed;
+    }
+
+    // Invokes the specified function, if not null.
+    @java.lang.SuppressWarnings("squid:S1217") // We really do mean to call run()
+    private void invokeHook(Runnable hook, ApplicationId appId) {
+        if (hook != null) {
+            try {
+                hook.run();
+            } catch (Exception e) {
+                log.warn("Deactivate hook for application {} encountered an error",
+                         appId.name(), e);
+            }
+        }
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,6 @@
  */
 package org.onosproject.cli.net;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
-
-import java.util.LinkedList;
-import java.util.List;
-
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
@@ -32,7 +26,8 @@ import org.onlab.util.Bandwidth;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.Link;
+import org.onosproject.net.EncapsulationType;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -41,10 +36,14 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
-import org.onosproject.net.intent.constraint.LambdaConstraint;
-import org.onosproject.net.intent.constraint.LinkTypeConstraint;
+import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
-import org.onosproject.net.resource.link.BandwidthResource;
+
+import java.util.LinkedList;
+import java.util.List;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
 
 /**
  * Base class for command line operations for connectivity based intents.
@@ -98,11 +97,11 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
 
     @Option(name = "--ndSLL", description = "IPv6 Neighbor Discovery Source Link-Layer",
             required = false, multiValued = false)
-    private String ndSLLString = null;
+    private String ndSllString = null;
 
     @Option(name = "--ndTLL", description = "IPv6 Neighbor Discovery Target Link-Layer",
             required = false, multiValued = false)
-    private String ndTLLString = null;
+    private String ndTllString = null;
 
     @Option(name = "--tcpSrc", description = "Source TCP Port",
             required = false, multiValued = false)
@@ -116,14 +115,6 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             required = false, multiValued = true)
     private List<String> extHdrStringList = null;
 
-    @Option(name = "-b", aliases = "--bandwidth", description = "Bandwidth",
-            required = false, multiValued = false)
-    private String bandwidthString = null;
-
-    @Option(name = "-l", aliases = "--lambda", description = "Lambda",
-            required = false, multiValued = false)
-    private boolean lambda = false;
-
     @Option(name = "-a", aliases = "--appId", description = "Application Id",
             required = false, multiValued = false)
     private String appId = null;
@@ -131,10 +122,6 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "-k", aliases = "--key", description = "Intent Key",
             required = false, multiValued = false)
     private String intentKey = null;
-
-    @Option(name = "--partial", description = "Allow partial installation",
-            required = false, multiValued = false)
-    private boolean partial = false;
 
 
     // Treatments
@@ -166,10 +153,29 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     private String pushVlan = null;
 
+    @Option(name = "--setQueue", description = "Set Queue ID (for OpenFlow 1.0, " +
+            "also the port has to be specified, i.e., <port>/<queue>",
+            required = false, multiValued = false)
+    private String setQueue = null;
+
     // Priorities
     @Option(name = "-p", aliases = "--priority", description = "Priority",
             required = false, multiValued = false)
     private int priority = Intent.DEFAULT_INTENT_PRIORITY;
+
+    // Constraints
+    @Option(name = "-b", aliases = "--bandwidth", description = "Bandwidth",
+            required = false, multiValued = false)
+    private String bandwidthString = null;
+
+    @Option(name = "--partial", description = "Allow partial installation",
+            required = false, multiValued = false)
+    private boolean partial = false;
+
+    @Option(name = "-e", aliases = "--encapsulation", description = "Encapsulation type",
+            required = false, multiValued = false)
+    private String encapsulationString = null;
+
 
     /**
      * Constructs a traffic selector based on the command line arguments
@@ -258,12 +264,12 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             selectorBuilder.matchIPv6NDTargetAddress(Ip6Address.valueOf(ndTargetString));
         }
 
-        if (!isNullOrEmpty(ndSLLString)) {
-            selectorBuilder.matchIPv6NDSourceLinkLayerAddress(MacAddress.valueOf(ndSLLString));
+        if (!isNullOrEmpty(ndSllString)) {
+            selectorBuilder.matchIPv6NDSourceLinkLayerAddress(MacAddress.valueOf(ndSllString));
         }
 
-        if (!isNullOrEmpty(ndTLLString)) {
-            selectorBuilder.matchIPv6NDTargetLinkLayerAddress(MacAddress.valueOf(ndTLLString));
+        if (!isNullOrEmpty(ndTllString)) {
+            selectorBuilder.matchIPv6NDTargetLinkLayerAddress(MacAddress.valueOf(ndTllString));
         }
 
         if (!isNullOrEmpty(srcTcpString)) {
@@ -311,7 +317,7 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         }
 
         if (!isNullOrEmpty(setIpDstString)) {
-            treatmentBuilder.setIpSrc(IpAddress.valueOf(setIpDstString));
+            treatmentBuilder.setIpDst(IpAddress.valueOf(setIpDstString));
             emptyTreatment = false;
         }
         if (!isNullOrEmpty(setVlan)) {
@@ -325,6 +331,18 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         if (!isNullOrEmpty(pushVlan)) {
             treatmentBuilder.pushVlan();
             treatmentBuilder.setVlanId(VlanId.vlanId(Short.parseShort(pushVlan)));
+            emptyTreatment = false;
+        }
+        if (!isNullOrEmpty(setQueue)) {
+            // OpenFlow 1.0 notation (for ENQUEUE): <port>/<queue>
+            if (setQueue.contains("/")) {
+                String[] queueConfig = setQueue.split("/");
+                PortNumber port = PortNumber.portNumber(Long.parseLong(queueConfig[0]));
+                long queueId = Long.parseLong(queueConfig[1]);
+                treatmentBuilder.setQueue(queueId, port);
+            } else {
+                treatmentBuilder.setQueue(Long.parseLong(setQueue));
+            }
             emptyTreatment = false;
         }
 
@@ -346,18 +364,25 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
 
         // Check for a bandwidth specification
         if (!isNullOrEmpty(bandwidthString)) {
-            final Bandwidth bandwidth = Bandwidth.bps(Double.parseDouble(bandwidthString));
-            constraints.add(new BandwidthConstraint(new BandwidthResource(bandwidth)));
+            Bandwidth bandwidth;
+            try {
+                bandwidth = Bandwidth.bps(Long.parseLong(bandwidthString));
+            // when the string can't be parsed as long, then try to parse as double
+            } catch (NumberFormatException e) {
+                bandwidth = Bandwidth.bps(Double.parseDouble(bandwidthString));
+            }
+            constraints.add(new BandwidthConstraint(bandwidth));
         }
 
-        // Check for a lambda specification
-        if (lambda) {
-            constraints.add(new LambdaConstraint(null));
-        }
-        constraints.add(new LinkTypeConstraint(lambda, Link.Type.OPTICAL));
-
+        // Check for partial failure specification
         if (partial) {
             constraints.add(new PartialFailureConstraint());
+        }
+
+        // Check for encapsulation specification
+        if (!isNullOrEmpty(encapsulationString)) {
+            final EncapsulationType encapType = EncapsulationType.valueOf(encapsulationString);
+            constraints.add(new EncapsulationConstraint(encapType));
         }
 
         return constraints;

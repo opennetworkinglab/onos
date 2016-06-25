@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public final class Version {
      * @return version descriptor
      */
     public static Version version(String string) {
-        String[] fields = string.split("[.-]");
+        String[] fields = string.split("[.-]", 4);
         checkArgument(fields.length >= 2, TOO_SHORT);
         return new Version(parseInt(fields[0]), parseInt(fields[1]),
                            fields.length >= 3 ? fields[2] : null,
@@ -127,7 +127,7 @@ public final class Version {
 
     @Override
     public int hashCode() {
-        return Objects.hash(format);
+        return format.hashCode();
     }
 
     @Override

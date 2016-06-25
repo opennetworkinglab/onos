@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -34,8 +36,8 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.IpPrefix;
-import org.onosproject.routing.BgpService;
-import org.onosproject.routing.RouteListener;
+import org.onosproject.incubator.net.routing.Route;
+import org.onosproject.incubator.net.routing.RouteAdminService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,18 +50,20 @@ import java.util.Dictionary;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newCachedThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
 
 /**
  * BGP Session Manager class.
  */
-@Component(immediate = true)
+@Component(immediate = true, enabled = false)
 @Service
-public class BgpSessionManager implements BgpInfoService, BgpService {
+public class BgpSessionManager implements BgpInfoService {
     private static final Logger log =
             LoggerFactory.getLogger(BgpSessionManager.class);
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected RouteAdminService routeService;
 
     boolean isShutdown = true;
     private Channel serverChannel;     // Listener for incoming BGP connections
@@ -75,19 +79,19 @@ public class BgpSessionManager implements BgpInfoService, BgpService {
     private ConcurrentMap<Ip6Prefix, BgpRouteEntry> bgpRoutes6 =
             new ConcurrentHashMap<>();
 
-    private RouteListener routeListener;
-
     private static final int DEFAULT_BGP_PORT = 2000;
     private int bgpPort;
 
     @Activate
     protected void activate(ComponentContext context) {
         readComponentConfiguration(context);
+        start();
         log.info("BgpSessionManager started");
     }
 
     @Deactivate
     protected void deactivate() {
+        stop();
         log.info("BgpSessionManager stopped");
     }
 
@@ -125,15 +129,6 @@ public class BgpSessionManager implements BgpInfoService, BgpService {
      */
     boolean isShutdown() {
         return this.isShutdown;
-    }
-
-    /**
-     * Gets the route listener.
-     *
-     * @return the route listener to use
-     */
-    RouteListener getRouteListener() {
-        return routeListener;
     }
 
     /**
@@ -290,12 +285,28 @@ public class BgpSessionManager implements BgpInfoService, BgpService {
         return bgpRouteSelector;
     }
 
-    @Override
-    public void start(RouteListener routeListener) {
+    /**
+     * Sends updates routes to the route service.
+     *
+     * @param updates routes to update
+     */
+    void update(Collection<Route> updates) {
+        routeService.update(updates);
+    }
+
+    /**
+     * Sends withdrawn routes to the routes service.
+     *
+     * @param withdraws routes to withdraw
+     */
+    void withdraw(Collection<Route> withdraws) {
+        routeService.withdraw(withdraws);
+    }
+
+
+    public void start() {
         log.debug("BGP Session Manager start.");
         isShutdown = false;
-
-        this.routeListener = checkNotNull(routeListener);
 
         ChannelFactory channelFactory = new NioServerSocketChannelFactory(
                 newCachedThreadPool(groupedThreads("onos/bgp", "sm-boss-%d")),
@@ -330,7 +341,6 @@ public class BgpSessionManager implements BgpInfoService, BgpService {
         }
     }
 
-    @Override
     public void stop() {
         isShutdown = true;
         allChannels.close().awaitUninterruptibly();

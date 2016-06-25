@@ -1,0 +1,29 @@
+SRC = 'src/main/java/org/onlab/osgi/'
+TEST = 'src/test/java/org/onlab/osgi/'
+CURRENT_NAME = 'onlab-osgi'
+CURRENT_TARGET = ':' + CURRENT_NAME
+
+COMPILE_DEPS = [
+    '//lib:COMPILE',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+]
+
+osgi_jar(
+  name = CURRENT_NAME,
+  srcs = glob([SRC + '/*.java']),
+  deps = COMPILE_DEPS,
+  visibility = ['PUBLIC'],
+)
+
+java_test(
+  name = 'onlab-osgi-tests',
+  srcs = glob([TEST + '/*.java']),
+  deps = COMPILE_DEPS +
+         TEST_DEPS +
+         [CURRENT_TARGET],
+  source_under_test = [CURRENT_TARGET],
+  visibility = ['PUBLIC'],
+)

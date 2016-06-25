@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -336,6 +336,8 @@ public class LinkManager
         public void event(NetworkConfigEvent event) {
             LinkKey lk = (LinkKey) event.subject();
             BasicLinkConfig cfg = networkConfigService.getConfig(lk, BasicLinkConfig.class);
+
+            log.debug("Detected link network config event {}", event.type());
 
             if (!isAllowed(cfg)) {
                 log.info("Kicking out links between {} and {}", lk.src(), lk.dst());

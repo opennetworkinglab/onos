@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.onosproject.ui.topo;
+
+import com.google.common.base.Preconditions;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -34,6 +36,7 @@ public class Highlights {
     private static final String MIN = "min";
     private static final String MAX = "max";
 
+
     /**
      * A notion of amount.
      */
@@ -43,6 +46,7 @@ public class Highlights {
         MAXIMALLY(MAX);
 
         private final String s;
+
         Amount(String str) {
             s = str;
         }
@@ -58,7 +62,30 @@ public class Highlights {
     private final Map<String, LinkHighlight> links = new HashMap<>();
 
     private Amount subdueLevel = Amount.ZERO;
+    private int delayMs = 0;
 
+    //TODO: Think of a better solution for topology events race conditions
+    /**
+     * Sets the number of milliseconds to delay processing of highlights
+     * events on the client side.
+     *
+     * @param ms milliseconds to delay
+     * @return self, for chaining
+     */
+    public Highlights delay(int ms) {
+        Preconditions.checkArgument(ms >= 0, "Delay cannot be lower than 0");
+        delayMs = ms;
+        return this;
+    }
+
+    /**
+     * Return the delay for the highlight event.
+     *
+     * @return delay in milliseconds
+     */
+    public int delayMs() {
+        return delayMs;
+    }
 
     /**
      * Adds highlighting information for a device.
@@ -186,4 +213,5 @@ public class Highlights {
     public LinkHighlight getLink(String id) {
         return links.get(id);
     }
+
 }

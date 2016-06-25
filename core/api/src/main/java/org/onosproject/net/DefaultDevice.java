@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,13 @@
  */
 package org.onosproject.net;
 
-import org.onosproject.net.provider.ProviderId;
 import org.onlab.packet.ChassisId;
+import org.onosproject.net.driver.Behaviour;
+import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverData;
+import org.onosproject.net.driver.HandlerBehaviour;
+import org.onosproject.net.provider.ProviderId;
 
 import java.util.Objects;
 
@@ -106,6 +111,41 @@ public class DefaultDevice extends AbstractElement implements Device {
     }
 
     @Override
+    public <B extends Behaviour> B as(Class<B> projectionClass) {
+        if (HandlerBehaviour.class.isAssignableFrom(projectionClass)) {
+            bindAndCheckDriver();
+            return driver().createBehaviour(new DefaultDriverHandler(asData()), projectionClass);
+        }
+        return super.as(projectionClass);
+    }
+
+    /**
+     * Returns self as an immutable driver data instance.
+     *
+     * @return self as driver data
+     */
+    protected DriverData asData() {
+        return new DeviceDriverData();
+    }
+
+    @Override
+    protected Driver locateDriver() {
+        Driver driver = super.locateDriver();
+        return driver != null ? driver :
+                driverService().getDriver(manufacturer, hwVersion, swVersion);
+    }
+
+    /**
+     * Projection of the parent entity as a driver data entity.
+     */
+    protected class DeviceDriverData extends AnnotationDriverData {
+        @Override
+        public DeviceId deviceId() {
+            return id();
+        }
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(id, type, manufacturer, hwVersion, swVersion, serialNumber);
     }
@@ -136,6 +176,7 @@ public class DefaultDevice extends AbstractElement implements Device {
                 .add("hwVersion", hwVersion)
                 .add("swVersion", swVersion)
                 .add("serialNumber", serialNumber)
+                .add("driver", driver() != null ? driver().name() : "")
                 .toString();
     }
 

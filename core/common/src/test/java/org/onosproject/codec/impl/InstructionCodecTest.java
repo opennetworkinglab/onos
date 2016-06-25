@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.onosproject.codec.impl;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.Ip4Address;
@@ -26,16 +27,15 @@ import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
-import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
+import org.onosproject.net.OduSignalId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
+import org.onosproject.net.flow.instructions.L1ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
@@ -47,7 +47,6 @@ import static org.onosproject.codec.impl.InstructionJsonMatcher.matchesInstructi
 public class InstructionCodecTest {
     CodecContext context;
     JsonCodec<Instruction> instructionCodec;
-
     /**
      * Sets up for each test.  Creates a context and fetches the instruction
      * codec.
@@ -60,26 +59,14 @@ public class InstructionCodecTest {
     }
 
     /**
-     * Tests the encoding of push header instructions.
+     * Tests the encoding of push mpls header instructions.
      */
     @Test
     public void pushHeaderInstructionsTest() {
-        final L2ModificationInstruction.PushHeaderInstructions instruction =
-                (L2ModificationInstruction.PushHeaderInstructions) Instructions.pushMpls();
+        final L2ModificationInstruction.ModMplsHeaderInstruction instruction =
+                (L2ModificationInstruction.ModMplsHeaderInstruction) Instructions.pushMpls();
         final ObjectNode instructionJson = instructionCodec.encode(instruction, context);
 
-        assertThat(instructionJson, matchesInstruction(instruction));
-    }
-
-    /**
-     * Tests the encoding of drop instructions.
-     */
-    @Test
-    public void dropInstructionTest() {
-        final Instructions.DropInstruction instruction =
-                Instructions.createDrop();
-        final ObjectNode instructionJson =
-                instructionCodec.encode(instruction, context);
         assertThat(instructionJson, matchesInstruction(instruction));
     }
 
@@ -96,19 +83,6 @@ public class InstructionCodecTest {
     }
 
     /**
-     * Tests the encoding of mod lambda instructions.
-     */
-    @Test
-    public void modLambdaInstructionTest() {
-        final L0ModificationInstruction.ModLambdaInstruction instruction =
-                (L0ModificationInstruction.ModLambdaInstruction)
-                        Instructions.modL0Lambda(new IndexedLambda(55));
-        final ObjectNode instructionJson =
-                instructionCodec.encode(instruction, context);
-        assertThat(instructionJson, matchesInstruction(instruction));
-    }
-
-    /**
      * Tests the encoding of mod OCh signal instructions.
      */
     @Test
@@ -116,6 +90,20 @@ public class InstructionCodecTest {
         L0ModificationInstruction.ModOchSignalInstruction instruction =
                 (L0ModificationInstruction.ModOchSignalInstruction)
                         Instructions.modL0Lambda(Lambda.ochSignal(GridType.DWDM, ChannelSpacing.CHL_100GHZ, 4, 8));
+        ObjectNode instructionJson =
+                instructionCodec.encode(instruction, context);
+        assertThat(instructionJson, matchesInstruction(instruction));
+    }
+
+    /**
+     * Tests the encoding of mod ODU signal ID instructions.
+     */
+    @Test
+    public void modOduSignalIdInstructionTest() {
+        OduSignalId oduSignalId = OduSignalId.oduSignalId(1, 8, new byte[] {8, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+        L1ModificationInstruction.ModOduSignalIdInstruction instruction =
+                (L1ModificationInstruction.ModOduSignalIdInstruction)
+                    Instructions.modL1OduSignalId(oduSignalId);
         ObjectNode instructionJson =
                 instructionCodec.encode(instruction, context);
         assertThat(instructionJson, matchesInstruction(instruction));

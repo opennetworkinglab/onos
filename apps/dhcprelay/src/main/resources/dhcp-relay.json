@@ -1,0 +1,9 @@
+{
+  "apps": {
+    "org.onosproject.dhcp-relay" : {
+      "dhcprelay" : {
+        "dhcpserverConnectPoint": "of:0000000000000002/2"
+      }
+    }
+  }
+}

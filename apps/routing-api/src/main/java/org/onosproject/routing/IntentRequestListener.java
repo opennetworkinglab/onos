@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,16 @@ public interface IntentRequestListener {
                                      IpAddress srcIpAddress,
                                      MacAddress srcMacAddress,
                                      ConnectPoint srcConnectPoint);
+
+    /**
+     * Sets up connectivity for packet from a local host to the Internet.
+     *
+     * @param hostIp IP address of the local host
+     * @param prefix external IP prefix that the host is talking to
+     * @param nextHopIpAddress IP address of the next hop router for the prefix
+     */
+    void setUpConnectivityHostToInternet(IpAddress hostIp, IpPrefix prefix,
+                                                IpAddress nextHopIpAddress);
 
     /**
      * Adds one new ingress connect point into ingress points of an existing

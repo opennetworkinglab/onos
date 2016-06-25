@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.onosproject.TestApplicationId;
 import org.onosproject.cfg.ComponentConfigAdapter;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.impl.TestCoreManager;
@@ -44,7 +45,6 @@ import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.onosproject.store.trivial.SimpleIntentStore;
 
 import java.util.Collection;
@@ -57,6 +57,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static org.easymock.EasyMock.mock;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -163,16 +164,14 @@ public class IntentManagerTest {
 
     private static class TestIntentCompiler implements IntentCompiler<MockIntent> {
         @Override
-        public List<Intent> compile(MockIntent intent, List<Intent> installable,
-                                    Set<LinkResourceAllocations> resources) {
+        public List<Intent> compile(MockIntent intent, List<Intent> installable) {
             return Lists.newArrayList(new MockInstallableIntent());
         }
     }
 
     private static class TestIntentCompilerMultipleFlows implements IntentCompiler<MockIntent> {
         @Override
-        public List<Intent> compile(MockIntent intent, List<Intent> installable,
-                                    Set<LinkResourceAllocations> resources) {
+        public List<Intent> compile(MockIntent intent, List<Intent> installable) {
 
             return IntStream.rangeClosed(1, 5)
                             .mapToObj(mock -> (new MockInstallableIntent()))
@@ -183,8 +182,7 @@ public class IntentManagerTest {
 
     private static class TestIntentCompilerError implements IntentCompiler<MockIntent> {
         @Override
-        public List<Intent> compile(MockIntent intent, List<Intent> installable,
-                                    Set<LinkResourceAllocations> resources) {
+        public List<Intent> compile(MockIntent intent, List<Intent> installable) {
             throw new IntentCompilationException("Compilation always fails");
         }
     }
@@ -231,6 +229,7 @@ public class IntentManagerTest {
         manager.trackerService = new TestIntentTracker();
         manager.flowRuleService = flowRuleService;
         manager.coreService = new TestCoreManager();
+        manager.configService = mock(ComponentConfigService.class);
         service = manager;
         extensionService = manager;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.onosproject.segmentrouting.TunnelHandler;
 /**
  * Command to remove a tunnel.
  */
-@Command(scope = "onos", name = "srtunnel-remove",
+@Command(scope = "onos", name = "sr-tunnel-remove",
         description = "Remove a tunnel")
 public class TunnelRemoveCommand extends AbstractShellCommand {
 

@@ -1,0 +1,62 @@
+{
+  "type": "object",
+  "title": "host",
+  "required": [
+    "type",
+    "appId",
+    "priority",
+    "ingressPoint",
+    "egressPoint"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "example": "PointToPointIntent"
+    },
+    "appId": {
+      "type": "string",
+      "example": "org.onosproject.ovsdb"
+    },
+    "priority": {
+      "type": "integer",
+      "format": "int64",
+      "example": 55
+    },
+    "ingressPoint": {
+      "type": "object",
+      "title": "point",
+      "required": [
+        "port",
+        "device"
+      ],
+      "properties": {
+        "port": {
+          "type": "string",
+          "example": "3"
+        },
+        "device": {
+          "type": "string",
+          "example": "of:0000000000000002"
+        }
+      }
+    },
+    "egressPoint": {
+      "type": "object",
+      "title": "point",
+      "required": [
+        "port",
+        "device"
+      ],
+      "properties": {
+        "port": {
+          "type": "string",
+          "example": "2"
+        },
+        "device": {
+          "type": "string",
+          "example": "of:0000000000000003"
+        }
+      }
+    }
+  }
+}

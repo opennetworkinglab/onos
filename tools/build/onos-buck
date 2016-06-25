@@ -1,0 +1,38 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Runs the custom version of Buck required by ONOS.
+# -----------------------------------------------------------------------------
+
+set -e
+
+BUCK_URL="https://github.com/bocon13/buck/releases/download/v2016.04.08.01/buck"
+BUCK_SHA="e22b6accd43cd3e928fe8e63256ebdc8f0b24cab"
+REQUIRED_VERSION="buck version ad0295088e5da2782062636ed97bd4f71c65bddd"
+
+[  "-U" = "$1" ] && shift && FORCE_UPDATE=True
+
+mkdir -p $ONOS_ROOT/bin
+pushd $ONOS_ROOT/bin > /dev/null
+
+if [ -n "$FORCE_UPDATE" ] || [ ! -f "buck" ] || [ "$REQUIRED_VERSION" != "$(cat .buck_version)" ]; then
+    echo "Downloading Buck..."
+    rm -f .buck_version buck
+    curl -o ./buck -L $BUCK_URL
+    if [ -n "$(which shasum)" ]; then
+        SHA=$(shasum ./buck | cut -d' ' -f1)
+        [ "$SHA" != "$BUCK_SHA" ] &&
+           echo "ERROR: Downloaded SHA ($SHA) does not match expected SHA ($BUCK_SHA)" &&
+           exit 1
+    else
+        echo "SHA cannot be verified"
+    fi
+    chmod 555 ./buck
+    echo $(./buck --version 2>/dev/null) > .buck_version
+    chmod 444 .buck_version
+    rm -rf ./buck-out
+    printf "Successfully downloaded Buck to $ONOS_ROOT/bin/buck\n\n"
+fi
+popd > /dev/null
+
+# Finally, run the Buck command...
+$ONOS_ROOT/bin/buck "$@"

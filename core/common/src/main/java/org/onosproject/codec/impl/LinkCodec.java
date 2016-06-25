@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,13 @@ public final class LinkCodec extends AnnotatedCodec<Link> {
         Type type = Type.valueOf(json.get(TYPE).asText());
         Annotations annotations = extractAnnotations(json, context);
 
-        return new DefaultLink(pid, src, dst, type, annotations);
+        return DefaultLink
+                .builder()
+                .providerId(pid)
+                .src(src)
+                .dst(dst)
+                .type(type)
+                .annotations(annotations)
+                .build();
     }
 }

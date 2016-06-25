@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,14 @@ package org.onosproject.provider.of.group.impl;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onosproject.core.GroupId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.driver.DefaultDriverData;
+import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
@@ -28,6 +34,7 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
+import org.onosproject.openflow.controller.ExtensionTreatmentInterpreter;
 import org.projectfloodlight.openflow.protocol.OFBucket;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFGroupAdd;
@@ -38,7 +45,6 @@ import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionGroup;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
-import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.EthType;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
@@ -49,6 +55,7 @@ import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.U32;
+import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
 
@@ -70,6 +77,7 @@ public final class GroupModBuilder {
     private GroupDescription.Type type;
     private OFFactory factory;
     private Long xid;
+    private Optional<DriverService> driverService;
 
     private final Logger log = getLogger(getClass());
 
@@ -85,6 +93,16 @@ public final class GroupModBuilder {
         this.xid = xid.orElse((long) 0);
     }
 
+    private GroupModBuilder(GroupBuckets buckets, GroupId groupId,
+                            GroupDescription.Type type, OFFactory factory,
+                            Optional<Long> xid, Optional<DriverService> driverService) {
+       this.buckets = buckets;
+       this.groupId = groupId;
+       this.type = type;
+       this.factory = factory;
+       this.xid = xid.orElse((long) 0);
+       this.driverService = driverService;
+   }
     /**
      * Creates a builder for GroupMod.
      *
@@ -103,6 +121,24 @@ public final class GroupModBuilder {
     }
 
     /**
+     * Creates a builder for GroupMod.
+     *
+     * @param buckets GroupBuckets object
+     * @param groupId Group Id to create
+     * @param type Group type
+     * @param factory OFFactory object
+     * @param xid transaction ID
+     * @param driverService driver Service
+     * @return GroupModBuilder object
+     */
+    public static GroupModBuilder builder(GroupBuckets buckets, GroupId groupId,
+                                          GroupDescription.Type type, OFFactory factory,
+                                          Optional<Long> xid, Optional<DriverService> driverService) {
+
+        return new GroupModBuilder(buckets, groupId, type, factory, xid, driverService);
+    }
+
+    /**
      * Builds the GroupAdd OF message.
      *
      * @return GroupAdd OF message
@@ -118,8 +154,17 @@ public final class GroupModBuilder {
             if (type == GroupDescription.Type.SELECT) {
                 bucketBuilder.setWeight(1);
             }
-            bucketBuilder.setWatchGroup(OFGroup.ANY);
-            bucketBuilder.setWatchPort(OFPort.ANY);
+
+            if (type == GroupDescription.Type.FAILOVER && bucket.watchPort() != null) {
+                bucketBuilder.setWatchPort(OFPort.of((int) bucket.watchPort().toLong()));
+            } else {
+                bucketBuilder.setWatchPort(OFPort.ANY);
+            }
+            if (type == GroupDescription.Type.FAILOVER &&  bucket.watchGroup() != null) {
+                bucketBuilder.setWatchGroup(OFGroup.of(bucket.watchGroup().id()));
+            } else {
+                bucketBuilder.setWatchGroup(OFGroup.ANY);
+            }
             OFBucket ofBucket = bucketBuilder.build();
             ofBuckets.add(ofBucket);
         }
@@ -149,8 +194,17 @@ public final class GroupModBuilder {
             if (type == GroupDescription.Type.SELECT) {
                 bucketBuilder.setWeight(1);
             }
-            bucketBuilder.setWatchGroup(OFGroup.ANY);
-            bucketBuilder.setWatchPort(OFPort.ANY);
+            if (type == GroupDescription.Type.FAILOVER && bucket.watchPort() != null) {
+                bucketBuilder.setWatchPort(OFPort.of((int) bucket.watchPort().toLong()));
+            } else {
+                bucketBuilder.setWatchPort(OFPort.ANY);
+            }
+            if (type == GroupDescription.Type.FAILOVER &&  bucket.watchGroup() != null) {
+                bucketBuilder.setWatchGroup(OFGroup.of(bucket.watchGroup().id()));
+            } else {
+                bucketBuilder.setWatchGroup(OFGroup.ANY);
+            }
+
             OFBucket ofBucket = bucketBuilder.build();
             ofBuckets.add(ofBucket);
         }
@@ -189,9 +243,6 @@ public final class GroupModBuilder {
         List<OFAction> actions = new LinkedList<>();
         for (Instruction i : treatment.allInstructions()) {
             switch (i.type()) {
-                case DROP:
-                    log.warn("Saw drop action; assigning drop action");
-                    return Collections.emptyList();
                 case L0MODIFICATION:
                     actions.add(buildL0Modification(i));
                     break;
@@ -218,6 +269,12 @@ public final class GroupModBuilder {
                             .setGroup(OFGroup.of(grp.groupId().id()));
                     actions.add(actgrp.build());
                     break;
+                case EXTENSION:
+                    Instructions.ExtensionInstructionWrapper wrapper =
+                    (Instructions.ExtensionInstructionWrapper) i;
+                    actions.add(buildExtensionAction(
+                            wrapper.extensionInstruction(), wrapper.deviceId()));
+                    break;
                 default:
                     log.warn("Instruction type {} not yet implemented.", i.type());
             }
@@ -229,11 +286,6 @@ public final class GroupModBuilder {
     private OFAction buildL0Modification(Instruction i) {
         L0ModificationInstruction l0m = (L0ModificationInstruction) i;
         switch (l0m.subtype()) {
-            case LAMBDA:
-                L0ModificationInstruction.ModLambdaInstruction ml =
-                        (L0ModificationInstruction.ModLambdaInstruction) i;
-                return factory.actions().circuit(factory.oxms().ochSigidBasic(
-                        new CircuitSignalID((byte) 1, (byte) 2, ml.lambda(), (short) 1)));
             default:
                 log.warn("Unimplemented action type {}.", l0m.subtype());
                 break;
@@ -267,24 +319,24 @@ public final class GroupModBuilder {
             case VLAN_POP:
                 return factory.actions().popVlan();
             case VLAN_PUSH:
-                L2ModificationInstruction.PushHeaderInstructions pushVlanInstruction
-                        = (L2ModificationInstruction.PushHeaderInstructions) l2m;
+                L2ModificationInstruction.ModVlanHeaderInstruction pushVlanInstruction
+                        = (L2ModificationInstruction.ModVlanHeaderInstruction) l2m;
                 return factory.actions().pushVlan(
                         EthType.of(pushVlanInstruction.ethernetType().toShort()));
             case MPLS_PUSH:
-                L2ModificationInstruction.PushHeaderInstructions pushHeaderInstructions =
-                        (L2ModificationInstruction.PushHeaderInstructions) l2m;
+                L2ModificationInstruction.ModMplsHeaderInstruction pushHeaderInstructions =
+                        (L2ModificationInstruction.ModMplsHeaderInstruction) l2m;
                 return factory.actions().pushMpls(EthType.of(pushHeaderInstructions
                                                              .ethernetType().toShort()));
             case MPLS_POP:
-                L2ModificationInstruction.PushHeaderInstructions popHeaderInstructions =
-                        (L2ModificationInstruction.PushHeaderInstructions) l2m;
+                L2ModificationInstruction.ModMplsHeaderInstruction popHeaderInstructions =
+                        (L2ModificationInstruction.ModMplsHeaderInstruction) l2m;
                 return factory.actions().popMpls(EthType.of(popHeaderInstructions
                                                             .ethernetType().toShort()));
             case MPLS_LABEL:
                 L2ModificationInstruction.ModMplsLabelInstruction mplsLabel =
                         (L2ModificationInstruction.ModMplsLabelInstruction) l2m;
-                oxm = factory.oxms().mplsLabel(U32.of(mplsLabel.mplsLabel().toInt()));
+                oxm = factory.oxms().mplsLabel(U32.of(mplsLabel.label().toInt()));
                 break;
             case MPLS_BOS:
                 L2ModificationInstruction.ModMplsBosInstruction mplsBos =
@@ -295,6 +347,11 @@ public final class GroupModBuilder {
                 break;
             case DEC_MPLS_TTL:
                 return factory.actions().decMplsTtl();
+            case TUNNEL_ID:
+                L2ModificationInstruction.ModTunnelIdInstruction tunnelId =
+                        (L2ModificationInstruction.ModTunnelIdInstruction) l2m;
+                oxm = factory.oxms().tunnelId(U64.of(tunnelId.tunnelId()));
+                break;
             default:
                 log.warn("Unimplemented action type {}.", l2m.subtype());
                 break;
@@ -370,6 +427,22 @@ public final class GroupModBuilder {
                 log.error("Unsupported group type : {}", groupType);
                 break;
         }
+        return null;
+    }
+
+    private OFAction buildExtensionAction(ExtensionTreatment i, DeviceId deviceId) {
+        if (!driverService.isPresent()) {
+            log.error("No driver service present");
+            return null;
+        }
+        Driver driver = driverService.get().getDriver(deviceId);
+        if (driver.hasBehaviour(ExtensionTreatmentInterpreter.class)) {
+            DefaultDriverHandler handler =
+                    new DefaultDriverHandler(new DefaultDriverData(driver, deviceId));
+            ExtensionTreatmentInterpreter interpreter = handler.behaviour(ExtensionTreatmentInterpreter.class);
+            return interpreter.mapInstruction(factory, i);
+        }
+
         return null;
     }
 }

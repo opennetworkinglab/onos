@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.onlab.packet.ndp.NeighborAdvertisement;
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onlab.packet.ndp.RouterAdvertisement;
 import org.onlab.packet.ndp.RouterSolicitation;
+import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -67,8 +68,10 @@ import org.slf4j.Logger;
 
 import java.util.Dictionary;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -117,6 +120,12 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                     "Host Location Provider; default is false")
     private boolean ipv6NeighborDiscovery = false;
 
+    @Property(name = "requestInterceptsEnabled", boolValue = true,
+            label = "Enable requesting packet intercepts")
+    private boolean requestInterceptsEnabled = true;
+
+    protected ExecutorService eventHandler;
+
     /**
      * Creates an OpenFlow host provider.
      */
@@ -128,12 +137,13 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     public void activate(ComponentContext context) {
         cfgService.registerProperties(getClass());
         appId = coreService.registerApplication("org.onosproject.provider.host");
-
+        eventHandler = newSingleThreadScheduledExecutor(
+                groupedThreads("onos/host-loc-provider", "event-handler", log));
         providerService = providerRegistry.register(this);
         packetService.addProcessor(processor, PacketProcessor.advisor(1));
         deviceService.addListener(deviceListener);
-        readComponentConfiguration(context);
-        requestIntercepts();
+
+        modified(context);
 
         log.info("Started with Application ID {}", appId.id());
     }
@@ -147,6 +157,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         providerRegistry.unregister(this);
         packetService.removeProcessor(processor);
         deviceService.removeListener(deviceListener);
+        eventHandler.shutdown();
         providerService = null;
         log.info("Stopped");
     }
@@ -154,7 +165,12 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     @Modified
     public void modified(ComponentContext context) {
         readComponentConfiguration(context);
-        requestIntercepts();
+
+        if (requestInterceptsEnabled) {
+            requestIntercepts();
+        } else {
+            withdrawIntercepts();
+        }
     }
 
     /**
@@ -212,7 +228,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         Dictionary<?, ?> properties = context.getProperties();
         Boolean flag;
 
-        flag = isPropertyEnabled(properties, "hostRemovalEnabled");
+        flag = Tools.isPropertyEnabled(properties, "hostRemovalEnabled");
         if (flag == null) {
             log.info("Host removal on port/device down events is not configured, " +
                              "using current value of {}", hostRemovalEnabled);
@@ -222,7 +238,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                      hostRemovalEnabled ? "enabled" : "disabled");
         }
 
-        flag = isPropertyEnabled(properties, "ipv6NeighborDiscovery");
+        flag = Tools.isPropertyEnabled(properties, "ipv6NeighborDiscovery");
         if (flag == null) {
             log.info("Using IPv6 Neighbor Discovery is not configured, " +
                              "using current value of {}", ipv6NeighborDiscovery);
@@ -231,26 +247,16 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             log.info("Configured. Using IPv6 Neighbor Discovery is {}",
                      ipv6NeighborDiscovery ? "enabled" : "disabled");
         }
-    }
 
-    /**
-     * Check property name is defined and set to true.
-     *
-     * @param properties   properties to be looked up
-     * @param propertyName the name of the property to look up
-     * @return value when the propertyName is defined or return null
-     */
-    private static Boolean isPropertyEnabled(Dictionary<?, ?> properties,
-                                             String propertyName) {
-        Boolean value = null;
-        try {
-            String s = (String) properties.get(propertyName);
-            value = isNullOrEmpty(s) ? null : s.trim().equals("true");
-        } catch (ClassCastException e) {
-            // No propertyName defined.
-            value = null;
+        flag = Tools.isPropertyEnabled(properties, "requestInterceptsEnabled");
+        if (flag == null) {
+            log.info("Request intercepts is not configured, " +
+                    "using current value of {}", requestInterceptsEnabled);
+        } else {
+            requestInterceptsEnabled = flag;
+            log.info("Configured. Request intercepts is {}",
+                    requestInterceptsEnabled ? "enabled" : "disabled");
         }
-        return value;
     }
 
     @Override
@@ -271,7 +277,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                                     VlanId vlan, HostLocation hloc) {
             HostDescription desc = new DefaultHostDescription(mac, vlan, hloc);
             try {
-                providerService.hostDetected(hid, desc);
+                providerService.hostDetected(hid, desc, false);
             } catch (IllegalStateException e) {
                 log.debug("Host {} suppressed", hid);
             }
@@ -293,7 +299,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                     new DefaultHostDescription(mac, vlan, hloc) :
                     new DefaultHostDescription(mac, vlan, hloc, ip);
             try {
-                providerService.hostDetected(hid, desc);
+                providerService.hostDetected(hid, desc, false);
             } catch (IllegalStateException e) {
                 log.debug("Host {} suppressed", hid);
             }
@@ -335,15 +341,15 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                                                  arp.getSenderProtocolAddress());
                 updateLocationIP(hid, srcMac, vlan, hloc, ip);
 
-                // IPv4: update location only
+            // IPv4: update location only
             } else if (eth.getEtherType() == Ethernet.TYPE_IPV4) {
                 updateLocation(hid, srcMac, vlan, hloc);
 
-                //
-                // NeighborAdvertisement and NeighborSolicitation: possible
-                // new hosts, update both location and IP.
-                //
-                // IPv6: update location only
+            //
+            // NeighborAdvertisement and NeighborSolicitation: possible
+            // new hosts, update both location and IP.
+            //
+            // IPv6: update location only
             } else if (eth.getEtherType() == Ethernet.TYPE_IPV6) {
                 IPv6 ipv6 = (IPv6) eth.getPayload();
                 IpAddress ip = IpAddress.valueOf(IpAddress.Version.INET6,
@@ -392,6 +398,10 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
+            eventHandler.execute(() -> handleEvent(event));
+        }
+
+        private void handleEvent(DeviceEvent event) {
             Device device = event.subject();
             switch (event.type()) {
                 case DEVICE_ADDED:
@@ -432,7 +442,9 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     // Signals host vanish for all specified hosts.
     private void removeHosts(Set<Host> hosts) {
         for (Host host : hosts) {
-            providerService.hostVanished(host.id());
+            if (host.providerId().equals(HostLocationProvider.this.id())) {
+                providerService.hostVanished(host.id());
+            }
         }
     }
 

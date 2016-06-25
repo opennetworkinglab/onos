@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,10 @@ import org.onlab.packet.IPacket;
 import org.onlab.packet.IpPrefix;
 
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.HashMap;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 public class PIMJoinPrune extends BasePacket {
@@ -30,16 +32,7 @@ public class PIMJoinPrune extends BasePacket {
     private PIMAddrUnicast upstreamAddr = new PIMAddrUnicast();
     private short holdTime = (short) 0xffff;
 
-    private class JoinPruneGroup {
-        protected IpPrefix group;
-        protected HashMap<IpPrefix, IpPrefix> joins = new HashMap<>();
-        protected HashMap<IpPrefix, IpPrefix> prunes = new HashMap<>();
-
-        public JoinPruneGroup(IpPrefix grp) {
-            group = grp;
-        }
-    }
-    private HashMap<IpPrefix, JoinPruneGroup> joinPrunes = new HashMap<>();
+    private HashMap<IpPrefix, PIMJoinPruneGroup> joinPrunes = new HashMap<>();
 
     /**
      * Get the J/P hold time.
@@ -78,6 +71,15 @@ public class PIMJoinPrune extends BasePacket {
     }
 
     /**
+     * Get the JoinPrune Group with all the joins and prunes.
+     *
+     * @return the joinPruneGroup collection
+     */
+    public Collection<PIMJoinPruneGroup> getJoinPrunes() {
+        return joinPrunes.values();
+    }
+
+    /**
      * Add the specified s,g to join field.
      *
      * @param saddr the source address of the route
@@ -98,13 +100,13 @@ public class PIMJoinPrune extends BasePacket {
      * @param join true for join, false for prune
      */
     public void addJoinPrune(IpPrefix spfx, IpPrefix gpfx, boolean join) {
-        JoinPruneGroup jpg = joinPrunes.get(gpfx);
+        PIMJoinPruneGroup jpg = joinPrunes.get(gpfx);
         if (jpg == null) {
-            jpg = new JoinPruneGroup(gpfx);
+                jpg = new PIMJoinPruneGroup(gpfx);
             joinPrunes.put(gpfx, jpg);
         }
 
-        HashMap<IpPrefix, IpPrefix> members = (join) ? jpg.joins : jpg.prunes;
+        HashMap<IpPrefix, IpPrefix> members = (join) ? jpg.getJoins() : jpg.getPrunes();
         if (members.get(spfx) == null) {
             members.put(spfx, spfx);
         }
@@ -150,22 +152,22 @@ public class PIMJoinPrune extends BasePacket {
         bb.putShort(this.holdTime);
 
         // Walk the group list and input all groups
-        for (JoinPruneGroup jpg : joinPrunes.values()) {
-            PIMAddrGroup grp = new PIMAddrGroup(jpg.group);
+        for (PIMJoinPruneGroup jpg : joinPrunes.values()) {
+            PIMAddrGroup grp = new PIMAddrGroup(jpg.getGroup());
             bb.put(grp.serialize());
 
             // put the number of joins and prunes
-            bb.putShort((short) jpg.joins.size());
-            bb.putShort((short) jpg.prunes.size());
+            bb.putShort((short) jpg.getJoins().size());
+            bb.putShort((short) jpg.getPrunes().size());
 
             // Set all of the joins
-            for (IpPrefix spfx : jpg.joins.values()) {
+            for (IpPrefix spfx : jpg.getJoins().values()) {
                 PIMAddrSource src = new PIMAddrSource(spfx);
                 bb.put(src.serialize());
             }
 
             // Set all of the prunes
-            for (IpPrefix spfx : jpg.prunes.values()) {
+            for (IpPrefix spfx : jpg.getPrunes().values()) {
                 PIMAddrSource src = new PIMAddrSource(spfx);
                 bb.put(src.serialize());
             }
@@ -267,5 +269,14 @@ public class PIMJoinPrune extends BasePacket {
 
             return jp;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("upstreamAddr", upstreamAddr.toString())
+                .add("holdTime", Short.toString(holdTime))
+                .toString();
+        // TODO: need to handle joinPrunes
     }
 }

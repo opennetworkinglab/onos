@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package org.onosproject.net.intent.constraint;
 import org.junit.Test;
 import org.onlab.util.Bandwidth;
 import org.onosproject.net.Link;
-import org.onosproject.net.resource.link.BandwidthResource;
-import org.onosproject.net.resource.link.LambdaResource;
 
 import com.google.common.testing.EqualsTester;
 
@@ -39,21 +37,18 @@ public class ConstraintObjectsTest {
     private final Bandwidth sameAsBandwidth1 = Bandwidth.bps(100.0);
     private final Bandwidth bandwidth2 = Bandwidth.bps(200.0);
 
-    final BandwidthConstraint bandwidthConstraint1 =
-            new BandwidthConstraint(new BandwidthResource(bandwidth1));
-    final BandwidthConstraint bandwidthConstraintSameAs1 =
-            new BandwidthConstraint(new BandwidthResource(sameAsBandwidth1));
-    final BandwidthConstraint bandwidthConstraint2 =
-            new BandwidthConstraint(new BandwidthResource(bandwidth2));
+    final BandwidthConstraint bandwidthConstraint1 = new BandwidthConstraint(bandwidth1);
+    final BandwidthConstraint bandwidthConstraintSameAs1 = new BandwidthConstraint(sameAsBandwidth1);
+    final BandwidthConstraint bandwidthConstraint2 = new BandwidthConstraint(bandwidth2);
 
     /**
      * Checks that the objects were created properly.
      */
     @Test
     public void testBandwidthConstraintCreation() {
-        assertThat(bandwidthConstraint1.bandwidth().toDouble(), is(equalTo(100.0)));
-        assertThat(bandwidthConstraintSameAs1.bandwidth().toDouble(), is(equalTo(100.0)));
-        assertThat(bandwidthConstraint2.bandwidth().toDouble(), is(equalTo(200.0)));
+        assertThat(bandwidthConstraint1.bandwidth().bps(), is(equalTo(100.0)));
+        assertThat(bandwidthConstraintSameAs1.bandwidth().bps(), is(equalTo(100.0)));
+        assertThat(bandwidthConstraint2.bandwidth().bps(), is(equalTo(200.0)));
     }
 
     /**
@@ -65,36 +60,6 @@ public class ConstraintObjectsTest {
                 .addEqualityGroup(bandwidthConstraint1, bandwidthConstraintSameAs1)
                 .addEqualityGroup(bandwidthConstraint2)
                 .testEquals();
-    }
-
-    // Lambda Constraint
-
-    final LambdaConstraint lambdaConstraint1 =
-            new LambdaConstraint(LambdaResource.valueOf(100));
-    final LambdaConstraint lambdaConstraintSameAs1 =
-            new LambdaConstraint(LambdaResource.valueOf(100));
-    final LambdaConstraint lambdaConstraint2 =
-            new LambdaConstraint(LambdaResource.valueOf(200));
-
-    /**
-     * Checks that the objects were created properly.
-     */
-    @Test
-    public void testLambdaConstraintCreation() {
-        assertThat(lambdaConstraint1.lambda().toInt(), is(equalTo(100)));
-        assertThat(lambdaConstraintSameAs1.lambda().toInt(), is(equalTo(100)));
-        assertThat(lambdaConstraint2.lambda().toInt(), is(equalTo(200)));
-    }
-
-    /**
-     * Checks the correctness of the equals() method.
-     */
-    @Test
-    public void testLambdaConstraintEquals() {
-        new EqualsTester()
-            .addEqualityGroup(lambdaConstraint1, lambdaConstraintSameAs1)
-            .addEqualityGroup(lambdaConstraint2)
-            .testEquals();
     }
 
     // LinkType Constraint

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,6 +94,25 @@ public class IpPrefixTest {
         // IPv6
         ipPrefix = IpPrefix.valueOf("::/0");
         assertTrue(ipPrefix.isIp6());
+    }
+
+    /**
+     * Tests if the prefix is a multicast prefix.
+     */
+    @Test
+    public void testIsMulticast() {
+        IpPrefix v4Unicast = IpPrefix.valueOf("10.0.0.1/16");
+        IpPrefix v4Multicast = IpPrefix.valueOf("224.0.0.1/4");
+        IpPrefix v4Overlap = IpPrefix.valueOf("192.0.0.0/2");
+        IpPrefix v6Unicast = IpPrefix.valueOf("1000::1/8");
+        IpPrefix v6Multicast = IpPrefix.valueOf("ff02::1/8");
+        IpPrefix v6Overlap = IpPrefix.valueOf("ff00::1/4");
+        assertFalse(v4Unicast.isMulticast());
+        assertTrue(v4Multicast.isMulticast());
+        assertFalse(v4Overlap.isMulticast());
+        assertFalse(v6Unicast.isMulticast());
+        assertTrue(v6Multicast.isMulticast());
+        assertFalse(v6Overlap.isMulticast());
     }
 
     /**

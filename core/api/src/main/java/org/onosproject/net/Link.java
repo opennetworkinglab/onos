@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,12 @@
  */
 package org.onosproject.net;
 
+import org.onosproject.net.driver.Projectable;
+
 /**
  * Abstraction of a network infrastructure link.
  */
-public interface Link extends Annotated, Provided, NetworkResource {
+public interface Link extends Annotated, Provided, Projectable, NetworkResource {
 
     /**
      * Coarse representation of the link type.
@@ -108,7 +110,16 @@ public interface Link extends Annotated, Provided, NetworkResource {
      * Indicates if the link is to be considered durable.
      *
      * @return true if the link is durable
+     * @deprecated in Falcon Release - replaced by isConfigured()
      */
+    @Deprecated
     boolean isDurable();
 
+    /**
+     * Indicates if the link was created from a predefined configuration.
+     *
+     * @return true if the link was created from a predefined configuration,
+     *              false otherwise.
+     */
+    boolean isExpected();
 }

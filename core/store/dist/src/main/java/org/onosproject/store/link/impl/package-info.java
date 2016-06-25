@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementation of distributed link store using p2p synchronization protocol.
+ * Implementation of distributed link store using eventually consistent map primitive.
  */
 package org.onosproject.store.link.impl;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2014-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -57,16 +57,9 @@
 
     <servlet>
         <servlet-name>Index Page</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer
-        </servlet-class>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.resourceConfigClass
-            </param-name>
-            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig
-            </param-value>
-        </init-param>
-        <init-param>
-            <param-name>com.sun.jersey.config.property.classnames</param-name>
+            <param-name>jersey.config.server.provider.classnames</param-name>
             <param-value>org.onosproject.ui.impl.MainIndexResource</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
@@ -79,16 +72,9 @@
 
     <servlet>
         <servlet-name>Main Module</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer
-        </servlet-class>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.resourceConfigClass
-            </param-name>
-            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig
-            </param-value>
-        </init-param>
-        <init-param>
-            <param-name>com.sun.jersey.config.property.classnames</param-name>
+            <param-name>jersey.config.server.provider.classnames</param-name>
             <param-value>org.onosproject.ui.impl.MainModuleResource
             </param-value>
         </init-param>
@@ -102,16 +88,9 @@
 
     <servlet>
         <servlet-name>Nav Module</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer
-        </servlet-class>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.resourceConfigClass
-            </param-name>
-            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig
-            </param-value>
-        </init-param>
-        <init-param>
-            <param-name>com.sun.jersey.config.property.classnames</param-name>
+            <param-name>jersey.config.server.provider.classnames</param-name>
             <param-value>org.onosproject.ui.impl.MainNavResource</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
@@ -124,16 +103,9 @@
 
     <servlet>
         <servlet-name>View Module</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer
-        </servlet-class>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.resourceConfigClass
-            </param-name>
-            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig
-            </param-value>
-        </init-param>
-        <init-param>
-            <param-name>com.sun.jersey.config.property.classnames</param-name>
+            <param-name>jersey.config.server.provider.classnames</param-name>
             <param-value>org.onosproject.ui.impl.MainViewResource</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
@@ -145,18 +117,27 @@
     </servlet-mapping>
 
     <servlet>
-        <servlet-name>JAX-RS Service</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer
-        </servlet-class>
+        <servlet-name>Foo Module</servlet-name>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.resourceConfigClass
-            </param-name>
-            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig
-            </param-value>
+            <param-name>jersey.config.server.provider.classnames</param-name>
+            <param-value>org.onosproject.ui.impl.FooResource</param-value>
         </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Foo Module</servlet-name>
+        <url-pattern>/raw/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>JAX-RS Service</servlet-name>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.classnames</param-name>
+            <param-name>jersey.config.server.provider.classnames</param-name>
             <param-value>
+                org.glassfish.jersey.media.multipart.MultiPartFeature,
                 org.onosproject.ui.impl.LogoutResource,
                 org.onosproject.ui.impl.TopologyResource,
                 org.onosproject.ui.impl.ApplicationResource

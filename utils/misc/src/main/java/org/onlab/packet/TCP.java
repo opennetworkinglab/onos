@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ package org.onlab.packet;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.*;
 
 /**
@@ -458,5 +459,21 @@ public class TCP extends BasePacket {
             tcp.payload.setParent(tcp);
             return tcp;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("sourcePort", Integer.toString(sourcePort))
+                .add("destinationPort", Integer.toString(destinationPort))
+                .add("sequence", Integer.toString(sequence))
+                .add("acknowledge", Integer.toString(acknowledge))
+                .add("dataOffset", Byte.toString(dataOffset))
+                .add("flags", Short.toString(flags))
+                .add("windowSize", Short.toString(windowSize))
+                .add("checksum", Short.toString(checksum))
+                .add("urgentPointer", Short.toString(urgentPointer))
+                .add("options", Arrays.toString(options))
+                .toString();
     }
 }

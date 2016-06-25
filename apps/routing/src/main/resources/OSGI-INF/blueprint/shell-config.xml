@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,16 +23,25 @@
       <action class="org.onosproject.routing.cli.BgpRoutesListCommand"/>
     </command>
     <command>
-      <action class="org.onosproject.routing.cli.RoutesListCommand"/>
-    </command>
-    <command>
-      <action class="org.onosproject.routing.cli.AddRouteCommand"/>
-    </command>
-    <command>
-      <action class="org.onosproject.routing.cli.RemoveRouteCommand"/>
-    </command>
-    <command>
       <action class="org.onosproject.routing.cli.BgpSpeakersListCommand"/>
+    </command>
+    <command>
+      <action class="org.onosproject.routing.cli.PrimaryChangeCommand"/>
+    </command>
+    <command>
+      <action class="org.onosproject.routing.cli.AddSpeakerCommand"/>
+    </command>
+    <command>
+      <action class="org.onosproject.routing.cli.RemoveSpeakerCommand"/>
+    </command>
+    <command>
+      <action class="org.onosproject.routing.cli.AddPeerCommand"/>
+    </command>
+    <command>
+      <action class="org.onosproject.routing.cli.RemovePeerCommand"/>
+    </command>
+    <command>
+      <action class="org.onosproject.routing.fpm.cli.FpmConnectionsList"/>
     </command>
   </command-bundle>
 </blueprint>

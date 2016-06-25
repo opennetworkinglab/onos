@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright 2016-present Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!--
+  ONOS -- Glyphs library test page (old version)
+  -->
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Glyphs</title>
+
+    <script src="../tp/d3.js"></script>
+
+    <style>
+        html,
+        body {
+            background-color: #ddf;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 9pt;
+        }
+
+        svg {
+            background-color: #fff;
+        }
+
+        svg .glyph {
+            stroke: none;
+            fill: black;
+            fill-rule: evenodd;
+        }
+
+        svg .icon text {
+            text-anchor: middle;
+            font-size: 5pt;
+            fill: green;
+            stroke: none;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- minimal framework to access glyphs library module -->
+    <script>
+        var libs = {};
+        var ONOS = { ui: { addLib: function (id, things) { libs[id] = things; }}};
+    </script>
+
+    <!-- import the glyphs library -->
+    <script src="../glyphs.js"></script>
+
+    <svg></svg>
+
+    <!-- code to display the glyphs in the library -->
+    <script>
+        (function () {
+            var w = 1000,
+                h = 800,
+                vb = '0 0 ' + w + ' ' + h;
+
+            var svg = d3.select('svg')
+                    .attr({ width: w, height: h, viewBox: vb });
+
+            // create definitions element...
+            var defs = svg.append('defs');
+
+            // create scaling group
+            var grp = svg.append('g')
+                    .attr('transform', 'translate(20,20)scale(2)');
+
+            var mag = svg.append('g')
+                    .attr('transform', 'translate(20,20)scale(12)');
+
+            function translate(loc) {
+                return 'translate(' + loc[0] + ',' + loc[1] +')';
+            }
+
+            function icon(what, id, loc, color, bg, size) {
+                var i = '#' + id,
+                    c = color || 'black',
+                    b = bg || '#eef',
+                    z = size || 40,
+                    g;
+
+                g = what.append('g')
+                    .attr({ 'class': 'icon', transform: translate(loc) });
+
+                g.append('rect')
+                    .attr({ width: z, height: z, rx: 4 })
+                    .style('fill', b)
+                    .style('stroke', 'black')
+                    .style('stroke-width', 0.5);
+
+                g.append('use')
+                    .attr({ 'class': 'glyph', width: z, height: z, 'xlink:href': i })
+                    .style('fill', c);
+
+                if (id !== 'bird') {
+                    g.append('text')
+                        .text(id)
+                        .attr({ x: z / 2, y: z + 8 })
+                }
+            }
+
+
+            // import glyphs...
+            libs.glyphs.loadDefs(defs);
+
+            // bird, top right corner
+            icon(svg, 'bird', [830,10], '#800', '#ecc', 160);
+
+            // show icons...
+            icon(grp, 'unknown',     [  0, 0]);
+            icon(grp, 'node',        [ 50, 0]);
+            icon(grp, 'switch',      [100, 0]);
+            icon(grp, 'roadm',       [150, 0]);
+            icon(grp, 'endstation',  [200, 0]);
+            icon(grp, 'router',      [250, 0]);
+            icon(grp, 'bgpSpeaker',  [300, 0]);
+            icon(grp, 'uiAttached',  [350, 0]);
+            icon(grp, 'otn',         [400, 0]);
+
+            icon(grp, 'chain',       [  0, 60]);
+            icon(grp, 'crown',       [ 50, 60]);
+
+//            icon(mag, 'crown',  [20, 15], 'rgba(240,120,120,1)', 'transparent');
+
+            // more goodies to come soon.....
+        })();
+    </script>
+
+</body>
+</html>

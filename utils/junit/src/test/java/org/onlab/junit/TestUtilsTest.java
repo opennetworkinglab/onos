@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,7 +121,7 @@ public class TestUtilsTest {
 
     /**
      * Example to call private method and multiple parameters.
-     * <p/>
+     * <p>
      * It also illustrates that paramTypes must match declared type,
      * not the runtime types of arguments.
      *
@@ -151,7 +151,7 @@ public class TestUtilsTest {
 
     /**
      * Example to call method returning array.
-     * <p/>
+     * <p>
      * Note: It is not required to receive as Object.
      * Following is just verifying it is not Boxed arrays.
      *
@@ -170,7 +170,7 @@ public class TestUtilsTest {
 
     /**
      * Example to call void returning method.
-     * <p/>
+     * <p>
      * Note: Return value will be null for void methods.
      *
      * @throws TestUtilsException TestUtils error

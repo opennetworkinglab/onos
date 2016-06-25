@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.onosproject.net.driver;
 
 import org.junit.Test;
+import org.onosproject.net.DeviceId;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,7 +58,7 @@ public class XmlDriverLoaderTest {
     }
 
     @Test(expected = IOException.class)
-    public void badXML() throws IOException {
+    public void badXml() throws IOException {
         XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader());
         loader.loadDrivers(getClass().getResourceAsStream("drivers.bad.xml"), null);
     }
@@ -75,6 +76,40 @@ public class XmlDriverLoaderTest {
         DriverProvider provider = loader.loadDrivers(stream, null);
         Driver driver = provider.getDrivers().iterator().next();
         driver.createBehaviour(new DefaultDriverData(driver, DEVICE_ID), TestBehaviour.class);
+    }
+
+    @Test
+    public void multipleDrivers() throws IOException {
+        XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader());
+        InputStream stream = getClass().getResourceAsStream("drivers.multipleInheritance.xml");
+        DriverProvider provider = loader.loadDrivers(stream, null);
+        Iterator<Driver> iterator = provider.getDrivers().iterator();
+        Driver driver;
+        do {
+            driver = iterator.next();
+        } while (!driver.name().equals("foo.2"));
+        assertTrue("incorrect multiple behaviour inheritance", driver.hasBehaviour(TestBehaviour.class));
+        assertTrue("incorrect multiple behaviour inheritance", driver.hasBehaviour(TestBehaviourTwo.class));
+    }
+
+    @Test
+    public void multipleDriversSameBehaviors() throws IOException {
+        XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader());
+        InputStream stream = getClass().getResourceAsStream("drivers.sameMultipleInheritance.xml");
+        DriverProvider provider = loader.loadDrivers(stream, null);
+        Iterator<Driver> iterator = provider.getDrivers().iterator();
+        Driver driver;
+        do {
+            driver = iterator.next();
+        } while (!driver.name().equals("foo.2"));
+        assertTrue("incorrect multiple behaviour inheritance", driver.hasBehaviour(TestBehaviour.class));
+        Behaviour b2 = driver.createBehaviour(new DefaultDriverHandler(
+                                                      new DefaultDriverData(
+                                                              driver, DeviceId.deviceId("test_device"))),
+                                              TestBehaviour.class);
+        assertTrue("incorrect multiple same behaviour inheritance", b2.getClass()
+                .getSimpleName().equals("TestBehaviourImpl2"));
+        assertTrue("incorrect multiple behaviour inheritance", driver.hasBehaviour(TestBehaviourTwo.class));
     }
 
 }

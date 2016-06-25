@@ -1,0 +1,18 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:00000000000000011",
+    "type": "virtual",
+    "online": true,
+    "master": "ONOS",
+    "labels": [
+      "",
+      "virtual",
+      "of:0000000000000011"
+    ],
+    "metaUi": {
+      "x": 500,
+      "y": 400
+    }
+  }
+}

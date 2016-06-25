@@ -1,0 +1,11 @@
+{
+   "source":"11.0.0.1",
+   "destination":"11.0.0.2",
+   "pathType":"2",
+   "name":"pcc2",
+   "description":"path-create",
+   "constraint":
+    {  "cost":2,
+       "bandwidth":200.0
+    }
+}

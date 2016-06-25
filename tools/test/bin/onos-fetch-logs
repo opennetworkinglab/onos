@@ -30,7 +30,7 @@ fi
 
 # Select the target
 if [ "${1}" = "--cell" ]; then
-    nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
+    nodes=$(env | sort | egrep "^OC[0-9]+" | cut -d= -f2)
 else
     nodes=${1:-$OCI}
 fi

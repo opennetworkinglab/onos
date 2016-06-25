@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,25 +21,28 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.junit.TestTools;
 import org.onosproject.cfg.ComponentConfigAdapter;
+import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.IdGenerator;
-import org.onosproject.common.event.impl.TestEventDispatcher;
+import org.onosproject.mastership.MastershipServiceAdapter;
+import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
 import org.onosproject.net.Device.Type;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
-import org.onosproject.net.Port;
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceServiceAdapter;
+import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.onosproject.net.driver.DefaultDriver;
+import org.onosproject.net.driver.impl.DriverManager;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -49,6 +52,7 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleEvent;
 import org.onosproject.net.flow.FlowRuleListener;
+import org.onosproject.net.flow.FlowRuleProgrammable;
 import org.onosproject.net.flow.FlowRuleProvider;
 import org.onosproject.net.flow.FlowRuleProviderRegistry;
 import org.onosproject.net.flow.FlowRuleProviderService;
@@ -65,8 +69,10 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.trivial.SimpleFlowRuleStore;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -76,16 +82,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.onosproject.net.NetTestTools.injectEventDispatcher;
-import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_ADDED;
-import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_ADD_REQUESTED;
-import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
-import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVE_REQUESTED;
-import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_UPDATED;
+import static org.onosproject.net.flow.FlowRuleEvent.Type.*;
 
 /**
  * Test codifying the flow rule service & flow rule provider service contracts.
@@ -94,10 +93,19 @@ public class FlowRuleManagerTest {
 
 
     private static final ProviderId PID = new ProviderId("of", "foo");
+    private static final ProviderId FOO_PID = new ProviderId("foo", "foo");
+
     private static final DeviceId DID = DeviceId.deviceId("of:001");
+    private static final DeviceId FOO_DID = DeviceId.deviceId("foo:002");
     private static final int TIMEOUT = 10;
-    private static final Device DEV = new DefaultDevice(
-            PID, DID, Type.SWITCH, "", "", "", "", null);
+
+    private static final DefaultAnnotations ANNOTATIONS =
+            DefaultAnnotations.builder().set(AnnotationKeys.DRIVER, "foo").build();
+
+    private static final Device DEV =
+            new DefaultDevice(PID, DID, Type.SWITCH, "", "", "", "", null);
+    private static final Device FOO_DEV =
+            new DefaultDevice(FOO_PID, FOO_DID, Type.SWITCH, "", "", "", "", null, ANNOTATIONS);
 
     private FlowRuleManager mgr;
 
@@ -108,6 +116,8 @@ public class FlowRuleManagerTest {
     protected TestListener listener = new TestListener();
     private ApplicationId appId;
 
+    private TestDriverManager driverService;
+
 
     @Before
     public void setUp() {
@@ -115,12 +125,19 @@ public class FlowRuleManagerTest {
         mgr.store = new SimpleFlowRuleStore();
         injectEventDispatcher(mgr, new TestEventDispatcher());
         mgr.deviceService = new TestDeviceService();
+        mgr.mastershipService = new TestMastershipService();
         mgr.coreService = new TestCoreService();
         mgr.operationsService = MoreExecutors.newDirectExecutorService();
         mgr.deviceInstallers = MoreExecutors.newDirectExecutorService();
         mgr.cfgService = new ComponentConfigAdapter();
         service = mgr;
         registry = mgr;
+
+        driverService = new TestDriverManager();
+        driverService.addDriver(new DefaultDriver("foo", ImmutableList.of(), "", "", "",
+                                                  ImmutableMap.of(FlowRuleProgrammable.class,
+                                                                  TestFlowRuleProgrammable.class),
+                                                  ImmutableMap.of()));
 
         mgr.activate(null);
         mgr.addListener(listener);
@@ -143,10 +160,14 @@ public class FlowRuleManagerTest {
     }
 
     private FlowRule flowRule(int tsval, int trval) {
+        return flowRule(DID, tsval, trval);
+    }
+
+    private FlowRule flowRule(DeviceId did, int tsval, int trval) {
         TestSelector ts = new TestSelector(tsval);
         TestTreatment tr = new TestTreatment(trval);
         return DefaultFlowRule.builder()
-                .forDevice(DID)
+                .forDevice(did)
                 .withSelector(ts)
                 .withTreatment(tr)
                 .withPriority(10)
@@ -154,7 +175,6 @@ public class FlowRuleManagerTest {
                 .makeTemporary(TIMEOUT)
                 .build();
     }
-
 
     private FlowRule addFlowRule(int hval) {
         FlowRule rule = flowRule(hval, hval);
@@ -206,7 +226,7 @@ public class FlowRuleManagerTest {
         assertEquals("should still be 2 rules", 2, flowCount());
 
         providerService.pushFlowMetrics(DID, ImmutableList.of(fe1));
-        validateEvents(RULE_UPDATED);
+        validateEvents(RULE_UPDATED, RULE_UPDATED);
     }
 
     private boolean validateState(Map<FlowRule, FlowEntryState> expected) {
@@ -229,14 +249,14 @@ public class FlowRuleManagerTest {
         FlowRule r3 = flowRule(3, 3);
 
         assertTrue("store should be empty",
-                Sets.newHashSet(service.getFlowEntries(DID)).isEmpty());
+                   Sets.newHashSet(service.getFlowEntries(DID)).isEmpty());
         mgr.applyFlowRules(r1, r2, r3);
         assertEquals("3 rules should exist", 3, flowCount());
         assertTrue("Entries should be pending add.",
-                validateState(ImmutableMap.of(
-                        r1, FlowEntryState.PENDING_ADD,
-                        r2, FlowEntryState.PENDING_ADD,
-                        r3, FlowEntryState.PENDING_ADD)));
+                   validateState(ImmutableMap.of(
+                           r1, FlowEntryState.PENDING_ADD,
+                           r2, FlowEntryState.PENDING_ADD,
+                           r3, FlowEntryState.PENDING_ADD)));
     }
 
     @Test
@@ -258,10 +278,10 @@ public class FlowRuleManagerTest {
         validateEvents(RULE_REMOVE_REQUESTED, RULE_REMOVE_REQUESTED);
         assertEquals("3 rule should exist", 3, flowCount());
         assertTrue("Entries should be pending remove.",
-                validateState(ImmutableMap.of(
-                        f1, FlowEntryState.PENDING_REMOVE,
-                        f2, FlowEntryState.PENDING_REMOVE,
-                        f3, FlowEntryState.ADDED)));
+                   validateState(ImmutableMap.of(
+                           f1, FlowEntryState.PENDING_REMOVE,
+                           f2, FlowEntryState.PENDING_REMOVE,
+                           f3, FlowEntryState.ADDED)));
 
         mgr.removeFlowRules(f1);
         assertEquals("3 rule should still exist", 3, flowCount());
@@ -269,25 +289,21 @@ public class FlowRuleManagerTest {
 
     @Test
     public void flowRemoved() {
-
         FlowRule f1 = addFlowRule(1);
         FlowRule f2 = addFlowRule(2);
         StoredFlowEntry fe1 = new DefaultFlowEntry(f1);
         FlowEntry fe2 = new DefaultFlowEntry(f2);
 
-
         providerService.pushFlowMetrics(DID, ImmutableList.of(fe1, fe2));
         service.removeFlowRules(f1);
 
+        //FIXME modification of "stored" flow entry outside of store
         fe1.setState(FlowEntryState.REMOVED);
-
-
 
         providerService.flowRemoved(fe1);
 
-
         validateEvents(RULE_ADD_REQUESTED, RULE_ADD_REQUESTED, RULE_ADDED,
-                RULE_ADDED, RULE_REMOVE_REQUESTED, RULE_REMOVED);
+                       RULE_ADDED, RULE_REMOVE_REQUESTED, RULE_REMOVED);
 
         providerService.flowRemoved(fe1);
         validateEvents();
@@ -297,11 +313,10 @@ public class FlowRuleManagerTest {
         service.applyFlowRules(f3);
 
         providerService.pushFlowMetrics(DID, Collections.singletonList(fe3));
-        validateEvents(RULE_ADD_REQUESTED, RULE_ADDED);
+        validateEvents(RULE_ADD_REQUESTED, RULE_ADDED, RULE_UPDATED);
 
         providerService.flowRemoved(fe3);
         validateEvents();
-
     }
 
     @Test
@@ -327,7 +342,7 @@ public class FlowRuleManagerTest {
                            f3, FlowEntryState.PENDING_ADD)));
 
         validateEvents(RULE_ADD_REQUESTED, RULE_ADD_REQUESTED, RULE_ADD_REQUESTED,
-                RULE_ADDED, RULE_ADDED);
+                       RULE_ADDED, RULE_ADDED);
     }
 
     @Test
@@ -384,7 +399,7 @@ public class FlowRuleManagerTest {
         mgr.applyFlowRules(f1, f2);
 
         assertTrue("should have two rules",
-                Lists.newLinkedList(mgr.getFlowRulesById(appId)).size() == 2);
+                   Lists.newLinkedList(mgr.getFlowRulesById(appId)).size() == 2);
     }
 
     @Test
@@ -403,6 +418,51 @@ public class FlowRuleManagerTest {
                 f2, FlowEntryState.PENDING_REMOVE));
     }
 
+    @Test
+    public void fallbackBasics() {
+        FlowRule f1 = flowRule(FOO_DID, 1, 1);
+        flowRules.clear();
+        mgr.applyFlowRules(f1);
+        assertTrue("flow rule not applied", flowRules.contains(f1));
+
+        flowRules.clear();
+        mgr.removeFlowRules(f1);
+        assertTrue("flow rule not removed", flowRules.contains(f1));
+    }
+
+    @Test
+    public void fallbackFlowRemoved() {
+        FlowRule f1 = flowRule(FOO_DID, 1, 1);
+        mgr.applyFlowRules(f1);
+        flowRules.clear();
+        providerService.flowRemoved(new DefaultFlowEntry(f1));
+        assertTrue("flow rule not reapplied", flowRules.contains(f1));
+    }
+
+    @Test
+    public void fallbackExtraFlow() {
+        FlowRule f1 = flowRule(FOO_DID, 1, 1);
+        flowRules.clear();
+        providerService.pushFlowMetrics(FOO_DID, ImmutableList.of(new DefaultFlowEntry(f1)));
+        assertTrue("flow rule not removed", flowRules.contains(f1));
+    }
+
+    @Test
+    public void fallbackPoll() {
+        FlowRuleDriverProvider fallback = (FlowRuleDriverProvider) mgr.defaultProvider();
+        FlowRule f1 = flowRule(FOO_DID, 1, 1);
+        mgr.applyFlowRules(f1);
+        FlowEntry fe = mgr.getFlowEntries(FOO_DID).iterator().next();
+        assertEquals("incorrect state", FlowEntryState.PENDING_ADD, fe.state());
+
+        fallback.init(fallback.providerService, mgr.deviceService, mgr.mastershipService, 1);
+        TestTools.assertAfter(2000, () -> {
+            FlowEntry e = mgr.getFlowEntries(FOO_DID).iterator().next();
+            assertEquals("incorrect state", FlowEntryState.ADDED, e.state());
+        });
+    }
+
+
     private static class TestListener implements FlowRuleListener {
         final List<FlowRuleEvent> events = new ArrayList<>();
 
@@ -413,50 +473,25 @@ public class FlowRuleManagerTest {
     }
 
     private static class TestDeviceService extends DeviceServiceAdapter {
-
         @Override
         public int getDeviceCount() {
-            return 1;
+            return 2;
         }
 
         @Override
         public Iterable<Device> getDevices() {
-            return Collections.singletonList(DEV);
+            return ImmutableList.of(DEV, FOO_DEV);
+        }
+
+        @Override
+        public Iterable<Device> getAvailableDevices() {
+            return getDevices();
         }
 
         @Override
         public Device getDevice(DeviceId deviceId) {
-            return DEV;
+            return deviceId.equals(FOO_DID) ? FOO_DEV : DEV;
         }
-
-        @Override
-        public MastershipRole getRole(DeviceId deviceId) {
-            return null;
-        }
-
-        @Override
-        public List<Port> getPorts(DeviceId deviceId) {
-            return null;
-        }
-
-        @Override
-        public Port getPort(DeviceId deviceId, PortNumber portNumber) {
-            return null;
-        }
-
-        @Override
-        public boolean isAvailable(DeviceId deviceId) {
-            return false;
-        }
-
-        @Override
-        public void addListener(DeviceListener listener) {
-        }
-
-        @Override
-        public void removeListener(DeviceListener listener) {
-        }
-
     }
 
     private class TestProvider extends AbstractProvider implements FlowRuleProvider {
@@ -479,7 +514,7 @@ public class FlowRuleManagerTest {
 
         @Override
         public void executeBatch(FlowRuleBatchOperation batch) {
-         // TODO: need to call batchOperationComplete
+            // TODO: need to call batchOperationComplete
         }
 
         private class TestInstallationFuture
@@ -534,7 +569,7 @@ public class FlowRuleManagerTest {
 
         @Override
         public Set<Criterion> criteria() {
-            return null;
+            return Collections.emptySet();
         }
 
         @Override
@@ -629,6 +664,7 @@ public class FlowRuleManagerTest {
         public IdGenerator getIdGenerator(String topic) {
             return new IdGenerator() {
                 private AtomicLong counter = new AtomicLong(0);
+
                 @Override
                 public long getNewId() {
                     return counter.getAndIncrement();
@@ -637,4 +673,41 @@ public class FlowRuleManagerTest {
         }
     }
 
+    private class TestMastershipService extends MastershipServiceAdapter {
+        @Override
+        public MastershipRole getLocalRole(DeviceId deviceId) {
+            return MastershipRole.MASTER;
+        }
+    }
+
+    private class TestDriverManager extends DriverManager {
+        TestDriverManager() {
+            this.deviceService = mgr.deviceService;
+            activate();
+        }
+    }
+
+    static Collection<FlowRule> flowRules = new HashSet<>();
+
+    public static class TestFlowRuleProgrammable extends AbstractHandlerBehaviour implements FlowRuleProgrammable {
+
+        @Override
+        public Collection<FlowEntry> getFlowEntries() {
+            ImmutableList.Builder<FlowEntry> builder = ImmutableList.builder();
+            flowRules.stream().map(DefaultFlowEntry::new).forEach(builder::add);
+            return builder.build();
+        }
+
+        @Override
+        public Collection<FlowRule> applyFlowRules(Collection<FlowRule> rules) {
+            flowRules.addAll(rules);
+            return rules;
+        }
+
+        @Override
+        public Collection<FlowRule> removeFlowRules(Collection<FlowRule> rules) {
+            flowRules.addAll(rules);
+            return rules;
+        }
+    }
 }

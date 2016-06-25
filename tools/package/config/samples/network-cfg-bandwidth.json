@@ -1,0 +1,14 @@
+{
+    "ports": {
+        "of:0000000000000002/1": {
+            "bandwidthCapacity": {
+                "capacityMbps": 1
+            }
+        },
+        "of:0000000000000002/2": {
+          "bandwidthCapacity": {
+              "capacityMbps": 2.0
+          }
+        }
+    }
+}

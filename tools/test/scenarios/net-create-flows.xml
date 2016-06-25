@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -53,6 +53,10 @@
               exec="create-flow.py ${OC1} f9 of:0000000000000007 3 2"/>
         <step name="Net-Create-Flows.Host-to-4" requires="^"
               exec="create-flow.py ${OC1} f10 of:0000000000000004 3 1"/>
+
+        <!-- Make sure all flows are added -->
+        <step name="Net-Create-Flows.Check-Flows-Added" requires="^"
+              exec="onos-check-flows ${OC1}"/>
 
         <!-- Check that connectivity was established -->
         <step name="Net-Create-Flows.Ping-XY" requires="^"

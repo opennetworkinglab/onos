@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,19 +51,9 @@ public class SuppressionRulesTest {
 
     @Before
     public void setUp() throws Exception {
-        rules = new SuppressionRules(ImmutableSet.of(SUPPRESSED_DID),
-                               ImmutableSet.of(Device.Type.ROADM),
+        rules = new SuppressionRules(ImmutableSet.of(Device.Type.ROADM, Device.Type.OTN),
                                ImmutableMap.of("no-lldp", SuppressionRules.ANY_VALUE,
                                                "sendLLDP", "false"));
-    }
-
-    @Test
-    public void testSuppressedDeviceId() {
-        Device device = new DefaultDevice(PID,
-                                          SUPPRESSED_DID,
-                                          Device.Type.SWITCH,
-                                          MFR, HW, SW1, SN, CID);
-        assertTrue(rules.isSuppressed(device));
     }
 
     @Test
@@ -108,17 +98,6 @@ public class SuppressionRulesTest {
                                           Device.Type.SWITCH,
                                           MFR, HW, SW1, SN, CID);
         assertFalse(rules.isSuppressed(device));
-    }
-
-    @Test
-    public void testSuppressedPortOnSuppressedDevice() {
-        Device device = new DefaultDevice(PID,
-                                          SUPPRESSED_DID,
-                                          Device.Type.SWITCH,
-                                          MFR, HW, SW1, SN, CID);
-        Port port = new DefaultPort(device, P1, true);
-
-        assertTrue(rules.isSuppressed(port));
     }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.net.intent.MockIdGenerator;
-import org.onosproject.net.intent.PartitionServiceAdapter;
+import org.onosproject.net.intent.IntentPartitionServiceAdapter;
 import org.onosproject.store.service.TestStorageService;
 
 import static org.hamcrest.Matchers.is;
@@ -52,7 +52,7 @@ public class GossipIntentStoreTest {
     public void setUp() {
         intentStore = new GossipIntentStore();
         intentStore.storageService = new TestStorageService();
-        intentStore.partitionService = new PartitionServiceAdapter();
+        intentStore.partitionService = new IntentPartitionServiceAdapter();
         intentStore.clusterService = new ClusterServiceAdapter();
         idGenerator = new MockIdGenerator();
         Intent.bindIdGenerator(idGenerator);

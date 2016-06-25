@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "required": [
+    "leaseTime",
+    "renewalTime",
+    "rebindingTime"
+  ],
+  "properties": {
+    "leaseTime": {
+      "type": "integer",
+      "format": "int64",
+      "example": "250"
+    },
+    "renewalTime": {
+      "type": "integer",
+      "format": "int64",
+      "example": "250"
+    },
+    "rebindingTime": {
+      "type": "integer",
+      "format": "int64",
+      "example": "250"
+    }
+  }
+}
+

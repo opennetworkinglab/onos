@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.onosproject.net.driver;
 
 import org.onosproject.net.Annotations;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,8 +40,18 @@ public interface Driver extends Annotations {
      * and properties.
      *
      * @return parent driver; null if driver has no parent
+     * @deprecated 1.5.0 Falcon Release
      */
+    @Deprecated
     Driver parent();
+
+    /**
+     * Returns all the parent drivers from which this driver inherits behaviours
+     * and properties.
+     *
+     * @return list of parent drivers; null if driver has no parent
+     */
+    List<Driver> parents();
 
     /**
      * Returns the device manufacturer name.
@@ -82,7 +93,7 @@ public interface Driver extends Annotations {
 
     /**
      * Indicates whether or not the driver, or any of its parents, support
-     * the specified class of behaviour. It
+     * the specified class of behaviour.
      *
      * @param behaviourClass behaviour class
      * @return true if behaviour is supported
@@ -102,7 +113,7 @@ public interface Driver extends Annotations {
     <T extends Behaviour> T createBehaviour(DriverData data, Class<T> behaviourClass);
 
     /**
-     * Creates an instance of behaviour primed with the specified driver data.
+     * Creates an instance of behaviour primed with the specified driver handler.
      * If the current driver does not support the specified behaviour and the
      * driver has parent, the request is delegated to the parent driver.
      *

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
+import org.onosproject.net.intent.FlowObjectiveIntent;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.LinkCollectionIntent;
@@ -36,12 +37,12 @@ import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.statistic.Load;
-import org.onosproject.ui.impl.topo.IntentSelection;
-import org.onosproject.ui.impl.topo.ServicesBundle;
-import org.onosproject.ui.impl.topo.TopoIntentFilter;
-import org.onosproject.ui.impl.topo.TrafficLink;
-import org.onosproject.ui.impl.topo.TrafficLink.StatsType;
-import org.onosproject.ui.impl.topo.TrafficLinkMap;
+import org.onosproject.ui.impl.topo.util.IntentSelection;
+import org.onosproject.ui.impl.topo.util.ServicesBundle;
+import org.onosproject.ui.impl.topo.util.TopoIntentFilter;
+import org.onosproject.ui.impl.topo.util.TrafficLink;
+import org.onosproject.ui.impl.topo.util.TrafficLink.StatsType;
+import org.onosproject.ui.impl.topo.util.TrafficLinkMap;
 import org.onosproject.ui.topo.DeviceHighlight;
 import org.onosproject.ui.topo.Highlights;
 import org.onosproject.ui.topo.Highlights.Amount;
@@ -65,7 +66,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
-import static org.onosproject.ui.impl.TrafficMonitor.Mode.*;
+import static org.onosproject.ui.impl.TrafficMonitor.Mode.IDLE;
+import static org.onosproject.ui.impl.TrafficMonitor.Mode.RELATED_INTENTS;
+import static org.onosproject.ui.impl.TrafficMonitor.Mode.SELECTED_INTENT;
 
 /**
  * Encapsulates the behavior of monitoring specific traffic patterns.
@@ -571,6 +574,8 @@ public class TrafficMonitor {
                     if (installable instanceof PathIntent) {
                         links = ((PathIntent) installable).path().links();
                     } else if (installable instanceof FlowRuleIntent) {
+                        links = linkResources(installable);
+                    } else if (installable instanceof FlowObjectiveIntent) {
                         links = linkResources(installable);
                     } else if (installable instanceof LinkCollectionIntent) {
                         links = ((LinkCollectionIntent) installable).links();

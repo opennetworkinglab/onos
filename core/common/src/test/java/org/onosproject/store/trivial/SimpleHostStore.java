@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,10 +88,14 @@ public class SimpleHostStore
                                         boolean replaceIps) {
         //TODO We need a way to detect conflicting changes and abort update.
         StoredHost host = hosts.get(hostId);
+        HostEvent hostEvent;
         if (host == null) {
-            return createHost(providerId, hostId, hostDescription);
+            hostEvent = createHost(providerId, hostId, hostDescription);
+        } else {
+            hostEvent = updateHost(providerId, host, hostDescription, replaceIps);
         }
-        return updateHost(providerId, host, hostDescription, replaceIps);
+        notifyDelegate(hostEvent);
+        return hostEvent;
     }
 
     // creates a new host and sends HOST_ADDED
@@ -153,7 +157,9 @@ public class SimpleHostStore
             Host host = hosts.remove(hostId);
             if (host != null) {
                 locations.remove((host.location()), host);
-                return new HostEvent(HOST_REMOVED, host);
+                HostEvent hostEvent = new HostEvent(HOST_REMOVED, host);
+                notifyDelegate(hostEvent);
+                return hostEvent;
             }
             return null;
         }

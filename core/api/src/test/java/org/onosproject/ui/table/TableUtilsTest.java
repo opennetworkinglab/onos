@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ public class TableUtilsTest {
         tm.addRow().cell(FOO, 1).cell(BAR, 2);
         tm.addRow().cell(FOO, 3).cell(BAR, 4);
 
-        ArrayNode array = TableUtils.generateArrayNode(tm);
+        ArrayNode array = TableUtils.generateRowArrayNode(tm);
         Assert.assertEquals("wrong results", ARRAY_AS_STRING, array.toString());
     }
 

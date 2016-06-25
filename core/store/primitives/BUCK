@@ -1,0 +1,25 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//core/common:onos-core-common',
+    '//incubator/api:onos-incubator-api',
+    '//core/store/serializers:onos-core-serializers',
+    '//lib:atomix',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+    '//core/api:onos-api-tests',
+    '//lib:netty-transport',
+    '//lib:catalyst-transport',
+    '//lib:netty-handler',
+    '//lib:netty-buffer',
+    '//lib:netty-codec',
+
+]
+
+osgi_jar_with_tests (
+    name = 'onos-core-primitives',
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    visibility = ['PUBLIC'],
+)

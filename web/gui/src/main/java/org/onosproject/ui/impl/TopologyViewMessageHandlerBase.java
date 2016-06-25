@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpAddress;
+import org.onlab.util.DefaultHashMap;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
@@ -62,7 +63,7 @@ import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
-import org.onosproject.ui.impl.topo.ServicesBundle;
+import org.onosproject.ui.impl.topo.util.ServicesBundle;
 import org.onosproject.ui.topo.PropertyPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,17 +81,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ADDED;
-import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_REMOVED;
-import static org.onosproject.cluster.ControllerNode.State.ACTIVE;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.net.PortNumber.portNumber;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
-import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
-import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
-import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
-import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
 import static org.onosproject.ui.topo.TopoConstants.CoreButtons;
 import static org.onosproject.ui.topo.TopoConstants.Properties;
 import static org.onosproject.ui.topo.TopoUtils.compactLinkString;
@@ -99,6 +91,33 @@ import static org.onosproject.ui.topo.TopoUtils.compactLinkString;
  * Facility for creating messages bound for the topology viewer.
  */
 public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
+
+    // default to an "add" event...
+    private static final DefaultHashMap<ClusterEvent.Type, String> CLUSTER_EVENT =
+            new DefaultHashMap<>("addInstance");
+
+    // default to an "update" event...
+    private static final DefaultHashMap<DeviceEvent.Type, String> DEVICE_EVENT =
+            new DefaultHashMap<>("updateDevice");
+    private static final DefaultHashMap<LinkEvent.Type, String> LINK_EVENT =
+            new DefaultHashMap<>("updateLink");
+    private static final DefaultHashMap<HostEvent.Type, String> HOST_EVENT =
+            new DefaultHashMap<>("updateHost");
+
+    // but call out specific events that we care to differentiate...
+    static {
+        CLUSTER_EVENT.put(ClusterEvent.Type.INSTANCE_REMOVED, "removeInstance");
+
+        DEVICE_EVENT.put(DeviceEvent.Type.DEVICE_ADDED, "addDevice");
+        DEVICE_EVENT.put(DeviceEvent.Type.DEVICE_REMOVED, "removeDevice");
+
+        LINK_EVENT.put(LinkEvent.Type.LINK_ADDED, "addLink");
+        LINK_EVENT.put(LinkEvent.Type.LINK_REMOVED, "removeLink");
+
+        HOST_EVENT.put(HostEvent.Type.HOST_ADDED, "addHost");
+        HOST_EVENT.put(HostEvent.Type.HOST_REMOVED, "removeHost");
+        HOST_EVENT.put(HostEvent.Type.HOST_MOVED, "moveHost");
+    }
 
     protected static final Logger log =
             LoggerFactory.getLogger(TopologyViewMessageHandlerBase.class);
@@ -204,13 +223,14 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     // Produces a cluster instance message to the client.
-    protected ObjectNode instanceMessage(ClusterEvent event, String messageType) {
+    protected ObjectNode instanceMessage(ClusterEvent event, String msgType) {
         ControllerNode node = event.subject();
         int switchCount = mastershipService.getDevicesOf(node.id()).size();
         ObjectNode payload = objectNode()
                 .put("id", node.id().toString())
                 .put("ip", node.ip().toString())
-                .put("online", clusterService.getState(node.id()) == ACTIVE)
+                .put("online", clusterService.getState(node.id()).isActive())
+                .put("ready", clusterService.getState(node.id()).isReady())
                 .put("uiAttached", node.equals(clusterService.getLocalNode()))
                 .put("switches", switchCount);
 
@@ -222,10 +242,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         payload.set("labels", labels);
         addMetaUi(node.id().toString(), payload);
 
-        String type = messageType != null ? messageType :
-                ((event.type() == INSTANCE_ADDED) ? "addInstance" :
-                        ((event.type() == INSTANCE_REMOVED ? "removeInstance" :
-                                "addInstance")));
+        String type = msgType != null ? msgType : CLUSTER_EVENT.get(event.type());
         return JsonUtils.envelope(type, 0, payload);
     }
 
@@ -251,8 +268,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         addGeoLocation(device, payload);
         addMetaUi(device.id().toString(), payload);
 
-        String type = (event.type() == DEVICE_ADDED) ? "addDevice" :
-                ((event.type() == DEVICE_REMOVED) ? "removeDevice" : "updateDevice");
+        String type = DEVICE_EVENT.get(event.type());
         return JsonUtils.envelope(type, 0, payload);
     }
 
@@ -262,35 +278,39 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         ObjectNode payload = objectNode()
                 .put("id", compactLinkString(link))
                 .put("type", link.type().toString().toLowerCase())
+                .put("expected", link.isExpected())
                 .put("online", link.state() == Link.State.ACTIVE)
                 .put("linkWidth", 1.2)
                 .put("src", link.src().deviceId().toString())
                 .put("srcPort", link.src().port().toString())
                 .put("dst", link.dst().deviceId().toString())
                 .put("dstPort", link.dst().port().toString());
-        String type = (event.type() == LINK_ADDED) ? "addLink" :
-                ((event.type() == LINK_REMOVED) ? "removeLink" : "updateLink");
+        String type = LINK_EVENT.get(event.type());
         return JsonUtils.envelope(type, 0, payload);
     }
 
     // Produces a host event message to the client.
     protected ObjectNode hostMessage(HostEvent event) {
         Host host = event.subject();
+        Host prevHost = event.prevSubject();
         String hostType = host.annotations().value(AnnotationKeys.TYPE);
+
         ObjectNode payload = objectNode()
                 .put("id", host.id().toString())
                 .put("type", isNullOrEmpty(hostType) ? "endstation" : hostType)
                 .put("ingress", compactLinkString(edgeLink(host, true)))
                 .put("egress", compactLinkString(edgeLink(host, false)));
         payload.set("cp", hostConnect(host.location()));
+        if (prevHost != null && prevHost.location() != null) {
+            payload.set("prevCp", hostConnect(prevHost.location()));
+        }
         payload.set("labels", labels(ip(host.ipAddresses()),
                                      host.mac().toString()));
         payload.set("props", props(host.annotations()));
         addGeoLocation(host, payload);
         addMetaUi(host.id().toString(), payload);
 
-        String type = (event.type() == HOST_ADDED) ? "addHost" :
-                ((event.type() == HOST_REMOVED) ? "removeHost" : "updateHost");
+        String type = HOST_EVENT.get(event.type());
         return JsonUtils.envelope(type, 0, payload);
     }
 
@@ -337,18 +357,24 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             return;
         }
 
-        String slat = annotations.value(AnnotationKeys.LATITUDE);
         String slng = annotations.value(AnnotationKeys.LONGITUDE);
+        String slat = annotations.value(AnnotationKeys.LATITUDE);
+        boolean haveLng = slng != null && !slng.isEmpty();
+        boolean haveLat = slat != null && !slat.isEmpty();
         try {
-            if (slat != null && slng != null && !slat.isEmpty() && !slng.isEmpty()) {
-                double lat = Double.parseDouble(slat);
+            if (haveLng && haveLat) {
                 double lng = Double.parseDouble(slng);
+                double lat = Double.parseDouble(slat);
                 ObjectNode loc = objectNode()
-                        .put("type", "latlng").put("lat", lat).put("lng", lng);
+                        .put("type", "lnglat")
+                        .put("lng", lng)
+                        .put("lat", lat);
                 payload.set("location", loc);
+            } else {
+                log.trace("missing Lng/Lat: lng={}, lat={}", slng, slat);
             }
         } catch (NumberFormatException e) {
-            log.warn("Invalid geo data latitude={}; longiture={}", slat, slng);
+            log.warn("Invalid geo data: longitude={}, latitude={}", slng, slat);
         }
     }
 
@@ -367,15 +393,16 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         Topology topology = topologyService.currentTopology();
 
         return new PropertyPanel("ONOS Summary", "node")
-            .addProp(Properties.DEVICES, topology.deviceCount())
+            .addProp(Properties.VERSION, version)
+            .addSeparator()
+            .addProp(Properties.DEVICES,  deviceService.getDeviceCount())
             .addProp(Properties.LINKS, topology.linkCount())
             .addProp(Properties.HOSTS, hostService.getHostCount())
             .addProp(Properties.TOPOLOGY_SSCS, topology.clusterCount())
             .addSeparator()
             .addProp(Properties.INTENTS, intentService.getIntentCount())
             .addProp(Properties.TUNNELS, tunnelService.tunnelCount())
-            .addProp(Properties.FLOWS, flowService.getFlowRuleCount())
-            .addProp(Properties.VERSION, version);
+            .addProp(Properties.FLOWS, flowService.getFlowRuleCount());
     }
 
     // Returns property panel model for device details response.
@@ -412,7 +439,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             .addButton(CoreButtons.SHOW_DEVICE_VIEW)
             .addButton(CoreButtons.SHOW_FLOW_VIEW)
             .addButton(CoreButtons.SHOW_PORT_VIEW)
-            .addButton(CoreButtons.SHOW_GROUP_VIEW);
+            .addButton(CoreButtons.SHOW_GROUP_VIEW)
+            .addButton(CoreButtons.SHOW_METER_VIEW);
 
         return pp;
     }

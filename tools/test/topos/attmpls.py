@@ -175,3 +175,7 @@ class AttMplsTopo( Topo ):
         self.addLink( SNDG , PHNX, bw=10, delay='0.345064487693ms')
 
 topos = { 'att': ( lambda: AttMplsTopo() ) }
+
+if __name__ == '__main__':
+    from onosnet import run
+    run( AttMplsTopo() )

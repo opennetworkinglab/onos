@@ -1,0 +1,154 @@
+/* css for PCE web app topology overlay  */
+.radioButtonSpace {
+    margin-left:20px;
+}
+/* color:1 */
+#ov-topo svg .link.primary.pCol1 {
+    stroke-width: 6px;
+}
+.light #ov-topo svg .link.primary.pCol1 {
+    stroke: #FF00CE;
+}
+.dark #ov-topo svg .link.primary.pCol1 {
+    stroke: #FF00CE;
+}
+/* color:2 */
+#ov-topo svg .link.primary.pCol2 {
+    stroke-width: 6px;
+}
+.light #ov-topo svg .link.primary.pCol2 {
+    stroke: #ff4000;
+}
+.dark #ov-topo svg .link.primary.pCol2 {
+    stroke: #ff4000;
+}
+/* color:3 */
+#ov-topo svg .link.primary.pCol3 {
+    stroke-width: 6px;
+}
+.light #ov-topo svg .link.primary.pCol3 {
+    stroke: #ffb400;
+}
+.dark #ov-topo svg .link.primary.pCol3 {
+    stroke: #ffb400;
+}
+/* color:4 */
+#ov-topo svg .link.primary.pCol4 {
+    stroke-width: 6px;
+}
+.light #ov-topo svg .link.primary.pCol4 {
+    stroke: #89ff00;
+}
+.dark #ov-topo svg .link.primary.pCol4 {
+    stroke: #89ff00;
+}
+/* color:5 */
+#ov-topo svg .link.primary.pCol5 {
+    stroke-width: 6px;
+}
+.light #ov-topo svg .link.primary.pCol5 {
+    stroke: #00FF2B;
+}
+.dark #ov-topo svg .link.primary.pCol5 {
+    stroke: #00FF2B;
+}
+/* color:6 */
+#ov-topo svg .link.primary.pCol6 {
+    stroke-width: 6px;
+}
+.light #ov-topo svg .link.primary.pCol6 {
+    stroke: #00ffec;
+}
+.dark #ov-topo svg .link.primary.pCol6 {
+    stroke: #00ffec;
+}
+/* color:7 */
+#ov-topo svg .link.primary.pCol7 {
+    stroke-width: 6px;
+}
+.light #ov-topo svg .link.primary.pCol7 {
+    stroke: #00abff;
+}
+.dark #ov-topo svg .link.primary.pCol7 {
+    stroke: #00abff;
+}
+/* color:8 */
+#ov-topo svg .link.primary.pCol8 {
+    stroke-width: 6px;
+}
+.light #ov-topo svg .link.primary.pCol8 {
+    stroke: #005eff;
+}
+.dark #ov-topo svg .link.primary.pCol8 {
+    stroke: #005eff;
+}
+/* color:9 */
+#ov-topo svg .link.primary.pCol9 {
+    stroke-width: 6px;
+}
+.light #ov-topo svg .link.primary.pCol9 {
+    stroke: #0011ff;
+}
+.dark #ov-topo svg .link.primary.pCol9 {
+    stroke: #0011ff;
+}
+/* color:10 */
+#ov-topo svg .link.primary.pCol10 {
+    stroke-width: 6px;
+}
+.light #ov-topo svg .link.primary.pCol10 {
+    stroke: #7c00ff;
+}
+.dark #ov-topo svg .link.primary.pCol10 {
+    stroke: #7c00ff;
+}
+/* color:11 */
+#ov-topo svg .link.primary.pCol11 {
+    stroke-width: 6px;
+}
+.light #ov-topo svg .link.primary.pCol11 {
+    stroke: #ffe700;
+}
+.dark #ov-topo svg .link.primary.pCol11 {
+    stroke: #ffe700;
+}
+/* color:12 */
+#ov-topo svg .link.primary.pCol12 {
+    stroke-width: 6px;
+}
+.light #ov-topo svg .link.primary.pCol12 {
+    stroke: #00ffec;
+}
+.dark #ov-topo svg .link.primary.pCol12 {
+    stroke: #00ffec;
+}
+/* color:13 */
+#ov-topo svg .link.primary.pCol13 {
+    stroke-width: 6px;
+}
+.light #ov-topo svg .link.primary.pCol13 {
+    stroke: #c900ff;
+}
+.dark #ov-topo svg .link.primary.pCol13 {
+    stroke: #c900ff;
+}
+/* color:14 */
+#ov-topo svg .link.primary.pCol14 {
+    stroke-width: 6px;
+}
+.light #ov-topo svg .link.primary.pCol14 {
+    stroke: #ff00e7;
+}
+.dark #ov-topo svg .link.primary.pCol14 {
+    stroke: #ff00e7;
+}
+/* color:15 */
+#ov-topo svg .link.primary.pCol15 {
+    stroke-width: 6px;
+}
+.light #ov-topo svg .link.primary.pCol15 {
+    stroke: #3c00ff;
+}
+.dark #ov-topo svg .link.primary.pCol15 {
+    stroke: #3c00ff;
+}

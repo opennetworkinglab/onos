@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.onosproject.app.impl;
 
 import org.apache.karaf.features.Feature;
+import org.apache.karaf.features.FeaturesListener;
 import org.apache.karaf.features.Repository;
 
 import java.net.URI;
@@ -163,6 +164,13 @@ public class FeaturesServiceAdapter implements org.apache.karaf.features.Feature
 
     @Override
     public void refreshRepository(URI uri) throws Exception {
+    }
 
+    @Override
+    public void registerListener(FeaturesListener featuresListener) {
+    }
+
+    @Override
+    public void unregisterListener(FeaturesListener featuresListener) {
     }
 }

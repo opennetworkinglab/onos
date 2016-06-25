@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,7 +111,7 @@ public class OvsdbHostProvider extends AbstractProvider implements HostProvider 
             }
             switch (event.type()) {
             case PORT_ADDED:
-                HostId hostId = HostId.hostId(subject.hwAddress(), null);
+                HostId hostId = HostId.hostId(subject.hwAddress(), VlanId.vlanId());
                 DeviceId deviceId = DeviceId.deviceId(uri(subject.dpid().value()));
                 PortNumber portNumber = PortNumber.portNumber(subject
                         .portNumber().value(), subject.portName().value());
@@ -124,10 +124,10 @@ public class OvsdbHostProvider extends AbstractProvider implements HostProvider 
                                                                              VlanId.vlanId(),
                                                                              loaction,
                                                                              annotations);
-                providerService.hostDetected(hostId, hostDescription);
+                providerService.hostDetected(hostId, hostDescription, false);
                 break;
             case PORT_REMOVED:
-                HostId host = HostId.hostId(subject.hwAddress(), null);
+                HostId host = HostId.hostId(subject.hwAddress(), VlanId.vlanId());
                 providerService.hostVanished(host);
                 break;
             default:

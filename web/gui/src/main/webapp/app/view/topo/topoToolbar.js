@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,20 +23,21 @@
     'use strict';
 
     // injected references
-    var $log, fs, tbs, ps, tov, api;
+    var $log, fs, tbs, ps, tov, tds, api;
 
     // API:
     //  getActionEntry
     //  setUpKeys
 
     // internal state
-    var toolbar, keyData, cachedState, thirdRow;
+    var toolbar, keyData, cachedState, thirdRow, ovRset, ovIndex;
 
     // constants
     var name = 'topo-tbar',
         cooktag = 'topo_prefs',
         soa = 'switchOverlayActions: ',
-        selOver = 'Select overlay here &#x21e7;';
+        selOver = 'Select overlay here &#x21e7;',
+        defaultOverlay = 'traffic';
 
 
     // key to button mapping data
@@ -48,8 +49,10 @@
         M: { id: 'offline-tog', gid: 'switch', isel: true },
         P: { id: 'ports-tog', gid: 'ports', isel: true },
         B: { id: 'bkgrnd-tog', gid: 'map', isel: false },
+        G: { id: 'bkgrnd-sel', gid: 'filters' },
         S: { id: 'sprite-tog', gid: 'cloud', isel: false },
 
+        // TODO: add reset-node-locations button to toolbar
         //X: { id: 'nodelock-tog', gid: 'lock', isel: false },
         Z: { id: 'oblique-tog', gid: 'oblique', isel: false },
         N: { id: 'filters-btn', gid: 'filters' },
@@ -68,11 +71,12 @@
 
     // initial toggle state: default settings and tag to key mapping
     var defaultPrefsState = {
-            summary: 1,
             insts: 1,
+            summary: 1,
             detail: 1,
             hosts: 0,
             offdev: 1,
+            dlbls: 0,
             porthl: 1,
             bg: 0,
             spr: 0,
@@ -92,7 +96,6 @@
 
     function init(_api_) {
         api = _api_;
-
         // retrieve initial toggle button settings from user prefs
         setInitToggleState();
     }
@@ -102,7 +105,7 @@
     }
 
     function setInitToggleState() {
-        cachedState = ps.asNumbers(ps.getPrefs(cooktag));
+        cachedState = ps.asNumbers(ps.getPrefs(cooktag, defaultPrefsState));
         $log.debug('TOOLBAR---- read prefs state:', cachedState);
 
         if (!cachedState) {
@@ -148,6 +151,7 @@
         addToggle('M');
         addToggle('P', true);
         addToggle('B');
+        addButton('G');
         addToggle('S', true);
     }
 
@@ -166,14 +170,14 @@
 
         // generate radio button set for overlays; start with 'none'
         var rset = [{
-                gid: 'topo',
+                gid: 'unknown',
                 tooltip: 'No Overlay',
                 cb: function () {
                     tov.tbSelection(null, switchOverlayActions);
                 }
             }];
-        tov.augmentRbset(rset, switchOverlayActions);
-        toolbar.addRadioSet('topo-overlays', rset);
+        ovIndex = tov.augmentRbset(rset, switchOverlayActions);
+        ovRset = toolbar.addRadioSet('topo-overlays', rset);
     }
 
     // invoked by overlay service to switch out old buttons and switch in new
@@ -191,6 +195,8 @@
             });
         }
 
+        // ensure dialog has closed (if opened by outgoing overlay)
+        tds.closeDialog();
         thirdRow.clear();
 
         if (!order.length) {
@@ -242,6 +248,7 @@
 
     function destroyToolbar() {
         tbs.destroyToolbar(name);
+        tov.resetOnToolbarDestroy();
     }
 
     // allows us to ensure the button states track key strokes
@@ -259,26 +266,45 @@
 
     function toggleToolbar() {
         toolbar.toggle();
+        var prefs = ps.getPrefs(cooktag, defaultPrefsState);
+        prefs.toolbar = !prefs.toolbar;
+        ps.setPrefs('topo_prefs', prefs);
+    }
+
+    function setDefaultOverlay() {
+        var idx = ovIndex[defaultOverlay] || 0;
+        ovRset.selectedIndex(idx);
+    }
+
+    // an overlay was selected via Function-Key press
+    function fnkey(idx) {
+        if (idx < ovRset.size() && idx !== ovRset.selectedIndex()) {
+            ovRset.selectedIndex(idx);
+        }
     }
 
     angular.module('ovTopo')
         .factory('TopoToolbarService',
         ['$log', 'FnService', 'ToolbarService', 'PrefsService',
-            'TopoOverlayService',
+            'TopoOverlayService', 'TopoDialogService',
 
-        function (_$log_, _fs_, _tbs_, _ps_, _tov_) {
+        function (_$log_, _fs_, _tbs_, _ps_, _tov_, _tds_) {
             $log = _$log_;
             fs = _fs_;
             tbs = _tbs_;
             ps = _ps_;
             tov = _tov_;
+            tds = _tds_;
 
             return {
                 init: init,
                 createToolbar: createToolbar,
                 destroyToolbar: destroyToolbar,
                 keyListener: keyListener,
-                toggleToolbar: toggleToolbar
+                toggleToolbar: toggleToolbar,
+                setDefaultOverlay: setDefaultOverlay,
+                defaultPrefs: defaultPrefsState,
+                fnkey: fnkey
             };
         }]);
 }());

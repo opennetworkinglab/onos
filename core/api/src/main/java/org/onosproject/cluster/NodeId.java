@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,19 @@
  */
 package org.onosproject.cluster;
 
-import java.util.Objects;
+import org.onlab.util.Identifier;
 
 /**
  * Controller cluster identity.
  */
-public class NodeId {
+public final class NodeId extends Identifier<String> implements Comparable<NodeId> {
 
-    private final String id;
+    /**
+     * Constructor for serialization.
+     */
+    private NodeId() {
+        super("");
+    }
 
     /**
      * Creates a new cluster node identifier from the specified string.
@@ -30,29 +35,21 @@ public class NodeId {
      * @param id string identifier
      */
     public NodeId(String id) {
-        this.id = id;
+        super(id);
+    }
+
+    /**
+     * Creates a new cluster node identifier from the specified string.
+     *
+     * @param id string identifier
+     * @return node id
+     */
+    public static NodeId nodeId(String id) {
+        return new NodeId(id);
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id);
+    public int compareTo(NodeId that) {
+        return identifier.compareTo(that.identifier);
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof NodeId) {
-            final NodeId other = (NodeId) obj;
-            return Objects.equals(this.id, other.id);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return id;
-    }
-
 }

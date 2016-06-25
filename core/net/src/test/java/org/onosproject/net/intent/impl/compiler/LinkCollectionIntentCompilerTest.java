@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.TestApplicationId;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
@@ -65,15 +66,16 @@ public class LinkCollectionIntentCompilerTest {
     private final ConnectPoint d1p0 = connectPoint("s1", 10);
 
     private final Set<Link> links = ImmutableSet.of(
-            new DefaultLink(PID, d1p1, d2p0, DIRECT),
-            new DefaultLink(PID, d2p1, d3p1, DIRECT),
-            new DefaultLink(PID, d1p1, d3p1, DIRECT));
+            DefaultLink.builder().providerId(PID).src(d1p1).dst(d2p0).type(DIRECT).build(),
+            DefaultLink.builder().providerId(PID).src(d2p1).dst(d3p1).type(DIRECT).build(),
+            DefaultLink.builder().providerId(PID).src(d1p1).dst(d3p1).type(DIRECT).build());
 
     private final TrafficSelector selector = DefaultTrafficSelector.builder().build();
     private final TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
 
     private CoreService coreService;
     private IntentExtensionService intentExtensionService;
+    private IntentConfigurableRegistrator registrator;
     private IdGenerator idGenerator = new MockIdGenerator();
 
     private LinkCollectionIntent intent;
@@ -101,7 +103,13 @@ public class LinkCollectionIntentCompilerTest {
         intentExtensionService = createMock(IntentExtensionService.class);
         intentExtensionService.registerCompiler(LinkCollectionIntent.class, sut);
         intentExtensionService.unregisterCompiler(LinkCollectionIntent.class);
-        sut.intentManager = intentExtensionService;
+
+        registrator = new IntentConfigurableRegistrator();
+        registrator.extensionService = intentExtensionService;
+        registrator.cfgService = new ComponentConfigAdapter();
+        registrator.activate();
+
+        sut.registrator = registrator;
 
         replay(coreService, intentExtensionService);
     }
@@ -115,7 +123,7 @@ public class LinkCollectionIntentCompilerTest {
     public void testCompile() {
         sut.activate();
 
-        List<Intent> compiled = sut.compile(intent, Collections.emptyList(), Collections.emptySet());
+        List<Intent> compiled = sut.compile(intent, Collections.emptyList());
         assertThat(compiled, hasSize(1));
 
         Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();

@@ -1,0 +1,22 @@
+{
+  "apps": {
+    "org.onosproject.dhcp" : {
+      "dhcp" : {
+        "ip": "10.0.0.1",
+        "mac": "1a:2b:3c:4e:5e:6f",
+        "subnet": "255.0.0.0",
+        "broadcast": "10.255.255.255",
+        "router": "10.0.0.1",
+        "domain": "10.0.0.1",
+        "ttl": "63",
+        "lease": 300,
+        "renew": "150",
+        "rebind": 200,
+        "delay": "3",
+        "timeout": 150,
+        "startip": "10.0.0.110",
+        "endip": "10.0.0.130"
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@ import org.junit.Test;
 import com.esotericsoftware.minlog.Log;
 
 import junit.framework.TestCase;
+
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import static org.junit.Assert.fail;
 
@@ -47,11 +50,27 @@ public class HexStringTest {
     }
 
     @Test
-    public void testToLongMSB() {
+    public void testToLongMsb() {
         String dpidStr = "ca:7c:5e:d1:64:7a:95:9b";
         long valid = -3856102927509056101L;
         long testLong = HexString.toLong(dpidStr);
         TestCase.assertEquals(valid, testLong);
+    }
+
+    @Test
+    public void testFromHexString() {
+        String dpidStr = "3e:1f:01:fc:72:8c:63:31";
+        String dpidStrNoSep = "3e1f01fc728c6331";
+        long valid = 0x3e1f01fc728c6331L;
+        byte[] validBytes = ByteBuffer.allocate(Long.BYTES).putLong(valid).array();
+        byte[] testBytes = HexString.fromHexString(dpidStr);
+        byte[] testBytesNoSep = HexString.fromHexString(dpidStrNoSep, null);
+        byte[] testBytesUCase = HexString.fromHexString(dpidStr.toUpperCase());
+        byte[] testBytesUCaseNoSep = HexString.fromHexString(dpidStrNoSep.toUpperCase(), null);
+        TestCase.assertTrue(Arrays.equals(validBytes, testBytes));
+        TestCase.assertTrue(Arrays.equals(validBytes, testBytesNoSep));
+        TestCase.assertTrue(Arrays.equals(validBytes, testBytesUCase));
+        TestCase.assertTrue(Arrays.equals(validBytes, testBytesUCaseNoSep));
     }
 
     @Test

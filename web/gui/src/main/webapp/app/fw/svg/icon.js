@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,10 @@
         minus: 'minus',
         play: 'play',
         stop: 'stop',
+        
+        close: 'xClose',
+
+        topo: 'topo',
 
         refresh: 'refresh',
         garbage: 'garbage',
@@ -43,39 +47,42 @@
         upArrow: 'triangleUp',
         downArrow: 'triangleDown',
 
-        loading: 'loading',
-
         appInactive: 'unknown',
 
         devIcon_SWITCH: 'switch',
         devIcon_ROADM: 'roadm',
+        devIcon_OTN: 'otn',
+        deviceTable: 'switch',
         flowTable: 'flowTable',
         portTable: 'portTable',
         groupTable: 'groupTable',
+        meterTable: 'meterTable',
 
         hostIcon_endstation: 'endstation',
         hostIcon_router: 'router',
         hostIcon_bgpSpeaker: 'bgpSpeaker',
 
+        // navigation menu icons...
         nav_apps: 'bird',
-        nav_settings: 'chain',
+        nav_settings: 'cog',
         nav_cluster: 'node',
+        nav_processors: 'allTraffic',
+
         nav_topo: 'topo',
         nav_devs: 'switch',
         nav_links: 'ports',
         nav_hosts: 'endstation',
         nav_intents: 'relatedIntents',
-        nav_processors: 'allTraffic'
+        nav_tunnels: 'ports'  // TODO: use tunnel glyph, when available
     };
 
     function ensureIconLibDefs() {
         var body = d3.select('body'),
-            svg = body.select('svg#IconLibDefs'),
-            defs;
+            svg = body.select('svg#IconLibDefs');
 
         if (svg.empty()) {
             svg = body.append('svg').attr('id', 'IconLibDefs');
-            defs = svg.append('defs');
+            svg.append('defs');
         }
         return svg.select('defs');
     }
@@ -137,51 +144,16 @@
     function loadEmbeddedIcon(div, iconCls, size) {
         loadIconByClass(div, iconCls, size, true);
     }
-
-
-    // configuration for device and host icons in the topology view
-    var config = {
-        device: {
-            dim: 36,
-            rx: 4
-        },
-        host: {
-            radius: {
-                noGlyph: 9,
-                withGlyph: 14
-            },
-            glyphed: {
-                endstation: 1,
-                bgpSpeaker: 1,
-                router: 1
-            }
-        }
-    };
-
-
-    // Adds a device icon to the specified element, using the given glyph.
-    // Returns the D3 selection of the icon.
-    function addDeviceIcon(elem, glyphId) {
-        var cfg = config.device,
-            g = elem.append('g')
-                .attr('class', 'svgIcon deviceIcon');
-
-        g.append('rect').attr({
-            x: 0,
-            y: 0,
-            rx: cfg.rx,
-            width: cfg.dim,
-            height: cfg.dim
+    
+    // Adds a device glyph to the specified element.
+    // Returns the D3 selection of the glyph (use) element.
+    function addDeviceIcon(elem, glyphId, iconDim) {
+        var gid = gs.glyphDefined(glyphId) ? glyphId : 'query';
+        return elem.append('use').attr({
+            'xlink:href': '#' + gid,
+            width: iconDim,
+            height: iconDim
         });
-
-        g.append('use').attr({
-            'xlink:href': '#' + glyphId,
-            width: cfg.dim,
-            height: cfg.dim
-        });
-
-        g.dim = cfg.dim;
-        return g;
     }
 
     function addHostIcon(elem, radius, glyphId) {
@@ -202,29 +174,29 @@
     }
 
     function sortIcons() {
-        function sortAsc(div) {
+        function _s(div, gid) {
             div.style('display', 'inline-block');
-            loadEmbeddedIcon(div, 'upArrow', 10);
+            loadEmbeddedIcon(div, gid, 10);
             div.classed('tableColSort', true);
-        }
-
-        function sortDesc(div) {
-            div.style('display', 'inline-block');
-            loadEmbeddedIcon(div, 'downArrow', 10);
-            div.classed('tableColSort', true);
-        }
-
-        function sortNone(div) {
-            div.remove();
         }
 
         return {
-            sortAsc: sortAsc,
-            sortDesc: sortDesc,
-            sortNone: sortNone
+            asc: function (div) { _s(div, 'upArrow'); },
+            desc: function (div) { _s(div, 'downArrow'); },
+            none: function (div) { div.remove(); }
         };
     }
 
+    function registerIconMapping(iconId, glyphId) {
+        if (glyphMapping[iconId]) {
+            $log.warn('Icon with id', iconId, 'already mapped. Ignoring.');
+        } else {
+            // map icon-->glyph
+            glyphMapping[iconId] = glyphId;
+            // make sure definition is installed
+            gs.loadDefs(ensureIconLibDefs(), [glyphId], true);
+        }
+    }
 
     // =========================
     // === DEFINE THE MODULE
@@ -258,8 +230,8 @@
                 loadEmbeddedIcon: loadEmbeddedIcon,
                 addDeviceIcon: addDeviceIcon,
                 addHostIcon: addHostIcon,
-                iconConfig: function () { return config; },
-                sortIcons: sortIcons
+                sortIcons: sortIcons,
+                registerIconMapping: registerIconMapping
             };
         }]);
 

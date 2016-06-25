@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -30,7 +32,7 @@ public class DefaultDriverHandlerTest {
 
     @Before
     public void setUp() {
-        ddc = new DefaultDriver("foo.bar", null, "Circus", "lux", "1.2a",
+        ddc = new DefaultDriver("foo.bar", new ArrayList<>(), "Circus", "lux", "1.2a",
                                 ImmutableMap.of(TestBehaviour.class,
                                                 TestBehaviourImpl.class,
                                                 TestBehaviourTwo.class,

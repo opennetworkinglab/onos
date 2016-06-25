@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.onlab.packet.ChassisId;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -99,62 +100,16 @@ public final class PortCodec extends AnnotatedCodec<Port> {
     /**
      * Dummy Device which only holds DeviceId.
      */
-    private static final class DummyDevice implements Device {
-
-        private final DeviceId did;
-
+    private static final class DummyDevice extends DefaultDevice {
         /**
          * Constructs Dummy Device which only holds DeviceId.
          *
          * @param did device Id
          */
         public DummyDevice(DeviceId did) {
-            this.did = did;
-        }
-
-        @Override
-        public Annotations annotations() {
-            return DefaultAnnotations.EMPTY;
-        }
-
-        @Override
-        public ProviderId providerId() {
-            return new ProviderId(did.uri().getScheme(), "PortCodec");
-        }
-
-        @Override
-        public DeviceId id() {
-            return did;
-        }
-
-        @Override
-        public Type type() {
-            return Type.SWITCH;
-        }
-
-        @Override
-        public String manufacturer() {
-            return "dummy";
-        }
-
-        @Override
-        public String hwVersion() {
-            return "0";
-        }
-
-        @Override
-        public String swVersion() {
-            return "0";
-        }
-
-        @Override
-        public String serialNumber() {
-            return "0";
-        }
-
-        @Override
-        public ChassisId chassisId() {
-            return new ChassisId();
+            super(new ProviderId(did.uri().getScheme(), "PortCodec"), did,
+                  Type.SWITCH, "dummy", "0", "0", "0", new ChassisId(),
+                  DefaultAnnotations.EMPTY);
         }
     }
 }

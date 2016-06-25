@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.junit.TestTools;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -124,18 +125,20 @@ public class HostManagerTest {
     private void detect(HostId hid, MacAddress mac, VlanId vlan,
                         HostLocation loc, IpAddress ip) {
         HostDescription descr = new DefaultHostDescription(mac, vlan, loc, ip);
-        providerService.hostDetected(hid, descr);
+        providerService.hostDetected(hid, descr, false);
         assertNotNull("host should be found", mgr.getHost(hid));
     }
 
     private void validateEvents(Enum... types) {
-        int i = 0;
-        assertEquals("wrong events received", types.length, listener.events.size());
-        for (Event event : listener.events) {
-            assertEquals("incorrect event type", types[i], event.type());
-            i++;
-        }
-        listener.events.clear();
+        TestTools.assertAfter(100, () -> {
+            int i = 0;
+            assertEquals("wrong events received", types.length, listener.events.size());
+            for (Event event : listener.events) {
+                assertEquals("incorrect event type", types[i], event.type());
+                i++;
+            }
+            listener.events.clear();
+        });
     }
 
     @Test

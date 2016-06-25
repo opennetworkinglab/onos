@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,12 @@ import org.onlab.packet.VlanId;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Abstraction of a single traffic treatment step.
  */
 public abstract class L2ModificationInstruction implements Instruction {
+
+    private static final String SEPARATOR = ":";
 
     /**
      * Represents the type of traffic treatment.
@@ -94,9 +94,6 @@ public abstract class L2ModificationInstruction implements Instruction {
         MPLS_BOS
     }
 
-    // TODO: Create factory class 'Instructions' that will have various factory
-    // to create specific instructions.
-
     public abstract L2SubType subtype();
 
     @Override
@@ -129,8 +126,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("mac", mac).toString();
+            return subtype().toString() + SEPARATOR + mac;
         }
 
         @Override
@@ -152,7 +148,11 @@ public abstract class L2ModificationInstruction implements Instruction {
         }
     }
 
-    // TODO This instruction is reused for Pop-Mpls. Consider renaming.
+    /**
+     * @deprecated 1.6.0 Goldeneye release.
+     * Recommended to use ModMplsHeaderInstruction or ModVlanHeaderInstruction instead.
+     */
+    @Deprecated
     public static final class PushHeaderInstructions extends
             L2ModificationInstruction {
 
@@ -176,9 +176,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("ethernetType", ethernetType())
-                    .toString();
+            return subtype().toString() + SEPARATOR + ethernetType;
         }
 
         @Override
@@ -200,7 +198,51 @@ public abstract class L2ModificationInstruction implements Instruction {
         }
     }
 
+    /**
+     * Represents a MPLS header modification instruction.
+     */
+    public static final class ModMplsHeaderInstruction extends L2ModificationInstruction {
 
+        private final L2SubType subtype;
+        private final EthType ethernetType; // Ethernet type value: 16 bits
+
+        ModMplsHeaderInstruction(L2SubType subType, EthType ethernetType) {
+            this.subtype = subType;
+            this.ethernetType = ethernetType;
+        }
+
+        public EthType ethernetType() {
+            return ethernetType;
+        }
+
+        @Override
+        public L2SubType subtype() {
+            return subtype;
+        }
+
+        @Override
+        public String toString() {
+            return subtype().toString() + SEPARATOR + ethernetType;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype, ethernetType);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModMplsHeaderInstruction) {
+                ModMplsHeaderInstruction that = (ModMplsHeaderInstruction) obj;
+                return Objects.equals(subtype, that.subtype) &&
+                       Objects.equals(this.ethernetType, that.ethernetType);
+            }
+            return false;
+        }
+    }
 
     /**
      * Represents a VLAN id modification instruction.
@@ -224,8 +266,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("id", vlanId).toString();
+            return subtype().toString() + SEPARATOR + vlanId;
         }
 
         @Override
@@ -269,8 +310,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("pcp", Long.toHexString(vlanPcp)).toString();
+            return subtype().toString() + SEPARATOR + Long.toHexString(vlanPcp);
         }
 
         @Override
@@ -293,7 +333,10 @@ public abstract class L2ModificationInstruction implements Instruction {
 
     /**
      * Represents a VLAN POP modification instruction.
+     * @deprecated 1.6.0 Goldeneye release.
+     * Recommended to use ModVlanHeaderInstruction instead.
      */
+    @Deprecated
     public static final class PopVlanInstruction extends L2ModificationInstruction {
         private final L2SubType subtype;
 
@@ -308,8 +351,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .toString();
+            return subtype().toString();
         }
 
         @Override
@@ -331,6 +373,56 @@ public abstract class L2ModificationInstruction implements Instruction {
     }
 
     /**
+     * Represents a VLAN Header modification instruction.
+     */
+    public static final class ModVlanHeaderInstruction extends L2ModificationInstruction {
+
+        private final L2SubType subtype;
+        private EthType ethernetType; // Ethernet type value: 16 bits
+
+        ModVlanHeaderInstruction(L2SubType subType, EthType ethernetType) {
+            this.subtype = subType;
+            this.ethernetType = ethernetType;
+        }
+
+        ModVlanHeaderInstruction(L2SubType subType) {
+            this(subType, EthType.EtherType.UNKNOWN.ethType());
+        }
+
+        public EthType ethernetType() {
+            return ethernetType;
+        }
+
+        @Override
+        public L2SubType subtype() {
+            return subtype;
+        }
+
+        @Override
+        public String toString() {
+            return subtype().toString() + SEPARATOR + ethernetType;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype, ethernetType);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModVlanHeaderInstruction) {
+                ModVlanHeaderInstruction that = (ModVlanHeaderInstruction) obj;
+                return Objects.equals(subtype, that.subtype) &&
+                        Objects.equals(this.ethernetType, that.ethernetType);
+            }
+            return false;
+        }
+    }
+
+    /**
      * Represents a MPLS label modification.
      */
     public static final class ModMplsLabelInstruction
@@ -342,20 +434,19 @@ public abstract class L2ModificationInstruction implements Instruction {
             this.mplsLabel = mplsLabel;
         }
 
-        /**
-         * @deprecated in Drake Release.
-         * @return integer value of label
-         */
-        // Consider changing return value to MplsLabel
-        // after deprecation process so that it'll be symmetric to
-        // MplsCriterion#label()
-        @Deprecated
-        public Integer label() {
-            return mplsLabel.toInt();
+        public MplsLabel label() {
+            return mplsLabel;
         }
 
+        /**
+         * Extracts the MPLS label from the instruction.
+         *
+         * @return MPLS label
+         * @deprecated deprecated in 1.5.0 Falcon
+         */
+        @Deprecated
         public MplsLabel mplsLabel() {
-            return mplsLabel;
+            return label();
         }
 
         @Override
@@ -365,8 +456,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("mpls", mplsLabel).toString();
+            return subtype().toString() + SEPARATOR + mplsLabel;
         }
 
         @Override
@@ -410,8 +500,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString()).add("bos", mplsBos)
-                    .toString();
+            return subtype().toString() + SEPARATOR + mplsBos;
         }
 
         @Override
@@ -448,8 +537,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .toString();
+            return subtype().toString();
         }
 
         @Override
@@ -492,9 +580,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("id", Long.toHexString(tunnelId))
-                    .toString();
+            return subtype().toString() + SEPARATOR + Long.toHexString(tunnelId);
         }
 
         @Override

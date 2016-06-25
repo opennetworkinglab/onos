@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onlab.packet.Ethernet;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 
 /**
  * Represents a data packet intercepted from an infrastructure device.
@@ -47,4 +48,10 @@ public interface InboundPacket {
      */
     ByteBuffer unparsed();
 
+    /**
+     * Returns the cookie in the packet in message.
+     *
+     * @return optional flow cookie
+     */
+    Optional<Long> cookie();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,6 +132,8 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
     @Deactivate
     public void deactivate() {
         providerRegistry.unregister(this);
+        collectors.values().forEach(MeterStatsCollector::stop);
+        collectors.clear();
         controller.removeEventListener(listener);
         controller.removeListener(listener);
         providerService = null;
@@ -202,17 +204,25 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
     }
 
     private void createStatsCollection(OpenFlowSwitch sw) {
-        if (isMeterSupported(sw)) {
+        if (sw != null && isMeterSupported(sw)) {
             MeterStatsCollector msc = new MeterStatsCollector(sw, POLL_INTERVAL);
             msc.start();
-            collectors.put(new Dpid(sw.getId()), msc);
+            stopCollectorIfNeeded(collectors.put(new Dpid(sw.getId()), msc));
         }
     }
 
+    private void stopCollectorIfNeeded(MeterStatsCollector collector) {
+        if (collector != null) {
+            collector.stop();
+        }
+    }
+
+    // TODO: ONOS-3546 Support per device enabling/disabling via network config
     private boolean isMeterSupported(OpenFlowSwitch sw) {
         if (sw.factory().getVersion() == OFVersion.OF_10 ||
                 sw.factory().getVersion() == OFVersion.OF_11 ||
-                sw.factory().getVersion() == OFVersion.OF_12) {
+                sw.factory().getVersion() == OFVersion.OF_12 ||
+                sw.softwareDescription().equals("OF-DPA 2.0")) {
             return false;
         }
 
@@ -366,10 +376,7 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
 
         @Override
         public void switchRemoved(Dpid dpid) {
-            MeterStatsCollector msc = collectors.remove(dpid);
-            if (msc != null) {
-                msc.stop();
-            }
+            stopCollectorIfNeeded(collectors.remove(dpid));
         }
 
         @Override

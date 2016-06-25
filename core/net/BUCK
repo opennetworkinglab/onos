@@ -1,0 +1,18 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//core/common:onos-core-common',
+    '//core/store/dist:onos-core-dist',
+    '//core/store/dist:onos-core-dist-tests',
+]
+
+osgi_jar_with_tests (
+    name = 'onos-core-net',
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    visibility = ['PUBLIC'],
+)

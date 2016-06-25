@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,6 +123,10 @@ public interface DeviceService
 
     /**
      * Indicates whether or not the device is presently online and available.
+     * Availability, unlike reachability, denotes whether ANY node in the
+     * cluster can discover that this device is in an operational state,
+     * this does not necessarily mean that there exists a node that can
+     * control this device.
      *
      * @param deviceId device identifier
      * @return true if the device is available

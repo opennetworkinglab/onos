@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -31,12 +32,11 @@ import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.constraint.AsymmetricPathConstraint;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 
 import static org.onosproject.net.flow.DefaultTrafficSelector.builder;
 
@@ -61,8 +61,12 @@ public class HostToHostIntentCompiler
     }
 
     @Override
-    public List<Intent> compile(HostToHostIntent intent, List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
+    public List<Intent> compile(HostToHostIntent intent, List<Intent> installable) {
+        // If source and destination are the same, there are never any installables.
+        if (Objects.equals(intent.one(), intent.two())) {
+            return ImmutableList.of();
+        }
+
         boolean isAsymmetric = intent.constraints().contains(new AsymmetricPathConstraint());
         Path pathOne = getPath(intent, intent.one(), intent.two());
         Path pathTwo = isAsymmetric ?
@@ -88,8 +92,13 @@ public class HostToHostIntentCompiler
 
     // Produces a reverse variant of the specified link.
     private Link reverseLink(Link link) {
-        return new DefaultLink(link.providerId(), link.dst(), link.src(),
-                               link.type(), link.state(), link.isDurable());
+        return DefaultLink.builder().providerId(link.providerId())
+                .src(link.dst())
+                .dst(link.src())
+                .type(link.type())
+                .state(link.state())
+                .isExpected(link.isExpected())
+                .build();
     }
 
     // Creates a path intent from the specified path and original connectivity intent.

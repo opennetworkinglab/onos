@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,10 @@
             fs = _fs_;
             tbs = _tbs_;
             ns = _ns_;
+            $scope.deviceTip = 'Show device table';
             $scope.flowTip = 'Show flow view for this device';
             $scope.portTip = 'Show port view for this device';
+            $scope.meterTip = 'Show meter view for selected device';
 
             params = $location.search();
             if (params.hasOwnProperty('devId')) {

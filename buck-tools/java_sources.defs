@@ -1,0 +1,10 @@
+def java_sources(
+    name,
+    srcs,
+    visibility = []
+  ):
+  java_library(
+    name = name,
+    resources = srcs,
+    visibility = visibility,
+  )

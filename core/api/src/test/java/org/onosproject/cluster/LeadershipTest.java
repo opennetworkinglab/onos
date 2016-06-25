@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,13 @@
  */
 package org.onosproject.cluster;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.testing.EqualsTester;
 
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -31,16 +32,14 @@ import static org.junit.Assert.assertThat;
 public class LeadershipTest {
     private final NodeId node1 = new NodeId("1");
     private final NodeId node2 = new NodeId("2");
-    private final Leadership lead1 = new Leadership("topic1", node1, 1L, 2L);
-    private final Leadership sameAsLead1 = new Leadership("topic1", node1, 1L, 2L);
-    private final Leadership lead2 = new Leadership("topic2", node1, 1L, 2L);
-    private final Leadership lead3 = new Leadership("topic1", node1, 2L, 2L);
-    private final Leadership lead4 = new Leadership("topic1", node1, 3L, 2L);
-    private final Leadership lead5 = new Leadership("topic1", node1, 3L, 3L);
-    private final Leadership lead6 = new Leadership("topic1", node1,
-            ImmutableList.of(node2), 1L, 2L);
-    private final Leadership lead7 = new Leadership("topic1",
-            ImmutableList.of(node2), 1L, 2L);
+    private final Leadership lead1 = new Leadership("topic1", new Leader(node1, 1L, 2L), Arrays.asList(node1));
+    private final Leadership sameAsLead1 = new Leadership("topic1", new Leader(node1, 1L, 2L), Arrays.asList(node1));
+    private final Leadership lead2 = new Leadership("topic2", new Leader(node1, 1L, 2L), Arrays.asList(node1));
+    private final Leadership lead3 = new Leadership("topic1", new Leader(node1, 2L, 2L), Arrays.asList(node1));
+    private final Leadership lead4 = new Leadership("topic1", new Leader(node1, 3L, 2L), Arrays.asList(node1));
+    private final Leadership lead5 = new Leadership("topic1", new Leader(node1, 3L, 3L), Arrays.asList(node1));
+    private final Leadership lead6 = new Leadership("topic1", new Leader(node2, 1L, 2L), Arrays.asList(node2, node1));
+    private final Leadership lead7 = new Leadership("topic1", null, ImmutableList.of());
 
     /**
      * Tests for proper operation of equals(), hashCode() and toString() methods.
@@ -64,12 +63,10 @@ public class LeadershipTest {
      */
     @Test
     public void checkConstruction() {
-        assertThat(lead6.electedTime(), is(2L));
-        assertThat(lead6.epoch(), is(1L));
-        assertThat(lead6.leader(), is(node1));
+        assertThat(lead6.leader(), is(new Leader(node2, 1L, 2L)));
         assertThat(lead6.topic(), is("topic1"));
-        assertThat(lead6.candidates(), hasSize(1));
-        assertThat(lead6.candidates(), contains(node2));
+        assertThat(lead6.candidates(), hasSize(2));
+        assertThat(lead6.candidates().get(1), is(node1));
+        assertThat(lead6.candidates().get(0), is(node2));
     }
-
 }

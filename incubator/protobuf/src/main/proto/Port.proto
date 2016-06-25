@@ -1,0 +1,48 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net";
+
+package Port;
+
+enum PortType {
+  // Signifies copper-based connectivity.
+  COPPER = 0;
+  // Signifies optical fiber-based connectivity.
+  FIBER = 1;
+  // Signifies optical fiber-based packet port.
+  PACKET = 2;
+  // Signifies optical fiber-based optical tributary port (called T-port).
+  //The signal from the client side will be formed into a ITU G.709 (OTN) frame.
+  ODUCLT = 3;
+  // Signifies optical fiber-based Line-side port (called L-port).
+  OCH = 4;
+  // Signifies optical fiber-based WDM port (called W-port).
+  //Optical Multiplexing Section (See ITU G.709).
+  OMS = 5;
+  // Signifies virtual port.
+  VIRTUAL = 6;
+}
+
+message PortDescription {
+  // PortNumber as String PortNumber#toString
+  string port_number = 1;
+  bool is_enabled = 2;
+  PortType type = 3;
+  int64 port_speed = 4;
+  map<string, string> annotations = 8;
+}
+
+// Corresponds to org.onosproject.net.Port.
+message PortCore {
+  string port_number = 1;
+  bool is_enabled = 2;
+  PortType type = 3;
+  int64 port_speed = 4;
+  map<string, string> annotations = 5;
+}
+
+message PortStatistics {
+  int32 port = 1;
+  int64 packets_received = 2;
+  int64 packets_sent = 3;
+  // TODO add all other fields
+}

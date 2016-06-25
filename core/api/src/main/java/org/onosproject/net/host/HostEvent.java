@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,11 @@
  */
 package org.onosproject.net.host;
 
+import org.joda.time.LocalDateTime;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.net.Host;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Describes end-station host event.
@@ -48,6 +51,8 @@ public class HostEvent extends AbstractEvent<HostEvent.Type, Host> {
         HOST_MOVED
     }
 
+    private Host prevSubject;
+
     /**
      * Creates an event of a given type and for the specified host and the
      * current time.
@@ -70,4 +75,39 @@ public class HostEvent extends AbstractEvent<HostEvent.Type, Host> {
         super(type, host, time);
     }
 
+    /**
+     * Creates an event with previous subject.
+     *
+     * The previous subject is ignored if the type is not moved or updated
+     *
+     * @param type host event type
+     * @param host event host subject
+     * @param prevSubject previous host subject
+     */
+    public HostEvent(Type type, Host host, Host prevSubject) {
+        super(type, host);
+        if (type == Type.HOST_MOVED || type == Type.HOST_UPDATED) {
+            this.prevSubject = prevSubject;
+        }
+    }
+
+    /**
+     * Gets the previous subject in this host event.
+     *
+     * @return the previous subject, or null if previous subject is not
+     *         specified.
+     */
+    public Host prevSubject() {
+        return this.prevSubject;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("time", new LocalDateTime(time()))
+                .add("type", type())
+                .add("subject", subject())
+                .add("prevSubject", prevSubject())
+                .toString();
+    }
 }

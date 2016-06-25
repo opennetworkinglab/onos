@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.onosproject.rest.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -50,6 +51,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import static org.onlab.util.Tools.nullIsNotFound;
@@ -62,14 +64,16 @@ import static org.onosproject.net.HostId.hostId;
 public class HostsWebResource extends AbstractWebResource {
 
     @Context
-    UriInfo uriInfo;
-    public static final String HOST_NOT_FOUND = "Host is not found";
+    private UriInfo uriInfo;
+    private static final String HOST_NOT_FOUND = "Host is not found";
+    private static final String[] REMOVAL_KEYS = {"mac", "vlan", "location", "ipAddresses"};
 
     /**
      * Get all end-station hosts.
      * Returns array of all known end-station hosts.
      *
-     * @return 200 OK
+     * @return 200 OK with array of all known end-station hosts.
+     * @onos.rsModel Hosts
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -84,7 +88,8 @@ public class HostsWebResource extends AbstractWebResource {
      * Returns detailed properties of the specified end-station host.
      *
      * @param id host identifier
-     * @return 200 OK
+     * @return 200 OK with detailed properties of the specified end-station host
+     * @onos.rsModel Host
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -102,7 +107,8 @@ public class HostsWebResource extends AbstractWebResource {
      *
      * @param mac  host MAC address
      * @param vlan host VLAN identifier
-     * @return 200 OK
+     * @return 200 OK with detailed properties of the specified end-station host
+     * @onos.rsModel Host
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -122,6 +128,7 @@ public class HostsWebResource extends AbstractWebResource {
      * @param stream input JSON
      * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid
+     * @onos.rsModel HostPut
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -153,11 +160,17 @@ public class HostsWebResource extends AbstractWebResource {
                 .build();
     }
 
+    /**
+     * Internal host provider that provides host events.
+     */
     private final class InternalHostProvider implements HostProvider {
         private final ProviderId providerId =
                 new ProviderId("host", "org.onosproject.rest", true);
         private HostProviderService hostProviderService;
 
+        /**
+         * Prevents from instantiation.
+         */
         private InternalHostProvider() {
         }
 
@@ -195,13 +208,31 @@ public class HostsWebResource extends AbstractWebResource {
             while (ipStrings.hasNext()) {
                 ips.add(IpAddress.valueOf(ipStrings.next().asText()));
             }
-            SparseAnnotations annotations = annotations(node);
+
+            // try to remove elements from json node after reading them
+            SparseAnnotations annotations = annotations(removeElements(node, REMOVAL_KEYS));
             // Update host inventory
 
             HostId hostId = HostId.hostId(mac, vlanId);
             DefaultHostDescription desc = new DefaultHostDescription(mac, vlanId, hostLocation, ips, annotations);
-            hostProviderService.hostDetected(hostId, desc);
+            hostProviderService.hostDetected(hostId, desc, false);
             return hostId;
+        }
+
+        /**
+         * Remove a set of elements from JsonNode by specifying keys.
+         *
+         * @param node JsonNode containing host information
+         * @param removalKeys key of elements that need to be removed
+         * @return removal keys
+         */
+        private JsonNode removeElements(JsonNode node, String[] removalKeys) {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> map = mapper.convertValue(node, Map.class);
+            for (String key : removalKeys) {
+                map.remove(key);
+            }
+            return mapper.convertValue(map, JsonNode.class);
         }
 
         /**

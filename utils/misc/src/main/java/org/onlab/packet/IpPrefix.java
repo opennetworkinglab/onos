@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,27 @@ import java.util.Objects;
  * </p>
  */
 public class IpPrefix {
-    // Maximum network mask length
+    /**
+     * Longest IPv4 network prefix.
+     */
     public static final int MAX_INET_MASK_LENGTH = IpAddress.INET_BIT_LENGTH;
+    /**
+     * Longest IPv6 network prefix.
+     */
     public static final int MAX_INET6_MASK_LENGTH = IpAddress.INET6_BIT_LENGTH;
+    /**
+     * An IpPrefix that contains all IPv4 multicast addresses.
+     */
+    @Deprecated
+    public static final IpPrefix MULTICAST_RANGE = IpPrefix.valueOf("224.0.0.0/4");
+    /**
+     * An IpPrefix that contains all IPv4 multicast addresses.
+     */
+    public static final IpPrefix IPV4_MULTICAST_PREFIX = IpPrefix.valueOf("224.0.0.0/4");
+    /**
+     * An IpPrefix that contains all IPv6 multicast addresses.
+     */
+    public static final IpPrefix IPV6_MULTICAST_PREFIX = IpPrefix.valueOf("ff00::/8");
 
     private final IpAddress address;
     private final short prefixLength;
@@ -72,6 +90,17 @@ public class IpPrefix {
      */
     public boolean isIp6() {
         return address.isIp6();
+    }
+
+    /**
+     * Check if this IP prefix is a multicast prefix.
+     *
+     * @return true if this prefix a multicast prefix
+     */
+    public boolean isMulticast() {
+        return isIp4() ?
+                IPV4_MULTICAST_PREFIX.contains(this.getIp4Prefix()) :
+                IPV6_MULTICAST_PREFIX.contains(this.getIp6Prefix());
     }
 
     /**

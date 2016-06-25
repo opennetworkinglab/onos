@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 public class PIMHello extends BasePacket {
@@ -114,5 +115,14 @@ public class PIMHello extends BasePacket {
             }
             return hello;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("nbrIpAddress", nbrIpAddress.toString())
+                .add("priorityPresent", Boolean.toString(priorityPresent))
+                .toString();
+        // TODO: need to handle options
     }
 }

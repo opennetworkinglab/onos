@@ -6,4 +6,9 @@
 host=${1:-$OCI}
 host=${host:-localhost}
 
-open http://$host:8181/onos/v1/docs
+unamestr=`uname`
+if [[ "$unamestr" == 'Linux' ]]; then
+	xdg-open http://$host:8181/onos/v1/docs
+else
+	open http://$host:8181/onos/v1/docs
+fi

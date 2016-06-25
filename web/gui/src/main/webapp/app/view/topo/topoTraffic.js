@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,6 +152,14 @@
         }
     }
 
+    // force the system to create a single intent selection
+    function selectIntent(data) {
+        trafficMode = 'intents';
+        hoverMode = null;
+        wss.sendEvent('selectIntent', data);
+        flash.flash('Selecting Intent ' + data.key);
+    }
+
 
     // === ------------------------------------------------------
     // action buttons on detail panel (multiple selection)
@@ -207,6 +215,7 @@
                 showPrevIntent: showPrevIntent,
                 showNextIntent: showNextIntent,
                 showSelectedIntentTraffic: showSelectedIntentTraffic,
+                selectIntent: selectIntent,
 
                 // invoked from mouseover/mouseout and selection change
                 requestTrafficForMode: requestTrafficForMode,

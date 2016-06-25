@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class TunnelEventTest {
                 .valueOf(32421));
         DefaultGroupId groupId = new DefaultGroupId(92034);
         TunnelName tunnelName = TunnelName.tunnelName("TunnelName");
-        TunnelId tunnelId = TunnelId.valueOf(41654654);
+        TunnelId tunnelId = TunnelId.valueOf("41654654");
         ProviderId producerName1 = new ProviderId("producer1", "13");
         Tunnel p1 = new DefaultTunnel(producerName1, src, dst, Tunnel.Type.VXLAN,
                                       Tunnel.State.ACTIVE, groupId, tunnelId,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,15 @@ package org.onosproject.net.intent;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.HostId;
+import org.onosproject.net.Link;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 
 import java.util.List;
 
@@ -32,6 +36,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Beta
 public final class HostToHostIntent extends ConnectivityIntent {
+
+    static final LinkTypeConstraint NOT_OPTICAL = new LinkTypeConstraint(false, Link.Type.OPTICAL);
 
     private final HostId one;
     private final HostId two;
@@ -108,12 +114,23 @@ public final class HostToHostIntent extends ConnectivityIntent {
             return this;
         }
 
+
+
         /**
          * Builds a host to host intent from the accumulated parameters.
          *
          * @return point to point intent
          */
         public HostToHostIntent build() {
+
+            List<Constraint> theConstraints = constraints;
+            // If not-OPTICAL constraint hasn't been specified, add them
+            if (!constraints.contains(NOT_OPTICAL)) {
+                theConstraints = ImmutableList.<Constraint>builder()
+                                    .add(NOT_OPTICAL)
+                                    .addAll(constraints)
+                                    .build();
+            }
 
             return new HostToHostIntent(
                     appId,
@@ -122,7 +139,7 @@ public final class HostToHostIntent extends ConnectivityIntent {
                     two,
                     selector,
                     treatment,
-                    constraints,
+                    theConstraints,
                     priority
             );
         }

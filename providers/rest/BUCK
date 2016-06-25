@@ -1,0 +1,18 @@
+BUNDLES = [
+    '//providers/rest/device:onos-providers-rest-device',
+    '//protocols/rest/api:onos-protocols-rest-api',
+    '//protocols/rest/ctl:onos-protocols-rest-ctl',
+    '//lib:jersey-client',
+    '//lib:commons-io',
+    '//lib:httpclient-osgi',
+    '//lib:httpcore-osgi',
+]
+
+onos_app (
+    title = 'PCEP Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    description = 'REST protocol southbound providers.',
+)
+

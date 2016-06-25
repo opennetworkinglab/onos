@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  */
 package org.onlab.util;
 
-import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionHandler;
@@ -25,6 +25,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of ThreadPoolExecutor that bounds the work queue.
@@ -111,6 +113,28 @@ public final class BoundedThreadPool extends ThreadPoolExecutor {
         updateLoad();
     }
 
+    @Override
+    protected void afterExecute(Runnable r, Throwable t) {
+        super.afterExecute(r, t);
+        if (t == null && r instanceof Future<?>) {
+            try {
+                Future<?> future = (Future<?>) r;
+                if (future.isDone()) {
+                    future.get();
+                }
+            } catch (CancellationException ce) {
+                t = ce;
+            } catch (ExecutionException ee) {
+                t = ee.getCause();
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        if (t != null) {
+            log.error("Uncaught exception on " + r.getClass().getSimpleName(), t);
+        }
+    }
+
     // TODO schedule this with a fixed delay from a scheduled executor
     private final AtomicLong lastPrinted = new AtomicLong(0L);
 
@@ -137,6 +161,7 @@ public final class BoundedThreadPool extends ThreadPoolExecutor {
      * Feedback policy that delays the caller's thread until the executor's work
      * queue falls below a threshold, then runs the job on the caller's thread.
      */
+    @java.lang.SuppressWarnings("squid:S1217") // We really do mean to call run()
     private static final class CallerFeedbackPolicy implements RejectedExecutionHandler {
 
         private final BlockingBoolean underLoad = new BlockingBoolean(false);

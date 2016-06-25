@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,13 @@
  */
 package org.onlab.util;
 
+import com.codahale.metrics.Timer;
+import com.google.common.base.Throwables;
+import org.onlab.metrics.MetricsComponent;
+import org.onlab.metrics.MetricsFeature;
+import org.onlab.metrics.MetricsService;
+import org.slf4j.Logger;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -24,6 +31,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
+
 /**
  * Executor service wrapper for shared executors with safeguards on shutdown
  * to prevent inadvertent shutdown.
@@ -31,8 +41,16 @@ import java.util.concurrent.TimeoutException;
 class SharedExecutorService implements ExecutorService {
 
     private static final String NOT_ALLOWED = "Shutdown of shared executor is not allowed";
+    private final Logger log = getLogger(getClass());
 
     private ExecutorService executor;
+
+    private MetricsService metricsService = null;
+
+    private MetricsComponent executorMetrics;
+    private Timer queueMetrics = null;
+    private Timer delayMetrics = null;
+
 
     /**
      * Creates a wrapper for the given executor service.
@@ -91,17 +109,43 @@ class SharedExecutorService implements ExecutorService {
 
     @Override
     public <T> Future<T> submit(Callable<T> task) {
-        return executor.submit(task);
+        Counter taskCounter = new Counter();
+        taskCounter.reset();
+        return executor.submit(() -> {
+                    T t = null;
+                    long queueWaitTime = (long) taskCounter.duration();
+                    Class className;
+                    if (task instanceof  CallableExtended) {
+                        className =  ((CallableExtended) task).getRunnable().getClass();
+                    } else {
+                        className = task.getClass();
+                    }
+                    if (queueMetrics != null) {
+                        queueMetrics.update(queueWaitTime, TimeUnit.SECONDS);
+                    }
+                    taskCounter.reset();
+                    try {
+                        t = task.call();
+                    } catch (Exception e) {
+                        getLogger(className).error("Uncaught exception on " + className, e);
+                    }
+                    long taskwaittime = (long) taskCounter.duration();
+                    if (delayMetrics != null) {
+                        delayMetrics.update(taskwaittime, TimeUnit.SECONDS);
+                    }
+                    return t;
+                }
+        );
     }
 
     @Override
     public <T> Future<T> submit(Runnable task, T result) {
-        return executor.submit(task, result);
+        return executor.submit(wrap(task), result);
     }
 
     @Override
     public Future<?> submit(Runnable task) {
-        return executor.submit(task);
+        return executor.submit(wrap(task));
     }
 
     @Override
@@ -133,6 +177,75 @@ class SharedExecutorService implements ExecutorService {
     @Override
     public void execute(Runnable command) {
         executor.execute(command);
+    }
+
+    public void setCalculatePoolPerformance(boolean calculatePoolPerformance, MetricsService metricsSrv) {
+       this.metricsService = metricsSrv;
+       if (calculatePoolPerformance) {
+           if (metricsService != null) {
+               executorMetrics = metricsService.registerComponent("SharedExecutor");
+               MetricsFeature mf = executorMetrics.registerFeature("*");
+               queueMetrics = metricsService.createTimer(executorMetrics, mf, "Queue");
+               delayMetrics = metricsService.createTimer(executorMetrics, mf, "Delay");
+           }
+       } else {
+           metricsService = null;
+           queueMetrics = null;
+           delayMetrics = null;
+       }
+    }
+
+    private Runnable wrap(Runnable command) {
+        return new LoggableRunnable(command);
+    }
+
+    /**
+     * A runnable class that allows to capture and log the exceptions.
+     */
+    private class LoggableRunnable implements Runnable {
+
+        private Runnable runnable;
+
+        public LoggableRunnable(Runnable runnable) {
+            super();
+            this.runnable = runnable;
+        }
+
+        @Override
+        public void run() {
+            try {
+                runnable.run();
+            } catch (Exception e) {
+                log.error("Uncaught exception on " + runnable.getClass().getSimpleName(), e);
+                throw Throwables.propagate(e);
+            }
+        }
+    }
+
+    /**
+     *  CallableExtended class is used to get Runnable Object
+     *  from Callable Object.
+     */
+    class CallableExtended implements Callable {
+
+        private Runnable runnable;
+
+        /**
+         * Wrapper for Callable object .
+         * @param runnable Runnable object
+         */
+        public CallableExtended(Runnable runnable) {
+            this.runnable = runnable;
+        }
+        public Runnable getRunnable() {
+            return runnable;
+        }
+
+        @Override
+        public Object call() throws Exception {
+            runnable.run();
+            return null;
+        }
     }
 
 }

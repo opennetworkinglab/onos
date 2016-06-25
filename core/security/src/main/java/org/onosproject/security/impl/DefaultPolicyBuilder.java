@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,31 @@ package org.onosproject.security.impl;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.onosproject.cluster.ClusterAdminService;
+import org.onosproject.cluster.ClusterMetadataService;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ClusterMetadataAdminService;
+import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.LeadershipAdminService;
+import org.onosproject.codec.CodecService;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.mastership.MastershipTermService;
+import org.onosproject.net.config.BasicNetworkConfigService;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.edge.EdgePortService;
+import org.onosproject.net.key.DeviceKeyAdminService;
+import org.onosproject.net.key.DeviceKeyService;
+import org.onosproject.net.resource.ResourceAdminService;
+import org.onosproject.net.resource.ResourceService;
+import org.onosproject.net.region.RegionAdminService;
+import org.onosproject.net.region.RegionService;
+import org.onosproject.net.statistic.FlowStatisticService;
+import org.onosproject.persistence.PersistenceService;
 import org.onosproject.security.AppPermission;
 import org.onosproject.app.ApplicationAdminService;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.cluster.ClusterAdminService;
-import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.CoreService;
-import org.onosproject.cluster.LeadershipService;
 import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.device.DeviceAdminService;
@@ -42,23 +59,29 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.IntentClockService;
-import org.onosproject.net.intent.PartitionService;
+import org.onosproject.net.intent.IntentPartitionService;
 import org.onosproject.net.link.LinkAdminService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.proxyarp.ProxyArpService;
-import org.onosproject.net.resource.link.LinkResourceService;
 import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.security.SecurityAdminService;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.MessagingService;
+import org.onosproject.store.primitives.PartitionAdminService;
+import org.onosproject.store.primitives.PartitionService;
+import org.onosproject.store.service.LogicalClockService;
 import org.onosproject.store.service.StorageAdminService;
 import org.onosproject.store.service.StorageService;
-import org.osgi.framework.BundlePermission;
-import org.osgi.framework.CapabilityPermission;
+import org.onosproject.ui.UiExtensionService;
 import org.osgi.framework.ServicePermission;
-import org.osgi.framework.PackagePermission;
+import org.osgi.framework.AdminPermission;
 import org.osgi.framework.AdaptPermission;
+import org.osgi.framework.CapabilityPermission;
+import org.osgi.framework.BundlePermission;
+import org.osgi.framework.PackagePermission;
 import org.osgi.service.cm.ConfigurationPermission;
 
 import javax.net.ssl.SSLPermission;
@@ -68,6 +91,7 @@ import javax.security.auth.kerberos.DelegationPermission;
 import javax.sound.sampled.AudioPermission;
 import java.io.FilePermission;
 import java.io.SerializablePermission;
+import java.lang.reflect.ReflectPermission;
 import java.net.NetPermission;
 import java.net.SocketPermission;
 import java.security.Permissions;
@@ -159,6 +183,7 @@ public final class DefaultPolicyBuilder {
         permSet.add(new PackagePermission("*", PackagePermission.IMPORT));
         permSet.add(new AdaptPermission("*", AdaptPermission.ADAPT));
         permSet.add(new ConfigurationPermission("*", ConfigurationPermission.CONFIGURE));
+        permSet.add(new AdminPermission("*", AdminPermission.METADATA));
         return permSet;
     }
 
@@ -166,23 +191,35 @@ public final class DefaultPolicyBuilder {
         List<Permission> permSet = Lists.newArrayList();
         permSet.add(new ServicePermission(ApplicationAdminService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(ClusterAdminService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(LeadershipAdminService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(ClusterMetadataAdminService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(MastershipAdminService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(DeviceAdminService.class.getName(), ServicePermission.GET));
-        permSet.add(new ServicePermission(HostAdminService.class.getName(), ServicePermission.GET));
-        permSet.add(new ServicePermission(LinkAdminService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(DriverAdminService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(HostAdminService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(DeviceKeyAdminService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(LinkAdminService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(ResourceAdminService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(RegionAdminService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(PartitionAdminService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(StorageAdminService.class.getName(), ServicePermission.GET));
-//      permSet.add(new ServicePermission(LabelResourceAdminService.class.getName(), ServicePermission.GET));
-//      permSet.add(new ServicePermission(TunnelAdminService.class.getName(), ServicePermission.GET));
+
         permSet.add(new ServicePermission(ApplicationService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(ComponentConfigService.class.getName(), ServicePermission.GET));
-        permSet.add(new ServicePermission(CoreService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(ClusterMetadataService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(ClusterService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(LeadershipService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(CodecService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(CoreService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(EventDeliveryService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(MastershipService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(MastershipTermService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(BasicNetworkConfigService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(NetworkConfigService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(DeviceService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(DeviceClockService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(DriverService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(EdgePortService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(FlowRuleService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(FlowObjectiveService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(GroupService.class.getName(), ServicePermission.GET));
@@ -190,17 +227,29 @@ public final class DefaultPolicyBuilder {
         permSet.add(new ServicePermission(IntentService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(IntentClockService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(IntentExtensionService.class.getName(), ServicePermission.GET));
-        permSet.add(new ServicePermission(PartitionService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(IntentPartitionService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(DeviceKeyService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(LinkService.class.getName(), ServicePermission.GET));
-        permSet.add(new ServicePermission(LinkResourceService.class.getName(), ServicePermission.GET));
-//      permSet.add(new ServicePermission(LabelResourceService.class.getName(), ServicePermission.GET));
+//        permSet.add(new ServicePermission(MulticastRouteService.class.getName(), ServicePermission.GET));
+//        permSet.add(new ServicePermission(MeterService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(ResourceService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(PacketService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(ProxyArpService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(RegionService.class.getName(), ServicePermission.GET));
+//      permSet.add(new ServicePermission(LinkResourceService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(FlowStatisticService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(StatisticService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(PathService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(TopologyService.class.getName(), ServicePermission.GET));
-//      permSet.add(new ServicePermission(TunnelService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(PersistenceService.class.getName(), ServicePermission.GET));
+//        permSet.add(new ServicePermission(ApiDocService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(ClusterCommunicationService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(MessagingService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(PartitionService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(LogicalClockService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(StorageService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(UiExtensionService.class.getName(), ServicePermission.GET));
+
         return permSet;
     }
 
@@ -220,15 +269,21 @@ public final class DefaultPolicyBuilder {
                 ApplicationService.class.getName(), CoreService.class.getName()));
         serviceDirectory.put(APP_EVENT, ImmutableSet.of(
                 ApplicationService.class.getName(), CoreService.class.getName()));
+        serviceDirectory.put(APP_WRITE, ImmutableSet.of(
+                CoreService.class.getName()));
         serviceDirectory.put(CONFIG_READ, ImmutableSet.of(
-                ComponentConfigService.class.getName()));
+                ComponentConfigService.class.getName(), NetworkConfigService.class.getName()));
         serviceDirectory.put(CONFIG_WRITE, ImmutableSet.of(
-                ComponentConfigService.class.getName()));
+                ComponentConfigService.class.getName(), NetworkConfigService.class.getName()));
+        serviceDirectory.put(CONFIG_EVENT, ImmutableSet.of(
+                NetworkConfigService.class.getName()));
         serviceDirectory.put(CLUSTER_READ, ImmutableSet.of(
                 ClusterService.class.getName(), LeadershipService.class.getName(),
-                MastershipService.class.getName()));
+                MastershipService.class.getName(), ClusterMetadataService.class.getName(),
+                MastershipTermService.class.getName()));
         serviceDirectory.put(CLUSTER_WRITE, ImmutableSet.of(
-                LeadershipService.class.getName(), MastershipService.class.getName()));
+                LeadershipService.class.getName(), MastershipService.class.getName(),
+                ClusterCommunicationService.class.getName(), MessagingService.class.getName()));
         serviceDirectory.put(CLUSTER_EVENT, ImmutableSet.of(
                 ClusterService.class.getName(), LeadershipService.class.getName(),
                 MastershipService.class.getName()));
@@ -259,12 +314,12 @@ public final class DefaultPolicyBuilder {
         serviceDirectory.put(HOST_EVENT, ImmutableSet.of(
                 HostService.class.getName()));
         serviceDirectory.put(INTENT_READ, ImmutableSet.of(
-                IntentService.class.getName(), PartitionService.class.getName(),
-                IntentClockService.class.getName()));
+                IntentService.class.getName(), IntentPartitionService.class.getName(),
+                IntentClockService.class.getName(), IntentExtensionService.class.getName()));
         serviceDirectory.put(INTENT_WRITE, ImmutableSet.of(
-                IntentService.class.getName()));
+                IntentService.class.getName(), IntentExtensionService.class.getName()));
         serviceDirectory.put(INTENT_EVENT, ImmutableSet.of(
-                IntentService.class.getName()));
+                IntentService.class.getName(), IntentPartitionService.class.getName()));
 //        serviceDirectory.put(LINK_READ, ImmutableSet.of(
 //                LinkService.class.getName(), LinkResourceService.class.getName(),
 //                LabelResourceService.class.getName()));
@@ -276,13 +331,15 @@ public final class DefaultPolicyBuilder {
         serviceDirectory.put(PACKET_READ, ImmutableSet.of(
                 PacketService.class.getName(), ProxyArpService.class.getName()));
         serviceDirectory.put(PACKET_WRITE, ImmutableSet.of(
-                PacketService.class.getName(), ProxyArpService.class.getName()));
+                PacketService.class.getName(), ProxyArpService.class.getName(),
+                EdgePortService.class.getName()));
         serviceDirectory.put(PACKET_EVENT, ImmutableSet.of(
                 PacketService.class.getName()));
         serviceDirectory.put(STATISTIC_READ, ImmutableSet.of(
-                StatisticService.class.getName()));
+                StatisticService.class.getName(), FlowStatisticService.class.getName()));
         serviceDirectory.put(TOPOLOGY_READ, ImmutableSet.of(
-                TopologyService.class.getName(), PathService.class.getName()));
+                TopologyService.class.getName(), PathService.class.getName(),
+                EdgePortService.class.getName()));
         serviceDirectory.put(TOPOLOGY_EVENT, ImmutableSet.of(
                 TopologyService.class.getName()));
 //        serviceDirectory.put(TUNNEL_READ, ImmutableSet.of(
@@ -293,6 +350,30 @@ public final class DefaultPolicyBuilder {
 //                TunnelService.class.getName()));
         serviceDirectory.put(STORAGE_WRITE, ImmutableSet.of(
                 StorageService.class.getName()));
+        serviceDirectory.put(CODEC_READ, ImmutableSet.of(
+                CodecService.class.getName()));
+        serviceDirectory.put(CODEC_WRITE, ImmutableSet.of(
+                CodecService.class.getName()));
+        serviceDirectory.put(EVENT_READ, ImmutableSet.of(
+                EventDeliveryService.class.getName()));
+        serviceDirectory.put(EVENT_WRITE, ImmutableSet.of(
+                EventDeliveryService.class.getName()));
+        serviceDirectory.put(RESOURCE_READ, ImmutableSet.of(
+                ResourceService.class.getName()));
+        serviceDirectory.put(RESOURCE_WRITE, ImmutableSet.of(
+                ResourceService.class.getName()));
+        serviceDirectory.put(RESOURCE_EVENT, ImmutableSet.of(
+                ResourceService.class.getName()));
+        serviceDirectory.put(REGION_READ, ImmutableSet.of(
+                RegionService.class.getName()));
+        serviceDirectory.put(PERSISTENCE_WRITE, ImmutableSet.of(
+                PersistenceService.class.getName()));
+        serviceDirectory.put(PARTITION_READ, ImmutableSet.of(
+                PartitionService.class.getName()));
+        serviceDirectory.put(PARTITION_EVENT, ImmutableSet.of(
+                PartitionService.class.getName()));
+        serviceDirectory.put(CLOCK_WRITE, ImmutableSet.of(
+                LogicalClockService.class.getName()));
 
         return serviceDirectory;
     }
@@ -359,6 +440,12 @@ public final class DefaultPolicyBuilder {
         } else if (permission instanceof ServicePermission) {
             return new org.onosproject.security.Permission(
                     ServicePermission.class.getName(), permission.getName(), permission.getActions());
+        } else if (permission instanceof AdminPermission) {
+            return new org.onosproject.security.Permission(
+                    AdminPermission.class.getName(), permission.getName(), permission.getActions());
+        } else if (permission instanceof ConfigurationPermission) {
+            return new org.onosproject.security.Permission(
+                    ConfigurationPermission.class.getName(), permission.getName(), permission.getActions());
         }
         return null;
     }
@@ -416,10 +503,16 @@ public final class DefaultPolicyBuilder {
             return new PackagePermission(name, actions);
         } else if (ServicePermission.class.getName().equals(classname)) {
             return new ServicePermission(name, actions);
+        } else if (AdminPermission.class.getName().equals(classname)) {
+            return new AdminPermission(name, actions);
+        } else if (ConfigurationPermission.class.getName().equals(classname)) {
+            return new ConfigurationPermission(name, actions);
+        } else if (ReflectPermission.class.getName().equals(classname)) {
+            return new ReflectPermission(name, actions);
         }
 
         //AllPermission, SecurityPermission, UnresolvedPermission
-        //AWTPermission, AdminPermission(osgi), ReflectPermission not allowed
+        //AWTPermission,  ReflectPermission not allowed
         return null;
 
     }
@@ -445,4 +538,3 @@ public final class DefaultPolicyBuilder {
         return permissions;
     }
 }
-

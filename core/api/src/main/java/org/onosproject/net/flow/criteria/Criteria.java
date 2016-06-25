@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,21 @@
 package org.onosproject.net.flow.criteria;
 
 import org.onlab.packet.EthType;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
-import org.onosproject.net.IndexedLambda;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OchSignalType;
+import org.onosproject.net.OduSignalId;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criterion.Type;
-import org.onosproject.net.OchSignalType;
 
 /**
  * Factory class to create various traffic selection criteria.
@@ -82,6 +85,17 @@ public final class Criteria {
     }
 
     /**
+     * Creates a masked match on ETH_DST field using the specified value and mask.
+     *
+     * @param mac MAC address value
+     * @param mask MAC address masking
+     * @return match criterion
+     */
+    public static Criterion matchEthDstMasked(MacAddress mac, MacAddress mask) {
+        return new EthCriterion(mac, mask, Type.ETH_DST_MASKED);
+    }
+
+    /**
      * Creates a match on ETH_SRC field using the specified value. This value
      * may be a wildcard mask.
      *
@@ -90,6 +104,17 @@ public final class Criteria {
      */
     public static Criterion matchEthSrc(MacAddress mac) {
         return new EthCriterion(mac, Type.ETH_SRC);
+    }
+
+    /**
+     * Creates a masked match on ETH_SRC field using the specified value and mask.
+     *
+     * @param mac MAC address value
+     * @param mask MAC address masking
+     * @return match criterion
+     */
+    public static Criterion matchEthSrcMasked(MacAddress mac, MacAddress mask) {
+        return new EthCriterion(mac, mask, Type.ETH_SRC_MASKED);
     }
 
     /**
@@ -123,6 +148,16 @@ public final class Criteria {
     }
 
     /**
+     * Creates a match on the inner VLAN ID field using the specified value.
+     *
+     * @param vlanId vlan id value
+     * @return match criterion
+     */
+    public static Criterion matchInnerVlanId(VlanId vlanId) {
+        return new VlanIdCriterion(vlanId, Type.INNER_VLAN_VID);
+    }
+
+    /**
      * Creates a match on VLAN PCP field using the specified value.
      *
      * @param vlanPcp vlan pcp value (3 bits)
@@ -130,6 +165,16 @@ public final class Criteria {
      */
     public static Criterion matchVlanPcp(byte vlanPcp) {
         return new VlanPcpCriterion(vlanPcp);
+    }
+
+    /**
+     * Creates a match on the inner VLAN PCP field using the specified value.
+     *
+     * @param vlanPcp vlan pcp value (3 bits)
+     * @return match criterion
+     */
+    public static Criterion matchInnerVlanPcp(byte vlanPcp) {
+        return new VlanPcpCriterion(vlanPcp, Type.INNER_VLAN_PCP);
     }
 
     /**
@@ -187,33 +232,9 @@ public final class Criteria {
      *
      * @param tcpPort TCP source port
      * @return match criterion
-     * @deprecated in Drake release
-     */
-    @Deprecated
-    public static Criterion matchTcpSrc(short tcpPort) {
-        return new TcpPortCriterion(TpPort.tpPort(tcpPort), Type.TCP_SRC);
-    }
-
-    /**
-     * Creates a match on TCP source port field using the specified value.
-     *
-     * @param tcpPort TCP source port
-     * @return match criterion
      */
     public static Criterion matchTcpSrc(TpPort tcpPort) {
         return new TcpPortCriterion(tcpPort, Type.TCP_SRC);
-    }
-
-    /**
-     * Creates a match on TCP destination port field using the specified value.
-     *
-     * @param tcpPort TCP destination port
-     * @return match criterion
-     * @deprecated in Drake release
-     */
-    @Deprecated
-    public static Criterion matchTcpDst(short tcpPort) {
-        return new TcpPortCriterion(TpPort.tpPort(tcpPort), Type.TCP_DST);
     }
 
     /**
@@ -227,15 +248,13 @@ public final class Criteria {
     }
 
     /**
-     * Creates a match on UDP source port field using the specified value.
+     * Creates a match on TCP flags using the specified value.
      *
-     * @param udpPort UDP source port
+     * @param flags TCP flags
      * @return match criterion
-     * @deprecated in Drake release
      */
-    @Deprecated
-    public static Criterion matchUdpSrc(short udpPort) {
-        return new UdpPortCriterion(TpPort.tpPort(udpPort), Type.UDP_SRC);
+    public static Criterion matchTcpFlags(int flags) {
+        return new TcpFlagsCriterion(flags);
     }
 
     /**
@@ -253,18 +272,6 @@ public final class Criteria {
      *
      * @param udpPort UDP destination port
      * @return match criterion
-     * @deprecated in Drake release
-     */
-    @Deprecated
-    public static Criterion matchUdpDst(short udpPort) {
-        return new UdpPortCriterion(TpPort.tpPort(udpPort), Type.UDP_DST);
-    }
-
-    /**
-     * Creates a match on UDP destination port field using the specified value.
-     *
-     * @param udpPort UDP destination port
-     * @return match criterion
      */
     public static Criterion matchUdpDst(TpPort udpPort) {
         return new UdpPortCriterion(udpPort, Type.UDP_DST);
@@ -275,34 +282,9 @@ public final class Criteria {
      *
      * @param sctpPort SCTP source port
      * @return match criterion
-     * @deprecated in Drake release
-     */
-    @Deprecated
-    public static Criterion matchSctpSrc(short sctpPort) {
-        return new SctpPortCriterion(TpPort.tpPort(sctpPort), Type.SCTP_SRC);
-    }
-
-    /**
-     * Creates a match on SCTP source port field using the specified value.
-     *
-     * @param sctpPort SCTP source port
-     * @return match criterion
      */
     public static Criterion matchSctpSrc(TpPort sctpPort) {
         return new SctpPortCriterion(sctpPort, Type.SCTP_SRC);
-    }
-
-    /**
-     * Creates a match on SCTP destination port field using the specified
-     * value.
-     *
-     * @param sctpPort SCTP destination port
-     * @return match criterion
-     * @deprecated in Drake release
-     */
-    @Deprecated
-    public static Criterion matchSctpDst(short sctpPort) {
-        return new SctpPortCriterion(TpPort.tpPort(sctpPort), Type.SCTP_DST);
     }
 
     /**
@@ -435,8 +417,18 @@ public final class Criteria {
      * @param mplsBos boolean value indicating true (BOS=1) or false (BOS=0)
      * @return match criterion
      */
-    public static Criterion matchMplsLabel(boolean mplsBos) {
+    public static Criterion matchMplsBos(boolean mplsBos) {
         return new MplsBosCriterion(mplsBos);
+    }
+
+    /**
+     * Creates a match on MPLS TC.
+     *
+     * @param mplsTc MPLS TC (3 bits)
+     * @return match criterion
+     */
+    public static Criterion matchMplsTc(byte mplsTc) {
+        return new MplsTcCriterion(mplsTc);
     }
 
     /**
@@ -467,9 +459,7 @@ public final class Criteria {
      * @return match criterion
      */
     public static Criterion matchLambda(Lambda lambda) {
-        if (lambda instanceof IndexedLambda) {
-            return new IndexedLambdaCriterion((IndexedLambda) lambda);
-        } else if (lambda instanceof OchSignal) {
+        if (lambda instanceof OchSignal) {
             return new OchSignalCriterion((OchSignal) lambda);
         } else {
             throw new UnsupportedOperationException(String.format("Unsupported type of Lambda: %s", lambda));
@@ -486,6 +476,103 @@ public final class Criteria {
         return new OchSignalTypeCriterion(signalType);
     }
 
+    /**
+     * Creates a match on ODU (Optical channel Data Unit) signal ID using the specified value.
+     *
+     * @param oduSignalId ODU Signal Id
+     * @return match criterion
+     */
+    public static Criterion matchOduSignalId(OduSignalId oduSignalId) {
+        return new OduSignalIdCriterion(oduSignalId);
+    }
+
+    /**
+     * Creates a match on ODU (Optical channel Data Unit) signal Type using the specified value.
+     *
+     * @param signalType ODU Signal Type
+     * @return match criterion
+     */
+    public static Criterion matchOduSignalType(OduSignalType signalType) {
+        return new OduSignalTypeCriterion(signalType);
+    }
+
+    /**
+     * Creates a match on IPv4 destination field using the specified value.
+     *
+     * @param ip ipv4 destination value
+     * @return match criterion
+     */
+    public static Criterion matchArpTpa(Ip4Address ip) {
+        return new ArpPaCriterion(ip, Type.ARP_TPA);
+    }
+
+    /**
+     * Creates a match on IPv4 source field using the specified value.
+     *
+     * @param ip ipv4 source value
+     * @return match criterion
+     */
+    public static Criterion matchArpSpa(Ip4Address ip) {
+        return new ArpPaCriterion(ip, Type.ARP_SPA);
+    }
+
+    /**
+     * Creates a match on MAC destination field using the specified value.
+     *
+     * @param mac MAC destination value
+     * @return match criterion
+     */
+    public static Criterion matchArpTha(MacAddress mac) {
+        return new ArpHaCriterion(mac, Type.ARP_THA);
+    }
+
+    /**
+     * Creates a match on MAC source field using the specified value.
+     *
+     * @param mac MAC source value
+     * @return match criterion
+     */
+    public static Criterion matchArpSha(MacAddress mac) {
+        return new ArpHaCriterion(mac, Type.ARP_SHA);
+    }
+
+    /**
+     * Creates a match on arp operation type field using the specified value.
+     *
+     * @param arpOp arp operation type value
+     * @return match criterion
+     */
+    public static Criterion matchArpOp(int arpOp) {
+        return new ArpOpCriterion(arpOp, Type.ARP_OP);
+    }
+
+    /**
+     * Creates a match on PBB I-SID field using the specific value.
+     *
+     * @param pbbIsid PBB I-SID
+     * @return match criterion
+     */
+    public static Criterion matchPbbIsid(int pbbIsid) {
+        return new PbbIsidCriterion(pbbIsid);
+    }
+
+    /**
+     * Creates an extension criterion for the specified extension selector.
+     *
+     * @param extensionSelector extension selector
+     * @param deviceId device ID
+     * @return match extension criterion
+     */
+    public static ExtensionCriterion extension(ExtensionSelector extensionSelector,
+                                      DeviceId deviceId) {
+        return new ExtensionCriterion(extensionSelector, deviceId);
+    }
+
+    /**
+     * Creates a dummy criterion.
+     *
+     * @return match criterion
+     */
     public static Criterion dummy() {
         return new DummyCriterion();
     }

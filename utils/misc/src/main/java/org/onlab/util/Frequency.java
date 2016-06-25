@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@ package org.onlab.util;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;
-
-import java.util.Objects;
 
 /**
  * Class representing frequency. This class is intended to be used for a value whose unit is Hz
@@ -74,8 +72,28 @@ public final class Frequency implements RichComparable<Frequency> {
      * @param value frequency in KHz
      * @return instance representing the given frequency
      */
+    public static Frequency ofKHz(long value) {
+        return new Frequency(value * KHZ);
+    }
+
+    /**
+     * Returns an instance representing the specified value in KHz.
+     *
+     * @param value frequency in KHz
+     * @return instance representing the given frequency
+     */
     public static Frequency ofKHz(double value) {
         return new Frequency((long) (value * KHZ));
+    }
+
+    /**
+     * Returns an instance representing the specified value in MHz.
+     *
+     * @param value frequency in MHz
+     * @return instance representing the given frequency
+     */
+    public static Frequency ofMHz(long value) {
+        return new Frequency(value * MHZ);
     }
 
     /**
@@ -94,8 +112,28 @@ public final class Frequency implements RichComparable<Frequency> {
      * @param value frequency in GHz
      * @return instance representing the given frequency
      */
+    public static Frequency ofGHz(long value) {
+        return new Frequency(value * GHZ);
+    }
+
+    /**
+     * Returns an instance representing the specified value in GHz.
+     *
+     * @param value frequency in GHz
+     * @return instance representing the given frequency
+     */
     public static Frequency ofGHz(double value) {
         return new Frequency((long) (value * GHZ));
+    }
+
+    /**
+     * Returns an instance representing the specified value in THz.
+     *
+     * @param value frequency in THz
+     * @return instance representing the given frequency
+     */
+    public static Frequency ofTHz(long value) {
+        return new Frequency(value * THZ);
     }
 
     /**
@@ -157,7 +195,7 @@ public final class Frequency implements RichComparable<Frequency> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(frequency);
+        return Long.hashCode(frequency);
     }
 
     @Override

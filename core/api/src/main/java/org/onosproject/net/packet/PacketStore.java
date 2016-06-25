@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,17 +37,15 @@ public interface PacketStore extends Store<PacketEvent, PacketStoreDelegate> {
      * Requests intercept of packets that match the given selector.
      *
      * @param request a packet request
-     * @return true if the first time the given selector was requested
      */
-    boolean requestPackets(PacketRequest request);
+    void requestPackets(PacketRequest request);
 
     /**
      * Cancels intercept of packets that match the given selector.
      *
      * @param request a packet request
-     * @return true if there is no other application requesting the given selector
      */
-    boolean cancelPackets(PacketRequest request);
+    void cancelPackets(PacketRequest request);
 
     /**
      * Obtains all existing requests in the system.

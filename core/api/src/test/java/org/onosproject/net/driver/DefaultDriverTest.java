@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,11 @@
  */
 package org.onosproject.net.driver;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
+
+import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -26,14 +29,14 @@ public class DefaultDriverTest {
 
     @Test
     public void basics() {
-        DefaultDriver ddp = new DefaultDriver("foo.base", null, "Circus", "lux", "1.2a",
+        DefaultDriver ddp = new DefaultDriver("foo.base", new ArrayList<>(), "Circus", "lux", "1.2a",
                                               ImmutableMap.of(TestBehaviour.class,
                                                               TestBehaviourImpl.class,
                                                               TestBehaviourTwo.class,
                                                               TestBehaviourTwoImpl.class),
                                               ImmutableMap.of("foo", "bar"));
 
-        DefaultDriver ddc = new DefaultDriver("foo.bar", ddp, "Circus", "lux", "1.2a",
+        DefaultDriver ddc = new DefaultDriver("foo.bar", ImmutableList.of(ddp), "Circus", "lux", "1.2a",
                                               ImmutableMap.of(),
                                               ImmutableMap.of("foo", "bar"));
         assertEquals("incorrect name", "foo.bar", ddc.name());
@@ -62,12 +65,12 @@ public class DefaultDriverTest {
 
     @Test
     public void merge() {
-        DefaultDriver one = new DefaultDriver("foo.bar", null, "Circus", "lux", "1.2a",
+        DefaultDriver one = new DefaultDriver("foo.bar", new ArrayList<>(), "Circus", "lux", "1.2a",
                                               ImmutableMap.of(TestBehaviour.class,
                                                               TestBehaviourImpl.class),
                                               ImmutableMap.of("foo", "bar"));
         Driver ddc =
-                one.merge(new DefaultDriver("foo.bar", null, "", "", "",
+                one.merge(new DefaultDriver("foo.bar", new ArrayList<>(), "", "", "",
                                             ImmutableMap.of(TestBehaviourTwo.class,
                                                             TestBehaviourTwoImpl.class),
                                             ImmutableMap.of("goo", "wee")));

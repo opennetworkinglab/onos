@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,10 @@
 /*
  ONOS GUI -- Remote -- Web Socket Event Service - Unit Tests
  */
-describe('factory: fw/remote/wsevent.js', function () {
+
+// NOTE WsEventService does not exist, it has been removed?
+
+xdescribe('factory: fw/remote/wsevent.js', function () {
     var $log, fs, wse;
 
     beforeEach(module('onosRemote'));

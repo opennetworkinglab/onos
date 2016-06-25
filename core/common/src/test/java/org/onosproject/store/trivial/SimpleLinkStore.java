@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -196,11 +196,14 @@ public class SimpleLinkStore
         if (link.isDurable()) {
             return link.state() == INACTIVE ? null :
                     updateLink(linkKey(link.src(), link.dst()), link,
-                               new DefaultLink(link.providerId(),
-                                               link.src(), link.dst(),
-                                               link.type(), INACTIVE,
-                                               link.isDurable(),
-                                               link.annotations()));
+                               DefaultLink.builder()
+                                       .providerId(link.providerId())
+                                       .src(link.src())
+                                       .dst(link.dst())
+                                       .type(link.type())
+                                       .state(INACTIVE)
+                                       .isExpected(link.isExpected())
+                                       .annotations(link.annotations()).build());
         }
         return removeLink(src, dst);
     }
@@ -327,7 +330,15 @@ public class SimpleLinkStore
         }
 
         boolean isDurable = Objects.equals(annotations.value(AnnotationKeys.DURABLE), "true");
-        return new DefaultLink(primary, src, dst, type, ACTIVE, isDurable, annotations);
+        return DefaultLink.builder()
+                .providerId(primary)
+                .src(src)
+                .dst(dst)
+                .type(type)
+                .state(ACTIVE)
+                .isExpected(isDurable)
+                .annotations(annotations)
+                .build();
     }
 
     private Map<ProviderId, LinkDescription> getOrCreateLinkDescriptions(LinkKey key) {

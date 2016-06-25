@@ -1,0 +1,60 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net";
+
+package Link;
+
+enum LinkType {
+  // Signifies that this is a direct single-segment link.
+  DIRECT = 0;
+
+  // Signifies that this link is potentially comprised from multiple
+  //underlying segments or hops, and as such should be used to tag
+  // links traversing optical paths, tunnels or intervening 'dark'
+  // switches.
+  INDIRECT = 1;
+
+  // Signifies that this link is an edge, i.e. host link.
+  EDGE = 2;
+
+  // Signifies that this link represents a logical link backed by
+  // some form of a tunnel, e.g., GRE, MPLS, ODUk, OCH.
+  TUNNEL = 3;
+
+  // Signifies that this link is realized by fiber (either single channel or WDM).
+  OPTICAL = 4;
+
+  // Signifies that this link is a virtual link or a pseudo-wire.
+  VIRTUAL = 5;
+}
+
+message ConnectPoint {
+  oneof element_id {
+    // DeviceID as String DeviceId#toString
+    string device_id = 1;
+
+    // TODO add support to other element_id if required
+  }
+  // PortNumber as String PortNumber#toString
+  string port_number = 2;
+}
+
+enum LinkState {
+    ACTIVE = 0;
+    INACTIVE = 1;
+}
+
+// Corresponds to org.onosproject.net.Link.
+message LinkCore {
+  LinkState state = 1;
+  ConnectPoint src = 2;
+  ConnectPoint dst = 3;
+  LinkType type = 4;
+  map<string, string> annotations = 5;
+}
+
+message LinkDescription {
+  ConnectPoint src = 1;
+  ConnectPoint dst = 2;
+  LinkType type = 3;
+  map<string, string> annotations = 4;
+}

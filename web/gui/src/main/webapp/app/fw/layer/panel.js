@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,6 +81,7 @@
                 append: appendPanel,
                 width: panelWidth,
                 height: panelHeight,
+                bbox: panelBBox,
                 isVisible: panelIsVisible,
                 classed: classed,
                 el: panelEl
@@ -150,6 +151,10 @@
             p.el.style('height', h + 'px');
         }
 
+        function panelBBox() {
+            return p.el.node().getBoundingClientRect();
+        }
+
         function panelIsVisible() {
             return p.on;
         }
@@ -171,7 +176,10 @@
     }
 
     angular.module('onosLayer')
-        .factory('PanelService', ['$log', 'FnService', function (_$log_, _fs_) {
+    .factory('PanelService',
+        ['$log', '$window', 'FnService',
+
+        function (_$log_, _$window_, _fs_) {
             $log = _$log_;
             fs = _fs_;
 
@@ -210,5 +218,4 @@
                 destroyPanel: destroyPanel
             };
         }]);
-
 }());

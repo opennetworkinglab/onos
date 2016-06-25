@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,28 @@
  */
 package org.onosproject.provider.of.flow.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Optional;
-
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalId;
+import org.onosproject.net.driver.DefaultDriverData;
+import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.criteria.ArpHaCriterion;
+import org.onosproject.net.flow.criteria.ArpOpCriterion;
+import org.onosproject.net.flow.criteria.ArpPaCriterion;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
+import org.onosproject.net.flow.criteria.ExtensionCriterion;
+import org.onosproject.net.flow.criteria.ExtensionSelector;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.IPDscpCriterion;
 import org.onosproject.net.flow.criteria.IPEcnCriterion;
@@ -47,6 +54,8 @@ import org.onosproject.net.flow.criteria.MplsBosCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
+import org.onosproject.net.flow.criteria.OduSignalIdCriterion;
+import org.onosproject.net.flow.criteria.OduSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
@@ -54,12 +63,15 @@ import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
+import org.onosproject.openflow.controller.ExtensionSelectorInterpreter;
+import org.onosproject.provider.of.flow.util.NoMappingFoundException;
+import org.onosproject.provider.of.flow.util.OpenFlowValueMapper;
 import org.projectfloodlight.openflow.protocol.OFFactory;
-import org.projectfloodlight.openflow.protocol.OFFlowAdd;
-import org.projectfloodlight.openflow.protocol.OFFlowDelete;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
+import org.projectfloodlight.openflow.types.ArpOpcode;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.EthType;
 import org.projectfloodlight.openflow.types.ICMPv4Code;
@@ -76,6 +88,7 @@ import org.projectfloodlight.openflow.types.OFBooleanValue;
 import org.projectfloodlight.openflow.types.OFMetadata;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
+import org.projectfloodlight.openflow.types.OduSignalID;
 import org.projectfloodlight.openflow.types.TransportPort;
 import org.projectfloodlight.openflow.types.U16;
 import org.projectfloodlight.openflow.types.U32;
@@ -84,6 +97,10 @@ import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.projectfloodlight.openflow.types.VlanVid;
 import org.slf4j.Logger;
+
+import java.util.Optional;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Builder for OpenFlow flow mods based on FlowRules.
@@ -96,6 +113,8 @@ public abstract class FlowModBuilder {
     private final FlowRule flowRule;
     private final TrafficSelector selector;
     protected final Long xid;
+    protected final Optional<DriverService> driverService;
+    protected final DeviceId deviceId;
 
     /**
      * Creates a new flow mod builder.
@@ -103,16 +122,18 @@ public abstract class FlowModBuilder {
      * @param flowRule the flow rule to transform into a flow mod
      * @param factory the OpenFlow factory to use to build the flow mod
      * @param xid the transaction ID
+     * @param driverService the device driver service
      * @return the new flow mod builder
      */
     public static FlowModBuilder builder(FlowRule flowRule,
                                          OFFactory factory,
-                                         Optional<Long> xid) {
+                                         Optional<Long> xid,
+                                         Optional<DriverService> driverService) {
         switch (factory.getVersion()) {
         case OF_10:
-            return new FlowModBuilderVer10(flowRule, factory, xid);
+            return new FlowModBuilderVer10(flowRule, factory, xid, driverService);
         case OF_13:
-            return new FlowModBuilderVer13(flowRule, factory, xid);
+            return new FlowModBuilderVer13(flowRule, factory, xid, driverService);
         default:
             throw new UnsupportedOperationException(
                     "No flow mod builder for protocol version " + factory.getVersion());
@@ -124,14 +145,17 @@ public abstract class FlowModBuilder {
      *
      * @param flowRule the flow rule to transform into a flow mod
      * @param factory the OpenFlow factory to use to build the flow mod
+     * @param driverService the device driver service
      * @param xid the transaction ID
      */
-    protected FlowModBuilder(FlowRule flowRule, OFFactory factory, Optional<Long> xid) {
+    protected FlowModBuilder(FlowRule flowRule, OFFactory factory, Optional<Long> xid,
+                             Optional<DriverService> driverService) {
         this.factory = factory;
         this.flowRule = flowRule;
         this.selector = flowRule.selector();
         this.xid = xid.orElse(0L);
-
+        this.driverService = driverService;
+        this.deviceId = flowRule.deviceId();
     }
 
     /**
@@ -139,7 +163,7 @@ public abstract class FlowModBuilder {
      *
      * @return the flow mod
      */
-    public abstract OFFlowAdd buildFlowAdd();
+    public abstract OFFlowMod buildFlowAdd();
 
     /**
      * Builds a MODIFY flow mod.
@@ -153,7 +177,7 @@ public abstract class FlowModBuilder {
      *
      * @return the flow mod
      */
-    public abstract OFFlowDelete buildFlowDel();
+    public abstract OFFlowMod buildFlowDel();
 
     /**
      * Builds the match for the flow mod.
@@ -172,6 +196,8 @@ public abstract class FlowModBuilder {
         UdpPortCriterion udpPortCriterion;
         SctpPortCriterion sctpPortCriterion;
         IPv6NDLinkLayerAddressCriterion llAddressCriterion;
+        ArpHaCriterion arpHaCriterion;
+        ArpPaCriterion arpPaCriterion;
 
         for (Criterion c : selector.criteria()) {
             switch (c.type()) {
@@ -195,10 +221,22 @@ public abstract class FlowModBuilder {
                 mBuilder.setExact(MatchField.ETH_DST,
                                   MacAddress.of(ethCriterion.mac().toLong()));
                 break;
+            case ETH_DST_MASKED:
+                ethCriterion = (EthCriterion) c;
+                mBuilder.setMasked(MatchField.ETH_DST,
+                                   MacAddress.of(ethCriterion.mac().toLong()),
+                                   MacAddress.of(ethCriterion.mask().toLong()));
+                break;
             case ETH_SRC:
                 ethCriterion = (EthCriterion) c;
                 mBuilder.setExact(MatchField.ETH_SRC,
                                   MacAddress.of(ethCriterion.mac().toLong()));
+                break;
+            case ETH_SRC_MASKED:
+                ethCriterion = (EthCriterion) c;
+                mBuilder.setMasked(MatchField.ETH_SRC,
+                                   MacAddress.of(ethCriterion.mac().toLong()),
+                                   MacAddress.of(ethCriterion.mask().toLong()));
                 break;
             case ETH_TYPE:
                 EthTypeCriterion ethType = (EthTypeCriterion) c;
@@ -214,7 +252,7 @@ public abstract class FlowModBuilder {
                     mBuilder.setExact(MatchField.VLAN_VID, OFVlanVidMatch.NONE);
                 } else {
                     mBuilder.setExact(MatchField.VLAN_VID,
-                                      OFVlanVidMatch.ofVlanVid(VlanVid.ofVlan(vid.vlanId().toShort())));
+                            OFVlanVidMatch.ofVlanVid(VlanVid.ofVlan(vid.vlanId().toShort())));
                 }
                 break;
             case VLAN_PCP:
@@ -386,7 +424,7 @@ public abstract class FlowModBuilder {
                     OchSignal signal = ochSignalCriterion.lambda();
                     byte gridType = OpenFlowValueMapper.lookupGridType(signal.gridType());
                     byte channelSpacing = OpenFlowValueMapper.lookupChannelSpacing(signal.channelSpacing());
-                    mBuilder.setExact(MatchField.OCH_SIGID,
+                    mBuilder.setExact(MatchField.EXP_OCH_SIG_ID,
                             new CircuitSignalID(gridType, channelSpacing,
                                     (short) signal.spacingMultiplier(), (short) signal.slotGranularity()));
                 } catch (NoMappingFoundException e) {
@@ -394,9 +432,30 @@ public abstract class FlowModBuilder {
                 }
                 break;
             case OCH_SIGTYPE:
-                OchSignalTypeCriterion sc = (OchSignalTypeCriterion) c;
-                byte signalType = OpenFlowValueMapper.lookupOchSignalType(sc.signalType());
-                mBuilder.setExact(MatchField.OCH_SIGTYPE, U8.of(signalType));
+                try {
+                    OchSignalTypeCriterion sc = (OchSignalTypeCriterion) c;
+                    byte signalType = OpenFlowValueMapper.lookupOchSignalType(sc.signalType());
+                    mBuilder.setExact(MatchField.EXP_OCH_SIGTYPE, U8.of(signalType));
+                } catch (NoMappingFoundException e) {
+                    log.warn(e.getMessage());
+                }
+                break;
+            case ODU_SIGID:
+                OduSignalIdCriterion oduSignalIdCriterion = (OduSignalIdCriterion) c;
+                OduSignalId oduSignalId = oduSignalIdCriterion.oduSignalId();
+                mBuilder.setExact(MatchField.EXP_ODU_SIG_ID,
+                        new OduSignalID((short) oduSignalId.tributaryPortNumber(),
+                                (short) oduSignalId.tributarySlotLength(),
+                                oduSignalId.tributarySlotBitmap()));
+                break;
+            case ODU_SIGTYPE:
+                try {
+                    OduSignalTypeCriterion oduSignalTypeCriterion = (OduSignalTypeCriterion) c;
+                    byte oduSigType = OpenFlowValueMapper.lookupOduSignalType(oduSignalTypeCriterion.signalType());
+                    mBuilder.setExact(MatchField.EXP_ODU_SIGTYPE, U8.of(oduSigType));
+                } catch (NoMappingFoundException e) {
+                    log.warn(e.getMessage());
+                }
                 break;
             case TUNNEL_ID:
                 TunnelIdCriterion tunnelId = (TunnelIdCriterion) c;
@@ -410,12 +469,48 @@ public abstract class FlowModBuilder {
                                                     : OFBooleanValue.FALSE);
                 break;
             case ARP_OP:
+                ArpOpCriterion arpOp = (ArpOpCriterion) c;
+                mBuilder.setExact(MatchField.ARP_OP,
+                                  ArpOpcode.of(arpOp.arpOp()));
+                break;
             case ARP_SHA:
+                arpHaCriterion = (ArpHaCriterion) c;
+                mBuilder.setExact(MatchField.ARP_SHA,
+                                  MacAddress.of(arpHaCriterion.mac().toLong()));
+                break;
             case ARP_SPA:
+                arpPaCriterion = (ArpPaCriterion) c;
+                mBuilder.setExact(MatchField.ARP_SPA,
+                                  IPv4Address.of(arpPaCriterion.ip().toInt()));
+                break;
             case ARP_THA:
+                arpHaCriterion = (ArpHaCriterion) c;
+                mBuilder.setExact(MatchField.ARP_THA,
+                                  MacAddress.of(arpHaCriterion.mac().toLong()));
+                break;
             case ARP_TPA:
+                arpPaCriterion = (ArpPaCriterion) c;
+                mBuilder.setExact(MatchField.ARP_TPA,
+                                  IPv4Address.of(arpPaCriterion.ip().toInt()));
+                break;
+            case EXTENSION:
+                ExtensionCriterion extensionCriterion = (ExtensionCriterion) c;
+                OFOxm oxm = buildExtensionOxm(extensionCriterion.extensionSelector());
+                if (oxm == null) {
+                    log.warn("Unable to build extension selector");
+                    break;
+                }
+
+                if (oxm.isMasked()) {
+                    mBuilder.setMasked(oxm.getMatchField(), oxm.getValue(), oxm.getMask());
+                } else {
+                    mBuilder.setExact(oxm.getMatchField(), oxm.getValue());
+                }
+
+                break;
             case MPLS_TC:
             case PBB_ISID:
+                // TODO: need to implement PBB-ISID case when OpenFlowJ is ready
             default:
                 log.warn("Match type {} not yet implemented.", c.type());
             }
@@ -439,6 +534,23 @@ public abstract class FlowModBuilder {
      */
     protected OFFactory factory() {
         return factory;
+    }
+
+    private OFOxm buildExtensionOxm(ExtensionSelector extension) {
+        if (!driverService.isPresent()) {
+            log.error("No driver service present");
+            return null;
+        }
+        Driver driver = driverService.get().getDriver(deviceId);
+        if (driver.hasBehaviour(ExtensionSelectorInterpreter.class)) {
+            DefaultDriverHandler handler =
+                    new DefaultDriverHandler(new DefaultDriverData(driver, deviceId));
+            ExtensionSelectorInterpreter interpreter = handler.behaviour(ExtensionSelectorInterpreter.class);
+
+            return interpreter.mapSelector(factory(), extension);
+        }
+
+        return null;
     }
 
 }

@@ -20,6 +20,7 @@ package org.onlab.packet;
 
 import java.nio.ByteBuffer;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkHeaderLength;
 import static org.onlab.packet.PacketUtils.checkInput;
 
@@ -147,6 +148,28 @@ public class EAPOL extends BasePacket {
         return result;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof EAPOL)) {
+            return false;
+        }
+        EAPOL that = (EAPOL) o;
+
+        if (this.version != that.version) {
+            return false;
+        }
+        if (this.eapolType != that.eapolType) {
+            return false;
+        }
+        if (this.packetLength != that.packetLength) {
+            return false;
+        }
+        return true;
+    }
+
     /**
      * Deserializer for EAPOL packets.
      *
@@ -194,6 +217,15 @@ public class EAPOL extends BasePacket {
         }
 
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("version", Byte.toString(version))
+                .add("eapolType", Byte.toString(eapolType))
+                .add("packetLength", Short.toString(packetLength))
+                .toString();
     }
 }
 

@@ -1,19 +1,20 @@
-#!/usr/bin/env python 
-'''
+#!/usr/bin/env python
+"""
   Generate the partitions json file from the $OC* environment variables
-  
-  Usage: onos-gen-partitions [output file]
+
+  Usage: onos-gen-partitions [output file] [node_ip ...]
   If output file is not provided, the json is written to stdout.
-'''
+"""
 
 from os import environ
 from collections import deque, OrderedDict
 import re
 import json
 import sys
+import hashlib
 
-convert = lambda text: int(text) if text.isdigit() else text.lower() 
-alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)] 
+convert = lambda text: int(text) if text.isdigit() else text.lower()
+alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
 
 def get_OC_vars():
   vars = []
@@ -22,29 +23,39 @@ def get_OC_vars():
       vars.append(var)
   return sorted(vars, key=alphanum_key)
 
-def get_nodes(vars, port=9876):
-  node = lambda k: { 'id': k, 'ip': k, 'tcpPort': port }
-  return [ node(environ[v]) for v in vars ]
+def get_nodes(ips=None, port=9876):
+  node = lambda k: { 'id': k, 'ip': k, 'port': port }
+  if not ips:
+    ips = [ environ[v] for v in get_OC_vars() ]
+  return [ node(v) for v in ips ]
 
-def generate_permutations(nodes, k):
+def generate_partitions(nodes, k):
   l = deque(nodes)
-  perms = {}
+  perms = []
   for i in range(1, len(nodes)+1):
-    perms['p%d' % i] = list(l)[:k]
+    part = {
+             'id': i,
+             'members': list(l)[:k]
+           }
+    perms.append(part)
     l.rotate(-1)
-  return OrderedDict(sorted(perms.iteritems(), key=lambda (k, v): alphanum_key(k)))
+  return perms
 
 if __name__ == '__main__':
-  vars = get_OC_vars()
-  nodes = get_nodes(vars)
-  partitions = generate_permutations(nodes, 3)
-  data = { 
+  nodes = get_nodes(sys.argv[2:])
+  partitions = generate_partitions([v.get('id') for v in nodes], 3)
+  m = hashlib.sha256()
+  for node in nodes:
+    m.update(node['ip'])
+  name = int(m.hexdigest()[:8], base=16) # 32-bit int based on SHA256 digest
+  data = {
+           'name': name,
            'nodes': nodes,
-           'partitions': partitions 
+           'partitions': partitions
          }
   output = json.dumps(data, indent=4)
 
-  if len(sys.argv) == 2:
+  if len(sys.argv) >= 2 and sys.argv[1] != '-':
     filename = sys.argv[1]
     with open(filename, 'w') as f:
       f.write(output)

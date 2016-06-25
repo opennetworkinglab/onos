@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,10 @@ package org.onosproject.maven;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Throwables;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
+import com.google.gson.JsonParser;
 import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.DocletTag;
 import com.thoughtworks.qdox.model.JavaAnnotation;
@@ -35,6 +37,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -50,6 +53,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 @Mojo(name = "swagger", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
 public class OnosSwaggerMojo extends AbstractMojo {
     private final ObjectMapper mapper = new ObjectMapper();
+    private final JsonParser jsonParser = new JsonParser();
 
     private static final String JSON_FILE = "swagger.json";
     private static final String GEN_SRC = "generated-sources";
@@ -65,6 +69,7 @@ public class OnosSwaggerMojo extends AbstractMojo {
     private static final String PRODUCES = "javax.ws.rs.Produces";
     private static final String CONSUMES = "javax.ws.rs.Consumes";
     private static final String JSON = "MediaType.APPLICATION_JSON";
+    private static final String OCTET_STREAM = "MediaType.APPLICATION_OCTET_STREAM";
 
     /**
      * The directory where the generated catalogue file will be put.
@@ -124,11 +129,13 @@ public class OnosSwaggerMojo extends AbstractMojo {
             ObjectNode root = initializeRoot();
             ArrayNode tags = mapper.createArrayNode();
             ObjectNode paths = mapper.createObjectNode();
+            ObjectNode definitions = mapper.createObjectNode();
 
             root.set("tags", tags);
             root.set("paths", paths);
+            root.set("definitions", definitions);
 
-            builder.getClasses().forEach(jc -> processClass(jc, paths, tags));
+            builder.getClasses().forEach(jc -> processClass(jc, paths, tags, definitions));
 
             if (paths.size() > 0) {
                 getLog().info("Generating ONOS REST API documentation...");
@@ -172,7 +179,7 @@ public class OnosSwaggerMojo extends AbstractMojo {
 
     // Checks whether javaClass has a path tag associated with it and if it does
     // processes its methods and creates a tag for the class on the root
-    void processClass(JavaClass javaClass, ObjectNode paths, ArrayNode tags) {
+    void processClass(JavaClass javaClass, ObjectNode paths, ArrayNode tags, ObjectNode definitions) {
         // If the class does not have a Path tag then ignore it
         JavaAnnotation annotation = getPathAnnotation(javaClass);
         if (annotation == null) {
@@ -199,19 +206,19 @@ public class OnosSwaggerMojo extends AbstractMojo {
         ArrayNode tagArray = mapper.createArrayNode();
         tagArray.add(tagPath);
 
-        processAllMethods(javaClass, resourcePath, paths, tagArray);
+        processAllMethods(javaClass, resourcePath, paths, tagArray, definitions);
     }
 
     private JavaAnnotation getPathAnnotation(JavaClass javaClass) {
         Optional<JavaAnnotation> optional = javaClass.getAnnotations()
                 .stream().filter(a -> a.getType().getName().equals(PATH)).findAny();
-        return optional.isPresent() ? optional.get() : null;
+        return optional.orElse(null);
     }
 
     // Checks whether a class's methods are REST methods and then places all the
     // methods under a specific path into the paths node
     private void processAllMethods(JavaClass javaClass, String resourcePath,
-                                   ObjectNode paths, ArrayNode tagArray) {
+                                   ObjectNode paths, ArrayNode tagArray, ObjectNode definitions) {
         // map of the path to its methods represented by an ObjectNode
         Map<String, ObjectNode> pathMap = new HashMap<>();
 
@@ -221,7 +228,7 @@ public class OnosSwaggerMojo extends AbstractMojo {
                 if (name.equals(POST) || name.equals(GET) || name.equals(DELETE) || name.equals(PUT)) {
                     // substring(12) removes "javax.ws.rs."
                     String method = annotation.getType().toString().substring(12).toLowerCase();
-                    processRestMethod(javaMethod, method, pathMap, resourcePath, tagArray);
+                    processRestMethod(javaMethod, method, pathMap, resourcePath, tagArray, definitions);
                 }
             });
         });
@@ -236,9 +243,10 @@ public class OnosSwaggerMojo extends AbstractMojo {
 
     private void processRestMethod(JavaMethod javaMethod, String method,
                                    Map<String, ObjectNode> pathMap,
-                                   String resourcePath, ArrayNode tagArray) {
+                                   String resourcePath, ArrayNode tagArray, ObjectNode definitions) {
         String fullPath = resourcePath, consumes = "", produces = "",
                 comment = javaMethod.getComment();
+        DocletTag tag = javaMethod.getTagByName("onos.rsModel");
         for (JavaAnnotation annotation : javaMethod.getAnnotations()) {
             String name = annotation.getType().getName();
             if (name.equals(PATH)) {
@@ -256,12 +264,18 @@ public class OnosSwaggerMojo extends AbstractMojo {
         methodNode.set("tags", tagArray);
 
         addSummaryDescriptions(methodNode, comment);
-        processParameters(javaMethod, methodNode);
+        addJsonSchemaDefinition(definitions, tag);
+
+        processParameters(javaMethod, methodNode, method, tag);
 
         processConsumesProduces(methodNode, "consumes", consumes);
         processConsumesProduces(methodNode, "produces", produces);
-
-        addResponses(methodNode);
+        if (tag == null || ((method.toLowerCase().equals("post") || method.toLowerCase().equals("put"))
+                && !(tag.getParameters().size() > 1))) {
+            addResponses(methodNode, tag, false);
+        } else {
+            addResponses(methodNode, tag, true);
+        }
 
         ObjectNode operations = pathMap.get(fullPath);
         if (operations == null) {
@@ -270,6 +284,25 @@ public class OnosSwaggerMojo extends AbstractMojo {
             pathMap.put(fullPath, operations);
         } else {
             operations.set(method, methodNode);
+        }
+    }
+
+    private void addJsonSchemaDefinition(ObjectNode definitions, DocletTag tag) {
+        File definitionsDirectory = new File(srcDirectory + "/src/main/resources/definitions");
+        if (tag != null) {
+            tag.getParameters().stream().forEach(param -> {
+                try {
+                    File config = new File(definitionsDirectory.getAbsolutePath() + "/"
+                                                   + param + ".json");
+                    definitions.putPOJO(param, jsonParser.parse(new FileReader(config)));
+                } catch (IOException e) {
+                    getLog().error(String.format("Could not process %s in %s@%s: %s",
+                                  tag.getName(), tag.getContext(), tag.getLineNumber(),
+                                  e.getMessage()));
+                    throw Throwables.propagate(e);
+                }
+            });
+
         }
     }
 
@@ -298,14 +331,19 @@ public class OnosSwaggerMojo extends AbstractMojo {
     }
 
     // Temporary solution to add responses to a method
-    // TODO Provide annotations in the web resources for responses and parse them
-    private void addResponses(ObjectNode methodNode) {
+    private void addResponses(ObjectNode methodNode, DocletTag tag, boolean responseJson) {
         ObjectNode responses = mapper.createObjectNode();
         methodNode.set("responses", responses);
 
         ObjectNode success = mapper.createObjectNode();
         success.put("description", "successful operation");
         responses.set("200", success);
+        if (tag != null && responseJson) {
+            ObjectNode schema = mapper.createObjectNode();
+            tag.getParameters().stream().forEach(
+                    param -> schema.put("$ref", "#/definitions/" + param));
+            success.set("schema", schema);
+        }
 
         ObjectNode defaultObj = mapper.createObjectNode();
         defaultObj.put("description", "Unexpected error");
@@ -317,6 +355,8 @@ public class OnosSwaggerMojo extends AbstractMojo {
     private String getIOType(JavaAnnotation annotation) {
         if (annotation.getNamedParameter("value").toString().equals(JSON)) {
             return "application/json";
+        } else if (annotation.getNamedParameter("value").toString().equals(OCTET_STREAM)) {
+            return "application/octet_stream";
         }
         return "";
     }
@@ -329,7 +369,7 @@ public class OnosSwaggerMojo extends AbstractMojo {
     }
 
     // Processes parameters of javaMethod and enters the proper key-values into the methodNode
-    private void processParameters(JavaMethod javaMethod, ObjectNode methodNode) {
+    private void processParameters(JavaMethod javaMethod, ObjectNode methodNode, String method, DocletTag tag) {
         ArrayNode parameters = mapper.createArrayNode();
         methodNode.set("parameters", parameters);
         boolean required = true;
@@ -339,14 +379,15 @@ public class OnosSwaggerMojo extends AbstractMojo {
             Optional<JavaAnnotation> optional = javaParameter.getAnnotations().stream().filter(
                     annotation -> annotation.getType().getName().equals(PATH_PARAM) ||
                             annotation.getType().getName().equals(QUERY_PARAM)).findAny();
-            JavaAnnotation pathType = optional.isPresent() ? optional.get() : null;
+            JavaAnnotation pathType = optional.orElse(null);
 
             String annotationName = javaParameter.getName();
 
 
             if (pathType != null) { //the parameter is a path or query parameter
                 individualParameterNode.put("name",
-                                            pathType.getNamedParameter("value").toString().replace("\"", ""));
+                                            pathType.getNamedParameter("value")
+                                                    .toString().replace("\"", ""));
                 if (pathType.getType().getName().equals(PATH_PARAM)) {
                     individualParameterNode.put("in", "path");
                 } else if (pathType.getType().getName().equals(QUERY_PARAM)) {
@@ -357,22 +398,34 @@ public class OnosSwaggerMojo extends AbstractMojo {
                 individualParameterNode.put("name", annotationName);
                 individualParameterNode.put("in", "body");
 
-                // TODO add actual hardcoded schemas and a type
-                // body parameters must have a schema associated with them
-                ArrayNode schema = mapper.createArrayNode();
-                individualParameterNode.set("schema", schema);
+                // Adds the reference to the Json model for the input
+                // that goes in the post or put operation
+                if (tag != null && (method.toLowerCase().equals("post") ||
+                        method.toLowerCase().equals("put"))) {
+                    ObjectNode schema = mapper.createObjectNode();
+                    tag.getParameters().stream().forEach(param -> {
+                        schema.put("$ref", "#/definitions/" + param);
+                    });
+                    individualParameterNode.set("schema", schema);
+                }
             }
             for (DocletTag p : javaMethod.getTagsByName("param")) {
                 if (p.getValue().contains(annotationName)) {
-                    try {
-                        String description = p.getValue().split(" ", 2)[1].trim();
+                    String description = "";
+                    if (p.getValue().split(" ", 2).length >= 2) {
+                        description = p.getValue().split(" ", 2)[1].trim();
                         if (description.contains("optional")) {
                             required = false;
                         }
-                        individualParameterNode.put("description", description);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    } else {
+                        getLog().warn(String.format(
+                                    "No description for parameter \"%s\" in " +
+                                    "method \"%s\" in %s (line %d)",
+                                      p.getValue(), javaMethod.getName(),
+                                      javaMethod.getDeclaringClass().getName(),
+                                      javaMethod.getLineNumber()));
                     }
+                    individualParameterNode.put("description", description);
                 }
             }
             individualParameterNode.put("required", required);

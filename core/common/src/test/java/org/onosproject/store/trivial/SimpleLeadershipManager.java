@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,22 @@ package org.onosproject.store.trivial;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.Collectors;
 
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.Leader;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.LeadershipEvent;
 import org.onosproject.cluster.LeadershipEvent.Type;
@@ -53,7 +55,14 @@ public class SimpleLeadershipManager implements LeadershipService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private ClusterService clusterService;
 
+    private NodeId localNodeId;
+
     private Map<String, Boolean> elections = new ConcurrentHashMap<>();
+
+    @Activate
+    public void activate() {
+        localNodeId = clusterService.getLocalNode().id();
+    }
 
     @Override
     public NodeId getLeader(String path) {
@@ -63,7 +72,8 @@ public class SimpleLeadershipManager implements LeadershipService {
     @Override
     public Leadership getLeadership(String path) {
         checkArgument(path != null);
-        return elections.get(path) ? new Leadership(path, clusterService.getLocalNode().id(), 0, 0) : null;
+        return elections.get(path) ?
+                new Leadership(path, new Leader(localNodeId, 0, 0), Arrays.asList(localNodeId)) : null;
     }
 
     @Override
@@ -77,23 +87,22 @@ public class SimpleLeadershipManager implements LeadershipService {
     }
 
     @Override
-    public CompletableFuture<Leadership> runForLeadership(String path) {
+    public Leadership runForLeadership(String path) {
         elections.put(path, true);
+        Leadership leadership = new Leadership(path, new Leader(localNodeId, 0, 0), Arrays.asList(localNodeId));
         for (LeadershipEventListener listener : listeners) {
-            listener.event(new LeadershipEvent(Type.LEADER_ELECTED,
-                    new Leadership(path, clusterService.getLocalNode().id(), 0, 0)));
+            listener.event(new LeadershipEvent(Type.LEADER_AND_CANDIDATES_CHANGED, leadership));
         }
-        return CompletableFuture.completedFuture(new Leadership(path, clusterService.getLocalNode().id(), 0, 0));
+        return leadership;
     }
 
     @Override
-    public CompletableFuture<Void> withdraw(String path) {
+    public void withdraw(String path) {
         elections.remove(path);
         for (LeadershipEventListener listener : listeners) {
-            listener.event(new LeadershipEvent(Type.LEADER_BOOTED,
-                    new Leadership(path, clusterService.getLocalNode().id(), 0, 0)));
+            listener.event(new LeadershipEvent(Type.LEADER_AND_CANDIDATES_CHANGED,
+                    new Leadership(path, null, Arrays.asList())));
         }
-        return CompletableFuture.completedFuture(null);
     }
 
     @Override
@@ -121,15 +130,5 @@ public class SimpleLeadershipManager implements LeadershipService {
     @Override
     public List<NodeId> getCandidates(String path) {
         return null;
-    }
-
-    @Override
-    public boolean stepdown(String path) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean makeTopCandidate(String path, NodeId nodeId) {
-        throw new UnsupportedOperationException();
     }
 }

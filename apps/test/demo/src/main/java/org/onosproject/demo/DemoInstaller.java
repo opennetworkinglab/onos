@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class DemoInstaller implements DemoAPI {
+public class DemoInstaller implements DemoApi {
 
     private final Logger log = getLogger(getClass());
 
@@ -553,7 +553,7 @@ public class DemoInstaller implements DemoAPI {
                             .matchEthDst(MacAddress.valueOf((Integer.MAX_VALUE - i) * RandomUtils.nextInt()));
 
 
-                    int randomPriority = RandomUtils.nextInt();
+                    int randomPriority = RandomUtils.nextInt(FlowRule.MAX_PRIORITY);
                     FlowRule f = DefaultFlowRule.builder()
                             .forDevice(d.id())
                             .withSelector(sbuilder.build())

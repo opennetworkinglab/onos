@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -23,7 +24,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.Link;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -33,84 +34,95 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
-import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.PathIntent;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
+import org.onosproject.net.resource.ResourceService;
+import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
+
+import static org.slf4j.LoggerFactory.getLogger;
+
 
 @Component(immediate = true)
-public class PathIntentCompiler implements IntentCompiler<PathIntent> {
+public class PathIntentCompiler
+        extends PathCompiler<FlowRule>
+        implements IntentCompiler<PathIntent>,
+        PathCompiler.PathCompilerCreateFlow<FlowRule> {
+
+    private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected IntentExtensionService intentManager;
+    protected IntentConfigurableRegistrator registrator;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ResourceService resourceService;
 
     private ApplicationId appId;
 
     @Activate
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.net.intent");
-        intentManager.registerCompiler(PathIntent.class, this);
+        registrator.registerCompiler(PathIntent.class, this, false);
     }
 
     @Deactivate
     public void deactivate() {
-        intentManager.unregisterCompiler(PathIntent.class);
+        registrator.unregisterCompiler(PathIntent.class, false);
     }
 
     @Override
-    public List<Intent> compile(PathIntent intent, List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
-        // Note: right now recompile is not considered
-        // TODO: implement recompile behavior
+    public List<Intent> compile(PathIntent intent, List<Intent> installable) {
 
-        List<Link> links = intent.path().links();
-        List<FlowRule> rules = new ArrayList<>(links.size() - 1);
+        List<FlowRule> rules = new LinkedList<>();
+        List<DeviceId> devices = new LinkedList<>();
+        compile(this, intent, rules, devices);
 
-        for (int i = 0; i < links.size() - 1; i++) {
-            ConnectPoint ingress = links.get(i).dst();
-            ConnectPoint egress = links.get(i + 1).src();
-            FlowRule rule = createFlowRule(intent.selector(), intent.treatment(),
-                                           ingress, egress, intent.priority(),
-                                           isLast(links, i));
-            rules.add(rule);
-        }
 
-        return Collections.singletonList(new FlowRuleIntent(appId, null, rules, intent.resources()));
+        return ImmutableList.of(new FlowRuleIntent(appId, null, rules, intent.resources()));
     }
 
-    private FlowRule createFlowRule(TrafficSelector originalSelector, TrafficTreatment originalTreatment,
-                                    ConnectPoint ingress, ConnectPoint egress,
-                                    int priority, boolean last) {
+    @Override
+    public Logger log() {
+        return log;
+    }
+
+    @Override
+    public ResourceService resourceService() {
+        return resourceService;
+    }
+
+
+    @Override
+    public void createFlow(TrafficSelector originalSelector, TrafficTreatment originalTreatment,
+                           ConnectPoint ingress, ConnectPoint egress,
+                           int priority, boolean applyTreatment,
+                           List<FlowRule> rules,
+                           List<DeviceId> devices) {
+
         TrafficSelector selector = DefaultTrafficSelector.builder(originalSelector)
                 .matchInPort(ingress.port())
                 .build();
 
         TrafficTreatment.Builder treatmentBuilder;
-        if (last) {
+        if (applyTreatment) {
             treatmentBuilder = DefaultTrafficTreatment.builder(originalTreatment);
         } else {
             treatmentBuilder = DefaultTrafficTreatment.builder();
         }
         TrafficTreatment treatment = treatmentBuilder.setOutput(egress.port()).build();
 
-        return DefaultFlowRule.builder()
+        rules.add(DefaultFlowRule.builder()
                 .forDevice(ingress.deviceId())
                 .withSelector(selector)
                 .withTreatment(treatment)
                 .withPriority(priority)
                 .fromApp(appId)
                 .makePermanent()
-                .build();
-    }
+                .build());
 
-    private boolean isLast(List<Link> links, int i) {
-        return i == links.size() - 2;
     }
 }

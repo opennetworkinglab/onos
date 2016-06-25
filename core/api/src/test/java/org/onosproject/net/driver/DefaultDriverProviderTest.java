@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.onosproject.net.driver;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableSet.of;
@@ -28,15 +29,15 @@ public class DefaultDriverProviderTest {
     @Test
     public void basics() {
         DefaultDriverProvider ddp = new DefaultDriverProvider();
-        DefaultDriver one = new DefaultDriver("foo.bar", null, "Circus", "lux", "1.2a",
+        DefaultDriver one = new DefaultDriver("foo.bar", new ArrayList<>(), "Circus", "lux", "1.2a",
                                               ImmutableMap.of(TestBehaviour.class,
                                                               TestBehaviourImpl.class),
                                               ImmutableMap.of("foo", "bar"));
-        DefaultDriver two = new DefaultDriver("foo.bar", null, "", "", "",
+        DefaultDriver two = new DefaultDriver("foo.bar", new ArrayList<>(), "", "", "",
                                               ImmutableMap.of(TestBehaviourTwo.class,
                                                               TestBehaviourTwoImpl.class),
                                               ImmutableMap.of("goo", "wee"));
-        DefaultDriver three = new DefaultDriver("goo.foo", null, "BigTop", "better", "2.2",
+        DefaultDriver three = new DefaultDriver("goo.foo", new ArrayList<>(), "BigTop", "better", "2.2",
                                                 ImmutableMap.of(TestBehaviourTwo.class,
                                                                 TestBehaviourTwoImpl.class),
                                                 ImmutableMap.of("goo", "gee"));

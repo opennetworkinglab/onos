@@ -1,0 +1,56 @@
+# Simon's LXC-based multi ONOS instances & ONOS mininet VM.
+
+###
+###  NOTE:
+###        Assumes a route has been set up
+###         from 192.168.56.0/24 -> 10.0.3.0/24
+###
+###                    {dest-net}  {gateway}  (i.e. container VM)
+###  sudo route -n add 10.0.3.0/24 192.168.56.102
+###
+
+## ONOS Cluster VM (has LXC containers for cluster nodes)
+export OCVM=192.168.56.98
+
+#============================================
+# sdn@ocluster:~$ sudo lxc-ls --fancy
+# NAME   STATE    IPV4        IPV6  AUTOSTART
+# -------------------------------------------
+# onos1  RUNNING  10.0.3.11   -     YES
+# onos2  RUNNING  10.0.3.12   -     YES
+# onos3  RUNNING  10.0.3.13   -     YES
+# onos4  RUNNING  10.0.3.14   -     YES
+#============================================
+
+export ONOS_USE_SSH=true
+export ONOS_NIC="10.0.3.*"
+
+## ONOS instances (LXC containers)
+export OC1=10.0.3.11
+export OC2=10.0.3.12
+export OC3=10.0.3.13
+
+## keep this out of the initial cluster...
+## export OC4=10.0.3.14
+
+## default ONOS instance
+export OCI=$OC1
+
+## credentials for logging into ONOS instances
+export ONOS_USER=sdn
+
+## the apps we want activated at startup
+export ONOS_APPS="drivers,openflow,proxyarp,drivermatrix,mlb"
+
+## mininet VM
+export OCN="192.168.56.99"
+
+export ONOS_WEB_USER=onos
+export ONOS_WEB_PASS=rocks
+
+# Verify route to LXC cluster
+netstat -nr | grep 10.0.3 | grep -q $OCVM && echo "Routes to LXC in place" || ( 
+  echo "Route to LXC not found. Adding...";
+  sudo bash -c "route -n delete 10.0.3.0/24; \
+                route -n add 10.0.3.0/24 192.168.56.98" >/dev/null 2>&1
+)

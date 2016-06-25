@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import org.onosproject.ui.table.TableModel.SortDir;
 import org.onosproject.ui.table.cell.DefaultCellFormatter;
 import org.onosproject.ui.table.cell.HexFormatter;
 
+import java.util.Collection;
+
 import static org.junit.Assert.*;
 
 /**
@@ -33,6 +35,9 @@ public class TableModelTest {
     private static final String FOO = "foo";
     private static final String BAR = "bar";
     private static final String ZOO = "zoo";
+    private static final String ID = "id";
+    private static final String ALPHA = "alpha";
+    private static final String NUMBER = "number";
 
     private enum StarWars {
         LUKE_SKYWALKER, LEIA_ORGANA, HAN_SOLO, C3PO, R2D2, JABBA_THE_HUTT
@@ -122,7 +127,6 @@ public class TableModelTest {
         assertEquals("bad cell", true, row.get(BAR));
     }
 
-
     private static final String ONE = "one";
     private static final String TWO = "two";
     private static final String THREE = "three";
@@ -190,7 +194,7 @@ public class TableModelTest {
         initUnsortedTable();
 
         // sort by name
-        tm.sort(FOO, SortDir.ASC);
+        tm.sort(FOO, SortDir.ASC, null, null);
 
         // verify results
         rows = tm.getRows();
@@ -201,7 +205,7 @@ public class TableModelTest {
         }
 
         // now the other way
-        tm.sort(FOO, SortDir.DESC);
+        tm.sort(FOO, SortDir.DESC, null, null);
 
         // verify results
         rows = tm.getRows();
@@ -218,7 +222,7 @@ public class TableModelTest {
         initUnsortedTable();
 
         // sort by number
-        tm.sort(BAR, SortDir.ASC);
+        tm.sort(BAR, SortDir.ASC, null, null);
 
         // verify results
         rows = tm.getRows();
@@ -229,7 +233,7 @@ public class TableModelTest {
         }
 
         // now the other way
-        tm.sort(BAR, SortDir.DESC);
+        tm.sort(BAR, SortDir.DESC, null, null);
 
         // verify results
         rows = tm.getRows();
@@ -249,7 +253,7 @@ public class TableModelTest {
         tm.setFormatter(BAR, HexFormatter.INSTANCE);
 
         // sort by number
-        tm.sort(BAR, SortDir.ASC);
+        tm.sort(BAR, SortDir.ASC, null, null);
 
         // verify results
         rows = tm.getRows();
@@ -275,7 +279,7 @@ public class TableModelTest {
     public void sortAndFormatTwo() {
         initUnsortedTable();
         tm.setFormatter(BAR, HexFormatter.INSTANCE);
-        tm.sort(FOO, SortDir.ASC);
+        tm.sort(FOO, SortDir.ASC, null, null);
         rows = tm.getRows();
         int nr = rows.length;
         for (int i = 0; i < nr; i++) {
@@ -313,7 +317,6 @@ public class TableModelTest {
         assertEquals("null sort dir", SortDir.ASC, TableModel.sortDir(null));
     }
 
-
     @Test
     public void enumSort() {
         tm = new TableModel(FOO);
@@ -324,7 +327,7 @@ public class TableModelTest {
         tm.addRow().cell(FOO, StarWars.R2D2);
         tm.addRow().cell(FOO, StarWars.LUKE_SKYWALKER);
 
-        tm.sort(FOO, SortDir.ASC);
+        tm.sort(FOO, SortDir.ASC, null, null);
 
         // verify expected results
         StarWars[] ordered = StarWars.values();
@@ -335,4 +338,179 @@ public class TableModelTest {
             assertEquals(UNEX_SORT + i, ordered[i], rows[i].get(FOO));
         }
     }
+
+
+    // ------------------------
+    // Second sort column tests
+
+    private static final String A1 = "a1";
+    private static final String A2 = "a2";
+    private static final String A3 = "a3";
+    private static final String B1 = "b1";
+    private static final String B2 = "b2";
+    private static final String B3 = "b3";
+    private static final String C1 = "c1";
+    private static final String C2 = "c2";
+    private static final String C3 = "c3";
+    private static final String A = "A";
+    private static final String B = "B";
+    private static final String C = "C";
+
+    private static final String[] UNSORTED_IDS = {
+            A3, B2, A1, C2, A2, C3, B1, C1, B3
+    };
+    private static final String[] UNSORTED_ALPHAS = {
+            A, B, A, C, A, C, B, C, B
+    };
+    private static final int[] UNSORTED_NUMBERS = {
+            3, 2, 1, 2, 2, 3, 1, 1, 3
+    };
+
+    private static final String[] ROW_ORDER_AA_NA = {
+            A1, A2, A3, B1, B2, B3, C1, C2, C3
+    };
+    private static final String[] ROW_ORDER_AD_NA = {
+            C1, C2, C3, B1, B2, B3, A1, A2, A3
+    };
+    private static final String[] ROW_ORDER_AA_ND = {
+            A3, A2, A1, B3, B2, B1, C3, C2, C1
+    };
+    private static final String[] ROW_ORDER_AD_ND = {
+            C3, C2, C1, B3, B2, B1, A3, A2, A1
+    };
+
+    private void testAddRow(TableModel tm, int index) {
+        tm.addRow().cell(ID, UNSORTED_IDS[index])
+                .cell(ALPHA, UNSORTED_ALPHAS[index])
+                .cell(NUMBER, UNSORTED_NUMBERS[index]);
+    }
+
+    private TableModel unsortedDoubleTableModel() {
+        tm = new TableModel(ID, ALPHA, NUMBER);
+        for (int i = 0; i < 9; i++) {
+            testAddRow(tm, i);
+        }
+        return tm;
+    }
+
+    private void verifyRowOrder(String tag, TableModel tm, String[] rowOrder) {
+        int i = 0;
+        for (TableModel.Row row : tm.getRows()) {
+            assertEquals(tag + ": unexpected row id", rowOrder[i++], row.get(ID));
+        }
+    }
+
+    @Test
+    public void sortAlphaAscNumberAsc() {
+        tm = unsortedDoubleTableModel();
+        verifyRowOrder("unsorted", tm, UNSORTED_IDS);
+        tm.sort(ALPHA, SortDir.ASC, NUMBER, SortDir.ASC);
+        verifyRowOrder("aana", tm, ROW_ORDER_AA_NA);
+    }
+
+    @Test
+    public void sortAlphaDescNumberAsc() {
+        tm = unsortedDoubleTableModel();
+        verifyRowOrder("unsorted", tm, UNSORTED_IDS);
+        tm.sort(ALPHA, SortDir.DESC, NUMBER, SortDir.ASC);
+        verifyRowOrder("adna", tm, ROW_ORDER_AD_NA);
+    }
+
+    @Test
+    public void sortAlphaAscNumberDesc() {
+        tm = unsortedDoubleTableModel();
+        verifyRowOrder("unsorted", tm, UNSORTED_IDS);
+        tm.sort(ALPHA, SortDir.ASC, NUMBER, SortDir.DESC);
+        verifyRowOrder("aand", tm, ROW_ORDER_AA_ND);
+    }
+
+    @Test
+    public void sortAlphaDescNumberDesc() {
+        tm = unsortedDoubleTableModel();
+        verifyRowOrder("unsorted", tm, UNSORTED_IDS);
+        tm.sort(ALPHA, SortDir.DESC, NUMBER, SortDir.DESC);
+        verifyRowOrder("adnd", tm, ROW_ORDER_AD_ND);
+    }
+
+    // ----------------
+    // Annotation tests
+
+    @Test
+    public void stringAnnotation() {
+        tm = new TableModel(FOO);
+        tm.addAnnotation(BAR, ZOO);
+        Collection<TableModel.Annot> annots = tm.getAnnotations();
+        assertEquals("wrong size", 1, annots.size());
+
+        TableModel.Annot annot = annots.iterator().next();
+        assertEquals("wrong key", BAR, annot.key());
+        assertEquals("wrong value", ZOO, annot.value());
+    }
+
+    private static final String K_INT = "int";
+    private static final String K_BOOL = "bool";
+    private static final String K_FLOAT = "float";
+    private static final String K_DOUBLE = "double";
+    private static final String K_ENUM = "enum";
+
+    private TableModel.Annot getAnnotation(Collection<TableModel.Annot> annots, String key) {
+        final TableModel.Annot[] annot = {null};
+        annots.forEach(a -> {
+            if (a.key().equals(key)) {
+                annot[0] = a;
+            }
+        });
+        return annot[0];
+    }
+
+    private void verifyCollectionContains(Collection<TableModel.Annot> annots,
+                                          String key, int i) {
+        TableModel.Annot a = getAnnotation(annots, key);
+        assertEquals("wrong int value", i, a.value());
+    }
+
+    private void verifyCollectionContains(Collection<TableModel.Annot> annots,
+                                          String key, boolean b) {
+        TableModel.Annot a = getAnnotation(annots, key);
+        assertEquals("wrong boolean value", b, a.value());
+    }
+
+    private void verifyCollectionContains(Collection<TableModel.Annot> annots,
+                                          String key, float f) {
+        TableModel.Annot a = getAnnotation(annots, key);
+        assertEquals("wrong float value", f, a.value());
+    }
+
+    private void verifyCollectionContains(Collection<TableModel.Annot> annots,
+                                          String key, double d) {
+        TableModel.Annot a = getAnnotation(annots, key);
+        assertEquals("wrong double value", d, a.value());
+    }
+
+    private void verifyCollectionContains(Collection<TableModel.Annot> annots,
+                                          String key, Enum<?> e) {
+        TableModel.Annot a = getAnnotation(annots, key);
+        assertEquals("wrong double value", e, a.value());
+    }
+
+    @Test
+    public void primitivesAnnotation() {
+        tm = new TableModel(FOO);
+        tm.addAnnotation(K_INT, 1);
+        tm.addAnnotation(K_BOOL, true);
+        tm.addAnnotation(K_FLOAT, 3.14f);
+        tm.addAnnotation(K_DOUBLE, 2.71828);
+        tm.addAnnotation(K_ENUM, StarWars.LUKE_SKYWALKER);
+
+        Collection<TableModel.Annot> annots = tm.getAnnotations();
+        assertEquals("wrong size", 5, annots.size());
+
+        verifyCollectionContains(annots, K_INT, 1);
+        verifyCollectionContains(annots, K_BOOL, true);
+        verifyCollectionContains(annots, K_FLOAT, 3.14f);
+        verifyCollectionContains(annots, K_DOUBLE, 2.71828);
+        verifyCollectionContains(annots, K_ENUM, StarWars.LUKE_SKYWALKER);
+    }
+
+    // TODO: add support for compound object value
 }

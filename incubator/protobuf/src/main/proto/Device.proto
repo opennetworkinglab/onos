@@ -1,0 +1,50 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net";
+
+package Device;
+
+message DeviceDescription {
+  string device_Uri = 1;
+  DeviceType type = 2;
+  string manufacturer = 3;
+  string hw_version = 4;
+  string sw_version = 5;
+  string serial_number = 6;
+  string chassis_id = 7;
+  map<string, string> annotations = 8;
+}
+
+enum MastershipRole {
+  NONE = 0;
+  MASTER = 1;
+  STANDBY = 2;
+}
+
+enum DeviceType {
+  OTHER = 0;
+  SWITCH = 1;
+  ROUTER = 2;
+  ROADM = 3;
+  OTN = 4;
+  ROADM_OTN = 5;
+  FIREWALL = 6;
+  BALANCER = 7;
+  IPS = 8;
+  IDS = 9;
+  CONTROLLER = 10;
+  VIRTUAL = 11;
+  FIBER_SWITCH = 12;
+  MICROWAVE = 13;
+}
+
+// Corresponds to org.onosproject.net.Device.
+message DeviceCore {
+  string deviceId = 1;
+  DeviceType type = 2;
+  string manufacturer = 3;
+  string hw_version = 4;
+  string sw_version = 5;
+  string serial_number = 6;
+  string chassis_id = 7;
+  map<string, string> annotations = 8;
+} 

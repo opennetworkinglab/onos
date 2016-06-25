@@ -1,0 +1,13 @@
+{
+  "id": 1,
+  "deviceId": "of:0000000000000001",
+  "unit": "KB_PER_SEC",
+  "bands": [
+    {
+      "type": "REMARK",
+      "rate": 10,
+      "prec": 20,
+      "burstSize": 30
+    }
+  ]
+}

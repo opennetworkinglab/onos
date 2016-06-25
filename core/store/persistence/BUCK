@@ -1,0 +1,15 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:mapdb',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+]
+
+osgi_jar_with_tests (
+    name = 'onos-core-persistence',
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    visibility = ['PUBLIC'],
+)

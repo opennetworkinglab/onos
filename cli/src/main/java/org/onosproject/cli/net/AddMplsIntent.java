@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,11 @@ import java.util.Optional;
 
 /**
  * Installs MPLS intents.
+ *
+ * @deprecated in Goldeneye Release, in favour of encapsulation
+ * constraint {@link org.onosproject.net.intent.constraint.EncapsulationConstraint}
  */
+@Deprecated
 @Command(scope = "onos", name = "add-mpls-intent", description = "Installs mpls connectivity intent")
 public class AddMplsIntent extends ConnectivityIntentCommand {
 

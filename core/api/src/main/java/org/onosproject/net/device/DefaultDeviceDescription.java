@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.net.URI;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.Device.Type;
+import com.google.common.base.Objects;
 
 /**
  * Default implementation of immutable device description entity.
@@ -71,7 +72,7 @@ public class DefaultDeviceDescription extends AbstractDescription
      */
     public DefaultDeviceDescription(DeviceDescription base,
                                     SparseAnnotations... annotations) {
-        this(base.deviceURI(), base.type(), base.manufacturer(),
+        this(base.deviceUri(), base.type(), base.manufacturer(),
              base.hwVersion(), base.swVersion(), base.serialNumber(),
              base.chassisId(), annotations);
     }
@@ -83,13 +84,13 @@ public class DefaultDeviceDescription extends AbstractDescription
      * @param annotations Annotations to use.
      */
     public DefaultDeviceDescription(DeviceDescription base, Type type, SparseAnnotations... annotations) {
-        this(base.deviceURI(), type, base.manufacturer(),
+        this(base.deviceUri(), type, base.manufacturer(),
                 base.hwVersion(), base.swVersion(), base.serialNumber(),
                 base.chassisId(), annotations);
     }
 
     @Override
-    public URI deviceURI() {
+    public URI deviceUri() {
         return uri;
     }
 
@@ -129,7 +130,32 @@ public class DefaultDeviceDescription extends AbstractDescription
                 .add("uri", uri).add("type", type).add("mfr", manufacturer)
                 .add("hw", hwVersion).add("sw", swVersion)
                 .add("serial", serialNumber)
+                .add("annotations", annotations())
                 .toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), uri, type, manufacturer,
+                                hwVersion, swVersion, serialNumber, chassisId);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object instanceof DefaultDeviceDescription) {
+            if (!super.equals(object)) {
+                return false;
+            }
+            DefaultDeviceDescription that = (DefaultDeviceDescription) object;
+            return Objects.equal(this.uri, that.uri)
+                    && Objects.equal(this.type, that.type)
+                    && Objects.equal(this.manufacturer, that.manufacturer)
+                    && Objects.equal(this.hwVersion, that.hwVersion)
+                    && Objects.equal(this.swVersion, that.swVersion)
+                    && Objects.equal(this.serialNumber, that.serialNumber)
+                    && Objects.equal(this.chassisId, that.chassisId);
+        }
+        return false;
     }
 
     // default constructor for serialization

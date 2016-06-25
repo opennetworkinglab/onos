@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,9 @@
     // internal state
     var debugFlags = {};
 
+    // function references
+    var fcc = String.fromCharCode,
+        cca = String.prototype.charCodeAt;
 
     function _parseDebugFlags(dbgstr) {
         var bits = dbgstr ? dbgstr.split(",") : [];
@@ -223,9 +226,29 @@
 
     // return the given string with the first character capitalized.
     function cap(s) {
-        return s.toLowerCase().replace(/^[a-z]/, function (m) {
-            return m.toUpperCase();
-        });
+        return s ? s[0].toUpperCase() + s.slice(1).toLowerCase() : s;
+    }
+
+    // return encoding structure for given parameters
+    function eecode(h, w) {
+        var m = 65,
+            x = 90,
+            d = x - m + 1,
+            s = x + m,
+            o = [],
+            n, i, c, e;
+
+        for (i = 0, n = w.length; i<n; i++) {
+            c = cca.call(w, i);
+            e = s - c + h;
+            e = e > x ? e - d : e;
+            o.push(e);
+        }
+        return {
+            o: w,
+            d: o.join(''),
+            e: fcc.apply(o, o)
+        };
     }
 
     // return the parameter without a px suffix
@@ -253,6 +276,116 @@
         return debugFlags[tag];
     }
 
+    // output debug message to console, if debug tag set...
+    // e.g. fs.debug('mytag', arg1, arg2, ...)
+    function debug(tag) {
+        var args;
+        if (debugOn(tag)) {
+            args = Array.prototype.slice.call(arguments, 1);
+            args.unshift('['+tag+']');
+            $log.debug.apply(this, args);
+        }
+    }
+
+    // trie operation
+    function _trieOp(op, trie, word, data) {
+        var p = trie,
+            w = word.toUpperCase(),
+            s = w.split(''),
+            c = { p: p, s: s },
+            t = [],
+            x = 0,
+            f1 = op === '+' ? add : probe,
+            f2 = op === '+' ? insert : remove;
+
+        function add(c) {
+            var q = c.s.shift(),
+                np = c.p[q];
+
+            if (!np) {
+                c.p[q] = {};
+                np = c.p[q];
+                x = 1;
+            }
+            return { p: np, s: c.s }
+        }
+
+        function probe(c) {
+            var q = c.s.shift(),
+                k = Object.keys(c.p).length,
+                np = c.p[q];
+
+            t.push({ q:q, k:k, p:c.p });
+            if (!np) {
+                t = [];
+                return { s: [] };
+            }
+            return { p: np, s: c.s }
+        }
+
+        function insert() {
+            c.p._data = data;
+            return x ? 'added' : 'updated';
+        }
+
+        function remove() {
+            if (t.length) {
+                t = t.reverse();
+                while (t.length) {
+                    c = t.shift();
+                    delete c.p[c.q];
+                    if (c.k > 1) {
+                        t = [];
+                    }
+                }
+                return 'removed';
+            }
+            return 'absent';
+        }
+
+        while (c.s.length) {
+            c = f1(c);
+        }
+        return f2();
+    }
+
+    // add word to trie (word will be converted to uppercase)
+    // data associated with the word
+    // returns 'added' or 'updated'
+    function addToTrie(trie, word, data) {
+        return _trieOp('+', trie, word, data);
+    }
+
+    // remove word from trie (word will be converted to uppercase)
+    // returns 'removed' or 'absent'
+    function removeFromTrie(trie, word) {
+        return _trieOp('-', trie, word);
+    }
+
+    // lookup word (converted to uppercase) in trie
+    // returns:
+    //    undefined if the word is not in the trie
+    //    -1 for a partial match (word is a prefix to an existing word)
+    //    data for the word for an exact match
+    function trieLookup(trie, word) {
+        var s = word.toUpperCase().split(''),
+            p = trie,
+            n;
+
+        while (s.length) {
+            n = s.shift();
+            p = p[n];
+            if (!p) {
+                return undefined;
+            }
+        }
+        if (p._data) {
+            return p._data;
+        }
+        return -1;
+    }
+
+
     angular.module('onosUtil')
         .factory('FnService',
         ['$window', '$location', '$log', function (_$window_, $loc, _$log_) {
@@ -275,6 +408,7 @@
                 isSafari: isSafari,
                 isFirefox: isFirefox,
                 debugOn: debugOn,
+                debug: debug,
                 find: find,
                 inArray: inArray,
                 removeFromArray: removeFromArray,
@@ -282,10 +416,14 @@
                 sameObjProps: sameObjProps,
                 containsObj: containsObj,
                 cap: cap,
+                eecode: eecode,
                 noPx: noPx,
                 noPxStyle: noPxStyle,
                 endsWith: endsWith,
-                parseBitRate: parseBitRate
+                parseBitRate: parseBitRate,
+                addToTrie: addToTrie,
+                removeFromTrie: removeFromTrie,
+                trieLookup: trieLookup
             };
     }]);
 

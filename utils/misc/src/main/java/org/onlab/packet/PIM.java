@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
@@ -42,6 +43,9 @@ public class PIM extends BasePacket {
     public static final byte TYPE_CANDIDATE_RP_ADV = 0x08;
 
     public static final int PIM_HEADER_LEN = 4;
+
+    public static final byte ADDRESS_FAMILY_IP4 = 0x1;
+    public static final byte ADDRESS_FAMILY_IP6 = 0x2;
 
     public static final Map<Byte, Deserializer<? extends IPacket>> PROTOCOL_DESERIALIZER_MAP =
             new HashMap<>();
@@ -292,5 +296,15 @@ public class PIM extends BasePacket {
 
             return pim;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("version", Byte.toString(version))
+                .add("type", Byte.toString(type))
+                .add("reserved", Byte.toString(reserved))
+                .add("checksum", Short.toString(reserved))
+                .toString();
     }
 }

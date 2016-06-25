@@ -1,0 +1,10 @@
+{
+    "id": "4512d643-24fc-4fae-af4b-321c5e2eb3d1",
+    "name": "PG1",
+    "tenant_id": "d382007aa9904763a801f68ecf065cf5",
+    "description": "Two port-pairs",
+    "port_pairs": [
+        "875dfeda-43ed-23fe-454b-764feab2c342",
+        "78dcd363-fc23-aeb6-f44b-56dc5e2fb3ae"
+    ]
+}

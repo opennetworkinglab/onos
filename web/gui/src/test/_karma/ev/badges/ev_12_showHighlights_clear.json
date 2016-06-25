@@ -1,0 +1,8 @@
+{
+  "event": "showHighlights",
+  "payload": {
+    "devices": [],
+    "hosts": [],
+    "links": []
+  }
+}

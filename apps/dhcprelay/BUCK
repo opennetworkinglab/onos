@@ -1,0 +1,15 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+]
+
+osgi_jar (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    app_name = 'org.onosproject.dhcprelay',
+    title = 'DHCP Relay Agent App',
+    category = 'default',
+    url = 'http://onosproject.org',
+    description = 'DHCP Relay Agent Application.',
+)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,14 +36,18 @@ public class SettingsViewMessageHandler extends UiMessageHandler {
     private static final String SETTINGS = "settings";
 
     private static final String COMPONENT = "component";
+    private static final String FQ_COMPONENT = "fqComponent";
+    private static final String PROP = "prop";
     private static final String ID = "id";
     private static final String TYPE = "type";
     private static final String VALUE = "value";
     private static final String DEFAULT = "defValue";
     private static final String DESC = "desc";
 
+    private static final char DOT = '.';
+
     private static final String[] COL_IDS = {
-            COMPONENT, ID, TYPE, VALUE, DEFAULT, DESC
+            COMPONENT, FQ_COMPONENT, PROP, ID, TYPE, VALUE, DEFAULT, DESC
     };
 
     @Override
@@ -53,6 +57,8 @@ public class SettingsViewMessageHandler extends UiMessageHandler {
 
     // handler for host table requests
     private final class SettingsRequest extends TableRequestHandler {
+        private static final String NO_ROWS_MESSAGE = "No settings found";
+
         private SettingsRequest() {
             super(DATA_REQUEST, DATA_RESPONSE, SETTINGS);
         }
@@ -60,6 +66,11 @@ public class SettingsViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage(ObjectNode payload) {
+            return NO_ROWS_MESSAGE;
         }
 
         @Override
@@ -83,13 +94,30 @@ public class SettingsViewMessageHandler extends UiMessageHandler {
             }
         }
 
-        private void populateRow(TableModel.Row row, String component, ConfigProperty prop) {
-            row.cell(COMPONENT, component)
-                    .cell(ID, prop.name())
-                    .cell(TYPE, prop.type().toString().toLowerCase())
+        private void populateRow(TableModel.Row row, String fqComp,
+                                 ConfigProperty prop) {
+            String simple = simpleName(fqComp);
+
+            row.cell(ID, simple + DELIM + prop.name())
+                    .cell(FQ_COMPONENT, fqComp)
+                    .cell(COMPONENT, simple)
+                    .cell(PROP, prop.name())
+                    .cell(TYPE, typeName(prop))
                     .cell(VALUE, prop.value())
                     .cell(DEFAULT, prop.defaultValue())
                     .cell(DESC, prop.description());
         }
+
+        // return just simple class name: "a.b.c.MyClass" -> "MyClass"
+        private String simpleName(String component) {
+            int lastDot = component.lastIndexOf(DOT);
+            return lastDot < 0 ? component : component.substring(lastDot + 1);
+        }
+
+        private String typeName(ConfigProperty prop) {
+            return prop.type().toString().toLowerCase();
+        }
+
+        private static final String DELIM = "::";
     }
 }

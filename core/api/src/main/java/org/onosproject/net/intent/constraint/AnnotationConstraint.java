@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.onosproject.net.intent.constraint;
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import org.onosproject.net.Link;
-import org.onosproject.net.resource.link.LinkResourceService;
+import org.onosproject.net.intent.ResourceContext;
 
 import java.util.Objects;
 
@@ -68,16 +68,28 @@ public class AnnotationConstraint extends BooleanConstraint {
         return threshold;
     }
 
+    // doesn't use LinkResourceService
     @Override
-    public boolean isValid(Link link, LinkResourceService resourceService) {
+    public boolean isValid(Link link, ResourceContext context) {
+        // explicitly call a method not depending on LinkResourceService
+        return isValid(link);
+    }
+
+    private boolean isValid(Link link) {
         double value = getAnnotatedValue(link, key);
 
         return value <= threshold;
     }
 
+    // doesn't use LinkResourceService
     @Override
-    public double cost(Link link, LinkResourceService resourceService) {
-        if (isValid(link, resourceService)) {
+    public double cost(Link link, ResourceContext context) {
+        // explicitly call a method not depending on LinkResourceService
+        return cost(link);
+    }
+
+    private double cost(Link link) {
+        if (isValid(link)) {
             return getAnnotatedValue(link, key);
         } else {
             return -1;

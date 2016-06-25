@@ -6,7 +6,9 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
+echo "This facility has been deprecated and will be removed in 1.6.0 (Goldeneye) release!!!"
+
+nodes=$(env | sort | egrep "^OC[0-9]+" | cut -d= -f2)
 
 for node in $nodes; do
     printf "$node..."

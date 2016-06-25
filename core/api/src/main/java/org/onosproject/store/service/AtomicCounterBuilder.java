@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,61 +15,14 @@
  */
 package org.onosproject.store.service;
 
+import org.onosproject.store.primitives.DistributedPrimitiveBuilder;
+
 /**
  * Builder for AtomicCounter.
  */
-public interface AtomicCounterBuilder {
-
-    /**
-     * Sets the name for the atomic counter.
-     * <p>
-     * Each atomic counter is identified by a unique name.
-     * </p>
-     * <p>
-     * Note: This is a mandatory parameter.
-     * </p>
-     *
-     * @param name name of the atomic counter
-     * @return this AtomicCounterBuilder
-     */
-    AtomicCounterBuilder withName(String name);
-
-    /**
-     * Creates this counter on the partition that spans the entire cluster.
-     * <p>
-     * When partitioning is disabled, the counter state will be
-     * ephemeral and does not survive a full cluster restart.
-     * </p>
-     * <p>
-     * Note: By default partitions are enabled.
-     * </p>
-     * @return this AtomicCounterBuilder
-     */
-    AtomicCounterBuilder withPartitionsDisabled();
-
-    /**
-     * Instantiates Metering service to gather usage and performance metrics.
-     * By default, usage data will be stored.
-     *
-     * @return this AtomicCounterBuilder
-     */
-    AtomicCounterBuilder withMeteringDisabled();
-
-    /**
-     * Builds a AtomicCounter based on the configuration options
-     * supplied to this builder.
-     *
-     * @return new AtomicCounter
-     * @throws java.lang.RuntimeException if a mandatory parameter is missing
-     */
-    AtomicCounter build();
-
-    /**
-     * Builds a AsyncAtomicCounter based on the configuration options
-     * supplied to this builder.
-     *
-     * @return new AsyncAtomicCounter
-     * @throws java.lang.RuntimeException if a mandatory parameter is missing
-     */
-    AsyncAtomicCounter buildAsyncCounter();
+public abstract class AtomicCounterBuilder
+    extends DistributedPrimitiveBuilder<AtomicCounterBuilder, AsyncAtomicCounter> {
+    public AtomicCounterBuilder() {
+        super(DistributedPrimitive.Type.COUNTER);
+    }
 }

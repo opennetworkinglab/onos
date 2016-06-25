@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,7 @@ package org.onosproject.provider.nil;
  */
 public class CentipedeTopologySimulator extends LinearTopologySimulator {
 
-    /**
-     * Creates simulated hosts.
-     */
+    @Override
     protected void createHosts() {
         deviceIds.forEach(id -> createHosts(id, infrastructurePorts));
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.onosproject.incubator.net.meter.impl;
 
+import org.apache.commons.lang3.tuple.Pair;
+import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -22,11 +24,13 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.TriConsumer;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterEvent;
 import org.onosproject.net.meter.MeterFailReason;
 import org.onosproject.net.meter.MeterId;
+import org.onosproject.net.meter.MeterKey;
 import org.onosproject.net.meter.MeterListener;
 import org.onosproject.net.meter.MeterOperation;
 import org.onosproject.net.meter.MeterProvider;
@@ -38,7 +42,6 @@ import org.onosproject.net.meter.MeterState;
 import org.onosproject.net.meter.MeterStore;
 import org.onosproject.net.meter.MeterStoreDelegate;
 import org.onosproject.net.meter.MeterStoreResult;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.store.service.AtomicCounter;
@@ -47,10 +50,10 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
-
 
 /**
  * Provides implementation of the meter service APIs.
@@ -61,7 +64,7 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
         MeterProvider, MeterProviderService>
         implements MeterService, MeterProviderRegistry {
 
-    private final String meterIdentifier = "meter-id-counter";
+    private static final String METERCOUNTERIDENTIFIER = "meter-id-counter-%s";
     private final Logger log = getLogger(getClass());
     private final MeterStoreDelegate delegate = new InternalMeterStoreDelegate();
 
@@ -71,15 +74,13 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MeterStore store;
 
-    private AtomicCounter meterIdCounter;
+    private Map<DeviceId, AtomicCounter> meterIdCounters
+            = Maps.newConcurrentMap();
 
     private TriConsumer<MeterRequest, MeterStoreResult, Throwable> onComplete;
 
     @Activate
     public void activate() {
-        meterIdCounter = storageService.atomicCounterBuilder()
-                .withName(meterIdentifier)
-                .build();
 
         store.setDelegate(delegate);
 
@@ -115,11 +116,13 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
     @Override
     public Meter submit(MeterRequest request) {
 
+        MeterId id = allocateMeterId(request.deviceId());
+
         Meter.Builder mBuilder = DefaultMeter.builder()
                 .forDevice(request.deviceId())
                 .fromApp(request.appId())
                 .withBands(request.bands())
-                .withId(allocateMeterId())
+                .withId(id)
                 .withUnit(request.unit());
 
         if (request.isBurst()) {
@@ -152,8 +155,15 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
     }
 
     @Override
-    public Meter getMeter(MeterId id) {
-        return store.getMeter(id);
+    public Meter getMeter(DeviceId deviceId, MeterId id) {
+        MeterKey key = MeterKey.key(deviceId, id);
+        return store.getMeter(key);
+    }
+
+    @Override
+    public Collection<Meter> getMeters(DeviceId deviceId) {
+        return store.getAllMeters().stream().filter(m ->
+                m.deviceId().equals(deviceId)).collect(Collectors.toList());
     }
 
     @Override
@@ -161,9 +171,19 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
         return store.getAllMeters();
     }
 
-    private MeterId allocateMeterId() {
-        // FIXME: This will break one day.
-        return MeterId.meterId((int) meterIdCounter.incrementAndGet());
+    private MeterId allocateMeterId(DeviceId deviceId) {
+        long id = meterIdCounters.compute(deviceId, (k, v) -> {
+            if (v == null) {
+                return allocateCounter(k);
+            }
+            return v;
+        }).incrementAndGet();
+
+        return MeterId.meterId((int) id);
+    }
+
+    private AtomicCounter allocateCounter(DeviceId deviceId) {
+        return storageService.getAtomicCounter(String.format(METERCOUNTERIDENTIFIER, deviceId));
     }
 
     private class InternalMeterProviderService
@@ -189,19 +209,19 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
         public void pushMeterMetrics(DeviceId deviceId, Collection<Meter> meterEntries) {
             //FIXME: FOLLOWING CODE CANNOT BE TESTED UNTIL SOMETHING THAT
             //FIXME: IMPLEMENTS METERS EXISTS
-            Map<MeterId, Meter> storedMeterMap = store.getAllMeters().stream()
-                    .collect(Collectors.toMap(Meter::id, m -> m));
+            Map<Pair<DeviceId, MeterId>, Meter> storedMeterMap = store.getAllMeters().stream()
+                    .collect(Collectors.toMap(m -> Pair.of(m.deviceId(), m.id()), Function.identity()));
 
             meterEntries.stream()
-                    .filter(m -> storedMeterMap.remove(m.id()) != null)
+                    .filter(m -> storedMeterMap.remove(Pair.of(m.deviceId(), m.id())) != null)
                     .forEach(m -> store.updateMeterState(m));
 
             storedMeterMap.values().stream().forEach(m -> {
                 if (m.state() == MeterState.PENDING_ADD) {
                     provider().performMeterOperation(m.deviceId(),
                                                      new MeterOperation(m,
-                                                                        MeterOperation.Type.ADD));
-                } else {
+                                                                        MeterOperation.Type.MODIFY));
+                } else if (m.state() == MeterState.PENDING_REMOVE) {
                     store.deleteMeterNow(m);
                 }
             });

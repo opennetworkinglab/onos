@@ -1,0 +1,137 @@
+module port-pair {
+
+    yang-version 1;
+
+    namespace "sfc.portpair";
+
+    prefix "port-pair";
+   
+    organization "Huawei india pvt. ltd..";
+
+    description "This submodule defines for port pair.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    typedef uuid {
+    	type string;
+    }
+
+    typedef port-pair-id {
+        type uuid;
+    }
+
+    typedef tenant-id {
+        type uuid;
+    }
+    
+     grouping port-pair {
+        container  port-pair {
+
+        	leaf name {
+           	    type string;
+        	}
+
+        	leaf id {
+           	    type port-pair-id;
+        	}
+
+        	leaf tenantIdentifier {
+           	    type tenant-id;
+        	}
+
+        	leaf description {
+            	    type string;
+        	}
+
+        	leaf ingress {
+            	    type uuid;
+        	}
+
+        	leaf egress {
+           	    type uuid;
+        	}  
+   	}
+    }
+   rpc exists {
+      input {
+         leaf id {
+            type port-pair-id;
+          }
+      }
+      output {
+          leaf is-present {
+              type boolean;
+          }
+      }
+    }
+
+   rpc get-port-pair-count {
+      
+      output {
+          leaf count {
+              type int32;
+          }
+      }
+    }
+   
+   rpc get-port-pair {
+      input {
+         leaf id {
+            type port-pair-id;
+          }
+      }
+      output {
+          uses port-pair;
+      }
+    }
+
+   rpc create-port-pair {
+      input {
+          uses port-pair;
+      }
+      output {
+          leaf is-created {
+              type boolean;
+          }
+      }
+    }
+
+   rpc update-port-pair {
+      input {
+          uses port-pair;
+      }
+      output {
+          leaf is-updated {
+              type boolean;
+          }
+      }
+    }
+
+   rpc remove-port-pair {
+      input {
+         leaf id {
+            type port-pair-id;
+          }
+      }
+      output {
+          leaf is-removed {
+              type boolean;
+          }
+      }
+    }
+     
+ 
+    notification port-pair-put {
+        uses port-pair;
+    }
+    
+    notification port-pair-Delete {
+        uses port-pair;
+    }
+
+    notification port-pair-Update {
+        uses port-pair;
+    }   
+}

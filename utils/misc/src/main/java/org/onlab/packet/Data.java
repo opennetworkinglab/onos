@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package org.onlab.packet;
 
 import java.util.Arrays;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.*;
 
 /**
@@ -129,4 +130,10 @@ public class Data extends BasePacket {
         };
     }
 
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("data", Arrays.toString(data))
+                .toString();
+    }
 }

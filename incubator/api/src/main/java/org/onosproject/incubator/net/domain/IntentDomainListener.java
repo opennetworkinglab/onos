@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 package org.onosproject.incubator.net.domain;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.event.EventListener;
 
 /**
  * Listener for intent domain events.
  */
 @Beta
-public interface IntentDomainListener {
-    //TODO create event types
-    //extends EventListener<IntentDomainEvent>
+public interface IntentDomainListener
+    extends EventListener<IntentDomainEvent> {
 }

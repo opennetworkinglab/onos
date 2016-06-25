@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,20 @@ public class LLDPTLV {
     protected byte type;
     protected short length;
     protected byte[] value;
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        sb.append("type= ");
+        sb.append(type);
+        sb.append("length= ");
+        sb.append(length);
+        sb.append("value= ");
+        sb.append(Arrays.toString(value));
+        sb.append("]");
+        return sb.toString();
+    }
 
     /**
      * @return the type

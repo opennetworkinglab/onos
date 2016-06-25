@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,6 +65,8 @@ public class LinkViewMessageHandler extends UiMessageHandler {
 
     // handler for link table requests
     private final class LinkDataRequest extends TableRequestHandler {
+        private static final String NO_ROWS_MESSAGE = "No links found";
+
         private LinkDataRequest() {
             super(LINK_DATA_REQ, LINK_DATA_RESP, LINKS);
         }
@@ -72,6 +74,11 @@ public class LinkViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage(ObjectNode payload) {
+            return NO_ROWS_MESSAGE;
         }
 
         @Override
@@ -115,6 +122,10 @@ public class LinkViewMessageHandler extends UiMessageHandler {
         }
 
         private String linkState(BaseLink link) {
+            if (link.one() == null || link.two() == null) {
+                return ICON_ID_OFFLINE;
+            }
+
             return (link.one().state() == Link.State.ACTIVE ||
                     link.two().state() == Link.State.ACTIVE) ?
                     ICON_ID_ONLINE : ICON_ID_OFFLINE;

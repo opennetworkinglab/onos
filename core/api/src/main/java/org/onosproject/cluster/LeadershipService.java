@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,108 +17,102 @@ package org.onosproject.cluster;
 
 import org.onosproject.event.ListenerService;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Service for leader election.
+ * <p>
  * Leadership contests are organized around topics. A instance can join the
  * leadership race for a topic or withdraw from a race it has previously joined.
+ * <p>
  * Listeners can be added to receive notifications asynchronously for various
  * leadership contests.
+ * <p>
+ * When a node gets elected as a leader for a topic, all nodes receive notifications
+ * indicating a change in leadership.
  */
 public interface LeadershipService
     extends ListenerService<LeadershipEvent, LeadershipEventListener> {
 
     /**
-     * Returns the current leader for the topic.
+     * Returns the {@link NodeId node identifier} that is the current leader for a topic.
      *
-     * @param path topic
-     * @return nodeId of the leader, null if so such topic exists.
+     * @param topic leadership topic
+     * @return node identifier of the current leader; {@code null} if there is no leader for the topic
      */
-    NodeId getLeader(String path);
+    default NodeId getLeader(String topic) {
+        Leadership leadership = getLeadership(topic);
+        return leadership == null ? null : leadership.leaderNodeId();
+    }
 
     /**
-     * Returns the current leadership info for the topic.
+     * Returns the current {@link Leadership leadership} for a topic.
      *
-     * @param path topic
-     * @return leadership info or null if so such topic exists.
+     * @param topic leadership topic
+     * @return leadership or {@code null} if no such topic exists
      */
-    Leadership getLeadership(String path);
+    Leadership getLeadership(String topic);
 
     /**
-     * Returns the set of topics owned by the specified node.
+     * Returns the set of topics owned by the specified {@link NodeId node}.
      *
-     * @param nodeId node Id.
+     * @param nodeId node identifier.
      * @return set of topics for which this node is the current leader.
      */
-    Set<String> ownedTopics(NodeId nodeId);
+    default Set<String> ownedTopics(NodeId nodeId) {
+        return Maps.filterValues(getLeaderBoard(), v -> Objects.equal(nodeId, v.leaderNodeId())).keySet();
+    }
 
     /**
-     * Joins the leadership contest.
+     * Enters a leadership contest.
      *
-     * @param path topic for which this controller node wishes to be a leader
+     * @param topic leadership topic
      * @return {@code Leadership} future
      */
-    CompletableFuture<Leadership> runForLeadership(String path);
+    Leadership runForLeadership(String topic);
 
     /**
      * Withdraws from a leadership contest.
      *
-     * @param path topic for which this controller node no longer wishes to be a leader
-     * @return future that is successfully completed when withdraw is done
+     * @param topic leadership topic
      */
-    CompletableFuture<Void> withdraw(String path);
-
-    /**
-     * If the local nodeId is the leader for specified topic, this method causes it to
-     * step down temporarily from leadership.
-     * <p>
-     * The node will continue to be in contention for leadership and can
-     * potentially become the leader again if and when it becomes the highest
-     * priority candidate
-     * <p>
-     * If the local nodeId is not the leader, this method will make no changes and
-     * simply return false.
-     *
-     * @param path topic for which this controller node should give up leadership
-     * @return true if this node stepped down from leadership, false otherwise
-     */
-    boolean stepdown(String path);
-
-    /**
-     * Moves the specified nodeId to the top of the candidates list for the topic.
-     * <p>
-     * If the node is not a candidate for this topic, this method will be a noop.
-     *
-     * @param path leadership topic
-     * @param nodeId nodeId to make the top candidate
-     * @return true if nodeId is now the top candidate, false otherwise
-     */
-    boolean makeTopCandidate(String path, NodeId nodeId);
+    void withdraw(String topic);
 
     /**
      * Returns the current leader board.
      *
      * @return mapping from topic to leadership info.
+     * @deprecated 1.6.0 Goldeneye release. Replace usages with {@link #getLeadership(String)}
      */
+    @Deprecated
     Map<String, Leadership> getLeaderBoard();
 
     /**
-     * Returns the candidates for all known topics.
+     * Returns the candidate nodes for each topic.
      *
      * @return A mapping from topics to corresponding list of candidates.
+     * @deprecated 1.6.0 Goldeneye release. Replace usages with {@link #getLeadership(String)}
      */
-    Map<String, List<NodeId>> getCandidates();
+    @Deprecated
+    default Map<String, List<NodeId>> getCandidates() {
+        return ImmutableMap.copyOf(Maps.transformValues(getLeaderBoard(), v -> ImmutableList.copyOf(v.candidates())));
+    }
 
     /**
-     * Returns the candidates for a given topic.
+     * Returns the candidate nodes for a given topic.
      *
-     * @param path topic
-     * @return A lists of NodeIds, which may be empty.
+     * @param topic leadership topic
+     * @return A lists of {@link NodeId nodeIds}, which may be empty.
      */
-    List<NodeId> getCandidates(String path);
-
+    default List<NodeId> getCandidates(String topic) {
+        Leadership leadership = getLeadership(topic);
+        return leadership == null ? ImmutableList.of() : ImmutableList.copyOf(leadership.candidates());
+    }
 }

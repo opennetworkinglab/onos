@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "title": "sinks",
+  "required": [
+    "sinks"
+  ],
+  "properties": {
+    "sinks": {
+      "type": "array",
+      "xml": {
+        "name": "sinks",
+        "wrapped": true
+      },
+      "items": {
+        "type": "string",
+        "title": "sink",
+        "example": "of:0000000000000001/1"
+      }
+    }
+  }
+}

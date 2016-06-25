@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.onosproject.segmentrouting.grouphandler.NeighborSet;
 import org.onosproject.store.service.EventuallyConsistentMap;
@@ -42,16 +43,54 @@ public class TunnelHandler {
     private Map<DeviceId, DefaultGroupHandler> groupHandlerMap;
     private LinkService linkService;
 
+    /**
+     * Result of tunnel creation or removal.
+     */
     public enum Result {
+        /**
+         * Success.
+         */
         SUCCESS,
+
+        /**
+         * More than one router needs to specified to created a tunnel.
+         */
         WRONG_PATH,
+
+        /**
+         * The same tunnel exists already.
+         */
         TUNNEL_EXISTS,
+
+        /**
+         * The same tunnel ID exists already.
+         */
         ID_EXISTS,
+
+        /**
+         * Tunnel not found.
+         */
         TUNNEL_NOT_FOUND,
+
+        /**
+         * Cannot remove the tunnel used by a policy.
+         */
         TUNNEL_IN_USE,
+
+        /**
+         * Failed to create/remove groups for the tunnel.
+         */
         INTERNAL_ERROR
     }
 
+    /**
+     * Constructs tunnel handler.
+     *
+     * @param linkService link service
+     * @param deviceConfiguration device configuration
+     * @param groupHandlerMap group handler map
+     * @param tunnelStore tunnel store
+     */
     public TunnelHandler(LinkService linkService,
                          DeviceConfiguration deviceConfiguration,
                          Map<DeviceId, DefaultGroupHandler> groupHandlerMap,
@@ -157,7 +196,7 @@ public class TunnelHandler {
 
     private int createGroupsForTunnel(Tunnel tunnel) {
 
-        List<Integer> portNumbers;
+        Set<Integer> portNumbers;
         final int groupError = -1;
 
         DeviceId deviceId = config.getDeviceId(tunnel.labelIds().get(0));
@@ -193,7 +232,7 @@ public class TunnelHandler {
             tunnel.allowToRemoveGroup(true);
         }
 
-        return groupHandlerMap.get(deviceId).getNextObjectiveId(ns);
+        return groupHandlerMap.get(deviceId).getNextObjectiveId(ns, null);
     }
 
 }

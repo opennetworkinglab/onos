@@ -1,0 +1,16 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    app_name = 'org.onosproject.netcfghostprovider',
+    title = 'Network Config Host Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    description = 'Host provider that uses network config service to discover hosts.',
+)
+

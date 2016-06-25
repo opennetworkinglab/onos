@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,17 @@
  */
 package org.onosproject.net.flow.instructions;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 
 import java.util.Objects;
-
-import org.onlab.packet.IpAddress;
 
 /**
  * Abstraction of a single traffic treatment step.
  */
 public abstract class L3ModificationInstruction implements Instruction {
+
+    private static final String SEPARATOR = ":";
 
     /**
      * Represents the type of traffic treatment.
@@ -68,9 +69,22 @@ public abstract class L3ModificationInstruction implements Instruction {
         /**
          * Copy TTL in.
          */
-        TTL_IN
+        TTL_IN,
 
-        //TODO: remaining types
+        /**
+         * ARP IP src modification.
+         */
+        ARP_SPA,
+
+        /**
+         * ARP Ether src modification.
+         */
+        ARP_SHA,
+
+        /**
+         * Arp operation modification.
+         */
+        ARP_OP
     }
 
     /**
@@ -109,8 +123,7 @@ public abstract class L3ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("ip", ip).toString();
+            return subtype().toString() + SEPARATOR + ip;
         }
 
         @Override
@@ -126,6 +139,147 @@ public abstract class L3ModificationInstruction implements Instruction {
             if (obj instanceof ModIPInstruction) {
                 ModIPInstruction that = (ModIPInstruction) obj;
                 return  Objects.equals(ip, that.ip) &&
+                        Objects.equals(this.subtype(), that.subtype());
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Represents a L3 ARP IP src/dst modification instruction.
+     */
+    public static final class ModArpIPInstruction extends L3ModificationInstruction {
+
+        private final L3SubType subtype;
+        private final IpAddress ip;
+
+        ModArpIPInstruction(L3SubType subType, IpAddress addr) {
+
+            this.subtype = subType;
+            this.ip = addr;
+        }
+
+        @Override
+        public L3SubType subtype() {
+            return this.subtype;
+        }
+
+        public IpAddress ip() {
+            return this.ip;
+        }
+
+        @Override
+        public String toString() {
+            return subtype().toString() + SEPARATOR + ip;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype(), ip);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModArpIPInstruction) {
+                ModArpIPInstruction that = (ModArpIPInstruction) obj;
+                return  Objects.equals(ip, that.ip) &&
+                        Objects.equals(this.subtype(), that.subtype());
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Represents a L3 ARP Ether src/dst modification instruction.
+     */
+    public static final class ModArpEthInstruction extends L3ModificationInstruction {
+
+        private final L3SubType subtype;
+        private final MacAddress mac;
+
+        ModArpEthInstruction(L3SubType subType, MacAddress addr) {
+
+            this.subtype = subType;
+            this.mac = addr;
+        }
+
+        @Override
+        public L3SubType subtype() {
+            return this.subtype;
+        }
+
+        public MacAddress mac() {
+            return this.mac;
+        }
+
+        @Override
+        public String toString() {
+            return subtype().toString() + SEPARATOR + mac;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype(), mac);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModArpEthInstruction) {
+                ModArpEthInstruction that = (ModArpEthInstruction) obj;
+                return  Objects.equals(mac, that.mac) &&
+                        Objects.equals(this.subtype(), that.subtype());
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Represents a L3 ARP operation modification instruction.
+     */
+    public static final class ModArpOpInstruction extends L3ModificationInstruction {
+
+        private final L3SubType subtype;
+        private final short op;
+
+        ModArpOpInstruction(L3SubType subType, short op) {
+
+            this.subtype = subType;
+            this.op = op;
+        }
+
+        @Override
+        public L3SubType subtype() {
+            return this.subtype;
+        }
+
+        public long op() {
+            return this.op;
+        }
+
+        @Override
+        public String toString() {
+            return subtype().toString() + SEPARATOR + op;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype(), op);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModArpOpInstruction) {
+                ModArpOpInstruction that = (ModArpOpInstruction) obj;
+                return  Objects.equals(op, that.op) &&
                         Objects.equals(this.subtype(), that.subtype());
             }
             return false;
@@ -166,8 +320,7 @@ public abstract class L3ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                .add("flowLabel", Long.toHexString(flowLabel)).toString();
+            return subtype().toString() + SEPARATOR + Long.toHexString(flowLabel);
         }
 
         @Override
@@ -207,8 +360,7 @@ public abstract class L3ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .toString();
+            return subtype().toString();
         }
 
         @Override

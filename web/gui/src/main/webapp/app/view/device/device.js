@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,20 @@
     'use strict';
 
     // injected refs
-    var $log, $scope, $location, fs, mast, ps, wss, is, ns;
+    var $log, $scope, $loc, fs, mast, ps, wss, is, ns, ks;
 
     // internal state
     var detailsPanel,
-        pStartY, pHeight,
-        top, bottom, iconDiv,
-        wSize;
+        pStartY,
+        pHeight,
+        top,
+        bottom,
+        iconDiv,
+        wSize,
+        editingName = false;
 
     // constants
-    var topPdg = 13,
+    var topPdg = 28,
         ctnrPdg = 24,
         scrollSize = 17,
         portsTblPdg = 50,
@@ -39,13 +43,15 @@
         pName = 'device-details-panel',
         detailsReq = 'deviceDetailsRequest',
         detailsResp = 'deviceDetailsResponse',
+        nameChangeReq = 'deviceNameChangeRequest',
+        nameChangeResp = 'deviceNameChangeResponse',
 
         propOrder = [
-            'type', 'masterid', 'chassisid',
+            'id', 'type', 'masterid', 'chassisid',
             'mfr', 'hw', 'sw', 'protocol', 'serial'
         ],
         friendlyProps = [
-            'Type', 'Master ID', 'Chassis ID',
+            'URI', 'Type', 'Master ID', 'Chassis ID',
             'Vendor', 'H/W Version', 'S/W Version', 'Protocol', 'Serial #'
         ],
         portCols = [
@@ -59,13 +65,67 @@
         if (detailsPanel.isVisible()) {
             $scope.selId = null;
             detailsPanel.hide();
+            return true;
         }
+        return false;
     }
 
     function addCloseBtn(div) {
-        is.loadEmbeddedIcon(div, 'plus', 30);
-        div.select('g').attr('transform', 'translate(25, 0) rotate(45)');
+        is.loadEmbeddedIcon(div, 'close', 20);
         div.on('click', closePanel);
+    }
+
+    function exitEditMode(nameH2, name) {
+        nameH2.html(name);
+        nameH2.classed('editable clickable', true);
+        editingName = false;
+        ks.enableGlobalKeys(true);
+    }
+
+    function editNameSave() {
+        var nameH2 = top.select('h2'),
+            id = $scope.panelData.id,
+            val,
+            newVal;
+
+        if (editingName) {
+            val = nameH2.select('input').property('value').trim();
+            newVal = val || id;
+
+            exitEditMode(nameH2, newVal);
+            $scope.panelData.name = newVal;
+            wss.sendEvent(nameChangeReq, { id: id, name: val });
+        }
+    }
+
+    function editNameCancel() {
+        if (editingName) {
+            exitEditMode(top.select('h2'), $scope.panelData.name);
+            return true;
+        }
+        return false;
+    }
+
+    function editName() {
+        var nameH2 = top.select('h2'),
+            tf, el;
+
+        if (!editingName) {
+            nameH2.classed('editable clickable', false);
+            nameH2.html('');
+            tf = nameH2.append('input').classed('name-input', true)
+                .attr('type', 'text')
+                .attr('value', $scope.panelData.name);
+            el = tf[0][0];
+            el.focus();
+            el.select();
+            editingName = true;
+            ks.enableGlobalKeys(false);
+        }
+    }
+
+    function handleEscape() {
+        return editNameCancel() || closePanel();
     }
 
     function setUpPanel() {
@@ -78,7 +138,7 @@
         closeBtn = top.append('div').classed('close-btn', true);
         addCloseBtn(closeBtn);
         iconDiv = top.append('div').classed('dev-icon', true);
-        top.append('h2');
+        top.append('h2').classed('editable clickable', true).on('click', editName);
 
         tblDiv = top.append('div').classed('top-tables', true);
         tblDiv.append('div').classed('left', true).append('table');
@@ -110,11 +170,11 @@
                         .append('tbody');
 
         is.loadEmbeddedIcon(iconDiv, details._iconid_type, 40);
-        top.select('h2').html(details.id);
+        top.select('h2').html(details.name);
 
         propOrder.forEach(function (prop, i) {
             // properties are split into two tables
-            addProp(i < 3 ? leftTbl : rightTbl, i, details[prop]);
+            addProp(i < 4 ? leftTbl : rightTbl, i, details[prop]);
         });
     }
 
@@ -156,14 +216,23 @@
         detailsPanel.width(tbWidth + ctnrPdg);
     }
 
+    function populateName(div, name) {
+        var lab = div.select('.label'),
+            val = div.select('.value');
+        lab.html('Friendly Name:');
+        val.html(name);
+    }
+
     function populateDetails(details) {
-        var topTbs, btmTbl, ports;
+        var nameDiv, topTbs, btmTbl, ports;
         setUpPanel();
 
+        nameDiv = top.select('.name-div');
         topTbs = top.select('.top-tables');
         btmTbl = bottom.select('table');
         ports = details.ports;
 
+        populateName(nameDiv, details.name);
         populateTop(topTbs, details);
         populateBottom(btmTbl, ports);
 
@@ -173,6 +242,13 @@
     function respDetailsCb(data) {
         $scope.panelData = data.details;
         $scope.$apply();
+    }
+
+    function respNameCb(data) {
+        if (data.warn) {
+            $log.warn(data.warn, data.id);
+            top.select('h2').html(data.id);
+        }
     }
 
     function createDetailsPane() {
@@ -193,28 +269,35 @@
     .controller('OvDeviceCtrl',
         ['$log', '$scope', '$location', 'TableBuilderService', 'FnService',
             'MastService', 'PanelService', 'WebSocketService', 'IconService',
-            'NavService',
+            'NavService', 'KeyService',
 
         function (_$log_, _$scope_, _$location_,
-                  tbs, _fs_, _mast_, _ps_, _wss_, _is_, _ns_) {
+                  tbs, _fs_, _mast_, _ps_, _wss_, _is_, _ns_, _ks_) {
+            var params,
+                handlers = {};
+
             $log = _$log_;
             $scope = _$scope_;
-            $location = _$location_;
+            $loc = _$location_;
             fs = _fs_;
             mast = _mast_;
             ps = _ps_;
             wss = _wss_;
             is = _is_;
             ns = _ns_;
-            var params = $location.search(),
-                handlers = {};
+            ks = _ks_;
+
+            params = $loc.search();
+
             $scope.panelData = {};
             $scope.flowTip = 'Show flow view for selected device';
             $scope.portTip = 'Show port view for selected device';
             $scope.groupTip = 'Show group view for selected device';
+            $scope.meterTip = 'Show meter view for selected device';
 
             // details panel handlers
             handlers[detailsResp] = respDetailsCb;
+            handlers[nameChangeResp] = respNameCb;
             wss.bindHandlers(handlers);
 
             // query for if a certain device needs to be highlighted
@@ -278,7 +361,8 @@
             }
             // create key bindings to handle panel
             ks.keyBindings({
-                esc: [closePanel, 'Close the details panel'],
+                enter: editNameSave,
+                esc: [handleEscape, 'Close the details panel'],
                 _helpFormat: ['esc']
             });
             ks.gestureNotes([

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package org.onosproject.store.device.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.DefaultAnnotations.union;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,9 +27,6 @@ import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceDescription;
-import org.onosproject.net.device.OchPortDescription;
-import org.onosproject.net.device.OduCltPortDescription;
-import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.impl.Timestamped;
@@ -100,34 +96,9 @@ class DeviceDescriptions {
         if (oldOne != null) {
             SparseAnnotations merged = union(oldOne.value().annotations(),
                                              newDesc.value().annotations());
-            newOne = null;
-            switch (newDesc.value().type()) {
-                case OMS:
-                    OmsPortDescription omsDesc = (OmsPortDescription) (newDesc.value());
-                    newOne = new Timestamped<>(
-                            new OmsPortDescription(
-                                    omsDesc, omsDesc.minFrequency(), omsDesc.maxFrequency(), omsDesc.grid(), merged),
-                            newDesc.timestamp());
-                    break;
-                case OCH:
-                    OchPortDescription ochDesc = (OchPortDescription) (newDesc.value());
-                    newOne = new Timestamped<>(
-                            new OchPortDescription(
-                                    ochDesc, ochDesc.signalType(), ochDesc.isTunable(), ochDesc.lambda(), merged),
-                            newDesc.timestamp());
-                    break;
-                case ODUCLT:
-                    OduCltPortDescription ocDesc = (OduCltPortDescription) (newDesc.value());
-                    newOne = new Timestamped<>(
-                            new OduCltPortDescription(
-                                    ocDesc, ocDesc.signalType(), merged),
-                            newDesc.timestamp());
-                    break;
-                default:
-                    newOne = new Timestamped<>(
+            newOne = new Timestamped<>(
                             new DefaultPortDescription(newDesc.value(), merged),
                             newDesc.timestamp());
-            }
         }
         portDescs.put(newOne.value().portNumber(), newOne);
     }

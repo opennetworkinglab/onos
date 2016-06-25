@@ -1,0 +1,42 @@
+{
+  "type": "object",
+  "title": "region",
+  "required": [
+    "id",
+    "name",
+    "type",
+    "masters"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "example": "1"
+    },
+    "name": {
+      "type": "string",
+      "example": "region"
+    },
+    "type": {
+      "type": "string",
+      "example": "ROOM"
+    },
+    "masters": {
+      "type": "array",
+      "xml": {
+        "name": "masters",
+        "wrapped": true
+      },
+      "items": {
+        "type": "array",
+        "xml": {
+          "name": "masters",
+          "wrapped": true
+        },
+        "items": {
+          "type": "string",
+          "example": "1"
+        }
+      }
+    }
+  }
+}

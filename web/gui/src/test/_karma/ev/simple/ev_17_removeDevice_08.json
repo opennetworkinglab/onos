@@ -6,7 +6,7 @@
     "online": false,
     "master": "myInstA",
     "location": {
-      "type": "latlng",
+      "type": "lnglat",
       "lat": 37.7833,
       "lng": -122.4167
     },

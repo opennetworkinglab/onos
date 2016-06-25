@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.cluster.messaging.impl;
 
+import com.google.common.base.Throwables;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -31,19 +32,26 @@ import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.Endpoint;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.cluster.messaging.MessagingService;
+import org.onosproject.utils.MeteringAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Objects;
+
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.CLUSTER_WRITE;
 
 @Component(immediate = true)
 @Service
@@ -51,6 +59,19 @@ public class ClusterCommunicationManager
         implements ClusterCommunicationService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    private final MeteringAgent subjectMeteringAgent = new MeteringAgent(PRIMITIVE_NAME, SUBJECT_PREFIX, true);
+    private final MeteringAgent endpointMeteringAgent = new MeteringAgent(PRIMITIVE_NAME, ENDPOINT_PREFIX, true);
+
+    private static final String PRIMITIVE_NAME = "clusterCommunication";
+    private static final String SUBJECT_PREFIX = "subject";
+    private static final String ENDPOINT_PREFIX = "endpoint";
+
+    private static final String SERIALIZING = "serialization";
+    private static final String DESERIALIZING = "deserialization";
+    private static final String NODE_PREFIX = "node:";
+    private static final String ROUND_TRIP_SUFFIX = ".rtt";
+    private static final String ONE_WAY_SUFFIX = ".oneway";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private ClusterService clusterService;
@@ -75,6 +96,7 @@ public class ClusterCommunicationManager
     public <M> void broadcast(M message,
                               MessageSubject subject,
                               Function<M, byte[]> encoder) {
+        checkPermission(CLUSTER_WRITE);
         multicast(message,
                   subject,
                   encoder,
@@ -89,6 +111,7 @@ public class ClusterCommunicationManager
     public <M> void broadcastIncludeSelf(M message,
                                          MessageSubject subject,
                                          Function<M, byte[]> encoder) {
+        checkPermission(CLUSTER_WRITE);
         multicast(message,
                   subject,
                   encoder,
@@ -103,11 +126,13 @@ public class ClusterCommunicationManager
                                                MessageSubject subject,
                                                Function<M, byte[]> encoder,
                                                NodeId toNodeId) {
+        checkPermission(CLUSTER_WRITE);
         try {
             byte[] payload = new ClusterMessage(
                     localNodeId,
                     subject,
-                    encoder.apply(message)).getBytes();
+                    timeFunction(encoder, subjectMeteringAgent, SERIALIZING).apply(message)
+                    ).getBytes();
             return doUnicast(subject, payload, toNodeId);
         } catch (Exception e) {
             return Tools.exceptionalFuture(e);
@@ -119,10 +144,12 @@ public class ClusterCommunicationManager
                               MessageSubject subject,
                               Function<M, byte[]> encoder,
                               Set<NodeId> nodes) {
+        checkPermission(CLUSTER_WRITE);
         byte[] payload = new ClusterMessage(
                 localNodeId,
                 subject,
-                encoder.apply(message)).getBytes();
+                timeFunction(encoder, subjectMeteringAgent, SERIALIZING).apply(message))
+                .getBytes();
         nodes.forEach(nodeId -> doUnicast(subject, payload, nodeId));
     }
 
@@ -132,12 +159,15 @@ public class ClusterCommunicationManager
                                                       Function<M, byte[]> encoder,
                                                       Function<byte[], R> decoder,
                                                       NodeId toNodeId) {
+        checkPermission(CLUSTER_WRITE);
         try {
             ClusterMessage envelope = new ClusterMessage(
                     clusterService.getLocalNode().id(),
                     subject,
-                    encoder.apply(message));
-            return sendAndReceive(subject, envelope.getBytes(), toNodeId).thenApply(decoder);
+                    timeFunction(encoder, subjectMeteringAgent, SERIALIZING).
+                            apply(message));
+            return sendAndReceive(subject, envelope.getBytes(), toNodeId).
+                    thenApply(bytes -> timeFunction(decoder, subjectMeteringAgent, DESERIALIZING).apply(bytes));
         } catch (Exception e) {
             return Tools.exceptionalFuture(e);
         }
@@ -147,20 +177,30 @@ public class ClusterCommunicationManager
         ControllerNode node = clusterService.getNode(toNodeId);
         checkArgument(node != null, "Unknown nodeId: %s", toNodeId);
         Endpoint nodeEp = new Endpoint(node.ip(), node.tcpPort());
-        return messagingService.sendAsync(nodeEp, subject.value(), payload);
+        MeteringAgent.Context context = subjectMeteringAgent.startTimer(subject.toString() + ONE_WAY_SUFFIX);
+        return messagingService.sendAsync(nodeEp, subject.value(), payload).whenComplete((r, e) -> context.stop(e));
     }
 
     private CompletableFuture<byte[]> sendAndReceive(MessageSubject subject, byte[] payload, NodeId toNodeId) {
         ControllerNode node = clusterService.getNode(toNodeId);
         checkArgument(node != null, "Unknown nodeId: %s", toNodeId);
         Endpoint nodeEp = new Endpoint(node.ip(), node.tcpPort());
-        return messagingService.sendAndReceive(nodeEp, subject.value(), payload);
+        MeteringAgent.Context epContext = endpointMeteringAgent.
+                startTimer(NODE_PREFIX + toNodeId.toString() + ROUND_TRIP_SUFFIX);
+        MeteringAgent.Context subjectContext = subjectMeteringAgent.
+                startTimer(subject.toString() + ROUND_TRIP_SUFFIX);
+        return messagingService.sendAndReceive(nodeEp, subject.value(), payload).
+                whenComplete((bytes, throwable) -> {
+                    subjectContext.stop(throwable);
+                    epContext.stop(throwable);
+                });
     }
 
     @Override
     public void addSubscriber(MessageSubject subject,
                               ClusterMessageHandler subscriber,
                               ExecutorService executor) {
+        checkPermission(CLUSTER_WRITE);
         messagingService.registerHandler(subject.value(),
                 new InternalClusterMessageHandler(subscriber),
                 executor);
@@ -168,6 +208,7 @@ public class ClusterCommunicationManager
 
     @Override
     public void removeSubscriber(MessageSubject subject) {
+        checkPermission(CLUSTER_WRITE);
         messagingService.unregisterHandler(subject.value());
     }
 
@@ -177,6 +218,7 @@ public class ClusterCommunicationManager
             Function<M, R> handler,
             Function<R, byte[]> encoder,
             Executor executor) {
+        checkPermission(CLUSTER_WRITE);
         messagingService.registerHandler(subject.value(),
                 new InternalMessageResponder<M, R>(decoder, encoder, m -> {
                     CompletableFuture<R> responseFuture = new CompletableFuture<>();
@@ -196,6 +238,7 @@ public class ClusterCommunicationManager
             Function<byte[], M> decoder,
             Function<M, CompletableFuture<R>> handler,
             Function<R, byte[]> encoder) {
+        checkPermission(CLUSTER_WRITE);
         messagingService.registerHandler(subject.value(),
                 new InternalMessageResponder<>(decoder, encoder, handler));
     }
@@ -205,12 +248,47 @@ public class ClusterCommunicationManager
             Function<byte[], M> decoder,
             Consumer<M> handler,
             Executor executor) {
+        checkPermission(CLUSTER_WRITE);
         messagingService.registerHandler(subject.value(),
                 new InternalMessageConsumer<>(decoder, handler),
                 executor);
     }
 
-    private class InternalClusterMessageHandler implements Function<byte[], byte[]> {
+    /**
+     * Performs the timed function, returning the value it would while timing the operation.
+     *
+     * @param timedFunction the function to be timed
+     * @param meter the metering agent to be used to time the function
+     * @param opName the opname to be used when starting the meter
+     * @param <A> The param type of the function
+     * @param <B> The return type of the function
+     * @return the value returned by the timed function
+     */
+    private <A, B> Function<A, B> timeFunction(Function<A, B> timedFunction,
+                                               MeteringAgent meter, String opName) {
+        checkNotNull(timedFunction);
+        checkNotNull(meter);
+        checkNotNull(opName);
+        return new Function<A, B>() {
+            @Override
+            public B apply(A a) {
+                final MeteringAgent.Context context = meter.startTimer(opName);
+                B result = null;
+                try {
+                    result = timedFunction.apply(a);
+                    context.stop(null);
+                    return result;
+                } catch (Exception e) {
+                    context.stop(e);
+                    Throwables.propagate(e);
+                    return null;
+                }
+            }
+        };
+    }
+
+
+    private class InternalClusterMessageHandler implements BiFunction<Endpoint, byte[], byte[]> {
         private ClusterMessageHandler handler;
 
         public InternalClusterMessageHandler(ClusterMessageHandler handler) {
@@ -218,14 +296,14 @@ public class ClusterCommunicationManager
         }
 
         @Override
-        public byte[] apply(byte[] bytes) {
+        public byte[] apply(Endpoint sender, byte[] bytes) {
             ClusterMessage message = ClusterMessage.fromBytes(bytes);
             handler.handle(message);
             return message.response();
         }
     }
 
-    private class InternalMessageResponder<M, R> implements Function<byte[], CompletableFuture<byte[]>> {
+    private class InternalMessageResponder<M, R> implements BiFunction<Endpoint, byte[], CompletableFuture<byte[]>> {
         private final Function<byte[], M> decoder;
         private final Function<R, byte[]> encoder;
         private final Function<M, CompletableFuture<R>> handler;
@@ -239,12 +317,14 @@ public class ClusterCommunicationManager
         }
 
         @Override
-        public CompletableFuture<byte[]> apply(byte[] bytes) {
-            return handler.apply(decoder.apply(ClusterMessage.fromBytes(bytes).payload())).thenApply(encoder);
+        public CompletableFuture<byte[]> apply(Endpoint sender, byte[] bytes) {
+            return handler.apply(timeFunction(decoder, subjectMeteringAgent, DESERIALIZING).
+                    apply(ClusterMessage.fromBytes(bytes).payload())).
+                    thenApply(m -> timeFunction(encoder, subjectMeteringAgent, SERIALIZING).apply(m));
         }
     }
 
-    private class InternalMessageConsumer<M> implements Consumer<byte[]> {
+    private class InternalMessageConsumer<M> implements BiConsumer<Endpoint, byte[]> {
         private final Function<byte[], M> decoder;
         private final Consumer<M> consumer;
 
@@ -254,8 +334,9 @@ public class ClusterCommunicationManager
         }
 
         @Override
-        public void accept(byte[] bytes) {
-            consumer.accept(decoder.apply(ClusterMessage.fromBytes(bytes).payload()));
+        public void accept(Endpoint sender, byte[] bytes) {
+            consumer.accept(timeFunction(decoder, subjectMeteringAgent, DESERIALIZING).
+                    apply(ClusterMessage.fromBytes(bytes).payload()));
         }
     }
 }

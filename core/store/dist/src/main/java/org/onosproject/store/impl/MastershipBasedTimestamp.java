@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,14 @@ public final class MastershipBasedTimestamp implements Timestamp {
 
     private final long termNumber;
     private final long sequenceNumber;
+
+    /**
+     * Default constructor for serialization.
+     */
+    protected MastershipBasedTimestamp() {
+        this.termNumber = -1;
+        this.sequenceNumber = -1;
+    }
 
     /**
      * Default version tuple.
@@ -104,14 +112,4 @@ public final class MastershipBasedTimestamp implements Timestamp {
         return sequenceNumber;
     }
 
-    // Default constructor for serialization
-
-    /**
-     * @deprecated in Cardinal Release
-     */
-    @Deprecated
-    protected MastershipBasedTimestamp() {
-        this.termNumber = -1;
-        this.sequenceNumber = -1;
-    }
 }

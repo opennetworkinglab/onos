@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,11 +30,12 @@
     var tos = 'TopoOverlayService: ';
 
     // injected refs
-    var $log, fs, gs, wss, ns, tss, tps, api;
+    var $log, $timeout, fs, gs, wss, ns, tss, tps, api;
 
     // internal state
     var overlays = {},
-        current = null;
+        current = null,
+        reset = true;
 
     function error(fn, msg) {
         $log.error(tos + fn + '(): ' + msg);
@@ -107,34 +108,17 @@
         $log.debug(tos + 'registered overlay: ' + id, overlay);
     }
 
-    // TODO: remove this redundant code.......
-    // NOTE: unregister needs to be called if an app is ever
-    //       deactivated/uninstalled via the applications view
-/*
-    function unregister(overlay) {
-        var u = 'unregister',
-            over = fs.isO(overlay),
-            id = over ? over.overlayId : '';
-
-        if (!id) {
-            return error(u, 'not a recognized overlay');
-        }
-        if (!overlays[id]) {
-            return warn(u, 'not registered: "' + id + "'")
-        }
-        delete overlays[id];
-        $log.debug(tos + 'unregistered overlay: ' + id);
-    }
-*/
-
-
     // returns the list of overlay identifiers
     function list() {
         return d3.map(overlays).keys();
     }
 
     // add a radio button for each registered overlay
+    // return an overlay id to index map
     function augmentRbset(rset, switchFn) {
+        var map = {},
+            idx = 1;
+
         angular.forEach(overlays, function (ov) {
             rset.push({
                 gid: ov._glyphId,
@@ -143,7 +127,9 @@
                     tbSelection(ov.overlayId, switchFn);
                 }
             });
+            map[ov.overlayId] = idx++;
         });
+        return map;
     }
 
     // an overlay was selected via toolbar radio button press from user
@@ -159,7 +145,8 @@
             payload[op] = oid;
         }
 
-        if (!same) {
+        if (reset || !same) {
+            reset = false;
             current && doop('deactivate');
             current = overlays[id];
             current && doop('activate');
@@ -194,6 +181,11 @@
             gid: 'groupTable',
             tt: 'Show Group View for this Device',
             path: 'group'
+        },
+        showMeterView: {
+            gid: 'meterTable',
+            tt: 'Show Meter View for this Device',
+            path: 'meter'
         }
     };
 
@@ -285,6 +277,13 @@
         cb && cb();
     }
 
+    // Temporary function to allow overlays to modify link detail data
+    // in the client. (In the near future, this will be done on the server).
+    function modifyLinkDataHook(data, extra) {
+        var cb = _hook('modifylinkdata');
+        return cb && extra ? cb(data, extra) : data;
+    }
+
     // === -----------------------------------------------------
     //  Event (from server) Handlers
 
@@ -293,7 +292,20 @@
         tss = _tss_;
     }
 
+    //process highlight event with optional delay
     function showHighlights(data) {
+        function doHighlight() {
+            _showHighlights(data);
+        }
+
+        if (data.delay) {
+            $timeout(doHighlight, data.delay);
+        } else {
+            doHighlight();
+        }
+    }
+
+    function _showHighlights(data) {
         var less;
 
         /*
@@ -309,7 +321,8 @@
              unsupLink( key, [less] )
          */
 
-        // TODO: clear node highlighting
+        api.clearNodeDeco();
+        api.removeNodeBadges();
         api.clearLinkTrafficStyle();
         api.removeLinkLabels();
 
@@ -324,22 +337,32 @@
         }
 
         data.hosts.forEach(function (host) {
-            var hdata = api.findNodeById(host.id);
-            if (hdata && !hdata.el.empty()) {
+            var hdata = api.findNodeById(host.id),
+                badgeData = host.badge || null;
+
+            if (hdata && hdata.el && !hdata.el.empty()) {
+                hdata.badge = badgeData;
                 if (!host.subdue) {
                     api.unsupNode(hdata.id, less);
                 }
                 // TODO: further highlighting?
+            } else {
+                $log.warn('HILITE: no host element:', host.id);
             }
         });
 
         data.devices.forEach(function (device) {
-            var ddata = api.findNodeById(device.id);
-            if (ddata && !ddata.el.empty()) {
+            var ddata = api.findNodeById(device.id),
+                badgeData = device.badge || null;
+
+            if (ddata && ddata.el && !ddata.el.empty()) {
+                ddata.badge = badgeData;
                 if (!device.subdue) {
                     api.unsupNode(ddata.id, less);
                 }
                 // TODO: further highlighting?
+            } else {
+                $log.warn('HILITE: no device element:', device.id);
             }
         });
 
@@ -348,7 +371,7 @@
                 lab = link.label,
                 units, portcls, magnitude;
 
-            if (ldata && !ldata.el.empty()) {
+            if (ldata && ldata.el && !ldata.el.empty()) {
                 if (!link.subdue) {
                     api.unsupLink(ldata.key, less);
                 }
@@ -370,6 +393,8 @@
                     }
                     ldata.el.classed(portcls, true);
                 }
+            } else {
+                $log.warn('HILITE: no link element:', link.id);
             }
         });
 
@@ -381,11 +406,12 @@
 
     angular.module('ovTopo')
     .factory('TopoOverlayService',
-        ['$log', 'FnService', 'GlyphService', 'WebSocketService', 'NavService',
-            'TopoPanelService',
+        ['$log', '$timeout', 'FnService', 'GlyphService', 'WebSocketService',
+            'NavService', 'TopoPanelService',
 
-        function (_$log_, _fs_, _gs_, _wss_, _ns_, _tps_) {
+        function (_$log_, _$timeout_, _fs_, _gs_, _wss_, _ns_, _tps_) {
             $log = _$log_;
+            $timeout = _$timeout_;
             fs = _fs_;
             gs = _gs_;
             wss = _wss_;
@@ -394,7 +420,6 @@
 
             return {
                 register: register,
-                //unregister: unregister,
                 setApi: setApi,
                 list: list,
                 augmentRbset: augmentRbset,
@@ -402,13 +427,15 @@
                 tbSelection: tbSelection,
                 installButtons: installButtons,
                 addDetailButton: addDetailButton,
+                resetOnToolbarDestroy: function () { reset = true; },
                 hooks: {
                     escape: escapeHook,
                     emptySelect: emptySelectHook,
                     singleSelect: singleSelectHook,
                     multiSelect: multiSelectHook,
                     mouseOver: mouseOverHook,
-                    mouseOut: mouseOutHook
+                    mouseOut: mouseOutHook,
+                    modifyLinkData: modifyLinkDataHook
                 },
 
                 showHighlights: showHighlights

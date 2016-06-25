@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,40 @@
  */
 package org.onosproject.codec.impl;
 
-import org.onosproject.codec.CodecContext;
-import org.onosproject.codec.JsonCodec;
-import org.onosproject.net.group.Group;
-import org.onosproject.net.group.GroupBucket;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.codec.CodecContext;
+import org.onosproject.codec.JsonCodec;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.group.DefaultGroup;
+import org.onosproject.net.group.DefaultGroupDescription;
+import org.onosproject.net.group.DefaultGroupKey;
+import org.onosproject.net.group.Group;
+import org.onosproject.net.group.GroupBucket;
+import org.onosproject.net.group.GroupBuckets;
+import org.onosproject.net.group.GroupDescription;
+import org.onosproject.net.group.GroupKey;
+import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.util.Tools.nullIsIllegal;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Group JSON codec.
  */
 public final class GroupCodec extends JsonCodec<Group> {
+    private final Logger log = getLogger(getClass());
+
     // JSON field names
     private static final String ID = "id";
     private static final String STATE = "state";
@@ -37,11 +57,15 @@ public final class GroupCodec extends JsonCodec<Group> {
     private static final String BYTES = "bytes";
     private static final String REFERENCE_COUNT = "referenceCount";
     private static final String TYPE = "type";
+    private static final String GROUP_ID = "groupId";
     private static final String DEVICE_ID = "deviceId";
     private static final String APP_ID = "appId";
-    private static final String APP_COOKIE  = "appCookie";
-    private static final String GIVEN_GROUP_ID  = "givenGroupId";
+    private static final String APP_COOKIE = "appCookie";
+    private static final String GIVEN_GROUP_ID = "givenGroupId";
     private static final String BUCKETS = "buckets";
+    private static final String MISSING_MEMBER_MESSAGE =
+            " member is required in Group";
+    public static final String REST_APP_ID = "org.onosproject.rest";
 
     @Override
     public ObjectNode encode(Group group, CodecContext context) {
@@ -70,10 +94,81 @@ public final class GroupCodec extends JsonCodec<Group> {
 
         ArrayNode buckets = context.mapper().createArrayNode();
         group.buckets().buckets().forEach(bucket -> {
-                    ObjectNode bucketJson = context.codec(GroupBucket.class).encode(bucket, context);
-                    buckets.add(bucketJson);
-                });
+            ObjectNode bucketJson = context.codec(GroupBucket.class).encode(bucket, context);
+            buckets.add(bucketJson);
+        });
         result.set(BUCKETS, buckets);
         return result;
+    }
+
+    @Override
+    public Group decode(ObjectNode json, CodecContext context) {
+        if (json == null || !json.isObject()) {
+            return null;
+        }
+
+        final JsonCodec<GroupBucket> groupBucketCodec = context.codec(GroupBucket.class);
+        CoreService coreService = context.getService(CoreService.class);
+
+        // parse group id
+        int groupIdInt = nullIsIllegal(json.get(GROUP_ID),
+                GROUP_ID + MISSING_MEMBER_MESSAGE).asInt();
+        GroupId groupId = new DefaultGroupId(groupIdInt);
+
+        // parse group key (appCookie)
+        String groupKeyStr = nullIsIllegal(json.get(APP_COOKIE),
+                APP_COOKIE + MISSING_MEMBER_MESSAGE).asText();
+        GroupKey groupKey = new DefaultGroupKey(groupKeyStr.getBytes());
+
+        // parse device id
+        DeviceId deviceId = DeviceId.deviceId(nullIsIllegal(json.get(DEVICE_ID),
+                DEVICE_ID + MISSING_MEMBER_MESSAGE).asText());
+
+        // application id
+        ApplicationId appId = coreService.registerApplication(REST_APP_ID);
+
+        // parse group type
+        String type = nullIsIllegal(json.get(TYPE),
+                TYPE + MISSING_MEMBER_MESSAGE).asText();
+        GroupDescription.Type groupType = null;
+
+        switch (type) {
+            case "SELECT":
+                groupType = Group.Type.SELECT;
+                break;
+            case "INDIRECT":
+                groupType = Group.Type.INDIRECT;
+                break;
+            case "ALL":
+                groupType = Group.Type.ALL;
+                break;
+            case "FAILOVER":
+                groupType = Group.Type.FAILOVER;
+                break;
+            default:
+                log.warn("The requested type {} is not defined for group.", type);
+                return null;
+        }
+
+        // parse group buckets
+        // TODO: make sure that INDIRECT group only has one bucket
+        GroupBuckets buckets = null;
+        List<GroupBucket> groupBucketList = new ArrayList<>();
+        JsonNode bucketsJson = json.get(BUCKETS);
+        checkNotNull(bucketsJson);
+        if (bucketsJson != null) {
+            IntStream.range(0, bucketsJson.size())
+                    .forEach(i -> {
+                        ObjectNode bucketJson = get(bucketsJson, i);
+                        bucketJson.put("type", type);
+                        groupBucketList.add(groupBucketCodec.decode(bucketJson, context));
+                    });
+            buckets = new GroupBuckets(groupBucketList);
+        }
+
+        GroupDescription groupDescription = new DefaultGroupDescription(deviceId,
+                groupType, buckets, groupKey, groupIdInt, appId);
+
+        return new DefaultGroup(groupId, groupDescription);
     }
 }

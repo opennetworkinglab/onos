@@ -18,6 +18,8 @@
 
 package org.onlab.packet;
 
+import java.util.Arrays;
+
 /**
  * An attribute in a RADIUS packet.
  */
@@ -139,4 +141,17 @@ public class RADIUSAttribute {
         return this;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        sb.append("type= ");
+        sb.append(type);
+        sb.append("length= ");
+        sb.append(length);
+        sb.append("value= ");
+        sb.append(Arrays.toString(value));
+        sb.append("]");
+        return sb.toString();
+    }
 }

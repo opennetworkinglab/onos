@@ -1,0 +1,62 @@
+{
+  "type": "object",
+  "title": "meter",
+  "required": [
+    "deviceId",
+    "unit",
+    "burst",
+    "bands"
+  ],
+  "properties": {
+    "deviceId": {
+      "type": "string",
+      "example": "of:0000000000000001"
+    },
+    "unit": {
+      "type": "string",
+      "example": "KB_PER_SEC"
+    },
+    "burst": {
+      "type": "boolean",
+      "example": true
+    },
+    "bands": {
+      "type": "array",
+      "xml": {
+        "name": "bands",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "bands",
+        "required": [
+          "type",
+          "rate",
+          "burstSize",
+          "prec"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "REMARK"
+          },
+          "rate": {
+            "type": "integer",
+            "format": "int64",
+            "example": "0"
+          },
+          "burstSize": {
+            "type": "integer",
+            "format": "int64",
+            "example": "0"
+          },
+          "prec": {
+            "type": "integer",
+            "format": "int16",
+            "example": "0"
+          }
+        }
+      }
+    }
+  }
+}

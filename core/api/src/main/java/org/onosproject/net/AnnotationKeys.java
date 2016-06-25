@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,14 +26,12 @@ package org.onosproject.net;
 public final class AnnotationKeys {
 
     // Prohibit instantiation
-    private AnnotationKeys() {}
+    private AnnotationKeys() {
+    }
 
     /**
      * Annotation key for instance name.
-     *
-     * @deprecated since Cardinal
      */
-    @Deprecated
     public static final String NAME = "name";
 
     /**
@@ -46,18 +44,12 @@ public final class AnnotationKeys {
 
     /**
      * Annotation key for latitude (e.g. latitude of device).
-     *
-     * @deprecated since Cardinal
      */
-    @Deprecated
     public static final String LATITUDE = "latitude";
 
     /**
      * Annotation key for longitute (e.g. longitude of device).
-     *
-     * @deprecated since Cardinal
      */
-    @Deprecated
     public static final String LONGITUDE = "longitude";
 
     /**
@@ -67,10 +59,7 @@ public final class AnnotationKeys {
 
     /**
      * Annotation key for the device driver name.
-     *
-     * @deprecated since Cardinal
      */
-    @Deprecated
     public static final String DRIVER = "driver";
 
     /**
@@ -79,20 +68,20 @@ public final class AnnotationKeys {
     public static final String DURABLE = "durable";
 
     /**
-     * Annotation key for latency.
-     *
-     * @deprecated since Cardinal
+     * Annotation key for link metric; used by
+     * {@link org.onosproject.net.topology.MetricLinkWeight} function.
      */
-    @Deprecated
+    public static final String METRIC = "metric";
+
+    /**
+     * Annotation key for latency.
+     */
     public static final String LATENCY = "latency";
 
     /**
      * Annotation key for bandwidth.
      * The value for this key is interpreted as Mbps.
-     *
-     * @deprecated since Cardinal
      */
-    @Deprecated
     public static final String BANDWIDTH = "bandwidth";
 
     /**
@@ -106,12 +95,23 @@ public final class AnnotationKeys {
     public static final String PORT_NAME = "portName";
 
     /**
+     * Annotation key for the port mac.
+     */
+    public static final String PORT_MAC = "portMac";
+
+    /**
      * Annotation key for the router ID.
      */
     public static final String ROUTER_ID = "routerId";
 
+    /**
+     * Annotation key for the static lambda.
+     */
     public static final String STATIC_LAMBDA = "staticLambda";
 
+    /**
+     * Annotation key for the static port.
+     */
     public static final String STATIC_PORT = "staticPort";
 
     /**
@@ -125,12 +125,32 @@ public final class AnnotationKeys {
     public static final String OWNER = "owner";
 
     /**
+     * Annotation key for the channel id.
+     */
+    public static final String CHANNEL_ID = "channelId";
+
+    /**
+     * Annotation key for the management address.
+     */
+    public static final String MANAGEMENT_ADDRESS = "managementAddress";
+
+    /**
+     * Annotation key for the username.
+     */
+    public static final String USERNAME = "username";
+
+    /**
+     * Annotation key for the password.
+     */
+    public static final String PASSWORD = "password";
+
+    /**
      * Returns the value annotated object for the specified annotation key.
      * The annotated value is expected to be String that can be parsed as double.
      * If parsing fails, the returned value will be 1.0.
      *
      * @param annotated annotated object whose annotated value is obtained
-     * @param key key of annotation
+     * @param key       key of annotation
      * @return double value of annotated object for the specified key
      */
     public static double getAnnotatedValue(Annotated annotated, String key) {

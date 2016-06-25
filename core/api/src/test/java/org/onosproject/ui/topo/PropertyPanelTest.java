@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,37 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onosproject.ui.topo.PropertyPanel.Prop;
 
+import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 /**
  * Unit tests for {@link PropertyPanel}.
  */
 public class PropertyPanelTest {
+
+    // Modified property panel subclass to use ENGLISH locale formatter so
+    //  we know formatted numbers will use comma for the thousand separator.
+    private static final class EnglishPropertyPanel extends PropertyPanel {
+        private static final NumberFormat ENGLISH_FORMATTER =
+                NumberFormat.getInstance(Locale.ENGLISH);
+
+        public EnglishPropertyPanel(String title, String typeId) {
+            super(title, typeId);
+        }
+
+        @Override
+        protected NumberFormat formatter() {
+            return ENGLISH_FORMATTER;
+        }
+    }
 
     private static final String TITLE_ORIG = "Original Title";
     private static final String TYPE_ORIG = "Original type ID";
@@ -42,6 +63,7 @@ public class PropertyPanelTest {
     private static final String KEY_C = "C";
     private static final String SEP = "-";
     private static final String KEY_Z = "Z";
+
     private static final String VALUE_A = "Hay";
     private static final String VALUE_B = "Bee";
     private static final String VALUE_C = "Sea";
@@ -76,7 +98,7 @@ public class PropertyPanelTest {
 
     @Test
     public void basic() {
-        pp = new PropertyPanel(TITLE_ORIG, TYPE_ORIG);
+        pp = new EnglishPropertyPanel(TITLE_ORIG, TYPE_ORIG);
         assertEquals("wrong title", TITLE_ORIG, pp.title());
         assertEquals("wrong type", TYPE_ORIG, pp.typeId());
         assertNull("id?", pp.id());
@@ -134,8 +156,8 @@ public class PropertyPanelTest {
     public void props() {
         basic();
         pp.addProp(KEY_A, VALUE_A)
-            .addProp(KEY_B, VALUE_B)
-            .addProp(KEY_C, VALUE_C);
+                .addProp(KEY_B, VALUE_B)
+                .addProp(KEY_C, VALUE_C);
         assertEquals("bad props", 3, pp.properties().size());
         validateProps(KEY_A, KEY_B, KEY_C);
     }
@@ -144,7 +166,7 @@ public class PropertyPanelTest {
     public void separator() {
         props();
         pp.addSeparator()
-            .addProp(KEY_Z, VALUE_Z);
+                .addProp(KEY_Z, VALUE_Z);
 
         assertEquals("bad props", 5, pp.properties().size());
         validateProps(KEY_A, KEY_B, KEY_C, SEP, KEY_Z);
@@ -170,8 +192,8 @@ public class PropertyPanelTest {
     public void intValues() {
         basic();
         pp.addProp(KEY_A, 200)
-          .addProp(KEY_B, 2000)
-          .addProp(KEY_C, 1234567);
+                .addProp(KEY_B, 2000)
+                .addProp(KEY_C, 1234567);
 
         validateProp(KEY_A, "200");
         validateProp(KEY_B, "2,000");
@@ -182,9 +204,9 @@ public class PropertyPanelTest {
     public void longValues() {
         basic();
         pp.addProp(KEY_A, 200L)
-          .addProp(KEY_B, 2000L)
-          .addProp(KEY_C, 1234567L)
-          .addProp(KEY_Z, Long.MAX_VALUE);
+                .addProp(KEY_B, 2000L)
+                .addProp(KEY_C, 1234567L)
+                .addProp(KEY_Z, Long.MAX_VALUE);
 
         validateProp(KEY_A, "200");
         validateProp(KEY_B, "2,000");
@@ -196,7 +218,7 @@ public class PropertyPanelTest {
     public void objectValue() {
         basic();
         pp.addProp(KEY_A, new FooClass("a"))
-            .addProp(KEY_B, new FooClass("bxyyzy"), "[xz]");
+                .addProp(KEY_B, new FooClass("bxyyzy"), "[xz]");
 
         validateProp(KEY_A, ">a<");
         validateProp(KEY_B, ">byyy<");

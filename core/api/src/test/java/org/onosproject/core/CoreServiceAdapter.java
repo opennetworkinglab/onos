@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,12 @@ public class CoreServiceAdapter implements CoreService {
     }
 
     @Override
-    public ApplicationId registerApplication(String identifier) {
+    public ApplicationId registerApplication(String name) {
+        return null;
+    }
+
+    @Override
+    public ApplicationId registerApplication(String name, Runnable preDeactivate) {
         return null;
     }
 

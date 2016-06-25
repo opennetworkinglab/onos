@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,14 +50,42 @@ public interface Serializer {
      * @return Serializer instance
      */
     static Serializer using(KryoNamespace kryo) {
-        return using(Arrays.asList(kryo));
+        return new Serializer() {
+
+            @Override
+            public <T> byte[] encode(T object) {
+                return kryo.serialize(object);
+            }
+
+            @Override
+            public <T> T decode(byte[] bytes) {
+                return kryo.deserialize(bytes);
+            }
+        };
     }
 
+    /**
+     * Creates a new Serializer instance from a KryoNamespace and some additional classes.
+     *
+     * @param namespace kryo namespace
+     * @param classes variable length array of classes to register
+     * @return Serializer instance
+     */
+    static Serializer using(KryoNamespace namespace, Class<?>... classes) {
+        return using(Arrays.asList(namespace), classes);
+    }
+
+    /**
+     * Creates a new Serializer instance from a list of KryoNamespaces and some additional classes.
+     *
+     * @param namespaces kryo namespaces
+     * @param classes variable length array of classes to register
+     * @return Serializer instance
+     */
     static Serializer using(List<KryoNamespace> namespaces, Class<?>... classes) {
         KryoNamespace.Builder builder = new KryoNamespace.Builder();
         namespaces.forEach(builder::register);
         Lists.newArrayList(classes).forEach(builder::register);
-        builder.register(MapEvent.class, MapEvent.Type.class, Versioned.class);
         KryoNamespace namespace = builder.build();
         return new Serializer() {
             @Override

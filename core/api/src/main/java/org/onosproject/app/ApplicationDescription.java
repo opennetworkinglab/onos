@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,20 @@ public interface ApplicationDescription {
     Version version();
 
     /**
+     * Returns the name of the application origin, group or company.
+     *
+     * @return application origin
+     */
+    String origin();
+
+    /**
+     * Returns title of the application.
+     *
+     * @return application title text
+     */
+    String title();
+
+    /**
      * Returns description of the application.
      *
      * @return application description text
@@ -51,11 +65,36 @@ public interface ApplicationDescription {
     String description();
 
     /**
-     * Returns the name of the application origin, group or company.
+     * Returns category of the application.
      *
-     * @return application origin
+     * The application developer can choose one of the category from the
+     * following examples to easily discern the high-level purpose of the application.
+     * (Security, Traffic Steering, Monitoring, Drivers, Provider, Utility)
+     *
+     * @return application category text
      */
-    String origin();
+    String category();
+
+    /**
+     * Returns url of the application.
+     *
+     * @return application url
+     */
+    String url();
+
+    /**
+     * Returns readme of the application.
+     *
+     * @return application readme
+     */
+    String readme();
+
+    /**
+     * Returns icon of the application.
+     *
+     * @return application icon
+     */
+    byte[] icon();
 
     /**
      * Returns the role of the application.
@@ -86,4 +125,11 @@ public interface ApplicationDescription {
      * @return application features
      */
     List<String> features();
+
+    /**
+     * Returns list of required application names.
+     *
+     * @return list of application names
+     */
+    List<String> requiredApps();
 }

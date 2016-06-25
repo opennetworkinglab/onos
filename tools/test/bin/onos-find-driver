@@ -1,0 +1,36 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Checks that all intents in the system have a given state.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+aux=/tmp/stc-$$.log
+trap "rm -f $aux 2>/dev/null" EXIT
+target=${1:-$OCI}
+
+echo onos-find-driver: $*
+
+node=$1
+driver=$2
+id=$3
+set -x
+
+onos $target "onos:drivers" | tee $aux
+driverString=`cat $aux | grep "driver=$driver"`
+if [ driverString != "" ]
+then
+    for token in $driverString
+    do
+        if [[ $token =~ "driver=" ]]
+        then
+            echo "@stc ${id}Driver=${token}"
+            exit 0
+        fi
+    done
+fi
+
+cat $aux
+exit 1
+

@@ -1,0 +1,18 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000000000000002",
+    "type": "router",
+    "online": true,
+    "master": "ONOS",
+    "labels": [
+      "",
+      "router",
+      "of:0000000000000002"
+    ],
+    "metaUi": {
+      "x": 350,
+      "y": 200
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "networkId": "3",
+  "src": {
+    "device": "of:devid2",
+    "port": "22" 
+  },
+  "dst": {
+    "device": "of:devid1",
+    "port": "21" 
+  },
+  "type": "VIRTUAL",
+  "state": "ACTIVE"
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,18 +27,12 @@ import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPath;
 import org.onosproject.net.Link;
 import org.onosproject.net.OchSignalType;
-import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentExtensionService;
-import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.OpticalPathIntent;
-import org.onosproject.net.provider.ProviderId;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -63,20 +57,15 @@ public class OpticalPathIntentCompilerTest {
     private final IdGenerator idGenerator = new MockIdGenerator();
     private OpticalPathIntentCompiler sut;
 
-    private final TrafficSelector selector = DefaultTrafficSelector.builder().build();
-    private final TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
     private final ApplicationId appId = new TestApplicationId("test");
-    private final ProviderId pid = new ProviderId("of", "test");
     private final ConnectPoint d1p1 = connectPoint("s1", 0);
     private final ConnectPoint d2p0 = connectPoint("s2", 0);
     private final ConnectPoint d2p1 = connectPoint("s2", 1);
     private final ConnectPoint d3p1 = connectPoint("s3", 1);
-    private final ConnectPoint d3p0 = connectPoint("s3", 10);
-    private final ConnectPoint d1p0 = connectPoint("s1", 10);
 
     private final List<Link> links = Arrays.asList(
-            new DefaultLink(PID, d1p1, d2p0, DIRECT),
-            new DefaultLink(PID, d2p1, d3p1, DIRECT)
+            DefaultLink.builder().providerId(PID).src(d1p1).dst(d2p0).type(DIRECT).build(),
+            DefaultLink.builder().providerId(PID).src(d2p1).dst(d3p1).type(DIRECT).build()
     );
     private final int hops = links.size() + 1;
     private OpticalPathIntent intent;
@@ -103,7 +92,6 @@ public class OpticalPathIntentCompilerTest {
         intentExtensionService.registerCompiler(OpticalPathIntent.class, sut);
         intentExtensionService.unregisterCompiler(OpticalPathIntent.class);
         sut.intentManager = intentExtensionService;
-        sut.resourceService = new IntentTestsMocks.MockResourceService();
 
         replay(coreService, intentExtensionService);
     }
@@ -117,7 +105,7 @@ public class OpticalPathIntentCompilerTest {
     public void testCompiler() {
         sut.activate();
 
-        List<Intent> compiled = sut.compile(intent, Collections.emptyList(), Collections.emptySet());
+        List<Intent> compiled = sut.compile(intent, Collections.emptyList());
         assertThat(compiled, hasSize(1));
 
         Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();

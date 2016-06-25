@@ -5,7 +5,7 @@
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
-export JPROFILER_ROOT=${JPROFILER_ROOT:-/opt/jprofiler8}
+export JPROFILER_ROOT=${JPROFILER_ROOT:-/opt/jprofiler9}
 
 ssh $ONOS_USER@${1:-$OCI} "
     pid=\$(ps -ef | grep karaf.jar | grep -v grep | cut -c10-15 | tr -d ' ')
