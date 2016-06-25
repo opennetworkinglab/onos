@@ -329,10 +329,10 @@ public class NullProviders {
                        new DefaultServiceDirectory(),
                        deviceProviderService, hostProviderService,
                        linkProviderService);
-        simulator.setUpTopology();
         flowRuleProvider.start(flowRuleProviderService);
         packetProvider.start(packetRate, hostService, deviceService,
                              packetProviderService);
+        simulator.setUpTopology();
         topologyMutationDriver.start(mutationRate, linkService, deviceService,
                                      linkProviderService, deviceProviderService,
                                      simulator);

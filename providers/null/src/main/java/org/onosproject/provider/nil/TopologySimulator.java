@@ -230,7 +230,7 @@ public abstract class TopologySimulator {
      */
     protected void createHosts(DeviceId deviceId, int portOffset) {
         String s = deviceId.toString();
-        byte dByte = Byte.parseByte(s.substring(s.length() - 1), 16);
+        byte dByte = Byte.parseByte(s.substring(s.length() - 2), 16);
         // TODO: this limits the simulation to 256 devices & 256 hosts/device.
         byte[] macBytes = new byte[]{0, 0, 0, 0, dByte, 0};
         byte[] ipBytes = new byte[]{(byte) 192, (byte) 168, dByte, 0};
