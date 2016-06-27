@@ -30,6 +30,7 @@ import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
+import org.onosproject.incubator.net.virtual.VirtualHost;
 import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualPort;
@@ -141,6 +142,7 @@ public class CodecManager implements CodecService {
         registerCodec(VirtualDevice.class, new VirtualDeviceCodec());
         registerCodec(VirtualPort.class, new VirtualPortCodec());
         registerCodec(VirtualLink.class, new VirtualLinkCodec());
+        registerCodec(VirtualHost.class, new VirtualHostCodec());
         registerCodec(MastershipTerm.class, new MastershipTermCodec());
         registerCodec(MastershipRole.class, new MastershipRoleCodec());
         registerCodec(RoleInfo.class, new RoleInfoCodec());

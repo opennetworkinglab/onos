@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
+import org.onosproject.incubator.net.virtual.VirtualHost;
 import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
@@ -382,6 +383,87 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
             final VirtualLink vlinkReq = codec(VirtualLink.class).decode(jsonTree, this);
             vnetAdminService.removeVirtualLink(vlinkReq.networkId(),
                                                vlinkReq.src(), vlinkReq.dst());
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+
+        return Response.noContent().build();
+    }
+
+    /**
+     * Returns all virtual network hosts in a virtual network.
+     *
+     * @param networkId network identifier
+     * @return 200 OK with set of virtual network hosts
+     * @onos.rsModel VirtualHosts
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{networkId}/hosts")
+    public Response getVirtualHosts(@PathParam("networkId") long networkId) {
+        NetworkId nid = NetworkId.networkId(networkId);
+        Set<VirtualHost> vhosts = vnetService.getVirtualHosts(nid);
+        return ok(encodeArray(VirtualHost.class, "hosts", vhosts)).build();
+    }
+
+    /**
+     * Creates a virtual network host from the JSON input stream.
+     *
+     * @param networkId network identifier
+     * @param stream    virtual host JSON stream
+     * @return status of the request - CREATED if the JSON is correct,
+     * BAD_REQUEST if the JSON is invalid
+     * @onos.rsModel VirtualHostPut
+     */
+    @POST
+    @Path("{networkId}/hosts")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createVirtualHost(@PathParam("networkId") long networkId,
+                                      InputStream stream) {
+        try {
+            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            JsonNode specifiedNetworkId = jsonTree.get("networkId");
+            if (specifiedNetworkId == null || specifiedNetworkId.asLong() != (networkId)) {
+                throw new IllegalArgumentException(INVALID_FIELD + "networkId");
+            }
+            final VirtualHost vhostReq = codec(VirtualHost.class).decode(jsonTree, this);
+            vnetAdminService.createVirtualHost(vhostReq.networkId(), vhostReq.id(),
+                                               vhostReq.mac(), vhostReq.vlan(),
+                                               vhostReq.location(), vhostReq.ipAddresses());
+            UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
+                    .path("vnets").path(specifiedNetworkId.asText())
+                    .path("hosts");
+            return Response
+                    .created(locationBuilder.build())
+                    .build();
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    /**
+     * Removes the virtual network host from the JSON input stream.
+     *
+     * @param networkId network identifier
+     * @param stream    virtual host JSON stream
+     * @return 204 NO CONTENT
+     * @onos.rsModel VirtualHost
+     */
+    @DELETE
+    @Path("{networkId}/hosts")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response removeVirtualHost(@PathParam("networkId") long networkId,
+                                      InputStream stream) {
+        try {
+            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            JsonNode specifiedNetworkId = jsonTree.get("networkId");
+            if (specifiedNetworkId != null &&
+                    specifiedNetworkId.asLong() != (networkId)) {
+                throw new IllegalArgumentException(INVALID_FIELD + "networkId");
+            }
+            final VirtualHost vhostReq = codec(VirtualHost.class).decode(jsonTree, this);
+            vnetAdminService.removeVirtualHost(vhostReq.networkId(), vhostReq.id());
         } catch (IOException e) {
             throw new IllegalArgumentException(e);
         }

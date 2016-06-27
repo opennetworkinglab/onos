@@ -1,0 +1,60 @@
+{
+  "type": "object",
+  "title": "host",
+  "required": [
+    "networkId",
+    "id",
+    "mac",
+    "vlan",
+    "ipAddresses",
+    "location"
+  ],
+  "properties": {
+    "networkId": {
+      "type": "int64",
+      "description": "Network identifier",
+      "example": 3
+    },
+    "id": {
+      "type": "string",
+      "example": "46:E4:3C:A4:17:C8/-1"
+    },
+    "mac": {
+      "type": "string",
+      "example": "46:E4:3C:A4:17:C8"
+    },
+    "vlan": {
+      "type": "string",
+      "example": "-1"
+    },
+    "ipAddresses": {
+      "type": "array",
+      "xml": {
+        "name": "hosts",
+        "wrapped": true
+      },
+      "items": {
+        "type": "string",
+        "example": "127.0.0.1"
+      }
+    },
+    "location": {
+      "type": "object",
+      "title": "location",
+      "required": [
+        "elementId",
+        "port"
+      ],
+      "properties": {
+        "elementId": {
+          "type": "string",
+          "example": "of:0000000000000002"
+        },
+        "port": {
+          "type": "string",
+          "example": "3"
+        }
+      }
+    }
+  }
+}

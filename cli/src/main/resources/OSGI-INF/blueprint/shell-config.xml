@@ -674,6 +674,15 @@
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualPortRemoveCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualHostListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualHostCreateCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualHostRemoveCommand"/>
+        </command>
     </command-bundle>
 
     <bean id="reviewAppNameCompleter" class="org.onosproject.cli.security.ReviewApplicationNameCompleter"/>

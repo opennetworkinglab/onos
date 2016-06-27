@@ -21,6 +21,7 @@ import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.glassfish.jersey.client.ClientProperties;
 import org.hamcrest.Description;
 import org.hamcrest.Matchers;
@@ -29,16 +30,21 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.incubator.net.virtual.DefaultVirtualDevice;
+import org.onosproject.incubator.net.virtual.DefaultVirtualHost;
 import org.onosproject.incubator.net.virtual.DefaultVirtualLink;
 import org.onosproject.incubator.net.virtual.DefaultVirtualNetwork;
 import org.onosproject.incubator.net.virtual.DefaultVirtualPort;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
+import org.onosproject.incubator.net.virtual.VirtualHost;
 import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
@@ -50,6 +56,8 @@ import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -93,9 +101,8 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
     private final VirtualNetworkService mockVnetService = createMock(VirtualNetworkService.class);
     private CodecManager codecService;
 
-    final HashSet<TenantId> tenantIdSet = new HashSet<>();
-    final HashSet<VirtualDevice> vdevSet = new HashSet<>();
-    final HashSet<VirtualPort> vportSet = new HashSet<>();
+    private final HashSet<VirtualDevice> vdevSet = new HashSet<>();
+    private final HashSet<VirtualPort> vportSet = new HashSet<>();
 
     private static final String ID = "networkId";
     private static final String TENANT_ID = "tenantId";
@@ -104,7 +111,6 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
     private static final String PHYS_DEVICE_ID = "physDeviceId";
     private static final String PHYS_PORT_NUM = "physPortNum";
 
-    private final TenantId tenantId1 = TenantId.tenantId("TenantId1");
     private final TenantId tenantId2 = TenantId.tenantId("TenantId2");
     private final TenantId tenantId3 = TenantId.tenantId("TenantId3");
     private final TenantId tenantId4 = TenantId.tenantId("TenantId4");
@@ -128,11 +134,10 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
 
     private final Device dev1 = NetTestTools.device("dev1");
     private final Device dev2 = NetTestTools.device("dev2");
-    private final Device dev21 = NetTestTools.device("dev21");
     private final Device dev22 = NetTestTools.device("dev22");
 
-    Port port1 = new DefaultPort(dev1, portNumber(1), true);
-    Port port2 = new DefaultPort(dev2, portNumber(2), true);
+    private final Port port1 = new DefaultPort(dev1, portNumber(1), true);
+    private final Port port2 = new DefaultPort(dev2, portNumber(2), true);
 
     private final VirtualPort vport22 = new DefaultVirtualPort(networkId3,
                                                                dev22, portNumber(22), port1);
@@ -156,6 +161,28 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
             .dst(cp21)
             .build();
 
+    private final MacAddress mac1 = MacAddress.valueOf("00:11:00:00:00:01");
+    private final MacAddress mac2 = MacAddress.valueOf("00:22:00:00:00:02");
+    private final VlanId vlan1 = VlanId.vlanId((short) 11);
+    private final VlanId vlan2 = VlanId.vlanId((short) 22);
+    private final IpAddress ip1 = IpAddress.valueOf("10.0.0.1");
+    private final IpAddress ip2 = IpAddress.valueOf("10.0.0.2");
+    private final IpAddress ip3 = IpAddress.valueOf("10.0.0.3");
+
+    private final HostId hId1 = HostId.hostId(mac1, vlan1);
+    private final HostId hId2 = HostId.hostId(mac2, vlan2);
+    private final HostLocation loc1 = new HostLocation(devId1, portNumber(100), 123L);
+    private final HostLocation loc2 = new HostLocation(devId2, portNumber(200), 123L);
+    private final Set<IpAddress> ipSet1 = Sets.newHashSet(ip1, ip2);
+    private final Set<IpAddress> ipSet2 = Sets.newHashSet(ip1, ip3);
+    private final VirtualHost vhost1 = new DefaultVirtualHost(networkId1, hId1,
+                                                              mac1, vlan1, loc1, ipSet1);
+    private final VirtualHost vhost2 = new DefaultVirtualHost(networkId2, hId2,
+                                                              mac2, vlan2, loc2, ipSet2);
+
+
+
+
     /**
      * Sets up the global values for all the tests.
      */
@@ -177,15 +204,15 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
      * Hamcrest matcher to check that a virtual network entity representation in JSON matches
      * the actual virtual network entity.
      */
-    public static class JsonObjectMatcher<T> extends TypeSafeMatcher<JsonObject> {
+    private static final class JsonObjectMatcher<T> extends TypeSafeMatcher<JsonObject> {
         private final T vnetEntity;
         private List<String> jsonFieldNames;
         private String reason = "";
         private BiFunction<T, String, String> getValue; // get vnetEntity's value
 
-        public JsonObjectMatcher(T vnetEntityValue,
-                                 List<String> jsonFieldNames1,
-                                 BiFunction<T, String, String> getValue1) {
+        private JsonObjectMatcher(T vnetEntityValue,
+                                  List<String> jsonFieldNames1,
+                                  BiFunction<T, String, String> getValue1) {
             vnetEntity = vnetEntityValue;
             jsonFieldNames = jsonFieldNames1;
             getValue = getValue1;
@@ -238,7 +265,7 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
      * Hamcrest matcher to check that a virtual network entity is represented properly in a JSON
      * array of virtual network entities.
      */
-    public static class JsonArrayMatcher<T> extends TypeSafeMatcher<JsonArray> {
+    protected static class JsonArrayMatcher<T> extends TypeSafeMatcher<JsonArray> {
         private final T vnetEntity;
         private String reason = "";
         private Function<T, String> getKey; // gets vnetEntity's key
@@ -246,10 +273,10 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
         private List<String> jsonFieldNames; // field/property names
         private BiFunction<T, String, String> getValue; // get vnetEntity's value
 
-        public JsonArrayMatcher(T vnetEntityValue, Function<T, String> getKey1,
-                                BiPredicate<T, JsonObject> checkKey1,
-                                List<String> jsonFieldNames1,
-                                BiFunction<T, String, String> getValue1) {
+        protected JsonArrayMatcher(T vnetEntityValue, Function<T, String> getKey1,
+                                   BiPredicate<T, JsonObject> checkKey1,
+                                   List<String> jsonFieldNames1,
+                                   BiFunction<T, String, String> getValue1) {
             vnetEntity = vnetEntityValue;
             getKey = getKey1;
             checkKey = checkKey1;
@@ -292,9 +319,9 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
     /**
      * Array matcher for VirtualNetwork.
      */
-    public static class VnetJsonArrayMatcher extends JsonArrayMatcher<VirtualNetwork> {
+    private static final class VnetJsonArrayMatcher extends JsonArrayMatcher<VirtualNetwork> {
 
-        public VnetJsonArrayMatcher(VirtualNetwork vnetIn) {
+        private VnetJsonArrayMatcher(VirtualNetwork vnetIn) {
             super(vnetIn,
                   vnet -> "Virtual network " + vnet.id().toString(),
                   (vnet, jsonObject) -> jsonObject.get(ID).asString().equals(vnet.id().toString()),
@@ -571,9 +598,9 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
     /**
      * Array matcher for VirtualDevice.
      */
-    public static class VdevJsonArrayMatcher extends JsonArrayMatcher<VirtualDevice> {
+    private static final class VdevJsonArrayMatcher extends JsonArrayMatcher<VirtualDevice> {
 
-        public VdevJsonArrayMatcher(VirtualDevice vdevIn) {
+        private VdevJsonArrayMatcher(VirtualDevice vdevIn) {
             super(vdevIn,
                   vdev -> "Virtual device " + vdev.networkId().toString()
                           + " " + vdev.id().toString(),
@@ -726,9 +753,9 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
     /**
      * Array matcher for VirtualPort.
      */
-    public static class VportJsonArrayMatcher extends JsonArrayMatcher<VirtualPort> {
+    private static final class VportJsonArrayMatcher extends JsonArrayMatcher<VirtualPort> {
 
-        public VportJsonArrayMatcher(VirtualPort vportIn) {
+        private VportJsonArrayMatcher(VirtualPort vportIn) {
             super(vportIn,
                   vport -> "Virtual port " + vport.networkId().toString() + " "
                     + vport.element().id().toString() + " " + vport.number().toString(),
@@ -887,11 +914,11 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
      * Hamcrest matcher to check that a virtual link representation in JSON matches
      * the actual virtual link.
      */
-    public static class VirtualLinkJsonMatcher extends LinksResourceTest.LinkJsonMatcher {
+    private static final class VirtualLinkJsonMatcher extends LinksResourceTest.LinkJsonMatcher {
         private final VirtualLink vlink;
         private String reason = "";
 
-        public VirtualLinkJsonMatcher(VirtualLink vlinkValue) {
+        private VirtualLinkJsonMatcher(VirtualLink vlinkValue) {
             super(vlinkValue);
             vlink = vlinkValue;
         }
@@ -931,18 +958,16 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
      * Hamcrest matcher to check that a virtual link is represented properly in a JSON
      * array of links.
      */
-    private static class VirtualLinkJsonArrayMatcher extends TypeSafeMatcher<JsonArray> {
+    private static final class VirtualLinkJsonArrayMatcher extends TypeSafeMatcher<JsonArray> {
         private final VirtualLink vlink;
         private String reason = "";
 
-        public VirtualLinkJsonArrayMatcher(VirtualLink vlinkValue) {
+        private VirtualLinkJsonArrayMatcher(VirtualLink vlinkValue) {
             vlink = vlinkValue;
         }
 
         @Override
         public boolean matchesSafely(JsonArray json) {
-            final int expectedAttributes = 2;
-
             for (int jsonLinkIndex = 0; jsonLinkIndex < json.size();
                  jsonLinkIndex++) {
 
@@ -1032,6 +1057,209 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
         InputStream jsonStream = VirtualNetworkWebResourceTest.class
                 .getResourceAsStream("post-virtual-link.json");
         String reqLocation = "vnets/" + networkId.toString() + "/links";
+        Response response = wt.path(reqLocation).request().method("DELETE", Entity.json(jsonStream));
+
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
+        verify(mockVnetAdminService);
+    }
+
+    // Tests for Virtual Hosts
+
+    /**
+     * Tests the result of the REST API GET when there are no virtual hosts.
+     */
+    @Test
+    public void testGetVirtualHostsEmptyArray() {
+        NetworkId networkId = networkId4;
+        expect(mockVnetService.getVirtualHosts(networkId)).andReturn(ImmutableSet.of()).anyTimes();
+        replay(mockVnetService);
+
+        WebTarget wt = target();
+        String location = "vnets/" + networkId.toString() + "/hosts";
+        String response = wt.path(location).request().get(String.class);
+        assertThat(response, is("{\"hosts\":[]}"));
+
+        verify(mockVnetService);
+    }
+
+    /**
+     * Tests the result of the REST API GET when virtual hosts are defined.
+     */
+    @Test
+    public void testGetVirtualHostsArray() {
+        NetworkId networkId = networkId3;
+        final Set<VirtualHost> vhostSet = ImmutableSet.of(vhost1, vhost2);
+        expect(mockVnetService.getVirtualHosts(networkId)).andReturn(vhostSet).anyTimes();
+        replay(mockVnetService);
+
+        WebTarget wt = target();
+        String location = "vnets/" + networkId.toString() + "/hosts";
+        String response = wt.path(location).request().get(String.class);
+        assertThat(response, containsString("{\"hosts\":["));
+
+        final JsonObject result = Json.parse(response).asObject();
+        assertThat(result, notNullValue());
+
+        assertThat(result.names(), hasSize(1));
+        assertThat(result.names().get(0), is("hosts"));
+
+        final JsonArray vnetJsonArray = result.get("hosts").asArray();
+        assertThat(vnetJsonArray, notNullValue());
+        assertEquals("Virtual hosts array is not the correct size.",
+                     vhostSet.size(), vnetJsonArray.size());
+
+        vhostSet.forEach(vhost -> assertThat(vnetJsonArray, hasVhost(vhost)));
+
+        verify(mockVnetService);
+    }
+
+    /**
+     * Hamcrest matcher to check that a virtual host representation in JSON matches
+     * the actual virtual host.
+     */
+    private static final class VirtualHostJsonMatcher extends HostResourceTest.HostJsonMatcher {
+        private final VirtualHost vhost;
+        private String reason = "";
+
+        private VirtualHostJsonMatcher(VirtualHost vhostValue) {
+            super(vhostValue);
+            vhost = vhostValue;
+        }
+
+        @Override
+        public boolean matchesSafely(JsonObject jsonHost) {
+            if (!super.matchesSafely(jsonHost)) {
+                return false;
+            }
+            // check NetworkId
+            String jsonNetworkId = jsonHost.get(ID).asString();
+            String networkId = vhost.networkId().toString();
+            if (!jsonNetworkId.equals(networkId)) {
+                reason = ID + " was " + jsonNetworkId;
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText(reason);
+        }
+    }
+
+    /**
+     * Factory to allocate a virtual host matcher.
+     *
+     * @param vhost virtual host object we are looking for
+     * @return matcher
+     */
+    private static VirtualHostJsonMatcher matchesVirtualHost(VirtualHost vhost) {
+        return new VirtualHostJsonMatcher(vhost);
+    }
+
+    /**
+     * Hamcrest matcher to check that a virtual host is represented properly in a JSON
+     * array of hosts.
+     */
+    private static final class VirtualHostJsonArrayMatcher extends TypeSafeMatcher<JsonArray> {
+        private final VirtualHost vhost;
+        private String reason = "";
+
+        private VirtualHostJsonArrayMatcher(VirtualHost vhostValue) {
+            vhost = vhostValue;
+        }
+
+        @Override
+        public boolean matchesSafely(JsonArray json) {
+            for (int jsonHostIndex = 0; jsonHostIndex < json.size();
+                 jsonHostIndex++) {
+
+                JsonObject jsonHost = json.get(jsonHostIndex).asObject();
+
+                if (matchesVirtualHost(vhost).matchesSafely(jsonHost)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText(reason);
+        }
+    }
+
+    /**
+     * Factory to allocate a virtual host array matcher.
+     *
+     * @param vhost virtual host object we are looking for
+     * @return matcher
+     */
+    private VirtualHostJsonArrayMatcher hasVhost(VirtualHost vhost) {
+        return new VirtualHostJsonArrayMatcher(vhost);
+    }
+
+    /**
+     * Tests adding of new virtual host using POST via JSON stream.
+     */
+    @Test
+    public void testPostVirtualHost() {
+        NetworkId networkId = networkId3;
+        expect(mockVnetAdminService.createVirtualHost(networkId, hId1, mac1, vlan1, loc1, ipSet1))
+                .andReturn(vhost1);
+        replay(mockVnetAdminService);
+
+        WebTarget wt = target();
+        InputStream jsonStream = VirtualNetworkWebResourceTest.class
+                .getResourceAsStream("post-virtual-host.json");
+        String reqLocation = "vnets/" + networkId.toString() + "/hosts";
+        Response response = wt.path(reqLocation).request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream));
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
+
+        String location = response.getLocation().getPath();
+        assertThat(location, Matchers.startsWith("/" + reqLocation));
+
+        verify(mockVnetAdminService);
+    }
+
+    /**
+     * Tests adding of a null virtual host using POST via JSON stream.
+     */
+    @Test
+    public void testPostVirtualHostNullJsonStream() {
+        NetworkId networkId = networkId3;
+        replay(mockVnetAdminService);
+
+        WebTarget wt = target();
+        try {
+            String reqLocation = "vnets/" + networkId.toString() + "/hosts";
+            wt.path(reqLocation)
+                    .request(MediaType.APPLICATION_JSON_TYPE)
+                    .post(Entity.json(null), String.class);
+            fail("POST of null virtual host did not throw an exception");
+        } catch (BadRequestException ex) {
+            assertThat(ex.getMessage(), containsString("HTTP 400 Bad Request"));
+        }
+
+        verify(mockVnetAdminService);
+    }
+
+    /**
+     * Tests removing a virtual host with DELETE request.
+     */
+    @Test
+    public void testDeleteVirtualHost() {
+        NetworkId networkId = networkId3;
+        mockVnetAdminService.removeVirtualHost(networkId, hId1);
+        expectLastCall();
+        replay(mockVnetAdminService);
+
+        WebTarget wt = target()
+                .property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
+        InputStream jsonStream = VirtualNetworkWebResourceTest.class
+                .getResourceAsStream("post-virtual-host.json");
+        String reqLocation = "vnets/" + networkId.toString() + "/hosts";
         Response response = wt.path(reqLocation).request().method("DELETE", Entity.json(jsonStream));
 
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
