@@ -47,6 +47,7 @@ import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.resource.MockResourceService;
 
 import java.util.Arrays;
 import java.util.Collection;

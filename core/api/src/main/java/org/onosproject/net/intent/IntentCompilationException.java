@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
-
-import org.onosproject.net.intent.IntentException;
+package org.onosproject.net.intent;
 
 /**
  * An exception thrown when a intent compilation fails.
- *
- * @deprecated in in Hummingbird (1.6.0) use {@link org.onosproject.net.intent.IntentCompilationException} instead.
  */
-@Deprecated
 public class IntentCompilationException extends IntentException {
-    private static final long serialVersionUID = 235237603018210810L;
+
+    private static final long serialVersionUID = 2439094479018639853L;
 
     public IntentCompilationException() {
         super();

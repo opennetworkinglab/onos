@@ -52,9 +52,9 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6Fl
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransportPortInstruction;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentCompilationException;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.LinkCollectionIntent;
-import org.onosproject.net.intent.impl.IntentCompilationException;
 
 import java.util.ArrayList;
 import java.util.Collections;

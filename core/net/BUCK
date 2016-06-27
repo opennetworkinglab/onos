@@ -4,8 +4,6 @@ COMPILE_DEPS = [
     '//utils/rest:onlab-rest',
     '//incubator/net:onos-incubator-net',
     '//incubator/store:onos-incubator-store',
-    # TODO Remove after decoupling optical
-    '//apps/optical-model:onos-apps-optical-model',
 ]
 
 TEST_DEPS = [

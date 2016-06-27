@@ -30,6 +30,7 @@ import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.net.intent.PathIntent;
+import org.onosproject.net.resource.MockResourceService;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 

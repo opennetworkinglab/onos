@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl.compiler;
+package org.onosproject.net.optical.intent.impl.compiler;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -41,7 +41,6 @@ import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
-import org.onosproject.net.intent.impl.IntentCompilationException;
 import org.onosproject.net.optical.OchPort;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.Resource;
@@ -49,6 +48,7 @@ import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.resource.Resources;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,7 +121,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         Resource dstPortResource = Resources.discrete(dst.deviceId(), dst.port()).resource();
         // If ports are not available, compilation fails
         if (!Stream.of(srcPortResource, dstPortResource).allMatch(resourceService::isAvailable)) {
-            throw new IntentCompilationException("Ports for the intent are not available. Intent: " + intent);
+            throw new OpticalIntentCompilationException("Ports for the intent are not available. Intent: " + intent);
         }
 
         List<Resource> resources = new ArrayList<>();
@@ -132,7 +132,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         Set<Path> paths = getOpticalPaths(intent);
 
         if (paths.isEmpty()) {
-            throw new IntentCompilationException("Unable to find suitable lightpath for intent " + intent);
+            throw new OpticalIntentCompilationException("Unable to find suitable lightpath for intent " + intent);
         }
 
         // Static or dynamic lambda allocation
@@ -178,7 +178,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
             OchSignal ochSignal = OchSignal.toFixedGrid(found.get().getValue(), ChannelSpacing.CHL_50GHZ);
             return ImmutableList.of(createIntent(intent, found.get().getKey(), ochSignal));
         } else {
-            throw new IntentCompilationException("Unable to find suitable lightpath for intent " + intent);
+            throw new OpticalIntentCompilationException("Unable to find suitable lightpath for intent " + intent);
         }
     }
 
@@ -204,7 +204,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         List<ResourceAllocation> allocations = resourceService.allocate(intent.id(), resources);
         if (allocations.isEmpty()) {
             log.info("Resource allocation for {} failed (resource request: {})", intent, resources);
-            throw new IntentCompilationException("Unable to allocate resources: " + resources);
+            throw new OpticalIntentCompilationException("Unable to allocate resources: " + resources);
         }
     }
 
@@ -300,31 +300,35 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     private Set<Path> getOpticalPaths(OpticalConnectivityIntent intent) {
         // Route in WDM topology
         Topology topology = topologyService.currentTopology();
-        LinkWeight weight = edge -> {
-            // Disregard inactive or non-optical links
-            if (edge.link().state() == Link.State.INACTIVE) {
-                return -1;
-            }
-            if (edge.link().type() != Link.Type.OPTICAL) {
-                return -1;
-            }
-            // Adhere to static port mappings
-            DeviceId srcDeviceId = edge.link().src().deviceId();
-            if (srcDeviceId.equals(intent.getSrc().deviceId())) {
-                ConnectPoint srcStaticPort = staticPort(intent.getSrc());
-                if (srcStaticPort != null) {
-                    return srcStaticPort.equals(edge.link().src()) ? 1 : -1;
-                }
-            }
-            DeviceId dstDeviceId = edge.link().dst().deviceId();
-            if (dstDeviceId.equals(intent.getDst().deviceId())) {
-                ConnectPoint dstStaticPort = staticPort(intent.getDst());
-                if (dstStaticPort != null) {
-                    return dstStaticPort.equals(edge.link().dst()) ? 1 : -1;
-                }
-            }
+        LinkWeight weight = new LinkWeight() {
 
-            return 1;
+            @Override
+            public double weight(TopologyEdge edge) {
+                // Disregard inactive or non-optical links
+                if (edge.link().state() == Link.State.INACTIVE) {
+                    return -1;
+                }
+                if (edge.link().type() != Link.Type.OPTICAL) {
+                    return -1;
+                }
+                // Adhere to static port mappings
+                DeviceId srcDeviceId = edge.link().src().deviceId();
+                if (srcDeviceId.equals(intent.getSrc().deviceId())) {
+                    ConnectPoint srcStaticPort = staticPort(intent.getSrc());
+                    if (srcStaticPort != null) {
+                        return srcStaticPort.equals(edge.link().src()) ? 1 : -1;
+                    }
+                }
+                DeviceId dstDeviceId = edge.link().dst().deviceId();
+                if (dstDeviceId.equals(intent.getDst().deviceId())) {
+                    ConnectPoint dstStaticPort = staticPort(intent.getDst());
+                    if (dstStaticPort != null) {
+                        return dstStaticPort.equals(edge.link().dst()) ? 1 : -1;
+                    }
+                }
+
+                return 1;
+            }
         };
 
         ConnectPoint start = intent.getSrc();

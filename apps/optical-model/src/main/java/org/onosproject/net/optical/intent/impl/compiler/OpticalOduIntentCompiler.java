@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl.compiler;
+package org.onosproject.net.optical.intent.impl.compiler;
 
 
 import org.apache.felix.scr.annotations.Activate;
@@ -47,7 +47,6 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalOduIntent;
-import org.onosproject.net.intent.impl.IntentCompilationException;
 import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.optical.OtuPort;
 import org.onosproject.net.resource.Resource;
@@ -138,7 +137,7 @@ public class OpticalOduIntentCompiler implements IntentCompiler<OpticalOduIntent
         Resource dstPortResource = Resources.discrete(dst.deviceId(), dst.port()).resource();
         // If ports are not available, compilation fails
         if (!Stream.of(srcPortResource, dstPortResource).allMatch(resourceService::isAvailable)) {
-            throw new IntentCompilationException("Ports for the intent are not available. Intent: " + intent);
+            throw new OpticalIntentCompilationException("Ports for the intent are not available. Intent: " + intent);
         }
         List<Resource> intentResources = new ArrayList<>();
         intentResources.add(srcPortResource);
@@ -148,7 +147,7 @@ public class OpticalOduIntentCompiler implements IntentCompiler<OpticalOduIntent
         Set<Path> paths = getOpticalPaths(intent);
 
         if (paths.isEmpty()) {
-            throw new IntentCompilationException("Unable to find suitable lightpath for intent " + intent);
+            throw new OpticalIntentCompilationException("Unable to find suitable lightpath for intent " + intent);
         }
 
         // Use first path that can be successfully reserved
@@ -180,7 +179,7 @@ public class OpticalOduIntentCompiler implements IntentCompiler<OpticalOduIntent
                     rules, ImmutableSet.copyOf(path.links())));
         }
 
-        throw new IntentCompilationException("Unable to find suitable lightpath for intent " + intent);
+        throw new OpticalIntentCompilationException("Unable to find suitable lightpath for intent " + intent);
     }
 
     /**
@@ -219,7 +218,7 @@ public class OpticalOduIntentCompiler implements IntentCompiler<OpticalOduIntent
         List<ResourceAllocation> allocations = resourceService.allocate(intent.id(), resources);
         if (allocations.isEmpty()) {
             log.info("Resource allocation for {} failed (resource request: {})", intent, resources);
-            throw new IntentCompilationException("Unable to allocate resources: " + resources);
+            throw new OpticalIntentCompilationException("Unable to allocate resources: " + resources);
         }
     }
 

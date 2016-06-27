@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl.compiler;
+package org.onosproject.net.resource;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -22,16 +22,6 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.net.TributarySlot;
-import org.onosproject.net.resource.ContinuousResourceId;
-import org.onosproject.net.resource.DiscreteResource;
-import org.onosproject.net.resource.DiscreteResourceId;
-import org.onosproject.net.resource.ResourceAllocation;
-import org.onosproject.net.resource.ResourceConsumer;
-import org.onosproject.net.resource.ResourceId;
-import org.onosproject.net.resource.ResourceListener;
-import org.onosproject.net.resource.Resource;
-import org.onosproject.net.resource.ResourceService;
-import org.onosproject.net.resource.Resources;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -43,7 +33,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-class MockResourceService implements ResourceService {
+public class MockResourceService implements ResourceService {
 
     private final Map<Resource, ResourceConsumer> assignment = new HashMap<>();
 

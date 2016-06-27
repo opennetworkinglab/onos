@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl.compiler;
+package org.onosproject.net.optical.intent.impl.compiler;
 
 import org.junit.After;
 import org.junit.Before;

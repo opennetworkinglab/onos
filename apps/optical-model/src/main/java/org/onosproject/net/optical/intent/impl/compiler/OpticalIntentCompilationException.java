@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-present Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.optical.intent.impl.compiler;
 
-import org.onosproject.net.intent.IntentException;
+import org.onosproject.net.intent.IntentCompilationException;
 
 /**
- * An exception thrown when a intent compilation fails.
- *
- * @deprecated in in Hummingbird (1.6.0) use {@link org.onosproject.net.intent.IntentCompilationException} instead.
+ * An exception thrown when an optical intent compilation fails.
  */
-@Deprecated
-public class IntentCompilationException extends IntentException {
-    private static final long serialVersionUID = 235237603018210810L;
+public class OpticalIntentCompilationException extends IntentCompilationException {
 
-    public IntentCompilationException() {
+    private static final long serialVersionUID = 2538096696847181373L;
+
+    public OpticalIntentCompilationException() {
         super();
     }
 
-    public IntentCompilationException(String message) {
+    public OpticalIntentCompilationException(String message) {
         super(message);
     }
 
-    public IntentCompilationException(String message, Throwable cause) {
+    public OpticalIntentCompilationException(String message, Throwable cause) {
         super(message, cause);
     }
 }

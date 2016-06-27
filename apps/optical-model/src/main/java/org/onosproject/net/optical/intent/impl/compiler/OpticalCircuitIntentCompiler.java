@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl.compiler;
+package org.onosproject.net.optical.intent.impl.compiler;
 
 import com.google.common.base.Strings;
 
@@ -57,11 +57,9 @@ import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
-import org.onosproject.net.intent.impl.IntentCompilationException;
 import org.onosproject.net.optical.OchPort;
 import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.intent.IntentSetMultimap;
-import org.onosproject.net.intent.impl.ResourceHelper;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceService;
@@ -193,7 +191,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         Resource dstPortResource = Resources.discrete(dst.deviceId(), dst.port()).resource();
         // If ports are not available, compilation fails
         if (!Stream.of(srcPortResource, dstPortResource).allMatch(resourceService::isAvailable)) {
-            throw new IntentCompilationException("Ports for the intent are not available. Intent: " + intent);
+            throw new OpticalIntentCompilationException("Ports for the intent are not available. Intent: " + intent);
         }
         List<Resource> ports = ImmutableList.of(srcPortResource, dstPortResource);
 
@@ -237,7 +235,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             Pair<OchPort, OchPort> ochPorts = findPorts(intent.getSrc(), intent.getDst(), intent.getSignalType());
 
             if (ochPorts == null) {
-                throw new IntentCompilationException("Unable to find suitable OCH ports for intent " + intent);
+                throw new OpticalIntentCompilationException("Unable to find suitable OCH ports for intent " + intent);
             }
 
             ConnectPoint srcCP = new ConnectPoint(src.elementId(), ochPorts.getLeft().number());
@@ -257,14 +255,14 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             } else {
                 List<Resource> slots = availableSlotResources(srcCP, dstCP, intent.getSignalType());
                 if (slots.isEmpty()) {
-                    throw new IntentCompilationException("Unable to find Tributary Slots for intent " + intent);
+                    throw new OpticalIntentCompilationException("Unable to find Tributary Slots for intent " + intent);
                 }
                 required = ImmutableList.<Resource>builder().addAll(resources).addAll(slots).build();
             }
         }
 
         if (resourceService.allocate(intent.id(), required).isEmpty()) {
-            throw new IntentCompilationException("Unable to allocate resources for intent " + intent
+            throw new OpticalIntentCompilationException("Unable to allocate resources for intent " + intent
                     + ": resources=" + required);
         }
 

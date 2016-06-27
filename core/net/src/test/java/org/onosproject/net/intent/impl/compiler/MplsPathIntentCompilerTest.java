@@ -43,6 +43,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.MplsPathIntent;
+import org.onosproject.net.resource.MockResourceService;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;

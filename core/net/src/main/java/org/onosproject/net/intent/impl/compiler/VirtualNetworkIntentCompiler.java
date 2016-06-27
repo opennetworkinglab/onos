@@ -34,10 +34,10 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentCompilationException;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.net.intent.impl.IntentCompilationException;
 import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 

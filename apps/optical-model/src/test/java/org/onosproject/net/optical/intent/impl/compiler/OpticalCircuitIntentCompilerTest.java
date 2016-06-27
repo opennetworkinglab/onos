@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl.compiler;
+package org.onosproject.net.optical.intent.impl.compiler;
 
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -63,6 +63,7 @@ import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.optical.impl.DefaultOchPort;
 import org.onosproject.net.optical.impl.DefaultOduCltPort;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.resource.MockResourceService;
 import org.onosproject.net.intent.IntentSetMultimap;
 import org.onosproject.net.behaviour.TributarySlotQuery;
 import org.onosproject.net.device.DeviceServiceAdapter;

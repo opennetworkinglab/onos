@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.optical.intent.impl.compiler;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.net.intent.IntentId;
@@ -24,6 +24,7 @@ import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+// TODO consider moving this to api bundle.
 /**
  * Helper class for ResourceService related processes.
  */
