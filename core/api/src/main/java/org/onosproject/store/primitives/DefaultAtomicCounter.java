@@ -56,7 +56,7 @@ public class DefaultAtomicCounter extends Synchronous<AsyncAtomicCounter> implem
 
     @Override
     public long addAndGet(long delta) {
-        return complete(asyncCounter.getAndAdd(delta));
+        return complete(asyncCounter.addAndGet(delta));
     }
 
     @Override
