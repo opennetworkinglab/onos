@@ -15,6 +15,7 @@
  */
 package org.onosproject.driver.optical.query;
 
+import org.onlab.util.GuavaCollectors;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.OchSignal;
@@ -24,9 +25,9 @@ import org.onosproject.net.behaviour.LambdaQuery;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 
-import java.util.Collections;
+import com.google.common.collect.ImmutableSet;
+
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -42,19 +43,26 @@ public class LincOELambdaQuery extends AbstractHandlerBehaviour implements Lambd
 
     private static final int LAMBDA_COUNT = 80;
 
+    /**
+     * OMS ports expose 80 fixed grid lambdas of 50GHz width,
+     * centered around the ITU-T center frequency 193.1 THz.
+     */
+    private static final Set<OchSignal> OMS_LAMDAS = IntStream.range(0, LAMBDA_COUNT)
+            .mapToObj(x -> new OchSignal(GridType.DWDM, ChannelSpacing.CHL_50GHZ, x - (LAMBDA_COUNT / 2), 4))
+            .collect(GuavaCollectors.toImmutableSet());
+
     @Override
     public Set<OchSignal> queryLambdas(PortNumber port) {
         DeviceService deviceService = this.handler().get(DeviceService.class);
+
         Port p = deviceService.getPort(this.data().deviceId(), port);
 
         // OCh ports don't expose lambda resources
-        if (!p.type().equals(Port.Type.OMS)) {
-            return Collections.emptySet();
+        if (p == null ||
+            !p.type().equals(Port.Type.OMS)) {
+            return ImmutableSet.of();
         }
 
-        // OMS ports expose 80 fixed grid lambdas of 50GHz width, centered around the ITU-T center frequency 193.1 THz.
-        return IntStream.range(0, LAMBDA_COUNT)
-                .mapToObj(x -> new OchSignal(GridType.DWDM, ChannelSpacing.CHL_50GHZ, x - (LAMBDA_COUNT / 2), 4))
-                .collect(Collectors.toSet());
+        return OMS_LAMDAS;
     }
 }
