@@ -34,6 +34,18 @@
         <command>
             <action class="org.onosproject.distributedprimitives.cli.TransactionalMapTestPutCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.distributedprimitives.cli.CounterTestCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.distributedprimitives.cli.ConsistentMapTestCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.distributedprimitives.cli.ValueTestCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.distributedprimitives.cli.LeaderElectorTestCommand"/>
+        </command>
     </command-bundle>
 
 </blueprint>
