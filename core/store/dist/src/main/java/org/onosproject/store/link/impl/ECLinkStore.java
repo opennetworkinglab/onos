@@ -317,6 +317,9 @@ public class ECLinkStore
         AtomicReference<LinkEvent.Type> eventType = new AtomicReference<>();
         Link link = links.compute(linkKey, (key, existingLink) -> {
             Link newLink = composeLink(linkKey);
+            if (newLink == null) {
+                return null;
+            }
             if (existingLink == null) {
                 eventType.set(LINK_ADDED);
                 return newLink;
@@ -352,7 +355,10 @@ public class ECLinkStore
 
         ProviderId baseProviderId = checkNotNull(getBaseProviderId(linkKey));
         LinkDescription base = linkDescriptions.get(new Provided<>(linkKey, baseProviderId));
-
+        // short circuit if link description no longer exists
+        if (base == null) {
+            return null;
+        }
         ConnectPoint src = base.src();
         ConnectPoint dst = base.dst();
         Type type = base.type();
