@@ -52,7 +52,7 @@ public class OFOpticalSwitch13LambdaQuery extends AbstractHandlerBehaviour imple
         Port p = deviceService.getPort(this.data().deviceId(), port);
 
         // Only OMS ports expose lambda resources
-        if (!p.type().equals(Port.Type.OMS)) {
+        if (p == null || !p.type().equals(Port.Type.OMS)) {
             return Collections.emptySet();
         }
 

@@ -66,6 +66,10 @@ public class DefaultTributarySlotQuery extends AbstractHandlerBehaviour implemen
         DeviceService deviceService = opticalView(this.handler().get(DeviceService.class));
         Port p = deviceService.getPort(this.data().deviceId(), port);
 
+        if (p == null) {
+            return Collections.emptySet();
+        }
+
         switch (p.type()) {
             case OCH:
                 return queryOchTributarySlots(p);
