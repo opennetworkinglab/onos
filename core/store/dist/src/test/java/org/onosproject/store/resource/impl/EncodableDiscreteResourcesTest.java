@@ -62,9 +62,9 @@ public class EncodableDiscreteResourcesTest {
     @Test
     public void testIfResourceIsNotFound() {
         DiscreteResource res1 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)).resource();
-        DiscreteResource res2 = Resources.discrete(DeviceId.deviceId("b"), PortNumber.portNumber(1)).resource();
+        DiscreteResource res2 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(2)).resource();
 
-        DiscreteResources sut = GenericDiscreteResources.of(ImmutableSet.of(res1));
+        DiscreteResources sut = EncodableDiscreteResources.of(ImmutableSet.of(res1));
 
         assertThat(sut.lookup(res2.id()), is(Optional.empty()));
     }
@@ -72,39 +72,39 @@ public class EncodableDiscreteResourcesTest {
     @Test
     public void testIfDifferenceIsEmpty() {
         DiscreteResource res1 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)).resource();
-        DiscreteResource res2 = Resources.discrete(DeviceId.deviceId("b"), PortNumber.portNumber(1)).resource();
+        DiscreteResource res2 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(2)).resource();
 
-        DiscreteResources sut = GenericDiscreteResources.of(ImmutableSet.of(res1, res2));
+        DiscreteResources sut = EncodableDiscreteResources.of(ImmutableSet.of(res1, res2));
 
-        DiscreteResources other = GenericDiscreteResources.of(ImmutableSet.of(res1, res2));
+        DiscreteResources other = EncodableDiscreteResources.of(ImmutableSet.of(res1, res2));
 
-        DiscreteResources expected = GenericDiscreteResources.of(ImmutableSet.of());
+        DiscreteResources expected = DiscreteResources.empty();
         assertThat(sut.difference(other), is(expected));
     }
 
     @Test
     public void testIfDifferenceIsNotEmpty() {
         DiscreteResource res1 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)).resource();
-        DiscreteResource res2 = Resources.discrete(DeviceId.deviceId("b"), PortNumber.portNumber(1)).resource();
+        DiscreteResource res2 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(2)).resource();
 
-        DiscreteResources sut = GenericDiscreteResources.of(ImmutableSet.of(res1, res2));
+        DiscreteResources sut = EncodableDiscreteResources.of(ImmutableSet.of(res1, res2));
 
-        DiscreteResources other = GenericDiscreteResources.of(ImmutableSet.of(res1));
+        DiscreteResources other = EncodableDiscreteResources.of(ImmutableSet.of(res1));
 
-        DiscreteResources expected = GenericDiscreteResources.of(ImmutableSet.of(res2));
+        DiscreteResources expected = EncodableDiscreteResources.of(ImmutableSet.of(res2));
         assertThat(sut.difference(other), is(expected));
     }
 
     @Test
     public void testIfDifferenceIsNotChanged() {
         DiscreteResource res1 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)).resource();
-        DiscreteResource res2 = Resources.discrete(DeviceId.deviceId("b"), PortNumber.portNumber(1)).resource();
+        DiscreteResource res2 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(2)).resource();
 
-        DiscreteResources sut = GenericDiscreteResources.of(ImmutableSet.of(res1));
+        DiscreteResources sut = EncodableDiscreteResources.of(ImmutableSet.of(res1));
 
-        DiscreteResources other = GenericDiscreteResources.of(ImmutableSet.of(res2));
+        DiscreteResources other = EncodableDiscreteResources.of(ImmutableSet.of(res2));
 
-        DiscreteResources expected = GenericDiscreteResources.of(ImmutableSet.of(res1));
+        DiscreteResources expected = EncodableDiscreteResources.of(ImmutableSet.of(res1));
         assertThat(sut.difference(other), is(expected));
     }
 
@@ -112,17 +112,17 @@ public class EncodableDiscreteResourcesTest {
     public void testDifferenceFromEmpty() {
         DiscreteResource res1 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)).resource();
 
-        DiscreteResources sut = GenericDiscreteResources.of(ImmutableSet.of(res1));
+        DiscreteResources sut = EncodableDiscreteResources.of(ImmutableSet.of(res1));
 
-        DiscreteResources other = GenericDiscreteResources.of(ImmutableSet.of());
+        DiscreteResources other = DiscreteResources.empty();
 
-        DiscreteResources expected = GenericDiscreteResources.of(ImmutableSet.of(res1));
+        DiscreteResources expected = EncodableDiscreteResources.of(ImmutableSet.of(res1));
         assertThat(sut.difference(other), is(expected));
     }
 
     @Test
     public void testEmpty() {
-        DiscreteResources sut = GenericDiscreteResources.of(ImmutableSet.of());
+        DiscreteResources sut = EncodableDiscreteResources.of(ImmutableSet.of());
 
         assertThat(sut.isEmpty(), is(true));
     }
@@ -131,7 +131,7 @@ public class EncodableDiscreteResourcesTest {
     public void testNotEmpty() {
         DiscreteResource res1 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)).resource();
 
-        DiscreteResources sut = GenericDiscreteResources.of(ImmutableSet.of(res1));
+        DiscreteResources sut = EncodableDiscreteResources.of(ImmutableSet.of(res1));
 
         assertThat(sut.isEmpty(), is(false));
     }
@@ -140,7 +140,7 @@ public class EncodableDiscreteResourcesTest {
     public void testIfResourceIsContained() {
         DiscreteResource res1 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)).resource();
 
-        DiscreteResources sut = GenericDiscreteResources.of(ImmutableSet.of(res1));
+        DiscreteResources sut = EncodableDiscreteResources.of(ImmutableSet.of(res1));
 
         assertThat(sut.containsAny(ImmutableSet.of(res1)), is(true));
     }
@@ -148,9 +148,9 @@ public class EncodableDiscreteResourcesTest {
     @Test
     public void testIfResourceIsNotContained() {
         DiscreteResource res1 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)).resource();
-        DiscreteResource res2 = Resources.discrete(DeviceId.deviceId("b"), PortNumber.portNumber(1)).resource();
+        DiscreteResource res2 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(2)).resource();
 
-        DiscreteResources sut = GenericDiscreteResources.of(ImmutableSet.of(res1));
+        DiscreteResources sut = EncodableDiscreteResources.of(ImmutableSet.of(res1));
 
         assertThat(sut.containsAny(ImmutableSet.of(res2)), is(false));
     }
@@ -159,7 +159,7 @@ public class EncodableDiscreteResourcesTest {
     public void testContainsWithEmpty() {
         DiscreteResource res1 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)).resource();
 
-        DiscreteResources sut = GenericDiscreteResources.of(ImmutableSet.of(res1));
+        DiscreteResources sut = EncodableDiscreteResources.of(ImmutableSet.of(res1));
 
         assertThat(sut.containsAny(ImmutableSet.of()), is(false));
     }
@@ -167,22 +167,22 @@ public class EncodableDiscreteResourcesTest {
     @Test
     public void testAdd() {
         DiscreteResource res1 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)).resource();
-        DiscreteResource res2 = Resources.discrete(DeviceId.deviceId("b"), PortNumber.portNumber(1)).resource();
+        DiscreteResource res2 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(2)).resource();
 
-        DiscreteResources sut = GenericDiscreteResources.of(ImmutableSet.of(res1));
+        DiscreteResources sut = EncodableDiscreteResources.of(ImmutableSet.of(res1));
 
-        DiscreteResources other = GenericDiscreteResources.of(ImmutableSet.of(res2));
+        DiscreteResources other = EncodableDiscreteResources.of(ImmutableSet.of(res2));
 
-        DiscreteResources expected = GenericDiscreteResources.of(ImmutableSet.of(res1, res2));
+        DiscreteResources expected = EncodableDiscreteResources.of(ImmutableSet.of(res1, res2));
         assertThat(sut.add(other), is(expected));
     }
 
     @Test
     public void testValues() {
         DiscreteResource res1 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)).resource();
-        DiscreteResource res2 = Resources.discrete(DeviceId.deviceId("b"), PortNumber.portNumber(1)).resource();
+        DiscreteResource res2 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(2)).resource();
 
-        DiscreteResources sut = GenericDiscreteResources.of(ImmutableSet.of(res1, res2));
+        DiscreteResources sut = EncodableDiscreteResources.of(ImmutableSet.of(res1, res2));
 
         assertThat(sut.values(), is(ImmutableSet.of(res1, res2)));
     }

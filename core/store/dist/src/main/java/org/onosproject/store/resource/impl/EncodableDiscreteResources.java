@@ -66,6 +66,17 @@ final class EncodableDiscreteResources implements DiscreteResources {
         return new EncodableDiscreteResources(parent, values);
     }
 
+    private static DiscreteResources of(DiscreteResource parent, Map<Class<?>, EncodedDiscreteResources> map) {
+        if (isEmpty(map)) {
+            return DiscreteResources.empty();
+        }
+        return new EncodableDiscreteResources(parent, map);
+    }
+
+    private static boolean isEmpty(Map<Class<?>, EncodedDiscreteResources> map) {
+        return map.values().stream().allMatch(EncodedDiscreteResources::isEmpty);
+    }
+
     EncodableDiscreteResources(DiscreteResource parent, Map<Class<?>, EncodedDiscreteResources> map) {
         this.parent = parent;
         this.map = map;
@@ -73,6 +84,9 @@ final class EncodableDiscreteResources implements DiscreteResources {
 
     @Override
     public Optional<DiscreteResource> lookup(DiscreteResourceId id) {
+        if (!id.parent().filter(parent.id()::equals).isPresent()) {
+            return Optional.empty();
+        }
         DiscreteResource resource = Resources.discrete(id).resource();
         Class<?> cls = getClass(resource);
         return Optional.ofNullable(map.get(cls))
@@ -92,7 +106,7 @@ final class EncodableDiscreteResources implements DiscreteResources {
                                     Map.Entry::getValue,
                                     EncodedDiscreteResources::difference,
                                     LinkedHashMap::new));
-            return new EncodableDiscreteResources(parent, newMap);
+            return of(parent, newMap);
         } else if (other instanceof EmptyDiscreteResources) {
             return this;
         }
@@ -102,8 +116,7 @@ final class EncodableDiscreteResources implements DiscreteResources {
 
     @Override
     public boolean isEmpty() {
-        return map.values().stream()
-                .allMatch(x -> x.isEmpty());
+        return isEmpty(map);
     }
 
     @Override
@@ -125,7 +138,7 @@ final class EncodableDiscreteResources implements DiscreteResources {
                                     EncodedDiscreteResources::add,
                                     LinkedHashMap::new
                             ));
-            return new EncodableDiscreteResources(parent, newMap);
+            return of(parent, newMap);
         } else if (other instanceof EmptyDiscreteResources) {
             return this;
         }
