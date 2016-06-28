@@ -68,12 +68,13 @@ public class HostMobility {
 
     private ApplicationId appId;
     private ExecutorService eventHandler;
+    private final HostListener hostListener = new InternalHostListener();
 
     @Activate
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.mobility");
         eventHandler = newSingleThreadScheduledExecutor(groupedThreads("onos/app-mobility", "event-handler", log));
-        hostService.addListener(new InternalHostListener());
+        hostService.addListener(hostListener);
         log.info("Started with Application ID {}", appId.id());
     }
 
@@ -81,6 +82,7 @@ public class HostMobility {
     public void deactivate() {
         // TODO we never actually add any flow rules
         flowRuleService.removeFlowRulesById(appId);
+        hostService.removeListener(hostListener);
         eventHandler.shutdown();
         log.info("Stopped");
     }
