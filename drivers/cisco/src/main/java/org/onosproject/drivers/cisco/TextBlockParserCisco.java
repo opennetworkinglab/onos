@@ -1,18 +1,18 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright 2016-present Open Networking Laboratory
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 package org.onosproject.drivers.cisco;
 
@@ -22,17 +22,22 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.PortDescription;
-
 import java.util.Arrays;
 import java.util.List;
 
 import static org.onosproject.net.Port.Type;
 
 /**
- *Parser for Netconf configurations and replys as plain text.
+ *Parser for Netconf XML configurations and replys as plain text.
  */
-public final class TextBlockParserCisco {
+final class TextBlockParserCisco {
 
+    private static final String PHRASE = "bytes of memory.";
+    private static final String VERSION = "Version ";
+    private static final String EOF_VERSION1 = "Software";
+    private static final String EOF_VERSION2 = "Software,";
+    private static final String EOF_VERSION3 = "RELEASE";
+    private static final String PROCESSOR_BOARD = "Processor board ID ";
     private static final String BANDWIDTH = "BW ";
     private static final String SPEED = " Kbit/sec";
     private static final String ETHERNET = "Eth";
@@ -41,17 +46,107 @@ public final class TextBlockParserCisco {
     private static final String FDDI = "Fdd";
     private static final String POS = "POS";
     private static final String SERIAL = "Ser";
-    private static final List INTERFACES = Arrays.asList(ETHERNET, FASTETHERNET, GIGABITETHERNET, SERIAL, FDDI, POS);
-    private static final List FIBERINTERFACES = Arrays.asList(FDDI, POS);
-
     private static final String NEWLINE_SPLITTER = "\n";
     private static final String PORT_DELIMITER = "/";
     private static final String SPACE = " ";
     private static final String IS_UP = "is up, line protocol is up";
+    private static final List INTERFACES = Arrays.asList(ETHERNET, FASTETHERNET, GIGABITETHERNET, SERIAL, FDDI, POS);
+    private static final List FIBERINTERFACES = Arrays.asList(FDDI, POS);
 
 
     private TextBlockParserCisco() {
-        //not called, preventing any allocation
+        //not called
+    }
+
+    /**
+     * Adding information in an array for CiscoIosDeviceDescriptin call.
+     * @param version the return of show version command
+     * @return the array with the information
+     */
+    static String[] parseCiscoIosDeviceDetails(String version) {
+        String[] details = new String[4];
+        details[0] = getManufacturer(version);
+        details[1] = getHwVersion(version);
+        details[2] = getSwVersion(version);
+        details[3] = serialNumber(version);
+        return details;
+    }
+
+    /**
+     * Retrieving manufacturer of device.
+     * @param version the return of show version command
+     * @return the manufacturer of the device
+     */
+    private static String getManufacturer(String version) {
+        int i;
+        String[] textStr = version.split(NEWLINE_SPLITTER);
+        String[] lineStr = textStr[0].trim().split(SPACE);
+        return lineStr[0];
+    }
+
+    /**
+     * Retrieving hardware version of device.
+     * @param version the return of show version command
+     * @return the hardware version of the device
+     */
+    private static String getHwVersion(String version) {
+        String[] textStr = version.split(NEWLINE_SPLITTER);
+        String processor = SPACE;
+        int i;
+        for (i = 0; i < textStr.length; i++) {
+            if (textStr[i].indexOf(PHRASE) > 0) {
+                String[] lineStr = textStr[i].trim().split(SPACE);
+                processor = lineStr[1];
+                break;
+            } else {
+                processor = SPACE;
+            }
+        }
+        return processor;
+    }
+
+    /**
+     * Retrieving software version of device.
+     * @param version the return of show version command
+     * @return the software version of the device
+     */
+    private static String getSwVersion(String version) {
+        String[] textStr = version.split(NEWLINE_SPLITTER);
+        int i;
+        for (i = 0; i < textStr.length; i++) {
+            if (textStr[i].indexOf(VERSION) > 0) {
+                break;
+            }
+        }
+        String[] lineStr = textStr[i].trim().split(SPACE);
+        StringBuilder sw = new StringBuilder();
+        for (int j = 0; j < lineStr.length; j++) {
+            if (lineStr[j].equals(EOF_VERSION1) || lineStr[j].equals(EOF_VERSION2)
+                    ) {
+                sw.append(lineStr[j - 1]).append(SPACE);
+            } else if (lineStr[j].equals(EOF_VERSION3)) {
+                sw.append(lineStr[j - 1]);
+                sw.setLength(sw.length() - 1);
+            }
+        }
+        return sw.toString();
+    }
+
+    /**
+     * Retrieving serial number of device.
+     * @param version the return of show version command
+     * @return the serial number of the device
+     */
+    private static String serialNumber(String version) {
+        String[] textStr = version.split(NEWLINE_SPLITTER);
+        int i;
+        for (i = 0; i < textStr.length; i++) {
+            if (textStr[i].indexOf(PROCESSOR_BOARD) > 0) {
+                break;
+            }
+        }
+        return textStr[i].substring(textStr[i].indexOf(PROCESSOR_BOARD) + PROCESSOR_BOARD.length(),
+                                    textStr[i].length());
     }
 
     /**
@@ -90,7 +185,7 @@ public final class TextBlockParserCisco {
         long portSpeed = getPortSpeed(textStr);
         DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
                 .set(AnnotationKeys.PORT_NAME, firstWord);
-        return port == "-1" ? null : new DefaultPortDescription(PortNumber.portNumber(port),
+        return port.equals("-1") ? null : new DefaultPortDescription(PortNumber.portNumber(port),
                                                                 isEnabled, type, portSpeed, annotations.build());
     }
 
@@ -132,10 +227,10 @@ public final class TextBlockParserCisco {
             if (!(firstCharacter.equals(SPACE)) && isChild) {
                 break;
             } else if (firstCharacter.equals(SPACE) && isChild) {
-                anInterface.append(textStr[i] + NEWLINE_SPLITTER);
+                anInterface.append(textStr[i]).append(NEWLINE_SPLITTER);
             } else if (INTERFACES.contains(first3Characters)) {
                 isChild = true;
-                anInterface.append(textStr[i] + NEWLINE_SPLITTER);
+                anInterface.append(textStr[i]).append(NEWLINE_SPLITTER);
             }
         }
         return anInterface.toString();

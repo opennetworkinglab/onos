@@ -19,7 +19,7 @@
             hwVersion="" swVersion="IOS">
         <behaviour api="org.onosproject.net.behaviour.InterfaceConfig"
                    impl="org.onosproject.drivers.cisco.InterfaceConfigCiscoIosImpl"/>
-        <behaviour api="org.onosproject.net.behaviour.PortDiscovery"
-                   impl="org.onosproject.drivers.cisco.PortGetterCiscoIosImpl"/>
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.cisco.CiscoIosDeviceDescription"/>
     </driver>
 </drivers>

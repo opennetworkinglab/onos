@@ -18,21 +18,24 @@ package org.onosproject.drivers.cisco;
 
 
 import org.junit.Test;
+import org.onlab.packet.ChassisId;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultDevice;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.PortDescription;
-
+import org.onosproject.net.provider.ProviderId;
 import java.io.InputStream;
-import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.List;
-
-
-
+import java.util.Scanner;
 import static org.junit.Assert.assertEquals;
+import static org.onosproject.net.Device.Type.SWITCH;
+import static org.onosproject.net.DeviceId.deviceId;
+
 
 /**
  * Tests the parser for Netconf TextBlock configurations and replies from Cisco devices.
@@ -59,15 +62,45 @@ public class TextBlockParserCiscoTest {
     private static final long CONNECTION_SPEED_FDDI = 100000;
     private static final boolean IS_ENABLED = true;
     private static final boolean IS_NOT_ENABLED = false;
-    private static final String TEXT_FILE = "/CiscoIosInterfaces.xml";
+    private static final String SHOW_VERSION = "/testShowVersion.xml";
+    private static final String SHOW_INTFS = "/testShowInterfaces.xml";
+    private static final String SW = "IOS C3560E 15.0(2)EJ";
+    private static final String HW = "SM-X-ES3-24-P";
+    private static final String MFR = "Cisco";
+    private static final String SN = "FOC18401Z3R";
+    private static final ProviderId PROVIDERID = new ProviderId("of", "foo");
+    private static final DeviceId DEVICE = deviceId("of:foo");
+    private static final ChassisId CID = new ChassisId();
 
     @Test
-    public void controllersConfig() {
-        InputStream streamOrig = getClass().getResourceAsStream(TEXT_FILE);
+    public void controllersVersion() {
+        InputStream streamOrig = getClass().getResourceAsStream(SHOW_VERSION);
+        String version = new Scanner(streamOrig, "UTF-8").useDelimiter("\\Z").next();
+        version = version.substring(version.indexOf('\n') + 1);
+        String[] actualDetails = TextBlockParserCisco.parseCiscoIosDeviceDetails(version);
+
+        assertEquals("Information could not be retrieved",
+                     getExpectedInfo(), actualInfo(actualDetails));
+    }
+
+    @Test
+    public void controllersIntfs() {
+        InputStream streamOrig = getClass().getResourceAsStream(SHOW_INTFS);
         String rpcReply = new Scanner(streamOrig, "UTF-8").useDelimiter("\\Z").next();
         List<PortDescription> actualIntfs = TextBlockParserCisco.parseCiscoIosPorts(rpcReply);
-        assertEquals("Interfaces were not retrieved from configuration",
+        assertEquals("Information could not be retrieved",
                      getExpectedIntfs(), actualIntfs);
+    }
+
+    private DefaultDevice getExpectedInfo() {
+        return new DefaultDevice(PROVIDERID, DEVICE, SWITCH, MFR, HW, SW, SN, CID);
+    }
+
+    private DefaultDevice actualInfo(String[] actualDetails) {
+
+        return new DefaultDevice(PROVIDERID, DEVICE, SWITCH, actualDetails[0],
+                                 actualDetails[1], actualDetails[2],
+                                 actualDetails[3], CID);
     }
 
     private List<PortDescription> getExpectedIntfs() {
@@ -99,4 +132,5 @@ public class TextBlockParserCiscoTest {
                                              int6Annotations.build()));
         return intfs;
     }
+
 }
