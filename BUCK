@@ -67,7 +67,7 @@ CORE = [
     '//providers/rest/device:onos-providers-rest-device',
     '//providers/snmp/device:onos-providers-snmp-device',
     '//providers/isis/cfg:onos-providers-isis-cfg',
-    '//providers/isis/device:onos-providers-isis-device',
+    '//providers/isis/topology:onos-providers-isis-topology',
 
     '//web/api:onos-rest',
     '//web/gui:onos-gui',
