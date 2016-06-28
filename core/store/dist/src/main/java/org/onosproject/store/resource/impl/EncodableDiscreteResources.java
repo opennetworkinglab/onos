@@ -71,12 +71,6 @@ final class EncodableDiscreteResources implements DiscreteResources {
         this.map = map;
     }
 
-    // for serializer
-    private EncodableDiscreteResources() {
-        this.parent = null;
-        this.map = null;
-    }
-
     @Override
     public Optional<DiscreteResource> lookup(DiscreteResourceId id) {
         DiscreteResource resource = Resources.discrete(id).resource();

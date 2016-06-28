@@ -22,13 +22,34 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.Resources;
+import org.onosproject.store.service.Serializer;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 public class EncodableDiscreteResourcesTest {
+    private final Serializer serializer = ConsistentResourceStore.SERIALIZER;
+
+    @Test
+    public void testPortSerialize() {
+        DiscreteResource device = Resources.discrete(DeviceId.deviceId("a")).resource();
+        Set<DiscreteResource> resources = IntStream.range(0, 100)
+                .mapToObj(PortNumber::portNumber)
+                .map(device::child)
+                .collect(Collectors.toSet());
+
+        DiscreteResources original = EncodableDiscreteResources.of(resources);
+
+        byte[] bytes = serializer.encode(original);
+        DiscreteResources decoded = serializer.decode(bytes);
+        assertThat(decoded, is(original));
+    }
+
     @Test
     public void testIfResourceIsFound() {
         DiscreteResource res1 = Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)).resource();
