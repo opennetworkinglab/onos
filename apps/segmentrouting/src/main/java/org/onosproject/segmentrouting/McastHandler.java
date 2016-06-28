@@ -196,6 +196,13 @@ public class McastHandler {
         ConnectPoint sink = mcastRouteInfo.sink().orElse(null);
         IpAddress mcastIp = mcastRouteInfo.route().group();
 
+        // Continue only when this instance is the master of source device
+        if (!srManager.mastershipService.isLocalMaster(source.deviceId())) {
+            log.info("Skip {} due to lack of mastership of the source device {}",
+                    mcastIp, source.deviceId());
+            return;
+        }
+
         // When source and sink are on the same device
         if (source.deviceId().equals(sink.deviceId())) {
             // Source and sink are on even the same port. There must be something wrong.
@@ -238,6 +245,13 @@ public class McastHandler {
      */
     private void processSinkAddedInternal(ConnectPoint source, ConnectPoint sink,
             IpAddress mcastIp) {
+        // Continue only when this instance is the master of source device
+        if (!srManager.mastershipService.isLocalMaster(source.deviceId())) {
+            log.info("Skip {} due to lack of mastership of the source device {}",
+                    source.deviceId());
+            return;
+        }
+
         // Process the ingress device
         addFilterToDevice(source.deviceId(), source.port(), assignedVlan(source));
 
@@ -302,6 +316,13 @@ public class McastHandler {
                     || egressDevices == null || source == null) {
                 log.warn("Missing ingress {}, transit {}, egress {} devices or source {}",
                         ingressDevice, transitDevice, egressDevices, source);
+                return;
+            }
+
+            // Continue only when this instance is the master of source device
+            if (!srManager.mastershipService.isLocalMaster(source.deviceId())) {
+                log.info("Skip {} due to lack of mastership of the source device {}",
+                        source.deviceId());
                 return;
             }
 
@@ -612,12 +633,11 @@ public class McastHandler {
                         MacAddress.IPV4_MULTICAST_MASK))
                 .addCondition(Criteria.matchVlanId(egressVlan()))
                 .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
-        // vlan assignment is valid only if this instance is master
-        if (srManager.mastershipService.isLocalMaster(deviceId)) {
-            TrafficTreatment tt = DefaultTrafficTreatment.builder()
-                    .pushVlan().setVlanId(assignedVlan).build();
-            filtBuilder.withMeta(tt);
-        }
+
+        TrafficTreatment tt = DefaultTrafficTreatment.builder()
+                .pushVlan().setVlanId(assignedVlan).build();
+        filtBuilder.withMeta(tt);
+
         return filtBuilder.permit().fromApp(srManager.appId);
     }
 
