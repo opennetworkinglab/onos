@@ -21,6 +21,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Set;
@@ -169,13 +170,15 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
                 File file = new File(metadataUrl.replaceFirst("file://", ""));
                 return file.exists();
             } else if (url.getProtocol().equals("http")) {
-                url.openStream();
-                return true;
+                try (InputStream file = url.openStream()) {
+                    return true;
+                }
             } else {
                 // Unsupported protocol
                 return false;
             }
         } catch (Exception e) {
+            log.warn("Exception accessing metadata file at {}:", metadataUrl, e);
             return false;
         }
     }
