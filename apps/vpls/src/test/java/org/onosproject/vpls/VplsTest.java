@@ -15,9 +15,15 @@
  */
 package org.onosproject.vpls;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+
+import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
@@ -56,16 +62,14 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.routing.IntentSynchronizationAdminService;
 import org.onosproject.routing.IntentSynchronizationService;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
+import com.google.common.collect.Sets;
 
 import static java.lang.String.format;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -132,14 +136,13 @@ public class VplsTest {
 
     private static final ProviderId PID = new ProviderId("of", "foo");
 
-    @BeforeClass
-    public static void setUpClass() {
-        IdGenerator idGenerator = new TestIdGenerator();
-        Intent.bindIdGenerator(idGenerator);
-    }
+    private static IdGenerator idGenerator;
 
     @Before
     public void setUp() throws Exception {
+        idGenerator = new TestIdGenerator();
+        Intent.bindIdGenerator(idGenerator);
+
         applicationService = createMock(ApplicationService.class);
 
         coreService = createMock(CoreService.class);
@@ -168,6 +171,11 @@ public class VplsTest {
         vpls.interfaceService = interfaceService;
         vpls.intentSynchronizer = intentSynchronizer;
         vpls.intentSynchronizerAdmin = intentSynchronizer;
+    }
+
+    @After
+    public void tearDown() {
+        Intent.unbindIdGenerator(idGenerator);
     }
 
     /**
