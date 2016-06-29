@@ -37,7 +37,7 @@
     var ovtopo, svg, defs, zoomLayer, mapG, spriteG, forceG, noDevsLayer;
 
     // Internal state
-    var zoomer, actionMap, themeListener;
+    var zoomer, actionMap;
 
     // --- Short Cut Keys ------------------------------------------------
 
@@ -433,15 +433,17 @@
         return promise;
     }
 
+    function mapReshader() {
+        $log.debug('... Re-shading map ...')
+        ms.reshade(shading());
+    }
+
     // set up theme listener to re-shade the map when required.
     function mapShader(on) {
         if (on) {
-            themeListener = th.addListener(function () {
-                ms.reshade(shading());
-            });
+            th.addListener(mapReshader);
         } else {
-            th.removeListener(themeListener);
-            themeListener = null;
+            th.removeListener(mapReshader);
         }
     }
 

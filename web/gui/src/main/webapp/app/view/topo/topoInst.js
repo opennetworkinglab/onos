@@ -43,11 +43,8 @@
     var onosInstances,
         onosOrder,
         oiShowMaster,
-        oiBox,
-        themeListener;
+        oiBox;
 
-
-    // ==========================
 
     function addInstance(data) {
         var id = data.id;
@@ -273,12 +270,11 @@
         oiShowMaster = false;
 
         // we want to update the instances, each time the theme changes
-        themeListener = ts.addListener(updateInstances);
+        ts.addListener(updateInstances);
     }
 
     function destroyInst() {
-        ts.removeListener(themeListener);
-        themeListener = null;
+        ts.removeListener(updateInstances);
 
         ps.destroyPanel(idIns);
         oiBox = null;

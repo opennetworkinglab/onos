@@ -212,7 +212,8 @@
          'WebSocketService', 'FnService', 'KeyService', 'PanelService',
          'IconService', 'UrlFnService', 'DialogService', 'TableBuilderService',
 
-    function (_$log_, _$scope_, $http, $timeout, _wss_, _fs_, _ks_, _ps_, _is_, ufs, ds, tbs) {
+    function (_$log_, _$scope_, $http, $timeout, _wss_, _fs_, _ks_, _ps_, _is_,
+              ufs, ds, tbs) {
         $log = _$log_;
         $scope = _$scope_;
         wss = _wss_;
@@ -333,21 +334,23 @@
         $scope.$on('FileChanged', function () {
             var formData = new FormData(),
                 url;
+
             if ($scope.appFile) {
                 formData.append('file', $scope.appFile);
-                url = fileUploadUrl + (activateImmediately || '');
+                url = fileUploadUrl + activateImmediately;
+
                 $http.post(ufs.rsUrl(url), formData, {
                     transformRequest: angular.identity,
                     headers: {
                         'Content-Type': undefined
                     }
                 })
-                    .finally(function () {
-                        activateImmediately = null;
-                        $scope.sortCallback($scope.sortParams);
-                        document.getElementById('inputFileForm').reset();
-                        $timeout(function () { wss.sendEvent(detailsReq); }, 250);
-                    });
+                .finally(function () {
+                    activateImmediately = '';
+                    $scope.sortCallback($scope.sortParams);
+                    document.getElementById('inputFileForm').reset();
+                    $timeout(function () { wss.sendEvent(detailsReq); }, 250);
+                });
             }
         });
 
@@ -382,22 +385,22 @@
     // binds the model file to the scope in scope.appFile
     // sends upload request to the server
     .directive('fileModel', ['$parse',
-            function ($parse) {
-        return {
-            restrict: 'A',
-            link: function (scope, elem, attrs) {
-                var model = $parse(attrs.fileModel),
-                    modelSetter = model.assign;
+        function ($parse) {
+            return {
+                restrict: 'A',
+                link: function (scope, elem, attrs) {
+                    var model = $parse(attrs.fileModel),
+                        modelSetter = model.assign;
 
-                elem.bind('change', function () {
-                    scope.$apply(function () {
-                        modelSetter(scope, elem[0].files[0]);
+                    elem.bind('change', function () {
+                        scope.$apply(function () {
+                            modelSetter(scope, elem[0].files[0]);
+                        });
+                        scope.$emit('FileChanged');
                     });
-                    scope.$emit('FileChanged');
-                });
-            }
-        };
-    }])
+                }
+            };
+        }])
 
     .directive("filedrop", function ($parse, $document) {
         return {

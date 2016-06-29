@@ -20,14 +20,18 @@
 (function () {
     'use strict';
 
+    // injected refs
     var $log, fs, ps;
 
+    // configuration
     var themes = ['light', 'dark'],
-        themeStr = themes.join(' '),
+        themeStr = themes.join(' ');
+
+    // internal state
+    var listeners = [],
         currentTheme,
-        thidx,
-        listeners = {},
-        nextListenerId = 1;
+        thidx;
+
 
     function init() {
         thidx = ps.getPrefs('theme', { idx: 0 }).idx;
@@ -73,37 +77,20 @@
 
     function themeEvent(w) {
         var t = getTheme(),
-            m = 'Theme-Change-('+w+'): ' + t;
+            m = 'Theme-Change-(' + w + '): ' + t;
         $log.debug(m);
-        angular.forEach(listeners, function(value) {
-            value.cb({
-                event: 'themeChange',
-                    value: t
-                }
-            );
+
+        listeners.forEach(function (lsnr) { 
+            lsnr({event: 'themeChange', value: t}); 
         });
     }
 
-    function addListener(callback) {
-        var id = nextListenerId++,
-            cb = fs.isF(callback),
-            o = { id: id, cb: cb };
-
-        if (cb) {
-            listeners[id] = o;
-        } else {
-            $log.error('ThemeService.addListener(): callback not a function');
-            o.error = 'No callback defined';
-        }
-        return o;
+    function addListener(lsnr) {
+        listeners.push(lsnr);
     }
 
     function removeListener(lsnr) {
-        var id = lsnr && lsnr.id,
-            o = listeners[id];
-        if (o) {
-            delete listeners[id];
-        }
+        listeners = listeners.filter(function(obj) { return obj === lsnr; });
     }
 
     angular.module('onosUtil')

@@ -1040,6 +1040,11 @@
         };
     }
 
+    function updateLinksAndNodes() {
+        updateLinks();
+        updateNodes();
+    }
+    
     angular.module('ovTopo')
     .factory('TopoForceService',
         ['$log', '$timeout', 'FnService', 'SvgUtilService',
@@ -1067,10 +1072,7 @@
             fltr = _fltr_;
             tls = _tls_;
 
-            var themeListener = ts.addListener(function () {
-                updateLinks();
-                updateNodes();
-            });
+            ts.addListener(updateLinksAndNodes);
 
             // forceG is the SVG group to display the force layout in
             // uplink is the api from the main topo source file
@@ -1138,8 +1140,7 @@
                 td3.destroyD3();
                 tms.destroyModel();
                 // note: no need to destroy overlay service
-                ts.removeListener(themeListener);
-                themeListener = null;
+                ts.removeListener(updateLinksAndNodes);
 
                 // clean up the DOM
                 svg.selectAll('g').remove();

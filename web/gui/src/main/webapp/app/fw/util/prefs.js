@@ -24,7 +24,8 @@
     var $log, fs, wss;
 
     // internal state
-    var cache = {}, listeners = [];
+    var cache = {}, 
+        listeners = [];
 
     // returns the preference settings for the specified key
     function getPrefs(name, defaults, qparams) {
