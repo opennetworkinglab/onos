@@ -99,7 +99,7 @@ public class UiTopoSession implements UiModelListener {
 
     @Override
     public void event(UiModelEvent event) {
-        log.info("Event received: {}", event);
+        log.debug("Event received: {}", event);
         // TODO: handle model events from the cache...
     }
 
