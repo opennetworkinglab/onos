@@ -200,18 +200,24 @@ public class StoragePartition implements Managed<StoragePartition> {
         return server != null && server.isOpen() ? Optional.of(server.info()) : Optional.empty();
     }
 
+    /**
+     * Process updates to partitions and handles joining or leaving a partition.
+     * @param newValue new Partition
+     */
     public void onUpdate(Partition newValue) {
-        if (partition.getMembers().contains(localNodeId) && newValue.getMembers().contains(localNodeId)) {
-            return;
-        }
-        if (!partition.getMembers().contains(localNodeId) && !newValue.getMembers().contains(localNodeId)) {
-            return;
-        }
+
+        boolean wasPresent = partition.getMembers().contains(localNodeId);
+        boolean isPresent = newValue.getMembers().contains(localNodeId);
         this.partition = newValue;
-        if (partition.getMembers().contains(localNodeId)) {
-            joinCluster();
-        } else if (!partition.getMembers().contains(localNodeId)) {
+        if ((wasPresent && isPresent) || (!wasPresent && !isPresent)) {
+            // no action needed
+            return;
+        }
+        //only need to do action if our membership changed
+        if (wasPresent) {
             leaveCluster();
+        } else if (isPresent) {
+            joinCluster();
         }
     }
 }
