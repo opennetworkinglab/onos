@@ -295,8 +295,16 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
         routerInterfaceMap.put(routerInterface.portId(), openstackService.port(routerInterface.portId()).networkId());
     }
 
+    /**
+     * Set flow rules for traffic between two different subnets when more than one subnets
+     * connected to a router.
+     *
+     * @param openstackRouter OpenstackRouter Info
+     * @param openstackPort OpenstackPort Info
+     */
     private void setL3Connection(OpenstackRouter openstackRouter, OpenstackPort openstackPort) {
         Collection<OpenstackRouterInterface> interfaceList = getOpenstackRouterInterface(openstackRouter);
+
         if (interfaceList.size() < 2) {
             return;
         }
@@ -308,7 +316,8 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                         .filter(p -> p.networkId().equals(interfacePort.networkId())
                                 && !p.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE))
                         .forEach(p -> rulePopulator.populateL3Rules(p,
-                                getL3ConnectionList(p.networkId(), interfaceList)));
+                                    getL3ConnectionList(p.networkId(), interfaceList)));
+
             });
         } else {
             rulePopulator.populateL3Rules(openstackPort, getL3ConnectionList(openstackPort.networkId(), interfaceList));
@@ -397,13 +406,25 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     }
 
     private void reloadInitL3Rules() {
-        l3EventExecutorService.execute(() ->
-                        openstackService.ports()
-                                .stream()
-                                .filter(p -> p.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE))
-                                .forEach(p -> updateRouterInterface(portToRouterInterface(p)))
-        );
 
+        l3EventExecutorService.execute(() ->
+                openstackService.ports()
+                        .stream()
+                        .forEach(p ->
+                        {
+                            if (p.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE)) {
+                                updateRouterInterface(portToRouterInterface(p));
+                            } else {
+                                Optional<Ip4Address> vmIp = p.fixedIps().values().stream().findAny();
+                                if (vmIp.isPresent()) {
+                                    OpenstackFloatingIP floatingIP = getOpenstackFloatingIp(vmIp.get());
+                                    if (floatingIP != null) {
+                                        updateFloatingIP(floatingIP);
+                                    }
+                                }
+                            }
+                        })
+        );
     }
 
     private OpenstackRouterInterface portToRouterInterface(OpenstackPort p) {
@@ -559,6 +580,19 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                 ip.equals(ip4Address)).count() > 0 ? openstackPort : null;
     }
 
+    private OpenstackFloatingIP getOpenstackFloatingIp(Ip4Address vmIp) {
+        Optional<OpenstackFloatingIP> floatingIp = floatingIpMap.asJavaMap().values().stream()
+                .filter(f -> f.portId() != null && f.fixedIpAddress().equals(vmIp))
+                .findAny();
+
+        if (floatingIp.isPresent()) {
+            return floatingIp.get();
+        }
+        log.debug("There is no floating IP information for VM IP {}", vmIp);
+
+        return null;
+    }
+
     private void readConfiguration() {
         config = configService.getConfig("openstacknetworking", OpenstackNetworkingConfig.class);
         if (config == null) {
@@ -583,6 +617,10 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
 
         openstackIcmpHandler.requestPacket(appId);
         openstackArpHandler.requestPacket(appId);
+
+        openstackService.floatingIps().stream()
+                .forEach(f -> floatingIpMap.put(f.id(), f));
+
         reloadInitL3Rules();
 
         log.info("OpenstackRouting configured");

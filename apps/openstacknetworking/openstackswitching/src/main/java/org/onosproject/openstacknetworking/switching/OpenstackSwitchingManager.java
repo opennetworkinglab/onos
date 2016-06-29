@@ -374,7 +374,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
         openstackPort.securityGroups().stream().forEach(sgId -> {
             if (!securityGroupMap.containsKey(sgId)) {
-                securityGroupMap.put(sgId, openstackService.getSecurityGroup(sgId));
+                securityGroupMap.put(sgId, openstackService.securityGroup(sgId));
             }
         });
     }

@@ -89,7 +89,7 @@ public class OpenstackSecurityGroupRulePopulator {
      */
     public void populateSecurityGroupRules(DeviceId id, String sgId, Ip4Address vmIp,
                                            Map<String, OpenstackPortInfo> portInfoMap) {
-        OpenstackSecurityGroup securityGroup = openstackService.getSecurityGroup(sgId);
+        OpenstackSecurityGroup securityGroup = openstackService.securityGroup(sgId);
         if (securityGroup != null) {
             securityGroup.rules().stream().forEach(sgRule -> {
                 if (sgRule.remoteGroupId() != null && !sgRule.remoteGroupId().equals("null")) {
@@ -105,7 +105,7 @@ public class OpenstackSecurityGroupRulePopulator {
 
             openstackService.ports().stream().forEach(osPort ->
                 osPort.securityGroups().stream().forEach(remoteVmSgId -> {
-                    OpenstackSecurityGroup remoteVmSg = openstackService.getSecurityGroup(remoteVmSgId);
+                    OpenstackSecurityGroup remoteVmSg = openstackService.securityGroup(remoteVmSgId);
                     remoteVmSg.rules().stream()
                         .filter(remoteVmSgRule -> remoteVmSgRule.remoteGroupId().equals(sgId))
                         .forEach(remoteVmSgRule -> {

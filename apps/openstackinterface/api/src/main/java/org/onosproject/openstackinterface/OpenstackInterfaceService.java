@@ -105,6 +105,15 @@ public interface OpenstackInterfaceService {
      * @param id security group id
      * @return security group information
      */
-    OpenstackSecurityGroup getSecurityGroup(String id);
+    OpenstackSecurityGroup securityGroup(String id);
+
+    /**
+     * Returns collection of OpenStack floating IP information.
+     *
+     * @return collection of OpenStack floating IP information
+     */
+    Collection<OpenstackFloatingIP> floatingIps();
+
+
 
 }

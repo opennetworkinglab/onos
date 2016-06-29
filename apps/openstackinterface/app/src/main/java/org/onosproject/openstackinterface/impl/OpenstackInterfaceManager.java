@@ -33,6 +33,7 @@ import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.openstackinterface.OpenstackFloatingIP;
 import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackNetwork;
 import org.onosproject.openstackinterface.OpenstackInterfaceConfig;
@@ -40,6 +41,7 @@ import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstackinterface.OpenstackRouter;
 import org.onosproject.openstackinterface.OpenstackSecurityGroup;
 import org.onosproject.openstackinterface.OpenstackSubnet;
+import org.onosproject.openstackinterface.web.OpenstackFloatingIpCodec;
 import org.onosproject.openstackinterface.web.OpenstackNetworkCodec;
 import org.onosproject.openstackinterface.web.OpenstackPortCodec;
 import org.onosproject.openstackinterface.web.OpenstackRouterCodec;
@@ -84,12 +86,14 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
     private static final String URI_PORTS = "ports";
     private static final String URI_SUBNETS = "subnets";
     private static final String URI_SECURITY_GROUPS = "security-groups";
+    private static final String URI_FLOATINGIPS = "floatingips";
     private static final String URI_TOKENS = "tokens";
 
     private static final String PATH_ROUTERS = "routers";
     private static final String PATH_NETWORKS = "networks";
     private static final String PATH_PORTS = "ports";
     private static final String PATH_SUBNETS = "subnets";
+    private static final String PATH_FLOATINGIPS = "floatingips";
     private static final String PATH_ACCESS = "access";
     private static final String PATH_TOKEN = "token";
     private static final String PATH_ID = "id";
@@ -265,7 +269,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
      * @param id Security Group ID
      * @return OpenstackSecurityGroup object or null if fails
      */
-    public OpenstackSecurityGroup getSecurityGroup(String id) {
+    public OpenstackSecurityGroup securityGroup(String id) {
         Invocation.Builder builder = getClientBuilder(neutronUrl + URI_SECURITY_GROUPS + "/" + id);
         String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
                 header(HEADER_AUTH_TOKEN, getToken()).get(String.class);
@@ -277,7 +281,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
             OpenstackSecurityGroupCodec sgCodec = new OpenstackSecurityGroupCodec();
             securityGroup = sgCodec.decode(node, null);
         } catch (IOException e) {
-            log.warn("getSecurityGroup()", e);
+            log.warn("securityGroup()", e);
         }
 
         return securityGroup;
@@ -412,6 +416,30 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
         return getRouters().stream()
                 .filter(router -> router.id().equals(routerId))
                 .findAny().orElse(null);
+    }
+
+    @Override
+    public Collection<OpenstackFloatingIP> floatingIps() {
+        Invocation.Builder builder = getClientBuilder(neutronUrl + URI_FLOATINGIPS);
+        String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
+                header(HEADER_AUTH_TOKEN, getToken()).get(String.class);
+
+        log.debug("floatingIps response:" + response);
+
+        ObjectMapper mapper = new ObjectMapper();
+        List<OpenstackFloatingIP> openstackFloatingIPs = Lists.newArrayList();
+        try {
+            ObjectNode node = (ObjectNode) mapper.readTree(response);
+            ArrayNode floatingIpList = (ArrayNode) node.path(PATH_FLOATINGIPS);
+            OpenstackFloatingIpCodec fipCodec = new OpenstackFloatingIpCodec();
+            floatingIpList.forEach(f -> openstackFloatingIPs.add(fipCodec.decode((ObjectNode) f, null)));
+        } catch (IOException e) {
+            log.warn("floatingIps()", e);
+        }
+
+        openstackFloatingIPs.removeAll(Collections.singleton(null));
+
+        return openstackFloatingIPs;
     }
 
     private class InternalConfigListener implements NetworkConfigListener {
