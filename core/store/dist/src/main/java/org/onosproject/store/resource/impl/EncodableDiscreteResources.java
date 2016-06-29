@@ -98,14 +98,25 @@ final class EncodableDiscreteResources implements DiscreteResources {
     public DiscreteResources difference(DiscreteResources other) {
         if (other instanceof EncodableDiscreteResources) {
             EncodableDiscreteResources cast = (EncodableDiscreteResources) other;
-            Map<Class<?>, EncodedDiscreteResources> newMap =
-                    Stream.concat(this.map.entrySet().stream(), cast.map.entrySet().stream())
-                            .filter(entry -> this.map.containsKey(entry.getKey()))
-                            .collect(Collectors.toMap(
-                                    Map.Entry::getKey,
-                                    Map.Entry::getValue,
-                                    EncodedDiscreteResources::difference,
-                                    LinkedHashMap::new));
+
+            Map<Class<?>, EncodedDiscreteResources> newMap = new LinkedHashMap<>();
+            for (Class<?> key : this.map.keySet()) {
+                EncodedDiscreteResources thisValues = this.map.get(key);
+                if (!cast.map.containsKey(key)) {
+                    newMap.put(key, thisValues);
+                    continue;
+                }
+                EncodedDiscreteResources otherValues = cast.map.get(key);
+                EncodedDiscreteResources diff = thisValues.difference(otherValues);
+                // omit empty resources from a new resource set
+                // empty EncodedDiscreteResources can't deserialize due to
+                // inability to reproduce a Class<?> instance from the serialized data
+                if (diff.isEmpty()) {
+                    continue;
+                }
+                newMap.put(key, diff);
+            }
+
             return of(parent, newMap);
         } else if (other instanceof EmptyDiscreteResources) {
             return this;

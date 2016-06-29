@@ -18,16 +18,19 @@ package org.onosproject.store.resource.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.Resources;
 import org.onosproject.store.service.Serializer;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -80,6 +83,30 @@ public class EncodableDiscreteResourcesTest {
 
         DiscreteResources expected = DiscreteResources.empty();
         assertThat(sut.difference(other), is(expected));
+    }
+
+    @Test
+    public void testSerializeInstanceContainingEmptyEncodedDiscreteResources() {
+        DiscreteResource device = Resources.discrete(DeviceId.deviceId("a")).resource();
+        List<PortNumber> ports = IntStream.range(0, 1)
+                .mapToObj(PortNumber::portNumber)
+                .collect(Collectors.toList());
+        List<VlanId> vlans = IntStream.range(0, 2)
+                .mapToObj(x -> VlanId.vlanId((short) x))
+                .collect(Collectors.toList());
+
+        Set<DiscreteResource> originalResources = Stream.concat(ports.stream(), vlans.stream())
+                .map(device::child)
+                .collect(Collectors.toSet());
+        DiscreteResources sut = EncodableDiscreteResources.of(originalResources);
+
+        Set<DiscreteResource> portOnlyResources = ports.stream().map(device::child).collect(Collectors.toSet());
+        DiscreteResources other = EncodableDiscreteResources.of(portOnlyResources);
+
+        DiscreteResources diff = sut.difference(other);
+
+        byte[] bytes = serializer.encode(diff);
+        assertThat(serializer.decode(bytes), is(diff));
     }
 
     @Test
