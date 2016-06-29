@@ -158,6 +158,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
                 .setPriority(flowRule().priority())
                 .setTableId(TableId.of(flowRule().tableId()))
+                .setHardTimeout(flowRule().hardTimeout())
                 .build();
 
         return fm;
@@ -201,6 +202,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
                 .setPriority(flowRule().priority())
                 .setTableId(TableId.of(flowRule().tableId()))
+                .setHardTimeout(flowRule().hardTimeout())
                 .build();
 
         return fm;
@@ -220,6 +222,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
                 .setPriority(flowRule().priority())
                 .setTableId(TableId.of(flowRule().tableId()))
+                .setHardTimeout(flowRule().hardTimeout())
                 .build();
 
         return fm;

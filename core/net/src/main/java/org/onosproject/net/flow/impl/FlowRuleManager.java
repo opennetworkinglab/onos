@@ -313,7 +313,9 @@ public class FlowRuleManager
             extends AbstractProviderService<FlowRuleProvider>
             implements FlowRuleProviderService {
 
+        final Map<FlowEntry, Long> firstSeen = Maps.newConcurrentMap();
         final Map<FlowEntry, Long> lastSeen = Maps.newConcurrentMap();
+
 
         protected InternalFlowRuleProviderService(FlowRuleProvider provider) {
             super(provider);
@@ -324,10 +326,14 @@ public class FlowRuleManager
             checkNotNull(flowEntry, FLOW_RULE_NULL);
             checkValidity();
             lastSeen.remove(flowEntry);
+            firstSeen.remove(flowEntry);
             FlowEntry stored = store.getFlowEntry(flowEntry);
             if (stored == null) {
                 log.debug("Rule already evicted from store: {}", flowEntry);
                 return;
+            }
+            if (flowEntry.reason() == FlowEntry.FlowRemoveReason.HARD_TIMEOUT) {
+                ((DefaultFlowEntry) stored).setState(FlowEntry.FlowEntryState.REMOVED);
             }
             Device device = deviceService.getDevice(flowEntry.deviceId());
             FlowRuleProvider frp = getProvider(device.providerId());
@@ -422,6 +428,21 @@ public class FlowRuleManager
 
             final long timeout = storedRule.timeout() * 1000;
             final long currentTime = System.currentTimeMillis();
+
+            // Checking flow with hardTimeout
+            if (storedRule.hardTimeout() != 0) {
+                if (!firstSeen.containsKey(storedRule)) {
+                    // First time rule adding
+                    firstSeen.put(storedRule, currentTime);
+                } else {
+                    Long first = firstSeen.get(storedRule);
+                    final long hardTimeout = storedRule.hardTimeout() * 1000;
+                    if ((currentTime - first) > hardTimeout) {
+                        return false;
+                    }
+                }
+            }
+
             if (storedRule.packets() != swRule.packets()) {
                 lastSeen.put(storedRule, currentTime);
                 return true;

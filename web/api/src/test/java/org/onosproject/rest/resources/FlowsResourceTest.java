@@ -46,6 +46,7 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowId;
+import org.onosproject.net.flow.FlowRule.FlowRemoveReason;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.FlowRuleService;
@@ -218,6 +219,16 @@ public class FlowsResourceTest extends ResourceTest {
         }
 
         @Override
+        public int hardTimeout() {
+            return 0;
+        }
+
+        @Override
+        public FlowRemoveReason reason() {
+            return  FlowRemoveReason.NO_REASON;
+        }
+
+        @Override
         public boolean isPermanent() {
             return false;
         }
@@ -292,6 +303,16 @@ public class FlowsResourceTest extends ResourceTest {
         @Override
         public int timeout() {
             return (int) (baseValue + 77);
+        }
+
+        @Override
+        public int hardTimeout() {
+            return 0;
+        }
+
+        @Override
+        public FlowRemoveReason reason() {
+            return FlowRemoveReason.NO_REASON;
         }
 
         @Override

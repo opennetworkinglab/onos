@@ -95,6 +95,7 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
                 .setMatch(match)
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
                 .setPriority(flowRule().priority())
+                .setHardTimeout(flowRule().hardTimeout())
                 .build();
 
         return fm;
@@ -115,6 +116,7 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
                 .setMatch(match)
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
                 .setPriority(flowRule().priority())
+                .setHardTimeout(flowRule().hardTimeout())
                 .build();
 
         return fm;
@@ -133,6 +135,7 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
                 .setMatch(match)
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
                 .setPriority(flowRule().priority())
+                .setHardTimeout(flowRule().hardTimeout())
                 .build();
 
         return fm;

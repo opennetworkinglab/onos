@@ -182,7 +182,9 @@ public class FlowEntryBuilder {
                             .withSelector(buildSelector())
                             .withPriority(removed.getPriority())
                             .makeTemporary(removed.getIdleTimeout())
-                            .withCookie(removed.getCookie().getValue());
+                            .withCookie(removed.getCookie().getValue())
+                            .withReason(FlowRule.FlowRemoveReason.parseShort(removed.getReason()));
+
                     if (removed.getVersion() != OFVersion.OF_10) {
                         builder.forTable(removed.getTableId().getValue());
                     }

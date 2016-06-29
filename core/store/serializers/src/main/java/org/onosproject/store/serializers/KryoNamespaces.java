@@ -101,6 +101,7 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowId;
+import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.flow.FlowRuleBatchEvent;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
@@ -349,6 +350,7 @@ public final class KryoNamespaces {
                     DefaultFlowEntry.class,
                     StoredFlowEntry.class,
                     DefaultFlowRule.class,
+                    FlowRule.FlowRemoveReason.class,
                     DefaultPacketRequest.class,
                     PacketPriority.class,
                     FlowEntry.FlowEntryState.class,
