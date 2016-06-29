@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,13 +88,10 @@ public class DistributedSecurityModeStore
             .register(KryoNamespaces.API)
             .register(SecurityModeState.class)
             .register(SecurityInfo.class)
-            .register(Permission.class)
             .build());
 
     private static final KryoNamespace.Builder VIOLATION_SERIALIZER = KryoNamespace.newBuilder()
-            .register(KryoNamespaces.API)
-            .register(Permission.class);
-
+            .register(KryoNamespaces.API);
     @Activate
     public void activate() {
         states = storageService.<ApplicationId, SecurityInfo>consistentMapBuilder()

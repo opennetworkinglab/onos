@@ -109,13 +109,11 @@ public class ReviewCommand extends AbstractShellCommand {
                         print("\t[Other SERVICE] " + perm.getName() + "(" + perm.getActions() + ")");
                     }
                     break;
-                case 4:
-                    for (Permission perm: assortedMap.get(4)) {
-                        print("\t[Other] " + perm.getClass().getSimpleName() +
-                                " " + perm.getName() + " (" + perm.getActions() + ")");
-                    }
-                    break;
                 default:
+                    for (Permission perm: assortedMap.get(type)) {
+                        print("\t[Other] " + perm.getClass().getSimpleName() +
+                                      " " + perm.getName() + " (" + perm.getActions() + ")");
+                    }
                     break;
             }
         }
