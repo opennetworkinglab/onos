@@ -41,6 +41,12 @@
                 <null/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.provider.nil.cli.CreateNullDevice"/>
+        </command>
+        <command>
+            <action class="org.onosproject.provider.nil.cli.CreateNullLink"/>
+        </command>
     </command-bundle>
 
     <bean id="startStopCompleter" class="org.onosproject.cli.StartStopCompleter"/>

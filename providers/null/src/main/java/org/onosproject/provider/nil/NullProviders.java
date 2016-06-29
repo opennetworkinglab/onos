@@ -268,6 +268,15 @@ public class NullProviders {
     }
 
     /**
+     * Returns the currently active topology simulator.
+     *
+     * @return current simulator; null if none is active
+     */
+    public TopologySimulator currentSimulator() {
+        return simulator;
+    }
+
+    /**
      * Severs the link between the specified end-points in both directions.
      *
      * @param one link endpoint
@@ -356,6 +365,8 @@ public class NullProviders {
             return new MeshTopologySimulator();
         } else if (topoShape.matches("grid([,].*|$)")) {
             return new GridTopologySimulator();
+        } else if (topoShape.matches("custom([,].*|$)")) {
+            return new CustomTopologySimulator();
         } else {
             return new ConfiguredTopologySimulator();
         }
@@ -424,7 +435,7 @@ public class NullProviders {
 
         @Override
         public boolean isReachable(DeviceId deviceId) {
-            return topoShape.equals("configured") ||
+            return topoShape.equals("custom") ||
                     (simulator != null && simulator.contains(deviceId) &&
                             topologyMutationDriver.isReachable(deviceId));
         }

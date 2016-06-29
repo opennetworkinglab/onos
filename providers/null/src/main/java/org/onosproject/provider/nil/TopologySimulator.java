@@ -185,16 +185,28 @@ public abstract class TopologySimulator {
     /**
      * Creates simulated device.
      *
-     * @param id device identifier
+     * @param id        device identifier
      * @param chassisId chassis identifier number
      */
-    protected void createDevice(DeviceId id, int chassisId) {
+    public void createDevice(DeviceId id, int chassisId) {
+        createDevice(id, chassisId, Device.Type.SWITCH, hostCount + infrastructurePorts);
+    }
+
+    /**
+     * Creates simulated device.
+     *
+     * @param id        device identifier
+     * @param chassisId chassis identifier number
+     * @param type      device type
+     * @param portCount number of device ports
+     */
+    public void createDevice(DeviceId id, int chassisId, Device.Type type, int portCount) {
         DeviceDescription desc =
-                new DefaultDeviceDescription(id.uri(), Device.Type.SWITCH,
+                new DefaultDeviceDescription(id.uri(), type,
                                              "ON.Lab", "0.1", "0.1", "1234",
                                              new ChassisId(chassisId));
         deviceProviderService.deviceConnected(id, desc);
-        deviceProviderService.updatePorts(id, buildPorts(hostCount + infrastructurePorts));
+        deviceProviderService.updatePorts(id, buildPorts(portCount));
     }
 
     /**
@@ -205,7 +217,7 @@ public abstract class TopologySimulator {
      * @param pi port number of i-th device
      * @param pj port number of j-th device
      */
-    protected void createLink(int i, int j, int pi, int pj) {
+    public void createLink(int i, int j, int pi, int pj) {
         ConnectPoint one = new ConnectPoint(deviceIds.get(i), PortNumber.portNumber(pi));
         ConnectPoint two = new ConnectPoint(deviceIds.get(j), PortNumber.portNumber(pj));
         createLink(one, two);
@@ -214,12 +226,26 @@ public abstract class TopologySimulator {
     /**
      * Creates simulated link between two connection points.
      *
-     * @param one  one connection point
-     * @param two  another connection point
+     * @param one one connection point
+     * @param two another connection point
      */
-    protected void createLink(ConnectPoint one, ConnectPoint two) {
-        linkProviderService.linkDetected(new DefaultLinkDescription(one, two, DIRECT));
-        linkProviderService.linkDetected(new DefaultLinkDescription(two, one, DIRECT));
+    public void createLink(ConnectPoint one, ConnectPoint two) {
+        createLink(one, two, DIRECT, true);
+    }
+
+    /**
+     * Creates simulated link between two connection points.
+     *
+     * @param one             one connection point
+     * @param two             another connection point
+     * @param type            link type
+     * @param isBidirectional true if link is bidirectional
+     */
+    public void createLink(ConnectPoint one, ConnectPoint two, Link.Type type, boolean isBidirectional) {
+        linkProviderService.linkDetected(new DefaultLinkDescription(one, two, type));
+        if (isBidirectional) {
+            linkProviderService.linkDetected(new DefaultLinkDescription(two, one, type));
+        }
     }
 
     /**
@@ -228,7 +254,7 @@ public abstract class TopologySimulator {
      * @param deviceId   device identifier
      * @param portOffset port offset where to start attaching hosts
      */
-    protected void createHosts(DeviceId deviceId, int portOffset) {
+    public void createHosts(DeviceId deviceId, int portOffset) {
         String s = deviceId.toString();
         byte dByte = Byte.parseByte(s.substring(s.length() - 2), 16);
         // TODO: this limits the simulation to 256 devices & 256 hosts/device.

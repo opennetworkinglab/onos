@@ -25,7 +25,7 @@ import static org.onosproject.cli.UpDownCompleter.DOWN;
 import static org.onosproject.cli.UpDownCompleter.UP;
 
 /**
- * Servers or repairs a simulated link.
+ * Severs or repairs a simulated link.
  */
 @Command(scope = "onos", name = "null-link",
         description = "Severs or repairs a simulated link")
