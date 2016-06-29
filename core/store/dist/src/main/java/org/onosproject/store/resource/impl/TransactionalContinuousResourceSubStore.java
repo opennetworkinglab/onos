@@ -60,18 +60,18 @@ class TransactionalContinuousResourceSubStore {
                 .findFirst();
     }
 
-    boolean register(DiscreteResourceId key, Set<ContinuousResource> requested) {
+    boolean register(DiscreteResourceId parent, Set<ContinuousResource> resources) {
         // short-circuit: receiving empty resource is regarded as success
-        if (requested.isEmpty()) {
+        if (resources.isEmpty()) {
             return true;
         }
 
-        Set<ContinuousResource> oldValues = childMap.putIfAbsent(key, requested);
+        Set<ContinuousResource> oldValues = childMap.putIfAbsent(parent, resources);
         if (oldValues == null) {
             return true;
         }
 
-        Set<ContinuousResource> addedValues = Sets.difference(requested, oldValues);
+        Set<ContinuousResource> addedValues = Sets.difference(resources, oldValues);
         // no new value, then no-op
         if (addedValues.isEmpty()) {
             // don't write to map because all values are already stored
@@ -89,38 +89,38 @@ class TransactionalContinuousResourceSubStore {
         }
         Set<ContinuousResource> newValues = new LinkedHashSet<>(oldValues);
         newValues.addAll(addedValues);
-        return childMap.replace(key, oldValues, newValues);
+        return childMap.replace(parent, oldValues, newValues);
     }
 
-    boolean unregister(DiscreteResourceId key, Set<ContinuousResource> values) {
+    boolean unregister(DiscreteResourceId parent, Set<ContinuousResource> resources) {
         // short-circuit: receiving empty resource is regarded as success
-        if (values.isEmpty()) {
+        if (resources.isEmpty()) {
             return true;
         }
 
         // even if one of the resources is allocated to a consumer,
         // all unregistrations are regarded as failure
-        boolean allocated = values.stream().anyMatch(x -> isAllocated(x.id()));
+        boolean allocated = resources.stream().anyMatch(x -> isAllocated(x.id()));
         if (allocated) {
-            log.warn("Failed to unregister {}: allocation exists", key);
+            log.warn("Failed to unregister {}: allocation exists", parent);
             return false;
         }
 
-        Set<ContinuousResource> oldValues = childMap.putIfAbsent(key, new LinkedHashSet<>());
+        Set<ContinuousResource> oldValues = childMap.putIfAbsent(parent, new LinkedHashSet<>());
         if (oldValues == null) {
-            log.trace("No-Op removing values. key {} did not exist", key);
+            log.trace("No-Op removing values. key {} did not exist", parent);
             return true;
         }
 
-        if (values.stream().allMatch(x -> !oldValues.contains(x))) {
+        if (resources.stream().allMatch(x -> !oldValues.contains(x))) {
             // don't write map because none of the values are stored
-            log.trace("No-Op removing values. key {} did not contain {}", key, values);
+            log.trace("No-Op removing values. key {} did not contain {}", parent, resources);
             return true;
         }
 
         LinkedHashSet<ContinuousResource> newValues = new LinkedHashSet<>(oldValues);
-        newValues.removeAll(values);
-        return childMap.replace(key, oldValues, newValues);
+        newValues.removeAll(resources);
+        return childMap.replace(parent, oldValues, newValues);
     }
 
     private boolean isAllocated(ContinuousResourceId id) {
