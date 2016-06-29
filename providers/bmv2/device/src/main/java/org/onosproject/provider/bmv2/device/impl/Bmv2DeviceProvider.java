@@ -40,6 +40,8 @@ import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.DeviceService;
@@ -119,6 +121,9 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected Bmv2TableEntryService tableEntryService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService configService;
 
     private ApplicationId appId;
     private ScheduledFuture<?> poller;
@@ -224,6 +229,7 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
                     initPortCounters(did);
                     providerService.deviceConnected(did, thisDescription);
                     updatePortsAndStats(did);
+                    setNameIfNone(did);
                 }
                 lastDescriptions.put(did, thisDescription);
             } else {
@@ -291,6 +297,16 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
             providerService.updatePortStatistics(did, portStats);
         } catch (Bmv2RuntimeException e) {
             log.warn("Unable to get port statistics for {}: {}", did, e.explain());
+        }
+    }
+
+    private void setNameIfNone(DeviceId did) {
+        BasicDeviceConfig cfg = configService.addConfig(did, BasicDeviceConfig.class);
+        if (cfg.name().equals(did.toString())) {
+            // Use only internal device ID, e.g. bmv2:10
+            String name = did.uri().getScheme() + ":" + did.uri().getFragment();
+            cfg.name(name);
+            cfg.apply();
         }
     }
 
