@@ -16,14 +16,16 @@
 package org.onosproject.openstacknode;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Strings;
 import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.TpPort;
 import org.onosproject.net.DeviceId;
+import org.onosproject.openstacknode.OpenstackNodeService.NodeType;
 
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -31,118 +33,121 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class OpenstackNode {
 
-    private final String hostName;
-    private final IpAddress ovsdbIp;
-    private final TpPort ovsdbPort;
-    private final DeviceId bridgeId;
-    private final OpenstackNodeService.OpenstackNodeType openstackNodeType;
-    private final String gatewayExternalInterfaceName;
-    private final MacAddress gatewayExternalInterfaceMac;
-    private static final String OVSDB = "ovsdb:";
-
+    private final String hostname;
+    private final NodeType type;
+    private final IpAddress managementIp;
+    private final IpAddress dataIp;
+    private final DeviceId integrationBridge;
+    private final Optional<DeviceId> routerBridge;
+    private final OpenstackNodeState state;
 
     public static final Comparator<OpenstackNode> OPENSTACK_NODE_COMPARATOR =
-            (node1, node2) -> node1.hostName().compareTo(node2.hostName());
+            (node1, node2) -> node1.hostname().compareTo(node2.hostname());
 
-    /**
-     * Creates a new node.
-     *
-     * @param hostName hostName
-     * @param ovsdbIp OVSDB server IP address
-     * @param ovsdbPort OVSDB server port number
-     * @param bridgeId integration bridge identifier
-     * @param openstackNodeType openstack node type
-     * @param gatewayExternalInterfaceName gatewayExternalInterfaceName
-     * @param gatewayExternalInterfaceMac gatewayExternalInterfaceMac
-     */
-    public OpenstackNode(String hostName, IpAddress ovsdbIp, TpPort ovsdbPort, DeviceId bridgeId,
-                         OpenstackNodeService.OpenstackNodeType openstackNodeType,
-                         String gatewayExternalInterfaceName,
-                         MacAddress gatewayExternalInterfaceMac) {
-        this.hostName = checkNotNull(hostName, "hostName cannot be null");
-        this.ovsdbIp = checkNotNull(ovsdbIp, "ovsdbIp cannot be null");
-        this.ovsdbPort = checkNotNull(ovsdbPort, "ovsdbPort cannot be null");
-        this.bridgeId = checkNotNull(bridgeId, "bridgeId cannot be null");
-        this.openstackNodeType = checkNotNull(openstackNodeType, "openstackNodeType cannot be null");
-        this.gatewayExternalInterfaceName = gatewayExternalInterfaceName;
-        this.gatewayExternalInterfaceMac = gatewayExternalInterfaceMac;
-
-        if (openstackNodeType == OpenstackNodeService.OpenstackNodeType.GATEWAYNODE) {
-            checkNotNull(gatewayExternalInterfaceName, "gatewayExternalInterfaceName cannot be null");
-            checkNotNull(gatewayExternalInterfaceMac, "gatewayExternalInterfaceMac cannot be null");
-        }
+    private OpenstackNode(String hostname,
+                          NodeType type,
+                          IpAddress managementIp,
+                          IpAddress dataIp,
+                          DeviceId integrationBridge,
+                          Optional<DeviceId> routerBridge,
+                          OpenstackNodeState state) {
+        this.hostname = hostname;
+        this.type = type;
+        this.managementIp = managementIp;
+        this.dataIp = dataIp;
+        this.integrationBridge = integrationBridge;
+        this.routerBridge = routerBridge;
+        this.state = state;
     }
 
     /**
-     * Returns the OVSDB server IP address.
+     * Returns OpenStack node with new state.
      *
-     * @return ip address
+     * @param node openstack node
+     * @param state openstack node init state
+     * @return openstack node
      */
-    public IpAddress ovsdbIp() {
-        return this.ovsdbIp;
+    public static OpenstackNode getUpdatedNode(OpenstackNode node, OpenstackNodeState state) {
+        return new OpenstackNode(node.hostname,
+                node.type,
+                node.managementIp,
+                node.dataIp,
+                node.integrationBridge,
+                node.routerBridge,
+                state);
     }
 
     /**
-     * Returns the OVSDB server port number.
+     * Returns hostname of the node.
      *
-     * @return port number
+     * @return hostname
      */
-    public TpPort ovsdbPort() {
-        return this.ovsdbPort;
+    public String hostname() {
+        return hostname;
     }
 
     /**
-     * Returns the hostName.
+     * Returns the type of the node.
      *
-     * @return hostName
+     * @return node type
      */
-    public String hostName() {
-        return this.hostName;
+    public NodeType type() {
+        return type;
     }
 
     /**
-     * Returns the identifier of the integration bridge.
+     * Returns the management network IP address of the node.
+     *
+     * @return management network ip address
+     */
+    public IpAddress managementIp() {
+        return managementIp;
+    }
+
+    /**
+     * Returns the data network IP address of the node.
+     *
+     * @return data network ip address
+     */
+    public IpAddress dataIp() {
+        return dataIp;
+    }
+
+    /**
+     * Returns the integration bridge device ID.
      *
      * @return device id
      */
-    public DeviceId intBrId() {
-        return this.bridgeId;
+    public DeviceId intBridge() {
+        return integrationBridge;
     }
 
     /**
-     * Returns the identifier of the OVSDB device.
+     * Returns the router bridge device ID.
+     * It returns valid value only if the node type is GATEWAY.
+     *
+     * @return device id; or empty device id
+     */
+    public Optional<DeviceId> routerBridge() {
+        return routerBridge;
+    }
+
+    /**
+     * Returns the init state of the node.
+     *
+     * @return init state
+     */
+    public OpenstackNodeState state() {
+        return state;
+    }
+
+    /**
+     * Returns the device ID of the OVSDB session of the node.
      *
      * @return device id
      */
     public DeviceId ovsdbId() {
-        return DeviceId.deviceId(OVSDB.concat(this.ovsdbIp.toString()));
-    }
-
-    /**
-     * Returns the openstack node type.
-     *
-     * @return openstack node type
-     */
-    public OpenstackNodeService.OpenstackNodeType openstackNodeType() {
-        return this.openstackNodeType;
-    }
-
-    /**
-     * Returns the gatewayExternalInterfaceName.
-     *
-     * @return gatewayExternalInterfaceName
-     */
-    public String gatewayExternalInterfaceName() {
-        return this.gatewayExternalInterfaceName;
-    }
-
-    /**
-     * Returns the gatewayExternalInterfaceMac.
-     *
-     * @return gatewayExternalInterfaceMac
-     */
-    public MacAddress gatewayExternalInterfaceMac() {
-        return this.gatewayExternalInterfaceMac;
+        return DeviceId.deviceId("ovsdb:" + managementIp.toString());
     }
 
     @Override
@@ -153,12 +158,12 @@ public final class OpenstackNode {
 
         if (obj instanceof OpenstackNode) {
             OpenstackNode that = (OpenstackNode) obj;
-
-            if (Objects.equals(hostName, that.hostName) &&
-                    Objects.equals(ovsdbIp, that.ovsdbIp) &&
-                    Objects.equals(ovsdbPort, that.ovsdbPort) &&
-                    Objects.equals(bridgeId, that.bridgeId) &&
-                    Objects.equals(openstackNodeType, that.openstackNodeType)) {
+            if (Objects.equals(hostname, that.hostname) &&
+                    Objects.equals(type, that.type) &&
+                    Objects.equals(managementIp, that.managementIp) &&
+                    Objects.equals(dataIp, that.dataIp) &&
+                    Objects.equals(integrationBridge, that.integrationBridge) &&
+                    Objects.equals(routerBridge, that.routerBridge)) {
                 return true;
             }
         }
@@ -167,29 +172,142 @@ public final class OpenstackNode {
 
     @Override
     public int hashCode() {
-        return Objects.hash(hostName, ovsdbIp, ovsdbPort, bridgeId, openstackNodeType);
+        return Objects.hash(hostname,
+                type,
+                managementIp,
+                dataIp,
+                integrationBridge,
+                routerBridge);
     }
 
     @Override
     public String toString() {
-        if (openstackNodeType == OpenstackNodeService.OpenstackNodeType.COMPUTENODE) {
-            return MoreObjects.toStringHelper(getClass())
-                    .add("host", hostName)
-                    .add("ip", ovsdbIp)
-                    .add("port", ovsdbPort)
-                    .add("bridgeId", bridgeId)
-                    .add("openstacknodetype", openstackNodeType)
-                    .toString();
-        } else {
-            return MoreObjects.toStringHelper(getClass())
-                    .add("host", hostName)
-                    .add("ip", ovsdbIp)
-                    .add("port", ovsdbPort)
-                    .add("bridgeId", bridgeId)
-                    .add("openstacknodetype", openstackNodeType)
-                    .add("gatewayExternalInterfaceName", gatewayExternalInterfaceName)
-                    .add("gatewayExternalInterfaceMac", gatewayExternalInterfaceMac)
-                    .toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("hostname", hostname)
+                .add("type", type)
+                .add("managementIp", managementIp)
+                .add("dataIp", dataIp)
+                .add("integrationBridge", integrationBridge)
+                .add("routerBridge", routerBridge)
+                .add("state", state)
+                .toString();
+    }
+
+    /**
+     * Returns a new builder instance.
+     *
+     * @return openstack node builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder of OpenStack node entities.
+     */
+    public static final class Builder {
+        private String hostname;
+        private NodeType type;
+        private IpAddress managementIp;
+        private IpAddress dataIp;
+        private DeviceId integrationBridge;
+        private Optional<DeviceId> routerBridge = Optional.empty();
+        private OpenstackNodeState state = OpenstackNodeState.noState();
+
+        private Builder() {
+        }
+
+        public OpenstackNode build() {
+            checkArgument(!Strings.isNullOrEmpty(hostname));
+            checkNotNull(type);
+            checkNotNull(managementIp);
+            checkNotNull(dataIp);
+            checkNotNull(integrationBridge);
+            checkNotNull(routerBridge);
+            return new OpenstackNode(hostname,
+                    type,
+                    managementIp,
+                    dataIp,
+                    integrationBridge,
+                    routerBridge,
+                    state);
+        }
+
+        /**
+         * Returns node builder with the hostname.
+         *
+         * @param hostname hostname
+         * @return openstack node builder
+         */
+        public Builder hostname(String hostname) {
+            this.hostname = hostname;
+            return this;
+        }
+
+        /**
+         * Returns node builder with the node type.
+         *
+         * @param type openstack node type
+         * @return openstack node builder
+         */
+        public Builder type(NodeType type) {
+            this.type = type;
+            return this;
+        }
+
+        /**
+         * Returns node builder with the management network IP address.
+         *
+         * @param managementIp management ip address
+         * @return openstack node builder
+         */
+        public Builder managementIp(IpAddress managementIp) {
+            this.managementIp = managementIp;
+            return this;
+        }
+
+        /**
+         * Returns node builder with the data network IP address.
+         *
+         * @param dataIp data network ip address
+         * @return openstack node builder
+         */
+        public Builder dataIp(IpAddress dataIp) {
+            this.dataIp = dataIp;
+            return this;
+        }
+
+        /**
+         * Returns node builder with the integration bridge ID.
+         *
+         * @param integrationBridge integration bridge device id
+         * @return openstack node builder
+         */
+        public Builder integrationBridge(DeviceId integrationBridge) {
+            this.integrationBridge = integrationBridge;
+            return this;
+        }
+
+        /**
+         * Returns node builder with the router bridge ID.
+         *
+         * @param routerBridge router bridge device ID
+         * @return openstack node builder
+         */
+        public Builder routerBridge(DeviceId routerBridge) {
+            this.routerBridge = Optional.ofNullable(routerBridge);
+            return this;
+        }
+
+        /**
+         * Returns node builder with the init state.
+         *
+         * @param state node init state
+         * @return openstack node builder
+         */
+        public Builder state(OpenstackNodeState state) {
+            this.state = state;
+            return this;
         }
     }
 }

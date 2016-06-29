@@ -17,73 +17,94 @@ package org.onosproject.openstacknode;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.TpPort;
+import org.onlab.packet.IpAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
-import org.slf4j.Logger;
+import org.onosproject.openstacknode.OpenstackNodeService.NodeType;
 import java.util.Set;
 import org.onosproject.net.config.Config;
-import static org.slf4j.LoggerFactory.getLogger;
+
+import static org.onosproject.net.config.Config.FieldPresence.MANDATORY;
+import static org.onosproject.openstacknode.OpenstackNodeService.NodeType.GATEWAY;
 
 /**
  * Configuration object for OpensatckNode service.
  */
-public class OpenstackNodeConfig extends Config<ApplicationId> {
+public final class OpenstackNodeConfig extends Config<ApplicationId> {
 
-    protected final Logger log = getLogger(getClass());
+    private static final String NODES = "nodes";
+    private static final String HOST_NAME = "hostname";
+    private static final String TYPE = "type";
+    private static final String MANAGEMENT_IP = "managementIp";
+    private static final String DATA_IP = "dataIp";
+    private static final String INTEGRATION_BRIDGE = "integrationBridge";
+    private static final String ROUTER_BRIDGE = "routerBridge";
 
+    @Override
+    public boolean isValid() {
+        boolean result = hasOnlyFields(NODES);
 
-    public static final String NODES = "nodes";
-    public static final String HOST_NAME = "hostname";
-    public static final String OVSDB_IP = "ovsdbIp";
-    public static final String OVSDB_PORT = "ovsdbPort";
-    public static final String BRIDGE_ID = "bridgeId";
-    public static final String NODE_TYPE = "openstackNodeType";
-    public static final String GATEWAY_EXTERNAL_INTERFACE_NAME = "gatewayExternalInterfaceName";
-    public static final String GATEWAY_EXTERNAL_INTERFACE_MAC = "gatewayExternalInterfaceMac";
+        if (object.get(NODES) == null || object.get(NODES).size() < 1) {
+            final String msg = "No node is present";
+            throw new IllegalArgumentException(msg);
+        }
+
+        for (JsonNode node : object.get(NODES)) {
+            ObjectNode osNode = (ObjectNode) node;
+            result &= hasOnlyFields(osNode,
+                    HOST_NAME,
+                    TYPE,
+                    MANAGEMENT_IP,
+                    DATA_IP,
+                    INTEGRATION_BRIDGE,
+                    ROUTER_BRIDGE
+            );
+
+            result &= isString(osNode, HOST_NAME, MANDATORY);
+            result &= isString(osNode, TYPE, MANDATORY);
+            result &= isIpAddress(osNode, MANAGEMENT_IP, MANDATORY);
+            result &= result && isIpAddress(osNode, DATA_IP, MANDATORY);
+            result &= isString(osNode, INTEGRATION_BRIDGE, MANDATORY);
+
+            DeviceId.deviceId(osNode.get(INTEGRATION_BRIDGE).asText());
+            NodeType.valueOf(osNode.get(TYPE).asText());
+
+            if (osNode.get(TYPE).asText().equals(GATEWAY.name())) {
+                result &= isString(osNode, ROUTER_BRIDGE, MANDATORY);
+                DeviceId.deviceId(osNode.get(ROUTER_BRIDGE).asText());
+            }
+        }
+        return result;
+    }
 
     /**
      * Returns the set of nodes read from network config.
      *
-     * @return set of OpensatckNodeConfig or null
+     * @return set of openstack nodes
      */
     public Set<OpenstackNode> openstackNodes() {
-
         Set<OpenstackNode> nodes = Sets.newHashSet();
 
-        JsonNode jsonNodes = object.get(NODES);
-        if (jsonNodes == null) {
-            return null;
-        }
+        for (JsonNode node : object.get(NODES)) {
+            NodeType type = NodeType.valueOf(get(node, TYPE));
+            OpenstackNode.Builder nodeBuilder = OpenstackNode.builder()
+                    .integrationBridge(DeviceId.deviceId(get(node, INTEGRATION_BRIDGE)))
+                    .dataIp(IpAddress.valueOf(get(node, DATA_IP)))
+                    .managementIp(IpAddress.valueOf(get(node, MANAGEMENT_IP)))
+                    .type(type)
+                    .hostname(get(node, HOST_NAME));
 
-        jsonNodes.forEach(jsonNode -> {
-            try {
-                if (OpenstackNodeService.OpenstackNodeType.valueOf(jsonNode.path(NODE_TYPE).asText()) ==
-                        OpenstackNodeService.OpenstackNodeType.COMPUTENODE) {
-                    nodes.add(new OpenstackNode(
-                            jsonNode.path(HOST_NAME).asText(),
-                            Ip4Address.valueOf(jsonNode.path(OVSDB_IP).asText()),
-                            TpPort.tpPort(jsonNode.path(OVSDB_PORT).asInt()),
-                            DeviceId.deviceId(jsonNode.path(BRIDGE_ID).asText()),
-                            OpenstackNodeService.OpenstackNodeType.valueOf(jsonNode.path(NODE_TYPE).asText()),
-                            null, MacAddress.NONE));
-                } else {
-                    nodes.add(new OpenstackNode(
-                            jsonNode.path(HOST_NAME).asText(),
-                            Ip4Address.valueOf(jsonNode.path(OVSDB_IP).asText()),
-                            TpPort.tpPort(jsonNode.path(OVSDB_PORT).asInt()),
-                            DeviceId.deviceId(jsonNode.path(BRIDGE_ID).asText()),
-                            OpenstackNodeService.OpenstackNodeType.valueOf(jsonNode.path(NODE_TYPE).asText()),
-                            jsonNode.path(GATEWAY_EXTERNAL_INTERFACE_NAME).asText(),
-                            MacAddress.valueOf(jsonNode.path(GATEWAY_EXTERNAL_INTERFACE_MAC).asText())));
-                }
-            } catch (IllegalArgumentException | NullPointerException e) {
-                log.error("Failed to read {}", e.toString());
+            if (type.equals(GATEWAY)) {
+                nodeBuilder.routerBridge(DeviceId.deviceId(get(node, ROUTER_BRIDGE)));
             }
-        });
+            nodes.add(nodeBuilder.build());
+        }
         return nodes;
+    }
+
+    private String get(JsonNode jsonNode, String path) {
+        return jsonNode.get(path).asText();
     }
 }

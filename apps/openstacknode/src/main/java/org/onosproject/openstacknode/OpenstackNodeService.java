@@ -15,26 +15,33 @@
  */
 package org.onosproject.openstacknode;
 
+import org.onlab.packet.IpAddress;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
+
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Handles the bootstrap request for compute/gateway node.
  */
 public interface OpenstackNodeService {
 
-    public enum OpenstackNodeType {
+    enum NodeType {
         /**
          * Compute or Gateway Node.
          */
-        COMPUTENODE,
-        GATEWAYNODE
+        COMPUTE,
+        GATEWAY
     }
+
     /**
-     * Adds a new node to the service.
+     * Adds or updates a new node to the service.
      *
      * @param node openstack node
      */
-    void addNode(OpenstackNode node);
+    void addOrUpdateNode(OpenstackNode node);
 
     /**
      * Deletes a node from the service.
@@ -44,18 +51,58 @@ public interface OpenstackNodeService {
     void deleteNode(OpenstackNode node);
 
     /**
-     * Returns nodes known to the service for designated openstacktype.
+     * Returns all nodes known to the service.
      *
-     * @param openstackNodeType openstack node type
      * @return list of nodes
      */
-    List<OpenstackNode> getNodes(OpenstackNodeType openstackNodeType);
+    List<OpenstackNode> nodes();
 
     /**
-     * Returns the NodeState for a given node.
+     * Returns all nodes in complete state.
      *
-     * @param node openstack node
-     * @return true if the NodeState for a given node is COMPLETE, false otherwise
+     * @return set of nodes
      */
-    boolean isComplete(OpenstackNode node);
+    Set<OpenstackNode> completeNodes();
+
+    /**
+     * Returns node initialization state is complete or not.
+     *
+     * @param hostname hostname of the node
+     * @return true if initial node setup is completed, otherwise false
+     */
+    boolean isComplete(String hostname);
+
+    /**
+     * Returns data network IP address of a given integration bridge device.
+     *
+     * @param intBridgeId integration bridge device id
+     * @return ip address; empty value otherwise
+     */
+    Optional<IpAddress> dataIp(DeviceId intBridgeId);
+
+    /**
+     * Returns tunnel port number of a given integration bridge device.
+     *
+     * @param intBridgeId integration bridge device id
+     * @return port number; or empty value
+     */
+    Optional<PortNumber> tunnelPort(DeviceId intBridgeId);
+
+    /**
+     * Returns router bridge device ID connected to a given integration bridge.
+     * It returns valid value only if the node type is GATEWAY.
+     *
+     * @param intBridgeId device id of the integration bridge
+     * @return device id of a router bridge; or empty value
+     */
+    Optional<DeviceId> routerBridge(DeviceId intBridgeId);
+
+    /**
+     * Returns port number connected to the router bridge.
+     * It returns valid value only if the node type is GATEWAY.
+     *
+     * @param intBridgeId integration bridge device id
+     * @return port number; or empty value
+     */
+    Optional<PortNumber> externalPort(DeviceId intBridgeId);
 }

@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
     '//protocols/ovsdb/api:onos-protocols-ovsdb-api',
     '//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc',
     '//core/store/serializers:onos-core-serializers',
@@ -14,5 +16,5 @@ onos_app (
     category = 'Utility',
     url = 'http://onosproject.org',
     description = 'SONA Openstack Node Bootstrap Application.',
-    required_app = [ 'org.onosproject.ovsdb' ],
+    required_app = [ 'org.onosproject.ovsdb-base' ],
 )

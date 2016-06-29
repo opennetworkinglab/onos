@@ -3,29 +3,36 @@
         "org.onosproject.openstacknode" : {
             "openstacknode" : {
                 "nodes" : [
-                            {
-                                    "hostname" : "compute-01",
-                                    "ovsdbIp" : "192.168.56.112",
-                                    "ovsdbPort" : "6640",
-                                    "bridgeId" : "of:0000000000000001",
-                                    "openstackNodeType" : "COMPUTENODE"
-                            },
-                            {
-                                    "hostname" : "compute-02",
-                                    "ovsdbIp" : "192.168.56.106",
-                                    "ovsdbPort" : "6640",
-                                    "bridgeId" : "of:0000000000000002",
-                                    "openstackNodeType" : "COMPUTENODE"
-                            },
-                            {
-                                    "hostname" : "network",
-                                    "ovsdbIp" : "192.168.56.108",
-                                    "ovsdbPort" : "6640",
-                                    "bridgeId" : "of:0000000000000003",
-                                    "openstackNodeType" : "GATEWAYNODE",
-                                    "gatewayExternalInterfaceName" : "eth1",
-                                    "gatewayExternalInterfaceMac" : "00:00:00:00:00:10"
-                            }
+                    {
+                        "hostname" : "compute-01",
+                        "type" : "COMPUTE",
+                        "managementIp" : "10.203.25.244",
+                        "dataIp" : "10.134.34.222",
+                        "integrationBridge" : "of:00000000000000a1"
+                    },
+                    {
+                        "hostname" : "compute-02",
+                        "type" : "COMPUTE",
+                        "managementIp" : "10.203.229.42",
+                        "dataIp" : "10.134.34.223",
+                        "integrationBridge" : "of:00000000000000a2"
+                    },
+                    {
+                        "hostname" : "gateway-01",
+                        "type" : "GATEWAY",
+                        "managementIp" : "10.203.198.125",
+                        "dataIp" : "10.134.33.208",
+                        "integrationBridge" : "of:00000000000000a3",
+                        "routerBridge" : "of:00000000000000b3"
+                    },
+                    {
+                        "hostname" : "gateway-02",
+                        "type" : "GATEWAY",
+                        "managementIp" : "10.203.198.131",
+                        "dataIp" : "10.134.33.209",
+                        "integrationBridge" : "of:00000000000000a4",
+                        "routerBridge" : "of:00000000000000b4"
+                    }
                 ]
             }
         }
