@@ -52,6 +52,46 @@ def checkstyle(
     else:
         print 'Not generating checkstyle rule for %s because there are no sources.' % name
 
+def java_doc(
+    name,
+    title,
+    pkgs,
+    paths,
+    srcs = [],
+    deps = [],
+    visibility = [],
+    do_it_wrong = False,
+  ):
+  if do_it_wrong:
+    sourcepath = paths
+  else:
+    sourcepath = ['$SRCDIR/' + n for n in paths]
+  genrule(
+    name = name,
+    cmd = ' '.join([
+      'while ! test -f .buckconfig; do cd ..; done;',
+      'javadoc',
+      '-quiet',
+      '-protected',
+      '-encoding UTF-8',
+      '-charset UTF-8',
+      '-notimestamp',
+      '-windowtitle "' + title + '"',
+      '-link http://docs.oracle.com/javase/7/docs/api',
+      '-subpackages ',
+      ':'.join(pkgs),
+      '-sourcepath ',
+      ':'.join(sourcepath),
+      ' -classpath ',
+      ':'.join(['$(classpath %s)' % n for n in deps]),
+      '-d $TMP',
+    ]) + ';jar cf $OUT -C $TMP .',
+    srcs = srcs,
+    out = name + '.jar',
+    visibility = visibility,
+)
+
+
 def osgi_jar(
     name = None,
     srcs = None,
@@ -149,6 +189,17 @@ def osgi_jar(
       jar_target = ':'+ bare_jar_name,
   )
 
+  java_doc(
+       name = name + '-javadoc',
+       title = 'Java Docs',
+       pkgs = [ 'org.onosproject' ],
+       paths = [ 'src/main/java' ],
+       srcs = srcs,
+       deps = deps,
+       visibility = visibility,
+       do_it_wrong = False,
+  )
+
   # TODO add project config for intellij
   # project_config(
   #   src_target = ':' + bare_jar_name,
@@ -229,3 +280,6 @@ def osgi_jar_with_tests(
   )
 
   #FIXME need to run checkstyle on test sources
+
+
+
