@@ -183,6 +183,7 @@
     "checkstyle": "mvn:com.puppycrawl.tools:checkstyle:6.11.2",
     "apache-karaf": "http://onlab.vicci.org/onos/third-party/apache-karaf-3.0.5.tar.gz",
     "bndlib": "mvn:biz.aQute.bnd:biz.aQute.bndlib:jar:3.1.0",
+    "cord-config": "mvn:org.onosproject:cord-config:1.0-b1",
     "org.apache.felix.scr.bnd": {
       "uri": "mvn:org.onosproject:org.apache.felix.scr.bnd:1.4.1-SNAPSHOT",
       "repo": "https://oss.sonatype.org/content/repositories/snapshots"
@@ -201,10 +202,6 @@
     },
     "mibs-rfc": {
       "uri": "mvn:com.btisystems.mibbler.mibs:rfc:1.0-SNAPSHOT",
-      "repo": "https://oss.sonatype.org/content/repositories/snapshots"
-    },
-    "cord-config": {
-      "uri": "mvn:org.opencord:cord-config:1.0-SNAPSHOT",
       "repo": "https://oss.sonatype.org/content/repositories/snapshots"
     },
     // Openstack4j related jars

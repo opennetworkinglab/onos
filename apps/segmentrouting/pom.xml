@@ -65,10 +65,10 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.opencord</groupId>
+            <groupId>org.onosproject</groupId>
             <artifactId>cord-config</artifactId>
             <!-- TODO: Replace this with variable -->
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0-b1</version>
         </dependency>
         <dependency>
             <groupId>javax.ws.rs</groupId>
