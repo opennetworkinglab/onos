@@ -16,7 +16,6 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
-import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
@@ -27,6 +26,7 @@ import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.YangUnion;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.linker.impl.YangResolutionInfoImpl;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
@@ -93,6 +93,8 @@ public final class TypeListener {
 
         // Obtain the YANG data type.
         YangDataTypes yangDataTypes = YangDataTypes.getType(ctx.string().getText());
+
+        validateTypeSubStatementCardinality(ctx, yangDataTypes);
 
         // Create YANG type object and fill the values.
         YangType<?> type = getYangType(JAVA_GENERATION);
@@ -263,6 +265,39 @@ public final class TypeListener {
         } catch (DataModelException e) {
             throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA,
                     TYPE_DATA, ctx.string().getText(), ENTRY, e.getMessage()));
+        }
+    }
+
+    /**
+     * Validates type body statements cardinality.
+     *
+     * @param ctx          context object of the grammar rule
+     * @param yangDataType yang data type
+     */
+    private static void validateTypeSubStatementCardinality(GeneratedYangParser.TypeStatementContext ctx,
+                                                            YangDataTypes yangDataType) {
+        if (ctx.typeBodyStatements() == null || ctx.typeBodyStatements().isEmpty()) {
+            ParserException parserException;
+            switch (yangDataType) {
+                case UNION:
+                    parserException = new ParserException("YANG file error : a type union" +
+                            " must have atleast one type statement.");
+                    break;
+                case ENUMERATION:
+                    parserException = new ParserException("YANG file error : a type enumeration" +
+                            " must have atleast one enum statement.");
+                    break;
+                case BITS:
+                    parserException = new ParserException("YANG file error : a type bits" +
+                            " must have atleast one bit statement.");
+                    break;
+                // TODO : decimal64, identity ref, leafref
+                default:
+                    return;
+            }
+            parserException.setLine(ctx.getStart().getLine());
+            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+            throw parserException;
         }
     }
 }

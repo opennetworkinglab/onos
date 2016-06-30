@@ -100,6 +100,7 @@ lexer grammar YangLexer;
     TRUE_KEYWORD        : 'true';
     UNBOUNDED_KEYWORD   : 'unbounded';
     USER_KEYWORD        : 'user';
+    COMPILER_ANNOTATION_KEYWORD : 'compiler-annotation';
 
     // Lexer tokens to be skipped
     COMMENT
@@ -116,11 +117,18 @@ lexer grammar YangLexer;
     DATE_ARG            : DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT;
     LEFT_CURLY_BRACE    : '{';
     RIGHT_CURLY_BRACE   : '}';
+    LEFT_ROUND_BRACE    : '(';
+    RIGHT_ROUND_BRACE   : ')';
+    ANNOTATION_START    : '@';
+    ANNOTATION_IDENTIFIER : ('@')(ALPHA | '_')
+                              (ALPHA | DIGIT | '_' | '-' | '.')*;
     IDENTIFIER          : (ALPHA | '_')
                           (ALPHA | DIGIT | '_' | '-' | '.')*;
     STMTEND             : ';';
     DQUOTE              : '"';
     COLON               : ':';
+    COMMA               : ',';
+    EQUAL               : '=';
     PLUS : '+';
     MINUS: '-';
 

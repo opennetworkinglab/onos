@@ -92,19 +92,6 @@ public class MinElementsListenerTest {
     }
 
     /**
-     * Checks whether exception is thrown when invalid min-elements keyword is
-     * given as input.
-     */
-    @Test
-    public void processMinElementsInvalidKeyword() throws IOException, ParserException {
-        thrown.expect(ParserException.class);
-        thrown.expectMessage("extraneous input 'min-element' expecting {'config', 'description', 'if-feature',"
-                + " 'max-elements', 'min-elements', 'must', 'ordered-by', 'reference', 'status', 'type', 'units',"
-                + " 'when', '}'}");
-        YangNode node = manager.getDataModel("src/test/resources/MinElementsInvalidKeyword.yang");
-    }
-
-    /**
      * Checks whether exception is thrown when invalid min-elements value is
      * given as input.
      */

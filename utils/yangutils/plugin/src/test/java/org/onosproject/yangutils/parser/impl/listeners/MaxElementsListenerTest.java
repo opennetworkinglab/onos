@@ -92,19 +92,6 @@ public class MaxElementsListenerTest {
     }
 
     /**
-     * Checks whether exception is thrown when invalid max-elements keyword is
-     * given as input.
-     */
-    @Test
-    public void processMaxElementsInvalidStatement() throws IOException, ParserException {
-        thrown.expect(ParserException.class);
-        thrown.expectMessage("extraneous input 'max-element' expecting {'config', 'description', 'if-feature',"
-                + " 'max-elements', 'min-elements', 'must', 'ordered-by', 'reference', 'status', 'type', 'units', "
-                + "'when', '}'}");
-        YangNode node = manager.getDataModel("src/test/resources/MaxElementsInvalidStatement.yang");
-    }
-
-    /**
      * Checks whether exception is thrown when max-elements statement without
      * statement end is given as input.
      */

@@ -1376,6 +1376,99 @@ public class TreeWalkListener implements GeneratedYangListener {
     }
 
     @Override
+    public void enterCompilerAnnotationStatement(GeneratedYangParser.CompilerAnnotationStatementContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitCompilerAnnotationStatement(GeneratedYangParser.CompilerAnnotationStatementContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterAnnotationStatement(GeneratedYangParser.AnnotationStatementContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitAnnotationStatement(GeneratedYangParser.AnnotationStatementContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterAnnotationType(GeneratedYangParser.AnnotationTypeContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitAnnotationType(GeneratedYangParser.AnnotationTypeContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterAnnotationParameterSpecification(GeneratedYangParser.AnnotationParameterSpecificationContext
+                                                              ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitAnnotationParameterSpecification(GeneratedYangParser.AnnotationParameterSpecificationContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterAnnotationParameterSpecificationArg(GeneratedYangParser.AnnotationParameterSpecificationArgContext
+                                                                 ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitAnnotationParameterSpecificationArg(GeneratedYangParser.AnnotationParameterSpecificationArgContext
+                                                                ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterAnnotationParaInstance(GeneratedYangParser.AnnotationParaInstanceContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitAnnotationParaInstance(GeneratedYangParser.AnnotationParaInstanceContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterAnnotationParaTypeIdentifier(GeneratedYangParser.AnnotationParaTypeIdentifierContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitAnnotationParaTypeIdentifier(GeneratedYangParser.AnnotationParaTypeIdentifierContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterAnnotationParaTypeValue(GeneratedYangParser.AnnotationParaTypeValueContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitAnnotationParaTypeValue(GeneratedYangParser.AnnotationParaTypeValueContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterAnnotationIdentifier(GeneratedYangParser.AnnotationIdentifierContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitAnnotationIdentifier(GeneratedYangParser.AnnotationIdentifierContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
     public void enterVersion(GeneratedYangParser.VersionContext ctx) {
         // do nothing.
     }

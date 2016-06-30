@@ -138,4 +138,12 @@ public class UnionListenerTest {
 
         YangNode node = manager.getDataModel("src/test/resources/UnionWithEmptyType.yang");
     }
+
+    /**
+     * Checks whether type union has atleast one type statement.
+     */
+    @Test (expected = ParserException.class)
+    public void processUnionWithoutChild() throws IOException, ParserException {
+        manager.getDataModel("src/test/resources/UnionWithoutChild.yang");
+    }
 }

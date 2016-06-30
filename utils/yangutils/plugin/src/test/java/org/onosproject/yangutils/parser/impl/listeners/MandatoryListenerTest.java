@@ -140,18 +140,4 @@ public class MandatoryListenerTest {
         thrown.expectMessage("missing ';' at '}'");
         YangNode node = manager.getDataModel("src/test/resources/MandatoryWithoutStatementEnd.yang");
     }
-
-    /**
-     * Checks mandatory statement as sub-statement of module and expects
-     * exception.
-     */
-    @Test
-    public void processModuleSubStatementMandatory() throws IOException, ParserException {
-        thrown.expect(ParserException.class);
-        thrown.expectMessage("mismatched input 'mandatory' expecting {'anyxml', 'augment', 'choice', 'contact',"
-                + " 'container', 'description', 'extension', 'deviation', 'feature', 'grouping', 'identity', 'import',"
-                + " 'include', 'leaf', 'leaf-list', 'list', 'notification', 'organization', 'reference',"
-                + " 'revision', 'rpc', 'typedef', 'uses', '}'}");
-        YangNode node = manager.getDataModel("src/test/resources/ModuleSubStatementMandatory.yang");
-    }
 }
