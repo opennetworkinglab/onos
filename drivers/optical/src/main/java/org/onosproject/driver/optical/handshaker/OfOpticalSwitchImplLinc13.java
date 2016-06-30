@@ -15,6 +15,7 @@
  */
 package org.onosproject.driver.optical.handshaker;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.Device;
 import org.onosproject.openflow.controller.OpenFlowOpticalSwitch;
@@ -46,7 +47,6 @@ import org.projectfloodlight.openflow.types.U8;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -73,7 +73,7 @@ public class OfOpticalSwitchImplLinc13 extends AbstractOpenFlowSwitch implements
 
     @Override
     public void startDriverHandshake() {
-        log.warn("Starting driver handshake for sw {}", getStringId());
+        log.debug("Starting driver handshake for sw {}", getStringId());
         if (startDriverHandshakeCalled) {
             throw new SwitchDriverSubHandshakeAlreadyStarted();
         }
@@ -118,7 +118,7 @@ public class OfOpticalSwitchImplLinc13 extends AbstractOpenFlowSwitch implements
             case PACKET_IN:
                 break;
             case PORT_STATUS:
-                log.warn("****LINC-OE Port Status {} {}", getStringId(), m);
+                log.debug("****LINC-OE Port Status {} {}", getStringId(), m);
                 processOFPortStatus((OFCircuitPortStatus) m);
                 break;
             case QUEUE_GET_CONFIG_REPLY:
@@ -128,7 +128,7 @@ public class OfOpticalSwitchImplLinc13 extends AbstractOpenFlowSwitch implements
             case STATS_REPLY:
                 OFStatsReply stats = (OFStatsReply) m;
                 if (stats.getStatsType() == OFStatsType.EXPERIMENTER) {
-                    log.warn("LINC-OE : Received stats reply message {}", m);
+                    log.debug("LINC-OE : Received stats reply message {}", m);
                     createOpticalPortList((OFCircuitPortsReply) m);
                     driverHandshakeComplete.set(true);
                 }
@@ -152,21 +152,21 @@ public class OfOpticalSwitchImplLinc13 extends AbstractOpenFlowSwitch implements
         OFCircuitPortsRequest circuitPortsRequest = factory()
                 .buildCircuitPortsRequest().setXid(getNextTransactionId())
                 .build();
-        log.warn("LINC-OE : Sending experimented circuit port stats " +
+        log.debug("LINC-OE : Sending experimented circuit port stats " +
                          "message " +
                          "{}",
                  circuitPortsRequest.toString());
         this.sendHandshakeMessage(circuitPortsRequest);
     }
 
-    @Override
     /**
      * Returns a list of standard (Ethernet) ports.
      *
      * @return List of ports
      */
+    @Override
     public List<OFPortDesc> getPorts() {
-        return Collections.EMPTY_LIST;
+        return ImmutableList.of();
     }
 
     /**
@@ -337,7 +337,7 @@ public class OfOpticalSwitchImplLinc13 extends AbstractOpenFlowSwitch implements
     @Override
     public List<? extends OFObject> getPortsOf(PortDescPropertyType type) {
         if (!type.equals(PortDescPropertyType.OPTICAL_TRANSPORT)) {
-            return Collections.EMPTY_LIST;
+            return ImmutableList.of();
         }
 
         return opticalPorts;
