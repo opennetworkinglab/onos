@@ -18,8 +18,6 @@ package org.onosproject.yangutils.datamodel.utils.builtindatatype;
 
 import java.io.Serializable;
 
-import org.onosproject.yangutils.datamodel.YangDataTypes;
-
 /**
  * Handles the YANG's int32 data type processing.
  *
@@ -94,5 +92,4 @@ public class YangInt32 implements YangBuiltInDataTypeInfo<YangInt32>, Serializab
     public YangDataTypes getYangType() {
         return YangDataTypes.INT32;
     }
-
 }

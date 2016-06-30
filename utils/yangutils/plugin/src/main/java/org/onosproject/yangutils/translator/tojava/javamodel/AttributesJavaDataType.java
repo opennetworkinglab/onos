@@ -17,7 +17,7 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.util.Stack;
-import org.onosproject.yangutils.datamodel.YangDataTypes;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangEnumeration;
 import org.onosproject.yangutils.datamodel.YangNode;

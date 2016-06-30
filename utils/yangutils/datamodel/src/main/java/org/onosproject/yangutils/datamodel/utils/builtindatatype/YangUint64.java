@@ -20,8 +20,6 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.regex.Pattern;
 
-import org.onosproject.yangutils.datamodel.YangDataTypes;
-
 /**
  * Handles the YANG's Uint16 data type processing.
  *
@@ -67,7 +65,7 @@ public class YangUint64 implements YangBuiltInDataTypeInfo<YangUint64>, Serializ
      *
      * @param valueInString value of the object in string
      */
-    YangUint64(String valueInString) {
+    public YangUint64(String valueInString) {
 
         if (valueInString.matches(MIN_KEYWORD)) {
             value = MIN_VALUE;
@@ -107,5 +105,4 @@ public class YangUint64 implements YangBuiltInDataTypeInfo<YangUint64>, Serializ
     public YangDataTypes getYangType() {
         return YangDataTypes.UINT64;
     }
-
 }

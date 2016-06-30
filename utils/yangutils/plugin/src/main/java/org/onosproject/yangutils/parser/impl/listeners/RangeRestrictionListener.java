@@ -25,8 +25,8 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
-import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
-import static org.onosproject.yangutils.datamodel.utils.RestrictionResolver.isOfRangeRestrictedType;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.DERIVED;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypeUtils.isOfRangeRestrictedType;
 import static org.onosproject.yangutils.datamodel.utils.RestrictionResolver.processRangeRestriction;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.RANGE_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.TYPE_DATA;

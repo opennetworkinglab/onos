@@ -21,7 +21,7 @@ import static org.hamcrest.core.Is.is;
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangBit;
 import org.onosproject.yangutils.datamodel.YangBits;
-import org.onosproject.yangutils.datamodel.YangDataTypes;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;

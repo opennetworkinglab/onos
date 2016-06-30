@@ -18,8 +18,6 @@ package org.onosproject.yangutils.datamodel.utils.builtindatatype;
 
 import java.io.Serializable;
 
-import org.onosproject.yangutils.datamodel.YangDataTypes;
-
 /**
  * Handles the YANG's int8 data type processing.
  *
@@ -94,5 +92,4 @@ public class YangInt8 implements YangBuiltInDataTypeInfo<YangInt8>, Serializable
     public YangDataTypes getYangType() {
         return YangDataTypes.INT8;
     }
-
 }

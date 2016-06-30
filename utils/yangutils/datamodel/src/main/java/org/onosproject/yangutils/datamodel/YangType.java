@@ -17,13 +17,15 @@
 package org.onosproject.yangutils.datamodel;
 
 import java.io.Serializable;
-
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.ResolvableStatus;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 
-import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
+import static org.onosproject.yangutils.datamodel.BuiltInTypeObjectFactory.getDataObjectFromString;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypeUtils.isOfRangeRestrictedType;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.DERIVED;
 
 /*
  * Reference:RFC 6020.
@@ -269,6 +271,103 @@ public class YangType<T>
             setResolvableStatus(derivedInfo.resolve());
         } catch (DataModelException e) {
             throw new DataModelException(e.getMessage());
+        }
+    }
+
+    /**
+     * Validates the input data value against the permissible value for the
+     * type as per the YANG file.
+     *
+     * @param value input data value
+     * @return status of validation
+     */
+    public boolean isValidValue(String value) {
+        switch (getDataType()) {
+            case INT8:
+            case INT16:
+            case INT32:
+            case INT64:
+            case UINT8:
+            case UINT16:
+            case UINT32:
+            case UINT64: {
+                isValidValueForRangeRestrictedType(value);
+            }
+            case DECIMAL64: {
+                // TODO
+            }
+            case STRING: {
+                // TODO implement in string restriction similar to range restriction
+            }
+            case ENUMERATION: {
+                // TODO validate using list of YANG enum of enumeration class in extended info.
+            }
+            case BINARY: {
+                // TODO validate based on extended info
+            }
+            case BITS: {
+                // TODO validate based on extended info
+            }
+            case BOOLEAN: {
+                // TODO true or false
+            }
+            case LEAFREF: {
+                // TODO validate based on extended info
+            }
+            case IDENTITYREF: {
+                // TODO TBD
+            }
+            case EMPTY: {
+                // TODO true or false
+            }
+            case UNION: {
+                // TODO validate based on extended info
+            }
+            case INSTANCE_IDENTIFIER: {
+                // TODO TBD
+            }
+            case DERIVED: {
+                if (isOfRangeRestrictedType(((YangDerivedInfo) getDataTypeExtendedInfo()).getEffectiveBuiltInType())) {
+                    try {
+                        if (((YangDerivedInfo) getDataTypeExtendedInfo()).getResolvedExtendedInfo() == null) {
+                            getDataObjectFromString(value,
+                                    ((YangDerivedInfo) getDataTypeExtendedInfo()).getEffectiveBuiltInType());
+                            return true;
+                        } else {
+                            return ((YangRangeRestriction) ((YangDerivedInfo) getDataTypeExtendedInfo())
+                                    .getResolvedExtendedInfo()).isValidValueString(value);
+                        }
+                    } catch (Exception e) {
+                        return false;
+                    }
+                } else {
+                    // TODO
+                }
+            }
+            default: {
+                // TODO
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Validates the input data value for range restricted types against the
+     * permissible value for the type as per the YANG file.
+     *
+     * @param value input data value
+     * @return status of validation
+     */
+    private boolean isValidValueForRangeRestrictedType(String value) {
+        try {
+            if (getDataTypeExtendedInfo() == null) {
+                getDataObjectFromString(value, getDataType());
+                return true;
+            } else {
+                return ((YangRangeRestriction) getDataTypeExtendedInfo()).isValidValueString(value);
+            }
+        } catch (Exception e) {
+            return false;
         }
     }
 }

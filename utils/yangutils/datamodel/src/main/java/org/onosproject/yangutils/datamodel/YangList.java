@@ -22,6 +22,7 @@ import java.util.List;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
 
@@ -70,7 +71,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
 public class YangList
         extends YangNode
         implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector, YangAugmentationHolder,
-        YangMustHolder, YangIfFeatureHolder {
+        YangMustHolder, YangIfFeatureHolder, YangDataNode {
 
     private static final long serialVersionUID = 806201609L;
 

@@ -28,7 +28,7 @@ import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.STRING;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getBuild;

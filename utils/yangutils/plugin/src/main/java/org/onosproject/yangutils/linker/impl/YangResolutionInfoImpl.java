@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Stack;
 
 import org.onosproject.yangutils.datamodel.Resolvable;
-import org.onosproject.yangutils.datamodel.YangDataTypes;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangEntityToResolveInfo;
 import org.onosproject.yangutils.datamodel.YangFeature;

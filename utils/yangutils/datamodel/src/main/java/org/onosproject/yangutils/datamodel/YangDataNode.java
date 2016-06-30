@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.yangutils.datamodel.utils.builtindatatype;
+
+package org.onosproject.yangutils.datamodel;
 
 /**
- * Represents the list of utility functions to be supported by YANG built in
- * data type implementations.
- *
- * @param <T> The target data type
+ * Abstraction of YANG data node, used by YMS to abstractly refer the data
+ * nodes in YANG data tree.
  */
-public interface YangBuiltInDataTypeInfo<T> extends Comparable<T> {
-
-    /**
-     * Returns the YANG built in type.
-     *
-     * @return the YANG built in type
-     */
-    YangDataTypes getYangType();
+public interface YangDataNode {
 }

@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.ListIterator;
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangContainer;
-import org.onosproject.yangutils.datamodel.YangDataTypes;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;

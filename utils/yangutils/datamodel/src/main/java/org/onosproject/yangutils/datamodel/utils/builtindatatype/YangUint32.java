@@ -18,8 +18,6 @@ package org.onosproject.yangutils.datamodel.utils.builtindatatype;
 
 import java.io.Serializable;
 
-import org.onosproject.yangutils.datamodel.YangDataTypes;
-
 /**
  * Handles the YANG's Uint32 data type processing.
  *
@@ -53,7 +51,7 @@ public class YangUint32 implements YangBuiltInDataTypeInfo<YangUint32>, Serializ
      *
      * @param valueInString value of the object in string
      */
-    YangUint32(String valueInString) {
+    public YangUint32(String valueInString) {
 
         if (valueInString.matches(MIN_KEYWORD)) {
             value = MIN_VALUE;
@@ -95,5 +93,4 @@ public class YangUint32 implements YangBuiltInDataTypeInfo<YangUint32>, Serializ
     public YangDataTypes getYangType() {
         return YangDataTypes.UINT32;
     }
-
 }

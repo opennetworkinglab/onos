@@ -16,14 +16,13 @@
 package org.onosproject.yangutils.datamodel;
 
 import java.io.Serializable;
-
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 
 /**
  * Represents base class of a node in data model tree.
  */
 public abstract class YangNode
-        implements Cloneable, Serializable {
+        implements Cloneable, Serializable, YangDataNode {
 
     private static final long serialVersionUID = 806201601L;
 

@@ -22,6 +22,7 @@ import java.util.List;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 
 /*
  * Reference RFC 6020.

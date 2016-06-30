@@ -20,22 +20,23 @@ import java.io.Serializable;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.ResolvableStatus;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 
 import com.google.common.base.Strings;
 
-import static org.onosproject.yangutils.datamodel.YangDataTypes.BINARY;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.BITS;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.BOOLEAN;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.EMPTY;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.ENUMERATION;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.IDENTITYREF;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.LEAFREF;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.UNION;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BINARY;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BITS;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BOOLEAN;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.DERIVED;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.EMPTY;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.ENUMERATION;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.IDENTITYREF;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.LEAFREF;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.STRING;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.UNION;
 import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.INTRA_FILE_RESOLVED;
 import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.RESOLVED;
-import static org.onosproject.yangutils.datamodel.utils.RestrictionResolver.isOfRangeRestrictedType;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypeUtils.isOfRangeRestrictedType;
 import static org.onosproject.yangutils.datamodel.utils.RestrictionResolver.processLengthRestriction;
 import static org.onosproject.yangutils.datamodel.utils.RestrictionResolver.processRangeRestriction;
 

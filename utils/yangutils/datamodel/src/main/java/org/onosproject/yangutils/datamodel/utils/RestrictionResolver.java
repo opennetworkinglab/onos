@@ -16,26 +16,16 @@
 
 package org.onosproject.yangutils.datamodel.utils;
 
-import static org.onosproject.yangutils.datamodel.YangDataTypes.DECIMAL64;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.INT16;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.INT32;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.INT64;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.INT8;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.UINT16;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.UINT32;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.UINT64;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.UINT8;
-import static org.onosproject.yangutils.datamodel.utils.YangConstructType.LENGTH_DATA;
-import static org.onosproject.yangutils.datamodel.utils.YangConstructType.RANGE_DATA;
-import static org.onosproject.yangutils.datamodel.utils.builtindatatype.BuiltInTypeObjectFactory.getDataObjectFromString;
-
 import java.util.regex.Pattern;
-
-import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangRangeInterval;
 import org.onosproject.yangutils.datamodel.YangRangeRestriction;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangBuiltInDataTypeInfo;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
+
+import static org.onosproject.yangutils.datamodel.BuiltInTypeObjectFactory.getDataObjectFromString;
+import static org.onosproject.yangutils.datamodel.utils.YangConstructType.LENGTH_DATA;
+import static org.onosproject.yangutils.datamodel.utils.YangConstructType.RANGE_DATA;
 
 /**
  * Represents restriction resolver which provide common utility used by parser
@@ -71,9 +61,9 @@ public final class RestrictionResolver {
      * @throws DataModelException a violation in data model rule
      */
     public static YangRangeRestriction processRangeRestriction(YangRangeRestriction refRangeRestriction,
-            int lineNumber, int charPositionInLine,
-            boolean hasReferredRestriction,
-            String curRangeString, YangDataTypes effectiveType)
+                                                               int lineNumber, int charPositionInLine,
+                                                               boolean hasReferredRestriction,
+                                                               String curRangeString, YangDataTypes effectiveType)
             throws DataModelException {
         YangBuiltInDataTypeInfo<?> startValue;
         YangBuiltInDataTypeInfo<?> endValue;
@@ -157,9 +147,9 @@ public final class RestrictionResolver {
      * @throws DataModelException a violation in data model rule
      */
     public static YangRangeRestriction processLengthRestriction(YangRangeRestriction refLengthRestriction,
-            int lineNumber, int charPositionInLine,
-            boolean hasReferredRestriction,
-            String curLengthString) throws DataModelException {
+                                                                int lineNumber, int charPositionInLine,
+                                                                boolean hasReferredRestriction,
+                                                                String curLengthString) throws DataModelException {
 
         YangBuiltInDataTypeInfo<?> startValue;
         YangBuiltInDataTypeInfo<?> endValue;
@@ -229,24 +219,6 @@ public final class RestrictionResolver {
             }
         }
         return lengthRestriction;
-    }
-
-    /**
-     * Returns whether the data type is of range restricted type.
-     *
-     * @param dataType data type to be checked
-     * @return true, if data type can have range restrictions, false otherwise
-     */
-    public static boolean isOfRangeRestrictedType(YangDataTypes dataType) {
-        return dataType == INT8
-                || dataType == INT16
-                || dataType == INT32
-                || dataType == INT64
-                || dataType == UINT8
-                || dataType == UINT16
-                || dataType == UINT32
-                || dataType == UINT64
-                || dataType == DECIMAL64;
     }
 
     /**

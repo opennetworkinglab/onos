@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.datamodel;
+package org.onosproject.yangutils.datamodel.utils.builtindatatype;
 
 /**
  * Represents ENUM to identify the YANG data type.

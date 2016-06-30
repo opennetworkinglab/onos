@@ -58,7 +58,7 @@ import org.onosproject.yangutils.datamodel.utils.YangConstructType;
  */
 public class YangLeafList
         implements YangCommonInfo, Parsable, Cloneable, Serializable,
-        YangMustHolder, YangWhenHolder, YangIfFeatureHolder {
+        YangMustHolder, YangWhenHolder, YangIfFeatureHolder, YangDataNode {
 
     private static final long serialVersionUID = 806201637L;
 
