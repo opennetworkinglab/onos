@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -33,7 +33,7 @@
     </properties>
 
     <dependencies>
-         <dependency>
+        <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>yangutils-datamodel</artifactId>
             <version>1.7.0-SNAPSHOT</version>
@@ -133,7 +133,8 @@
                 </executions>
                 <configuration>
                     <sourceDirectory>src/main/resources</sourceDirectory>
-                    <outputDirectory>target/generated-sources/org/onosproject/yangutils/parser/antlrgencode</outputDirectory>
+                    <outputDirectory>target/generated-sources/org/onosproject/yangutils/parser/antlrgencode
+                    </outputDirectory>
                     <visitor>false</visitor>
                     <listener>true</listener>
                 </configuration>
@@ -158,12 +159,24 @@
                             <followSymlinks>false</followSymlinks>
                             <useDefaultExcludes>true</useDefaultExcludes>
                             <excludes>
-                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYangLexer.java</exclude>
-                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYang.tokens</exclude>
-                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYangParser.java</exclude>
-                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYangLexer.tokens</exclude>
-                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/YangLexer.java</exclude>
-                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/YangLexer.tokens</exclude>
+                                <exclude>
+                                    **/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYangLexer.java
+                                </exclude>
+                                <exclude>
+                                    **/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYang.tokens
+                                </exclude>
+                                <exclude>
+                                    **/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYangParser.java
+                                </exclude>
+                                <exclude>
+                                    **/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYangLexer.tokens
+                                </exclude>
+                                <exclude>
+                                    **/generated-sources/org/onosproject/yangutils/parser/antlrgencode/YangLexer.java
+                                </exclude>
+                                <exclude>
+                                    **/generated-sources/org/onosproject/yangutils/parser/antlrgencode/YangLexer.tokens
+                                </exclude>
                             </excludes>
                         </fileset>
                     </filesets>
@@ -184,6 +197,9 @@
                         <configuration>
                             <sources>
                                 <source>target/generated-sources/org/onosproject/yangutils/parser/antlrgencode</source>
+                                <sourceDirectory>
+                                    target/generated-sources/org/onosproject/yangutils/parser/antlrgencode
+                                </sourceDirectory>
                             </sources>
                         </configuration>
                     </execution>
@@ -219,5 +235,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
