@@ -77,6 +77,9 @@ public class GroupStatsCollector implements TimerTask {
         if (sw.getRole() != RoleState.MASTER) {
             return;
         }
+        if (!sw.isConnected()) {
+            return;
+        }
         Long statsXid = OpenFlowGroupProvider.getXidAndAdd(2);
         OFGroupStatsRequest statsRequest = sw.factory().buildGroupStatsRequest()
                 .setGroup(OFGroup.ALL)
