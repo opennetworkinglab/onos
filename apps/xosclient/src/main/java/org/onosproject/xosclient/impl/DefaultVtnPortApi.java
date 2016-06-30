@@ -25,6 +25,7 @@ import org.onosproject.xosclient.api.VtnPortId;
 import org.onosproject.xosclient.api.VtnServiceId;
 import org.onosproject.xosclient.api.XosAccess;
 import org.openstack4j.api.OSClient;
+import org.openstack4j.api.exceptions.AuthenticationException;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.openstack.OSFactory;
@@ -132,10 +133,15 @@ public final class DefaultVtnPortApi extends XosApi implements VtnPortApi {
 
         // creating a client every time must be inefficient, but this method
         // will be removed once XOS provides equivalent APIs
-        return OSFactory.builder()
-                .endpoint(osAccess.endpoint())
-                .credentials(osAccess.user(), osAccess.password())
-                .tenantName(osAccess.tenant())
-                .authenticate();
+        try {
+            return OSFactory.builder()
+                    .endpoint(osAccess.endpoint())
+                    .credentials(osAccess.user(), osAccess.password())
+                    .tenantName(osAccess.tenant())
+                    .authenticate();
+        } catch (AuthenticationException e) {
+            log.warn("Failed to authenticate OpenStack API with {}", osAccess);
+            return null;
+        }
     }
 }
