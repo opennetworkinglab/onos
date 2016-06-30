@@ -135,9 +135,13 @@ def unpackONOS( destDir='/tmp', run=quietRun ):
         raise Exception( 'Missing ONOS tarball %s - run buck build onos?'
                          % tarPath )
     info( '(unpacking %s)' % destDir)
-    cmds = ( 'mkdir -p "%s" && cd "%s" && tar xzf "%s"'
-             % ( destDir, destDir, tarPath) )
-    run( cmds, shell=True, verbose=True )
+    success = '*** SUCCESS ***'
+    cmds = ( 'mkdir -p "%s" && cd "%s" && tar xzf "%s" && echo "%s"'
+             % ( destDir, destDir, tarPath, success ) )
+    result = run( cmds, shell=True, verbose=True )
+    if success not in result:
+        raise Exception( 'Failed to unpack ONOS archive %s in %s:\n%s\n' %
+                         ( tarPath, destDir, result ) )
     # We can use quietRun for this usually
     tarOutput = quietRun( 'tar tzf "%s" | head -1' % tarPath, shell=True)
     tarOutput = tarOutput.split()[ 0 ].strip()
