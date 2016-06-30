@@ -56,6 +56,7 @@ import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupService;
+import org.onosproject.net.packet.PacketPriority;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -254,13 +255,9 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         selector.matchVlanId(vidCriterion.vlanId());
         treatment.transition(TMAC_TABLE);
 
-        VlanId storeVlan = null;
         if (vidCriterion.vlanId() == VlanId.NONE) {
             // untagged packets are assigned vlans
             treatment.pushVlan().setVlanId(assignedVlan);
-            storeVlan = assignedVlan;
-        } else {
-            storeVlan = vidCriterion.vlanId();
         }
 
         // ofdpa cannot match on ALL portnumber, so we need to use separate
@@ -289,6 +286,25 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                     .forTable(VLAN_TABLE).build();
             rules.add(rule);
         }
+
+        // Emulating OFDPA behavior by popping off internal assigned VLAN
+        // before sending to controller
+        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_ARP)
+                .matchVlanId(assignedVlan);
+        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder()
+                .popVlan()
+                .punt();
+        FlowRule internalVlan = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(sbuilder.build())
+                .withTreatment(tbuilder.build())
+                .withPriority(PacketPriority.CONTROL.priorityValue() + 1)
+                .fromApp(applicationId)
+                .makePermanent()
+                .forTable(ACL_TABLE).build();
+        rules.add(internalVlan);
+
         return rules;
     }
 
@@ -659,9 +675,6 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                 if (ins instanceof OutputInstruction) {
                     OutputInstruction o = (OutputInstruction) ins;
                     if (o.port() == PortNumber.CONTROLLER) {
-                        // emulating real ofdpa behavior by popping off internal
-                        // vlan before sending to controller
-                        ttBuilder.popVlan();
                         ttBuilder.add(o);
                     } else {
                         log.warn("Only allowed treatments in versatile forwarding "
