@@ -303,8 +303,10 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         case FLOW_REMOVED:
             if (monitorAllEvents) {
                 executorFlowRemoved.execute(new OFMessageHandler(dpid, msg));
-                break;
+            } else {
+                executorMsgs.execute(new OFMessageHandler(dpid, msg));
             }
+            break;
         case ERROR:
             log.debug("Received error message from {}: {}", dpid, msg);
             errorMsgs.putIfAbsent(msg.getXid(), true);
