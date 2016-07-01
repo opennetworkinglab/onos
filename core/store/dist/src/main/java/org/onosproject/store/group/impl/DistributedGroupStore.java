@@ -135,11 +135,12 @@ public class DistributedGroupStore
             groupEntriesById = new ConcurrentHashMap<>();
     private ConsistentMap<GroupStoreKeyMapKey,
             StoredGroupEntry> auditPendingReqQueue = null;
+    private MapEventListener<GroupStoreKeyMapKey, StoredGroupEntry>
+            mapListener = new GroupStoreKeyMapListener();
     private final ConcurrentMap<DeviceId, ConcurrentMap<GroupId, Group>>
             extraneousGroupEntriesById = new ConcurrentHashMap<>();
     private ExecutorService messageHandlingExecutor;
     private static final int MESSAGE_HANDLER_THREAD_POOL_SIZE = 1;
-
     private final HashMap<DeviceId, Boolean> deviceAuditStatus = new HashMap<>();
 
     private final AtomicInteger groupIdGen = new AtomicInteger();
@@ -198,7 +199,7 @@ public class DistributedGroupStore
                 .withName("onos-group-store-keymap")
                 .withSerializer(serializer)
                 .build();
-        groupStoreEntriesByKey.addListener(new GroupStoreKeyMapListener());
+        groupStoreEntriesByKey.addListener(mapListener);
         log.debug("Current size of groupstorekeymap:{}",
                   groupStoreEntriesByKey.size());
 
@@ -216,6 +217,7 @@ public class DistributedGroupStore
 
     @Deactivate
     public void deactivate() {
+        groupStoreEntriesByKey.removeListener(mapListener);
         cfgService.unregisterProperties(getClass(), false);
         clusterCommunicator.removeSubscriber(GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST);
         log.info("Stopped");

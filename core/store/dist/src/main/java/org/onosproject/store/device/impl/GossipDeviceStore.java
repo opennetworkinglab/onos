@@ -257,6 +257,7 @@ public class GossipDeviceStore
 
     @Deactivate
     public void deactivate() {
+        devicePortStats.removeListener(portStatsListener);
         devicePortStats.destroy();
         devicePortDeltaStats.destroy();
         executor.shutdownNow();
@@ -274,6 +275,24 @@ public class GossipDeviceStore
         devices.clear();
         devicePorts.clear();
         availableDevices.clear();
+        clusterCommunicator.removeSubscriber(
+                GossipDeviceStoreMessageSubjects.DEVICE_UPDATE);
+        clusterCommunicator.removeSubscriber(
+                GossipDeviceStoreMessageSubjects.DEVICE_OFFLINE);
+        clusterCommunicator.removeSubscriber(
+                GossipDeviceStoreMessageSubjects.DEVICE_REMOVE_REQ);
+        clusterCommunicator.removeSubscriber(
+                GossipDeviceStoreMessageSubjects.DEVICE_REMOVED);
+        clusterCommunicator.removeSubscriber(
+                GossipDeviceStoreMessageSubjects.PORT_UPDATE);
+        clusterCommunicator.removeSubscriber(
+                GossipDeviceStoreMessageSubjects.PORT_STATUS_UPDATE);
+        clusterCommunicator.removeSubscriber(
+                GossipDeviceStoreMessageSubjects.DEVICE_ADVERTISE);
+        clusterCommunicator.removeSubscriber(
+                GossipDeviceStoreMessageSubjects.DEVICE_INJECTED);
+        clusterCommunicator.removeSubscriber(
+                GossipDeviceStoreMessageSubjects.PORT_INJECTED);
         log.info("Stopped");
     }
 

@@ -86,6 +86,12 @@ public class GossipIntentStore
 
     private final AtomicLong sequenceNumber = new AtomicLong(0);
 
+    private EventuallyConsistentMapListener<Key, IntentData>
+            mapCurrentListener = new InternalCurrentListener();
+
+    private EventuallyConsistentMapListener<Key, IntentData>
+            mapPendingListener = new InternalPendingListener();
+
     @Activate
     public void activate() {
         KryoNamespace.Builder intentSerializer = KryoNamespace.newBuilder()
@@ -111,14 +117,16 @@ public class GossipIntentStore
                 .withPeerUpdateFunction((key, intentData) -> getPeerNodes(key, intentData))
                 .build();
 
-        currentMap.addListener(new InternalCurrentListener());
-        pendingMap.addListener(new InternalPendingListener());
+        currentMap.addListener(mapCurrentListener);
+        pendingMap.addListener(mapPendingListener);
 
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        currentMap.removeListener(mapCurrentListener);
+        pendingMap.removeListener(mapPendingListener);
         currentMap.destroy();
         pendingMap.destroy();
 

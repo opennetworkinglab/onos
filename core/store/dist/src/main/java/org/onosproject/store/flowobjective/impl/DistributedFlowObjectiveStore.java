@@ -90,6 +90,7 @@ public class DistributedFlowObjectiveStore
 
     @Deactivate
     public void deactivate() {
+        nextGroups.removeListener(mapListener);
         tpool.shutdown();
         log.info("Stopped");
     }
