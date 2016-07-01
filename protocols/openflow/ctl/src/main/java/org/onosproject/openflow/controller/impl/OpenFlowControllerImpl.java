@@ -124,6 +124,14 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     private final ExecutorService executorBarrier =
         Executors.newFixedThreadPool(4, groupedThreads("onos/of", "event-barrier-%d", log));
 
+    //Separate executor thread for handling error messages and barrier replies for same failed
+    // transactions to avoid context switching of thread
+    protected ExecutorService executorErrorMsgs =
+            Executors.newSingleThreadExecutor(groupedThreads("onos/of", "event-error-msg-%d", log));
+
+    //concurrent hashmap to track failed transactions
+    protected ConcurrentMap<Long, Boolean> errorMsgs =
+            new ConcurrentHashMap<>();
     protected ConcurrentMap<Dpid, OpenFlowSwitch> connectedSwitches =
             new ConcurrentHashMap<>();
     protected ConcurrentMap<Dpid, OpenFlowSwitch> activeMasterSwitches =
@@ -299,7 +307,8 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             }
         case ERROR:
             log.debug("Received error message from {}: {}", dpid, msg);
-            executorMsgs.execute(new OFMessageHandler(dpid, msg));
+            errorMsgs.putIfAbsent(msg.getXid(), true);
+            executorErrorMsgs.execute(new OFMessageHandler(dpid, msg));
             break;
         case STATS_REPLY:
             OFStatsReply reply = (OFStatsReply) msg;
@@ -407,7 +416,14 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             }
             break;
         case BARRIER_REPLY:
-            executorBarrier.execute(new OFMessageHandler(dpid, msg));
+            if (errorMsgs.containsKey(msg.getXid())) {
+                //To make oferror msg handling and corresponding barrier reply serialized,
+                // executorErrorMsgs is used for both transaction
+                errorMsgs.remove(msg.getXid());
+                executorErrorMsgs.execute(new OFMessageHandler(dpid, msg));
+            } else {
+                executorBarrier.execute(new OFMessageHandler(dpid, msg));
+            }
             break;
         case EXPERIMENTER:
             long experimenter = ((OFExperimenter) msg).getExperimenter();
