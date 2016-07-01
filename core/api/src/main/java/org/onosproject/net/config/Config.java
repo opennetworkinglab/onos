@@ -321,7 +321,12 @@ public abstract class Config<S> {
      * @return property value or default value
      */
     protected <E extends Enum<E>> E get(String name, E defaultValue, Class<E> enumClass) {
-        return Enum.valueOf(enumClass, object.path(name).asText(defaultValue.toString()));
+        if (defaultValue != null) {
+            Enum.valueOf(enumClass, object.path(name).asText(defaultValue.toString()));
+        }
+
+        JsonNode node = object.get(name);
+        return node == null ? null : Enum.valueOf(enumClass, node.asText());
     }
 
     /**

@@ -45,7 +45,7 @@ public final class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
      * @return device type override
      */
     public Device.Type type() {
-        return get(TYPE, Device.Type.SWITCH, Device.Type.class);
+        return get(TYPE, null, Device.Type.class);
     }
 
     /**
