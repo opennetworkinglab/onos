@@ -2,6 +2,8 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//drivers/utilities:onos-drivers-utilities',
     '//protocols/netconf/api:onos-protocols-netconf-api',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
 ]
 
 TEST_DEPS = [

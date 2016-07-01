@@ -64,8 +64,16 @@ public class NetconfSessionImpl implements NetconfSession {
     private static final String GET_CLOSE = "</get>";
     private static final String WITH_DEFAULT_OPEN = "<with-defaults ";
     private static final String WITH_DEFAULT_CLOSE = "</with-defaults>";
+    private static final String DEFAULT_OPERATION_OPEN = "<default-operation>";
+    private static final String DEFAULT_OPERATION_CLOSE = "</default-operation>";
     private static final String FILTER_OPEN = "<filter type=\"subtree\">";
     private static final String FILTER_CLOSE = "</filter>";
+    private static final String EDIT_CONFIG_OPEN = "<edit-config>";
+    private static final String EDIT_CONFIG_CLOSE = "</edit-config>";
+    private static final String TARGET_OPEN = "<target>";
+    private static final String TARGET_CLOSE = "</target>";
+    private static final String CONFIG_OPEN = "<config>";
+    private static final String CONFIG_CLOSE = "</config>";
     private static final String XML_HEADER =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
     private static final String NETCONF_BASE_NAMESPACE =
@@ -355,28 +363,31 @@ public class NetconfSessionImpl implements NetconfSession {
             throws NetconfException {
         newConfiguration = newConfiguration.trim();
         StringBuilder rpc = new StringBuilder(XML_HEADER);
-        rpc.append("<rpc ");
+        rpc.append(RPC_OPEN);
         rpc.append(MESSAGE_ID_STRING);
         rpc.append(EQUAL);
         rpc.append("\"");
         rpc.append(messageIdInteger.get());
         rpc.append("\"  ");
-        rpc.append("xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
-        rpc.append("<edit-config>\n");
-        rpc.append("<target>");
+        rpc.append(NETCONF_BASE_NAMESPACE).append(">\n");
+        rpc.append(EDIT_CONFIG_OPEN).append("\n");
+        rpc.append(TARGET_OPEN);
         rpc.append("<").append(targetConfiguration).append("/>");
-        rpc.append("</target>\n");
-        rpc.append("<default-operation>");
-        rpc.append(mode);
-        rpc.append("</default-operation>\n");
-        rpc.append("<config>\n");
+        rpc.append(TARGET_CLOSE).append("\n");
+        if (mode != null) {
+            rpc.append(DEFAULT_OPERATION_OPEN);
+            rpc.append(mode);
+            rpc.append(DEFAULT_OPERATION_CLOSE).append("\n");
+        }
+        rpc.append(CONFIG_OPEN).append("\n");
         rpc.append(newConfiguration);
-        rpc.append("</config>\n");
-        rpc.append("</edit-config>\n");
-        rpc.append("</rpc>");
+        rpc.append(CONFIG_CLOSE).append("\n");
+        rpc.append(EDIT_CONFIG_CLOSE).append("\n");
+        rpc.append(RPC_CLOSE);
         rpc.append(ENDPATTERN);
         log.info(rpc.toString());
-        return checkReply(sendRequest(rpc.toString()));
+        String reply = sendRequest(rpc.toString());
+        return checkReply(reply);
     }
 
     @Override
@@ -521,10 +532,12 @@ public class NetconfSessionImpl implements NetconfSession {
     private boolean checkReply(String reply) throws NetconfException {
         if (reply != null) {
             if (!reply.contains("<rpc-error>")) {
+                log.debug("Device {} sent reply {}", deviceInfo, reply);
                 return true;
             } else if (reply.contains("<ok/>")
                     || (reply.contains("<rpc-error>")
                     && reply.contains("warning"))) {
+                log.debug("Device {} sent reply {}", deviceInfo, reply);
                 return true;
             }
         }
