@@ -135,8 +135,6 @@ public class PcepBandwidthObjectVer1 implements PcepBandwidthObject {
      * @return normal float
      */
     public static float ieeeToFloatRead(int iVal) {
-        iVal = (((iVal & 0xFF) << 24) | ((iVal & 0xFF00) << 8)
-                | ((iVal & 0xFF0000) >> 8) | ((iVal >> 24) & 0xFF));
 
         return Float.intBitsToFloat(iVal);
     }
@@ -152,7 +150,16 @@ public class PcepBandwidthObjectVer1 implements PcepBandwidthObject {
             throw new PcepParseException("Failed to write bandwidth object header. Index " + objLenIndex);
         }
 
-        cb.writeInt(Float.floatToIntBits(iBandwidth));
+        //Convert to bytes per second
+        float bwBytes = iBandwidth / 8.0f;
+        //Bytes/sec to IEEE floating format
+        int bandwidth = Float.floatToIntBits(bwBytes);
+
+        cb.writeByte(bandwidth >>> 24);
+        cb.writeByte(bandwidth >> 16 & 0xff);
+        cb.writeByte(bandwidth >> 8 & 0xff);
+        cb.writeByte(bandwidth & 0xff);
+
         short hLength = (short) (cb.writerIndex() - objStartIndex);
         cb.setShort(objLenIndex, hLength);
         //will be helpful during print().

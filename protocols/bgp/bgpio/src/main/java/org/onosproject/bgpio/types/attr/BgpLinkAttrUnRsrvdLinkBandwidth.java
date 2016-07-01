@@ -115,8 +115,6 @@ public class BgpLinkAttrUnRsrvdLinkBandwidth implements BgpValueType {
      * @return normal float
      */
     static float ieeeToFloatRead(int  iVal) {
-        iVal = (((iVal & 0xFF) << 24) | ((iVal & 0xFF00) << 8)
-                | ((iVal & 0xFF0000) >> 8) | ((iVal >> 24) & 0xFF));
 
         return Float.intBitsToFloat(iVal);
     }

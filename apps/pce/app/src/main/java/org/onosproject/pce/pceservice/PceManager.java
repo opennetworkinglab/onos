@@ -114,7 +114,6 @@ import static org.onosproject.incubator.net.tunnel.Tunnel.Type.MPLS;
 import static org.onosproject.incubator.net.tunnel.Tunnel.State.INIT;
 import static org.onosproject.incubator.net.tunnel.Tunnel.State.ESTABLISHED;
 import static org.onosproject.incubator.net.tunnel.Tunnel.State.UNSTABLE;
-import static org.onosproject.incubator.net.tunnel.Tunnel.State.FAILED;
 import static org.onosproject.pce.pceservice.LspType.WITH_SIGNALLING;
 import static org.onosproject.pce.pceservice.LspType.SR_WITHOUT_SIGNALLING;
 import static org.onosproject.pce.pceservice.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
@@ -1178,10 +1177,6 @@ public class PceManager implements PceService {
                                                                   tunnel.tunnelName().value(), constraints, lspType));
                 }
 
-                if (tunnel.state() == FAILED) {
-                    // Check whether this ONOS instance is master, if yes, recompute and send update.
-                    checkForMasterAndUpdateTunnel(tunnel.path().src().deviceId(), tunnel);
-                }
                 break;
 
             case TUNNEL_REMOVED:
