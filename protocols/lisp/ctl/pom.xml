@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015-present Open Networking Laboratory
+  ~ Copyright 2016-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,44 +18,38 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos</artifactId>
+        <artifactId>onos-lisp</artifactId>
         <version>1.7.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-protocols</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>onos-lisp-ctl</artifactId>
+    <packaging>bundle</packaging>
 
-    <description>ONOS southbound protocols</description>
-
-    <modules>
-        <module>openflow</module>
-        <module>netconf</module>
-        <module>pcep</module>
-        <module>ovsdb</module>
-        <module>bgp</module>
-        <module>rest</module>
-        <module>ospf</module>
-        <module>isis</module>
-        <module>snmp</module>
-        <module>bmv2</module>
-        <module>lisp</module>
-    </modules>
+    <description>ONOS LISP plugin controller</description>
 
     <dependencies>
         <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-misc</artifactId>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onlab-junit</artifactId>
+            <artifactId>onos-lisp-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-api</artifactId>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onlab-osgi</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -64,13 +58,8 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.onosproject</groupId>
-                <artifactId>onos-maven-plugin</artifactId>
+                <artifactId>maven-scr-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
-
 </project>
