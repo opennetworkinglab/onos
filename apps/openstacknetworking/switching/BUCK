@@ -3,14 +3,14 @@ COMPILE_DEPS = [
     '//core/store/serializers:onos-core-serializers',
     '//apps/openstackinterface/api:onos-apps-openstackinterface-api',
     '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
+    '//apps/openstacknode:onos-apps-openstacknode',
     '//apps/dhcp/api:onos-apps-dhcp-api',
 ]
 
 BUNDLES = [
-    '//apps/openstackinterface/api:onos-apps-openstackinterface-api',
     '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
-    '//apps/openstacknetworking/openstackswitching:onos-apps-openstacknetworking-openstackswitching',
-    '//apps/dhcp/api:onos-apps-dhcp-api',
+    '//apps/openstacknetworking/web:onos-apps-openstacknetworking-web',
+    '//apps/openstacknetworking/switching:onos-apps-openstacknetworking-switching',
 ]
 
 osgi_jar_with_tests (
@@ -18,9 +18,11 @@ osgi_jar_with_tests (
 )
 
 onos_app (
+    app_name = 'org.onosproject.openstackswitching',
     title = 'OpenStack Switching App',
     category = 'Utility',
     url = 'http://onosproject.org',
     description = 'OpenStack Switching application.',
     included_bundles = BUNDLES,
+    required_apps = [ 'org.onosproject.openstackinterface', 'org.onosproject.openstacknode', 'org.onosproject.dhcp' ]
 )

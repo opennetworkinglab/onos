@@ -38,7 +38,8 @@
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>SONA Openstack Node Bootstrap Application</onos.app.readme>
         <onos.app.requires>
-            org.onosproject.ovsdb-base
+            org.onosproject.ovsdb-base,
+            org.onosproject.drivers.ovsdb
         </onos.app.requires>
     </properties>
 

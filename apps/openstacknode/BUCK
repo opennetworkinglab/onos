@@ -16,5 +16,5 @@ onos_app (
     category = 'Utility',
     url = 'http://onosproject.org',
     description = 'SONA Openstack Node Bootstrap Application.',
-    required_app = [ 'org.onosproject.ovsdb-base' ],
+    required_apps = [ 'org.onosproject.ovsdb-base', 'org.onosproject.drivers.ovsdb' ]
 )

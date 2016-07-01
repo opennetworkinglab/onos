@@ -242,7 +242,7 @@ public final class OpenstackNodeManager implements OpenstackNodeService {
         deviceService.removeListener(deviceListener);
         nodeStore.removeListener(nodeStoreListener);
 
-        componentConfigService.unregisterProperties(getClass(), true);
+        componentConfigService.unregisterProperties(getClass(), false);
         configRegistry.unregisterConfigFactory(configFactory);
 
         leadershipService.withdraw(appId.name());

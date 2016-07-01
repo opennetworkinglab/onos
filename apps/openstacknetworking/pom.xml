@@ -29,11 +29,10 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>app</module>
-        <module>web</module>
         <module>api</module>
-        <module>openstackswitching</module>
-        <module>openstackrouting</module>
+        <module>web</module>
+        <module>switching</module>
+        <module>routing</module>
     </modules>
 
     <description>SONA Openstack Networking Application</description>

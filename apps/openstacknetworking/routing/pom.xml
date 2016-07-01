@@ -25,24 +25,32 @@
         <version>1.7.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-app-openstacknetworking-app</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>onos-app-openstackrouting</artifactId>
+    <packaging>bundle</packaging>
 
     <properties>
-        <onos.app.readme>Openstack Networking Application.</onos.app.readme>
+        <onos.app.name>org.onosproject.openstackrouting</onos.app.name>
+        <onos.app.title>Openstack Switching App</onos.app.title>
+        <onos.app.category>Traffic Steering</onos.app.category>
+        <onos.app.url>http://onosproject.org</onos.app.url>
+        <onos.app.requires>
+            org.onosproject.openstackinterface,
+            org.onosproject.openstacknode
+        </onos.app.requires>
     </properties>
-
-    <description>SONA Openstack Networking main Application</description>
 
     <dependencies>
         <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-openstackswitching</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-openstackrouting</artifactId>
+            <artifactId>onos-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-core-serializers</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -52,8 +60,14 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-openstacknetworking-web</artifactId>
+            <artifactId>onos-app-openstackinterface-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-scalablegateway</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>
+

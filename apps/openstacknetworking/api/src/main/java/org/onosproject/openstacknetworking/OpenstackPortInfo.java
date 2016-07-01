@@ -19,14 +19,12 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Contains OpenstackPort Information.
  */
+// TODO remove this
 public final class OpenstackPortInfo {
     private final Ip4Address hostIp;
     private final MacAddress hostMac;
@@ -34,7 +32,6 @@ public final class OpenstackPortInfo {
     private final long vni;
     private final Ip4Address gatewayIP;
     private final String networkId;
-    private final Collection<String> securityGroups;
 
     /**
      * Returns OpenstackPortInfo reference.
@@ -45,17 +42,15 @@ public final class OpenstackPortInfo {
      * @param vni  tunnel ID
      * @param gatewayIP gateway IP address
      * @param networkId network identifier
-     * @param securityGroups security group list
      */
     public OpenstackPortInfo(Ip4Address hostIp, MacAddress hostMac, DeviceId deviceId, long vni,
-                             Ip4Address gatewayIP, String networkId, Collection<String> securityGroups) {
+                             Ip4Address gatewayIP, String networkId) {
         this.hostIp = hostIp;
         this.hostMac = hostMac;
         this.deviceId = deviceId;
         this.vni = vni;
         this.gatewayIP = gatewayIP;
         this.networkId = networkId;
-        this.securityGroups = securityGroups;
     }
 
     /**
@@ -113,15 +108,6 @@ public final class OpenstackPortInfo {
     }
 
     /**
-     * Returns Security Group ID list.
-     *
-     * @return list of Security Group ID
-     */
-    public Collection<String> securityGroups() {
-        return Collections.unmodifiableCollection(securityGroups);
-    }
-
-    /**
      * Returns the builder of the OpenstackPortInfo.
      *
      * @return OpenstackPortInfo builder reference
@@ -140,7 +126,6 @@ public final class OpenstackPortInfo {
         private DeviceId deviceId;
         private long vni;
         private Ip4Address gatewayIP;
-        private Collection<String> securityGroups;
         private String networkId;
 
         /**
@@ -210,23 +195,12 @@ public final class OpenstackPortInfo {
         }
 
         /**
-         * Sets the security group ID list.
-         *
-         * @param securityGroups security group ID list
-         * @return Builder reference
-         */
-        public Builder setSecurityGroups(Collection<String> securityGroups) {
-            this.securityGroups = securityGroups;
-            return this;
-        }
-
-        /**
          * Builds the OpenstackPortInfo reference.
          *
          * @return OpenstackPortInfo reference
          */
         public OpenstackPortInfo build() {
-            return new OpenstackPortInfo(hostIp, hostMac, deviceId, vni, gatewayIP, networkId, securityGroups);
+            return new OpenstackPortInfo(hostIp, hostMac, deviceId, vni, gatewayIP, networkId);
         }
     }
 }

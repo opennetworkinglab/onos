@@ -1,0 +1,303 @@
+/*
+ * Copyright 2016-present Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.onosproject.openstacknetworking.switching;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.VlanId;
+import org.onlab.util.Tools;
+import org.onosproject.core.CoreService;
+import org.onosproject.dhcp.DhcpService;
+import org.onosproject.dhcp.IpAssignment;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.Device;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
+import org.onosproject.net.Port;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.host.DefaultHostDescription;
+import org.onosproject.net.host.HostDescription;
+import org.onosproject.net.host.HostProvider;
+import org.onosproject.net.host.HostProviderRegistry;
+import org.onosproject.net.host.HostProviderService;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.openstackinterface.OpenstackInterfaceService;
+import org.onosproject.openstackinterface.OpenstackNetwork;
+import org.onosproject.openstackinterface.OpenstackPort;
+import org.onosproject.openstackinterface.OpenstackSubnet;
+import org.onosproject.openstacknetworking.OpenstackPortInfo;
+import org.onosproject.openstacknetworking.OpenstackSwitchingService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.dhcp.IpAssignment.AssignmentStatus.Option_RangeNotEnforced;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.AnnotationKeys.PORT_NAME;
+import static org.onosproject.openstacknetworking.switching.Constants.*;
+
+@Service
+@Component(immediate = true)
+/**
+ * Populates forwarding rules for VMs created by Openstack.
+ */
+public final class OpenstackSwitchingManager extends AbstractProvider
+        implements OpenstackSwitchingService, HostProvider {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostProviderRegistry hostProviderRegistry;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DhcpService dhcpService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostService hostService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackInterfaceService openstackService;
+
+    private final ExecutorService deviceEventExecutor =
+            Executors.newSingleThreadExecutor(groupedThreads("onos/openstackswitching", "device-event"));
+    private final ExecutorService configEventExecutor =
+            Executors.newSingleThreadExecutor(groupedThreads("onos/openstackswitching", "config-event"));
+    private final InternalDeviceListener internalDeviceListener = new InternalDeviceListener();
+
+    private HostProviderService hostProvider;
+
+    /**
+     * Creates OpenStack switching host provider.
+     */
+    public OpenstackSwitchingManager() {
+        super(new ProviderId("host", APP_ID));
+    }
+
+    @Activate
+    protected void activate() {
+        coreService.registerApplication(APP_ID);
+        deviceService.addListener(internalDeviceListener);
+        hostProvider = hostProviderRegistry.register(this);
+
+        log.info("Started");
+    }
+
+    @Deactivate
+    protected void deactivate() {
+        hostProviderRegistry.unregister(this);
+        deviceService.removeListener(internalDeviceListener);
+
+        deviceEventExecutor.shutdown();
+        configEventExecutor.shutdown();
+
+        log.info("Stopped");
+    }
+
+    @Override
+    public void triggerProbe(Host host) {
+        // no probe is required
+    }
+
+    @Override
+    // TODO remove this and openstackPortInfo
+    public Map<String, OpenstackPortInfo> openstackPortInfo() {
+        Map<String, OpenstackPortInfo> portInfoMap = Maps.newHashMap();
+
+        Tools.stream(hostService.getHosts()).filter(this::isValidHost).forEach(host -> {
+            Port port = deviceService.getPort(
+                    host.location().deviceId(),
+                    host.location().port());
+
+            OpenstackPortInfo portInfo = OpenstackPortInfo.builder()
+                    .setDeviceId(host.location().deviceId())
+                    .setHostMac(host.mac())
+                    .setNetworkId(host.annotations().value(NETWORK_ID))
+                    .setGatewayIP(Ip4Address.valueOf(host.annotations().value(GATEWAY_IP)))
+                    .setVni(Long.valueOf(host.annotations().value(VXLAN_ID)))
+                    .setHostIp(host.ipAddresses().stream().findFirst().get().getIp4Address())
+                    .build();
+
+            portInfoMap.put(port.annotations().value(PORT_NAME), portInfo);
+        });
+
+        return portInfoMap;
+    }
+
+    // TODO remove this and openstackPortInfo
+    private boolean isValidHost(Host host) {
+        return !host.ipAddresses().isEmpty() &&
+                host.annotations().value(VXLAN_ID) != null &&
+                host.annotations().value(NETWORK_ID) != null &&
+                host.annotations().value(TENANT_ID) != null &&
+                host.annotations().value(GATEWAY_IP) != null &&
+                host.annotations().value(PORT_ID) != null;
+    }
+
+    private void processPortAdded(Port port) {
+        OpenstackPort osPort = openstackService.port(port);
+        if (osPort == null) {
+            log.warn("Failed to get OpenStack port for {}", port);
+            return;
+        }
+
+        OpenstackNetwork osNet = openstackService.network(osPort.networkId());
+        if (osNet == null) {
+            log.warn("Failed to get OpenStack network {}",
+                    osPort.networkId());
+            return;
+        }
+
+        registerDhcpInfo(osPort);
+        ConnectPoint connectPoint = new ConnectPoint(port.element().id(), port.number());
+        // TODO remove this and openstackPortInfo
+        String gatewayIp = osNet.subnets().stream().findFirst().get().gatewayIp();
+
+        // Added CREATE_TIME intentionally to trigger HOST_UPDATED event for the
+        // existing instances.
+        DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
+                .set(NETWORK_ID, osPort.networkId())
+                .set(PORT_ID, osPort.id())
+                .set(VXLAN_ID, osNet.segmentId())
+                .set(TENANT_ID, osNet.tenantId())
+                // TODO remove this and openstackPortInfo
+                .set(GATEWAY_IP, gatewayIp)
+                .set(CREATE_TIME, String.valueOf(System.currentTimeMillis()));
+
+        HostDescription hostDesc = new DefaultHostDescription(
+                osPort.macAddress(),
+                VlanId.NONE,
+                new HostLocation(connectPoint, System.currentTimeMillis()),
+                Sets.newHashSet(osPort.fixedIps().values()),
+                annotations.build());
+
+        HostId hostId = HostId.hostId(osPort.macAddress());
+        hostProvider.hostDetected(hostId, hostDesc, false);
+    }
+
+    private void processPortRemoved(Port port) {
+        ConnectPoint connectPoint = new ConnectPoint(port.element().id(), port.number());
+        hostService.getConnectedHosts(connectPoint).stream()
+                .forEach(host -> {
+                    dhcpService.removeStaticMapping(host.mac());
+                    hostProvider.hostVanished(host.id());
+                });
+    }
+
+    private void registerDhcpInfo(OpenstackPort openstackPort) {
+        checkNotNull(openstackPort);
+        checkArgument(!openstackPort.fixedIps().isEmpty());
+
+        OpenstackSubnet openstackSubnet = openstackService.subnets().stream()
+                .filter(n -> n.networkId().equals(openstackPort.networkId()))
+                .findFirst().orElse(null);
+        if (openstackSubnet == null) {
+            log.warn("Failed to find subnet for {}", openstackPort);
+            return;
+        }
+
+        Ip4Address ipAddress = openstackPort.fixedIps().values().stream().findFirst().get();
+        IpPrefix subnetPrefix = IpPrefix.valueOf(openstackSubnet.cidr());
+        Ip4Address broadcast = Ip4Address.makeMaskedAddress(
+                ipAddress,
+                subnetPrefix.prefixLength());
+
+        // TODO: supports multiple DNS servers
+        Ip4Address domainServer = openstackSubnet.dnsNameservers().isEmpty() ?
+                DNS_SERVER_IP : openstackSubnet.dnsNameservers().get(0);
+
+        IpAssignment ipAssignment = IpAssignment.builder()
+                .ipAddress(ipAddress)
+                .leasePeriod(DHCP_INFINITE_LEASE)
+                .timestamp(new Date())
+                .subnetMask(Ip4Address.makeMaskPrefix(subnetPrefix.prefixLength()))
+                .broadcast(broadcast)
+                .domainServer(domainServer)
+                .assignmentStatus(Option_RangeNotEnforced)
+                .routerAddress(Ip4Address.valueOf(openstackSubnet.gatewayIp()))
+                .build();
+
+        dhcpService.setStaticMapping(openstackPort.macAddress(), ipAssignment);
+    }
+
+    private class InternalDeviceListener implements DeviceListener {
+
+        @Override
+        public void event(DeviceEvent event) {
+            Device device = event.subject();
+            if (!mastershipService.isLocalMaster(device.id())) {
+                // do not allow to proceed without mastership
+                return;
+            }
+
+            Port port = event.port();
+            if (port == null) {
+                return;
+            }
+
+            String portName = port.annotations().value(PORT_NAME);
+            if (Strings.isNullOrEmpty(portName) ||
+                    !portName.startsWith(PORTNAME_PREFIX_VM)) {
+                // handles VM connected port event only
+                return;
+            }
+
+            switch (event.type()) {
+                case PORT_UPDATED:
+                    if (!event.port().isEnabled()) {
+                        deviceEventExecutor.execute(() -> processPortRemoved(event.port()));
+                    }
+                    break;
+                case PORT_ADDED:
+                    deviceEventExecutor.execute(() -> processPortAdded(event.port()));
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
