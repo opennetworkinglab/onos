@@ -28,8 +28,6 @@ import org.onosproject.net.ElementId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
-import org.onosproject.net.topology.TopologyEvent;
-import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
@@ -51,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
+import static org.onosproject.incubator.net.tunnel.Tunnel.State.ACTIVE;
 import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.TunnelEvent;
 import org.onosproject.incubator.net.tunnel.TunnelId;
@@ -82,6 +81,8 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     private static final String PCEWEB_SHOW_TUNNEL_REMOVE = "pceTopovShowTunnelsRem";
     private static final String PCEWEB_TUNNEL_UPDATE_INFO = "updatePathmsgInfo";
     private static final String PCEWEB_TUNNEL_UPDATE_INFO_REPLY = "pceTopovShowTunnelsUpdate";
+    private static final String PCEWEB_TUNNEL_QUERY_INFO = "pceTopovShowTunnelsQuery";
+    private static final String PCEWEB_TUNNEL_QUERY_INFO_SHOW = "pceTopovshowTunnelHighlightMsg";
     private static final String DST = "DST";
     private static final String SRC = "SRC";
     private static final String BANDWIDTH = "bw";
@@ -117,7 +118,6 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     private int pathIndex;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final TopologyListener topologyListener = new InternalTopologyListener();
     private final TunnelListener tunnelListener = new InnerPceWebTunnelListener();
 
     protected TopologyService topologyService;
@@ -128,11 +128,9 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     public void init(UiConnection connection, ServiceDirectory directory) {
 
         super.init(connection, directory);
-        topologyService = directory.get(TopologyService.class);
         tunnelService = directory.get(TunnelService.class);
         pceService = directory.get(PceService.class);
         deviceService = directory.get(DeviceService.class);
-        topologyService.addListener(topologyListener);
         tunnelService.addListener(tunnelListener);
     }
 
@@ -146,12 +144,12 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
                 new RemovePathQueryHandler(),
                 new RemovePathHandler(),
                 new UpdatePathInfoHandler(),
-                new ShowTunnelHandler());
+                new ShowTunnelHandler(),
+                new ShowTunnelHighlight());
     }
 
     @Override
     public void destroy() {
-        topologyService.removeListener(topologyListener);
         tunnelService.removeListener(tunnelListener);
         super.destroy();
     }
@@ -247,7 +245,10 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
             ArrayNode arrayNode = arrayNode();
             for (Tunnel tunnel : tunnelSet) {
                 if (tunnel.type() == MPLS) {
-                    arrayNode.add(tunnel.tunnelId().toString());
+                    if (tunnel.state().equals(ACTIVE)) {
+                        arrayNode.add(tunnel.tunnelId().toString());
+                        arrayNode.add(tunnel.tunnelName().toString());
+                    }
                 }
             }
 
@@ -295,6 +296,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
 
             if (tunnelIdStr == null) {
                 log.error("PCE update path is failed.");
+                return;
             }
 
             if (tunnelIdStr.equals(STRING_NULL)) {
@@ -354,7 +356,10 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
 
             for (Tunnel tunnel : tunnelSet) {
                 if (tunnel.type() == MPLS) {
-                    arrayNode.add(tunnel.tunnelId().toString());
+                    if (tunnel.state().equals(ACTIVE)) {
+                        arrayNode.add(tunnel.tunnelId().toString());
+                        arrayNode.add(tunnel.tunnelName().toString());
+                    }
                 }
             }
 
@@ -395,7 +400,56 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            findTunnelAndHighlights();
+            ObjectNode result = objectNode();
+            ArrayNode arrayNode = arrayNode();
+            Collection<Tunnel> tunnelSet = null;
+
+            tunnelSet = tunnelService.queryTunnel(MPLS);
+            for (Tunnel tunnel : tunnelSet) {
+                if (tunnel.state().equals(ACTIVE)) {
+                    arrayNode.add(tunnel.tunnelId().toString());
+                    arrayNode.add(tunnel.tunnelName().toString());
+                }
+            }
+
+            result.putArray(BUFFER_ARRAY).addAll(arrayNode);
+            sendMessage(PCEWEB_TUNNEL_QUERY_INFO, sid, result);
+        }
+    }
+
+    /**
+     * Handles the 'show the existed tunnels' event received from the client.
+     */
+    private final class ShowTunnelHighlight extends RequestHandler {
+
+        public ShowTunnelHighlight() {
+            super(PCEWEB_TUNNEL_QUERY_INFO_SHOW);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            String tunnelIdStr = string(payload, TUNNEL_ID);
+
+            if (tunnelIdStr == null) {
+                log.error("Tunnel Id is NULL.");
+                return;
+            }
+
+            if (tunnelIdStr.equals(STRING_NULL)) {
+                log.error("Tunnel Id is NULL.");
+                return;
+            }
+
+            if (pceService == null) {
+                log.error("PCE service is not active");
+                return;
+            }
+
+            TunnelId tunnelId = TunnelId.valueOf(tunnelIdStr);
+            Tunnel tunnel = tunnelService.queryTunnel(tunnelId);
+            if (tunnel != null) {
+                highlightsForTunnel(tunnel);
+            }
         }
     }
 
@@ -458,7 +512,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
      * @param bandWidth bandWidth
      * @param bandWidthType is the kbps or mbps
      * @param costType is igp or te
-     * @param tunnelName tunnel id
+     * @param tunnelIdStr tunnel id
      */
     private void findAndSendPathsUpdate(String bandWidth, String bandWidthType, String costType, String tunnelIdStr) {
         if (tunnelIdStr != null) {
@@ -489,7 +543,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     /**
      * Handles the remove path and highlights the paths if existed.
      *
-     * @param tunnelIdName tunnelId
+     * @param tunnelIdStr tunnelId
      */
     private void findAndSendPathsRemove(String tunnelIdStr) {
         if (tunnelIdStr != null) {
@@ -519,7 +573,6 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
      * @param bandWidth bandWidth
      * @param bandWidthType is the kbps or mbps
      * @param costType is igp or te
-     * @param listConstrnt list of constraints
      * @return
      */
     private List<Constraint> addBandwidthCostTypeConstraints(String bandWidth,
@@ -622,16 +675,6 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     }
 
     /**
-     * Handles the event of topology listeners.
-     */
-    private class InternalTopologyListener implements TopologyListener {
-        @Override
-        public void event(TopologyEvent event) {
-            findTunnelAndHighlights();
-        }
-    }
-
-    /**
      * Handles the event of tunnel listeners.
      */
     private class InnerPceWebTunnelListener implements TunnelListener {
@@ -639,7 +682,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         public void event(TunnelEvent event) {
             Tunnel tunnel = event.subject();
             if (tunnel.type() == MPLS) {
-                findTunnelAndHighlights();
+                highlightsForTunnel(tunnel);
             }
         }
     }
@@ -664,7 +707,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
                 sendMessage(TopoJson.highlightsMessage(highlights));
                 return;
             }
-            if (!tunnel.state().equals(Tunnel.State.ACTIVE)) {
+            if (!tunnel.state().equals(ACTIVE)) {
                 log.debug("Tunnel state is not active");
                 sendMessage(TopoJson.highlightsMessage(highlights));
                 return;
@@ -683,6 +726,42 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
             }
             paths.add(tunnel.path());
         }
+
+        ImmutableSet.Builder<Link> builder = ImmutableSet.builder();
+        allPathLinks = buildPaths(builder).build();
+        hilightAndSendPaths(highlights);
+    }
+
+    /**
+     * Handles the event of topology listeners.
+     */
+    private void highlightsForTunnel(Tunnel tunnel) {
+        Highlights highlights = new Highlights();
+        paths.removeAll(paths);
+        if (tunnel.path() == null) {
+            log.error("path does not exist");
+            sendMessage(TopoJson.highlightsMessage(highlights));
+            return;
+        }
+        if (!tunnel.state().equals(ACTIVE)) {
+            log.debug("Tunnel state is not active");
+            sendMessage(TopoJson.highlightsMessage(highlights));
+            return;
+        }
+
+        Link firstLink = tunnel.path().links().get(0);
+        if (firstLink != null) {
+            if (firstLink.src() != null) {
+                highlights = addBadge(highlights, firstLink.src().deviceId().toString(), SRC);
+            }
+        }
+        Link lastLink = tunnel.path().links().get(tunnel.path().links().size() - 1);
+        if (lastLink != null) {
+            if (lastLink.dst() != null) {
+                    highlights = addBadge(highlights, lastLink.dst().deviceId().toString(), DST);
+            }
+        }
+        paths.add(tunnel.path());
 
         ImmutableSet.Builder<Link> builder = ImmutableSet.builder();
         allPathLinks = buildPaths(builder).build();

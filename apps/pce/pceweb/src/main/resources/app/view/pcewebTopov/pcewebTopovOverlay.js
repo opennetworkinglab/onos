@@ -126,8 +126,8 @@
                 }
 
                 sep();
-                add('Src port');
-                add('Dst port');
+                add('Src Address');
+                add('Dst Address');
                 add('Te metric');
                 add('Bandwidth');
 

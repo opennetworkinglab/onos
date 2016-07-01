@@ -21,7 +21,7 @@
 
     // injected refs
     var $log, fs, flash, wss, tps, ns, tds, ds;
-    var tunnelNameData, tunnelNameDataRemove, tunnelDataUpdateInfo, tunnelIdUpd;
+    var tunnelNameData, tunnelNameDataRemove, tunnelDataUpdateInfo, tunnelIdUpd, tunnelNameDataQuery;
    // constants
     var srcMessage = 'pceTopovSetSrc',
         dstMessage = 'pceTopovSetDst',
@@ -35,11 +35,15 @@
         showTunnelInfoMsg = 'pceTopovShowTunnels',
         queryDisplayTunnelMsg = 'pceTopovTunnelDisplay',
         showTunnelInfoRemoveMsg = 'pceTopovShowTunnelsRem',
-        showTunnelInfoUpdateMsg = 'pceTopovShowTunnelsUpdate';
+        showTunnelInfoUpdateMsg = 'pceTopovShowTunnelsUpdate',
+        showTunnelInfoQuery = 'pceTopovShowTunnelsQuery',
+        showTunnelHighlightMsg = 'pceTopovshowTunnelHighlightMsg';
+
     // internal state
     var currentMode = null;
     var handlerMap = {},
         handlerMapRem = {},
+        handlerMapshowQuery = {},
         handlerMapShowUpdate = {};
     // === ---------------------------
     // === Helper functions
@@ -92,6 +96,7 @@
                     id: id
                 });
             }
+
             p.append('span').text(nameField);
             p.append('br');
         }
@@ -107,13 +112,15 @@
         addAttribute('pce-cost-type-valname', 'pce-cost-type-igp', 'IGP', 'radio');
         addAttribute('pce-cost-type-valname', 'pce-cost-type-te', 'TE', 'radio');
         //Add the LSP type related inputs.
-        addAttribute('pce-lsp-type-name', 'pce-lsp-type', 'Lsp Type', 'checkbox');
+        addAttribute('pce-lsp-type-name', 'pce-lsp-type', 'Lsp Type *', 'checkbox');
         addAttribute('pce-lsp-type-valname', 'pce-lsp-type-cr', 'With signalling', 'radio');
         addAttribute('pce-lsp-type-valname', 'pce-lsp-type-srbe', 'Without SR without signalling', 'radio');
         addAttribute('pce-lsp-type-valname', 'pce-lsp-type-srte', 'With SR without signalling', 'radio');
         //Add the tunnel name
-        addAttribute('pce-tunnel-name', 'pce-tunnel-name-id', 'Tunnel Name', 'text');
-
+        p.append('span').text("Tunnel Name  *");
+        p.append('br');
+        addAttribute('pce-tunnel-name', 'pce-tunnel-name-id', null, 'text');
+        p.append('span').text("* indicates mandatory fields");
         return content;
     }
 
@@ -125,19 +132,17 @@
         p.append('span').text('Tunnel IDs');
         p.append('br');
 
-        data.a.forEach( function (val, idx) {
+        for (var idx = 0; idx < data.a.length; idx++) {
             p.append('input').attr({
                 id: 'tunnel-id-'+idx,
                 type: 'radio',
                 name: 'tunnel-id-name',
-                value: val
+                value: data.a[idx]
             });
-
-            p.append('span').text(val);
+            idx++;
+            p.append('span').text(data.a[idx]);
             p.append('br');
-
-        } );
-
+        }
         return content;
     }
 
@@ -192,7 +197,9 @@
             }
 
             if (constType == 'BW') {
-                addAttribute('band-width-name', 'update-band-width-box', 'Band Width', 'checkbox');
+                //addAttribute('band-width-name', 'update-band-width-box', 'Band Width', 'checkbox');
+                p.append('span').text('Band Width');
+                p.append('br');
                 p.append('input').attr({
                     id: 'update-band-width-value',
                     type: 'number',
@@ -211,10 +218,13 @@
                 p.append('br');
                 addAttribute('pce-band-type', 'update-band-kbps-val', 'kbps', 'radio');
                 addAttribute('pce-band-type', 'update-band-mbps-val', 'mbps', 'radio');
+                addAttribute('pce-band-type', 'update-band-none-val', 'none', 'radio');
             }
 
             if (constType == 'CT') {
-                addAttribute('pce-cost-type', 'update-pce-cost-type', 'Cost Type', 'checkbox');
+                //addAttribute('pce-cost-type', 'update-pce-cost-type', 'Cost Type', 'checkbox');
+                p.append('span').text('Cost Type');
+                p.append('br');
                 if (val == 'COST') {
                     p.append('input').attr({
                         id: 'update-pce-cost-type-igp',
@@ -226,6 +236,7 @@
                     p.append('span').text('IGP');
                     p.append('br');
                     addAttribute('pce-cost-type-value', 'update-pce-cost-type-te', 'TE', 'radio');
+                    addAttribute('pce-cost-type-value', 'update-pce-cost-type-none', 'none', 'radio');
  
                 } else {
                     addAttribute('pce-cost-type-value', 'update-pce-cost-type-igp', 'IGP', 'radio');
@@ -238,6 +249,7 @@
                     });
                     p.append('span').text('TE');
                     p.append('br');
+                    addAttribute('pce-cost-type-value', 'update-pce-cost-type-none', 'none', 'radio');
                 }
             }
         } );
@@ -251,21 +263,44 @@
             form = content.append('form'),
             p = form.append('p');
 
-        p.append('span').text('Tunnel IDs');
+        p.append('span').text('Tunnels');
         p.append('br');
 
-        data.a.forEach( function (val, idx) {
+        for (var idx = 0; idx < data.a.length; idx++) {
             p.append('input').attr({
                 id: 'tunnel-id-remove-'+idx,
                 type: 'checkbox',
                 name: 'tunnel-id-name-remove',
-                value: val
+                value: data.a[idx]
             });
-
-            p.append('span').text(val);
+            idx++;
+            p.append('span').text(data.a[idx]);
             p.append('br');
-        } );
+        }
 
+        return content;
+    }
+
+    function createUserTextQuery(data) {
+
+        var content = ds.createDiv(),
+            form = content.append('form'),
+            p = form.append('p');
+
+        p.append('span').text('Tunnels');
+        p.append('br');
+
+        for (var idx =0; idx < data.a.length; idx++) {
+            p.append('input').attr({
+                id: 'tunnel-id-query-'+idx,
+                type: 'radio',
+                name: 'tunnel-id-name-query',
+                value: data.a[idx]
+            });
+            idx++;
+            p.append('span').text(data.a[idx]);
+            p.append('br');
+        }
         return content;
     }
 
@@ -283,12 +318,13 @@
 
         function dOkUpdate() {
             var tdString = '' ;
-            tunnelNameData.a.forEach( function (val, idx) {
+            for (var idx = 0; idx < tunnelNameData.a.length; idx++) {
                 var tunnelName = isChecked('tunnel-id-'+idx);
                 if (tunnelName) {
-                    tdString = val;
+                    tdString = tunnelNameData.a[idx];
                 }
-            } );
+                idx++;
+            }
             //send event to server for getting the tunnel information.
             if (tdString != null) {
                 handlerMapShowUpdate[showTunnelInfoUpdateMsg] = showTunnelInfoUpdateMsgHandle;
@@ -313,31 +349,30 @@
     function dOkUpdateEvent() {
         $log.debug('Select constraints for update path Dialog OK button pressed');
 
-        var bandWidth = isChecked('update-band-width-box'),
-            bandValue = null,
+        var bandValue = null,
             bandType = null;
 
-        if (bandWidth) {
-            bandValue = getCheckedValue('update-band-width-value');
+        bandValue = getCheckedValue('update-band-width-value');
 
-            if (isChecked('update-band-kbps-val')) {
+        if (isChecked('update-band-kbps-val')) {
                     bandType = 'kbps';
-            } else if (isChecked('update-band-mbps-val')) {
+        } else if (isChecked('update-band-mbps-val')) {
                     bandType = 'mbps';
-            } else if (isChecked('update-band-bps-val')) {
+        } else if (isChecked('update-band-bps-val')) {
                     bandType = 'bps';
-            }
+        } else if (isChecked('update-band-none-val')) {
+                    bandType = null;
+                    bandValue = null;
         }
 
-        var costType = isChecked('update-pce-cost-type'),
-            costTypeVal = null;
+        var costTypeVal = null;
 
-        if (costType) {
-            if (isChecked('update-pce-cost-type-igp')) {
-                costTypeVal = 'igp';
-            } else if (isChecked('update-pce-cost-type-te')) {
-                costTypeVal = 'te';
-            }
+        if (isChecked('update-pce-cost-type-igp')) {
+            costTypeVal = 'igp';
+        } else if (isChecked('update-pce-cost-type-te')) {
+            costTypeVal = 'te';
+        } else if (isChecked('update-pce-cost-type-none')) {
+            costTypeVal = null;
         }
 
         wss.sendEvent(updatePathmsg, {
@@ -359,6 +394,18 @@
             .setTitle('Available Tunnels for remove')
             .addContent(createUserTextRemove(data))
             .addOk(dOkRemove, 'OK')
+            .addCancel(dClose, 'Close')
+            .bindKeys();
+    }
+
+    function showTunnelInformationQuery(data) {
+
+        wss.unbindHandlers(handlerMapshowQuery);
+        tunnelNameDataQuery = data;
+        tds.openDialog()
+            .setTitle('Available Tunnels for highlight')
+            .addContent(createUserTextQuery(data))
+            .addOk(dOkQuery, 'OK')
             .addCancel(dClose, 'Close')
             .bindKeys();
     }
@@ -456,14 +503,30 @@
 
     function dOkRemove() {
 
-        tunnelNameDataRemove.a.forEach( function (val, idx) {
+        for (var idx = 0; idx < tunnelNameDataRemove.a.length; idx++) {
             var tunnelNameVal = isChecked('tunnel-id-remove-'+idx);
             if (tunnelNameVal) {
                 wss.sendEvent(remPathmsg, {
-                    tunnelid: val
+                    tunnelid: tunnelNameDataRemove.a[idx]
                 });
             }
-        } );
+            idx++;
+        }
+
+        flash.flash('remove path message');
+    }
+
+    function dOkQuery() {
+
+        for (var idx = 0; idx < tunnelNameDataQuery.a.length; idx++) {
+            var tunnelNameVal = isChecked('tunnel-id-query-'+idx);
+            if (tunnelNameVal) {
+                wss.sendEvent(showTunnelHighlightMsg, {
+                    tunnelid: tunnelNameDataQuery.a[idx]
+                });
+            }
+            idx++;
+        }
 
         flash.flash('remove path message');
     }
@@ -479,6 +542,9 @@
     }
 
   function queryTunnelDisplay() {
+        handlerMapshowQuery[showTunnelInfoQuery] = showTunnelInformationQuery;
+        wss.bindHandlers(handlerMapshowQuery);
+
         wss.sendEvent(queryDisplayTunnelMsg);
     }
     // === ---------------------------
