@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -37,6 +38,7 @@ import io.atomix.resource.ResourceType;
 /**
  * Unit tests for {@link AtomixLeaderElector}.
  */
+@Ignore
 public class AtomixLeaderElectorTest extends AtomixTestBase {
 
     NodeId node1 = new NodeId("node1");
