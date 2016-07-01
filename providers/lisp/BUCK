@@ -1,0 +1,15 @@
+BUNDLES = [
+    '//providers/lisp/device:onos-providers-lisp-device',
+    '//protocols/lisp/api:onos-protocols-lisp-api',
+    '//protocols/lisp/ctl:onos-protocols-lisp-ctl',
+]
+
+onos_app (
+    title = 'LISP Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    description = 'LISP protocol southbound providers.',
+)
+
+

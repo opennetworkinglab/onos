@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014-present Open Networking Laboratory
+  ~ Copyright 2016-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  -->
+ -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -21,58 +21,30 @@
 
     <parent>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos</artifactId>
+        <artifactId>onos-lisp-providers</artifactId>
         <version>1.7.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-providers</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>onos-lisp-provider-device</artifactId>
+    <packaging>bundle</packaging>
 
-    <description>ONOS information providers and control/management protocol adapter</description>
-
-    <modules>
-        <module>openflow</module>
-        <module>host</module>
-        <module>netcfghost</module>
-        <module>netconf</module>
-        <module>null</module>
-        <module>pcep</module>
-        <module>ovsdb</module>
-        <module>bgp</module>
-        <module>bgpcep</module>
-        <module>snmp</module>
-        <module>rest</module>
-        <module>lldpcommon</module>
-        <module>lldp</module>
-        <module>netcfglinks</module>
-        <module>bmv2</module>
-        <module>isis</module>
-        <module>lisp</module>
-    </modules>
+    <description>ONOS LISP protocol device provider</description>
 
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-incubator-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-misc</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
             <artifactId>onlab-junit</artifactId>
+            <scope>test</scope>
         </dependency>
-
         <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.scr.annotations</artifactId>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-lisp-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-lisp-ctl</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
@@ -81,10 +53,6 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.onosproject</groupId>
