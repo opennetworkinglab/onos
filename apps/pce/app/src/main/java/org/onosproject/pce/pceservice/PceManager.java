@@ -27,9 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
@@ -263,9 +261,6 @@ public class PceManager implements PceService {
 
         packetService.addProcessor(processor, PacketProcessor.director(4));
         topologyService.addListener(topologyListener);
-        executor = Executors.newSingleThreadScheduledExecutor();
-        //Start a timer when the component is up, with initial delay of 30min and periodic delays at 30min
-        executor.scheduleAtFixedRate(new GlobalOptimizationTimer(), INITIAL_DELAY, PERIODIC_DELAY, TimeUnit.MINUTES);
 
         // Reserve global node pool
         if (!srTeHandler.reserveGlobalPool(GLOBAL_LABEL_SPACE_MIN, GLOBAL_LABEL_SPACE_MAX)) {
@@ -283,8 +278,6 @@ public class PceManager implements PceService {
         netCfgService.removeListener(cfgListener);
         packetService.removeProcessor(processor);
         topologyService.removeListener(topologyListener);
-        // Shutdown the thread when component is deactivated
-        executor.shutdown();
         log.info("Stopped");
     }
 

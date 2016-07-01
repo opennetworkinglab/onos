@@ -495,7 +495,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
 
-        log.info("[exceptionCaught]: " + e.toString());
+        log.error("[exceptionCaught]: " + e.toString());
 
         if (e.getCause() instanceof ReadTimeoutException) {
             // device timeout
