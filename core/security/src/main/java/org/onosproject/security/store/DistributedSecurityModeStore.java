@@ -28,8 +28,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.karaf.features.BundleInfo;
 import org.apache.karaf.features.Feature;
 import org.apache.karaf.features.FeaturesService;
-
 import org.onlab.util.KryoNamespace;
+import org.onlab.util.Tools;
 import org.onosproject.app.ApplicationAdminService;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
@@ -49,6 +49,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static org.onosproject.security.store.SecurityModeState.*;
@@ -84,6 +86,9 @@ public class DistributedSecurityModeStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FeaturesService featuresService;
 
+    private ExecutorService eventHandler;
+    private final SecurityStateListener statesListener = new SecurityStateListener();
+
     private static final Serializer STATE_SERIALIZER = Serializer.using(new KryoNamespace.Builder()
             .register(KryoNamespaces.API)
             .register(SecurityModeState.class)
@@ -97,12 +102,13 @@ public class DistributedSecurityModeStore
 
     @Activate
     public void activate() {
+        eventHandler = Executors.newSingleThreadExecutor(Tools.groupedThreads("onos/security/store", "event-handler"));
         states = storageService.<ApplicationId, SecurityInfo>consistentMapBuilder()
                 .withName("smonos-sdata")
                 .withSerializer(STATE_SERIALIZER)
                 .build();
 
-        states.addListener(new SecurityStateListener());
+        states.addListener(statesListener, eventHandler);
 
         violations = storageService.<ApplicationId, Set<Permission>>eventuallyConsistentMapBuilder()
                 .withName("smonos-rperms")
@@ -119,6 +125,8 @@ public class DistributedSecurityModeStore
 
     @Deactivate
     public void deactivate() {
+        states.removeListener(statesListener);
+        eventHandler.shutdown();
         violations.destroy();
         log.info("Stopped");
     }
