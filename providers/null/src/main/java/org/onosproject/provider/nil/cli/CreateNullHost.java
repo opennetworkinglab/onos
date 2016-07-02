@@ -18,11 +18,14 @@ package org.onosproject.provider.nil.cli;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Link;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.provider.nil.CustomTopologySimulator;
@@ -30,34 +33,38 @@ import org.onosproject.provider.nil.NullProviders;
 import org.onosproject.provider.nil.TopologySimulator;
 
 import java.util.Iterator;
-import java.util.Objects;
 
 /**
- * Adds a simulated link to the custom topology simulation.
+ * Adds a simulated end-station host to the custom topology simulation.
  */
-@Command(scope = "onos", name = "null-create-link",
-        description = "Adds a simulated link to the custom topology simulation")
-public class CreateNullLink extends AbstractShellCommand {
+@Command(scope = "onos", name = "null-create-host",
+        description = "Adds a simulated end-station host to the custom topology simulation")
+public class CreateNullHost extends AbstractShellCommand {
 
-    @Argument(index = 0, name = "type", description = "Link type, e.g. direct, indirect, optical",
+    @Argument(index = 0, name = "deviceName", description = "Name of device where host is attached",
             required = true, multiValued = false)
-    String type = null;
+    String deviceName = null;
 
-    @Argument(index = 1, name = "src", description = "Source device name",
+    @Argument(index = 1, name = "hostId", description = "Host identifier",
             required = true, multiValued = false)
-    String src = null;
+    String hostId = null;
 
-    @Argument(index = 2, name = "dst", description = "Destination device name",
+    @Argument(index = 2, name = "hostIp", description = "Host IP address",
             required = true, multiValued = false)
-    String dst = null;
+    String hostIp = null;
 
-    @Option(name = "-u", aliases = "--unidirectional", description = "Unidirectional link only",
-            required = false, multiValued = false)
-    private boolean unidirectional = false;
+    @Argument(index = 3, name = "latitude", description = "Geo latitude",
+            required = true, multiValued = false)
+    Double latitude = null;
+
+    @Argument(index = 4, name = "longitude", description = "Geo longitude",
+            required = true, multiValued = false)
+    Double longitude = null;
 
     @Override
     protected void execute() {
         NullProviders service = get(NullProviders.class);
+        NetworkConfigService cfgService = get(NetworkConfigService.class);
 
         TopologySimulator simulator = service.currentSimulator();
         if (!(simulator instanceof CustomTopologySimulator)) {
@@ -66,21 +73,27 @@ public class CreateNullLink extends AbstractShellCommand {
         }
 
         CustomTopologySimulator sim = (CustomTopologySimulator) simulator;
-        ConnectPoint one = findAvailablePort(sim.deviceId(src), null);
-        ConnectPoint two = findAvailablePort(sim.deviceId(dst), one);
-        sim.createLink(one, two, Link.Type.valueOf(type.toUpperCase()), !unidirectional);
+        DeviceId deviceId = sim.deviceId(deviceName);
+        HostLocation location = findAvailablePort(deviceId);
+        HostId id = HostId.hostId(hostId);
+        BasicHostConfig cfg = cfgService.addConfig(id, BasicHostConfig.class);
+        cfg.latitude(latitude);
+        cfg.longitude(longitude);
+        cfg.apply();
+
+        sim.createHost(id, location, IpAddress.valueOf(hostIp));
     }
 
     // Finds an available connect point among edge ports of the specified device
-    private ConnectPoint findAvailablePort(DeviceId deviceId, ConnectPoint otherPoint) {
+    private HostLocation findAvailablePort(DeviceId deviceId) {
         EdgePortService eps = get(EdgePortService.class);
         HostService hs = get(HostService.class);
         Iterator<ConnectPoint> points = eps.getEdgePoints(deviceId).iterator();
 
         while (points.hasNext()) {
             ConnectPoint point = points.next();
-            if (!Objects.equals(point, otherPoint) && hs.getConnectedHosts(point).isEmpty()) {
-                return point;
+            if (hs.getConnectedHosts(point).isEmpty()) {
+                return new HostLocation(point, System.currentTimeMillis());
             }
         }
         return null;

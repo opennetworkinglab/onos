@@ -47,6 +47,9 @@
         <command>
             <action class="org.onosproject.provider.nil.cli.CreateNullLink"/>
         </command>
+        <command>
+            <action class="org.onosproject.provider.nil.cli.CreateNullHost"/>
+        </command>
     </command-bundle>
 
     <bean id="startStopCompleter" class="org.onosproject.cli.StartStopCompleter"/>

@@ -17,11 +17,14 @@
 package org.onosproject.provider.nil;
 
 import com.google.common.collect.Maps;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
+import org.onosproject.net.host.DefaultHostDescription;
 
 import java.util.Map;
 
@@ -78,6 +81,19 @@ public class CustomTopologySimulator extends TopologySimulator {
         int chassisId = Integer.parseInt(id.uri().getSchemeSpecificPart());
         createDevice(id, chassisId, type, portCount);
         nameToId.put(name, id);
+    }
+
+    /**
+     * Creates a simulated host.
+     *
+     * @param hostId   host identifier
+     * @param location host location
+     * @param hostIp   host IP address
+     */
+    public void createHost(HostId hostId, HostLocation location, IpAddress hostIp) {
+        DefaultHostDescription description =
+                new DefaultHostDescription(hostId.mac(), hostId.vlanId(), location, hostIp);
+        hostProviderService.hostDetected(hostId, description, false);
     }
 
     @Override
