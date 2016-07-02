@@ -155,7 +155,7 @@ public final class GroupCodec extends JsonCodec<Group> {
         }
 
         // parse group buckets
-        // TODO: make sure that INDIRECT group only has one bucket
+
         GroupBuckets buckets = null;
         List<GroupBucket> groupBucketList = new ArrayList<>();
         JsonNode bucketsJson = json.get(BUCKETS);
