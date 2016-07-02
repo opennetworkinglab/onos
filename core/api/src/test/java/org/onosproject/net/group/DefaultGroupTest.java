@@ -34,6 +34,8 @@ import static org.onosproject.net.NetTestTools.did;
 public class DefaultGroupTest {
     private final GroupId id1 = new DefaultGroupId(6);
     private final GroupId id2 = new DefaultGroupId(7);
+    private final GroupId id3 = new DefaultGroupId(1234);
+
     private final GroupBucket bucket =
             DefaultGroupBucket.createSelectGroupBucket(
                     DefaultTrafficTreatment.emptyTreatment());
@@ -48,10 +50,16 @@ public class DefaultGroupTest {
                     GroupDescription.Type.FAILOVER,
                     groupBuckets);
 
+     private final GroupDescription groupDesc3 =
+            new DefaultGroupDescription(did("3"),
+                    GroupDescription.Type.INDIRECT,
+                    groupBuckets);
+
     DefaultGroup group1 = new DefaultGroup(id1, groupDesc1);
     DefaultGroup sameAsGroup1 = new DefaultGroup(id1, groupDesc1);
     DefaultGroup group2 = new DefaultGroup(id1, groupDesc2);
     DefaultGroup group3 = new DefaultGroup(id2, groupDesc2);
+    DefaultGroup group4 = new DefaultGroup(id3, groupDesc3);
 
     /**
      * Tests for proper operation of equals(), hashCode() and toString() methods.
@@ -62,6 +70,7 @@ public class DefaultGroupTest {
                 .addEqualityGroup(group1, sameAsGroup1)
                 .addEqualityGroup(group2)
                 .addEqualityGroup(group3)
+                .addEqualityGroup(group4)
                 .testEquals();
     }
 
@@ -85,7 +94,7 @@ public class DefaultGroupTest {
     @Test
     public void checkConstructionWithDid() {
         DefaultGroup group = new DefaultGroup(id2, NetTestTools.did("1"),
-                GroupDescription.Type.INDIRECT, groupBuckets);
+                GroupDescription.Type.ALL, groupBuckets);
         assertThat(group.id(), is(id2));
         assertThat(group.bytes(), is(0L));
         assertThat(group.life(), is(0L));

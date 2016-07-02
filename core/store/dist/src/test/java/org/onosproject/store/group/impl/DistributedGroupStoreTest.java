@@ -62,7 +62,8 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.did;
-
+import static org.onosproject.net.group.GroupDescription.Type.*;
+import static org.onosproject.net.group.GroupStore.UpdateType.*;
 /**
  * Distributed group store test.
  */
@@ -88,21 +89,21 @@ public class DistributedGroupStoreTest {
     GroupBuckets buckets = new GroupBuckets(ImmutableList.of(selectGroupBucket));
     GroupDescription groupDescription1 = new DefaultGroupDescription(
             deviceId1,
-            GroupDescription.Type.INDIRECT,
+            ALL,
             buckets,
             groupKey1,
             groupId1.id(),
             APP_ID);
     GroupDescription groupDescription2 = new DefaultGroupDescription(
             deviceId2,
-            GroupDescription.Type.INDIRECT,
+            INDIRECT,
             buckets,
             groupKey2,
             groupId2.id(),
             APP_ID);
     GroupDescription groupDescription3 = new DefaultGroupDescription(
             deviceId2,
-            GroupDescription.Type.INDIRECT,
+            INDIRECT,
             buckets,
             groupKey3,
             groupId3.id(),
@@ -264,7 +265,7 @@ public class DistributedGroupStoreTest {
 
         GroupDescription groupDescription3 = new DefaultGroupDescription(
                 deviceId1,
-                GroupDescription.Type.SELECT,
+                SELECT,
                 buckets,
                 new DefaultGroupKey("aaa".getBytes()),
                 null,
@@ -325,7 +326,7 @@ public class DistributedGroupStoreTest {
 
         GroupOperation opAdd =
                 GroupOperation.createAddGroupOperation(groupId1,
-                        GroupDescription.Type.INDIRECT,
+                        INDIRECT,
                         buckets);
         groupStore.groupOperationFailed(deviceId1, opAdd);
 
@@ -339,7 +340,7 @@ public class DistributedGroupStoreTest {
 
         GroupOperation opModify =
                 GroupOperation.createModifyGroupOperation(groupId2,
-                        GroupDescription.Type.INDIRECT,
+                        INDIRECT,
                         buckets);
         groupStore.groupOperationFailed(deviceId2, opModify);
         List<GroupEvent> eventsAfterModifyFailed = delegate.eventsSeen();
@@ -350,7 +351,7 @@ public class DistributedGroupStoreTest {
 
         GroupOperation opDelete =
                 GroupOperation.createDeleteGroupOperation(groupId2,
-                        GroupDescription.Type.INDIRECT);
+                        INDIRECT);
         groupStore.groupOperationFailed(deviceId2, opDelete);
         List<GroupEvent> eventsAfterDeleteFailed = delegate.eventsSeen();
         assertThat(eventsAfterDeleteFailed, hasSize(1));
@@ -397,7 +398,7 @@ public class DistributedGroupStoreTest {
         GroupKey newKey = new DefaultGroupKey("123".getBytes());
         groupStore.updateGroupDescription(deviceId1,
                 groupKey1,
-                GroupStore.UpdateType.ADD,
+                ADD,
                 buckets,
                 newKey);
         Group group1 = groupStore.getGroup(deviceId1, groupId1);
