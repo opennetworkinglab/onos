@@ -45,19 +45,15 @@ public class CreateNullHost extends AbstractShellCommand {
             required = true, multiValued = false)
     String deviceName = null;
 
-    @Argument(index = 1, name = "hostId", description = "Host identifier",
-            required = true, multiValued = false)
-    String hostId = null;
-
-    @Argument(index = 2, name = "hostIp", description = "Host IP address",
+    @Argument(index = 1, name = "hostIp", description = "Host IP address",
             required = true, multiValued = false)
     String hostIp = null;
 
-    @Argument(index = 3, name = "latitude", description = "Geo latitude",
+    @Argument(index = 2, name = "latitude", description = "Geo latitude",
             required = true, multiValued = false)
     Double latitude = null;
 
-    @Argument(index = 4, name = "longitude", description = "Geo longitude",
+    @Argument(index = 3, name = "longitude", description = "Geo longitude",
             required = true, multiValued = false)
     Double longitude = null;
 
@@ -74,8 +70,8 @@ public class CreateNullHost extends AbstractShellCommand {
 
         CustomTopologySimulator sim = (CustomTopologySimulator) simulator;
         DeviceId deviceId = sim.deviceId(deviceName);
+        HostId id = sim.nextHostId();
         HostLocation location = findAvailablePort(deviceId);
-        HostId id = HostId.hostId(hostId);
         BasicHostConfig cfg = cfgService.addConfig(id, BasicHostConfig.class);
         cfg.latitude(latitude);
         cfg.longitude(longitude);

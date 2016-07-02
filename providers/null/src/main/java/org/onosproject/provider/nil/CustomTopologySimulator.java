@@ -56,7 +56,7 @@ public class CustomTopologySimulator extends TopologySimulator {
      * @return the next host id
      */
     public HostId nextHostId() {
-        return HostId.hostId(MacAddress.valueOf(nextHostId), VlanId.NONE);
+        return HostId.hostId(MacAddress.valueOf(++nextHostId), VlanId.NONE);
     }
 
     /**
