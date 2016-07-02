@@ -165,7 +165,7 @@
                 .data(onosOrder, function (d) { return d.id; });
 
         function nSw(n) {
-            return 'Switches: ' + n;
+            return 'Devices: ' + n;
         }
 
         // operate on existing onos instances if necessary
