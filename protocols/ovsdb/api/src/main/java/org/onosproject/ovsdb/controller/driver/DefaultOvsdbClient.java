@@ -923,11 +923,11 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         Set<OvsdbBridge> ovsdbBridges = new HashSet<>();
         OvsdbTableStore tableStore = getTableStore(DATABASENAME);
         if (tableStore == null) {
-            return null;
+            return ovsdbBridges;
         }
         OvsdbRowStore rowStore = tableStore.getRows(BRIDGE);
         if (rowStore == null) {
-            return null;
+            return ovsdbBridges;
         }
         ConcurrentMap<String, Row> rows = rowStore.getRowStore();
         for (String uuid : rows.keySet()) {
