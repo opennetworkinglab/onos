@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
@@ -41,6 +42,7 @@ import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstackinterface.OpenstackSecurityGroup;
 import org.onosproject.openstackinterface.OpenstackSecurityGroupRule;
+import org.onosproject.openstacknetworking.OpenstackSecurityGroupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +59,9 @@ import static org.onosproject.openstacknetworking.Constants.*;
  *
  */
 @Component(immediate = true)
-public class OpenstackSecurityGroupRulePopulator extends AbstractVmHandler {
+@Service
+public class OpenstackSecurityGroupRulePopulator extends AbstractVmHandler
+        implements OpenstackSecurityGroupService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -84,7 +88,7 @@ public class OpenstackSecurityGroupRulePopulator extends AbstractVmHandler {
         super.deactivate();
     }
 
-    // TODO call this when port is updated from OpenStack
+    @Override
     public void updateSecurityGroup(OpenstackPort osPort) {
         if (!osPort.status().equals(OpenstackPort.PortStatus.ACTIVE)) {
             return;
