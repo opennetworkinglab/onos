@@ -15,16 +15,10 @@
  */
 package org.onosproject.openstacknode;
 
+import org.onosproject.event.EventListener;
+
 /**
- * Entity that defines possible init state of the OpenStack node.
+ * Listener for OpenStack node events.
  */
-public interface OpenstackNodeState {
-    /**
-     * Returns null for no state.
-     *
-     * @return null
-     */
-    static OpenstackNodeState noState() {
-        return null;
-    }
+public interface OpenstackNodeListener extends EventListener<OpenstackNodeEvent> {
 }

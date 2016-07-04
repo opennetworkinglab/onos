@@ -19,6 +19,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
+import org.onosproject.openstacknode.OpenstackNodeEvent.NodeState;
 import org.onosproject.openstacknode.OpenstackNodeService.NodeType;
 
 import java.util.Comparator;
@@ -27,6 +28,7 @@ import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.openstacknode.OpenstackNodeEvent.NodeState.INIT;
 
 /**
  * Representation of a compute/gateway node for OpenstackSwitching/Routing service.
@@ -39,7 +41,7 @@ public final class OpenstackNode {
     private final IpAddress dataIp;
     private final DeviceId integrationBridge;
     private final Optional<DeviceId> routerBridge;
-    private final OpenstackNodeState state;
+    private final NodeState state;
 
     public static final Comparator<OpenstackNode> OPENSTACK_NODE_COMPARATOR =
             (node1, node2) -> node1.hostname().compareTo(node2.hostname());
@@ -50,7 +52,7 @@ public final class OpenstackNode {
                           IpAddress dataIp,
                           DeviceId integrationBridge,
                           Optional<DeviceId> routerBridge,
-                          OpenstackNodeState state) {
+                          NodeState state) {
         this.hostname = hostname;
         this.type = type;
         this.managementIp = managementIp;
@@ -67,7 +69,7 @@ public final class OpenstackNode {
      * @param state openstack node init state
      * @return openstack node
      */
-    public static OpenstackNode getUpdatedNode(OpenstackNode node, OpenstackNodeState state) {
+    public static OpenstackNode getUpdatedNode(OpenstackNode node, NodeState state) {
         return new OpenstackNode(node.hostname,
                 node.type,
                 node.managementIp,
@@ -137,7 +139,7 @@ public final class OpenstackNode {
      *
      * @return init state
      */
-    public OpenstackNodeState state() {
+    public NodeState state() {
         return state;
     }
 
@@ -212,7 +214,7 @@ public final class OpenstackNode {
         private IpAddress dataIp;
         private DeviceId integrationBridge;
         private Optional<DeviceId> routerBridge = Optional.empty();
-        private OpenstackNodeState state = OpenstackNodeState.noState();
+        private NodeState state = INIT;
 
         private Builder() {
         }
@@ -305,7 +307,7 @@ public final class OpenstackNode {
          * @param state node init state
          * @return openstack node builder
          */
-        public Builder state(OpenstackNodeState state) {
+        public Builder state(NodeState state) {
             this.state = state;
             return this;
         }

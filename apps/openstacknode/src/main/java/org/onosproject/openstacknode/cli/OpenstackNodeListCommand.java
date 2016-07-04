@@ -34,9 +34,6 @@ import java.util.List;
         description = "Lists all nodes registered in OpenStack node service")
 public class OpenstackNodeListCommand extends AbstractShellCommand {
 
-    private static final String COMPLETE = "COMPLETE";
-    private static final String INCOMPLETE = "INCOMPLETE";
-
     @Override
     protected void execute() {
         OpenstackNodeService nodeService = AbstractShellCommand.get(OpenstackNodeService.class);
@@ -44,7 +41,7 @@ public class OpenstackNodeListCommand extends AbstractShellCommand {
         Collections.sort(nodes, OpenstackNode.OPENSTACK_NODE_COMPARATOR);
 
         if (outputJson()) {
-            print("%s", json(nodeService, nodes));
+            print("%s", json(nodes));
         } else {
             for (OpenstackNode node : nodes) {
                 print("hostname=%s, type=%s, managementIp=%s, dataIp=%s, intBridge=%s, routerBridge=%s init=%s",
@@ -54,13 +51,13 @@ public class OpenstackNodeListCommand extends AbstractShellCommand {
                         node.dataIp(),
                         node.intBridge(),
                         node.routerBridge(),
-                        getState(nodeService, node));
+                        node.state());
             }
             print("Total %s nodes", nodeService.nodes().size());
         }
     }
 
-    private JsonNode json(OpenstackNodeService nodeService, List<OpenstackNode> nodes) {
+    private JsonNode json(List<OpenstackNode> nodes) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
         for (OpenstackNode node : nodes) {
@@ -71,12 +68,8 @@ public class OpenstackNodeListCommand extends AbstractShellCommand {
                     .put("dataIp", node.dataIp().toString())
                     .put("intBridge", node.intBridge().toString())
                     .put("routerBridge", node.routerBridge().toString())
-                    .put("state", getState(nodeService, node)));
+                    .put("state", node.state().name()));
         }
         return result;
-    }
-
-    private String getState(OpenstackNodeService nodeService, OpenstackNode node) {
-        return nodeService.isComplete(node.hostname()) ? COMPLETE : INCOMPLETE;
     }
 }

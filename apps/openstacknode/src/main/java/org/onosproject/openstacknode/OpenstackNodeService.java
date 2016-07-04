@@ -16,6 +16,7 @@
 package org.onosproject.openstacknode;
 
 import org.onlab.packet.IpAddress;
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
@@ -26,7 +27,8 @@ import java.util.Set;
 /**
  * Handles the bootstrap request for compute/gateway node.
  */
-public interface OpenstackNodeService {
+public interface OpenstackNodeService
+        extends ListenerService<OpenstackNodeEvent, OpenstackNodeListener> {
 
     enum NodeType {
         /**
@@ -42,6 +44,34 @@ public interface OpenstackNodeService {
      * @param node openstack node
      */
     void addOrUpdateNode(OpenstackNode node);
+
+    /**
+     * Bootstraps node with INIT state.
+     *
+     * @param node openstack node
+     */
+    void processInitState(OpenstackNode node);
+
+    /**
+     * Bootstraps node with DEVICE_CREATED state.
+     *
+     * @param node openstack node
+     */
+    void processDeviceCreatedState(OpenstackNode node);
+
+    /**
+     * Bootstraps node with COMPLETE state.
+     *
+     * @param node openstack node
+     */
+    void processCompleteState(OpenstackNode node);
+
+    /**
+     * Bootstraps node with INCOMPLETE state.
+     *
+     * @param node openstack node
+     */
+    void processIncompleteState(OpenstackNode node);
 
     /**
      * Deletes a node from the service.
@@ -63,14 +93,6 @@ public interface OpenstackNodeService {
      * @return set of nodes
      */
     Set<OpenstackNode> completeNodes();
-
-    /**
-     * Returns node initialization state is complete or not.
-     *
-     * @param hostname hostname of the node
-     * @return true if initial node setup is completed, otherwise false
-     */
-    boolean isComplete(String hostname);
 
     /**
      * Returns data network IP address of a given integration bridge device.
