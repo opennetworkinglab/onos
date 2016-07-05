@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DefaultPortDescription;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.device.PortDescription;
 import org.onosproject.openflow.controller.OpenFlowOpticalSwitch;
 import org.onosproject.openflow.controller.PortDescPropertyType;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
@@ -37,10 +44,16 @@ import org.projectfloodlight.openflow.protocol.OFCircuitPortsReply;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsRequest;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFObject;
+import org.projectfloodlight.openflow.protocol.OFOplinkPortPower;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortOptical;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
+import org.projectfloodlight.openflow.protocol.OFStatsRequest;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
+import org.projectfloodlight.openflow.protocol.OFType;
+import org.projectfloodlight.openflow.protocol.OFOplinkPortPowerRequest;
+import org.projectfloodlight.openflow.protocol.OFOplinkPortPowerReply;
+
 
 /**
  * Driver for Oplink single WSS 8D ROADM.
@@ -49,6 +62,7 @@ import org.projectfloodlight.openflow.protocol.OFStatsType;
  * The device consists of Och ports, and performances wavelength cross-connect among the ports.
  */
 public class OplinkRoadmHandshaker extends AbstractOpenFlowSwitch implements OpenFlowOpticalSwitch {
+
     private final AtomicBoolean driverHandshakeComplete = new AtomicBoolean(false);
     private List<OFPortOptical> opticalPorts;
 
@@ -159,7 +173,26 @@ public class OplinkRoadmHandshaker extends AbstractOpenFlowSwitch implements Ope
     @Override
     public final void sendMsg(OFMessage m) {
         OFMessage newMsg = m;
-        //Stub for later enhancement.
+
+        if (m.getType() == OFType.STATS_REQUEST) {
+            OFStatsRequest sr = (OFStatsRequest) m;
+            log.debug("OPLK ROADM rebuilding stats request type {}", sr.getStatsType());
+            switch (sr.getStatsType()) {
+                case PORT:
+                    //replace with Oplink experiment stats message to get the port current power
+                    OFOplinkPortPowerRequest pRequest = this.factory().buildOplinkPortPowerRequest()
+                            .setXid(sr.getXid())
+                            .setFlags(sr.getFlags())
+                            .build();
+                    newMsg = pRequest;
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            log.debug("OPLK ROADM sends msg:{}, as is", m.getType());
+        }
+
         super.sendMsg(newMsg);
     }
 
@@ -184,5 +217,39 @@ public class OplinkRoadmHandshaker extends AbstractOpenFlowSwitch implements Ope
     private void createOpticalPortList(OFCircuitPortsReply wPorts) {
         opticalPorts = new ArrayList<>();
         opticalPorts.addAll(wPorts.getEntries());
+    }
+
+    @Override
+    public List<PortDescription> processExpPortStats(OFMessage msg) {
+        if (msg instanceof OFOplinkPortPowerReply) {
+            return buildPortPowerDescriptions(((OFOplinkPortPowerReply) msg).getEntries());
+        }
+        return Collections.emptyList();
+    }
+
+    private OFOplinkPortPower getPortPower(List<OFOplinkPortPower> portPowers, PortNumber portNum) {
+        for (OFOplinkPortPower power : portPowers) {
+            if (power.getPort() == portNum.toLong()) {
+                return power;
+            }
+        }
+        return null;
+    }
+
+    private List<PortDescription> buildPortPowerDescriptions(List<OFOplinkPortPower> portPowers) {
+        DeviceService deviceService = this.handler().get(DeviceService.class);
+        List<Port> ports = deviceService.getPorts(this.data().deviceId());
+        final List<PortDescription> portDescs = new ArrayList<>();
+        for (Port port : ports) {
+            DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
+            builder.putAll(port.annotations());
+            OFOplinkPortPower power = getPortPower(portPowers, port.number());
+            if (power != null) {
+                builder.set(AnnotationKeys.CURRENT_POWER, Long.toString(power.getPowerValue()));
+            }
+            portDescs.add(new DefaultPortDescription(port.number(), port.isEnabled(),
+                    port.type(), port.portSpeed(), builder.build()));
+        }
+        return portDescs;
     }
 }

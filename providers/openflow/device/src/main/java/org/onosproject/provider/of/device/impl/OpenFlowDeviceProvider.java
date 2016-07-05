@@ -547,7 +547,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
         private PortDescription buildPortDescription(PortDescPropertyType ptype, OFObject port,
                 OpenFlowOpticalSwitch opsw) {
-            if (port instanceof  OFPortOptical) {
+            if (port instanceof OFPortOptical) {
                 return buildPortDescription(ptype, (OFPortOptical) port, opsw);
             }
             return buildPortDescription(ptype, (OFExpPort) port);
@@ -831,6 +831,16 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                                 if (statsEntries != null) {
                                     pushPortMetrics(dpid, statsEntries);
                                     statsEntries.clear();
+                                }
+                            }
+                        } else if (((OFStatsReply) msg).getStatsType() == OFStatsType.EXPERIMENTER) {
+                            OpenFlowSwitch sw = controller.getSwitch(dpid);
+                            if (sw instanceof OpenFlowOpticalSwitch) {
+                                // Optical switch uses experimenter stats message to update power
+                                List<PortDescription> portDescs =
+                                        ((OpenFlowOpticalSwitch) sw).processExpPortStats(msg);
+                                if (!portDescs.isEmpty()) {
+                                    providerService.updatePorts(DeviceId.deviceId(Dpid.uri(dpid)), portDescs);
                                 }
                             }
                         }
