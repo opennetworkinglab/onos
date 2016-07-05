@@ -249,7 +249,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                                                  VlanIdCriterion vidCriterion,
                                                  VlanId assignedVlan,
                                                  ApplicationId applicationId) {
-        List<FlowRule> rules = new ArrayList<FlowRule>();
+        List<FlowRule> rules = new ArrayList<>();
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
         selector.matchVlanId(vidCriterion.vlanId());
@@ -258,6 +258,24 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         if (vidCriterion.vlanId() == VlanId.NONE) {
             // untagged packets are assigned vlans
             treatment.pushVlan().setVlanId(assignedVlan);
+
+            // Emulating OFDPA behavior by popping off internal assigned VLAN
+            // before sending to controller
+            TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_ARP)
+                    .matchVlanId(assignedVlan);
+            TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder()
+                    .popVlan()
+                    .punt();
+            FlowRule internalVlan = DefaultFlowRule.builder()
+                    .forDevice(deviceId)
+                    .withSelector(sbuilder.build())
+                    .withTreatment(tbuilder.build())
+                    .withPriority(PacketPriority.CONTROL.priorityValue() + 1)
+                    .fromApp(applicationId)
+                    .makePermanent()
+                    .forTable(ACL_TABLE).build();
+            rules.add(internalVlan);
         }
 
         // ofdpa cannot match on ALL portnumber, so we need to use separate
@@ -286,24 +304,6 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                     .forTable(VLAN_TABLE).build();
             rules.add(rule);
         }
-
-        // Emulating OFDPA behavior by popping off internal assigned VLAN
-        // before sending to controller
-        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_ARP)
-                .matchVlanId(assignedVlan);
-        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder()
-                .popVlan()
-                .punt();
-        FlowRule internalVlan = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(sbuilder.build())
-                .withTreatment(tbuilder.build())
-                .withPriority(PacketPriority.CONTROL.priorityValue() + 1)
-                .fromApp(applicationId)
-                .makePermanent()
-                .forTable(ACL_TABLE).build();
-        rules.add(internalVlan);
 
         return rules;
     }
