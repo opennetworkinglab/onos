@@ -15,89 +15,90 @@
   -->
 <scenario name="meta-apps"
           description="Openflow provider activate/deactivate test">
+    <group name="Meta-App">
+        <!-- Check initial state of openflow apps -->
+        <group name="MetaAppInitialVerification">
+            <parallel var="${OC#}" starts="MetaAppTest.FindOpenflowInitial-${#}" ends="MetaAppTest.CheckLldpProviderInitial-${#-1}">
+                <step name="MetaAppTest.FindOpenflowInitial-${#}"
+                      exec="onos-find-app ${OC#} org.onosproject.openflow openflowAppInitial" />
+                <step name="MetaAppTest.CheckOpenflowInitial-${#}" requires="MetaAppTest.FindOpenflowInitial-${#}"
+                      exec="test '${openflowAppInitialState}' == 'active'"/>
 
+                <step name="MetaAppTest.FindOpenflowBaseInitial-${#}"
+                      exec="onos-find-app ${OC#} org.onosproject.openflow-base openflowBaseInitial" />
+                <step name="MetaAppTest.CheckOpenflowBaseInitial-${#}" requires="MetaAppTest.FindOpenflowBaseInitial-${#}"
+                      exec="test '${openflowBaseInitialState}' == 'active'"/>
 
-    <!-- Check initial state of openflow apps -->
-    <group name="MetaAppInitialVerification">
-        <sequential var="${OC#}" starts="MetaAppTest.FindOpenflowInitial-${#}" ends="MetaAppTest.CheckLldpProviderInitial-${#-1}">
-            <step name="MetaAppTest.FindOpenflowInitial-${#}"
-                  exec="onos-find-app ${OC#} org.onosproject.openflow openflowAppInitial" />
-            <step name="MetaAppTest.CheckOpenflowInitial-${#}" requires="MetaAppTest.FindOpenflowInitial-${#}"
-                  exec="test '${openflowAppInitialState}' == 'active'"/>
+                <step name="MetaAppTest.FindHostProviderInitial-${#}"
+                      exec="onos-find-app ${OC#} org.onosproject.hostprovider hostProviderInitial" />
+                <step name="MetaAppTest.CheckHostProviderInitial-${#}" requires="MetaAppTest.FindHostProviderInitial-${#}"
+                      exec="test '${hostProviderInitialState}' == 'active'"/>
 
-            <step name="MetaAppTest.FindOpenflowBaseInitial-${#}"
-                  exec="onos-find-app ${OC#} org.onosproject.openflow-base openflowBaseInitial" />
-            <step name="MetaAppTest.CheckOpenflowBaseInitial-${#}" requires="MetaAppTest.FindOpenflowBaseInitial-${#}"
-                  exec="test '${openflowBaseInitialState}' == 'active'"/>
+                <step name="MetaAppTest.FindLldpProviderInitial-${#}"
+                      exec="onos-find-app ${OC#} org.onosproject.lldpprovider lldpProviderInitial" />
+                <step name="MetaAppTest.CheckLldpProviderInitial-${#}" requires="MetaAppTest.FindLldpProviderInitial-${#}"
+                      exec="test '${lldpProviderInitialState}' == 'active'"/>
+            </parallel>
+        </group>
 
-            <step name="MetaAppTest.FindHostProviderInitial-${#}"
-                  exec="onos-find-app ${OC#} org.onosproject.hostprovider hostProviderInitial" />
-            <step name="MetaAppTest.CheckHostProviderInitial-${#}" requires="MetaAppTest.FindHostProviderInitial-${#}"
-                  exec="test '${hostProviderInitialState}' == 'active'"/>
+        <!-- Deactivate openflow meta app -->
+        <step name="MetaAppTest.DeactivateOpenflowMetaApp" requires="MetaAppInitialVerification"
+              exec="onos ${OCI} onos:app deactivate org.onosproject.openflow"/>
 
-            <step name="MetaAppTest.FindLldpProviderInitial-${#}"
-                  exec="onos-find-app ${OC#} org.onosproject.lldpprovider lldpProviderInitial" />
-            <step name="MetaAppTest.CheckLldpProviderInitial-${#}" requires="MetaAppTest.FindLldpProviderInitial-${#}"
-                  exec="test '${lldpProviderInitialState}' == 'active'"/>
-        </sequential>
-    </group>
+        <!-- Check that openflow apps are no longer active -->
+        <group name="MetaAppInactive" requires="MetaAppTest.DeactivateOpenflowMetaApp,MetaAppInitialVerification">
+            <parallel var="${OC#}" starts="MetaAppTest.FindOpenflowInactive-${#}" ends="MetaAppTest.CheckLldpProviderInactive-${#-1}">
+                <step name="MetaAppTest.FindOpenflowInactive-${#}"
+                      exec="onos-find-app ${OC#} org.onosproject.openflow openflowAppInactive" />
+                <step name="MetaAppTest.CheckOpenflowInactive-${#}" requires="^"
+                      exec="test '${openflowAppInactiveState}' == 'inactive'"/>
 
-    <!-- Deactivate openflow meta app -->
-    <step name="MetaAppTest.DeactivateOpenflowMetaApp" requires="MetaAppInitialVerification"
-          exec="onos ${OCI} onos:app deactivate org.onosproject.openflow"/>
+                <step name="MetaAppTest.FindOpenflowBaseInactive-${#}" requires="^"
+                      exec="onos-find-app ${OC#} org.onosproject.openflow-base openflowBaseInactive" />
+                <step name="MetaAppTest.CheckOpenflowBaseInactive-${#}" requires="^"
+                      exec="test '${openflowBaseInactiveState}' == 'inactive'"/>
 
-    <!-- Check that openflow apps are no longer active -->
-    <group name="MetaAppInactive" requires="MetaAppTest.DeactivateOpenflowMetaApp,MetaAppInitialVerification">
-        <sequential var="${OC#}" starts="MetaAppTest.FindOpenflowInactive-${#}" ends="MetaAppTest.CheckLldpProviderInactive-${#-1}">
-            <step name="MetaAppTest.FindOpenflowInactive-${#}"
-                  exec="onos-find-app ${OC#} org.onosproject.openflow openflowAppInactive" />
-            <step name="MetaAppTest.CheckOpenflowInactive-${#}" requires="^"
-                  exec="test '${openflowAppInactiveState}' == 'inactive'"/>
+                <step name="MetaAppTest.FindHostProviderInactive-${#}" requires="^"
+                      exec="onos-find-app ${OC#} org.onosproject.hostprovider hostProviderInactive" />
+                <step name="MetaAppTest.CheckHostProviderInactive-${#}" requires="^"
+                      exec="test '${hostProviderInactiveState}' == 'inactive'"/>
 
-            <step name="MetaAppTest.FindOpenflowBaseInactive-${#}" requires="^"
-                  exec="onos-find-app ${OC#} org.onosproject.openflow-base openflowBaseInactive" />
-            <step name="MetaAppTest.CheckOpenflowBaseInactive-${#}" requires="^"
-                  exec="test '${openflowBaseInactiveState}' == 'inactive'"/>
+                <step name="MetaAppTest.FindLldpProviderInactive-${#}" requires="^"
+                      exec="onos-find-app ${OC#} org.onosproject.lldpprovider lldpProviderInactive" />
+                <step name="MetaAppTest.CheckLldpProviderInactive-${#}" requires="^"
+                      exec="test '${lldpProviderInactiveState}' == 'inactive'"/>
+            </parallel>
+        </group>
 
-            <step name="MetaAppTest.FindHostProviderInactive-${#}" requires="^"
-                  exec="onos-find-app ${OC#} org.onosproject.hostprovider hostProviderInactive" />
-            <step name="MetaAppTest.CheckHostProviderInactive-${#}" requires="^"
-                  exec="test '${hostProviderInactiveState}' == 'inactive'"/>
+        <!-- Reactivate openflow meta app -->
+        <step name="MetaAppTest.ReactivateOpenflowMetaApp" requires="MetaAppInactive"
+              exec="onos ${OCI} onos:app activate org.onosproject.openflow"/>
 
-            <step name="MetaAppTest.FindLldpProviderInactive-${#}" requires="^"
-                  exec="onos-find-app ${OC#} org.onosproject.lldpprovider lldpProviderInactive" />
-            <step name="MetaAppTest.CheckLldpProviderInactive-${#}" requires="^"
-                  exec="test '${lldpProviderInactiveState}' == 'inactive'"/>
-        </sequential>
-    </group>
+        <!-- Check that openflow apps are now active again -->
+        <group name="MetaAppReactivated" requires="MetaAppTest.ReactivateOpenflowMetaApp,MetaAppInactive,MetaAppInitialVerification">
+            <parallel var="${OC#}" starts="MetaAppTest.FindOpenflowReactivated-${#}" ends="MetaAppTest.CheckLldpProviderRectivated-${#-1}">
+                <step name="MetaAppTest.FindOpenflowReactivated-${#}"
+                      exec="onos-find-app ${OC#} org.onosproject.openflow openflowAppReactivated" />
+                <step name="MetaAppTest.CheckOpenflowReactivated-${#}" requires="^"
+                      exec="test '${openflowAppReactivatedState}' == 'active'"/>
 
-    <!-- Reactivate openflow meta app -->
-    <step name="MetaAppTest.ReactivateOpenflowMetaApp" requires="MetaAppInactive"
-          exec="onos ${OCI} onos:app activate org.onosproject.openflow"/>
+                <step name="MetaAppTest.FindOpenflowBaseReactivated-${#}" requires="^"
+                      exec="onos-find-app ${OC#} org.onosproject.openflow-base openflowBaseReactivated" />
+                <step name="MetaAppTest.CheckOpenflowBaseReactivated-${#}" requires="^"
+                      exec="test '${openflowBaseReactivatedState}' == 'active'"/>
 
-    <!-- Check that openflow apps are now active again -->
-    <group name="MetaAppReactivated" requires="MetaAppTest.ReactivateOpenflowMetaApp,MetaAppInactive,MetaAppInitialVerification">
-        <sequential var="${OC#}" starts="MetaAppTest.FindOpenflowReactivated-${#}" ends="MetaAppTest.CheckLldpProviderRectivated-${#-1}">
-            <step name="MetaAppTest.FindOpenflowReactivated-${#}"
-                  exec="onos-find-app ${OC#} org.onosproject.openflow openflowAppReactivated" />
-            <step name="MetaAppTest.CheckOpenflowReactivated-${#}" requires="^"
-                  exec="test '${openflowAppReactivatedState}' == 'active'"/>
+                <step name="MetaAppTest.FindHostProviderReactivated-${#}" requires="^"
+                      exec="onos-find-app ${OC#} org.onosproject.hostprovider hostProviderReactivated" />
+                <step name="MetaAppTest.CheckHostProviderReactivated-${#}" requires="^"
+                      exec="test '${hostProviderReactivatedState}' == 'active'"/>
 
-            <step name="MetaAppTest.FindOpenflowBaseReactivated-${#}" requires="^"
-                  exec="onos-find-app ${OC#} org.onosproject.openflow-base openflowBaseReactivated" />
-            <step name="MetaAppTest.CheckOpenflowBaseReactivated-${#}" requires="^"
-                  exec="test '${openflowBaseReactivatedState}' == 'active'"/>
+                <step name="MetaAppTest.FindLldpProviderReactivated-${#}" requires="^"
+                      exec="onos-find-app ${OC#} org.onosproject.lldpprovider lldpProviderReactivated" />
+                <step name="MetaAppTest.CheckLldpProviderReactivated-${#}" requires="^"
+                      exec="test '${lldpProviderReactivatedState}' == 'active'"/>
+            </parallel>
+        </group>
 
-            <step name="MetaAppTest.FindHostProviderReactivated-${#}" requires="^"
-                  exec="onos-find-app ${OC#} org.onosproject.hostprovider hostProviderReactivated" />
-            <step name="MetaAppTest.CheckHostProviderReactivated-${#}" requires="^"
-                  exec="test '${hostProviderReactivatedState}' == 'active'"/>
-
-            <step name="MetaAppTest.FindLldpProviderReactivated-${#}" requires="^"
-                  exec="onos-find-app ${OC#} org.onosproject.lldpprovider lldpProviderReactivated" />
-            <step name="MetaAppTest.CheckLldpProviderReactivated-${#}" requires="^"
-                  exec="test '${lldpProviderReactivatedState}' == 'active'"/>
-        </sequential>
     </group>
 
 </scenario>
