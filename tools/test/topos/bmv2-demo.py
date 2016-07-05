@@ -4,23 +4,26 @@ import os
 import sys
 import argparse
 
-# Find and import bmv2.py
 if 'ONOS_ROOT' not in os.environ:
     print "Environment var $ONOS_ROOT not set"
     exit()
 else:
-    sys.path.append(os.environ["ONOS_ROOT"] + "/tools/dev/mininet")
-    from bmv2 import ONOSBmv2Switch
+    ONOS_ROOT = os.environ["ONOS_ROOT"]
+    sys.path.append(ONOS_ROOT + "/tools/dev/mininet")
+
+from onos import ONOSCluster, ONOSCLI
+from bmv2 import ONOSBmv2Switch
 
 from itertools import combinations
 from time import sleep
+from subprocess import call
 
 from mininet.cli import CLI
 from mininet.link import TCLink
 from mininet.log import setLogLevel
 from mininet.net import Mininet
 from mininet.node import RemoteController, Host
-from mininet.topo import Topo
+from mininet.topo import Topo, SingleSwitchTopo
 
 
 class ClosTopo(Topo):
@@ -126,39 +129,54 @@ class DemoHost(Host):
 def main(args):
     topo = ClosTopo()
 
-    net = Mininet(topo=topo, build=False)
+    if not args.onos_ip:
+        controller = ONOSCluster('c0', 3)
+        onosIp = controller.nodes()[0].IP()
+    else:
+        controller = RemoteController('c0', ip=args.onos_ip, port=args.onos_port)
+        onosIp = args.onos_ip
 
-    net.addController('c0', controller=RemoteController, ip=args.onos_ip, port=args.onos_port)
+    net = Mininet(topo=topo, build=False, controller=[controller])
 
     net.build()
     net.start()
 
-    print "Network started..."
+    print "Network started"
 
-    # Generates background traffic (needed for host discovery and bmv2 config swap).
+    # Generate background traffic.
     sleep(3)
     for (h1, h2) in combinations(net.hosts, 2):
         h1.startPingBg(h2)
         h2.startPingBg(h1)
 
+    print "Background ping started"
+
     for h in net.hosts:
         h.startIperfServer()
 
-    print "Background ping started..."
+    print "Iperf servers started"
 
     # sleep(4)
     # print "Starting traffic from h1 to h3..."
     # net.hosts[0].startIperfClient(net.hosts[-1], flowBw="200k", numFlows=100, duration=10)
 
-    CLI(net)
+    print "Setting netcfg..."
+    call(("onos-netcfg", onosIp,
+          "%s/tools/test/topos/bmv2-demo-cfg.json" % ONOS_ROOT))
+
+    if not args.onos_ip:
+        ONOSCLI(net)
+    else:
+        CLI(net)
 
     net.stop()
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='BMv2 mininet demo script (2-stage Clos topology)')
+    parser = argparse.ArgumentParser(
+        description='BMv2 mininet demo script (2-stage Clos topology)')
     parser.add_argument('--onos-ip', help='ONOS-BMv2 controller IP address',
-                        type=str, action="store", required=True)
+                        type=str, action="store", required=False)
     parser.add_argument('--onos-port', help='ONOS-BMv2 controller port',
                         type=int, action="store", default=40123)
     args = parser.parse_args()
