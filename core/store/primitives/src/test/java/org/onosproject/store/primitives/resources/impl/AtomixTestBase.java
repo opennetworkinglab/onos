@@ -30,10 +30,6 @@ import io.atomix.resource.ResourceType;
 import org.onlab.junit.TestTools;
 import org.onosproject.store.primitives.impl.CatalystSerializers;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -44,7 +40,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Base class for various Atomix tests.
  */
 public abstract class AtomixTestBase {
-    protected static File testDir;
     protected static LocalServerRegistry registry = new LocalServerRegistry();
     protected static List<Address> members = new ArrayList<>();
     protected static List<CopycatClient> copycatClients = new ArrayList<>();
@@ -78,7 +73,6 @@ public abstract class AtomixTestBase {
      */
     protected static List<CopycatServer> createCopycatServers(int nodes)
             throws Throwable {
-        CountDownLatch latch = new CountDownLatch(nodes);
         List<CopycatServer> servers = new ArrayList<>();
 
         List<Address> members = new ArrayList<>();
@@ -88,7 +82,7 @@ public abstract class AtomixTestBase {
             members.add(address);
             CopycatServer server = createCopycatServer(address);
             if (members.size() <= 1) {
-                server.bootstrap().thenRun(latch::countDown).join();
+                server.bootstrap().join();
             } else {
                 server.join(members).join();
             }
@@ -109,9 +103,6 @@ public abstract class AtomixTestBase {
                              .build())
                 .withStateMachine(ResourceManagerState::new)
                 .withSerializer(serializer.clone())
-                .withHeartbeatInterval(Duration.ofMillis(25))
-                .withElectionTimeout(Duration.ofMillis(50))
-                .withSessionTimeout(Duration.ofMillis(100))
                 .build();
         copycatServers.add(server);
         return server;
@@ -137,24 +128,6 @@ public abstract class AtomixTestBase {
         copycatServers = new ArrayList<>();
     }
 
-    /**
-     * Deletes a directory recursively.
-     */
-    private void deleteDirectory(File directory) throws IOException {
-        if (directory.exists()) {
-            File[] files = directory.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (file.isDirectory()) {
-                        deleteDirectory(file);
-                    } else {
-                        Files.delete(file.toPath());
-                    }
-                }
-            }
-            Files.delete(directory.toPath());
-        }
-    }
 
     /**
      * Creates a Atomix client.

@@ -23,7 +23,6 @@ import io.atomix.resource.ResourceType;
 import org.apache.commons.collections.keyvalue.DefaultMapEntry;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.util.Tools;
 
@@ -40,7 +39,6 @@ import static org.junit.Assert.assertTrue;
 /**
  * Tests the {@link AsyncConsistentSetMultimap}.
  */
-@Ignore
 public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
     private final String keyOne = "hello";
     private final String keyTwo = "goodbye";
