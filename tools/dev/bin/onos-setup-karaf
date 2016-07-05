@@ -47,7 +47,7 @@ fi
 # If clean option was specified, wipe-out existing installation
 if [ "$CLEAN" = "true" ]; then
     echo "Removing existing ONOS Karaf, apps, data and config directories..."
-    [ -d $KARAF_ROOT ] && rm -fr $KARAF_ROOT $STAGE/apps $STAGE/data $STAGE/config
+    [ -d $KARAF_ROOT ] && rm -fr $KARAF_ROOT $KARAF_ROOT/data $STAGE/apps $STAGE/data $STAGE/config
 fi
 
 # If IP was not given, nor configured attempt to use ONOS_NIC env. variable
