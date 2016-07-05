@@ -23,7 +23,6 @@ import java.util.Arrays;
  * Default implementation of group key interface.
  */
 public class DefaultGroupKey implements GroupKey {
-
     private final byte[] key;
     protected static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
 
@@ -66,7 +65,6 @@ public class DefaultGroupKey implements GroupKey {
             hexChars[j * 2] = HEX_ARRAY[v >>> 4];
             hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
         }
-        return "GroupKey:0x" + new String(hexChars);
+        return "0x" + new String(hexChars);
     }
-
 }

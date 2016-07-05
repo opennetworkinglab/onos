@@ -19,7 +19,8 @@
     },
     "appCookie": {
       "type": "string",
-      "example": "1"
+      "description": "application cookie. Arbitrary length byte array represented in hex string",
+      "example": "0x1234abcd"
     },
     "groupId": {
       "type": "string",

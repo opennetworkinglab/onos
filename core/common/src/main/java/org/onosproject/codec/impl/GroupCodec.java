@@ -18,6 +18,7 @@ package org.onosproject.codec.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onlab.util.HexString;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.ApplicationId;
@@ -118,7 +119,11 @@ public final class GroupCodec extends JsonCodec<Group> {
         // parse group key (appCookie)
         String groupKeyStr = nullIsIllegal(json.get(APP_COOKIE),
                 APP_COOKIE + MISSING_MEMBER_MESSAGE).asText();
-        GroupKey groupKey = new DefaultGroupKey(groupKeyStr.getBytes());
+        if (!groupKeyStr.startsWith("0x")) {
+            throw new IllegalArgumentException("APP_COOKIE must be a hex string starts with 0x");
+        }
+        GroupKey groupKey = new DefaultGroupKey(HexString.fromHexString(
+                groupKeyStr.split("0x")[1], ""));
 
         // parse device id
         DeviceId deviceId = DeviceId.deviceId(nullIsIllegal(json.get(DEVICE_ID),

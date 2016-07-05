@@ -1,7 +1,7 @@
 {
   "type": "ALL",
   "deviceId": "of:0000000000000001",
-  "appCookie": "1",
+  "appCookie": "0x1",
   "groupId": "1",
   "buckets": [
     {
