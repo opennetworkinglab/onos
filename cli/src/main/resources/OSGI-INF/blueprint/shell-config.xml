@@ -683,6 +683,12 @@
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualHostRemoveCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualNetworkIntentCreateCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualNetworkIntentRemoveCommand"/>
+        </command>
     </command-bundle>
 
     <bean id="reviewAppNameCompleter" class="org.onosproject.cli.security.ReviewApplicationNameCompleter"/>

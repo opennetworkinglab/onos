@@ -9,6 +9,7 @@ COMPILE_DEPS = [
     '//lib:netty-handler',
     '//lib:netty-transport-native-epoll',
     '//lib:commons-math3',
+    '//incubator/api:onos-incubator-api',
 ]
 
 TEST_DEPS = [

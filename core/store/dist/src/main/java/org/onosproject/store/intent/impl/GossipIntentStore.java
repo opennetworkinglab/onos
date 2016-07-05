@@ -27,6 +27,8 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
@@ -97,6 +99,8 @@ public class GossipIntentStore
         KryoNamespace.Builder intentSerializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
                 .register(IntentData.class)
+                .register(VirtualNetworkIntent.class)
+                .register(NetworkId.class)
                 .register(MultiValuedTimestamp.class);
 
         currentMap = storageService.<Key, IntentData>eventuallyConsistentMapBuilder()

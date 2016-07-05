@@ -27,6 +27,7 @@ import org.onosproject.core.CoreService;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.event.Event;
+import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.virtual.DefaultVirtualNetwork;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.TenantId;
@@ -35,6 +36,7 @@ import org.onosproject.incubator.net.virtual.VirtualHost;
 import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkEvent;
+import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
 import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualPort;
@@ -46,6 +48,12 @@ import org.onosproject.net.NetTestTools;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.TestDeviceParams;
+import org.onosproject.net.intent.FakeIntentManager;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.MockIdGenerator;
+import org.onosproject.net.intent.TestableIntentService;
 import org.onosproject.store.service.TestStorageService;
 
 import java.util.Collection;
@@ -54,6 +62,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.Assert.*;
+import static org.onosproject.net.NetTestTools.APP_ID;
 
 /**
  * Junit tests for VirtualNetworkManager.
@@ -67,10 +76,13 @@ public class VirtualNetworkManagerTest extends TestDeviceParams {
     private DistributedVirtualNetworkStore virtualNetworkManagerStore;
     private CoreService coreService;
     private TestListener listener = new TestListener();
+    private TestableIntentService intentService = new FakeIntentManager();
+    private IdGenerator idGenerator = new MockIdGenerator();
 
     @Before
     public void setUp() throws Exception {
         virtualNetworkManagerStore = new DistributedVirtualNetworkStore();
+        Intent.bindIdGenerator(idGenerator);
 
         coreService = new TestCoreService();
         virtualNetworkManagerStore.setCoreService(coreService);
@@ -81,6 +93,7 @@ public class VirtualNetworkManagerTest extends TestDeviceParams {
         manager = new VirtualNetworkManager();
         manager.store = virtualNetworkManagerStore;
         manager.addListener(listener);
+        manager.intentService = intentService;
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
         manager.activate();
         virtualNetworkManagerService = manager;
@@ -92,6 +105,7 @@ public class VirtualNetworkManagerTest extends TestDeviceParams {
         manager.removeListener(listener);
         manager.deactivate();
         NetTestTools.injectEventDispatcher(manager, null);
+        Intent.unbindIdGenerator(idGenerator);
     }
 
     /**
@@ -374,6 +388,95 @@ public class VirtualNetworkManagerTest extends TestDeviceParams {
         manager.removeVirtualPort(virtualNetwork1.id(), (DeviceId) virtualPort.element().id(), virtualPort.number());
         virtualPorts = manager.getVirtualPorts(virtualNetwork1.id(), virtualDevice.id());
         assertTrue("The virtual port set should be empty.", virtualPorts.isEmpty());
+    }
+
+    /**
+     * Tests the addOrUpdateIntent() method in the store with a null intent.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testAddOrUpdateNullIntent() {
+        manager.store.addOrUpdateIntent(null, null);
+    }
+
+    /**
+     * Tests the removeIntent() method in the store with a null intent key.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testRemoveNullIntentKey() {
+        manager.store.removeIntent(null);
+    }
+
+    /**
+     * Tests the addOrUpdateIntent(), getIntents(), getIntent(), removeIntent() methods with the store.
+     */
+    @Test
+    public void testAddOrUpdateIntent() {
+        manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
+        VirtualNetwork virtualNetwork = manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
+        ConnectPoint cp1 = new ConnectPoint(DID1, P1);
+        ConnectPoint cp2 = new ConnectPoint(DID2, P1);
+
+        VirtualNetworkIntent virtualIntent = VirtualNetworkIntent.builder()
+                .networkId(virtualNetwork.id())
+                .key(Key.of("Test", APP_ID))
+                .appId(APP_ID)
+                .ingressPoint(cp1)
+                .egressPoint(cp2)
+                .build();
+
+        // Add the intent to the store.
+        manager.store.addOrUpdateIntent(virtualIntent, IntentState.INSTALL_REQ);
+        assertEquals("The intent size should match.", 1, manager.store.getIntents().size());
+        assertNotNull("The intent should not be null.", manager.store.getIntent(virtualIntent.key()));
+
+        // remove the intent from the store.
+        manager.store.removeIntent(virtualIntent.key());
+        assertTrue("The intents should be empty.", manager.store.getIntents().isEmpty());
+        assertNull("The intent should be null.", manager.store.getIntent(virtualIntent.key()));
+    }
+
+    /**
+     * Tests the addTunnelId() method in the store with a null intent.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testAddTunnelIdNullIntent() {
+        manager.store.addTunnelId(null, null);
+    }
+
+    /**
+     * Tests the removeTunnelId() method in the store with a null intent.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testRemoveTunnelIdNullIntent() {
+        manager.store.removeTunnelId(null, null);
+    }
+
+    /**
+     * Tests the addTunnelId, getTunnelIds(), removeTunnelId() methods with the store.
+     */
+    @Test
+    public void testAddTunnelId() {
+        manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
+        VirtualNetwork virtualNetwork = manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
+        ConnectPoint cp1 = new ConnectPoint(DID1, P1);
+        ConnectPoint cp2 = new ConnectPoint(DID2, P1);
+
+        VirtualNetworkIntent virtualIntent = VirtualNetworkIntent.builder()
+                .networkId(virtualNetwork.id())
+                .key(Key.of("Test", APP_ID))
+                .appId(APP_ID)
+                .ingressPoint(cp1)
+                .egressPoint(cp2)
+                .build();
+
+        TunnelId tunnelId = TunnelId.valueOf("virtual tunnel");
+        // Add the intent to tunnelID mapping to the store.
+        manager.store.addTunnelId(virtualIntent, tunnelId);
+        assertEquals("The tunnels size should match.", 1, manager.store.getTunnelIds(virtualIntent).size());
+
+        // Remove the intent to tunnelID mapping from the store.
+        manager.store.removeTunnelId(virtualIntent, tunnelId);
+        assertTrue("The tunnels should be empty.", manager.store.getTunnelIds(virtualIntent).isEmpty());
     }
 
     /**

@@ -38,6 +38,8 @@ import org.onosproject.net.NetTestTools;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.TestDeviceParams;
+import org.onosproject.net.intent.FakeIntentManager;
+import org.onosproject.net.intent.TestableIntentService;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyCluster;
@@ -62,6 +64,7 @@ public class VirtualNetworkTopologyServiceTest extends TestDeviceParams {
     private VirtualNetworkManager manager;
     private DistributedVirtualNetworkStore virtualNetworkManagerStore;
     private CoreService coreService;
+    private TestableIntentService intentService = new FakeIntentManager();
 
     @Before
     public void setUp() throws Exception {
@@ -75,6 +78,7 @@ public class VirtualNetworkTopologyServiceTest extends TestDeviceParams {
 
         manager = new VirtualNetworkManager();
         manager.store = virtualNetworkManagerStore;
+        manager.intentService = intentService;
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
         manager.activate();
     }

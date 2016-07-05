@@ -26,6 +26,10 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentData;
+import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.Key;
 import org.onosproject.store.Store;
 
 import java.util.Set;
@@ -223,4 +227,73 @@ public interface VirtualNetworkStore
      */
     Set<VirtualPort> getPorts(NetworkId networkId, DeviceId deviceId);
 
+    /**
+     * Add or update the intent to the store.
+     *
+     * @param intent virtual intent
+     * @param state  intent state
+     */
+    void addOrUpdateIntent(Intent intent, IntentState state);
+
+    /**
+     * Remove the virtual intent from the store.
+     *
+     * @param intentKey intent key
+     * @return intent data
+     */
+    IntentData removeIntent(Key intentKey);
+
+    /**
+     * Adds the intent to tunnel identifier mapping to the store.
+     *
+     * @param intent   intent
+     * @param tunnelId tunnel identifier
+     */
+    void addTunnelId(Intent intent, TunnelId tunnelId);
+
+    /**
+     * Return the set of tunnel identifiers store against the intent.
+     *
+     * @param intent intent
+     * @return set of tunnel identifiers
+     */
+    Set<TunnelId> getTunnelIds(Intent intent);
+
+    /**
+     * Removes the intent to tunnel identifier mapping from the store.
+     *
+     * @param intent   intent
+     * @param tunnelId tunnel identifier
+     */
+    void removeTunnelId(Intent intent, TunnelId tunnelId);
+
+    /**
+     * Return all intents.
+     *
+     * @return set of intents
+     */
+    Set<Intent> getIntents();
+
+    /**
+     * Return the intent for the specified intent key.
+     *
+     * @param key intent key
+     * @return intent
+     */
+    Intent getIntent(Key key);
+
+    /**
+     * Return the set of intent data.
+     *
+     * @return set of intent data
+     */
+    Set<IntentData> getIntentData();
+
+    /**
+     * Return the intent data matching the intent key.
+     *
+     * @param key intent key
+     * @return intent data
+     */
+    IntentData getIntentData(Key key);
 }

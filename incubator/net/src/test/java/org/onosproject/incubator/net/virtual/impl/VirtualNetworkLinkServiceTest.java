@@ -35,6 +35,8 @@ import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.TestDeviceParams;
+import org.onosproject.net.intent.FakeIntentManager;
+import org.onosproject.net.intent.TestableIntentService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.store.service.TestStorageService;
 
@@ -54,6 +56,7 @@ public class VirtualNetworkLinkServiceTest extends TestDeviceParams {
     private VirtualNetworkManager manager;
     private DistributedVirtualNetworkStore virtualNetworkManagerStore;
     private CoreService coreService;
+    private TestableIntentService intentService = new FakeIntentManager();
 
     @Before
     public void setUp() throws Exception {
@@ -67,6 +70,7 @@ public class VirtualNetworkLinkServiceTest extends TestDeviceParams {
 
         manager = new VirtualNetworkManager();
         manager.store = virtualNetworkManagerStore;
+        manager.intentService = intentService;
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
         manager.activate();
     }
@@ -103,12 +107,12 @@ public class VirtualNetworkLinkServiceTest extends TestDeviceParams {
         Iterator<Link> it = linkService.getLinks().iterator();
         assertEquals("The link set size did not match.", 2, Iterators.size(it));
 
-        // test the getActiveLinks() method where no links are ACTIVE
+        // test the getActiveLinks() method where all links are ACTIVE
         Iterator<Link> it2 = linkService.getActiveLinks().iterator();
-        assertEquals("The link set size did not match.", 0, Iterators.size(it2));
+        assertEquals("The link set size did not match.", 2, Iterators.size(it2));
 
         // test the getActiveLinks() method where one link is ACTIVE
-        virtualNetworkManagerStore.updateLink(link1, link1.tunnelId(), Link.State.ACTIVE);
+        virtualNetworkManagerStore.updateLink(link1, link1.tunnelId(), Link.State.INACTIVE);
         Iterator<Link> it3 = linkService.getActiveLinks().iterator();
         assertEquals("The link set size did not match.", 1, Iterators.size(it3));
 

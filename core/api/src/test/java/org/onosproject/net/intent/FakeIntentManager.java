@@ -155,7 +155,6 @@ public class FakeIntentManager implements TestableIntentService {
 
     @Override
     public void withdraw(Intent intent) {
-        intents.remove(intent.key());
         executeWithdraw(intent);
     }
 
@@ -167,6 +166,7 @@ public class FakeIntentManager implements TestableIntentService {
             intents.remove(intent.key());
             installables.remove(intent.key());
             intentStates.remove(intent.key());
+            dispatch(new IntentEvent(IntentEvent.Type.PURGED, intent));
         }
     }
 
