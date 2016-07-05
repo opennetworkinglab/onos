@@ -39,6 +39,67 @@ public class ContinuousResourceAllocationTest {
     private static final PortNumber PN1 = PortNumber.portNumber(1);
 
     @Test
+    public void testNoAllocationHasEnoughResource() {
+        ContinuousResource original =
+                Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.gbps(1).bps());
+
+        ContinuousResourceAllocation sut = ContinuousResourceAllocation.empty(original);
+
+        ContinuousResource request =
+                Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.mbps(100).bps());
+
+        assertThat(sut.hasEnoughResource(request), is(true));
+    }
+
+    @Test
+    public void testHasEnoughResourceWhenSmallResourceIsRequested() {
+        ContinuousResource original =
+                Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.gbps(1).bps());
+        ContinuousResource allocated =
+                Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.mbps(500).bps());
+        ResourceConsumer consumer = IntentId.valueOf(1);
+
+        ContinuousResourceAllocation sut = new ContinuousResourceAllocation(original,
+                        ImmutableList.of(new ResourceAllocation(allocated, consumer)));
+
+        ContinuousResource request =
+                Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.mbps(200).bps());
+        assertThat(sut.hasEnoughResource(request), is(true));
+    }
+
+    @Test
+    public void testHasEnoughResourceWhenLargeResourceIsRequested() {
+        ContinuousResource original =
+                Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.gbps(1).bps());
+        ContinuousResource allocated =
+                Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.mbps(500).bps());
+        ResourceConsumer consumer = IntentId.valueOf(1);
+
+        ContinuousResourceAllocation sut = new ContinuousResourceAllocation(original,
+                ImmutableList.of(new ResourceAllocation(allocated, consumer)));
+
+        ContinuousResource request =
+                Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.mbps(600).bps());
+        assertThat(sut.hasEnoughResource(request), is(false));
+    }
+
+    @Test
+    public void testHasEnoughResourceWhenExactResourceIsRequested() {
+        ContinuousResource original =
+                Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.gbps(1).bps());
+        ContinuousResource allocated =
+                Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.mbps(500).bps());
+        ResourceConsumer consumer = IntentId.valueOf(1);
+
+        ContinuousResourceAllocation sut = new ContinuousResourceAllocation(original,
+                ImmutableList.of(new ResourceAllocation(allocated, consumer)));
+
+        ContinuousResource request =
+                Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.mbps(500).bps());
+        assertThat(sut.hasEnoughResource(request), is(true));
+    }
+
+    @Test
     public void testReleaseWhenAllocatedResourceIsRequested() {
         ContinuousResource original =
                 Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.gbps(1).bps());
