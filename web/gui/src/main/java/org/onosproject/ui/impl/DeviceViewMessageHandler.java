@@ -24,11 +24,13 @@ import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.host.HostService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
@@ -230,7 +232,8 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
             port.put(ENABLED, p.isEnabled());
             port.put(NAME, name != null ? name : "");
 
-            Set<Link> links = ls.getEgressLinks(new ConnectPoint(id, p.number()));
+            ConnectPoint connectPoint = new ConnectPoint(id, p.number());
+            Set<Link> links = ls.getEgressLinks(connectPoint);
             if (!links.isEmpty()) {
                 StringBuilder egressLinks = new StringBuilder();
                 for (Link l : links) {
@@ -239,6 +242,12 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
                             .append(dest.port()).append(" ");
                 }
                 port.put(LINK_DEST, egressLinks.toString());
+            } else {
+                HostService hs = get(HostService.class);
+                Set<Host> hosts = hs.getConnectedHosts(connectPoint);
+                if (hosts != null && !hosts.isEmpty()) {
+                    port.put(LINK_DEST, hosts.iterator().next().id().toString());
+                }
             }
 
             return port;
