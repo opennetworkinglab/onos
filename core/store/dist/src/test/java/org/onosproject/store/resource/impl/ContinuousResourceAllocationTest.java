@@ -27,6 +27,7 @@ import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceConsumer;
 import org.onosproject.net.resource.Resources;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -137,5 +138,48 @@ public class ContinuousResourceAllocationTest {
 
         assertThat(allocations.size(), is(1));
         assertThat(allocations.get(0).resource().equals(allocated), is(true));
+    }
+
+    @Test
+    public void testAllocateDifferentValue() {
+        ContinuousResource original =
+                Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.gbps(1).bps());
+        ContinuousResource allocated =
+                Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.mbps(500).bps());
+        ResourceConsumer consumer = IntentId.valueOf(1);
+
+        ContinuousResourceAllocation sut = new ContinuousResourceAllocation(original,
+                ImmutableList.of(new ResourceAllocation(allocated, consumer)));
+
+        ContinuousResource request =
+                Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.mbps(200).bps());
+
+        ContinuousResourceAllocation newValue = sut.allocate(new ResourceAllocation(request, consumer));
+
+        assertThat(newValue.allocations().size(), is(2));
+        assertThat(newValue.allocations(), hasItem(new ResourceAllocation(allocated, consumer)));
+        assertThat(newValue.allocations(), hasItem(new ResourceAllocation(request, consumer)));
+    }
+
+    @Test
+    public void testAllocateSameValue() {
+        ContinuousResource original =
+                Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.gbps(1).bps());
+        ContinuousResource allocated =
+                Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.mbps(300).bps());
+        ResourceConsumer consumer = IntentId.valueOf(1);
+
+        ContinuousResourceAllocation sut = new ContinuousResourceAllocation(original,
+                ImmutableList.of(new ResourceAllocation(allocated, consumer)));
+
+        ContinuousResource request =
+                Resources.continuous(DID, PN1, Bandwidth.class).resource(Bandwidth.mbps(300).bps());
+
+        ContinuousResourceAllocation newValue = sut.allocate(new ResourceAllocation(request, consumer));
+
+        assertThat(newValue.allocations().size(), is(2));
+        assertThat(newValue.allocations()
+                .stream()
+                .allMatch(x -> x.equals(new ResourceAllocation(allocated, consumer))), is(true));
     }
 }
