@@ -1,6 +1,8 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//protocols/bgp/bgpio:onos-protocols-bgp-bgpio',
+    '//core/api:onos-api',
+    '//lib:netty',
 ]
 
 osgi_jar_with_tests (

@@ -6,6 +6,10 @@ COMPILE_DEPS = [
     '//lib:javax.ws.rs-api',
     '//protocols/bgp/api:onos-protocols-bgp-api',
     '//protocols/bgp/bgpio:onos-protocols-bgp-bgpio',
+    '//lib:netty-common',
+    '//lib:netty',
+    '//lib:org.osgi.compendium',
+    '//lib:org.apache.felix.scr.annotations',
 ]
 
 osgi_jar_with_tests (

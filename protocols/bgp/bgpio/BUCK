@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:COMPILE',
+    '//core/api:onos-api',
 ]
 
 osgi_jar_with_tests (
