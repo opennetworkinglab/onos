@@ -38,6 +38,7 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkEvent;
 import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
 import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
 import org.onosproject.incubator.net.virtual.VirtualNetworkProvider;
+import org.onosproject.incubator.net.virtual.VirtualNetworkProviderRegistry;
 import org.onosproject.incubator.net.virtual.VirtualNetworkProviderService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStore;
@@ -74,8 +75,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Service
 public class VirtualNetworkManager
         extends AbstractListenerProviderRegistry<VirtualNetworkEvent, VirtualNetworkListener,
-        VirtualNetworkProvider, VirtualNetworkProviderService>
-        implements VirtualNetworkService, VirtualNetworkAdminService {
+                                                 VirtualNetworkProvider, VirtualNetworkProviderService>
+        implements VirtualNetworkService, VirtualNetworkAdminService, VirtualNetworkProviderRegistry {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
