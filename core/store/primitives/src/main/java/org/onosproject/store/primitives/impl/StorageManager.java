@@ -46,6 +46,7 @@ import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.DistributedQueueBuilder;
 import org.onosproject.store.service.DistributedSetBuilder;
+import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.LeaderElectorBuilder;
 import org.onosproject.store.service.MapInfo;
@@ -54,6 +55,7 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageAdminService;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TransactionContextBuilder;
+import org.onosproject.store.service.WorkQueueStats;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Maps;
@@ -171,6 +173,12 @@ public class StorageManager implements StorageService, StorageAdminService {
     }
 
     @Override
+    public <E> WorkQueue<E> getWorkQueue(String name, Serializer serializer) {
+        checkPermission(STORAGE_WRITE);
+        return federatedPrimitiveCreator.newWorkQueue(name, serializer);
+    }
+
+    @Override
     public List<MapInfo> getMapInfo() {
         return listMapInfo(federatedPrimitiveCreator);
     }
@@ -182,6 +190,18 @@ public class StorageManager implements StorageService, StorageAdminService {
                .forEach(name -> counters.put(name,
                        federatedPrimitiveCreator.newAsyncCounter(name).asAtomicCounter().get()));
         return counters;
+    }
+
+    @Override
+    public Map<String, WorkQueueStats> getQueueStats() {
+        Map<String, WorkQueueStats> workQueueStats = Maps.newConcurrentMap();
+        federatedPrimitiveCreator.getWorkQueueNames()
+               .forEach(name -> workQueueStats.put(name,
+                       federatedPrimitiveCreator.newWorkQueue(name,
+                                                              Serializer.using(KryoNamespaces.BASIC))
+                                                .stats()
+                                                .join()));
+        return workQueueStats;
     }
 
     @Override

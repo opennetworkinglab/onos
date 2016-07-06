@@ -16,6 +16,7 @@
 package org.onosproject.store.primitives.resources.impl;
 
 import com.google.common.util.concurrent.Uninterruptibles;
+
 import io.atomix.AtomixClient;
 import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.catalyst.transport.Address;
@@ -114,18 +115,18 @@ public abstract class AtomixTestBase {
 
         CompletableFuture<Void> closeClients =
                 CompletableFuture.allOf(atomixClients.stream()
-                                         .map(AtomixClient::close)
-                                         .toArray(CompletableFuture[]::new));
+                                                     .map(AtomixClient::close)
+                                                     .toArray(CompletableFuture[]::new));
+        closeClients.join();
 
-        closeClients
-                .thenCompose(v -> CompletableFuture
-                        .allOf(copycatServers.stream()
-                .map(CopycatServer::shutdown)
-                .toArray(CompletableFuture[]::new))).join();
+        CompletableFuture<Void> closeServers =
+                CompletableFuture.allOf(copycatServers.stream()
+                                                      .map(CopycatServer::shutdown)
+                                                      .toArray(CompletableFuture[]::new));
+        closeServers.join();
 
-        atomixClients = new ArrayList<>();
-
-        copycatServers = new ArrayList<>();
+        atomixClients.clear();
+        copycatServers.clear();
     }
 
 

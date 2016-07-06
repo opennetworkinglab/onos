@@ -30,6 +30,7 @@ import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.DistributedQueue;
+import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.Serializer;
 
 import com.google.common.base.Charsets;
@@ -101,6 +102,11 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
     }
 
     @Override
+    public <E> WorkQueue<E> newWorkQueue(String name, Serializer serializer) {
+        return getCreator(name).newWorkQueue(name, serializer);
+    }
+
+    @Override
     public Set<String> getAsyncConsistentMapNames() {
         return members.values()
                       .stream()
@@ -114,6 +120,15 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
         return members.values()
                       .stream()
                       .map(DistributedPrimitiveCreator::getAsyncAtomicCounterNames)
+                      .reduce(Sets::union)
+                      .orElse(ImmutableSet.of());
+    }
+
+    @Override
+    public Set<String> getWorkQueueNames() {
+        return members.values()
+                      .stream()
+                      .map(DistributedPrimitiveCreator::getWorkQueueNames)
                       .reduce(Sets::union)
                       .orElse(ImmutableSet.of());
     }

@@ -107,4 +107,13 @@ public interface StorageService {
     default AtomicCounter getAtomicCounter(String name) {
         return getAsyncAtomicCounter(name).asAtomicCounter();
     }
+
+    /**
+     * Returns an instance of {@code WorkQueue} with specified name.
+     * @param name work queue name
+     * @param serializer serializer
+     *
+     * @return WorkQueue instance
+     */
+    <E> WorkQueue<E> getWorkQueue(String name, Serializer serializer);
 }

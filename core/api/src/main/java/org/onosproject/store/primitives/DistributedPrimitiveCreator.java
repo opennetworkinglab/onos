@@ -23,6 +23,7 @@ import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.DistributedQueue;
+import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.Serializer;
 
 /**
@@ -88,6 +89,15 @@ public interface DistributedPrimitiveCreator {
     AsyncLeaderElector newAsyncLeaderElector(String name);
 
     /**
+     * Creates a new {@code WorkQueue}.
+     *
+     * @param name work queue name
+     * @param serializer serializer
+     * @return work queue
+     */
+    <E> WorkQueue<E> newWorkQueue(String name, Serializer serializer);
+
+    /**
      * Returns the names of all created {@code AsyncConsistentMap} instances.
      * @return set of {@code AsyncConsistentMap} names
      */
@@ -98,4 +108,10 @@ public interface DistributedPrimitiveCreator {
      * @return set of {@code AsyncAtomicCounter} names
      */
     Set<String> getAsyncAtomicCounterNames();
+
+    /**
+     * Returns the names of all created {@code WorkQueue} instances.
+     * @return set of {@code WorkQueue} names
+     */
+    Set<String> getWorkQueueNames();
 }

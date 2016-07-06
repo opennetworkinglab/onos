@@ -41,6 +41,7 @@ import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMap;
 import org.onosproject.store.primitives.resources.impl.AtomixCounter;
 import org.onosproject.store.primitives.resources.impl.AtomixLeaderElector;
+import org.onosproject.store.primitives.resources.impl.AtomixWorkQueue;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AsyncAtomicValue;
@@ -49,6 +50,7 @@ import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.DistributedPrimitive.Status;
 import org.onosproject.store.service.DistributedQueue;
+import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.PartitionClientInfo;
 import org.onosproject.store.service.Serializer;
 import org.slf4j.Logger;
@@ -159,8 +161,13 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
 
     @Override
     public <E> DistributedQueue<E> newDistributedQueue(String name, Serializer serializer) {
-        // TODO: Implement
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <E> WorkQueue<E> newWorkQueue(String name, Serializer serializer) {
+        AtomixWorkQueue workQueue = client.getResource(name, AtomixWorkQueue.class).join();
+        return new DefaultDistributedWorkQueue<>(workQueue, serializer);
     }
 
     @Override
@@ -184,6 +191,11 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
     @Override
     public Set<String> getAsyncAtomicCounterNames() {
         return client.keys(DistributedLong.class).join();
+    }
+
+    @Override
+    public Set<String> getWorkQueueNames() {
+        return client.keys(AtomixWorkQueue.class).join();
     }
 
     @Override

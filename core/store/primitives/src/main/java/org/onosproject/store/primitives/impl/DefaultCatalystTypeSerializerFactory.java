@@ -54,20 +54,19 @@ public class DefaultCatalystTypeSerializerFactory implements TypeSerializerFacto
         }
 
         @Override
-        public void write(T object, BufferOutput buffer,
-                io.atomix.catalyst.serializer.Serializer serializer) {
+        public void write(T object, BufferOutput buffer, io.atomix.catalyst.serializer.Serializer serializer) {
             try {
                 byte[] payload = this.serializer.encode(object);
                 buffer.writeInt(payload.length);
                 buffer.write(payload);
             } catch (Exception e) {
                 log.warn("Failed to serialize {}", object, e);
+                throw Throwables.propagate(e);
             }
         }
 
         @Override
-        public T read(Class<T> type, BufferInput buffer,
-                io.atomix.catalyst.serializer.Serializer serializer) {
+        public T read(Class<T> type, BufferInput buffer, io.atomix.catalyst.serializer.Serializer serializer) {
             int size = buffer.readInt();
             try {
                 byte[] payload = new byte[size];
@@ -75,8 +74,7 @@ public class DefaultCatalystTypeSerializerFactory implements TypeSerializerFacto
                 return this.serializer.decode(payload);
             } catch (Exception e) {
                 log.warn("Failed to deserialize as type {}. Payload size: {}", type, size, e);
-                Throwables.propagate(e);
-                return null;
+                throw Throwables.propagate(e);
             }
         }
     }

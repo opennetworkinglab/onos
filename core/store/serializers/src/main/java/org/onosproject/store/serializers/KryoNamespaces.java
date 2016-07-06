@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ip4Address;
@@ -208,7 +209,9 @@ import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.SetEvent;
+import org.onosproject.store.service.Task;
 import org.onosproject.store.service.Versioned;
+import org.onosproject.store.service.WorkQueueStats;
 
 import java.net.URI;
 import java.time.Duration;
@@ -338,6 +341,8 @@ public final class KryoNamespaces {
                     Leadership.class,
                     LeadershipEvent.class,
                     LeadershipEvent.Type.class,
+                    Task.class,
+                    WorkQueueStats.class,
                     HostId.class,
                     HostDescription.class,
                     DefaultHostDescription.class,

@@ -52,6 +52,13 @@ public interface StorageAdminService {
     Map<String, Long> getCounters();
 
     /**
+     * Returns statistics for all the work queues in the system.
+     *
+     * @return mapping from queue name to that queue's stats
+     */
+    Map<String, WorkQueueStats> getQueueStats();
+
+    /**
      * Returns all pending transactions.
      *
      * @return collection of pending transaction identifiers.
