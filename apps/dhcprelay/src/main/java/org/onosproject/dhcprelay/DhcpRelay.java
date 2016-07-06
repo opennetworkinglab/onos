@@ -15,6 +15,8 @@
  */
 package org.onosproject.dhcprelay;
 
+import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -23,10 +25,14 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.DHCP;
+import org.onlab.packet.DHCPOption;
+import org.onlab.packet.DHCPPacketType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
+import org.onlab.packet.VlanId;
+import org.onlab.util.HexString;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
@@ -52,6 +58,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableSet;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_CircuitID;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_MessageType;
 /**
  * DHCP Relay Agent Application Component.
  */
@@ -185,40 +193,38 @@ public class DhcpRelay {
                     UDP udpPacket = (UDP) ipv4Packet.getPayload();
                     DHCP dhcpPayload = (DHCP) udpPacket.getPayload();
                     if (udpPacket.getDestinationPort() == UDP.DHCP_SERVER_PORT &&
-                        udpPacket.getSourcePort() == UDP.DHCP_CLIENT_PORT) {
-                        //This packet is dhcp client request.
-                        forwardPacket(context, dhcpPayload);
-                    } else {
-                        //This packet is a dhcp reply from DHCP server.
-                        sendReply(context, dhcpPayload);
+                        udpPacket.getSourcePort() == UDP.DHCP_CLIENT_PORT ||
+                        udpPacket.getSourcePort() == UDP.DHCP_SERVER_PORT &&
+                        udpPacket.getDestinationPort() == UDP.DHCP_CLIENT_PORT) {
+                        //This packet is dhcp.
+                        processDhcpPacket(context, dhcpPayload);
                     }
                 }
             }
         }
 
         //forward the packet to ConnectPoint where the DHCP server is attached.
-        private void forwardPacket(PacketContext context, DHCP dhcpPayload) {
-            if (dhcpPayload == null) {
-                log.debug("DHCP packet without payload, do nothing");
-                return;
-            }
+        private void forwardPacket(Ethernet packet) {
 
             //send Packetout to dhcp server connectpoint.
             if (dhcpServerConnectPoint != null) {
                 TrafficTreatment t = DefaultTrafficTreatment.builder()
                         .setOutput(dhcpServerConnectPoint.port()).build();
                 OutboundPacket o = new DefaultOutboundPacket(
-                        dhcpServerConnectPoint.deviceId(), t, context.inPacket().unparsed());
+                        dhcpServerConnectPoint.deviceId(), t, ByteBuffer.wrap(packet.serialize()));
                 packetService.emit(o);
             }
         }
 
-        /*//process the dhcp packet before sending to server
+        //process the dhcp packet before sending to server
         private void processDhcpPacket(PacketContext context, DHCP dhcpPayload) {
+
             if (dhcpPayload == null) {
                 return;
             }
+
             Ethernet packet = context.inPacket().parsed();
+            String circuitIdFrmClient = context.inPacket().receivedFrom().elementId().toString();
             DHCPPacketType incomingPacketType = null;
             for (DHCPOption option : dhcpPayload.getOptions()) {
                 if (option.getCode() == OptionCode_MessageType.getValue()) {
@@ -228,21 +234,78 @@ public class DhcpRelay {
             }
             switch (incomingPacketType) {
             case DHCPDISCOVER:
+                //add the circuit id as switch dpid and forward the packet to dhcp server.
+                Ethernet ethernetPacketDiscover = processDhcpPacketFrmClient(packet, circuitIdFrmClient,
+                        (byte) DHCPPacketType.DHCPDISCOVER.getValue());
+                forwardPacket(ethernetPacketDiscover);
+                break;
+            case DHCPOFFER:
+                //reply to dhcp client.
+                sendReply(packet);
+                break;
+            case DHCPREQUEST:
+                //add the circuit id as switch dpid and forward the packet to dhcp server.
+                Ethernet ethernetPacketRequest = processDhcpPacketFrmClient(packet, circuitIdFrmClient,
+                        (byte) DHCPPacketType.DHCPREQUEST.getValue());
+                forwardPacket(ethernetPacketRequest);
+                break;
+            case DHCPACK:
+                //reply to dhcp client.
+                sendReply(packet);
                 break;
             default:
                 break;
             }
-        }*/
+        }
+
+        //build the DHCP discover/request packet with circuitid(DpId) suboption.
+        private Ethernet processDhcpPacketFrmClient(Ethernet ethernetPacket, String circuitId,
+                byte incomingPacketType) {
+
+            // get dhcp header.
+            Ethernet etherReply = (Ethernet) ethernetPacket.clone();
+            IPv4 ipv4Packet = (IPv4) etherReply.getPayload();
+            UDP udpPacket = (UDP) ipv4Packet.getPayload();
+            DHCP dhcpPacket = (DHCP) udpPacket.getPayload();
+
+            // DHCP Options.
+            List<DHCPOption> optionList = dhcpPacket.getOptions();
+
+            // Dhcp SubOption as CircuitID
+            DHCPOption option = new DHCPOption();
+            option.setCode(OptionCode_CircuitID.getValue());
+            option.setLength((byte) 10);
+
+            // start object for suboption circuit id.
+            String[] actualDpId = circuitId.split(":", 2);
+            DHCPOption subOption = new DHCPOption();
+            subOption.setCode((byte) 1);
+            byte[] subOptionData = HexString.fromHexString(actualDpId[1], null);
+            subOption.setData(subOptionData);
+            subOption.setLength((byte) 8);
+            // end object for suboption circuit id.
+
+            // converting suboption to byte array
+            byte[] data = new byte[10];
+            ByteBuffer bb = ByteBuffer.wrap(data);
+            DHCP.dhcpOptionToByteArray(subOption, bb);
+
+            option.setData(data);
+            optionList.add(optionList.size() - 1, option);
+
+            dhcpPacket.setOptions(optionList);
+            udpPacket.setPayload(dhcpPacket);
+            ipv4Packet.setPayload(udpPacket);
+            etherReply.setPayload(ipv4Packet);
+            return etherReply;
+        }
 
         //send the response to the requestor host.
-        private void sendReply(PacketContext context, DHCP dhcpPayload) {
-            if (dhcpPayload == null) {
-                log.debug("DHCP packet without payload, do nothing");
-                return;
-            }
+        private void sendReply(Ethernet ethPacket) {
+
             //get the host info
-            Ethernet packet = context.inPacket().parsed();
-            Host host = hostService.getHost(HostId.hostId(packet.getDestinationMAC()));
+            Host host = hostService.getHost(HostId.hostId(ethPacket.getDestinationMAC(),
+                    VlanId.vlanId(ethPacket.getVlanID())));
             ConnectPoint dhcpRequestor = new ConnectPoint(host.location().elementId(),
                                                     host.location().port());
 
@@ -251,7 +314,7 @@ public class DhcpRelay {
                 TrafficTreatment t = DefaultTrafficTreatment.builder()
                         .setOutput(dhcpRequestor.port()).build();
                 OutboundPacket o = new DefaultOutboundPacket(
-                        dhcpRequestor.deviceId(), t, context.inPacket().unparsed());
+                        dhcpRequestor.deviceId(), t, ByteBuffer.wrap(ethPacket.serialize()));
                 packetService.emit(o);
             }
         }

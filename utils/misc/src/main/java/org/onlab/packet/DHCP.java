@@ -62,7 +62,7 @@ public class DHCP extends BasePacket {
         OptionCode_RequestedIP((byte) 50), OptionCode_LeaseTime((byte) 51), OptionCode_MessageType((byte) 53),
         OptionCode_DHCPServerIp((byte) 54), OptionCode_RequestedParameters((byte) 55),
         OptionCode_RenewalTime((byte) 58), OPtionCode_RebindingTime((byte) 59), OptionCode_ClientID((byte) 61),
-        OptionCode_END((byte) 255);
+        OptionCode_CircuitID((byte) 82), OptionCode_END((byte) 255);
 
         protected byte value;
 
@@ -426,15 +426,20 @@ public class DHCP extends BasePacket {
         bb.put((byte) 0x53);
         bb.put((byte) 0x63);
         for (final DHCPOption option : this.options) {
-            final int code = option.getCode() & 0xff;
-            bb.put((byte) code);
-            if (code != 0 && code != 255) {
-                bb.put(option.getLength());
-                bb.put(option.getData());
-            }
+            dhcpOptionToByteArray(option, bb);
         }
         // assume the rest is padded out with zeroes
         return data;
+    }
+
+    public static ByteBuffer dhcpOptionToByteArray(DHCPOption option, ByteBuffer bb) {
+        final int code = option.getCode() & 0xff;
+        bb.put((byte) code);
+        if (code != 0 && code != 255) {
+            bb.put(option.getLength());
+            bb.put(option.getData());
+        }
+        return bb;
     }
 
     @Override
