@@ -67,6 +67,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.net.Link.Type.DIRECT;
+import static org.onosproject.net.Link.Type.INDIRECT;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.PID;
 import static org.onosproject.net.NetTestTools.connectPoint;
@@ -93,6 +94,53 @@ public class PathIntentCompilerTest {
 
     private final ApplicationId appId = new TestApplicationId("test");
     private final ProviderId pid = new ProviderId("of", "test");
+
+    // Edge scenario
+    private final ConnectPoint d1p2 = connectPoint("s1", 2);
+    private final ConnectPoint d1p3 = connectPoint("s1", 3);
+    private final List<Link> edgeNet = Arrays.asList(
+            createEdgeLink(d1p2, true),
+            createEdgeLink(d1p3, false)
+    );
+    private final int edgeHops = edgeNet.size() - 1;
+    private PathIntent edgeIntentNoVlan;
+    private PathIntent edgeIntentIngressVlan;
+    private PathIntent edgeIntentEgressVlan;
+    private PathIntent edgeIntentVlan;
+
+    // Single-hop scenario - indirect
+    private final ConnectPoint d1p4 = connectPoint("s1", 4);
+    private final ConnectPoint d2p2 = connectPoint("s2", 2);
+    private final ConnectPoint d2p3 = connectPoint("s2", 3);
+    private final ConnectPoint d3p2 = connectPoint("s3", 2);
+    private final List<Link> singleHopIndirect = Arrays.asList(
+            DefaultLink.builder().providerId(PID).src(d1p4).dst(d2p2).type(DIRECT).build(),
+            DefaultLink.builder().providerId(PID).src(d2p3).dst(d3p2).type(INDIRECT).build()
+    );
+    private final int singleHopIndirectHops = singleHopIndirect.size() - 1;
+    private PathIntent singleHopIndirectIntentNoVlan;
+    private PathIntent singleHopIndirectIntentIngressVlan;
+    private PathIntent singleHopIndirectIntentEgressVlan;
+    private PathIntent singleHopIndirectIntentVlan;
+
+
+    // Single-hop scenario- direct
+    private final ConnectPoint d1p5 = connectPoint("s1", 5);
+    private final ConnectPoint d2p4 = connectPoint("s2", 4);
+    private final ConnectPoint d2p5 = connectPoint("s2", 5);
+    private final ConnectPoint d3p3 = connectPoint("s3", 3);
+    private final List<Link> singleHopDirect = Arrays.asList(
+            DefaultLink.builder().providerId(PID).src(d1p5).dst(d2p4).type(DIRECT).build(),
+            DefaultLink.builder().providerId(PID).src(d2p5).dst(d3p3).type(DIRECT).build()
+    );
+    private final int singleHopDirectHops = singleHopDirect.size() - 1;
+    private PathIntent singleHopDirectIntentNoVlan;
+    private PathIntent singleHopDirectIntentIngressVlan;
+    private PathIntent singleHopDirectIntentEgressVlan;
+    private PathIntent singleHopDirectIntentVlan;
+
+
+    // Multi-hop scenario
     private final ConnectPoint d1p1 = connectPoint("s1", 0);
     private final ConnectPoint d2p0 = connectPoint("s2", 0);
     private final ConnectPoint d2p1 = connectPoint("s2", 1);
@@ -163,6 +211,115 @@ public class PathIntentCompilerTest {
                 .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.MPLS)))
                 .path(new DefaultPath(pid, links, hops))
                 .build();
+
+        edgeIntentNoVlan = PathIntent.builder()
+                .appId(APP_ID)
+                .selector(selector)
+                .treatment(treatment)
+                .priority(PRIORITY)
+                .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
+                .path(new DefaultPath(pid, edgeNet, edgeHops))
+                .build();
+
+        edgeIntentIngressVlan = PathIntent.builder()
+                .appId(APP_ID)
+                .selector(vlanSelector)
+                .treatment(treatment)
+                .priority(PRIORITY)
+                .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
+                .path(new DefaultPath(pid, edgeNet, edgeHops))
+                .build();
+
+        edgeIntentEgressVlan = PathIntent.builder()
+                .appId(APP_ID)
+                .selector(selector)
+                .treatment(vlanTreatment)
+                .priority(PRIORITY)
+                .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
+                .path(new DefaultPath(pid, edgeNet, edgeHops))
+                .build();
+
+        edgeIntentVlan = PathIntent.builder()
+                .appId(APP_ID)
+                .selector(vlanSelector)
+                .treatment(vlanTreatment)
+                .priority(PRIORITY)
+                .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
+                .path(new DefaultPath(pid, edgeNet, edgeHops))
+                .build();
+
+        singleHopIndirectIntentNoVlan = PathIntent.builder()
+                .appId(APP_ID)
+                .selector(selector)
+                .treatment(treatment)
+                .priority(PRIORITY)
+                .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
+                .path(new DefaultPath(pid, singleHopIndirect, singleHopIndirectHops))
+                .build();
+
+        singleHopIndirectIntentIngressVlan = PathIntent.builder()
+                .appId(APP_ID)
+                .selector(vlanSelector)
+                .treatment(treatment)
+                .priority(PRIORITY)
+                .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
+                .path(new DefaultPath(pid, singleHopIndirect, singleHopIndirectHops))
+                .build();
+
+        singleHopIndirectIntentEgressVlan = PathIntent.builder()
+                .appId(APP_ID)
+                .selector(selector)
+                .treatment(vlanTreatment)
+                .priority(PRIORITY)
+                .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
+                .path(new DefaultPath(pid, singleHopIndirect, singleHopIndirectHops))
+                .build();
+
+        singleHopIndirectIntentVlan = PathIntent.builder()
+                .appId(APP_ID)
+                .selector(vlanSelector)
+                .treatment(vlanTreatment)
+                .priority(PRIORITY)
+                .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
+                .path(new DefaultPath(pid, singleHopIndirect, singleHopIndirectHops))
+                .build();
+
+        singleHopDirectIntentNoVlan = PathIntent.builder()
+                .appId(APP_ID)
+                .selector(selector)
+                .treatment(treatment)
+                .priority(PRIORITY)
+                .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
+                .path(new DefaultPath(pid, singleHopDirect, singleHopDirectHops))
+                .build();
+
+        singleHopDirectIntentIngressVlan = PathIntent.builder()
+                .appId(APP_ID)
+                .selector(vlanSelector)
+                .treatment(treatment)
+                .priority(PRIORITY)
+                .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
+                .path(new DefaultPath(pid, singleHopDirect, singleHopDirectHops))
+                .build();
+
+        singleHopDirectIntentEgressVlan = PathIntent.builder()
+                .appId(APP_ID)
+                .selector(selector)
+                .treatment(vlanTreatment)
+                .priority(PRIORITY)
+                .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
+                .path(new DefaultPath(pid, singleHopDirect, singleHopDirectHops))
+                .build();
+
+        singleHopDirectIntentVlan = PathIntent.builder()
+                .appId(APP_ID)
+                .selector(vlanSelector)
+                .treatment(vlanTreatment)
+                .priority(PRIORITY)
+                .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
+                .path(new DefaultPath(pid, singleHopDirect, singleHopDirectHops))
+                .build();
+
         intentExtensionService = createMock(IntentExtensionService.class);
         intentExtensionService.registerCompiler(PathIntent.class, sut);
         intentExtensionService.unregisterCompiler(PathIntent.class);
@@ -183,6 +340,435 @@ public class PathIntentCompilerTest {
     @After
     public void tearDown() {
         Intent.unbindIdGenerator(idGenerator);
+    }
+
+
+    /**
+     * Tests the compilation behavior of the path intent compiler in case of
+     * VLAN {@link EncapsulationType} encapsulation constraint {@link EncapsulationConstraint}
+     * and edge communication. No ingress VLAN. No egress VLAN.
+     */
+    @Test
+    public void testVlanEncapCompileEdgeNoVlan() {
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(edgeIntentNoVlan, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(1));
+
+        FlowRule rule = rules.stream()
+                .filter(x -> x.deviceId().equals(d1p2.deviceId()))
+                .findFirst()
+                .get();
+        verifyIdAndPriority(rule, d1p2.deviceId());
+
+        assertThat(rule.selector(), is(DefaultTrafficSelector.builder().matchInPort(d1p2.port())
+                                               .build()));
+        assertThat(rule.treatment(),
+                   is(DefaultTrafficTreatment.builder().setOutput(d1p3.port()).build()));
+
+        sut.deactivate();
+    }
+
+    /**
+     * Tests the compilation behavior of the path intent compiler in case of
+     * VLAN {@link EncapsulationType} encapsulation constraint {@link EncapsulationConstraint}
+     * and edge communication. Ingress VLAN. No egress VLAN.
+     */
+    @Test
+    public void testVlanEncapCompileEdgeIngressVlan() {
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(edgeIntentIngressVlan, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(1));
+
+        FlowRule rule = rules.stream()
+                .filter(x -> x.deviceId().equals(d1p2.deviceId()))
+                .findFirst()
+                .get();
+        verifyIdAndPriority(rule, d1p2.deviceId());
+
+        assertThat(rule.selector(), is(DefaultTrafficSelector.builder().matchInPort(d1p2.port())
+                                               .matchVlanId(ingressVlan).build()));
+        assertThat(rule.treatment(),
+                   is(DefaultTrafficTreatment.builder().setOutput(d1p3.port()).build()));
+
+        sut.deactivate();
+    }
+
+    /**
+     * Tests the compilation behavior of the path intent compiler in case of
+     * VLAN {@link EncapsulationType} encapsulation constraint {@link EncapsulationConstraint}
+     * and edge communication. No ingress VLAN. Egress VLAN.
+     */
+    @Test
+    public void testVlanEncapCompileEdgeEgressVlan() {
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(edgeIntentEgressVlan, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(1));
+
+        FlowRule rule = rules.stream()
+                .filter(x -> x.deviceId().equals(d1p2.deviceId()))
+                .findFirst()
+                .get();
+        verifyIdAndPriority(rule, d1p2.deviceId());
+
+        assertThat(rule.selector(), is(DefaultTrafficSelector.builder().matchInPort(d1p2.port())
+                                               .build()));
+        assertThat(rule.treatment(), is(DefaultTrafficTreatment.builder().setVlanId(egressVlan)
+                                                .setOutput(d1p3.port()).build()));
+
+        Set<L2ModificationInstruction.ModVlanIdInstruction> vlanMod = rule.treatment().allInstructions().stream()
+                .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
+                .map(x -> (L2ModificationInstruction.ModVlanIdInstruction) x)
+                .collect(Collectors.toSet());
+        assertThat(rule.treatment().allInstructions().stream()
+                           .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
+                           .collect(Collectors.toSet()), hasSize(1));
+        assertThat(vlanMod.iterator().next().vlanId(), is(egressVlan));
+        assertThat(rule.treatment().allInstructions().stream()
+                           .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanHeaderInstruction)
+                           .collect(Collectors.toSet()), hasSize(0));
+
+        sut.deactivate();
+    }
+
+    /**
+     * Tests the compilation behavior of the path intent compiler in case of
+     * VLAN {@link EncapsulationType} encapsulation constraint {@link EncapsulationConstraint}
+     * and edge communication. Ingress VLAN. Egress VLAN.
+     */
+    @Test
+    public void testVlanEncapCompileEdgeVlan() {
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(edgeIntentVlan, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(1));
+
+        FlowRule rule = rules.stream()
+                .filter(x -> x.deviceId().equals(d1p2.deviceId()))
+                .findFirst()
+                .get();
+        verifyIdAndPriority(rule, d1p2.deviceId());
+
+        assertThat(rule.selector(), is(DefaultTrafficSelector.builder().matchInPort(d1p2.port())
+                                               .matchVlanId(ingressVlan).build()));
+        assertThat(rule.treatment(), is(DefaultTrafficTreatment.builder().setVlanId(egressVlan)
+                                                .setOutput(d1p3.port()).build()));
+
+        Set<L2ModificationInstruction.ModVlanIdInstruction> vlanMod = rule.treatment().allInstructions().stream()
+                .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
+                .map(x -> (L2ModificationInstruction.ModVlanIdInstruction) x)
+                .collect(Collectors.toSet());
+        assertThat(rule.treatment().allInstructions().stream()
+                           .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
+                           .collect(Collectors.toSet()), hasSize(1));
+        assertThat(vlanMod.iterator().next().vlanId(), is(egressVlan));
+        assertThat(rule.treatment().allInstructions().stream()
+                           .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanHeaderInstruction)
+                           .collect(Collectors.toSet()), hasSize(0));
+
+        sut.deactivate();
+    }
+
+    /**
+     * Tests the compilation behavior of the path intent compiler in case of
+     * VLAN {@link EncapsulationType} encapsulation constraint {@link EncapsulationConstraint}
+     * and single-hop-indirect-link scenario. No ingress VLAN. No egress VLAN.
+     */
+    @Test
+    public void testVlanEncapCompileSingleHopIndirectNoVlan() {
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(singleHopIndirectIntentNoVlan, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(1));
+
+
+        FlowRule rule = rules.stream()
+                .filter(x -> x.deviceId().equals(d2p2.deviceId()))
+                .findFirst()
+                .get();
+        verifyIdAndPriority(rule, d2p2.deviceId());
+
+        assertThat(rule.selector(), is(DefaultTrafficSelector.builder().matchInPort(d2p2.port())
+                                               .build()));
+        assertThat(rule.treatment(),
+                   is(DefaultTrafficTreatment.builder().setOutput(d2p3.port()).build()));
+
+        sut.deactivate();
+    }
+
+    /**
+     * Tests the compilation behavior of the path intent compiler in case of
+     * VLAN {@link EncapsulationType} encapsulation constraint {@link EncapsulationConstraint}
+     * and single-hop-indirect-link scenario. Ingress VLAN. No egress VLAN.
+     */
+    @Test
+    public void testVlanEncapCompileSingleHopIndirectIngressVlan() {
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(singleHopIndirectIntentIngressVlan, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(1));
+
+
+        FlowRule rule = rules.stream()
+                .filter(x -> x.deviceId().equals(d2p2.deviceId()))
+                .findFirst()
+                .get();
+        verifyIdAndPriority(rule, d2p2.deviceId());
+
+        assertThat(rule.selector(), is(DefaultTrafficSelector.builder().matchInPort(d2p2.port())
+                                               .matchVlanId(ingressVlan).build()));
+        assertThat(rule.treatment(),
+                   is(DefaultTrafficTreatment.builder().setOutput(d2p3.port()).build()));
+
+        sut.deactivate();
+    }
+
+    /**
+     * Tests the compilation behavior of the path intent compiler in case of
+     * VLAN {@link EncapsulationType} encapsulation constraint {@link EncapsulationConstraint}
+     * and single-hop-indirect-link scenario. No ingress VLAN. Egress VLAN.
+     */
+    @Test
+    public void testVlanEncapCompileSingleHopIndirectEgressVlan() {
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(singleHopIndirectIntentEgressVlan, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(1));
+
+
+        FlowRule rule = rules.stream()
+                .filter(x -> x.deviceId().equals(d2p2.deviceId()))
+                .findFirst()
+                .get();
+        verifyIdAndPriority(rule, d2p2.deviceId());
+
+        assertThat(rule.selector(), is(DefaultTrafficSelector.builder().matchInPort(d2p2.port())
+                                               .build()));
+        assertThat(rule.treatment(), is(DefaultTrafficTreatment.builder().setVlanId(egressVlan)
+                              .setOutput(d2p3.port()).build()));
+
+        Set<L2ModificationInstruction.ModVlanIdInstruction> vlanMod = rule.treatment().allInstructions().stream()
+                .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
+                .map(x -> (L2ModificationInstruction.ModVlanIdInstruction) x)
+                .collect(Collectors.toSet());
+        assertThat(rule.treatment().allInstructions().stream()
+                           .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
+                           .collect(Collectors.toSet()), hasSize(1));
+        assertThat(vlanMod.iterator().next().vlanId(), is(egressVlan));
+        assertThat(rule.treatment().allInstructions().stream()
+                           .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanHeaderInstruction)
+                           .collect(Collectors.toSet()), hasSize(0));
+
+        sut.deactivate();
+    }
+
+    /**
+     * Tests the compilation behavior of the path intent compiler in case of
+     * VLAN {@link EncapsulationType} encapsulation constraint {@link EncapsulationConstraint}
+     * and single-hop-indirect-link scenario. Ingress VLAN. Egress VLAN.
+     */
+    @Test
+    public void testVlanEncapCompileSingleHopIndirectVlan() {
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(singleHopIndirectIntentVlan, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(1));
+
+
+        FlowRule rule = rules.stream()
+                .filter(x -> x.deviceId().equals(d2p2.deviceId()))
+                .findFirst()
+                .get();
+        verifyIdAndPriority(rule, d2p2.deviceId());
+
+        assertThat(rule.selector(), is(DefaultTrafficSelector.builder().matchInPort(d2p2.port())
+                                               .matchVlanId(ingressVlan).build()));
+        assertThat(rule.treatment(), is(DefaultTrafficTreatment.builder().setVlanId(egressVlan)
+                                                .setOutput(d2p3.port()).build()));
+
+        Set<L2ModificationInstruction.ModVlanIdInstruction> vlanMod = rule.treatment().allInstructions().stream()
+                .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
+                .map(x -> (L2ModificationInstruction.ModVlanIdInstruction) x)
+                .collect(Collectors.toSet());
+        assertThat(rule.treatment().allInstructions().stream()
+                           .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
+                           .collect(Collectors.toSet()), hasSize(1));
+        assertThat(vlanMod.iterator().next().vlanId(), is(egressVlan));
+        assertThat(rule.treatment().allInstructions().stream()
+                           .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanHeaderInstruction)
+                           .collect(Collectors.toSet()), hasSize(0));
+
+        sut.deactivate();
+    }
+
+    /**
+     * Tests the compilation behavior of the path intent compiler in case of
+     * VLAN {@link EncapsulationType} encapsulation constraint {@link EncapsulationConstraint}
+     * and single-hop-direct-link scenario. No ingress VLAN. No egress VLAN.
+     */
+    @Test
+    public void testVlanEncapCompileSingleHopDirectNoVlan() {
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(singleHopDirectIntentNoVlan, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(1));
+
+
+        FlowRule rule = rules.stream()
+                .filter(x -> x.deviceId().equals(d2p4.deviceId()))
+                .findFirst()
+                .get();
+        verifyIdAndPriority(rule, d2p4.deviceId());
+
+        assertThat(rule.selector(), is(DefaultTrafficSelector.builder().matchInPort(d2p4.port())
+                                               .build()));
+        assertThat(rule.treatment(),
+                   is(DefaultTrafficTreatment.builder().setOutput(d2p5.port()).build()));
+
+        sut.deactivate();
+    }
+
+    /**
+     * Tests the compilation behavior of the path intent compiler in case of
+     * VLAN {@link EncapsulationType} encapsulation constraint {@link EncapsulationConstraint}
+     * and single-hop-direct-link scenario. Ingress VLAN. No egress VLAN.
+     */
+    @Test
+    public void testVlanEncapCompileSingleHopDirectIngressVlan() {
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(singleHopDirectIntentIngressVlan, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(1));
+
+
+        FlowRule rule = rules.stream()
+                .filter(x -> x.deviceId().equals(d2p4.deviceId()))
+                .findFirst()
+                .get();
+        verifyIdAndPriority(rule, d2p4.deviceId());
+
+        assertThat(rule.selector(), is(DefaultTrafficSelector.builder().matchInPort(d2p4.port())
+                                               .matchVlanId(ingressVlan).build()));
+        assertThat(rule.treatment(),
+                   is(DefaultTrafficTreatment.builder().setOutput(d2p5.port()).build()));
+
+        sut.deactivate();
+    }
+
+    /**
+     * Tests the compilation behavior of the path intent compiler in case of
+     * VLAN {@link EncapsulationType} encapsulation constraint {@link EncapsulationConstraint}
+     * and single-hop-direct-link scenario. No ingress VLAN. Egress VLAN.
+     */
+    @Test
+    public void testVlanEncapCompileSingleHopDirectEgressVlan() {
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(singleHopDirectIntentEgressVlan, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(1));
+
+
+        FlowRule rule = rules.stream()
+                .filter(x -> x.deviceId().equals(d2p4.deviceId()))
+                .findFirst()
+                .get();
+        verifyIdAndPriority(rule, d2p4.deviceId());
+
+        assertThat(rule.selector(), is(DefaultTrafficSelector.builder().matchInPort(d2p4.port())
+                                               .build()));
+        assertThat(rule.treatment(), is(DefaultTrafficTreatment.builder().setVlanId(egressVlan)
+                                                .setOutput(d2p5.port()).build()));
+
+        Set<L2ModificationInstruction.ModVlanIdInstruction> vlanMod = rule.treatment().allInstructions().stream()
+                .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
+                .map(x -> (L2ModificationInstruction.ModVlanIdInstruction) x)
+                .collect(Collectors.toSet());
+        assertThat(rule.treatment().allInstructions().stream()
+                           .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
+                           .collect(Collectors.toSet()), hasSize(1));
+        assertThat(vlanMod.iterator().next().vlanId(), is(egressVlan));
+        assertThat(rule.treatment().allInstructions().stream()
+                           .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanHeaderInstruction)
+                           .collect(Collectors.toSet()), hasSize(0));
+
+        sut.deactivate();
+    }
+
+    /**
+     * Tests the compilation behavior of the path intent compiler in case of
+     * VLAN {@link EncapsulationType} encapsulation constraint {@link EncapsulationConstraint}
+     * and single-hop-direct-link scenario. Ingress VLAN. Egress VLAN.
+     */
+    @Test
+    public void testVlanEncapCompileSingleHopDirectVlan() {
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(singleHopDirectIntentVlan, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(1));
+
+
+        FlowRule rule = rules.stream()
+                .filter(x -> x.deviceId().equals(d2p4.deviceId()))
+                .findFirst()
+                .get();
+        verifyIdAndPriority(rule, d2p4.deviceId());
+
+        assertThat(rule.selector(), is(DefaultTrafficSelector.builder().matchInPort(d2p4.port())
+                                               .matchVlanId(ingressVlan).build()));
+        assertThat(rule.treatment(), is(DefaultTrafficTreatment.builder().setVlanId(egressVlan)
+                                                .setOutput(d2p5.port()).build()));
+
+        Set<L2ModificationInstruction.ModVlanIdInstruction> vlanMod = rule.treatment().allInstructions().stream()
+                .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
+                .map(x -> (L2ModificationInstruction.ModVlanIdInstruction) x)
+                .collect(Collectors.toSet());
+        assertThat(rule.treatment().allInstructions().stream()
+                           .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
+                           .collect(Collectors.toSet()), hasSize(1));
+        assertThat(vlanMod.iterator().next().vlanId(), is(egressVlan));
+        assertThat(rule.treatment().allInstructions().stream()
+                           .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanHeaderInstruction)
+                           .collect(Collectors.toSet()), hasSize(0));
+
+        sut.deactivate();
     }
 
     /**
