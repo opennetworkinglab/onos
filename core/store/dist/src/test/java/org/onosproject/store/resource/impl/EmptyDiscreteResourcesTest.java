@@ -18,6 +18,7 @@ package org.onosproject.store.resource.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.Resources;
@@ -49,6 +50,13 @@ public class EmptyDiscreteResourcesTest {
     @Test
     public void testIsEmpty() {
         assertThat(sut.isEmpty(), is(true));
+    }
+
+    @Test
+    public void testValuesOf() {
+        // doesn't match any types of resources
+        assertThat(sut.valuesOf(Object.class), is(ImmutableSet.of()));
+        assertThat(sut.valuesOf(VlanId.class), is(ImmutableSet.of()));
     }
 
     @Test
