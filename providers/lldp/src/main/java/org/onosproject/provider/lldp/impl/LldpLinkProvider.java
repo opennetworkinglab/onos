@@ -374,7 +374,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
      * Loads available devices and registers their ports to be probed.
      */
     private void loadDevices() {
-        if (!enabled) {
+        if (!enabled || deviceService == null) {
             return;
         }
         deviceService.getAvailableDevices()
