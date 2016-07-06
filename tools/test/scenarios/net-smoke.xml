@@ -55,5 +55,10 @@
                                                   ~Net-REST,
                                                   ~Net-Create-Flows,
                                                   ~Net-Topo"/>
+
+        <parallel var="${OC#}">
+            <step name="Net-Smoke-Check-Logs-${#}" requires="~Net-Teardown"
+                  exec="onos-check-logs ${OC#}"/>
+        </parallel>
     </group>
 </scenario>
