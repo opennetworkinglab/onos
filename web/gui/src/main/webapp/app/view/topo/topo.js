@@ -652,9 +652,8 @@
             tis.initInst({ showMastership: tfs.showMastership });
             tps.initPanels();
 
-            // temporary solution for persisting user settings
             restoreConfigFromPrefs();
-            ttbs.setDefaultOverlay();
+            ttbs.setDefaultOverlay(prefsState.ovidx);
 
             $log.debug('registered overlays...', tov.list());
             $log.log('OvTopoCtrl has been created');

@@ -80,6 +80,7 @@
             porthl: 1,
             bg: 0,
             spr: 0,
+            ovidx: 1,   // default to traffic overlay
             toolbar: 0
         },
         prefsMap = {
@@ -199,6 +200,9 @@
         tds.closeDialog();
         thirdRow.clear();
 
+        // persist our choice of overlay...
+        persistTopoPrefs('ovidx', ovIndex[oid] || 0);
+
         if (!order.length) {
             thirdRow.setText(selOver);
             thirdRow.classed('right', true);
@@ -264,15 +268,22 @@
         }
     }
 
-    function toggleToolbar() {
-        toolbar.toggle();
+    function persistTopoPrefs(key, val) {
         var prefs = ps.getPrefs(cooktag, defaultPrefsState);
-        prefs.toolbar = !prefs.toolbar;
+        prefs[key] = val === undefined ? !prefs[key] : val;
         ps.setPrefs('topo_prefs', prefs);
     }
 
-    function setDefaultOverlay() {
+    function toggleToolbar() {
+        toolbar.toggle();
+        persistTopoPrefs('toolbar');
+    }
+    
+    function setDefaultOverlay(prefsIdx) {
         var idx = ovIndex[defaultOverlay] || 0;
+        if (prefsIdx >= 0 && prefsIdx < ovRset.size()) {
+            idx = prefsIdx;
+        }
         ovRset.selectedIndex(idx);
     }
 
