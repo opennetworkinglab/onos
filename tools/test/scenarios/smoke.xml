@@ -23,17 +23,17 @@
     <import file="${ONOS_SCENARIOS}/net-smoke.xml"/>
     <dependency name="Net-Smoke" requires="Setup"/>
 
-    <import file="${ONOS_SCENARIOS}/meta-apps-test.xml"/>
-    <dependency name="Meta-App" requires="Setup,~Net-Smoke"/>
-
     <import file="${ONOS_SCENARIOS}/archetypes.xml"/>
     <dependency name="Archetypes" requires="Setup,~Net-Smoke"/>
 
-    <import file="${ONOS_SCENARIOS}/netcfg.xml"/>
-    <dependency name="Netcfg" requires="Setup,~Meta-App"/>
-
     <import file="${ONOS_SCENARIOS}/drivers-test.xml"/>
     <dependency name="Drivers-Test" requires="Setup,~Net-Smoke,~Archetypes"/>
+
+    <import file="${ONOS_SCENARIOS}/meta-apps-test.xml"/>
+    <dependency name="Meta-App" requires="Setup,~Net-Smoke,~Drivers-Test"/>
+
+    <import file="${ONOS_SCENARIOS}/netcfg.xml"/>
+    <dependency name="Netcfg" requires="Setup,~Meta-App"/>
 
     <import file="${ONOS_SCENARIOS}/wrapup.xml"/>
     <dependency name="Wrapup" requires="~Archetypes,~Setup,~Net-Smoke,~Drivers-Test,~Meta-App,~Netcfg"/>

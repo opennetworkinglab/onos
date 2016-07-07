@@ -27,6 +27,10 @@
         <step name="DriversTest.CheckDefault" requires="^"
               exec="test '${defaultDriver}' != ''"/>
 
+        <!-- Deactivate openfow app - prevents spawning multiple controllers -->
+        <step name="DriversTest.DeactivateOpenflowApp" requires="^"
+              exec="onos ${OCI} onos:app deactivate org.onosproject.openflow"/>
+
         <!-- Deactivate drivers app -->
         <step name="DriversTest.DeactivateDriversApp" requires="^"
               exec="onos ${OCI} onos:app deactivate org.onosproject.drivers"/>
@@ -36,6 +40,10 @@
               exec="onos-find-driver ${OC1} celestica celesticaInactive" env="!"/>
         <step name="DriversTest.AfterDeactivateFindDefault" requires="^"
               exec="onos-find-driver ${OC1} default defaultInactive" env="!"/>
+
+        <!-- Reactivate openflow apps -->
+        <step name="DriversTest.ActivateOpenflowApp" requires="^"
+              exec="onos ${OCI} onos:app activate org.onosproject.openflow"/>
 
         <!-- Reactivate all drivers -->
         <step name="DriversTest.ActivateDriversApp" requires="^"
