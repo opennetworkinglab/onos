@@ -19,6 +19,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Objects;
 
+import org.onosproject.net.link.LinkDescription;
+
 import com.google.common.base.MoreObjects;
 
 // TODO Consider renaming.
@@ -79,6 +81,16 @@ public final class LinkKey {
      * @return a link identifier
      */
     public static LinkKey linkKey(Link link) {
+        return new LinkKey(link.src(), link.dst());
+    }
+
+    /**
+     * Creates a link identifier for the specified link.
+     *
+     * @param link {@link Description}
+     * @return a link identifier
+     */
+    public static LinkKey linkKey(LinkDescription link) {
         return new LinkKey(link.src(), link.dst());
     }
 
