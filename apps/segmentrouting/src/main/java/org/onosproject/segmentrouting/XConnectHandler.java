@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
  */
 public class XConnectHandler {
     private static final Logger log = LoggerFactory.getLogger(XConnectHandler.class);
-    private static final String CONFIG_NOT_FOUND = "XConnect config missing";
+    private static final String CONFIG_NOT_FOUND = "XConnect config not found";
     private static final String NOT_MASTER = "Not master controller";
     private final SegmentRoutingManager srManager;
     private final StorageService storageService;
@@ -87,7 +87,7 @@ public class XConnectHandler {
         XConnectConfig config =
                 srManager.cfgService.getConfig(srManager.appId, XConnectConfig.class);
         if (config == null) {
-            log.warn("Failed to read XConnect config: {}", CONFIG_NOT_FOUND);
+            log.info("Skip XConnect initialization: {}", CONFIG_NOT_FOUND);
             return;
         }
 
