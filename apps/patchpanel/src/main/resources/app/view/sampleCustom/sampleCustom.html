@@ -1,0 +1,54 @@
+<!-- partial HTML of patch panel app -->
+<div id="ov-sample-custom" ng-controller="OvSampleCustomCtrl">
+    <div class="button-panel">
+        <div class="my-button" ng-click="getData()">
+            Load Devices
+        </div>
+
+    </div>
+    <div class="data-panel">
+        <div>
+            <label>Devices:
+                <select ng-model="myDev" ng-options="dev.name for dev in devices"></select>
+            </label>
+
+        </div>
+    </div>
+    <div class="button-panel">
+        <div class="my-button" ng-click="loadPorts()">
+            Load Ports
+        </div>
+    </div>
+    <div class="data-panel2">
+        <label>First Port:
+            <select ng-model="myPort1" ng-options="port.name for port in ports"></select>
+        </label>
+        <label>Second Port:
+            <select ng-model="myPort2" ng-options="port.name for port in ports"></select>
+        </label>
+    </div>
+    <div class="button-panel">
+        <div class="my-button" ng-click="done()">
+            Patch!
+        </div>
+    </div>
+    <div class="data-panel3">
+        <p>
+            <span class="quote">{{data.message}} </span>
+        </p>
+         <pre>
+
+
+        </pre>
+    </div>
+    <div class="button-panel">
+        <div class="my-button" ng-click="used()">
+            ConnectPoints in use
+        </div>
+    </div>
+    <div class="data-panel4">
+        <p>
+            <span class="quote">{{data.cpoints}} </span>
+        </p>
+    </div>
+</div>

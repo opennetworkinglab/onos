@@ -60,6 +60,7 @@
         <module>pim</module>
         <module>mlb</module>
         <module>pathpainter</module>
+        <module>patchpanel</module>
         <module>drivermatrix</module>
         <module>cpman</module>
         <module>events</module>

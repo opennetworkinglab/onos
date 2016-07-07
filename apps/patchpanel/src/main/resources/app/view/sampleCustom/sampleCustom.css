@@ -1,0 +1,48 @@
+/* css for sample app custom view */
+
+#ov-sample-custom {
+    padding: 20px;
+}
+.light #ov-sample-custom {
+    color: navy;
+}
+.dark #ov-sample-custom {
+    color: #88f;
+}
+
+#ov-sample-custom .button-panel {
+    margin: 10px;
+    width: 200px;
+}
+
+.light #ov-sample-custom .button-panel {
+    background-color: #ccf;
+}
+.dark #ov-sample-custom .button-panel {
+    background-color: #444;
+}
+
+#ov-sample-custom .my-button {
+    cursor: pointer;
+    padding: 4px;
+    text-align: center;
+}
+
+.light #ov-sample-custom .my-button {
+    color: white;
+    background-color: #99d;
+}
+.dark #ov-sample-custom .my-button {
+    color: black;
+    background-color: #aaa;
+}
+
+#ov-sample-custom .number {
+    font-size: 140%;
+    text-align: right;
+}
+
+#ov-sample-custom .quote {
+    margin: 10px 20px;
+    font-style: italic;
+}
