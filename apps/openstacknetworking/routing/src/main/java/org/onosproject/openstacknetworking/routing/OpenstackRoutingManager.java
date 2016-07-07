@@ -16,6 +16,7 @@
 package org.onosproject.openstacknetworking.routing;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -25,38 +26,47 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.UDP;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
 import org.onosproject.net.Port;
-import org.onosproject.net.config.ConfigFactory;
-import org.onosproject.net.config.NetworkConfigEvent;
-import org.onosproject.net.config.NetworkConfigListener;
-import org.onosproject.net.config.NetworkConfigRegistry;
-import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.device.DeviceEvent;
-import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.host.DefaultHostDescription;
+import org.onosproject.net.host.HostDescription;
+import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostListener;
+import org.onosproject.net.host.HostProvider;
+import org.onosproject.net.host.HostProviderRegistry;
+import org.onosproject.net.host.HostProviderService;
+import org.onosproject.net.host.HostService;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openstackinterface.OpenstackFloatingIP;
 import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstackinterface.OpenstackRouter;
 import org.onosproject.openstackinterface.OpenstackRouterInterface;
-import org.onosproject.openstacknetworking.OpenstackNetworkingConfig;
-import org.onosproject.openstacknetworking.OpenstackPortInfo;
 import org.onosproject.openstacknetworking.OpenstackRoutingService;
-import org.onosproject.openstacknetworking.OpenstackSubjectFactories;
-import org.onosproject.openstacknetworking.OpenstackSwitchingService;
 import org.onosproject.scalablegateway.api.ScalableGatewayService;
+import org.onosproject.openstacknetworking.routing.OpenstackFloatingIPHandler.Action;
+import org.onosproject.openstacknetworking.Constants;
+import org.onosproject.openstacknode.OpenstackNode;
+import org.onosproject.openstacknode.OpenstackNodeEvent;
+import org.onosproject.openstacknode.OpenstackNodeListener;
+import org.onosproject.openstacknode.OpenstackNodeService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
@@ -66,8 +76,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -97,31 +107,35 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     protected OpenstackInterfaceService openstackService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenstackSwitchingService openstackSwitchingService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveService flowObjectiveService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected NetworkConfigService configService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected NetworkConfigRegistry configRegistry;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostService hostService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostProviderRegistry hostProviderRegistry;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ScalableGatewayService gatewayService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackNodeService nodeService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
 
     private ApplicationId appId;
     private ConsistentMap<Integer, String> tpPortNumMap; // Map<PortNum, allocated VM`s Mac & destionation Ip address>
     private ConsistentMap<String, OpenstackFloatingIP> floatingIpMap; // Map<FloatingIp`s Id, FloatingIp object>
     // Map<RouterInterface`s portId, Corresponded port`s network id>
     private ConsistentMap<String, String> routerInterfaceMap;
+    private static final ProviderId PID = new ProviderId("of", "org.onosproject.openstackroutering", true);
     private static final String APP_ID = "org.onosproject.openstackrouting";
     private static final String PORT_NAME = "portName";
     private static final String PORTNAME_PREFIX_VM = "tap";
@@ -134,18 +148,6 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     private static final int TP_PORT_MINIMUM_NUM = 1024;
     private static final int TP_PORT_MAXIMUM_NUM = 65535;
 
-    private final ConfigFactory configFactory =
-            new ConfigFactory(OpenstackSubjectFactories.USER_DEFINED_SUBJECT_FACTORY, OpenstackNetworkingConfig.class,
-                    "config") {
-                @Override
-                public OpenstackNetworkingConfig createConfig() {
-                    return new OpenstackNetworkingConfig();
-                }
-            };
-
-    private final NetworkConfigListener configListener = new InternalConfigListener();
-
-    private OpenstackNetworkingConfig config;
     private static final KryoNamespace.Builder FLOATING_IP_SERIALIZER = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
             .register(OpenstackFloatingIP.FloatingIpStatus.class)
@@ -158,7 +160,8 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
             .register(KryoNamespaces.API);
 
     private InternalPacketProcessor internalPacketProcessor = new InternalPacketProcessor();
-    private InternalDeviceListener internalDeviceListener = new InternalDeviceListener();
+    private InternalHostListener internalHostListener = new InternalHostListener();
+    private InternalOpenstackNodeListener internalNodeListener = new InternalOpenstackNodeListener();
     private ExecutorService l3EventExecutorService =
             Executors.newSingleThreadExecutor(groupedThreads("onos/openstackrouting", "L3-event"));
     private ExecutorService icmpEventExecutorService =
@@ -168,15 +171,16 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     private OpenstackIcmpHandler openstackIcmpHandler;
     private OpenstackRoutingArpHandler openstackArpHandler;
     private OpenstackRoutingRulePopulator rulePopulator;
-    private Map<DeviceId, Ip4Address> computeNodeMap;
+
+    private HostProviderService hostProviderService;
+    private final HostProvider hostProvider = new InternalHostProvider();
 
     @Activate
     protected void activate() {
         appId = coreService.registerApplication(APP_ID);
-        packetService.addProcessor(internalPacketProcessor, PacketProcessor.director(1));
-        configRegistry.registerConfigFactory(configFactory);
-        configService.addListener(configListener);
-        deviceService.addListener(internalDeviceListener);
+        hostService.addListener(internalHostListener);
+        nodeService.addListener(internalNodeListener);
+        hostProviderService = hostProviderRegistry.register(hostProvider);
 
         floatingIpMap = storageService.<String, OpenstackFloatingIP>consistentMapBuilder()
                 .withSerializer(Serializer.using(FLOATING_IP_SERIALIZER.build()))
@@ -194,15 +198,15 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                 .withApplicationId(appId)
                 .build();
 
-        readConfiguration();
-
         log.info("started");
     }
 
     @Deactivate
     protected void deactivate() {
         packetService.removeProcessor(internalPacketProcessor);
-        deviceService.removeListener(internalDeviceListener);
+        hostService.removeListener(internalHostListener);
+        nodeService.removeListener(internalNodeListener);
+
         l3EventExecutorService.shutdown();
         icmpEventExecutorService.shutdown();
         arpEventExecutorService.shutdown();
@@ -228,20 +232,27 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
         }
         if (openstackFloatingIp.portId() == null || openstackFloatingIp.portId().equals("null")) {
             OpenstackFloatingIP floatingIp = floatingIpMap.get(openstackFloatingIp.id()).value();
-            OpenstackPortInfo portInfo = openstackSwitchingService.openstackPortInfo()
-                    .get(PORTNAME_PREFIX_VM.concat(floatingIp.portId().substring(0, 11)));
-            if (portInfo == null) {
-                log.warn("There`s no portInfo information about portId {}", floatingIp.portId());
+            // XXX When the VM has been removed, host information has been removed or not ???
+            Optional<Host> host = hostService.getHostsByIp(openstackFloatingIp.fixedIpAddress().getIp4Address())
+                    .stream()
+                    .findFirst();
+            if (!host.isPresent()) {
+                log.warn("No Host info with the VM IP the Floating IP address {} is found",
+                        openstackFloatingIp.floatingIpAddress());
                 return;
             }
             l3EventExecutorService.execute(
-                    new OpenstackFloatingIPHandler(rulePopulator, floatingIp, false, portInfo));
+                    new OpenstackFloatingIPHandler(rulePopulator, floatingIp, Action.DISSASSOCIATE, host.get()));
             floatingIpMap.replace(floatingIp.id(), openstackFloatingIp);
+            registerFloatingIpToHostService(openstackFloatingIp, Action.DISSASSOCIATE);
         } else {
             floatingIpMap.put(openstackFloatingIp.id(), openstackFloatingIp);
             l3EventExecutorService.execute(
-                    new OpenstackFloatingIPHandler(rulePopulator, openstackFloatingIp, true, null));
+                    new OpenstackFloatingIPHandler(rulePopulator, openstackFloatingIp, Action.ASSOCIATE, null));
+            registerFloatingIpToHostService(openstackFloatingIp, Action.ASSOCIATE);
         }
+
+
     }
 
     @Override
@@ -356,6 +367,10 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
 
     private void removeL3RulesForRouterInterface(OpenstackRouterInterface routerInterface, OpenstackRouter router,
                                                  List<OpenstackRouterInterface> newList) {
+        if (!routerInterfaceMap.containsKey(routerInterface.portId())) {
+            log.warn("No router interface information found for {}", routerInterface.portId());
+            return;
+        }
         openstackService.ports(routerInterfaceMap.get(routerInterface.portId()).value()).forEach(p -> {
                     Ip4Address vmIp = (Ip4Address) p.fixedIps().values().toArray()[0];
                     if (newList == null) {
@@ -368,6 +383,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
         );
     }
 
+    /*
     @Override
     public void checkDisassociatedFloatingIp(String portId, OpenstackPortInfo portInfo) {
         if (floatingIpMap.size() < 1) {
@@ -393,6 +409,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
             log.warn("portInfo is null as timing issue between ovs port update event and openstack deletePort event");
         }
     }
+    */
 
     @Override
     public String networkIdForRouterInterface(String portId) {
@@ -445,6 +462,11 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
         @Override
         public void process(PacketContext context) {
 
+            DeviceId senderDeviceId = context.inPacket().receivedFrom().deviceId();
+            if (!nodeService.routerBridge(senderDeviceId).isPresent()) {
+                log.warn("No router bridge for {} is found.", senderDeviceId);
+                return;
+            }
             if (context.isHandled()) {
                 return;
             } else if (!checkGatewayNode(context.inPacket().receivedFrom().deviceId())) {
@@ -482,7 +504,8 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                             OpenstackPort openstackPort = getOpenstackPort(ethernet.getSourceMAC(),
                                     Ip4Address.valueOf(iPacket.getSourceAddress()));
                             l3EventExecutorService.execute(new OpenstackPnatHandler(rulePopulator, context,
-                                    portNum, openstackPort, port, config));
+                                    portNum, openstackPort, port));
+
                         } else {
                             log.warn("There`s no external interface");
                         }
@@ -602,75 +625,166 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
         return null;
     }
 
-    private void readConfiguration() {
-        config = configService.getConfig("openstacknetworking", OpenstackNetworkingConfig.class);
-        if (config == null) {
-            log.error("No configuration found");
+    private Optional<OpenstackPort> getRouterInterfacePort(String networkId) {
+
+        return openstackService.ports()
+                .stream()
+                .filter(p -> p.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE)
+                        && p.networkId().equals(networkId))
+                .findAny();
+    }
+
+    // TODO: Remove the function and the related codes when vRouter is running on different ONOS instance.
+    private void registerFloatingIpToHostService(OpenstackFloatingIP openstackFloatingIp, Action action) {
+
+        Optional<Host> hostOptional = hostService.getHostsByIp(openstackFloatingIp.fixedIpAddress())
+                .stream()
+                .findFirst();
+        if (!hostOptional.isPresent()) {
+            log.warn("No host with IP {} is registered and cannot add the floating IP. ",
+                    openstackFloatingIp.floatingIpAddress());
             return;
         }
 
-        rulePopulator = new OpenstackRoutingRulePopulator(appId, openstackService, flowObjectiveService,
-                deviceService, driverService, config, gatewayService);
-        openstackIcmpHandler = new OpenstackIcmpHandler(packetService, deviceService,
-                openstackService, config, openstackSwitchingService, gatewayService);
-        openstackArpHandler = new OpenstackRoutingArpHandler(packetService, openstackService,
-                config, gatewayService);
-        openstackIcmpHandler.requestPacket(appId);
-        openstackArpHandler.requestPacket(appId);
+        Host host = hostOptional.get();
+        Set<IpAddress> ipAddresses = Sets.newHashSet();
+        if (action == Action.ASSOCIATE) {
+            ipAddresses.add(openstackFloatingIp.floatingIpAddress());
+        }
 
-        openstackService.floatingIps().stream()
-                .forEach(f -> floatingIpMap.put(f.id(), f));
+        HostDescription hostDescription =
+                new DefaultHostDescription(host.mac(), host.vlan(), host.location(), ipAddresses,
+                        (DefaultAnnotations) host.annotations());
 
-        reloadInitL3Rules();
-
-        log.info("OpenstackRouting configured");
+        hostProviderService.hostDetected(host.id(), hostDescription, false);
     }
 
-    private class InternalConfigListener implements NetworkConfigListener {
+    private class InternalHostListener implements HostListener {
 
-        @Override
-        public void event(NetworkConfigEvent event) {
-            if (!event.configClass().equals(OpenstackNetworkingConfig.class)) {
+        private void hostDetected(Host host) {
+
+            String portId = host.annotations().value(Constants.PORT_ID);
+            OpenstackPort openstackPort = openstackService.port(portId);
+            if (openstackPort == null) {
+                log.warn("No OpenstackPort information found from OpenStack for port ID {}", portId);
                 return;
             }
 
-            if (event.type().equals(NetworkConfigEvent.Type.CONFIG_ADDED) ||
-                    event.type().equals(NetworkConfigEvent.Type.CONFIG_UPDATED)) {
-                l3EventExecutorService.execute(OpenstackRoutingManager.this::readConfiguration);
+            Optional<OpenstackPort> routerPort = getRouterInterfacePort(openstackPort.networkId());
+            if (routerPort.isPresent()) {
+                OpenstackRouterInterface routerInterface = portToRouterInterface(routerPort.get());
+                l3EventExecutorService.execute(() ->
+                        setL3Connection(getOpenstackRouter(routerInterface.id()), openstackPort));
+
+            }
+        }
+
+        private void hostRemoved(Host host) {
+            String portId = host.annotations().value(Constants.PORT_ID);
+            OpenstackPort openstackPort = openstackService.port(portId);
+            if (openstackPort == null) {
+                log.warn("No OpenstackPort information found from OpenStack for port ID {}", portId);
+                return;
+            }
+
+            Optional<OpenstackPort> routerPort = getRouterInterfacePort(openstackPort.networkId());
+            if (routerPort.isPresent()) {
+                OpenstackRouterInterface routerInterface = portToRouterInterface(routerPort.get());
+                IpAddress ipAddress = host.ipAddresses().stream().findFirst().get();
+                l3EventExecutorService.execute(() -> rulePopulator.removeL3Rules(ipAddress.getIp4Address(),
+                        getL3ConnectionList(host.annotations().value(Constants.NETWORK_ID),
+                                getOpenstackRouterInterface(getOpenstackRouter(routerInterface.id())))));
+            }
+        }
+
+        private boolean isValidHost(Host host) {
+            return !host.ipAddresses().isEmpty() &&
+                    host.annotations().value(Constants.VXLAN_ID) != null &&
+                    host.annotations().value(Constants.NETWORK_ID) != null &&
+                    host.annotations().value(Constants.TENANT_ID) != null &&
+                    host.annotations().value(Constants.PORT_ID) != null;
+        }
+
+        @Override
+        public void event(HostEvent event) {
+            Host host = event.subject();
+            if (!mastershipService.isLocalMaster(host.location().deviceId())) {
+                // do not allow to proceed without mastership
+                return;
+            }
+
+            if (!isValidHost(host)) {
+                log.debug("Invalid host event, ignore it {}", host);
+                return;
+            }
+
+            switch (event.type()) {
+                case HOST_UPDATED:
+                case HOST_ADDED:
+                    l3EventExecutorService.execute(() -> hostDetected(host));
+                    break;
+                case HOST_REMOVED:
+                    l3EventExecutorService.execute(() -> hostRemoved(host));
+                    break;
+                default:
+                    break;
             }
         }
     }
 
-    private class InternalDeviceListener implements DeviceListener {
+    private class InternalOpenstackNodeListener implements OpenstackNodeListener {
+
+        private void nodeComplete() {
+
+            rulePopulator = new OpenstackRoutingRulePopulator(appId, openstackService, flowObjectiveService,
+                    deviceService, driverService, nodeService, gatewayService);
+            openstackIcmpHandler = new OpenstackIcmpHandler(packetService, deviceService, hostService,
+                    openstackService, nodeService, gatewayService);
+            openstackArpHandler = new OpenstackRoutingArpHandler(packetService, openstackService, nodeService,
+                    gatewayService);
+
+            // Packet handlers must be started AFTER all initialization processes.
+            packetService.addProcessor(internalPacketProcessor, PacketProcessor.director(1));
+
+            openstackIcmpHandler.requestPacket(appId);
+            openstackArpHandler.requestPacket(appId);
+
+            openstackService.floatingIps().stream()
+                    .forEach(f -> floatingIpMap.put(f.id(), f));
+
+            reloadInitL3Rules();
+        }
 
         @Override
-        public void event(DeviceEvent deviceEvent) {
-            if (deviceEvent.type() == DeviceEvent.Type.PORT_UPDATED) {
-                Port port = deviceEvent.port();
-                OpenstackPortInfo portInfo = openstackSwitchingService.openstackPortInfo()
-                        .get(port.annotations().value(PORT_NAME));
-                OpenstackPort openstackPort = openstackService.port(port);
-                OpenstackPort interfacePort = openstackService.ports()
-                        .stream()
-                        .filter(p -> p.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE)
-                                && p.networkId().equals(openstackPort.networkId()))
-                        .findAny()
-                        .orElse(null);
-                if (portInfo == null && openstackPort == null) {
-                    log.warn("As delete event timing issue between routing and switching, Can`t delete L3 rules");
-                    return;
-                }
-                if ((port.isEnabled()) && (interfacePort != null)) {
-                    OpenstackRouterInterface routerInterface = portToRouterInterface(interfacePort);
-                    l3EventExecutorService.execute(() ->
-                            setL3Connection(getOpenstackRouter(routerInterface.id()), openstackPort));
-                } else if (interfacePort != null) {
-                    OpenstackRouterInterface routerInterface = portToRouterInterface(interfacePort);
-                    l3EventExecutorService.execute(() -> rulePopulator.removeL3Rules(portInfo.ip(),
-                            getL3ConnectionList(portInfo.networkId(),
-                                    getOpenstackRouterInterface(getOpenstackRouter(routerInterface.id())))));
-                }
+        public void event(OpenstackNodeEvent event) {
+            OpenstackNode node = event.node();
+
+            switch (event.type()) {
+                case COMPLETE:
+                    log.info("COMPLETE node {} detected", node.hostname());
+                    l3EventExecutorService.execute(() -> nodeComplete());
+                    break;
+                case INCOMPLETE:
+                    break;
+                default:
+                    break;
             }
+
+        }
+    }
+
+    private class InternalHostProvider extends AbstractProvider implements HostProvider {
+
+        /**
+         * Creates a provider with the supplier identifier.
+         */
+        protected InternalHostProvider() {
+            super(PID);
+        }
+
+        @Override
+        public void triggerProbe(Host host) {
+            // nothing to do
         }
     }
 

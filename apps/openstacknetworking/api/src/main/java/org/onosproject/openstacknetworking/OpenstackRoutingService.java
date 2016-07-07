@@ -85,8 +85,8 @@ public interface OpenstackRoutingService {
      *
      * @param portId Deleted vm
      * @param portInfo stored information about deleted vm
-     */
     void checkDisassociatedFloatingIp(String portId, OpenstackPortInfo portInfo);
+    */
 
     /**
      * Returns network id for routerInterface.

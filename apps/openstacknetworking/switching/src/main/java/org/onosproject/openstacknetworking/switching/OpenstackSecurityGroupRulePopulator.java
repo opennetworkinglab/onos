@@ -50,7 +50,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.onosproject.openstacknetworking.switching.Constants.*;
+import static org.onosproject.openstacknetworking.Constants.*;
 
 /**
  * Populates flows rules for Security Groups of VMs.

@@ -68,6 +68,11 @@
             <artifactId>onos-scalablegateway</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-app-openstacknode</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>
 

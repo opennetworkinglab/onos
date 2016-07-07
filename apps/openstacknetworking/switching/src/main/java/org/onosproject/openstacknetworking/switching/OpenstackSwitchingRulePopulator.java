@@ -47,7 +47,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST;
-import static org.onosproject.openstacknetworking.switching.Constants.*;
+import static org.onosproject.openstacknetworking.Constants.*;
 
 /**
  * Populates switching flow rules.

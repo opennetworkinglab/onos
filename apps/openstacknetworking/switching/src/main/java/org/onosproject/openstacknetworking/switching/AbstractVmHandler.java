@@ -26,6 +26,7 @@ import org.onosproject.net.Host;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
+import org.onosproject.openstacknetworking.Constants;
 import org.slf4j.Logger;
 
 import java.util.Objects;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.openstacknetworking.switching.Constants.*;
+import static org.onosproject.openstacknetworking.Constants.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**

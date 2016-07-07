@@ -32,7 +32,6 @@ import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstackinterface.OpenstackRouter;
-import org.onosproject.openstacknetworking.OpenstackNetworkingConfig;
 import org.onosproject.scalablegateway.api.GatewayNode;
 import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.slf4j.Logger;
@@ -52,25 +51,21 @@ public class OpenstackPnatHandler implements Runnable {
     volatile PacketContext context;
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    protected PacketService packetService;
-
     private final OpenstackRoutingRulePopulator rulePopulator;
     private final int portNum;
     private final OpenstackPort openstackPort;
     private final Port port;
-    private OpenstackNetworkingConfig config;
 
     private static final String DEVICE_OWNER_ROUTER_INTERFACE = "network:router_interface";
     private static final String EXTERNAL_PORT_NULL = "There is no external port in this deviceId []";
 
     OpenstackPnatHandler(OpenstackRoutingRulePopulator rulePopulator, PacketContext context,
-                         int portNum, OpenstackPort openstackPort, Port port, OpenstackNetworkingConfig config) {
+                         int portNum, OpenstackPort openstackPort, Port port) {
         this.rulePopulator = checkNotNull(rulePopulator);
         this.context = checkNotNull(context);
         this.portNum = checkNotNull(portNum);
         this.openstackPort = checkNotNull(openstackPort);
         this.port = checkNotNull(port);
-        this.config = checkNotNull(config);
     }
 
     @Override
@@ -149,6 +144,7 @@ public class OpenstackPnatHandler implements Runnable {
         iPacket.resetChecksum();
         iPacket.setParent(ethernet);
         ethernet.setPayload(iPacket);
+
         ScalableGatewayService gatewayService = getService(ScalableGatewayService.class);
         GatewayNode gatewayNode = gatewayService.getGatewayNode(deviceId);
         if (gatewayNode.getGatewayExternalInterfaceNames().size() == 0) {
@@ -158,7 +154,6 @@ public class OpenstackPnatHandler implements Runnable {
         treatment.setOutput(gatewayService.getGatewayExternalPorts(deviceId).get(0));
 
         ethernet.resetChecksum();
-
 
         packetService.emit(new DefaultOutboundPacket(deviceId, treatment.build(),
                 ByteBuffer.wrap(ethernet.serialize())));

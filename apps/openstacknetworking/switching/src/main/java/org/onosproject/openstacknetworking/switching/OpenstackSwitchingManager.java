@@ -16,7 +16,6 @@
 package org.onosproject.openstacknetworking.switching;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -27,7 +26,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
-import org.onlab.util.Tools;
 import org.onosproject.core.CoreService;
 import org.onosproject.dhcp.DhcpService;
 import org.onosproject.dhcp.IpAssignment;
@@ -54,8 +52,6 @@ import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackNetwork;
 import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstackinterface.OpenstackSubnet;
-import org.onosproject.openstacknetworking.OpenstackPortInfo;
-import org.onosproject.openstacknetworking.OpenstackSwitchingService;
 import org.onosproject.openstacknode.OpenstackNode;
 import org.onosproject.openstacknode.OpenstackNodeEvent;
 import org.onosproject.openstacknode.OpenstackNodeListener;
@@ -64,7 +60,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -74,7 +69,7 @@ import static org.onosproject.dhcp.IpAssignment.AssignmentStatus.Option_RangeNot
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
-import static org.onosproject.openstacknetworking.switching.Constants.*;
+import static org.onosproject.openstacknetworking.Constants.*;
 
 @Service
 @Component(immediate = true)
@@ -82,7 +77,7 @@ import static org.onosproject.openstacknetworking.switching.Constants.*;
  * Populates forwarding rules for VMs created by Openstack.
  */
 public final class OpenstackSwitchingManager extends AbstractProvider
-        implements OpenstackSwitchingService, HostProvider {
+        implements HostProvider {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -151,41 +146,6 @@ public final class OpenstackSwitchingManager extends AbstractProvider
     @Override
     public void triggerProbe(Host host) {
         // no probe is required
-    }
-
-    @Override
-    // TODO remove this and openstackPortInfo
-    public Map<String, OpenstackPortInfo> openstackPortInfo() {
-        Map<String, OpenstackPortInfo> portInfoMap = Maps.newHashMap();
-
-        Tools.stream(hostService.getHosts()).filter(this::isValidHost).forEach(host -> {
-            Port port = deviceService.getPort(
-                    host.location().deviceId(),
-                    host.location().port());
-
-            OpenstackPortInfo portInfo = OpenstackPortInfo.builder()
-                    .setDeviceId(host.location().deviceId())
-                    .setHostMac(host.mac())
-                    .setNetworkId(host.annotations().value(NETWORK_ID))
-                    .setGatewayIP(Ip4Address.valueOf(host.annotations().value(GATEWAY_IP)))
-                    .setVni(Long.valueOf(host.annotations().value(VXLAN_ID)))
-                    .setHostIp(host.ipAddresses().stream().findFirst().get().getIp4Address())
-                    .build();
-
-            portInfoMap.put(port.annotations().value(PORT_NAME), portInfo);
-        });
-
-        return portInfoMap;
-    }
-
-    // TODO remove this and openstackPortInfo
-    private boolean isValidHost(Host host) {
-        return !host.ipAddresses().isEmpty() &&
-                host.annotations().value(VXLAN_ID) != null &&
-                host.annotations().value(NETWORK_ID) != null &&
-                host.annotations().value(TENANT_ID) != null &&
-                host.annotations().value(GATEWAY_IP) != null &&
-                host.annotations().value(PORT_ID) != null;
     }
 
     private void processPortAdded(Port port) {

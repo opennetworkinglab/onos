@@ -50,6 +50,7 @@ import org.onosproject.scalablegateway.api.GatewayNodeConfig;
 import org.onosproject.scalablegateway.api.ScalableGatewayService;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -128,7 +129,6 @@ public class ScalableGatewayManager implements ScalableGatewayService {
         deviceService.addListener(internalDeviceListener);
 
         selectGroupHandler = new SelectGroupHandler(groupService, deviceService, driverService, appId);
-        readConfiguration();
 
         gatewayNodeMap = storageService.<DeviceId, GatewayNode>consistentMapBuilder()
                 .withSerializer(Serializer.using(GATEWAYNODE_SERIALIZER.build()))
@@ -165,13 +165,17 @@ public class ScalableGatewayManager implements ScalableGatewayService {
     }
 
     private PortNumber findPortNumFromPortName(DeviceId gatewayDeviceId, String name) {
-        Port port = deviceService.getPorts(gatewayDeviceId)
+        Optional<Port> port = deviceService.getPorts(gatewayDeviceId)
                 .stream()
                 .filter(p -> p.annotations().value(PORT_NAME).equals(name))
-                .iterator()
-                .next();
-        return checkNotNull(port, PORT_CAN_NOT_BE_NULL).number();
+                .findFirst();
 
+        if (!port.isPresent()) {
+            log.error("Cannot find port {} in gateway device {}", name, gatewayDeviceId);
+            return null;
+        }
+
+        return port.get().number();
     }
 
     @Override

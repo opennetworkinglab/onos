@@ -48,7 +48,7 @@ import java.util.Dictionary;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.openstacknetworking.switching.Constants.*;
+import static org.onosproject.openstacknetworking.Constants.*;
 
 /**
  * Handles ARP packet from VMs.

@@ -34,8 +34,9 @@ import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackPort;
-import org.onosproject.openstacknetworking.OpenstackNetworkingConfig;
 import org.onosproject.scalablegateway.api.ScalableGatewayService;
+import org.onosproject.openstacknetworking.Constants;
+import org.onosproject.openstacknode.OpenstackNodeService;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
@@ -53,23 +54,24 @@ public class OpenstackRoutingArpHandler {
 
     private final PacketService packetService;
     private final OpenstackInterfaceService openstackService;
-    private final OpenstackNetworkingConfig config;
     private final ScalableGatewayService gatewayService;
+    private final OpenstackNodeService nodeService;
     private static final String NETWORK_ROUTER_GATEWAY = "network:router_gateway";
     private static final String NETWORK_FLOATING_IP = "network:floatingip";
 
     /**
      * Default constructor.
-     *  @param packetService packet service
+     *
+     * @param packetService packet service
      * @param openstackService openstackInterface service
-     * @param config openstackRoutingConfig
-     * @param gatewayService
+     * @param gatewayService gateway service
+     * @param nodeService openstackNodeService
      */
     OpenstackRoutingArpHandler(PacketService packetService, OpenstackInterfaceService openstackService,
-                               OpenstackNetworkingConfig config, ScalableGatewayService gatewayService) {
+                               OpenstackNodeService nodeService, ScalableGatewayService gatewayService) {
         this.packetService = packetService;
         this.openstackService = checkNotNull(openstackService);
-        this.config = checkNotNull(config);
+        this.nodeService = nodeService;
         this.gatewayService = gatewayService;
     }
 
@@ -118,7 +120,8 @@ public class OpenstackRoutingArpHandler {
         if (getTargetMacForTargetIp(targetIp.getIp4Address()) == MacAddress.NONE) {
                 return;
         }
-        MacAddress targetMac = MacAddress.valueOf(config.gatewayExternalInterfaceMac());
+        // FIXME: Set the correct gateway
+        MacAddress targetMac = Constants.GW_EXT_INT_MAC;
 
         Ethernet ethReply = ARP.buildArpReply(targetIp.getIp4Address(),
                 targetMac, ethernet);

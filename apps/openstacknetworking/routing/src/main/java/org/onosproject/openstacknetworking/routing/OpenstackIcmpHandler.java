@@ -20,9 +20,11 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
@@ -30,16 +32,17 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.host.HostService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.openstacknetworking.Constants;
 import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackPort;
-import org.onosproject.openstacknetworking.OpenstackNetworkingConfig;
-import org.onosproject.openstacknetworking.OpenstackPortInfo;
-import org.onosproject.openstacknetworking.OpenstackSwitchingService;
+import org.onosproject.openstacknode.OpenstackNode;
+import org.onosproject.openstacknode.OpenstackNodeService;
 import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.slf4j.Logger;
 
@@ -58,37 +61,39 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class OpenstackIcmpHandler {
     protected final Logger log = getLogger(getClass());
 
-    private final PacketService packetService;
-    private final DeviceService deviceService;
-    private final Map<String, OpenstackPortInfo> icmpInfoMap = Maps.newHashMap();
-    private final OpenstackSwitchingService openstackSwitchingService;
-    private final OpenstackInterfaceService openstackService;
-    private final ScalableGatewayService gatewayService;
-    private final OpenstackNetworkingConfig config;
-    private static final MacAddress GATEWAY_MAC = MacAddress.valueOf("1f:1f:1f:1f:1f:1f");
+
     private static final String NETWORK_ROUTER_INTERFACE = "network:router_interface";
     private static final String PORTNAME = "portName";
     private static final String NETWORK_ROUTER_GATEWAY = "network:router_gateway";
     private static final String NETWORK_FLOATING_IP = "network:floatingip";
-    private static final String EXTERNAL_NODE_NULL = "There is no external node about this deviceId []";
+
+    private final PacketService packetService;
+    private final DeviceService deviceService;
+    private final ScalableGatewayService gatewayService;
+    private final HostService hostService;
+    private final Map<String, Host> icmpInfoMap = Maps.newHashMap();
+    private final OpenstackInterfaceService openstackService;
+    private final OpenstackNodeService nodeService;
+
     /**
      * Default constructor.
      *
      * @param packetService             packet service
      * @param deviceService             device service
      * @param openstackService          openstackInterface service
-     * @param config                    openstackRoutingConfig
-     * @param openstackSwitchingService openstackSwitching service
-     * @param gatewayService scalable gateway service
      */
-    OpenstackIcmpHandler(PacketService packetService, DeviceService deviceService,
-                         OpenstackInterfaceService openstackService, OpenstackNetworkingConfig config,
-                         OpenstackSwitchingService openstackSwitchingService, ScalableGatewayService gatewayService) {
+    OpenstackIcmpHandler(PacketService packetService,
+                         DeviceService deviceService,
+                         HostService hostService,
+                         OpenstackInterfaceService openstackService,
+                         OpenstackNodeService nodeService,
+                         ScalableGatewayService gatewayService
+                         ) {
         this.packetService = packetService;
         this.deviceService = deviceService;
+        this.hostService = hostService;
         this.openstackService = checkNotNull(openstackService);
-        this.config = checkNotNull(config);
-        this.openstackSwitchingService = checkNotNull(openstackSwitchingService);
+        this.nodeService = nodeService;
         this.gatewayService = gatewayService;
     }
 
@@ -103,13 +108,20 @@ public class OpenstackIcmpHandler {
                 .matchIPProtocol(IPv4.PROTOCOL_ICMP)
                 .build();
 
-        Map<DeviceId, PortNumber> externalInfoMap = getExternalInfo();
+       // TODO: Return the correct gateway node
+        Optional<OpenstackNode> gwNode =  nodeService.nodes().stream()
+                .filter(n -> n.type().equals(OpenstackNodeService.NodeType.GATEWAY))
+                .findFirst();
 
-        externalInfoMap.keySet().forEach(deviceId ->
-                packetService.requestPackets(icmpSelector,
-                        PacketPriority.CONTROL,
-                        appId,
-                        Optional.of(deviceId)));
+        if (!gwNode.isPresent()) {
+            log.warn("No Gateway is defined.");
+            return;
+        }
+
+        packetService.requestPackets(icmpSelector,
+                PacketPriority.CONTROL,
+                appId,
+                Optional.of(gwNode.get().intBridge()));
     }
 
     /**
@@ -135,11 +147,13 @@ public class OpenstackIcmpHandler {
         if (icmp.getIcmpType() == ICMP.TYPE_ECHO_REQUEST) {
             //TODO: Considers icmp between internal subnets which are belonged to the same router.
 
-            OpenstackPortInfo openstackPortInfo =
-                    getOpenstackPortInfo(Ip4Address.valueOf(ipPacket.getSourceAddress()), ethernet.getSourceMAC());
+            //OpenstackPortInfo openstackPortInfo =
+            //        getOpenstackPortInfo(Ip4Address.valueOf(ipPacket.getSourceAddress()), ethernet.getSourceMAC());
 
             //checkNotNull(openstackPortInfo, "openstackPortInfo can not be null");
+            /* XXX Is this handling ICMP to gateway ?????
             if (requestToOpenstackRoutingNetwork(ipPacket.getDestinationAddress())) {
+                Host host =
                 if (openstackPortInfo == null) {
                     if (config.gatewayBridgeId().equals(context.inPacket().receivedFrom().deviceId().toString())) {
                          if (portNumber.equals(getPortForAnnotationPortName(deviceId,
@@ -151,15 +165,23 @@ public class OpenstackIcmpHandler {
                     }
                     return;
                 } else {
-                    processIcmpPacketSentToGateway(ipPacket, icmp, openstackPortInfo);
+                    processIcmpPacketSentToGateway(ipPacket, icmp, host);
                     return;
                 }
             }
+            */
 
-            if (ipPacket.getDestinationAddress() == openstackPortInfo.gatewayIP().toInt()) {
-                processIcmpPacketSentToGateway(ipPacket, icmp, openstackPortInfo);
+            Optional<Host> host = hostService.getHostsByMac(ethernet.getSourceMAC()).stream().findFirst();
+            if (!host.isPresent()) {
+                log.warn("No host found for MAC {}", ethernet.getSourceMAC());
+                return;
+            }
+
+            IpAddress gatewayIp = IpAddress.valueOf(host.get().annotations().value(Constants.GATEWAY_IP));
+            if (ipPacket.getDestinationAddress() == gatewayIp.getIp4Address().toInt()) {
+                processIcmpPacketSentToGateway(ipPacket, icmp, host.get());
             } else {
-                Ip4Address pNatIpAddress = pNatIpForPort(openstackPortInfo);
+                Ip4Address pNatIpAddress = pNatIpForPort(host.get());
                 checkNotNull(pNatIpAddress, "pNatIpAddress can not be null");
 
                 sendRequestPacketToExt(ipPacket, icmp, deviceId, pNatIpAddress);
@@ -167,7 +189,7 @@ public class OpenstackIcmpHandler {
                 String icmpInfoKey = String.valueOf(icmpId)
                         .concat(String.valueOf(pNatIpAddress.toInt()))
                         .concat(String.valueOf(ipPacket.getDestinationAddress()));
-                icmpInfoMap.putIfAbsent(icmpInfoKey, openstackPortInfo);
+                icmpInfoMap.putIfAbsent(icmpInfoKey, host.get());
             }
         } else if (icmp.getIcmpType() == ICMP.TYPE_ECHO_REPLY) {
             String icmpInfoKey = String.valueOf(icmpId)
@@ -190,7 +212,8 @@ public class OpenstackIcmpHandler {
         icmpRequestIpv4.setPayload(icmpRequest);
         Ethernet icmpResponseEth = new Ethernet();
         icmpResponseEth.setEtherType(Ethernet.TYPE_IPV4)
-                .setSourceMACAddress(config.gatewayExternalInterfaceMac())
+                // TODO: Get the correct GW MAC
+                .setSourceMACAddress(Constants.GW_EXT_INT_MAC)
                 .setDestinationMACAddress(destMac).setPayload(icmpRequestIpv4);
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().setOutput(portNumber).build();
         OutboundPacket packet = new DefaultOutboundPacket(deviceId,
@@ -199,13 +222,14 @@ public class OpenstackIcmpHandler {
     }
 
     private void processIcmpPacketSentToGateway(IPv4 icmpRequestIpv4, ICMP icmpRequest,
-                                                OpenstackPortInfo openstackPortInfo) {
+                                                Host host) {
         icmpRequest.setChecksum((short) 0);
         icmpRequest.setIcmpType(ICMP.TYPE_ECHO_REPLY)
                 .resetChecksum();
 
+        Ip4Address ipAddress = host.ipAddresses().stream().findAny().get().getIp4Address();
         icmpRequestIpv4.setSourceAddress(icmpRequestIpv4.getDestinationAddress())
-                .setDestinationAddress(openstackPortInfo.ip().toInt())
+                .setDestinationAddress(ipAddress.toInt())
                 .resetChecksum();
 
         icmpRequestIpv4.setPayload(icmpRequest);
@@ -213,11 +237,11 @@ public class OpenstackIcmpHandler {
         Ethernet icmpResponseEth = new Ethernet();
 
         icmpResponseEth.setEtherType(Ethernet.TYPE_IPV4)
-                .setSourceMACAddress(GATEWAY_MAC)
-                .setDestinationMACAddress(openstackPortInfo.mac())
+                .setSourceMACAddress(Constants.GATEWAY_MAC)
+                .setDestinationMACAddress(host.mac())
                 .setPayload(icmpRequestIpv4);
 
-        sendResponsePacketToHost(icmpResponseEth, openstackPortInfo);
+        sendResponsePacketToHost(icmpResponseEth, host);
     }
 
     private void sendRequestPacketToExt(IPv4 icmpRequestIpv4, ICMP icmpRequest, DeviceId deviceId,
@@ -230,19 +254,27 @@ public class OpenstackIcmpHandler {
         Ethernet icmpRequestEth = new Ethernet();
 
         icmpRequestEth.setEtherType(Ethernet.TYPE_IPV4)
+                // TODO: Get the correct one - Scalable Gateway ...
+                .setSourceMACAddress(Constants.GW_EXT_INT_MAC)
+                .setDestinationMACAddress(Constants.PHY_ROUTER_MAC)
                 .setPayload(icmpRequestIpv4);
 
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        // TODO: Return the correct gateway node
+        Optional<OpenstackNode> gwNode =  nodeService.nodes().stream()
+                .filter(n -> n.type().equals(OpenstackNodeService.NodeType.GATEWAY))
+                .findFirst();
 
-        Map<DeviceId, PortNumber> externalInforMap = getExternalInfo();
-
-        if (externalInforMap.size() == 0 || !externalInforMap.containsKey(deviceId)) {
-            log.error(EXTERNAL_NODE_NULL, deviceId.toString());
+        if (!gwNode.isPresent()) {
+            log.warn("No Gateway is defined.");
             return;
         }
-        tBuilder.setOutput(externalInforMap.get(deviceId));
 
-        TrafficTreatment treatment = tBuilder.build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                // FIXME: please double check this.
+                .setOutput(getPortForAnnotationPortName(gwNode.get().intBridge(),
+                        // FIXME: please double check this.
+                        org.onosproject.openstacknode.Constants.PATCH_INTG_BRIDGE))
+                .build();
 
         OutboundPacket packet = new DefaultOutboundPacket(deviceId,
                 treatment, ByteBuffer.wrap(icmpRequestEth.serialize()));
@@ -251,59 +283,45 @@ public class OpenstackIcmpHandler {
     }
 
     private void processResponsePacketFromExternalToHost(IPv4 icmpResponseIpv4, ICMP icmpResponse,
-                                                         OpenstackPortInfo openstackPortInfo) {
+                                                         Host host) {
         icmpResponse.resetChecksum();
 
-        icmpResponseIpv4.setDestinationAddress(openstackPortInfo.ip().toInt())
+        Ip4Address ipAddress = host.ipAddresses().stream().findFirst().get().getIp4Address();
+        icmpResponseIpv4.setDestinationAddress(ipAddress.toInt())
                 .resetChecksum();
         icmpResponseIpv4.setPayload(icmpResponse);
 
         Ethernet icmpResponseEth = new Ethernet();
 
         icmpResponseEth.setEtherType(Ethernet.TYPE_IPV4)
-                .setSourceMACAddress(GATEWAY_MAC)
-                .setDestinationMACAddress(openstackPortInfo.mac())
+                .setSourceMACAddress(Constants.GATEWAY_MAC)
+                .setDestinationMACAddress(host.mac())
                 .setPayload(icmpResponseIpv4);
 
-        sendResponsePacketToHost(icmpResponseEth, openstackPortInfo);
+        sendResponsePacketToHost(icmpResponseEth, host);
     }
 
-    private void sendResponsePacketToHost(Ethernet icmpResponseEth, OpenstackPortInfo openstackPortInfo) {
-        Map.Entry<String, OpenstackPortInfo> entry = openstackSwitchingService.openstackPortInfo().entrySet().stream()
-                .filter(e -> e.getValue().mac().equals(openstackPortInfo.mac()))
-                .findAny().orElse(null);
-
-        if (entry == null) {
-            return;
-        }
+    private void sendResponsePacketToHost(Ethernet icmpResponseEth, Host host) {
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(getPortForAnnotationPortName(openstackPortInfo.deviceId(), entry.getKey()))
+                .setOutput(host.location().port())
                 .build();
 
-        OutboundPacket packet = new DefaultOutboundPacket(openstackPortInfo.deviceId(),
+        OutboundPacket packet = new DefaultOutboundPacket(host.location().deviceId(),
                 treatment, ByteBuffer.wrap(icmpResponseEth.serialize()));
 
         packetService.emit(packet);
-    }
-
-    private OpenstackPortInfo getOpenstackPortInfo(Ip4Address sourceIp, MacAddress sourceMac) {
-        checkNotNull(openstackSwitchingService.openstackPortInfo(), "openstackportinfo collection can not be null");
-
-        return openstackSwitchingService.openstackPortInfo().values()
-                .stream().filter(p -> p.ip().equals(sourceIp) && p.mac().equals(sourceMac))
-                .findAny().orElse(null);
     }
 
     private short getIcmpId(ICMP icmp) {
         return ByteBuffer.wrap(icmp.serialize(), 4, 2).getShort();
     }
 
-    private Ip4Address pNatIpForPort(OpenstackPortInfo openstackPortInfo) {
+    private Ip4Address pNatIpForPort(Host host) {
 
         OpenstackPort openstackPort = openstackService.ports().stream()
                 .filter(p -> p.deviceOwner().equals(NETWORK_ROUTER_INTERFACE) &&
-                        p.networkId().equals(openstackPortInfo.networkId()))
+                        p.networkId().equals(host.annotations().value(Constants.NETWORK_ID)))
                 .findAny().orElse(null);
 
         checkNotNull(openstackPort, "openstackPort can not be null");
