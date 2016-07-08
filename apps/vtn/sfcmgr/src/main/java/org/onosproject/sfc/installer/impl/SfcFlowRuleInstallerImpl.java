@@ -218,6 +218,20 @@ public class SfcFlowRuleInstallerImpl implements SfcFlowRuleInstallerService {
         return installSfcFlowRules(portChain, fiveTuple, nshSpiId, Objective.Operation.REMOVE);
     }
 
+    @Override
+    public ConnectPoint unInstallLoadBalancedClassifierRules(PortChain portChain, FiveTuple fiveTuple,
+            NshServicePathId nshSpiId) {
+        checkNotNull(portChain, PORT_CHAIN_NOT_NULL);
+
+        List<PortPairId> portPairs = portChain.getLoadBalancePath(fiveTuple);
+        // Get the first port pair
+        ListIterator<PortPairId> portPairListIterator = portPairs.listIterator();
+        PortPairId portPairId = portPairListIterator.next();
+        PortPair portPair = portPairService.getPortPair(portPairId);
+
+        return installSfcClassifierRules(portChain, portPair, nshSpiId, fiveTuple, Objective.Operation.REMOVE);
+    }
+
     public ConnectPoint installSfcFlowRules(PortChain portChain, FiveTuple fiveTuple, NshServicePathId nshSpiId,
             Objective.Operation type) {
         checkNotNull(portChain, PORT_CHAIN_NOT_NULL);
@@ -634,7 +648,10 @@ public class SfcFlowRuleInstallerImpl implements SfcFlowRuleInstallerService {
                 treatment.extension(tunnelDsttreatment, deviceId);
                 treatment.transition(TUNNEL_SEND_TABLE);
                 sendSfcRule(selector, treatment, deviceId, type, flowClassifier.priority());
-                classifierList.add(deviceIdfromPortPair);
+
+                selector.matchInPort(PortNumber.CONTROLLER);
+                sendSfcRule(selector, treatment, deviceId, type, flowClassifier.priority());
+                classifierList.add(deviceId);
 
                 installSfcTunnelSendRule(deviceId, nshSpiId, type);
                 installSfcTunnelReceiveRule(deviceIdfromPortPair, nshSpiId, type);
@@ -646,6 +663,9 @@ public class SfcFlowRuleInstallerImpl implements SfcFlowRuleInstallerService {
                                                                              nshSpiId, flowClassifier);
                 treatment.transition(ENCAP_OUTPUT_TABLE);
                 sendSfcRule(selector, treatment, deviceIdfromPortPair, type, flowClassifier.priority());
+
+                selector.matchInPort(PortNumber.CONTROLLER);
+                sendSfcRule(selector, treatment, deviceId, type, flowClassifier.priority());
                 classifierList.add(deviceIdfromPortPair);
             }
         }

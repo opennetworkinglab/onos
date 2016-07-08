@@ -107,7 +107,15 @@ public class VtnRscEvent
         /**
          * Signifies that port-chain has update.
          */
-        PORT_CHAIN_UPDATE
+        PORT_CHAIN_UPDATE,
+        /**
+         * Signifies that virtual-port has created.
+         */
+        VIRTUAL_PORT_PUT,
+        /**
+         * Signifies that virtual-port has removed.
+         */
+        VIRTUAL_PORT_DELETE
     }
 
     /**

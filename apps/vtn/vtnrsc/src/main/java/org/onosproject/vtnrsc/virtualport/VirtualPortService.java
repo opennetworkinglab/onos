@@ -18,6 +18,7 @@ package org.onosproject.vtnrsc.virtualport;
 import java.util.Collection;
 
 import org.onlab.packet.IpAddress;
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.vtnrsc.FixedIp;
 import org.onosproject.vtnrsc.TenantId;
@@ -28,7 +29,7 @@ import org.onosproject.vtnrsc.VirtualPortId;
 /**
  * Service for interacting with the inventory of virtualPort.
  */
-public interface VirtualPortService {
+public interface VirtualPortService extends ListenerService<VirtualPortEvent, VirtualPortListener> {
     /**
      * Returns if the virtualPort is existed.
      *

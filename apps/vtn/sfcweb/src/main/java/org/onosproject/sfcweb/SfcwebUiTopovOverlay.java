@@ -15,11 +15,19 @@
  */
 package org.onosproject.sfcweb;
 
+import org.onlab.packet.MacAddress;
+import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
+import org.onosproject.net.host.HostService;
 import org.onosproject.ui.UiTopoOverlay;
 import org.onosproject.ui.topo.PropertyPanel;
-
+import org.onosproject.vtnrsc.PortPair;
+import org.onosproject.vtnrsc.VirtualPort;
+import org.onosproject.vtnrsc.VirtualPortId;
+import org.onosproject.vtnrsc.portpair.PortPairService;
+import org.onosproject.vtnrsc.virtualport.VirtualPortService;
 
 /**
  * Our sfcweb topology overlay.
@@ -46,6 +54,19 @@ public class SfcwebUiTopovOverlay extends UiTopoOverlay {
     public void modifyHostDetails(PropertyPanel pp, HostId hostId) {
         pp.title(MY_HOST_TITLE);
         pp.removeAllProps();
+        PortPairService portPairService = AbstractShellCommand.get(PortPairService.class);
+        VirtualPortService virtualPortService = AbstractShellCommand.get(VirtualPortService.class);
+        HostService hostService = AbstractShellCommand.get(HostService.class);
+        Iterable<PortPair> portPairs = portPairService.getPortPairs();
+        for (PortPair portPair : portPairs) {
+            VirtualPort vPort = virtualPortService.getPort(VirtualPortId.portId(portPair.ingress()));
+            MacAddress dstMacAddress = vPort.macAddress();
+            Host host = hostService.getHost(HostId.hostId(dstMacAddress));
+            if (hostId.toString().equals(host.id().toString())) {
+                pp.addProp("SF Name", portPair.name());
+                pp.addProp("SF Ip", vPort.fixedIps().iterator().next().ip());
+            }
+        }
         pp.addProp("SF host Address", hostId.toString());
     }
 

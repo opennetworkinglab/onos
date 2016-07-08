@@ -87,6 +87,8 @@ import org.onosproject.vtnrsc.routerinterface.RouterInterfaceService;
 import org.onosproject.vtnrsc.service.VtnRscService;
 import org.onosproject.vtnrsc.subnet.SubnetService;
 import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
+import org.onosproject.vtnrsc.virtualport.VirtualPortEvent;
+import org.onosproject.vtnrsc.virtualport.VirtualPortListener;
 import org.onosproject.vtnrsc.virtualport.VirtualPortService;
 import org.slf4j.Logger;
 
@@ -112,6 +114,7 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
     private PortPairGroupListener portPairGroupListener = new InnerPortPairGroupListener();
     private FlowClassifierListener flowClassifierListener = new InnerFlowClassifierListener();
     private PortChainListener portChainListener = new InnerPortChainListener();
+    private VirtualPortListener virtualPortListener = new InnerVirtualPortListener();
 
     private EventuallyConsistentMap<TenantId, SegmentationId> l3vniTenantMap;
     private EventuallyConsistentMap<TenantRouter, SegmentationId> l3vniTenantRouterMap;
@@ -165,6 +168,7 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
         portPairGroupService.addListener(portPairGroupListener);
         flowClassifierService.addListener(flowClassifierListener);
         portChainService.addListener(portChainListener);
+        virtualPortService.addListener(virtualPortListener);
 
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
@@ -205,6 +209,7 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
         portPairGroupService.removeListener(portPairGroupListener);
         flowClassifierService.removeListener(flowClassifierListener);
         portChainService.removeListener(portChainListener);
+        virtualPortService.removeListener(virtualPortListener);
 
         l3vniTenantMap.destroy();
         l3vniTenantRouterMap.destroy();
@@ -397,6 +402,22 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
                 notifyListeners(new VtnRscEvent(
                         VtnRscEvent.Type.PORT_CHAIN_UPDATE,
                         new VtnRscEventFeedback(portChain)));
+            }
+        }
+    }
+
+    private class InnerVirtualPortListener implements VirtualPortListener {
+
+        @Override
+        public void event(VirtualPortEvent event) {
+            checkNotNull(event, EVENT_NOT_NULL);
+            VirtualPort virtualPort = event.subject();
+            if (VirtualPortEvent.Type.VIRTUAL_PORT_PUT == event.type()) {
+                notifyListeners(new VtnRscEvent(VtnRscEvent.Type.VIRTUAL_PORT_PUT,
+                                                new VtnRscEventFeedback(virtualPort)));
+            } else if (VirtualPortEvent.Type.VIRTUAL_PORT_DELETE == event.type()) {
+                notifyListeners(new VtnRscEvent(VtnRscEvent.Type.VIRTUAL_PORT_DELETE,
+                                                new VtnRscEventFeedback(virtualPort)));
             }
         }
     }

@@ -50,7 +50,7 @@ import com.google.common.collect.ImmutableSet;
  */
 public class SfcViewMessageHandler extends UiMessageHandler {
 
-    private static final String SLASH = " ; ";
+    private static final String SLASH = " -> ";
     private static final String NONE = "none";
     private static final String SFCTYPE = "Service Function Chain";
 
@@ -61,13 +61,13 @@ public class SfcViewMessageHandler extends UiMessageHandler {
     private static final String ID = "id";
     private static final String STATE = "_iconid_state";
     private static final String PORTCHAINNAME = "portChainName";
-    private static final String HOSTS = "hosts";
+    private static final String SFS = "sfs";
     private static final String TYPE = "type";
     private static final String SRCIP = "srcIp";
     private static final String DSTIP = "dstIp";
 
     private static final String[] COL_IDS = {
-            ID, STATE, PORTCHAINNAME, HOSTS, TYPE, SRCIP, DSTIP
+                                             ID, STATE, PORTCHAINNAME, SFS, TYPE, SRCIP, DSTIP
     };
 
     private static final String ICON_ID_ONLINE = "active";
@@ -116,7 +116,7 @@ public class SfcViewMessageHandler extends UiMessageHandler {
             row.cell(ID, pchain.portChainId().value().toString())
                 .cell(STATE, sfcState(vpList))
                 .cell(PORTCHAINNAME, pchain.name())
-                .cell(HOSTS, sfcHosts(vpList))
+                .cell(SFS, sfcHosts(vpList))
                 .cell(TYPE, SFCTYPE)
                 .cell(SRCIP, portChainIpRange.srcip())
                 .cell(DSTIP, portChainIpRange.dstip());

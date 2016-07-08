@@ -24,6 +24,7 @@ import org.onosproject.vtnrsc.PortPair;
 import org.onosproject.vtnrsc.PortPairGroup;
 import org.onosproject.vtnrsc.FlowClassifier;
 import org.onosproject.vtnrsc.PortChain;
+import org.onosproject.vtnrsc.VirtualPort;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -39,6 +40,7 @@ public class VtnRscEventFeedback {
     private final PortPairGroup portPairGroup;
     private final FlowClassifier flowClassifier;
     private final PortChain portChain;
+    private final VirtualPort virtualPort;
 
     /**
      * Creates VtnRscEventFeedback object.
@@ -53,6 +55,7 @@ public class VtnRscEventFeedback {
         this.portPairGroup = null;
         this.flowClassifier = null;
         this.portChain = null;
+        this.virtualPort = null;
     }
 
     /**
@@ -68,6 +71,7 @@ public class VtnRscEventFeedback {
         this.portPairGroup = null;
         this.flowClassifier = null;
         this.portChain = null;
+        this.virtualPort = null;
     }
 
     /**
@@ -84,6 +88,7 @@ public class VtnRscEventFeedback {
         this.portPairGroup = null;
         this.flowClassifier = null;
         this.portChain = null;
+        this.virtualPort = null;
     }
 
     /**
@@ -100,6 +105,7 @@ public class VtnRscEventFeedback {
         this.portPairGroup = null;
         this.flowClassifier = null;
         this.portChain = null;
+        this.virtualPort = null;
     }
 
     /**
@@ -113,9 +119,10 @@ public class VtnRscEventFeedback {
         this.routerInterface = null;
         this.portPair = null;
         this.portPairGroup = checkNotNull(portPairGroup,
-                                     "Port-Pair-Group cannot be null");
+                "Port-Pair-Group cannot be null");
         this.flowClassifier = null;
         this.portChain = null;
+        this.virtualPort = null;
     }
 
     /**
@@ -130,8 +137,9 @@ public class VtnRscEventFeedback {
         this.portPair = null;
         this.portPairGroup = null;
         this.flowClassifier = checkNotNull(flowClassifier,
-                                     "Flow-Classifier cannot be null");
+                "Flow-Classifier cannot be null");
         this.portChain = null;
+        this.virtualPort = null;
     }
 
     /**
@@ -147,7 +155,25 @@ public class VtnRscEventFeedback {
         this.portPairGroup = null;
         this.flowClassifier = null;
         this.portChain = checkNotNull(portChain,
-                                     "Port-Chain cannot be null");
+                "Port-Chain cannot be null");
+        this.virtualPort = null;
+    }
+
+    /**
+     * Creates VtnRscEventFeedback object.
+     *
+     * @param virtualPort the Virtual-Port
+     */
+    public VtnRscEventFeedback(VirtualPort virtualPort) {
+        this.floaingtIp = null;
+        this.router = null;
+        this.routerInterface = null;
+        this.portPair = null;
+        this.portPairGroup = null;
+        this.flowClassifier = null;
+        this.portChain = null;
+        this.virtualPort = checkNotNull(virtualPort,
+                "Virtual-port cannot be null");
     }
 
     /**
@@ -213,10 +239,19 @@ public class VtnRscEventFeedback {
         return portChain;
     }
 
+    /**
+     * Returns Virtual-Port.
+     *
+     * @return virtualPort the Virtual-Port
+     */
+    public VirtualPort virtualPort() {
+        return virtualPort;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(floaingtIp, router, routerInterface, portPair,
-                            portPairGroup, flowClassifier, portChain);
+                            portPairGroup, flowClassifier, portChain, virtualPort);
     }
 
     @Override
@@ -232,7 +267,8 @@ public class VtnRscEventFeedback {
                     && Objects.equals(this.portPair, that.portPair)
                     && Objects.equals(this.portPairGroup, that.portPairGroup)
                     && Objects.equals(this.flowClassifier, that.flowClassifier)
-                    && Objects.equals(this.portChain, that.portChain);
+                    && Objects.equals(this.portChain, that.portChain)
+                    && Objects.equals(this.virtualPort, that.virtualPort);
         }
         return false;
     }
@@ -247,6 +283,7 @@ public class VtnRscEventFeedback {
                 .add("portPairGroup", portPairGroup)
                 .add("flowClassifier", flowClassifier)
                 .add("portChain", portChain)
+                .add("virtualPort", virtualPort)
                 .toString();
     }
 }

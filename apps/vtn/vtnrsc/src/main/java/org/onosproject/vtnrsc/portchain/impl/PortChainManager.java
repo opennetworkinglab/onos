@@ -97,6 +97,7 @@ public class PortChainManager extends AbstractListenerManager<PortChainEvent, Po
     @Deactivate
     public void deactivate() {
         eventDispatcher.removeSink(PortChainEvent.class);
+        portChainStore.removeListener(portChainListener);
         portChainStore.destroy();
         log.info("Stopped");
     }
