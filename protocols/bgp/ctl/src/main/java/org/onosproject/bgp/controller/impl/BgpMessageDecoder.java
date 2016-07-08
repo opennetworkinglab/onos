@@ -61,7 +61,7 @@ public class BgpMessageDecoder extends FrameDecoder {
                 BgpMessage message = reader.readFrom(buffer, bgpHeader);
                 msgList.add(message);
             }
-
+            ctx.setAttachment(null);
             return msgList;
         } catch (Exception e) {
             log.debug("Bgp protocol message decode error");

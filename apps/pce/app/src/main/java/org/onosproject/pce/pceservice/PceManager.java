@@ -641,7 +641,7 @@ public class PceManager implements PceService {
      *
      * @return value of local LSP identifier
      */
-    private short getNextLocalLspId() {
+    private synchronized short getNextLocalLspId() {
         // If there is any free id use it. Otherwise generate new id.
         if (localLspIdFreeList.isEmpty()) {
             return (short) localLspIdIdGen.getNewId();

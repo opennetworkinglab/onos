@@ -1504,7 +1504,6 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                 log.error("ERO object is null in report message.");
                 return;
             }
-
             PcepAttribute attributes = msgPath.getPcepAttribute();
             float bandwidth = 0;
             int cost = 0;
@@ -1540,6 +1539,9 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                 } else if (linkOrLabel instanceof Integer) {
                     labels.add(LabelResourceId.labelResourceId(((Integer) linkOrLabel).longValue()));
                 }
+            }
+            if (links.isEmpty()) {
+                return;
             }
             Path path = new DefaultPath(providerId, links, cost, EMPTY);
             NetworkResource labelStack = new DefaultLabelStack(labels);
@@ -1579,7 +1581,6 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             IpTunnelEndPoint tunnelEndPointDst = IpTunnelEndPoint
                     .ipTunnelPoint(IpAddress.valueOf(ipv4LspIdenTlv.getIpv4EgressAddress()));
             Collection<Tunnel> tunnelQueryResult = tunnelService.queryTunnel(tunnelEndPointSrc, tunnelEndPointDst);
-
             // Store delegation flag info and that LSP info because only delegated PCE sends update message
             // Storing if D flag is set, if not dont store. while checking whether delegation if annotation for D flag
             // not present then non-delegated , if present it is delegated.
@@ -1623,7 +1624,6 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                      */
                     return;
                 }
-
                 DeviceId deviceId = getDevice(pccId);
                 if (deviceId == null) {
                     log.error("Ingress deviceId not found");
@@ -1640,7 +1640,6 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                     log.error("Received PCC initiated LSP while not in sync.");
                     return;
                 }
-
                 /*
                  * If ONOS instance is master for PCC then set delegated flag as annotation and add the tunnel to store.
                  * Because all LSPs need not be delegated, hence mastership for the PCC is confirmed whereas not the
@@ -1735,7 +1734,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             LinkedList<PcepValueType> llSubObj = eroObj.getSubObjects();
             if (0 == llSubObj.size()) {
                 log.error("ERO in report message does not have hop information");
-                return null;
+                return new ArrayList<>();
             }
             ListIterator<PcepValueType> tlvIterator = llSubObj.listIterator();
 
@@ -1789,10 +1788,29 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
                     if (srEroSubObj.getSt() == PcepNaiIpv4Adjacency.ST_TYPE) {
                         PcepNaiIpv4Adjacency nai = (PcepNaiIpv4Adjacency) (srEroSubObj.getNai());
-                        IpAddress srcIp = IpAddress.valueOf(nai.getLocalIpv4Addr());
-                        src = new ConnectPoint(IpElementId.ipElement(srcIp), PortNumber.portNumber(0));
-                        IpAddress dstIp = IpAddress.valueOf(nai.getRemoteIpv4Addr());
-                        dst = new ConnectPoint(IpElementId.ipElement(dstIp), PortNumber.portNumber(0));
+                        int srcIp = nai.getLocalIpv4Addr();
+                        int dstIp = nai.getRemoteIpv4Addr();
+                        Iterable<Link> links = linkService.getActiveLinks();
+                        for (Link l : links) {
+                            long lSrc = l.src().port().toLong();
+                            long lDst = l.dst().port().toLong();
+                            if (lSrc == srcIp) {
+                                src = l.src();
+                            } else if (lDst == srcIp) {
+                                src = l.dst();
+                            }
+                            if (lSrc == dstIp) {
+                                dst = l.src();
+                            } else if (lDst == dstIp) {
+                                dst = l.dst();
+                            }
+                            if (src != null && dst != null) {
+                                break;
+                            }
+                        }
+                        if (src == null || dst == null) {
+                            return new ArrayList<>();
+                        }
                         Link link = DefaultLink.builder()
                                 .providerId(providerId)
                                 .src(src)
