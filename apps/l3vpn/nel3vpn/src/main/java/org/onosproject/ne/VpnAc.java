@@ -32,7 +32,7 @@ public final class VpnAc {
 
     /**
      * VpnAc constructor.
-     * 
+     *
      * @param columnName the column name
      * @param obj the data of the column
      */
@@ -52,7 +52,7 @@ public final class VpnAc {
 
     /**
      * Returns netVpnId.
-     * 
+     *
      * @return netVpnId
      */
     public String netVpnId() {
@@ -61,7 +61,7 @@ public final class VpnAc {
 
     /**
      * Returns acId.
-     * 
+     *
      * @return acId
      */
     public String acId() {
@@ -70,7 +70,7 @@ public final class VpnAc {
 
     /**
      * Returns acName.
-     * 
+     *
      * @return acName
      */
     public String acName() {
@@ -79,7 +79,7 @@ public final class VpnAc {
 
     /**
      * Returns ipAddress.
-     * 
+     *
      * @return ipAddress
      */
     public String ipAddress() {
@@ -88,7 +88,7 @@ public final class VpnAc {
 
     /**
      * Returns subNetMask.
-     * 
+     *
      * @return subNetMask
      */
     public Integer subNetMask() {

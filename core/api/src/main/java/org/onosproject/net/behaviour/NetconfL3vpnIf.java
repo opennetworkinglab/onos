@@ -31,7 +31,7 @@ public class NetconfL3vpnIf {
 
     /**
      * NetconfL3vpnIf constructor.
-     * 
+     *
      * @param operation operation
      * @param ifName interface name
      * @param ipv4Addr ipv4Addr
@@ -51,7 +51,7 @@ public class NetconfL3vpnIf {
 
     /**
      * Returns operation.
-     * 
+     *
      * @return operation
      */
     public String operation() {
@@ -60,7 +60,7 @@ public class NetconfL3vpnIf {
 
     /**
      * Returns ifName.
-     * 
+     *
      * @return ifName
      */
     public String ifName() {
@@ -69,7 +69,7 @@ public class NetconfL3vpnIf {
 
     /**
      * Returns ipv4Addr.
-     * 
+     *
      * @return ipv4Addr
      */
     public String ipv4Addr() {
@@ -78,7 +78,7 @@ public class NetconfL3vpnIf {
 
     /**
      * Returns subnetMask.
-     * 
+     *
      * @return subnetMask
      */
     public String subnetMask() {

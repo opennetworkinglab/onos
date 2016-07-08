@@ -28,7 +28,7 @@ public class NetconfL3vpnComm {
 
     /**
      * NetconfL3vpnComm constructor.
-     * 
+     *
      * @param l3vpninstances NetconfL3vpninstances
      */
     public NetconfL3vpnComm(NetconfL3vpnInstances l3vpninstances) {
@@ -38,7 +38,7 @@ public class NetconfL3vpnComm {
 
     /**
      * Returns l3vpninstances.
-     * 
+     *
      * @return l3vpninstances
      */
     public NetconfL3vpnInstances l3vpninstances() {

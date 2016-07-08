@@ -29,6 +29,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
@@ -60,15 +61,25 @@ import org.onosproject.net.behaviour.NetconfVpnTarget;
 import org.onosproject.net.behaviour.NetconfVpnTargets;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.LogicalClockService;
+import org.onosproject.store.service.StorageService;
+import org.onosproject.yang.gen.v1.l3vpn.comm.type.rev20141225.nel3vpncommtype.Ipv4Address;
+import org.onosproject.yang.gen.v1.l3vpn.comm.type.rev20141225.nel3vpncommtype.L3VpncommonL3VpnPrefixType;
+import org.onosproject.yang.gen.v1.l3vpn.comm.type.rev20141225.nel3vpncommtype.L3VpncommonVrfRtType;
 import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.nebgpcomm.Bgpcomm;
 import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.nebgpcomm.bgpcomm.bgpvrfs.BgpVrf;
 import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.nebgpcomm.bgpcomm.bgpvrfs.bgpvrf.bgpvrfafs.BgpVrfAf;
 import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.nebgpcomm.bgpcomm.bgpvrfs.bgpvrf.bgpvrfafs.bgpvrfaf.importroutes.ImportRoute;
 import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.L3VpnInstances;
+import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.L3VpnInstancesBuilder.L3VpnInstancesImpl;
 import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.l3vpninstances.L3VpnInstance;
 import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.l3vpninstances.l3vpninstance.vpninstafs.VpnInstAf;
 import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.l3vpninstances.l3vpninstance.vpninstafs.vpninstaf.vpntargets.VpnTarget;
+import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.l3vpninstances.l3vpninstance.vpninstafs.vpninstaf.vpntargets.VpnTargetBuilder.VpnTargetImpl;
 import org.onosproject.yang.gen.v1.ne.l3vpn.comm.rev20141225.nel3vpncomm.l3vpnifs.l3vpnifs.L3VpnIf;
+import org.onosproject.yang.gen.v1.ne.l3vpn.comm.rev20141225.nel3vpncomm.l3vpnifs.l3vpnifs.L3VpnIfBuilder.L3VpnIfImpl;
 import org.slf4j.Logger;
 
 /**
@@ -89,19 +100,39 @@ public class L3vpnNeManager implements L3vpnNeService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LogicalClockService clockService;
+
     private ApplicationId appId;
 
-    private final String CONTENT_VERSION = "1.0";
-    private final String FORMAT_VERSION = "1.0";
-    private final String EDIT_OPERATION_CREATE = "create";
-    private final String EDIT_OPERATION_MERGE = "merge";
-    private final String EDIT_OPERATION_REPLACE = "replace";
-    private final String EDIT_OPERATION_DELETE = "delete";
-    private final String OK = "ok";
+    private static final String CONTENT_VERSION = "1.0";
+    private static final String FORMAT_VERSION = "1.0";
+    private static final String EDIT_OPERATION_CREATE = "create";
+    private static final String EDIT_OPERATION_MERGE = "merge";
+    private static final String EDIT_OPERATION_REPLACE = "replace";
+    private static final String EDIT_OPERATION_DELETE = "delete";
+    private static final String OK = "ok";
+
+    private EventuallyConsistentMap<String, L3VpnInstances> l3VpnInstancesStore;
+    private EventuallyConsistentMap<String, Bgpcomm> bgpcommStore;
 
     @Activate
     public void activate() {
         appId = coreService.registerApplication(APP_ID);
+        KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
+                .register(KryoNamespaces.API).register(L3VpnInstancesImpl.class)
+                .register(L3VpnIfImpl.class).register(Ipv4Address.class)
+                .register(L3VpncommonL3VpnPrefixType.class)
+                .register(VpnTargetImpl.class)
+                .register(L3VpncommonVrfRtType.class);
+        l3VpnInstancesStore = storageService
+                .<String, L3VpnInstances>eventuallyConsistentMapBuilder()
+                .withName("").withSerializer(serializer)
+                .withTimestampProvider((k, v) -> clockService.getTimestamp())
+                .build();
         log.info("Started");
     }
 

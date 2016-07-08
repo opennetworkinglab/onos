@@ -35,7 +35,7 @@ public class VrfEntity {
 
     /**
      * VrfEntity constructor.
-     * 
+     *
      * @param vrfName vrf name
      * @param netVpnId netVpninstance identifier
      * @param routeDistinguisher route distinguisher
@@ -65,7 +65,7 @@ public class VrfEntity {
 
     /**
      * Returns vrfName.
-     * 
+     *
      * @return vrfName
      */
     public String vrfName() {
@@ -74,7 +74,7 @@ public class VrfEntity {
 
     /**
      * Returns netVpnId.
-     * 
+     *
      * @return netVpnId
      */
     public String netVpnId() {
@@ -83,7 +83,7 @@ public class VrfEntity {
 
     /**
      * Returns routeDistinguisher.
-     * 
+     *
      * @return routeDistinguisher
      */
     public String routeDistinguisher() {
@@ -92,7 +92,7 @@ public class VrfEntity {
 
     /**
      * Returns importTargets.
-     * 
+     *
      * @return importTargets
      */
     public List<String> importTargets() {
@@ -101,7 +101,7 @@ public class VrfEntity {
 
     /**
      * Returns exportTargets.
-     * 
+     *
      * @return exportTargets
      */
     public List<String> exportTargets() {
@@ -110,7 +110,7 @@ public class VrfEntity {
 
     /**
      * Returns acIdList.
-     * 
+     *
      * @return acIdList
      */
     public List<String> acIdList() {
@@ -119,7 +119,7 @@ public class VrfEntity {
 
     /**
      * Returns bgp.
-     * 
+     *
      * @return bgp
      */
     public Bgp bgp() {

@@ -30,7 +30,7 @@ public class NetconfVpnInstAF {
 
     /**
      * NetconfVpnInstAF constructor.
-     * 
+     *
      * @param afType address family Type
      * @param vrfRD vrfRD
      * @param vpnTargets vpn targets
@@ -47,7 +47,7 @@ public class NetconfVpnInstAF {
 
     /**
      * Returns afType.
-     * 
+     *
      * @return afType
      */
     public String afType() {
@@ -56,7 +56,7 @@ public class NetconfVpnInstAF {
 
     /**
      * Returns vrfRD.
-     * 
+     *
      * @return vrfRD
      */
     public String vrfRD() {
@@ -65,7 +65,7 @@ public class NetconfVpnInstAF {
 
     /**
      * Returns vpnTargets.
-     * 
+     *
      * @return vpnTargets
      */
     public NetconfVpnTargets vpnTargets() {

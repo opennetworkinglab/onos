@@ -28,7 +28,7 @@ public final class BgpImportProtocol {
 
     /**
      * BgpImportProtocol constructor.
-     * 
+     *
      * @param protocolType the bgp protocol type
      */
     public BgpImportProtocol(ProtocolType protocolType) {
@@ -38,7 +38,7 @@ public final class BgpImportProtocol {
 
     /**
      * Returns netVpnId.
-     * 
+     *
      * @return netVpnId
      */
     public ProtocolType protocolType() {

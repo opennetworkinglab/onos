@@ -34,11 +34,11 @@ public final class IpUtil {
     private static final int NUMBER_31 = 31;
     private static final int NUMBER_32 = 32;
 
-    private static final long NUMBER_0XFF = 0xff;
-    private static final long NUMBER_0XFF000000L = 0xff000000l;
-    private static final long NUMBER_0X00FF0000L = 0x00ff0000l;
-    private static final long NUMBER_0X0000FF00L = 0x0000ff00l;
-    private static final long NUMBER_0X000000FFL = 0x000000ffl;
+    private static final Long NUMBER_0XFF = (long) 0xff;
+    private static final Long NUMBER_0XFF000000L = 0xff000000L;
+    private static final Long NUMBER_0X00FF0000L = 0x00ff0000L;
+    private static final Long NUMBER_0X0000FF00L = 0x0000ff00L;
+    private static final Long NUMBER_0X000000FFL = 0x000000ffL;
 
     /**
      * Constructs a IpUtil object. Utility classes should not have a public or

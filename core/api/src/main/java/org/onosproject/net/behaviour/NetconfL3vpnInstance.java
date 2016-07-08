@@ -31,7 +31,7 @@ public class NetconfL3vpnInstance {
 
     /**
      * NetconfL3vpnInstance constructor.
-     * 
+     *
      * @param operation operation
      * @param vrfName vrf name
      * @param vpnInstAFs NetconfVpnInstAFs
@@ -51,7 +51,7 @@ public class NetconfL3vpnInstance {
 
     /**
      * Returns operation.
-     * 
+     *
      * @return operation
      */
     public String operation() {
@@ -60,7 +60,7 @@ public class NetconfL3vpnInstance {
 
     /**
      * Returns vrfName.
-     * 
+     *
      * @return vrfName
      */
     public String vrfName() {
@@ -69,7 +69,7 @@ public class NetconfL3vpnInstance {
 
     /**
      * Returns vpnInstAFs.
-     * 
+     *
      * @return vpnInstAFs
      */
     public NetconfVpnInstAFs vpnInstAFs() {
@@ -78,7 +78,7 @@ public class NetconfL3vpnInstance {
 
     /**
      * Returns l3vpnIfs.
-     * 
+     *
      * @return l3vpnIfs
      */
     public NetconfL3vpnIfs l3vpnIfs() {

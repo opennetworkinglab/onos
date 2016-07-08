@@ -29,7 +29,7 @@ public class NetconfL3vpnIfs {
 
     /**
      * NetconfL3vpnIfs constructor.
-     * 
+     *
      * @param l3vpnIfs List of NetconfL3vpnIf
      */
     public NetconfL3vpnIfs(List<NetconfL3vpnIf> l3vpnIfs) {
@@ -39,7 +39,7 @@ public class NetconfL3vpnIfs {
 
     /**
      * Returns l3vpnIfs.
-     * 
+     *
      * @return l3vpnIfs
      */
     public List<NetconfL3vpnIf> l3vpnIfs() {

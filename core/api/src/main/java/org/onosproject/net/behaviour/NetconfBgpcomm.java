@@ -28,7 +28,7 @@ public class NetconfBgpcomm {
 
     /**
      * NetconfBgpcomm constructor.
-     * 
+     *
      * @param bgpVrfs NetconfBgpVrfs
      */
     public NetconfBgpcomm(NetconfBgpVrfs bgpVrfs) {
@@ -38,7 +38,7 @@ public class NetconfBgpcomm {
 
     /**
      * Returns bgpVrfs.
-     * 
+     *
      * @return bgpVrfs
      */
     public NetconfBgpVrfs bgpVrfs() {
