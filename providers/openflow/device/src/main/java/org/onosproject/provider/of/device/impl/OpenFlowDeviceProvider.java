@@ -167,6 +167,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         controller.addListener(listener);
         controller.addEventListener(listener);
 
+        modified(context);
+
         connectInitialDevices();
         LOG.info("Started");
     }
