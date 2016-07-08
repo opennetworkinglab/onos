@@ -185,7 +185,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private TimerTask summaryTask = null;
     private boolean summaryRunning = false;
 
-    private boolean listenersRemoved = false;
+    private volatile boolean listenersRemoved = false;
 
 
     @Override

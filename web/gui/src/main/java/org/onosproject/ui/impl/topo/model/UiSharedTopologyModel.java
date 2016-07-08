@@ -16,9 +16,6 @@
 
 package org.onosproject.ui.impl.topo.model;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -64,8 +61,18 @@ import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.impl.topo.UiTopoSession;
 import org.onosproject.ui.model.ServiceBundle;
+import org.onosproject.ui.model.topo.UiClusterMember;
+import org.onosproject.ui.model.topo.UiElement;
+import org.onosproject.ui.model.topo.UiRegion;
+import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Service that creates and maintains the UI-model of the network topology.
@@ -189,6 +196,41 @@ public final class UiSharedTopologyModel
         log.info("Unregistering topology session {}", session);
         removeListener(session);
     }
+
+
+    // =======================================================================
+    //  methods that the topo session will use to extract information from us
+
+    /**
+     * Returns the list of cluster members stored in our model cache.
+     *
+     * @return list of cluster members
+     */
+    public List<UiClusterMember> getClusterMembers() {
+        return cache.getAllClusterMembers();
+    }
+
+    public Set<UiElement> getElements(UiTopoLayout layout) {
+        Set<UiElement> results = new HashSet<>();
+
+        // TODO: figure out how to extract the appropriate nodes
+        //       from the cache, for the given layout.
+
+        return results;
+    }
+
+    /**
+     * Returns the region for the given layout.
+     *
+     * @param layout layout filter
+     * @return the region the layout is based upon
+     */
+    public UiRegion getRegion(UiTopoLayout layout) {
+        return cache.accessRegion(layout.regionId());
+    }
+
+    // =====================================================================
+
 
     /**
      * Default implementation of service bundle to return references to our

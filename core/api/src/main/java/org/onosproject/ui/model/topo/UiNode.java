@@ -20,4 +20,41 @@ package org.onosproject.ui.model.topo;
  * Represents a node drawn on the topology view (region, device, host).
  */
 abstract class UiNode extends UiElement {
+
+    /**
+     * Default "layer" tag.
+     */
+    public static final String LAYER_DEFAULT = "def";
+
+    /**
+     * Packet layer tag.
+     */
+    public static final String LAYER_PACKET = "pkt";
+
+    /**
+     * Optical layer tag.
+     */
+    public static final String LAYER_OPTICAL = "opt";
+
+
+    private String layer = LAYER_DEFAULT;
+
+    /**
+     * Returns the tag for the "layer" that the node should be rendered in
+     * when viewed in the oblique view.
+     *
+     * @return the node's layer
+     */
+    public String layer() {
+        return layer;
+    }
+
+    /**
+     * Sets this node's "layer", for layered rendering.
+     *
+     * @param layerTag the layer tag to set
+     */
+    public void setLayer(String layerTag) {
+        layer = layerTag;
+    }
 }

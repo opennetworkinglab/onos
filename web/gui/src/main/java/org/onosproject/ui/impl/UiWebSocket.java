@@ -92,7 +92,7 @@ public class UiWebSocket
         this.userName = userName;
         this.topoSession =
                 new UiTopoSession(this, directory.get(UiSharedTopologyModel.class),
-                                  directory.get(UiTopoLayoutService.class));
+                        directory.get(UiTopoLayoutService.class));
     }
 
     @Override
@@ -119,6 +119,15 @@ public class UiWebSocket
     public void setCurrentView(String viewId) {
         currentView = viewId;
         topoSession.enableEvent(viewId.equals(TOPO));
+    }
+
+    /**
+     * Provides a reference to the topology session.
+     *
+     * @return topo session reference
+     */
+    public UiTopoSession topoSession() {
+        return topoSession;
     }
 
     /**
@@ -175,7 +184,7 @@ public class UiWebSocket
         topoSession.destroy();
         destroyHandlersAndOverlays();
         log.info("GUI client disconnected [close-code={}, message={}]",
-                 closeCode, message);
+                closeCode, message);
     }
 
     @Override
@@ -186,13 +195,13 @@ public class UiWebSocket
 
     @Override
     public void onMessage(String data) {
-        log.debug("onMessage: {}", data);
         lastActive = System.currentTimeMillis();
         try {
             ObjectNode message = (ObjectNode) mapper.reader().readTree(data);
             String type = message.path(EVENT).asText(UNKNOWN);
             UiMessageHandler handler = handlers.get(type);
             if (handler != null) {
+                log.debug("RX message: {}", message);
                 handler.process(message);
             } else {
                 log.warn("No GUI message handler for type {}", type);
@@ -208,6 +217,7 @@ public class UiWebSocket
         try {
             if (connection.isOpen()) {
                 connection.sendMessage(message.toString());
+                log.debug("TX message: {}", message);
             }
         } catch (IOException e) {
             log.warn("Unable to send message {} to GUI due to {}", message, e);
@@ -257,7 +267,7 @@ public class UiWebSocket
             }
         });
         log.debug("#handlers = {}, #overlays = {}", handlers.size(),
-                  overlayCache.size());
+                overlayCache.size());
     }
 
     // Destroys message handlers.
@@ -284,7 +294,7 @@ public class UiWebSocket
                     .put(ID, node.id().toString())
                     .put(IP, node.ip().toString())
                     .put(TopoConstants.Glyphs.UI_ATTACHED,
-                         node.equals(service.getLocalNode()));
+                            node.equals(service.getLocalNode()));
             instances.add(instance);
         }
 

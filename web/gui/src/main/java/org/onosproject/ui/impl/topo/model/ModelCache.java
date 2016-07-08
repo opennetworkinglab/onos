@@ -41,6 +41,7 @@ import org.onosproject.ui.model.topo.UiTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
@@ -153,6 +154,10 @@ class ModelCache {
         }
     }
 
+    List<UiClusterMember> getAllClusterMembers() {
+        return uiTopology.allClusterMembers();
+    }
+
 
     // === MASTERSHIP CHANGES
 
@@ -199,7 +204,7 @@ class ModelCache {
 
     // package private for unit test access
     UiRegion accessRegion(RegionId id) {
-        return uiTopology.findRegion(id);
+        return id == null ? null : uiTopology.findRegion(id);
     }
 
     // invoked from UiSharedTopologyModel region listener
@@ -484,4 +489,5 @@ class ModelCache {
     public int hostCount() {
         return uiTopology.hostCount();
     }
+
 }

@@ -256,6 +256,8 @@
         });
     }
 
+    // TODO: simplify listener handling (see theme.js for sample code)
+
     function addOpenListener(callback) {
         var id = nextListenerId++,
             cb = fs.isF(callback),

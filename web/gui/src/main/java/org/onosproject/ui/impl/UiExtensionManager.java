@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -51,11 +50,12 @@ import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandlerFactory;
 import org.onosproject.ui.UiPreferencesService;
-import org.onosproject.ui.UiTopoOverlayFactory;
+import org.onosproject.ui.UiTopoMap;
 import org.onosproject.ui.UiTopoMapFactory;
+import org.onosproject.ui.UiTopoOverlayFactory;
 import org.onosproject.ui.UiView;
 import org.onosproject.ui.UiViewHidden;
-import org.onosproject.ui.UiTopoMap;
+import org.onosproject.ui.impl.topo.Topo2ViewMessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,7 +120,8 @@ public class UiExtensionManager
     private final ObjectMapper mapper = new ObjectMapper();
 
     private final ExecutorService eventHandlingExecutor =
-            Executors.newSingleThreadExecutor(Tools.groupedThreads("onos/ui-ext-manager", "event-handler", log));
+            Executors.newSingleThreadExecutor(
+                    Tools.groupedThreads("onos/ui-ext-manager", "event-handler", log));
 
     // Creates core UI extension
     private UiExtension createCoreExtension() {
@@ -130,6 +131,10 @@ public class UiExtensionManager
                 new UiView(PLATFORM, "cluster", "Cluster Nodes", "nav_cluster"),
                 new UiView(PLATFORM, "processor", "Packet Processors", "nav_processors"),
                 new UiView(NETWORK, "topo", "Topology", "nav_topo"),
+
+                // FIXME: leave commented out for now, while still under development
+//                new UiView(NETWORK, "topo2", "New-Topo"),
+
                 new UiView(NETWORK, "device", "Devices", "nav_devs"),
                 new UiViewHidden("flow"),
                 new UiViewHidden("port"),
@@ -145,6 +150,7 @@ public class UiExtensionManager
                 () -> ImmutableList.of(
                         new UserPreferencesMessageHandler(),
                         new TopologyViewMessageHandler(),
+                        new Topo2ViewMessageHandler(),
                         new MapSelectorMessageHandler(),
                         new DeviceViewMessageHandler(),
                         new LinkViewMessageHandler(),
@@ -196,11 +202,11 @@ public class UiExtensionManager
     @Activate
     public void activate() {
         Serializer serializer = Serializer.using(KryoNamespaces.API,
-                        ObjectNode.class, ArrayNode.class,
-                        JsonNodeFactory.class, LinkedHashMap.class,
-                        TextNode.class, BooleanNode.class,
-                        LongNode.class, DoubleNode.class, ShortNode.class,
-                        IntNode.class, NullNode.class);
+                ObjectNode.class, ArrayNode.class,
+                JsonNodeFactory.class, LinkedHashMap.class,
+                TextNode.class, BooleanNode.class,
+                LongNode.class, DoubleNode.class, ShortNode.class,
+                IntNode.class, NullNode.class);
 
         prefsConsistentMap = storageService.<String, ObjectNode>consistentMapBuilder()
                 .withName(ONOS_USER_PREFERENCES)

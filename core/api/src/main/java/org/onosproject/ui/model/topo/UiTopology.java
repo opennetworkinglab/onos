@@ -23,8 +23,12 @@ import org.onosproject.net.region.RegionId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,6 +49,9 @@ public class UiTopology extends UiElement {
     private static final String DEFAULT_TOPOLOGY_ID = "TOPOLOGY-0";
 
     private static final Logger log = LoggerFactory.getLogger(UiTopology.class);
+
+    private static final Comparator<UiClusterMember> CLUSTER_MEMBER_COMPARATOR =
+            (o1, o2) -> o1.idAsString().compareTo(o2.idAsString());
 
 
     // top level mappings of topology elements by ID
@@ -82,6 +89,18 @@ public class UiTopology extends UiElement {
         deviceLookup.clear();
         hostLookup.clear();
         linkLookup.clear();
+    }
+
+
+    /**
+     * Returns all the cluster members, sorted by their ID.
+     *
+     * @return all cluster members
+     */
+    public List<UiClusterMember> allClusterMembers() {
+        List<UiClusterMember> members = new ArrayList<>(cnodeLookup.values());
+        Collections.sort(members, CLUSTER_MEMBER_COMPARATOR);
+        return members;
     }
 
     /**

@@ -22,7 +22,10 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionId;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -37,6 +40,8 @@ public class UiRegion extends UiNode {
     private final Set<HostId> hostIds = new HashSet<>();
     private final Set<UiLinkId> uiLinkIds = new HashSet<>();
 
+    private final List<String> layerOrder = new ArrayList<>();
+
     private final UiTopology topology;
 
     private final Region region;
@@ -50,6 +55,8 @@ public class UiRegion extends UiNode {
     public UiRegion(UiTopology topology, Region region) {
         this.topology = topology;
         this.region = region;
+        // unless told otherwise, we'll use a single, default layer
+        layerOrder.add(UiNode.LAYER_DEFAULT);
     }
 
     @Override
@@ -57,6 +64,17 @@ public class UiRegion extends UiNode {
         deviceIds.clear();
         hostIds.clear();
         uiLinkIds.clear();
+    }
+
+    /**
+     * Sets the layer order for this region.
+     * Typically, the {@code UiNode.LAYER_*} constants will be used here.
+     *
+     * @param layers the layers
+     */
+    public void setLayerOrder(String... layers) {
+        layerOrder.clear();
+        Collections.addAll(layerOrder, layers);
     }
 
     /**
@@ -169,5 +187,20 @@ public class UiRegion extends UiNode {
      */
     public Set<UiLink> links() {
         return topology.linkSet(uiLinkIds);
+    }
+
+    /**
+     * Returns the order in which layers should be rendered. Lower layers
+     * come earlier in the list. For example, to indicate that nodes in the
+     * optical layer should be rendered "below" nodes in the packet layer,
+     * this method should return:
+     * <pre>
+     * [UiNode.LAYER_OPTICAL, UiNode.LAYER_PACKET]
+     * </pre>
+     *
+     * @return layer ordering
+     */
+    public List<String> layerOrder() {
+        return Collections.unmodifiableList(layerOrder);
     }
 }

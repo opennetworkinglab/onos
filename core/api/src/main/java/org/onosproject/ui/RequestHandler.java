@@ -89,6 +89,17 @@ public abstract class RequestHandler {
 
     /**
      * Sends a message back to the client.
+     *
+     * @param eventType message event type
+     * @param payload   message payload
+     */
+    protected void sendMessage(String eventType, ObjectNode payload) {
+        // TODO: remove sid
+        parent.connection().sendMessage(eventType, 0, payload);
+    }
+
+    /**
+     * Sends a message back to the client.
      * Here, the message is preformatted; the assumption is it has its
      * eventType, sid and payload attributes already filled in.
      *

@@ -21,9 +21,13 @@ import org.onosproject.ui.impl.UiWebSocket;
 import org.onosproject.ui.impl.topo.model.UiModelEvent;
 import org.onosproject.ui.impl.topo.model.UiModelListener;
 import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
+import org.onosproject.ui.model.topo.UiClusterMember;
+import org.onosproject.ui.model.topo.UiRegion;
 import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * Coordinates with the {@link UiTopoLayoutService} to access
@@ -34,6 +38,10 @@ import org.slf4j.LoggerFactory;
  * Note that an instance of this class will be created for each
  * {@link UiWebSocket} connection, and will contain
  * the state of how the topology is laid out for the logged-in user.
+ * <p>
+ * The expected pattern is for the {@link Topo2ViewMessageHandler} to obtain
+ * a reference to the session instance (via the {@link UiWebSocket}), and
+ * interact with it when topo-related events come in from the client.
  */
 public class UiTopoSession implements UiModelListener {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -128,5 +136,24 @@ public class UiTopoSession implements UiModelListener {
      */
     public void enableEvent(boolean enabled) {
         messagesEnabled = enabled;
+    }
+
+    /**
+     * Returns the list of ONOS instances (cluster members).
+     *
+     * @return the list of ONOS instances
+     */
+    public List<UiClusterMember> getAllInstances() {
+        return sharedModel.getClusterMembers();
+    }
+
+    /**
+     * Returns the region for the specified layout.
+     *
+     * @param layout layout filter
+     * @return region that the layout is based upon
+     */
+    public UiRegion getRegion(UiTopoLayout layout) {
+        return sharedModel.getRegion(layout);
     }
 }

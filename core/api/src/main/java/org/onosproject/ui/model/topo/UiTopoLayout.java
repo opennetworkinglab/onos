@@ -17,6 +17,7 @@
 package org.onosproject.ui.model.topo;
 
 import org.onosproject.net.region.Region;
+import org.onosproject.net.region.RegionId;
 
 /**
  * Represents a specific "subset" of the UI model of the network topology
@@ -41,6 +42,11 @@ public class UiTopoLayout {
         this.parent = parent;
     }
 
+    @Override
+    public String toString() {
+        return "{UiTopoLayout: " + id + "}";
+    }
+
     /**
      * Returns the UI layout identifier.
      *
@@ -51,12 +57,23 @@ public class UiTopoLayout {
     }
 
     /**
-     * Returns the backing region with which this layout is associated.
+     * Returns the backing region with which this layout is associated. Note
+     * that this may be null (for the root layout).
      *
      * @return backing region
      */
     public Region region() {
         return region;
+    }
+
+    /**
+     * Returns the identifier of the backing region. Will be null if the
+     * region is null.
+     *
+     * @return backing region identifier
+     */
+    public RegionId regionId() {
+        return region == null ? null : region.id();
     }
 
     /**
