@@ -42,6 +42,7 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableList.of;
+import static org.onosproject.security.AppPermission.Type.ADMIN;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.REGION_READ;
@@ -85,6 +86,7 @@ public class RegionManager extends AbstractListenerManager<RegionEvent, RegionLi
     @Override
     public Region createRegion(RegionId regionId, String name, Region.Type type,
                                List<Set<NodeId>> masterNodeIds) {
+        checkPermission(ADMIN);
         checkNotNull(regionId, REGION_ID_NULL);
         checkNotNull(name, NAME_NULL);
         checkNotNull(name, REGION_TYPE_NULL);
@@ -94,6 +96,7 @@ public class RegionManager extends AbstractListenerManager<RegionEvent, RegionLi
     @Override
     public Region updateRegion(RegionId regionId, String name, Region.Type type,
                                List<Set<NodeId>> masterNodeIds) {
+        checkPermission(ADMIN);
         checkNotNull(regionId, REGION_ID_NULL);
         checkNotNull(name, NAME_NULL);
         checkNotNull(name, REGION_TYPE_NULL);
@@ -102,12 +105,14 @@ public class RegionManager extends AbstractListenerManager<RegionEvent, RegionLi
 
     @Override
     public void removeRegion(RegionId regionId) {
+        checkPermission(ADMIN);
         checkNotNull(regionId, REGION_ID_NULL);
         store.removeRegion(regionId);
     }
 
     @Override
     public void addDevices(RegionId regionId, Collection<DeviceId> deviceIds) {
+        checkPermission(ADMIN);
         checkNotNull(regionId, REGION_ID_NULL);
         checkNotNull(deviceIds, DEVICE_IDS_NULL);
         checkState(!deviceIds.isEmpty(), DEVICE_IDS_EMPTY);
@@ -116,6 +121,7 @@ public class RegionManager extends AbstractListenerManager<RegionEvent, RegionLi
 
     @Override
     public void removeDevices(RegionId regionId, Collection<DeviceId> deviceIds) {
+        checkPermission(ADMIN);
         checkNotNull(regionId, REGION_ID_NULL);
         checkNotNull(deviceIds, DEVICE_IDS_NULL);
         checkState(!deviceIds.isEmpty(), DEVICE_IDS_EMPTY);

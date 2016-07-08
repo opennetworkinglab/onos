@@ -25,6 +25,7 @@ import static org.onosproject.net.MastershipRole.STANDBY;
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
 import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.ADMIN;
 import static org.onosproject.security.AppPermission.Type.DEVICE_READ;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -247,6 +248,7 @@ public class DeviceManager
 
     @Override
     public void removeDevice(DeviceId deviceId) {
+        checkPermission(ADMIN);
         checkNotNull(deviceId, DEVICE_ID_NULL);
         DeviceEvent event = store.removeDevice(deviceId);
         if (event != null) {
@@ -258,6 +260,7 @@ public class DeviceManager
     @Override
     public void changePortState(DeviceId deviceId, PortNumber portNumber,
                                 boolean enable) {
+        checkPermission(ADMIN);
         checkNotNull(deviceId, DEVICE_ID_NULL);
         checkNotNull(deviceId, PORT_NUMBER_NULL);
         DeviceProvider provider = getProvider(deviceId);

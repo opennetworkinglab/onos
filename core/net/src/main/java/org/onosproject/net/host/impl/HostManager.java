@@ -191,6 +191,7 @@ public class HostManager
 
     @Override
     public void removeHost(HostId hostId) {
+        checkPermission(ADMIN);
         checkNotNull(hostId, HOST_ID_NULL);
         store.removeHost(hostId);
     }

@@ -16,6 +16,7 @@
 
 package org.onosproject.store.primitives.impl;
 
+import static org.onosproject.security.AppPermission.Type.ADMIN;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.File;
@@ -152,6 +153,7 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
 
     @Override
     public List<PartitionInfo> partitionInfo() {
+        checkPermission(ADMIN);
         return partitions.values()
                          .stream()
                          .flatMap(x -> Tools.stream(x.info()))
@@ -177,6 +179,7 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
 
     @Override
     public List<PartitionClientInfo> partitionClientInfo() {
+        checkPermission(ADMIN);
         return partitions.values()
                          .stream()
                          .map(StoragePartition::client)

@@ -46,6 +46,7 @@ import java.util.Enumeration;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.ADMIN;
 import static org.onosproject.security.AppPermission.Type.CLUSTER_READ;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -103,6 +104,7 @@ public class ClusterMetadataManager
 
     @Override
     public void setClusterMetadata(ClusterMetadata metadata) {
+        checkPermission(ADMIN);
         checkNotNull(metadata, "Cluster metadata cannot be null");
         ClusterMetadataProvider primaryProvider = getPrimaryProvider();
         if (primaryProvider == null) {

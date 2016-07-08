@@ -64,6 +64,7 @@ import static org.onlab.metrics.MetricsUtil.startTimer;
 import static org.onlab.metrics.MetricsUtil.stopTimer;
 import static org.onosproject.net.MastershipRole.MASTER;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.ADMIN;
 import static org.onosproject.security.AppPermission.Type.CLUSTER_READ;
 import static org.onosproject.security.AppPermission.Type.CLUSTER_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -119,6 +120,7 @@ public class MastershipManager
 
     @Override
     public CompletableFuture<Void> setRole(NodeId nodeId, DeviceId deviceId, MastershipRole role) {
+        checkPermission(ADMIN);
         checkNotNull(nodeId, NODE_ID_NULL);
         checkNotNull(deviceId, DEVICE_ID_NULL);
         checkNotNull(role, ROLE_NULL);
@@ -207,6 +209,7 @@ public class MastershipManager
 
     @Override
     public void balanceRoles() {
+        checkPermission(ADMIN);
         List<ControllerNode> nodes = newArrayList(clusterService.getNodes());
         Map<ControllerNode, Set<DeviceId>> controllerDevices = new HashMap<>();
         int deviceCount = 0;

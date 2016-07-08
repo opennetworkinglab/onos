@@ -172,11 +172,13 @@ public class StorageManager implements StorageService, StorageAdminService {
 
     @Override
     public List<MapInfo> getMapInfo() {
+        checkPermission(ADMIN);
         return listMapInfo(federatedPrimitiveCreator);
     }
 
     @Override
     public Map<String, Long> getCounters() {
+        checkPermission(ADMIN);
         Map<String, Long> counters = Maps.newConcurrentMap();
         federatedPrimitiveCreator.getAsyncAtomicCounterNames()
                .forEach(name -> counters.put(name,
@@ -186,11 +188,13 @@ public class StorageManager implements StorageService, StorageAdminService {
 
     @Override
     public List<PartitionInfo> getPartitionInfo() {
+        checkPermission(ADMIN);
         return partitionAdminService.partitionInfo();
     }
 
     @Override
     public Collection<TransactionId> getPendingTransactions() {
+        checkPermission(ADMIN);
         return Futures.getUnchecked(transactions.keySet());
     }
 

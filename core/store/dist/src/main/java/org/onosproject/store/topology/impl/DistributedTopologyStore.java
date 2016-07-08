@@ -74,6 +74,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.isNullOrEmpty;
 import static org.onosproject.net.topology.TopologyEvent.Type.TOPOLOGY_CHANGED;
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.ADMIN;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -316,11 +318,13 @@ public class DistributedTopologyStore
 
     @Override
     public void setDefaultLinkWeight(LinkWeight linkWeight) {
+        checkPermission(ADMIN);
         DefaultTopology.setDefaultLinkWeight(linkWeight);
     }
 
     @Override
     public void setDefaultGraphPathSearch(GraphPathSearch<TopologyVertex, TopologyEdge> graphPathSearch) {
+        checkPermission(ADMIN);
         DefaultTopology.setDefaultGraphPathSearch(graphPathSearch);
     }
 

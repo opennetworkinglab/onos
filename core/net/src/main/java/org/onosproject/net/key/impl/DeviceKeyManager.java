@@ -37,6 +37,7 @@ import java.util.Collection;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.ADMIN;
 import static org.onosproject.security.AppPermission.Type.DEVICE_KEY_READ;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -71,12 +72,14 @@ public class DeviceKeyManager extends AbstractListenerManager<DeviceKeyEvent, De
 
     @Override
     public void addKey(DeviceKey deviceKey) {
+        checkPermission(ADMIN);
         checkNotNull(deviceKey, "Device key cannot be null");
         store.createOrUpdateDeviceKey(deviceKey);
     }
 
     @Override
     public void removeKey(DeviceKeyId deviceKeyId) {
+        checkPermission(ADMIN);
         checkNotNull(deviceKeyId, "Device key identifier cannot be null");
         store.deleteDeviceKey(deviceKeyId);
     }

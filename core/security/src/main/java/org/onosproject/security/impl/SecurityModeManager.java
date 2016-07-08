@@ -38,15 +38,18 @@ import org.onosproject.security.store.SecurityModeListener;
 import org.onosproject.security.store.SecurityModeStore;
 import org.onosproject.security.store.SecurityModeStoreDelegate;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServicePermission;
-import org.osgi.service.log.LogEntry;
-import org.osgi.service.log.LogListener;
-import org.osgi.service.log.LogReaderService;
+import org.osgi.framework.FrameworkListener;
 import org.osgi.service.permissionadmin.PermissionInfo;
 
+import java.io.FilePermission;
+import java.lang.reflect.ReflectPermission;
+import java.net.SocketPermission;
 import java.security.AccessControlException;
 import java.security.Permission;
+import java.security.SecurityPermission;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -76,9 +79,6 @@ public class SecurityModeManager implements SecurityAdminService {
     protected ApplicationAdminService appAdminService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LogReaderService logReaderService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
 
     private final Logger log = getLogger(getClass());
@@ -88,7 +88,7 @@ public class SecurityModeManager implements SecurityAdminService {
 
     private final SecurityModeStoreDelegate delegate = new InternalStoreDelegate();
 
-    private SecurityLogListener securityLogListener = new SecurityLogListener();
+    private SecurityEventListener securityEventListener = new SecurityEventListener();
 
     private PermissionAdmin permissionAdmin = getPermissionAdmin();
 
@@ -96,7 +96,7 @@ public class SecurityModeManager implements SecurityAdminService {
     public void activate() {
 
         eventDispatcher.addSink(SecurityModeEvent.class, listenerRegistry);
-        logReaderService.addLogListener(securityLogListener);
+        getBundleContext().addFrameworkListener(new SecurityEventListener());
 
         if (System.getSecurityManager() == null) {
             log.warn("J2EE security manager is disabled.");
@@ -116,7 +116,7 @@ public class SecurityModeManager implements SecurityAdminService {
     @Deactivate
     public void deactivate() {
         eventDispatcher.removeSink(SecurityModeEvent.class);
-        logReaderService.removeLogListener(securityLogListener);
+        getBundleContext().removeFrameworkListener(securityEventListener);
         store.unsetDelegate(delegate);
         log.info("Stopped");
 
@@ -169,27 +169,32 @@ public class SecurityModeManager implements SecurityAdminService {
                 DefaultPolicyBuilder.convertToJavaPermissions(store.getRequestedPermissions(appId)));
     }
 
-    private class SecurityLogListener implements LogListener {
+    private class SecurityEventListener implements FrameworkListener {
         @Override
-        public void logged(LogEntry entry) {
-            if (entry.getException() != null &&
-                    entry.getException() instanceof AccessControlException) {
-                String location = entry.getBundle().getLocation();
-                Permission javaPerm =
-                        ((AccessControlException) entry.getException()).getPermission();
-                org.onosproject.security.Permission permission = DefaultPolicyBuilder.getOnosPermission(javaPerm);
-                if (permission == null) {
-                    log.warn("Unsupported permission requested.");
-                    return;
-                }
-                store.getApplicationIds(location).stream().filter(
-                        appId -> store.isSecured(appId) &&
-                                appAdminService.getState(appId) == ApplicationState.ACTIVE).forEach(appId -> {
-                    store.requestPermission(appId, permission);
-                    print("[POLICY VIOLATION] APP: %s / Bundle: %s / Permission: %s ",
-                            appId.name(), location, permission.toString());
-                });
+        public void frameworkEvent(FrameworkEvent event) {
+            if (event.getType() != FrameworkEvent.ERROR) {
+                return;
             }
+            Throwable throwable = event.getThrowable();
+            if (throwable == null || !(throwable instanceof AccessControlException)) {
+                return;
+            }
+            String bundleLocation = event.getBundle().getLocation();
+            Permission nativePerm = ((AccessControlException) throwable).getPermission();
+            org.onosproject.security.Permission onosPerm = DefaultPolicyBuilder.getOnosPermission(nativePerm);
+
+            if (onosPerm == null) {
+                log.warn("Unsupported permission requested: " + nativePerm.toString());
+                return;
+            }
+
+            store.getApplicationIds(bundleLocation).stream().filter(
+                    appId -> store.isSecured(appId) &&
+                            appAdminService.getState(appId) == ApplicationState.ACTIVE).forEach(appId -> {
+                store.requestPermission(appId, onosPerm);
+                print("[POLICY VIOLATION] APP: %s / Bundle: %s / Permission: %s ",
+                      appId.name(), bundleLocation, onosPerm.toString());
+            });
         }
     }
 
@@ -213,32 +218,59 @@ public class SecurityModeManager implements SecurityAdminService {
      * 0 - APP_PERM
      * 1 - ADMIN SERVICE
      * 2 - NB_SERVICE
-     * 3 - ETC_SERVICE
-     * 4 - ETC
+     * 3 - SB_SERVICE
+     * 4 - CLI_SERVICE
+     * 5 - ETC_SERVICE
+     * 6 - CRITICAL PERMISSIONS
+     * 7 - ETC
      * @param perms
      */
-    private Map<Integer, List<Permission>> getPrintablePermissionMap(List<Permission> perms) {
+    private Map<Integer, List<Permission>> getPrintablePermissionMap(Set<Permission> perms) {
         ConcurrentHashMap<Integer, List<Permission>> sortedMap = new ConcurrentHashMap<>();
         sortedMap.put(0, new ArrayList());
         sortedMap.put(1, new ArrayList());
         sortedMap.put(2, new ArrayList());
         sortedMap.put(3, new ArrayList());
         sortedMap.put(4, new ArrayList());
+        sortedMap.put(5, new ArrayList());
+        sortedMap.put(6, new ArrayList());
+        sortedMap.put(7, new ArrayList());
+
         for (Permission perm : perms) {
-            if (perm instanceof ServicePermission) {
-                if (DefaultPolicyBuilder.getNBServiceList().contains(perm.getName())) {
-                    if (perm.getName().contains("Admin")) {
+            if (perm instanceof AppPermission) {
+                sortedMap.get(0).add(perm);
+            } else if (perm instanceof ServicePermission) {
+                String permName = perm.getName().trim();
+                if (DefaultPolicyBuilder.getNBServiceList().contains(permName)) { // ONOS NB SERVICES
+                    if (permName.contains("Admin")) {
                         sortedMap.get(1).add(perm);
                     } else {
                         sortedMap.get(2).add(perm);
                     }
-                } else {
+                } else if (permName.contains("org.onosproject") && permName.contains("Provider")) { //ONOS SB SERVICES
                     sortedMap.get(3).add(perm);
+                } else if (DefaultPolicyBuilder.getCliServiceList().contains(permName)) { //CLI SERVICES
+                    sortedMap.get(4).add(perm);
+                } else if (permName.contains("Security")) { //CRITICAL SERVICES
+                    sortedMap.get(6).add(perm);
+                } else {
+                    sortedMap.get(5).add(perm);
                 }
-            } else if (perm instanceof AppPermission) {
-                sortedMap.get(0).add(perm);
+            } else if (perm instanceof RuntimePermission || perm instanceof SocketPermission ||
+                    perm instanceof FilePermission || perm instanceof SecurityPermission ||
+                    perm instanceof ReflectPermission) { // CRITICAL PERMISSIONS
+                sortedMap.get(6).add(perm);
             } else {
-                sortedMap.get(4).add(perm);
+                boolean isDefault = false;
+                for (Permission dPerm : DefaultPolicyBuilder.getDefaultPerms()) {
+                    if (perm.implies(dPerm)) {
+                        isDefault = true;
+                        break;
+                    }
+                }
+                if (!isDefault) {
+                    sortedMap.get(7).add(perm);
+                }
             }
         }
         return sortedMap;
@@ -261,13 +293,13 @@ public class SecurityModeManager implements SecurityAdminService {
 
 
 
-    private List<Permission> getMaximumPermissions(ApplicationId appId) {
+    private Set<Permission> getMaximumPermissions(ApplicationId appId) {
         Application app = appAdminService.getApplication(appId);
         if (app == null) {
             print("Unknown application.");
             return null;
         }
-        List<Permission> appPerms;
+        Set<Permission> appPerms;
         switch (app.role()) {
             case ADMIN:
                 appPerms = DefaultPolicyBuilder.getAdminApplicationPermissions(app.permissions());
@@ -299,6 +331,5 @@ public class SecurityModeManager implements SecurityAdminService {
         return FrameworkUtil.getBundle(this.getClass()).getBundleContext();
 
     }
-
 
 }

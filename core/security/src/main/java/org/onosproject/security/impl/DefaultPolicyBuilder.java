@@ -17,7 +17,6 @@ package org.onosproject.security.impl;
 
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.onosproject.cluster.ClusterAdminService;
 import org.onosproject.cluster.ClusterMetadataService;
@@ -33,10 +32,9 @@ import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.key.DeviceKeyAdminService;
 import org.onosproject.net.key.DeviceKeyService;
-import org.onosproject.net.resource.ResourceAdminService;
-import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.region.RegionAdminService;
 import org.onosproject.net.region.RegionService;
+import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.statistic.FlowStatisticService;
 import org.onosproject.persistence.PersistenceService;
 import org.onosproject.security.AppPermission;
@@ -83,6 +81,8 @@ import org.osgi.framework.CapabilityPermission;
 import org.osgi.framework.BundlePermission;
 import org.osgi.framework.PackagePermission;
 import org.osgi.service.cm.ConfigurationPermission;
+import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
+import org.osgi.service.permissionadmin.PermissionAdmin;
 
 import javax.net.ssl.SSLPermission;
 import javax.security.auth.AuthPermission;
@@ -96,10 +96,7 @@ import java.net.NetPermission;
 import java.net.SocketPermission;
 import java.security.Permissions;
 import java.sql.SQLPermission;
-import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.List;
 import java.util.PropertyPermission;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -113,24 +110,39 @@ public final class DefaultPolicyBuilder {
     protected static ConcurrentHashMap<AppPermission.Type,
             Set<String>> serviceDirectory = getServiceDirectory();
 
-    protected static List<Permission> defaultPermissions = getDefaultPerms();
-    protected static List<Permission> adminServicePermissions = getAdminDefaultPerms();
+    protected static Set<Permission> defaultPermissions = getDefaultPerms();
+    protected static Set<Permission> adminServicePermissions = getAdminDefaultPerms();
 
     private DefaultPolicyBuilder(){
     }
 
-    public static List<Permission> getUserApplicationPermissions(Set<org.onosproject.security.Permission> permissions) {
-        List<Permission> perms = Lists.newArrayList();
+    public static Set<Permission> getUserApplicationPermissions(Set<org.onosproject.security.Permission> permissions) {
+
+        Set<Permission> perms = Sets.newHashSet();
         perms.addAll(defaultPermissions);
         perms.addAll(convertToJavaPermissions(permissions));
+        for (Permission perm : perms) {
+            if (perm instanceof AppPermission && ((AppPermission) perm).getType() == ADMIN) {
+                perms.remove(perm);
+            } else if (perm instanceof ServicePermission) {
+                if (perm.getName().contains(SecurityAdminService.class.getName())) {
+                    perms.remove(perm);
+                } else if (perm.getName().contains(PermissionAdmin.class.getName())) {
+                    perms.remove(perm);
+                } else if (perm.getName().contains(ConditionalPermissionAdmin.class.getName())) {
+                    perms.remove(perm);
+                }
+            }
+        }
         return optimizePermissions(perms);
     }
 
-    public static List<Permission> getAdminApplicationPermissions(
+    public static Set<Permission> getAdminApplicationPermissions(
             Set<org.onosproject.security.Permission> permissions) {
-        List<Permission> perms = Lists.newArrayList();
+        Set<Permission> perms = Sets.newHashSet();
         perms.addAll(defaultPermissions);
         perms.addAll(adminServicePermissions);
+        perms.add(new AppPermission(ADMIN));
         for (AppPermission.Type perm : serviceDirectory.keySet()) {
             perms.add(new AppPermission(perm));
         }
@@ -138,8 +150,8 @@ public final class DefaultPolicyBuilder {
         return optimizePermissions(perms);
     }
 
-    public static List<Permission> convertToJavaPermissions(Set<org.onosproject.security.Permission> permissions) {
-        List<Permission> result = Lists.newArrayList();
+    public static Set<Permission> convertToJavaPermissions(Set<org.onosproject.security.Permission> permissions) {
+        Set<Permission> result = Sets.newHashSet();
         for (org.onosproject.security.Permission perm : permissions) {
             Permission javaPerm = getPermission(perm);
             if (javaPerm != null) {
@@ -151,6 +163,9 @@ public final class DefaultPolicyBuilder {
                             for (String service : serviceDirectory.get(ap.getType())) {
                                 result.add(new ServicePermission(service, ServicePermission.GET));
                             }
+                        }
+                        if (ap.getType() == CONFIG_WRITE) {
+                            result.addAll(getConfigServicePerms());
                         }
                     }
                 } else if (javaPerm instanceof ServicePermission) {
@@ -166,7 +181,7 @@ public final class DefaultPolicyBuilder {
         return result;
     }
 
-    public static Set<org.onosproject.security.Permission> convertToOnosPermissions(List<Permission> permissions) {
+    public static Set<org.onosproject.security.Permission> convertToOnosPermissions(Set<Permission> permissions) {
         Set<org.onosproject.security.Permission> result = Sets.newHashSet();
         for (Permission perm : permissions) {
             org.onosproject.security.Permission onosPerm = getOnosPermission(perm);
@@ -177,18 +192,27 @@ public final class DefaultPolicyBuilder {
         return result;
     }
 
-    public static List<Permission> getDefaultPerms() {
-        List<Permission> permSet = Lists.newArrayList();
+    public static Set<Permission> getDefaultPerms() {
+        Set<Permission> permSet = Sets.newHashSet();
+        // slf4j-logging requirement
+        permSet.add(
+                new AdaptPermission("(adaptClass=org.osgi.framework.wiring.BundleRevision)", AdaptPermission.ADAPT));
+        // package-permissions
         permSet.add(new PackagePermission("*", PackagePermission.EXPORTONLY));
         permSet.add(new PackagePermission("*", PackagePermission.IMPORT));
-        permSet.add(new AdaptPermission("*", AdaptPermission.ADAPT));
-        permSet.add(new ConfigurationPermission("*", ConfigurationPermission.CONFIGURE));
-        permSet.add(new AdminPermission("*", AdminPermission.METADATA));
         return permSet;
     }
 
-    private static List<Permission> getAdminDefaultPerms() {
-        List<Permission> permSet = Lists.newArrayList();
+
+    private static Set<Permission> getConfigServicePerms() {
+        Set<Permission> permSet = Sets.newHashSet();
+        permSet.add(new AdminPermission("(name=org.onosproject.onos-core-net)", AdminPermission.METADATA));
+        permSet.add(new ConfigurationPermission("*", ConfigurationPermission.CONFIGURE));
+        return permSet;
+    }
+
+    private static Set<Permission> getAdminDefaultPerms() {
+        Set<Permission> permSet = Sets.newHashSet();
         permSet.add(new ServicePermission(ApplicationAdminService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(ClusterAdminService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(LeadershipAdminService.class.getName(), ServicePermission.GET));
@@ -199,11 +223,9 @@ public final class DefaultPolicyBuilder {
         permSet.add(new ServicePermission(HostAdminService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(DeviceKeyAdminService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(LinkAdminService.class.getName(), ServicePermission.GET));
-        permSet.add(new ServicePermission(ResourceAdminService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(RegionAdminService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(PartitionAdminService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(StorageAdminService.class.getName(), ServicePermission.GET));
-
         permSet.add(new ServicePermission(ApplicationService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(ComponentConfigService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(ClusterMetadataService.class.getName(), ServicePermission.GET));
@@ -247,6 +269,7 @@ public final class DefaultPolicyBuilder {
         permSet.add(new ServicePermission(MessagingService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(PartitionService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(LogicalClockService.class.getName(), ServicePermission.GET));
+//        permSet.add(new ServicePermission(MutexExecutionService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(StorageService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(UiExtensionService.class.getName(), ServicePermission.GET));
 
@@ -254,10 +277,19 @@ public final class DefaultPolicyBuilder {
     }
 
     public static Set<String> getNBServiceList() {
-        Set<String> permString = new HashSet<>();
+        Set<String> permString = Sets.newHashSet();
         for (Permission perm : getAdminDefaultPerms()) {
             permString.add(perm.getName());
         }
+        return permString;
+    }
+
+    public static Set<String> getCliServiceList() {
+        Set<String> permString = Sets.newHashSet();
+        permString.add("org.apache.felix.service.command.Function");
+        permString.add("org.apache.karaf.shell.console.CompletableFunction");
+        permString.add("org.apache.karaf.shell.commands.CommandWithAction");
+        permString.add("org.osgi.service.blueprint.container.BlueprintContainer");
         return permString;
     }
 
@@ -320,14 +352,10 @@ public final class DefaultPolicyBuilder {
                 IntentService.class.getName(), IntentExtensionService.class.getName()));
         serviceDirectory.put(INTENT_EVENT, ImmutableSet.of(
                 IntentService.class.getName(), IntentPartitionService.class.getName()));
-//        serviceDirectory.put(LINK_READ, ImmutableSet.of(
-//                LinkService.class.getName(), LinkResourceService.class.getName(),
-//                LabelResourceService.class.getName()));
-//        serviceDirectory.put(LINK_WRITE, ImmutableSet.of(
-//                LinkResourceService.class.getName(), LabelResourceService.class.getName()));
-//        serviceDirectory.put(LINK_EVENT, ImmutableSet.of(
-//                LinkService.class.getName(), LinkResourceService.class.getName(),
-//                LabelResourceService.class.getName()));
+        serviceDirectory.put(LINK_READ, ImmutableSet.of(
+                LinkService.class.getName()));
+        serviceDirectory.put(LINK_WRITE, ImmutableSet.of());
+        serviceDirectory.put(LINK_EVENT, ImmutableSet.of(LinkService.class.getName()));
         serviceDirectory.put(PACKET_READ, ImmutableSet.of(
                 PacketService.class.getName(), ProxyArpService.class.getName()));
         serviceDirectory.put(PACKET_WRITE, ImmutableSet.of(
@@ -374,6 +402,8 @@ public final class DefaultPolicyBuilder {
                 PartitionService.class.getName()));
         serviceDirectory.put(CLOCK_WRITE, ImmutableSet.of(
                 LogicalClockService.class.getName()));
+//        serviceDirectory.put(MUTEX_WRITE, ImmutableSet.of(
+//                MutexExecutionService.class.getName()));
 
         return serviceDirectory;
     }
@@ -511,18 +541,16 @@ public final class DefaultPolicyBuilder {
             return new ReflectPermission(name, actions);
         }
 
-        //AllPermission, SecurityPermission, UnresolvedPermission
-        //AWTPermission,  ReflectPermission not allowed
         return null;
 
     }
-    private static List<Permission> optimizePermissions(List<Permission> perms) {
+    private static Set<Permission> optimizePermissions(Set<Permission> perms) {
         Permissions permissions = listToPermissions(perms);
         return permissionsToList(permissions);
     }
 
-    private static List<Permission> permissionsToList(Permissions perms) {
-        List<Permission> permissions = new ArrayList<>();
+    private static Set<Permission> permissionsToList(Permissions perms) {
+        Set<Permission> permissions = Sets.newHashSet();
         Enumeration<Permission> e = perms.elements();
         while (e.hasMoreElements()) {
             permissions.add(e.nextElement());
@@ -530,7 +558,7 @@ public final class DefaultPolicyBuilder {
         return permissions;
     }
 
-    private static Permissions listToPermissions(List<Permission> perms) {
+    private static Permissions listToPermissions(Set<Permission> perms) {
         Permissions permissions = new Permissions();
         for (Permission perm : perms) {
             permissions.add(perm);

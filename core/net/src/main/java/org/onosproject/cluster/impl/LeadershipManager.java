@@ -15,6 +15,8 @@
  */
 package org.onosproject.cluster.impl;
 
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.ADMIN;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Map;
@@ -100,16 +102,19 @@ public class LeadershipManager
 
     @Override
     public boolean transferLeadership(String topic, NodeId to) {
+        checkPermission(ADMIN);
         return store.moveLeadership(topic, to);
     }
 
     @Override
     public void unregister(NodeId nodeId) {
+        checkPermission(ADMIN);
         store.removeRegistration(nodeId);
     }
 
     @Override
     public boolean promoteToTopOfCandidateList(String topic, NodeId nodeId) {
+        checkPermission(ADMIN);
         return store.makeTopCandidate(topic, nodeId);
     }
 }

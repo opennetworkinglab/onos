@@ -55,6 +55,7 @@ import static org.onosproject.app.ApplicationEvent.Type.APP_DEACTIVATED;
 import static org.onosproject.app.ApplicationEvent.Type.APP_INSTALLED;
 import static org.onosproject.app.ApplicationEvent.Type.APP_UNINSTALLED;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.ADMIN;
 import static org.onosproject.security.AppPermission.Type.APP_READ;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -151,6 +152,7 @@ public class ApplicationManager
 
     @Override
     public Application install(InputStream appDescStream) {
+        checkPermission(ADMIN);
         checkNotNull(appDescStream, "Application archive stream cannot be null");
         Application app = store.create(appDescStream);
         SecurityUtil.register(app.id());
@@ -159,12 +161,14 @@ public class ApplicationManager
 
     @Override
     public void uninstall(ApplicationId appId) {
+        checkPermission(ADMIN);
         checkNotNull(appId, APP_ID_NULL);
         updateStoreAndWaitForNotificationHandling(appId, store::remove);
     }
 
     @Override
     public void activate(ApplicationId appId) {
+        checkPermission(ADMIN);
         checkNotNull(appId, APP_ID_NULL);
         if (!SecurityUtil.isAppSecured(appId)) {
             return;
@@ -174,12 +178,14 @@ public class ApplicationManager
 
     @Override
     public void deactivate(ApplicationId appId) {
+        checkPermission(ADMIN);
         checkNotNull(appId, APP_ID_NULL);
         updateStoreAndWaitForNotificationHandling(appId, store::deactivate);
     }
 
     @Override
     public void setPermissions(ApplicationId appId, Set<Permission> permissions) {
+        checkPermission(ADMIN);
         checkNotNull(appId, APP_ID_NULL);
         checkNotNull(permissions, "Permissions cannot be null");
         store.setPermissions(appId, permissions);

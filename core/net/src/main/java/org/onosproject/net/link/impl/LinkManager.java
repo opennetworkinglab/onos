@@ -182,6 +182,7 @@ public class LinkManager
 
     @Override
     public void removeLinks(ConnectPoint connectPoint) {
+        checkPermission(ADMIN);
         if (deviceService.getRole(connectPoint.deviceId()) != MastershipRole.MASTER) {
             return;
         }
@@ -190,6 +191,7 @@ public class LinkManager
 
     @Override
     public void removeLinks(DeviceId deviceId) {
+        checkPermission(ADMIN);
         if (deviceService.getRole(deviceId) != MastershipRole.MASTER) {
             return;
         }
@@ -198,6 +200,7 @@ public class LinkManager
 
     @Override
     public void removeLink(ConnectPoint src, ConnectPoint dst) {
+        checkPermission(ADMIN);
         post(store.removeLink(src, dst));
     }
 

@@ -85,11 +85,13 @@ public class DriverManager extends DefaultDriverProvider implements DriverAdminS
 
     @Override
     public Set<DriverProvider> getProviders() {
+        checkPermission(ADMIN);
         return ImmutableSet.copyOf(providers);
     }
 
     @Override
     public void registerProvider(DriverProvider provider) {
+        checkPermission(ADMIN);
         provider.getDrivers().forEach(driver -> {
             Driver d = addDriver(driver);
             driverByKey.put(key(driver.manufacturer(),
@@ -101,6 +103,7 @@ public class DriverManager extends DefaultDriverProvider implements DriverAdminS
 
     @Override
     public void unregisterProvider(DriverProvider provider) {
+        checkPermission(ADMIN);
         provider.getDrivers().forEach(driver -> {
             removeDriver(driver);
             driverByKey.remove(key(driver.manufacturer(),

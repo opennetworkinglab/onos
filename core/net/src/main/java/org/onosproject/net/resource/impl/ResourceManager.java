@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.ADMIN;
 import static org.onosproject.security.AppPermission.Type.RESOURCE_WRITE;
 import static org.onosproject.security.AppPermission.Type.RESOURCE_READ;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -109,6 +110,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
 
     @Override
     public boolean release(ResourceConsumer consumer) {
+        checkPermission(RESOURCE_WRITE);
         checkNotNull(consumer);
 
         Collection<ResourceAllocation> allocations = getResourceAllocations(consumer);
@@ -201,6 +203,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
 
     @Override
     public boolean register(List<Resource> resources) {
+        checkPermission(ADMIN);
         checkNotNull(resources);
 
         return store.register(resources);
@@ -208,6 +211,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
 
     @Override
     public boolean unregister(List<ResourceId> ids) {
+        checkPermission(ADMIN);
         checkNotNull(ids);
 
         return store.unregister(ids);

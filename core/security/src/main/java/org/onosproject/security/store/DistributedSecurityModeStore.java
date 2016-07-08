@@ -93,12 +93,10 @@ public class DistributedSecurityModeStore
             .register(KryoNamespaces.API)
             .register(SecurityModeState.class)
             .register(SecurityInfo.class)
-            .register(Permission.class)
             .build());
 
     private static final KryoNamespace.Builder VIOLATION_SERIALIZER = KryoNamespace.newBuilder()
-            .register(KryoNamespaces.API)
-            .register(Permission.class);
+            .register(KryoNamespaces.API);
 
     @Activate
     public void activate() {

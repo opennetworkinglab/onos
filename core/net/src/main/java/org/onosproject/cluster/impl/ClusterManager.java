@@ -58,6 +58,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.ADMIN;
 import static org.onosproject.security.AppPermission.Type.CLUSTER_READ;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -135,6 +136,7 @@ public class ClusterManager
 
     @Override
     public void markFullyStarted(boolean started) {
+        checkPermission(ADMIN);
         store.markFullyStarted(started);
     }
 
@@ -146,6 +148,7 @@ public class ClusterManager
 
     @Override
     public void formCluster(Set<ControllerNode> nodes) {
+        checkPermission(ADMIN);
         checkNotNull(nodes, "Nodes cannot be null");
         checkArgument(!nodes.isEmpty(), "Nodes cannot be empty");
 
@@ -163,6 +166,7 @@ public class ClusterManager
 
     @Override
     public ControllerNode addNode(NodeId nodeId, IpAddress ip, int tcpPort) {
+        checkPermission(ADMIN);
         checkNotNull(nodeId, INSTANCE_ID_NULL);
         checkNotNull(ip, "IP address cannot be null");
         checkArgument(tcpPort > 5000, "TCP port must be > 5000");
@@ -171,6 +175,7 @@ public class ClusterManager
 
     @Override
     public void removeNode(NodeId nodeId) {
+        checkPermission(ADMIN);
         checkNotNull(nodeId, INSTANCE_ID_NULL);
         store.removeNode(nodeId);
     }
