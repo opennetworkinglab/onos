@@ -29,7 +29,7 @@ public class NetconfBgpVrfAF {
 
     /**
      * NetconfBgpVrfAF constructor.
-     * 
+     *
      * @param afType address family Type
      * @param importRoutes import routes
      */
@@ -42,7 +42,7 @@ public class NetconfBgpVrfAF {
 
     /**
      * Returns afType.
-     * 
+     *
      * @return afType
      */
     public String afType() {
@@ -51,7 +51,7 @@ public class NetconfBgpVrfAF {
 
     /**
      * Returns importRoutes.
-     * 
+     *
      * @return importRoutes
      */
     public NetconfImportRoutes importRoutes() {

@@ -30,7 +30,7 @@ public class VpnInstance {
 
     /**
      * VrfEntity constructor.
-     * 
+     *
      * @param neId ne identifier
      * @param vrfList list of vrf
      * @param routeDistinguisher route distinguisher
@@ -47,7 +47,7 @@ public class VpnInstance {
 
     /**
      * Returns neId.
-     * 
+     *
      * @return neId
      */
     public String neId() {
@@ -56,7 +56,7 @@ public class VpnInstance {
 
     /**
      * Returns vrfList.
-     * 
+     *
      * @return vrfList
      */
     public List<VrfEntity> vrfList() {

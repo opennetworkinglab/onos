@@ -29,7 +29,7 @@ public class NetconfVpnTarget {
 
     /**
      * NetconfVpnTarget constructor.
-     * 
+     *
      * @param vrfRTType vrfRTType
      * @param vrfRTValue vrfRTValue
      */
@@ -42,7 +42,7 @@ public class NetconfVpnTarget {
 
     /**
      * Returns vrfRTType.
-     * 
+     *
      * @return vrfRTType
      */
     public String vrfRTType() {
@@ -51,7 +51,7 @@ public class NetconfVpnTarget {
 
     /**
      * Returns vrfRTValue.
-     * 
+     *
      * @return vrfRTValue
      */
     public String vrfRTValue() {

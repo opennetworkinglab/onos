@@ -29,7 +29,7 @@ public class NetconfBgpVrfAFs {
 
     /**
      * NetconfBgpVrfAFs constructor.
-     * 
+     *
      * @param bgpVrfAFs List of NetconfBgpVrfAF
      */
     public NetconfBgpVrfAFs(List<NetconfBgpVrfAF> bgpVrfAFs) {
@@ -39,7 +39,7 @@ public class NetconfBgpVrfAFs {
 
     /**
      * Returns bgpVrfAFs.
-     * 
+     *
      * @return bgpVrfAFs
      */
     public List<NetconfBgpVrfAF> bgpVrfAFs() {
