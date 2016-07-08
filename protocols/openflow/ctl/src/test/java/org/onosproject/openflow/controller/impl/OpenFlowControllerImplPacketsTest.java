@@ -52,7 +52,7 @@ public class OpenFlowControllerImplPacketsTest {
     OpenFlowSwitchListenerAdapter switchListener;
     TestPacketListener packetListener;
     TestExecutorService statsExecutorService;
-
+    TestExecutorService errorMsgExecutorService;
     /**
      * Mock packet listener that accumulates packets.
      */
@@ -109,8 +109,10 @@ public class OpenFlowControllerImplPacketsTest {
         controller.addPacketListener(100, packetListener);
 
         statsExecutorService = new TestExecutorService();
+        errorMsgExecutorService = new TestExecutorService();
 
         controller.executorMsgs = statsExecutorService;
+        controller.executorErrorMsgs = errorMsgExecutorService;
     }
 
     /**
@@ -147,7 +149,7 @@ public class OpenFlowControllerImplPacketsTest {
         agent.addConnectedSwitch(dpid1, switch1);
         OfMessageAdapter errorPacket = new OfMessageAdapter(OFType.ERROR);
         controller.processPacket(dpid1, errorPacket);
-        assertThat(statsExecutorService.submittedMessages(), hasSize(1));
-        assertThat(statsExecutorService.submittedMessages().get(0), is(errorPacket));
+        assertThat(errorMsgExecutorService.submittedMessages(), hasSize(1));
+        assertThat(errorMsgExecutorService.submittedMessages().get(0), is(errorPacket));
     }
 }
