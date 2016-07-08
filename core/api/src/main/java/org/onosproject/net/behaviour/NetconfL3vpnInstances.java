@@ -29,7 +29,7 @@ public class NetconfL3vpnInstances {
 
     /**
      * NetconfL3vpninstances constructor.
-     * 
+     *
      * @param l3vpninstances List of NetconfL3vpnInstance
      */
     public NetconfL3vpnInstances(List<NetconfL3vpnInstance> l3vpninstances) {
@@ -39,7 +39,7 @@ public class NetconfL3vpnInstances {
 
     /**
      * Returns l3vpninstances.
-     * 
+     *
      * @return l3vpninstances
      */
     public List<NetconfL3vpnInstance> l3vpninstances() {

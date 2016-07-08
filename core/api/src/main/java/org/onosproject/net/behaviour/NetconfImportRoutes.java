@@ -29,7 +29,7 @@ public class NetconfImportRoutes {
 
     /**
      * NetconfImportRoutes constructor.
-     * 
+     *
      * @param importRoutes List of NetconfImportRoute
      */
     public NetconfImportRoutes(List<NetconfImportRoute> importRoutes) {
@@ -39,7 +39,7 @@ public class NetconfImportRoutes {
 
     /**
      * Returns importRoutes.
-     * 
+     *
      * @return importRoutes
      */
     public List<NetconfImportRoute> importRoutes() {

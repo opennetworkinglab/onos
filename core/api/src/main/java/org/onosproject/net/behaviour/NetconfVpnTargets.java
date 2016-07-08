@@ -29,7 +29,7 @@ public class NetconfVpnTargets {
 
     /**
      * NetconfVpnTargets constructor.
-     * 
+     *
      * @param vpnTargets List of NetconfVpnTarget
      */
     public NetconfVpnTargets(List<NetconfVpnTarget> vpnTargets) {
@@ -39,7 +39,7 @@ public class NetconfVpnTargets {
 
     /**
      * Returns vpnTargets.
-     * 
+     *
      * @return vpnTargets
      */
     public List<NetconfVpnTarget> vpnTargets() {

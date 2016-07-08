@@ -30,7 +30,7 @@ public class NetconfBgpVrf {
 
     /**
      * NetconfBgpVrf constructor.
-     * 
+     *
      * @param operation operation
      * @param vrfName vrf name
      * @param bgpVrfAFs NetconfBgpVrfAFs
@@ -47,7 +47,7 @@ public class NetconfBgpVrf {
 
     /**
      * Returns operation.
-     * 
+     *
      * @return operation
      */
     public String operation() {
@@ -56,7 +56,7 @@ public class NetconfBgpVrf {
 
     /**
      * Returns vrfName.
-     * 
+     *
      * @return vrfName
      */
     public String vrfName() {
@@ -65,7 +65,7 @@ public class NetconfBgpVrf {
 
     /**
      * Returns bgpVrfAFs.
-     * 
+     *
      * @return bgpVrfAFs
      */
     public NetconfBgpVrfAFs bgpVrfAFs() {

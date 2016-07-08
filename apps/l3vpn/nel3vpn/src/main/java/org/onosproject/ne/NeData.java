@@ -30,7 +30,7 @@ public final class NeData {
 
     /**
      * NeData constructor.
-     * 
+     *
      * @param vpnInstanceList list of VpnInstance
      * @param vpnAcList list of VpnAc
      */
@@ -43,7 +43,7 @@ public final class NeData {
 
     /**
      * Returns vpnInstanceList.
-     * 
+     *
      * @return vpnInstanceList
      */
     public List<VpnInstance> vpnInstanceList() {
@@ -52,7 +52,7 @@ public final class NeData {
 
     /**
      * Returns vpnAcList.
-     * 
+     *
      * @return vpnAcList
      */
     public List<VpnAc> vpnAcList() {
