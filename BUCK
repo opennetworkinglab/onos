@@ -77,6 +77,7 @@ APPS = [
     # Drivers
     '//drivers/default:onos-drivers-default-oar',
     '//drivers/corsa:onos-drivers-corsa-oar',
+    '//drivers/ovsdb:onos-drivers-ovsdb-oar',
 
     # Providers
     '//providers/bgp:onos-providers-bgp-oar',
