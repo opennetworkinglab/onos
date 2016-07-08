@@ -26,6 +26,7 @@ import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangReferenceResolver;
 import org.onosproject.yangutils.datamodel.YangResolutionInfo;
+import org.onosproject.yangutils.linker.exceptions.LinkerException;
 import org.onosproject.yangutils.linker.impl.YangLinkerManager;
 import org.onosproject.yangutils.linker.impl.YangXpathLinker;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
@@ -229,7 +230,7 @@ public class YangXpathLinkerTest {
      *
      * @throws IOException when fails to do IO operations
      */
-    @Test
+    @Test(expected = LinkerException.class)
     public void processIntraFileLinkingInUsesSingleLevel() throws IOException {
 
         utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(INTRA_FILE_PATH + "IntraSingleUses/"));
@@ -259,7 +260,7 @@ public class YangXpathLinkerTest {
      *
      * @throws IOException when fails to do IO operations
      */
-    @Test
+    @Test(expected = LinkerException.class)
     public void processIntraFileLinkingInUsesMultiLevel() throws IOException {
 
         utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(INTRA_FILE_PATH + "IntraMultiUses/"));
@@ -568,7 +569,7 @@ public class YangXpathLinkerTest {
      *
      * @throws IOException when fails to do IO operations
      */
-    @Test
+    @Test(expected = LinkerException.class)
     public void processInterFileLinkingInUsesMultiLevel() throws IOException {
 
         utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(INTER_FILE_PATH + "InterMultiUses/"));

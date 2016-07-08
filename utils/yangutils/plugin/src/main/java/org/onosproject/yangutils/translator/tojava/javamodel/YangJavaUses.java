@@ -15,24 +15,14 @@
  */
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
-import java.io.IOException;
-import java.util.List;
-
-import org.onosproject.yangutils.datamodel.YangGrouping;
-import org.onosproject.yangutils.datamodel.YangLeaf;
-import org.onosproject.yangutils.datamodel.YangLeafList;
-import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangUses;
+import org.onosproject.yangutils.translator.exception.InvalidNodeForTranslatorException;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
-
-import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.getParentNodeInGenCode;
-import static org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles.addCurNodeAsAttributeInTargetTempFile;
-import static org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModelUtils.updatePackageInfo;
 
 /**
  * Represents uses information extended to support java code generation.
@@ -108,42 +98,7 @@ public class YangJavaUses
     @Override
     public void generateCodeEntry(YangPluginConfig yangPlugin)
             throws TranslatorException {
-        try {
-            updatePackageInfo(this, yangPlugin);
-
-            if (!(getParentNodeInGenCode(this) instanceof JavaCodeGeneratorInfo)) {
-                throw new TranslatorException("invalid container of uses");
-            }
-            JavaCodeGeneratorInfo javaCodeGeneratorInfo = (JavaCodeGeneratorInfo) getParentNodeInGenCode(this);
-
-            if (javaCodeGeneratorInfo instanceof YangGrouping) {
-                /*
-                 * Do nothing, since it will taken care in the groupings uses.
-                 */
-                return;
-            }
-
-            for (List<YangLeaf> leavesList : getUsesResolvedLeavesList()) {
-                // add the resolved leaves to the parent as an attribute
-                javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
-                        .getBeanTempFiles().addLeavesInfoToTempFiles(leavesList, yangPlugin);
-            }
-
-            for (List<YangLeafList> listOfLeafLists : getUsesResolvedListOfLeafList()) {
-                // add the resolved leaf-list to the parent as an attribute
-                javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
-                        .getBeanTempFiles().addLeafListInfoToTempFiles(listOfLeafLists, yangPlugin);
-            }
-
-            for (YangNode usesResolvedNode : getUsesResolvedNodeList()) {
-                // add the resolved nodes to the parent as an attribute
-                addCurNodeAsAttributeInTargetTempFile(usesResolvedNode, yangPlugin,
-                        getParentNodeInGenCode(this));
-            }
-
-        } catch (IOException e) {
-            throw new TranslatorException(e.getCause());
-        }
+        throw new InvalidNodeForTranslatorException();
     }
 
     @Override

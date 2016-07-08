@@ -17,14 +17,13 @@
 package org.onosproject.yangutils.plugin.manager;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.ListIterator;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.onosproject.yangutils.datamodel.YangContainer;
-import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangGrouping;
+import org.onosproject.yangutils.datamodel.YangInput;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
@@ -33,6 +32,7 @@ import org.onosproject.yangutils.datamodel.YangNodeType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.YangUses;
 import org.onosproject.yangutils.datamodel.utils.ResolvableStatus;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.linker.exceptions.LinkerException;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
@@ -70,8 +70,13 @@ public class IntraFileUsesLinkingTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeaf> leafIterator;
-        YangLeaf leafInfo;
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        // Check whether the information in the leaf is correct under module.
+        assertThat(leafInfo.getName(), is("hello"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
+        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
 
         // Check whether grouping is the sibling of module's child.
         assertThat((yangNode.getChild().getNextSibling() instanceof YangGrouping), is(true));
@@ -89,20 +94,9 @@ public class IntraFileUsesLinkingTest {
         assertThat((yangNode.getChild() instanceof YangUses), is(true));
         YangUses uses = (YangUses) yangNode.getChild();
 
-        // Check whether uses get resolved.
+        // Check whether uses get resolved
         assertThat(uses.getResolvableStatus(),
                 is(ResolvableStatus.RESOLVED));
-
-        ListIterator<List<YangLeaf>> leafIterator1 = uses.getUsesResolvedLeavesList().listIterator();
-        List<YangLeaf> leafInfo1 = leafIterator1.next();
-        ListIterator<YangLeaf> leafIterator2 = leafInfo1.listIterator();
-        YangLeaf leafInfo2 = leafIterator2.next();
-
-        // Check whether the information in the leaf is correct under module.
-        assertThat(leafInfo2.getName(), is("hello"));
-        assertThat(leafInfo2.getDataType().getDataTypeName(), is("string"));
-        assertThat(leafInfo2.getDataType().getDataType(), is(YangDataTypes.STRING));
-
     }
 
     /**
@@ -129,6 +123,27 @@ public class IntraFileUsesLinkingTest {
         ListIterator<YangLeaf> leafIterator;
         YangLeaf leafInfo;
 
+        ListIterator<YangLeaf> leafIterator1 = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo1 = leafIterator1.next();
+
+        // Check whether the information in the leaf is correct under module.
+        assertThat(leafInfo1.getName(), is("treat"));
+        assertThat(leafInfo1.getDataType().getDataTypeName(), is("string"));
+        assertThat(leafInfo1.getDataType().getDataType(), is(YangDataTypes.STRING));
+
+        YangContainer container = (YangContainer) yangNode.getChild().getNextSibling().getNextSibling();
+
+        // Check whether the container name is set correctly which is under module.
+        assertThat(container.getName(), is("test"));
+
+        leafIterator = container.getListOfLeaf().listIterator();
+        leafInfo = leafIterator.next();
+
+        // Check whether the information in the leaf is correct under container which is under module.
+        assertThat(leafInfo.getName(), is("leaf2"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
+        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
+
         // Check whether grouping is the sibling of module's child.
         assertThat((yangNode.getChild().getNextSibling() instanceof YangGrouping), is(true));
 
@@ -143,7 +158,7 @@ public class IntraFileUsesLinkingTest {
 
         // Check whether container is the child of grouping.
         assertThat((grouping.getChild() instanceof YangContainer), is(true));
-        YangContainer container = (YangContainer) grouping.getChild();
+        container = (YangContainer) grouping.getChild();
 
         // Check whether the container name is set correctly which is under grouping.
         assertThat(container.getName(), is("test"));
@@ -164,32 +179,6 @@ public class IntraFileUsesLinkingTest {
         assertThat(uses.getResolvableStatus(),
                 is(ResolvableStatus.RESOLVED));
 
-        ListIterator<List<YangLeaf>> leafIterator1 = uses.getUsesResolvedLeavesList().listIterator();
-        List<YangLeaf> leafInfo1 = leafIterator1.next();
-        ListIterator<YangLeaf> leafIterator2 = leafInfo1.listIterator();
-        YangLeaf leafInfo2 = leafIterator2.next();
-
-        // Check whether the information in the leaf is correct under module.
-        assertThat(leafInfo2.getName(), is("treat"));
-        assertThat(leafInfo2.getDataType().getDataTypeName(), is("string"));
-        assertThat(leafInfo2.getDataType().getDataType(), is(YangDataTypes.STRING));
-
-        ListIterator<YangNode> usesChildren = uses.getUsesResolvedNodeList().listIterator();
-        YangNode usesChild = usesChildren.next();
-        // Check whether container is the child of module.
-        assertThat((usesChild instanceof YangContainer), is(true));
-        container = (YangContainer) usesChild;
-
-        // Check whether the container name is set correctly which is under module.
-        assertThat(container.getName(), is("test"));
-
-        leafIterator = container.getListOfLeaf().listIterator();
-        leafInfo = leafIterator.next();
-
-        // Check whether the information in the leaf is correct under container which is under module.
-        assertThat(leafInfo.getName(), is("leaf2"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
-        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
     }
 
     /**
@@ -245,51 +234,15 @@ public class IntraFileUsesLinkingTest {
         YangUses uses = (YangUses) yangNode.getChild().getChild().getNextSibling().getChild();
 
         // Check whether uses get resolved.
-        assertThat(uses.getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
+        assertThat(uses.getResolvableStatus(), is(ResolvableStatus.RESOLVED));
 
-        ListIterator<YangNode> usesChildren = uses.getUsesResolvedNodeList().listIterator();
-        YangNode usesChild = usesChildren.next();
+        YangInput inputNode = ((YangInput) yangNode.getChild().getChild().getNextSibling());
+        assertThat((inputNode.getChild() instanceof YangUses), is(true));
 
-        // Check whether list is the sibling of uses which has been deep copied from grouping.
-        assertThat((usesChild instanceof YangList), is(true));
-
-        YangList yangList = (YangList) usesChild;
-
-        // Check whether the list name is set correctly.
+        YangList yangList = ((YangList) inputNode.getChild().getNextSibling());
         assertThat(yangList.getName(), is("valid"));
 
         leafIterator = yangList.getListOfLeaf().listIterator();
-        leafInfo = leafIterator.next();
-
-        // Check whether the information in the leaf is correct under list which is deep copied.
-        assertThat(leafInfo.getName(), is("invalid-interval"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("uint16"));
-        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.UINT16));
-        assertThat(leafInfo.getUnits(), is("\"seconds\""));
-        assertThat(leafInfo.getReference(), is("\"RFC 6020\""));
-
-        // Check whether uses is output's child.
-        assertThat((yangNode.getChild().getChild().getNextSibling().getNextSibling().getChild() instanceof YangUses),
-                is(true));
-        YangUses usesInOuput = (YangUses) yangNode.getChild().getChild().getNextSibling().getNextSibling().getChild();
-
-        // Check whether uses get resolved.
-        assertThat(usesInOuput.getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
-
-        ListIterator<YangNode> usesInOuputChildren = usesInOuput.getUsesResolvedNodeList().listIterator();
-        YangNode usesInOuputChild = usesInOuputChildren.next();
-
-        // Check whether list is the sibling of uses which has been deep copied from grouping.
-        assertThat((usesInOuputChild instanceof YangList), is(true));
-
-        YangList yangListInOutput = (YangList) usesInOuputChild;
-
-        // Check whether the list name is set correctly.
-        assertThat(yangListInOutput.getName(), is("valid"));
-
-        leafIterator = yangListInOutput.getListOfLeaf().listIterator();
         leafInfo = leafIterator.next();
 
         // Check whether the information in the leaf is correct under list which is deep copied.
@@ -350,18 +303,16 @@ public class IntraFileUsesLinkingTest {
         YangUses firstUses = (YangUses) grouping.getChild();
 
         // Check whether uses get resolved.
-        assertThat(firstUses.getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
+        assertThat(firstUses.getResolvableStatus(), is(ResolvableStatus.RESOLVED));
 
-        ListIterator<YangNode> firstUsesChildren = firstUses.getUsesResolvedNodeList().listIterator();
-        YangNode firstUsesChild = firstUsesChildren.next();
+        // Validate first uses child is cloned properly
+        assertThat((firstUses.getNextSibling().getNextSibling()
+                .getNextSibling().getNextSibling() instanceof YangList), is(true));
+        YangList firstUsesChild = ((YangList) firstUses.getNextSibling().getNextSibling().getNextSibling()
+                .getNextSibling());
+        assertThat(firstUsesChild.getName(), is("valid"));
 
-        // Check whether list is the sibling of uses.
-        assertThat((firstUsesChild instanceof YangList), is(true));
-        YangList yangList = (YangList) firstUsesChild;
-        assertThat(yangList.getName(), is("valid"));
-
-        leafIterator = yangList.getListOfLeaf().listIterator();
+        leafIterator = firstUsesChild.getListOfLeaf().listIterator();
         leafInfo = leafIterator.next();
 
         // Check whether the information in the leaf is correct under list which has been deep copied from grouping.
@@ -371,134 +322,45 @@ public class IntraFileUsesLinkingTest {
         assertThat(leafInfo.getUnits(), is("\"seconds\""));
         assertThat(leafInfo.getReference(), is("\"RFC 6020\""));
 
-        // Check whether container is the sibling of uses.
+        //validate uses second
         assertThat((firstUses.getNextSibling() instanceof YangContainer), is(true));
-        YangContainer yangContainer = (YangContainer) firstUses.getNextSibling();
+        YangContainer container = (YangContainer) firstUses.getNextSibling();
+        assertThat(container.getName(), is("design"));
 
-        // Check whether the container name is set correctly.
-        assertThat(yangContainer.getName(), is("design"));
+        assertThat((container.getChild() instanceof YangUses), is(true));
+        assertThat((container.getListOfLeaf().iterator().next().getName()), is("ink"));
 
-        // Check whether uses is design-container's child.
-        assertThat((yangContainer.getChild() instanceof YangUses), is(true));
-        YangUses secondUses = (YangUses) yangContainer.getChild();
+        //validate uses third
+        assertThat((container.getChild().getNextSibling() instanceof YangContainer), is(true));
+        YangContainer container2 = ((YangContainer) container.getChild().getNextSibling());
+        assertThat(container2.getName(), is("correct"));
+        assertThat((container2.getChild() instanceof YangUses), is(true));
+        assertThat((container2.getChild().getNextSibling() instanceof YangContainer), is(true));
+        YangContainer thirdUsesChild = ((YangContainer) container2.getChild().getNextSibling());
+        assertThat(thirdUsesChild.getListOfLeaf().iterator().next().getName(), is("zip-code"));
 
-        // Check whether uses get resolved.
-        assertThat(secondUses.getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
+        //validate fourth uses
+        assertThat((firstUses.getNextSibling().getNextSibling() instanceof YangUses), is(true));
+        YangUses fourthUses = ((YangUses) firstUses.getNextSibling().getNextSibling());
+        assertThat((fourthUses.getNextSibling().getNextSibling().getNextSibling() instanceof YangTypeDef),
+                is(true));
+        assertThat(fourthUses.getNextSibling().getNextSibling().getNextSibling().getName(), is("my-type"));
 
-        ListIterator<List<YangLeaf>> leafIterator1 = secondUses.getUsesResolvedLeavesList().listIterator();
-        List<YangLeaf> leafInfo1 = leafIterator1.next();
-        ListIterator<YangLeaf> leafIterator2 = leafInfo1.listIterator();
-        YangLeaf leafInfo2 = leafIterator2.next();
+        //validate fifth uses
+        assertThat((firstUses.getNextSibling().getNextSibling().getNextSibling() instanceof YangUses),
+                is(true));
 
-        // Check whether the information in the leaf is correct under design-container.
-        assertThat(leafInfo2.getName(), is("ink"));
-        assertThat(leafInfo2.getDataType().getDataTypeName(), is("int32"));
-        assertThat(leafInfo2.getDataType().getDataType(), is(YangDataTypes.INT32));
-
-        // Check whether container is the sibling of uses.
-        assertThat((secondUses.getNextSibling() instanceof YangContainer), is(true));
-        YangContainer yangContainer2 = (YangContainer) secondUses.getNextSibling();
-        assertThat(yangContainer2.getName(), is("correct"));
-
-        leafIterator = yangContainer2.getListOfLeaf().listIterator();
-        leafInfo = leafIterator.next();
-
-        // Check whether the information in the leaf is correct under correct-container.
-        assertThat(leafInfo.getName(), is("newone"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
-        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
-
-        // Check whether uses is correct container's child.
-        assertThat((yangContainer2.getChild() instanceof YangUses), is(true));
-        YangUses thirdUses = (YangUses) yangContainer2.getChild();
-
-        // Check whether uses get resolved.
-        assertThat(thirdUses.getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
-
-        ListIterator<YangNode> thirdUsesChildren = thirdUses.getUsesResolvedNodeList().listIterator();
-        YangNode thirdUsesChild = thirdUsesChildren.next();
-
-        // Check whether container is the child of uses.
-        assertThat((thirdUsesChild instanceof YangContainer), is(true));
-
-        YangContainer yangContainer3 = (YangContainer) thirdUsesChild;
-        assertThat(yangContainer3.getName(), is("value"));
-
-        leafIterator = yangContainer3.getListOfLeaf().listIterator();
-        leafInfo = leafIterator.next();
-
-        // Check whether the information in the leaf is correct under container
-        // which has been deep copied from grouping.
-        assertThat(leafInfo.getName(), is("zip-code"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
-        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
-
-
-        // Check whether uses is the sibling of container-design.
-        assertThat((yangContainer.getNextSibling() instanceof YangUses), is(true));
-        YangUses fourthUses = (YangUses) yangContainer.getNextSibling();
-        assertThat(fourthUses.getName(), is("fourth"));
-        // Check whether uses get resolved.
-        assertThat(fourthUses.getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
-
-        ListIterator<List<YangLeaf>> fourthUsesChildren = fourthUses.getUsesResolvedLeavesList().listIterator();
-        List<YangLeaf> fourthUsesChild = fourthUsesChildren.next();
-        ListIterator<YangLeaf> fourthUsesChildren1 = fourthUsesChild.listIterator();
-        YangLeaf fourthUsesChild1 = fourthUsesChildren1.next();
-
-        // Check whether the information in the leaf is correct under correct-container.
-        assertThat(fourthUsesChild1.getName(), is("correct"));
-        assertThat(fourthUsesChild1.getDataType().getDataTypeName(), is("my-type"));
-        assertThat(fourthUsesChild1.getDataType().getDataType(), is(YangDataTypes.DERIVED));
-
-        // Check whether uses is the sibling of previous uses.
-        assertThat((fourthUses.getNextSibling() instanceof YangUses), is(true));
-        YangUses fifthUses = (YangUses) fourthUses.getNextSibling();
-        assertThat(fifthUses.getName(), is("fifth"));
-
-        // Check whether uses get resolved.
-        assertThat(fifthUses.getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
-
-        ListIterator<List<YangLeaf>> fifthUsesChildren = fifthUses.getUsesResolvedLeavesList().listIterator();
-        List<YangLeaf> fifthUsesChild = fifthUsesChildren.next();
-        ListIterator<YangLeaf> fifthUsesChildren1 = fifthUsesChild.listIterator();
-        YangLeaf fifthUsesChild1 = fifthUsesChildren1.next();
-
-        //Check whether the information in the leaf is correct under correct-container.
-        assertThat(fifthUsesChild1.getName(), is("abc"));
-        assertThat(fifthUsesChild1.getDataType().getDataTypeName(), is("string"));
-        assertThat(fifthUsesChild1.getDataType().getDataType(), is(YangDataTypes.STRING));
-
-        //Check whether uses is endpoint-grouping's sibling.
-        assertThat((grouping.getNextSibling() instanceof YangUses), is(true));
-        YangUses endpointUses = (YangUses) grouping.getNextSibling();
-
-        // Check whether uses get resolved.
-        assertThat(endpointUses.getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
-        assertThat(endpointUses.getName(), is("endpoint"));
-
-        ListIterator<YangNode> endpointUsesUsesChildren = endpointUses.getUsesResolvedNodeList().listIterator();
-        YangNode endpointUsesUsesChild = endpointUsesUsesChildren.next();
-
-        // Check whether list is the sibling of uses.
-        assertThat((endpointUsesUsesChild instanceof YangList), is(true));
-        YangList yangList1 = (YangList) firstUsesChild;
-        assertThat(yangList1.getName(), is("valid"));
-
-        leafIterator = yangList1.getListOfLeaf().listIterator();
-        leafInfo = leafIterator.next();
-
-        // Check whether the information in the leaf is correct under list which has been deep copied from grouping.
-        assertThat(leafInfo.getName(), is("invalid-interval"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("uint16"));
-        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.UINT16));
-        assertThat(leafInfo.getUnits(), is("\"seconds\""));
-        assertThat(leafInfo.getReference(), is("\"RFC 6020\""));
+        //validate end point uses
+        assertThat(grouping.getNextSibling() instanceof YangUses, is(true));
+        assertThat(grouping.getNextSibling().getNextSibling().getNextSibling().getNextSibling()
+                        .getNextSibling().getNextSibling().getNextSibling().getNextSibling() instanceof YangContainer,
+                is(true));
+        container = (YangContainer) grouping.getNextSibling().getNextSibling().getNextSibling().getNextSibling()
+                .getNextSibling().getNextSibling().getNextSibling().getNextSibling();
+        assertThat(container.getName(), is("design"));
+        container2 = (YangContainer) container.getChild().getNextSibling();
+        assertThat(container2.getName(), is("correct"));
+        assertThat(container2.getChild().getNextSibling().getName(), is("value"));
     }
 
     /**

@@ -25,6 +25,7 @@ import org.onosproject.yangutils.datamodel.utils.YangConstructType;
 
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.getParentNodeInGenCode;
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.updateClonedLeavesUnionEnumRef;
 
 /*-
  * Reference RFC 6020.
@@ -329,42 +330,45 @@ public class YangUses
         }
 
         YangLeavesHolder usesParentLeavesHolder = (YangLeavesHolder) usesParentNode;
-        if (referredGrouping.getListOfLeaf() != null
-                && referredGrouping.getListOfLeaf().size() != 0) {
-            addLeavesOfGrouping(
-                    cloneLeavesList(referredGrouping.getListOfLeaf(),
-                            usesParentLeavesHolder));
-        }
+        if (referredGrouping.getListOfLeaf() != null) {
+            for (YangLeaf leaf : referredGrouping.getListOfLeaf()) {
+                YangLeaf clonedLeaf = null;
+                try {
+                    ((CollisionDetector) usesParentLeavesHolder).detectCollidingChild(leaf.getName(),
+                            YangConstructType.LEAF_DATA);
+                    clonedLeaf = leaf.clone();
 
-        if (referredGrouping.getListOfLeafList() != null
-                && referredGrouping.getListOfLeafList().size() != 0) {
-            addListOfLeafListOfGrouping(
-                    cloneListOfLeafList(referredGrouping.getListOfLeafList(),
-                            usesParentLeavesHolder));
-        }
+                } catch (CloneNotSupportedException | DataModelException e) {
+                    throw new DataModelException(e.getMessage());
+                }
 
-        YangNode childInGrouping = referredGrouping.getChild();
-
-        while (childInGrouping != null) {
-            if (childInGrouping instanceof YangEnumeration
-                    || childInGrouping instanceof YangUnion
-                    || childInGrouping instanceof YangTypeDef) {
-
-                /*
-                 * No need to copy the leaves, union / enum class, as these will
-                 * be generated in the scope of grouping
-                 */
-                childInGrouping = childInGrouping.getNextSibling();
-                continue;
-            } else if (childInGrouping instanceof YangUses) {
-                addResolvedUsesInfoOfGrouping((YangUses) childInGrouping,
-                        usesParentLeavesHolder);
-            } else {
-                addNodeOfGrouping(childInGrouping);
+                clonedLeaf.setContainedIn(usesParentLeavesHolder);
+                usesParentLeavesHolder.addLeaf(clonedLeaf);
             }
-
-            childInGrouping = childInGrouping.getNextSibling();
         }
+        if (referredGrouping.getListOfLeafList() != null) {
+            for (YangLeafList leafList : referredGrouping.getListOfLeafList()) {
+                YangLeafList clonedLeafList = null;
+                try {
+                    ((CollisionDetector) usesParentLeavesHolder).detectCollidingChild(leafList.getName(),
+                            YangConstructType.LEAF_LIST_DATA);
+                    clonedLeafList = leafList.clone();
+
+                } catch (CloneNotSupportedException | DataModelException e) {
+                    throw new DataModelException(e.getMessage());
+                }
+
+                clonedLeafList.setContainedIn(usesParentLeavesHolder);
+                usesParentLeavesHolder.addLeafList(clonedLeafList);
+            }
+        }
+
+        try {
+            YangNode.cloneSubTree(referredGrouping, usesParentNode);
+        } catch (DataModelException e) {
+            throw new DataModelException(e.getMessage());
+        }
+        updateClonedLeavesUnionEnumRef(usesParentLeavesHolder);
     }
 
     /**

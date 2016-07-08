@@ -15,17 +15,14 @@
  */
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
-import java.io.IOException;
-
 import org.onosproject.yangutils.datamodel.YangGrouping;
+import org.onosproject.yangutils.translator.exception.InvalidNodeForTranslatorException;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
-
-import static org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModelUtils.updatePackageInfo;
 
 /**
  * Represents grouping information extended to support java code generation.
@@ -102,11 +99,7 @@ public class YangJavaGrouping
     @Override
     public void generateCodeEntry(YangPluginConfig yangPlugin)
             throws TranslatorException {
-        try {
-            updatePackageInfo(this, yangPlugin);
-        } catch (IOException e) {
-            throw new TranslatorException(e.getCause());
-        }
+        throw new InvalidNodeForTranslatorException();
     }
 
     @Override
