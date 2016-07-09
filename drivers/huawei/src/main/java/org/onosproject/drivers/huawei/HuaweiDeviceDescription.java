@@ -22,6 +22,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
@@ -63,7 +64,7 @@ public class HuaweiDeviceDescription extends AbstractHandlerBehaviour
         NetconfSession session = controller.getDevicesMap().get(handler().data().deviceId()).getSession();
         String reply;
         try {
-            reply = session.get(requestBuilder());
+            reply = session.get(interfaceRequestBuilder());
         } catch (IOException e) {
             throw new RuntimeException(new NetconfException("Failed to retrieve configuration.", e));
         }
@@ -97,7 +98,7 @@ public class HuaweiDeviceDescription extends AbstractHandlerBehaviour
         return rpc.toString();
     }
 
-    private String sysrequestBuilder() {
+    private String interfaceRequestBuilder() {
         StringBuilder rpc = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         //Message ID is injected later.
         rpc.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">");
@@ -106,8 +107,17 @@ public class HuaweiDeviceDescription extends AbstractHandlerBehaviour
         rpc.append("<running />");
         rpc.append("</source>");
         rpc.append("<filter type=\"subtree\">");
-        rpc.append("<system xmlnsd=\"http://www.huawei.com/netconf/vrp\"");
-        rpc.append(" content-version=\"1.0\" format-version=\"1.0\" />");
+        rpc.append("<ifm xmlns=\"http://www.huawei.com/netconf/vrp\"");
+        rpc.append(" content-version=\"1.0\" format-version=\"1.0\">");
+        rpc.append("<interfaces>");
+        rpc.append("<interface>");
+        rpc.append("<ifName/>");
+        rpc.append("<ifNumber/>");
+        rpc.append("<ifPhyType/>");
+        rpc.append("<ifAdminStatus/>");
+        rpc.append("</interface>");
+        rpc.append("</interfaces>");
+        rpc.append("</ifm>");
         rpc.append("</filter>");
         rpc.append("</get-config>");
         rpc.append("</rpc>");
@@ -124,7 +134,8 @@ public class HuaweiDeviceDescription extends AbstractHandlerBehaviour
         AtomicInteger counter = new AtomicInteger(1);
         List<PortDescription> portDescriptions = Lists.newArrayList();
         List<HierarchicalConfiguration> subtrees =
-                cfg.configurationsAt("data.lldp.lldpInterfaces.lldpInterface");
+//                cfg.configurationsAt("data.lldp.lldpInterfaces.lldpInterface");
+                cfg.configurationsAt("data.ifm.interfaces.interface");
         for (HierarchicalConfiguration portConfig : subtrees) {
                 portDescriptions.add(parseToPort(portConfig, counter.getAndIncrement()));
         }
@@ -133,9 +144,10 @@ public class HuaweiDeviceDescription extends AbstractHandlerBehaviour
 
     private static PortDescription parseToPort(HierarchicalConfiguration cfg, long count) {
         PortNumber portNumber = PortNumber.portNumber(count);
-        boolean enabled = cfg.getString("lldpAdminStatus").equals("Enable");
+        boolean enabled = cfg.getString("ifAdminStatus").equals("up");
         DefaultAnnotations annotations = DefaultAnnotations.builder().
                 set(AnnotationKeys.PORT_NAME, cfg.getString("ifName")).
+                set("portid", UUID.randomUUID().toString()).
                 build();
         return new DefaultPortDescription(portNumber, enabled, annotations);
     }
