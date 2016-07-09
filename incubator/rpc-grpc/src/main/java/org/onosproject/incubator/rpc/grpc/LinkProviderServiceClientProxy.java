@@ -38,7 +38,7 @@ import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.api.client.repackaged.com.google.common.annotations.Beta;
+import com.google.common.annotations.Beta;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import io.grpc.Channel;

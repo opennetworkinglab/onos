@@ -39,8 +39,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.util.Tools;
-import org.onosproject.grpc.net.device.DeviceProviderRegistryRpcGrpc;
-import org.onosproject.grpc.net.device.DeviceProviderRegistryRpcGrpc.DeviceProviderRegistryRpc;
+import org.onosproject.grpc.net.device.DeviceProviderRegistryRpcGrpc.DeviceProviderRegistryRpcImplBase;
 import org.onosproject.grpc.net.device.DeviceService.DeviceConnected;
 import org.onosproject.grpc.net.device.DeviceService.DeviceDisconnected;
 import org.onosproject.grpc.net.device.DeviceService.DeviceProviderMsg;
@@ -51,7 +50,6 @@ import org.onosproject.grpc.net.device.DeviceService.ReceivedRoleReply;
 import org.onosproject.grpc.net.device.DeviceService.RegisterProvider;
 import org.onosproject.grpc.net.device.DeviceService.UpdatePortStatistics;
 import org.onosproject.grpc.net.device.DeviceService.UpdatePorts;
-import org.onosproject.grpc.net.link.LinkProviderServiceRpcGrpc;
 import org.onosproject.incubator.protobuf.net.ProtobufUtils;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
@@ -123,8 +121,8 @@ public class GrpcRemoteServiceServer {
         log.debug("Server starting on {}", listenPort);
         try {
             server  = NettyServerBuilder.forPort(listenPort)
-                    .addService(DeviceProviderRegistryRpcGrpc.bindService(new DeviceProviderRegistryServerProxy()))
-                    .addService(LinkProviderServiceRpcGrpc.bindService(new LinkProviderServiceServerProxy(this)))
+                    .addService(new DeviceProviderRegistryServerProxy())
+                    .addService(new LinkProviderServiceServerProxy(this))
                     .build().start();
         } catch (IOException e) {
             log.error("Failed to start gRPC server", e);
@@ -202,7 +200,7 @@ public class GrpcRemoteServiceServer {
     /**
      * Relays DeviceProviderRegistry calls from RPC client.
      */
-    class DeviceProviderRegistryServerProxy implements DeviceProviderRegistryRpc {
+    class DeviceProviderRegistryServerProxy extends DeviceProviderRegistryRpcImplBase {
 
         @Override
         public StreamObserver<DeviceProviderServiceMsg> register(StreamObserver<DeviceProviderMsg> toDeviceProvider) {

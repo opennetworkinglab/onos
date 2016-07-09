@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.grpc.ManagedChannel;
+import io.grpc.internal.DnsNameResolverProvider;
 import io.grpc.netty.NegotiationType;
 import io.grpc.netty.NettyChannelBuilder;
 
@@ -61,7 +62,6 @@ public class GrpcRemoteServiceProvider implements RemoteServiceContextProvider {
     private final Map<URI, ManagedChannel> channels = new ConcurrentHashMap<>();
 
     private RemoteServiceContextProviderService providerService;
-
 
     @Activate
     protected void activate() {
@@ -116,6 +116,10 @@ public class GrpcRemoteServiceProvider implements RemoteServiceContextProvider {
         }
         return NettyChannelBuilder.forAddress(uri.getHost(), port)
                 .negotiationType(NegotiationType.PLAINTEXT)
+                // TODO Not ideal fix, gRPC discovers name resolvers
+                // in the class path, but OSGi was preventing it.
+                // Manually specifying the default dns resolver for now.
+                .nameResolverFactory(new DnsNameResolverProvider())
                 .build();
     }
 

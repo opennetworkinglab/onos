@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
 import org.onosproject.grpc.net.Link.ConnectPoint.ElementIdCase;
 import org.onosproject.grpc.net.Link.LinkType;
-import org.onosproject.grpc.net.link.LinkProviderServiceRpcGrpc.LinkProviderServiceRpc;
+import org.onosproject.grpc.net.link.LinkProviderServiceRpcGrpc.LinkProviderServiceRpcImplBase;
 import org.onosproject.grpc.net.link.LinkService.LinkDetectedMsg;
 import org.onosproject.grpc.net.link.LinkService.LinkVanishedMsg;
 import org.onosproject.grpc.net.link.LinkService.Void;
@@ -44,10 +44,10 @@ import org.onosproject.net.link.LinkProviderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.api.client.repackaged.com.google.common.annotations.Beta;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalNotification;
+import com.google.common.annotations.Beta;
 
 import io.grpc.stub.StreamObserver;
 
@@ -57,7 +57,7 @@ import io.grpc.stub.StreamObserver;
  */
 @Beta
 final class LinkProviderServiceServerProxy
-        implements LinkProviderServiceRpc {
+        extends LinkProviderServiceRpcImplBase {
 
     /**
      * Silence time in seconds, until link gets treated as vanished.

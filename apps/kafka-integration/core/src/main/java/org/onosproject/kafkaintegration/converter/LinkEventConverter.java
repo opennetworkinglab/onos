@@ -25,7 +25,7 @@ import org.onosproject.net.link.LinkEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.protobuf.GeneratedMessage;
+import com.google.protobuf.GeneratedMessageV3;
 
 /**
  * Converts for ONOS Link event message to protobuf format.
@@ -35,7 +35,7 @@ public class LinkEventConverter implements EventConverter {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Override
-    public GeneratedMessage convertToProtoMessage(Event<?, ?> event) {
+    public GeneratedMessageV3 convertToProtoMessage(Event<?, ?> event) {
 
         LinkEvent linkEvent = (LinkEvent) event;
 

@@ -16,7 +16,8 @@
 
 package org.onosproject.kafkaintegration.api;
 
-import com.google.protobuf.GeneratedMessage;
+import com.google.protobuf.GeneratedMessageV3;
+
 import org.onosproject.kafkaintegration.api.dto.OnosEvent.Type;
 
 /**
@@ -30,5 +31,6 @@ public interface KafkaPublisherService {
      * @param eventType the ONOS eventtype
      * @param message generated Protocol buffer message from ONOS event data
      */
-    void publish(Type eventType, GeneratedMessage message);
+    // FIXME reconsider message type, something similar to "OnosEvent"?
+    void publish(Type eventType, GeneratedMessageV3 message);
 }

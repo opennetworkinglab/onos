@@ -14,7 +14,8 @@
  */
 package org.onosproject.kafkaintegration.converter;
 
-import com.google.protobuf.GeneratedMessage;
+import com.google.protobuf.GeneratedMessageV3;
+
 import org.onosproject.event.Event;
 import org.onosproject.grpc.net.Device.DeviceCore;
 import org.onosproject.grpc.net.Device.DeviceType;
@@ -34,7 +35,7 @@ public class DeviceEventConverter implements EventConverter {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Override
-    public GeneratedMessage convertToProtoMessage(Event<?, ?> event) {
+    public GeneratedMessageV3 convertToProtoMessage(Event<?, ?> event) {
 
         DeviceEvent deviceEvent = (DeviceEvent) event;
 
