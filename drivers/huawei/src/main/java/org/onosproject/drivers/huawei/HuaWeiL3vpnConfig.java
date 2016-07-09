@@ -36,9 +36,9 @@ import org.onosproject.netconf.NetconfSession;
 public class HuaWeiL3vpnConfig extends AbstractHandlerBehaviour
         implements L3vpnConfig {
 
-    private final String RPC_XMLNS = "urn:ietf:params:xml:ns:netconf:base:1.0";
-    private final String CONFIG_XMLNS = "http://www.huawei.com/netconf/vrp";
-    private final String ERROR_OPERATION = "rollback-on-error";
+    private static final String RPC_XMLNS = "urn:ietf:params:xml:ns:netconf:base:1.0";
+    private static final String CONFIG_XMLNS = "http://www.huawei.com/netconf/vrp";
+    private static final String ERROR_OPERATION = "rollback-on-error";
 
     @Override
     public boolean createVrf(DeviceId deviceId, NetconfL3vpn netconfL3vpn) {

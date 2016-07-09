@@ -29,7 +29,7 @@ public class NetconfImportRoute {
 
     /**
      * NetconfImportRoute constructor.
-     * 
+     *
      * @param operation operation
      * @param importProtocol import protocol
      */
@@ -42,7 +42,7 @@ public class NetconfImportRoute {
 
     /**
      * Returns operation.
-     * 
+     *
      * @return operation
      */
     public String operation() {
@@ -51,7 +51,7 @@ public class NetconfImportRoute {
 
     /**
      * Returns importProtocol.
-     * 
+     *
      * @return importProtocol
      */
     public String importProtocol() {

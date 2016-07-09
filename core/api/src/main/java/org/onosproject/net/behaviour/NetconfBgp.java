@@ -30,7 +30,7 @@ public class NetconfBgp {
 
     /**
      * NetconfBgp constructor.
-     * 
+     *
      * @param contentVersion content version
      * @param formatVersion format version
      * @param bgpcomm NetconfBgpcomm
@@ -47,7 +47,7 @@ public class NetconfBgp {
 
     /**
      * Returns contentVersion.
-     * 
+     *
      * @return contentVersion
      */
     public String contentVersion() {
@@ -56,7 +56,7 @@ public class NetconfBgp {
 
     /**
      * Returns formatVersion.
-     * 
+     *
      * @return formatVersion
      */
     public String formatVersion() {
@@ -65,7 +65,7 @@ public class NetconfBgp {
 
     /**
      * Returns bgpcomm.
-     * 
+     *
      * @return bgpcomm
      */
     public NetconfBgpcomm bgpcomm() {

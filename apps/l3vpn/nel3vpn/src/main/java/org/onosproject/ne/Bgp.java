@@ -29,7 +29,7 @@ public class Bgp {
 
     /**
      * Bgp constructor.
-     * 
+     *
      * @param protocolType the bgp protocol type
      */
     public Bgp(List<BgpImportProtocol> importProtocols) {
@@ -39,7 +39,7 @@ public class Bgp {
 
     /**
      * Returns list of importProtocol.
-     * 
+     *
      * @return importProtocols
      */
     public List<BgpImportProtocol> importProtocols() {

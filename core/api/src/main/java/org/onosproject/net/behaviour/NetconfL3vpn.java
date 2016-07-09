@@ -30,7 +30,7 @@ public final class NetconfL3vpn {
 
     /**
      * NetconfL3vpn constructor.
-     * 
+     *
      * @param contentVersion content version
      * @param formatVersion format version
      * @param l3vpnComm NetconfL3vpnComm
@@ -47,7 +47,7 @@ public final class NetconfL3vpn {
 
     /**
      * Returns contentVersion.
-     * 
+     *
      * @return contentVersion
      */
     public String contentVersion() {
@@ -56,7 +56,7 @@ public final class NetconfL3vpn {
 
     /**
      * Returns formatVersion.
-     * 
+     *
      * @return formatVersion
      */
     public String formatVersion() {
@@ -65,7 +65,7 @@ public final class NetconfL3vpn {
 
     /**
      * Returns l3vpnComm.
-     * 
+     *
      * @return l3vpnComm
      */
     public NetconfL3vpnComm l3vpnComm() {

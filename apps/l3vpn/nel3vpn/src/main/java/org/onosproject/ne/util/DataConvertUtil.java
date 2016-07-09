@@ -86,7 +86,7 @@ public final class DataConvertUtil {
      * @return L3VpnInstances
      */
     public static L3VpnInstances convertToL3vpnInstances(Map<VrfEntity, HashSet<VpnAc>> vpnAcForVrfMap) {
-        L3VpnInstancesBuilder L3VpnInstancesBuilder = new L3VpnInstancesBuilder();
+        L3VpnInstancesBuilder l3VpnInstancesBuilder = new L3VpnInstancesBuilder();
         List<L3VpnInstance> l3VpnInstanceList = new ArrayList<L3VpnInstance>();
         for (Map.Entry<VrfEntity, HashSet<VpnAc>> entry : vpnAcForVrfMap
                 .entrySet()) {
@@ -100,8 +100,8 @@ public final class DataConvertUtil {
             l3vpnInstanceBuilder.l3VpnIfs(l3VpnIfs);
             l3VpnInstanceList.add(l3vpnInstanceBuilder.build());
         }
-        L3VpnInstancesBuilder.l3VpnInstance(l3VpnInstanceList);
-        return L3VpnInstancesBuilder.build();
+        l3VpnInstancesBuilder.l3VpnInstance(l3VpnInstanceList);
+        return l3VpnInstancesBuilder.build();
     }
 
     /**

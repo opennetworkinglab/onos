@@ -29,7 +29,7 @@ public class NetconfVpnInstAFs {
 
     /**
      * NetconfVpnInstAFs constructor.
-     * 
+     *
      * @param vpnInstAFs List of NetconfVpnInstAF
      */
     public NetconfVpnInstAFs(List<NetconfVpnInstAF> vpnInstAFs) {
@@ -39,7 +39,7 @@ public class NetconfVpnInstAFs {
 
     /**
      * Returns vpnInstAFs.
-     * 
+     *
      * @return vpnInstAFs
      */
     public List<NetconfVpnInstAF> vpnInstAFs() {

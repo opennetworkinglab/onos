@@ -39,6 +39,16 @@
 			<artifactId>onos-app-l3vpn-type</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.onosproject</groupId>
+			<artifactId>onos-app-l3vpn-ne</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-incubator-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 	</dependencies>
 	<build>
 		<plugins>
