@@ -142,6 +142,7 @@ APPS = [
     '//apps/openstacknode:onos-apps-openstacknode-oar',
     '//apps/cpman/app:onos-apps-cpman-app-oar',
     '//apps/xosclient:onos-apps-xosclient-oar',
+    '//apps/scalablegateway:onos-apps-scalablegateway-oar',
 ]
 
 APP_JARS = [

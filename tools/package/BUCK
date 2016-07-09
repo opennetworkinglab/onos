@@ -71,6 +71,7 @@ APPS = [
   '//apps/openstacknode:onos-apps-openstacknode-oar',
   '//apps/cpman/app:onos-apps-cpman-app-oar',
   '//apps/xosclient:onos-apps-xosclient-oar',
+  '//apps/scalablegateway:onos-apps-scalablegateway-oar',
   '//apps/events:onos-apps-events-oar',
   '//apps/test/election:onos-apps-test-election-oar',
   '//apps/test/distributed-primitives:onos-apps-test-distributed-primitives-oar',
