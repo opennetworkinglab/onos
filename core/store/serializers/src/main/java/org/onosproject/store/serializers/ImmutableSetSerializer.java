@@ -15,14 +15,10 @@
  */
 package org.onosproject.store.serializers;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import com.esotericsoftware.kryo.serializers.CollectionSerializer;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -30,26 +26,37 @@ import com.google.common.collect.ImmutableSet;
 */
 public class ImmutableSetSerializer extends Serializer<ImmutableSet<?>> {
 
-    private final CollectionSerializer serializer = new CollectionSerializer();
-
     /**
      * Creates {@link ImmutableSet} serializer instance.
      */
     public ImmutableSetSerializer() {
         // non-null, immutable
         super(false, true);
-        serializer.setElementsCanBeNull(false);
     }
 
     @Override
     public void write(Kryo kryo, Output output, ImmutableSet<?> object) {
-        kryo.writeObject(output, object.asList(), serializer);
+        output.writeInt(object.size());
+        for (Object e : object) {
+            kryo.writeClassAndObject(output, e);
+        }
     }
 
     @Override
     public ImmutableSet<?> read(Kryo kryo, Input input,
                                 Class<ImmutableSet<?>> type) {
-        List<?> elms = kryo.readObject(input, ArrayList.class, serializer);
-        return ImmutableSet.copyOf(elms);
+        final int size = input.readInt();
+        switch (size) {
+        case 0:
+            return ImmutableSet.of();
+        case 1:
+            return ImmutableSet.of(kryo.readClassAndObject(input));
+        default:
+            Object[] elms = new Object[size];
+            for (int i = 0; i < size; ++i) {
+                elms[i] = kryo.readClassAndObject(input);
+            }
+            return ImmutableSet.copyOf(elms);
+        }
     }
 }

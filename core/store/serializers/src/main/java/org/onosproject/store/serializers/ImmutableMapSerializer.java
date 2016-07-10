@@ -15,23 +15,19 @@
  */
 package org.onosproject.store.serializers;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Map.Entry;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import com.esotericsoftware.kryo.serializers.MapSerializer;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 
 /**
 * Kryo Serializer for {@link ImmutableMap}.
 */
 public class ImmutableMapSerializer extends Serializer<ImmutableMap<?, ?>> {
-
-    private final MapSerializer mapSerializer = new MapSerializer();
 
     /**
      * Creates {@link ImmutableMap} serializer instance.
@@ -43,16 +39,31 @@ public class ImmutableMapSerializer extends Serializer<ImmutableMap<?, ?>> {
 
     @Override
     public void write(Kryo kryo, Output output, ImmutableMap<?, ?> object) {
-        // wrapping with unmodifiableMap proxy
-        // to avoid Kryo from writing only the reference marker of this instance,
-        // which will be embedded right before this method call.
-        kryo.writeObject(output, Collections.unmodifiableMap(object), mapSerializer);
+        output.writeInt(object.size());
+        for (Entry<?, ?> e : object.entrySet()) {
+            kryo.writeClassAndObject(output, e.getKey());
+            kryo.writeClassAndObject(output, e.getValue());
+        }
     }
 
     @Override
     public ImmutableMap<?, ?> read(Kryo kryo, Input input,
                                     Class<ImmutableMap<?, ?>> type) {
-        Map<?, ?> map = kryo.readObject(input, HashMap.class, mapSerializer);
-        return ImmutableMap.copyOf(map);
+        final int size = input.readInt();
+        switch (size) {
+        case 0:
+            return ImmutableMap.of();
+        case 1:
+            return ImmutableMap.of(kryo.readClassAndObject(input),
+                                   kryo.readClassAndObject(input));
+
+        default:
+            Builder<Object, Object> builder = ImmutableMap.builder();
+            for (int i = 0; i < size; ++i) {
+                builder.put(kryo.readClassAndObject(input),
+                            kryo.readClassAndObject(input));
+            }
+            return builder.build();
+        }
     }
 }

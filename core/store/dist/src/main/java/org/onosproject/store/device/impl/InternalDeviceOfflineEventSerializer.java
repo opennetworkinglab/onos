@@ -15,9 +15,10 @@
  */
 package org.onosproject.store.device.impl;
 
+import static org.onosproject.store.serializers.DeviceIdSerializer.deviceIdSerializer;
+
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.Timestamp;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
@@ -38,14 +39,14 @@ public class InternalDeviceOfflineEventSerializer extends Serializer<InternalDev
 
     @Override
     public void write(Kryo kryo, Output output, InternalDeviceOfflineEvent event) {
-        kryo.writeClassAndObject(output, event.deviceId());
+        kryo.writeObject(output, event.deviceId(), deviceIdSerializer());
         kryo.writeClassAndObject(output, event.timestamp());
     }
 
     @Override
     public InternalDeviceOfflineEvent read(Kryo kryo, Input input,
                                Class<InternalDeviceOfflineEvent> type) {
-        DeviceId deviceId = (DeviceId) kryo.readClassAndObject(input);
+        DeviceId deviceId = kryo.readObject(input, DeviceId.class, deviceIdSerializer());
         Timestamp timestamp = (Timestamp) kryo.readClassAndObject(input);
 
         return new InternalDeviceOfflineEvent(deviceId, timestamp);

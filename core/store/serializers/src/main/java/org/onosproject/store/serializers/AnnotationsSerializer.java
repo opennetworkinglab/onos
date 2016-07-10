@@ -21,10 +21,34 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryo.serializers.DefaultSerializers;
+import com.esotericsoftware.kryo.serializers.DefaultSerializers.StringSerializer;
+import com.esotericsoftware.kryo.serializers.MapSerializer;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class AnnotationsSerializer extends Serializer<DefaultAnnotations> {
+
+    private static final StringSerializer STR_SERIALIZER
+        = new DefaultSerializers.StringSerializer();
+
+    private static final MapSerializer MAP_SERIALIZER = stringMapSerializer();
+
+    /**
+     * Returns a MapSerializer for {@code Map<String, String>} with
+     * no null key or value.
+     *
+     * @return serializer
+     */
+    private static MapSerializer stringMapSerializer() {
+        MapSerializer serializer = new MapSerializer();
+        serializer.setKeysCanBeNull(false);
+        serializer.setKeyClass(String.class, STR_SERIALIZER);
+        serializer.setValuesCanBeNull(false);
+        serializer.setValueClass(String.class, STR_SERIALIZER);
+        return serializer;
+    }
 
     public AnnotationsSerializer() {
         super(false, true);
@@ -32,13 +56,13 @@ public class AnnotationsSerializer extends Serializer<DefaultAnnotations> {
 
     @Override
     public void write(Kryo kryo, Output output, DefaultAnnotations object) {
-        kryo.writeObject(output, object.asMap());
+        kryo.writeObject(output, object.asMap(), MAP_SERIALIZER);
     }
 
     @Override
     public DefaultAnnotations read(Kryo kryo, Input input, Class<DefaultAnnotations> type) {
         DefaultAnnotations.Builder b = DefaultAnnotations.builder();
-        HashMap<String, String> map = kryo.readObject(input, HashMap.class);
+        Map<String, String> map = kryo.readObject(input, HashMap.class, MAP_SERIALIZER);
         map.forEach((k, v) -> b.set(k, v));
 
         return b.build();

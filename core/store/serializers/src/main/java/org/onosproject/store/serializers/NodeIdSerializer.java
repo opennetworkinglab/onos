@@ -27,6 +27,12 @@ import org.onosproject.cluster.NodeId;
  */
 public final class NodeIdSerializer extends Serializer<NodeId> {
 
+    private static final NodeIdSerializer INSTANCE = new NodeIdSerializer();
+
+    public static final NodeIdSerializer nodeIdSerializer() {
+        return INSTANCE;
+    }
+
     /**
      * Creates {@link NodeId} serializer instance.
      */

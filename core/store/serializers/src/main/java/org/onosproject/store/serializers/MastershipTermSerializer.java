@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.serializers;
 
+import static org.onosproject.store.serializers.NodeIdSerializer.nodeIdSerializer;
+
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipTerm;
 
@@ -26,7 +28,7 @@ import com.esotericsoftware.kryo.io.Output;
 /**
  * Kryo Serializer for {@link org.onosproject.mastership.MastershipTerm}.
  */
-public class MastershipTermSerializer extends Serializer<MastershipTerm> {
+public final class MastershipTermSerializer extends Serializer<MastershipTerm> {
 
     /**
      * Creates {@link MastershipTerm} serializer instance.
@@ -38,14 +40,14 @@ public class MastershipTermSerializer extends Serializer<MastershipTerm> {
 
     @Override
     public MastershipTerm read(Kryo kryo, Input input, Class<MastershipTerm> type) {
-        final NodeId node = (NodeId) kryo.readClassAndObject(input);
+        final NodeId node = kryo.readObjectOrNull(input, NodeId.class, nodeIdSerializer());
         final long term = input.readLong();
         return MastershipTerm.of(node, term);
     }
 
     @Override
     public void write(Kryo kryo, Output output, MastershipTerm object) {
-        kryo.writeClassAndObject(output, object.master());
+        kryo.writeObjectOrNull(output, object.master(), nodeIdSerializer());
         output.writeLong(object.termNumber());
     }
 }

@@ -15,11 +15,12 @@
  */
 package org.onosproject.store.device.impl;
 
+import static org.onosproject.store.serializers.DeviceIdSerializer.deviceIdSerializer;
+
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.impl.Timestamped;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
@@ -41,7 +42,7 @@ public class InternalDeviceEventSerializer extends Serializer<InternalDeviceEven
     @Override
     public void write(Kryo kryo, Output output, InternalDeviceEvent event) {
         kryo.writeClassAndObject(output, event.providerId());
-        kryo.writeClassAndObject(output, event.deviceId());
+        kryo.writeObject(output, event.deviceId(), deviceIdSerializer());
         kryo.writeClassAndObject(output, event.deviceDescription());
     }
 
@@ -49,7 +50,7 @@ public class InternalDeviceEventSerializer extends Serializer<InternalDeviceEven
     public InternalDeviceEvent read(Kryo kryo, Input input,
                                Class<InternalDeviceEvent> type) {
         ProviderId providerId = (ProviderId) kryo.readClassAndObject(input);
-        DeviceId deviceId = (DeviceId) kryo.readClassAndObject(input);
+        DeviceId deviceId = kryo.readObject(input, DeviceId.class, deviceIdSerializer());
 
         @SuppressWarnings("unchecked")
         Timestamped<DeviceDescription> deviceDescription

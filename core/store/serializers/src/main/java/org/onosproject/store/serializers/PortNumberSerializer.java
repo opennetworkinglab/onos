@@ -25,8 +25,7 @@ import com.esotericsoftware.kryo.io.Output;
 /**
  * Serializer for {@link PortNumber}.
  */
-public final class PortNumberSerializer extends
-        Serializer<PortNumber> {
+public final class PortNumberSerializer extends Serializer<PortNumber> {
 
     /**
      * Creates {@link PortNumber} serializer instance.
