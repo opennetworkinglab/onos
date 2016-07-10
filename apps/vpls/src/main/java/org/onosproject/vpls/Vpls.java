@@ -17,7 +17,8 @@ package org.onosproject.vpls;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
-import javafx.util.Pair;
+
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -179,13 +180,13 @@ public class Vpls {
         if (!connectedHosts.isEmpty()) {
             connectedHosts.forEach(host -> {
                 if (host.vlan().equals(vlanId)) {
-                    confHostPresentCPoint.put(vlanId, new Pair<>(cp, host.mac()));
+                    confHostPresentCPoint.put(vlanId, Pair.of(cp, host.mac()));
                 } else {
-                    confHostPresentCPoint.put(vlanId, new Pair<>(cp, null));
+                    confHostPresentCPoint.put(vlanId, Pair.of(cp, null));
                 }
             });
         } else {
-            confHostPresentCPoint.put(vlanId, new Pair<>(cp, null));
+            confHostPresentCPoint.put(vlanId, Pair.of(cp, null));
         }
     }
 

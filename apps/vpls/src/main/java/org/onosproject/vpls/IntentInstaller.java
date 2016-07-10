@@ -16,7 +16,8 @@
 package org.onosproject.vpls;
 
 import com.google.common.collect.SetMultimap;
-import javafx.util.Pair;
+
+import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
