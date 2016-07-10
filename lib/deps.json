@@ -85,7 +85,7 @@
   "artifacts": {
     "gmetric4j": "mvn:info.ganglia.gmetric4j:gmetric4j:1.0.10",
     "aopalliance-repackaged": "mvn:org.glassfish.hk2.external:aopalliance-repackaged:2.4.0-b34",
-    "asm": "mvn:org.ow2.asm:asm:5.0.3",
+    "asm": "mvn:org.ow2.asm:asm:5.0.4",
     "atomix": "mvn:io.atomix:atomix-all:1.0.0-rc9",
     "commons-codec": "mvn:commons-codec:commons-codec:1.10",
     "commons-collections": "mvn:commons-collections:commons-collections:3.2.2",
@@ -141,7 +141,7 @@
     "jsch": "mvn:com.jcraft:jsch:0.1.53",
     "jsr305": "mvn:com.google.code.findbugs:jsr305:3.0.1",
     "junit": "mvn:junit:junit:4.12",
-    "kryo": "mvn:com.esotericsoftware:kryo:3.0.3",
+    "kryo": "mvn:com.esotericsoftware:kryo:4.0.0",
     "mapdb": "mvn:org.mapdb:mapdb:1.0.9",
     "metrics-core": "mvn:io.dropwizard.metrics:metrics-core:3.1.0",
     "metrics-ganglia": "mvn:io.dropwizard.metrics:metrics-ganglia:3.1.2",
