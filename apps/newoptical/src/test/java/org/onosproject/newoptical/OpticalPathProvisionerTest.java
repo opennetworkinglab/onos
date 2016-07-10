@@ -16,7 +16,7 @@
 
 package org.onosproject.newoptical;
 
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -502,7 +502,7 @@ public class OpticalPathProvisionerTest {
                 return Collections.emptySet();
             }
 
-            edges.add(new Pair<>((DeviceId) src, (DeviceId) dst));
+            edges.add(Pair.of((DeviceId) src, (DeviceId) dst));
 
             Set<Path> paths = new HashSet<>();
             List<Link> links = Stream.of(LINK1, LINK2, LINK3, LINK4, LINK5, LINK6)
@@ -636,7 +636,7 @@ public class OpticalPathProvisionerTest {
 
                 @Override
                 public ConsistentMap<K, V> build() {
-                    return new TestConsistentMap<K, V>();
+                    return new TestConsistentMap<>();
                 }
             };
 
@@ -651,7 +651,7 @@ public class OpticalPathProvisionerTest {
                     return new DistributedSetAdapter<E>() {
                         @Override
                         public DistributedSet<E> asDistributedSet() {
-                            return new TestDistributedSet<E>();
+                            return new TestDistributedSet<>();
                         }
                     };
                 }
