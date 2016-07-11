@@ -44,6 +44,7 @@ import static org.easymock.EasyMock.replay;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.equalTo;
 import static org.onosproject.codec.impl.GroupJsonMatcher.matchesGroup;
 import static org.onosproject.net.NetTestTools.APP_ID;
 
@@ -109,6 +110,11 @@ public class GroupCodecTest {
         assertThat(((Instructions.OutputInstruction) instruction1).port(), is(PortNumber.portNumber(2)));
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void invalidGroupTest() throws IOException {
+        Group group = getGroup("invalid-group.json");
+    }
+
     /**
      * Checks that the data shared by all the resource is correct for a given group.
      *
@@ -118,7 +124,8 @@ public class GroupCodecTest {
         assertThat(group.appId(), is(APP_ID));
         assertThat(group.deviceId().toString(), is("of:0000000000000001"));
         assertThat(group.type().toString(), is("ALL"));
-        assertThat(group.appCookie().key(), is("1".getBytes()));
+        assertThat(group.appCookie().key(),
+                equalTo(new byte[]{(byte) 0x12, (byte) 0x34, (byte) 0xAB, (byte) 0xCD}));
         assertThat(group.id().id(), is(1));
     }
 

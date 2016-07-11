@@ -67,7 +67,7 @@
     "appCookie": {
       "type": "string",
       "description": "application cookie",
-      "example": "1"
+      "example": "0x1234abcd"
     },
     "buckets": {
       "type": "array",
