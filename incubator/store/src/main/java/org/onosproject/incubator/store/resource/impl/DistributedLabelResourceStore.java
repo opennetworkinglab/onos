@@ -116,8 +116,7 @@ public class DistributedLabelResourceStore
 
         resourcePool = storageService
                 .<DeviceId, LabelResourcePool>consistentMapBuilder()
-                .withName(POOL_MAP_NAME).withSerializer(SERIALIZER)
-                .withPartitionsDisabled().build();
+                .withName(POOL_MAP_NAME).withSerializer(SERIALIZER).build();
         messageHandlingExecutor = Executors
                 .newFixedThreadPool(MESSAGE_HANDLER_THREAD_POOL_SIZE,
                                     groupedThreads("onos/store/flow",

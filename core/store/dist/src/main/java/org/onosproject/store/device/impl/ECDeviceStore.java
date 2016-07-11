@@ -232,7 +232,6 @@ public class ECDeviceStore
         availableDevices = storageService.<DeviceId>setBuilder()
                 .withName("onos-online-devices")
                 .withSerializer(Serializer.using(KryoNamespaces.API))
-                .withPartitionsDisabled()
                 .withRelaxedReadConsistency()
                 .build()
                 .asDistributedSet();

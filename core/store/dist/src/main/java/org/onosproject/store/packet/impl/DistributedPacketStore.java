@@ -198,7 +198,6 @@ public class DistributedPacketStore
         private PacketRequestTracker() {
             requests = storageService.<TrafficSelector, Set<PacketRequest>>consistentMapBuilder()
                     .withName("onos-packet-requests")
-                    .withPartitionsDisabled()
                     .withSerializer(Serializer.using(KryoNamespaces.API))
                     .build();
         }

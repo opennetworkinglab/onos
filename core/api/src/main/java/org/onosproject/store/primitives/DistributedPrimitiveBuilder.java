@@ -74,18 +74,6 @@ public abstract class DistributedPrimitiveBuilder<B extends DistributedPrimitive
     }
 
     /**
-     * Creates this primitive on a special partition that comprises of all members in the cluster.
-     * @deprecated usage of this method is discouraged for most common scenarios. Eventually it will be replaced
-     * with a better alternative that does not exposes low level details. Until then avoid using this method.
-     * @return this builder
-     */
-    @Deprecated
-    public B withPartitionsDisabled() {
-        this.partitionsDisabled = true;
-        return (B) this;
-    }
-
-    /**
      * Disables recording usage stats for this primitive.
      * @deprecated usage of this method is discouraged for most common scenarios.
      * @return this builder

@@ -77,12 +77,6 @@ public class DefaultDistributedSetBuilder<E> extends DistributedSetBuilder<E> {
     }
 
     @Override
-    public DistributedSetBuilder<E> withPartitionsDisabled() {
-        mapBuilder.withPartitionsDisabled();
-        return this;
-    }
-
-    @Override
     public DistributedSetBuilder<E> withMeteringDisabled() {
         metering = false;
         return this;

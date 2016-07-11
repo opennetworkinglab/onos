@@ -17,7 +17,6 @@ package org.onosproject.distributedprimitives.cli;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
@@ -31,10 +30,6 @@ import org.onosproject.store.service.TransactionalMap;
 @Command(scope = "onos", name = "transactional-map-test-put",
         description = "Put a value into a transactional map")
 public class TransactionalMapTestPutCommand extends AbstractShellCommand {
-
-    @Option(name = "-i", aliases = "--inMemory", description = "use in memory map?",
-            required = false, multiValued = false)
-    private boolean inMemory = false;
 
     @Argument(index = 0, name = "numKeys",
             description = "Number of keys to put the value into",
@@ -55,11 +50,7 @@ public class TransactionalMapTestPutCommand extends AbstractShellCommand {
     protected void execute() {
         StorageService storageService = get(StorageService.class);
         TransactionContext context;
-        if (inMemory) {
-            context = storageService.transactionContextBuilder().withPartitionsDisabled().build();
-        } else {
-            context = storageService.transactionContextBuilder().build();
-        }
+        context = storageService.transactionContextBuilder().build();
         context.begin();
         try {
             map = context.getTransactionalMap(mapName, serializer);
