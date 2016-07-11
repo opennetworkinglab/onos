@@ -21,18 +21,28 @@ import com.google.common.collect.ImmutableSet;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.onosproject.net.AnnotationKeys;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
+import org.onosproject.drivers.optical.OpticalAdjacencyLinkService;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.link.DefaultLinkDescription;
+import org.onosproject.net.optical.OpticalAnnotations;
+import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowOpticalSwitch;
 import org.onosproject.openflow.controller.PortDescPropertyType;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
@@ -42,6 +52,12 @@ import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeNotSta
 import org.projectfloodlight.openflow.protocol.OFCircuitPortStatus;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsReply;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsRequest;
+import org.projectfloodlight.openflow.protocol.OFExpExtAdId;
+import org.projectfloodlight.openflow.protocol.OFExpPortAdidOtn;
+import org.projectfloodlight.openflow.protocol.OFExpPortAdjacency;
+import org.projectfloodlight.openflow.protocol.OFExpPortAdjacencyId;
+import org.projectfloodlight.openflow.protocol.OFExpPortAdjacencyReply;
+import org.projectfloodlight.openflow.protocol.OFExpPortAdjacencyRequest;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFObject;
 import org.projectfloodlight.openflow.protocol.OFOplinkPortPower;
@@ -61,7 +77,7 @@ import org.projectfloodlight.openflow.protocol.OFOplinkPortPowerReply;
  * Driver implements custom handshaker and supports for Optical channel Port based on OpenFlow OTN extension.
  * The device consists of Och ports, and performances wavelength cross-connect among the ports.
  */
-public class OplinkRoadmHandshaker extends AbstractOpenFlowSwitch implements OpenFlowOpticalSwitch {
+public class OplinkRoadm extends AbstractOpenFlowSwitch implements OpenFlowOpticalSwitch {
 
     private final AtomicBoolean driverHandshakeComplete = new AtomicBoolean(false);
     private List<OFPortOptical> opticalPorts;
@@ -172,19 +188,24 @@ public class OplinkRoadmHandshaker extends AbstractOpenFlowSwitch implements Ope
 
     @Override
     public final void sendMsg(OFMessage m) {
-        OFMessage newMsg = m;
-
+        List<OFMessage> messages = new ArrayList<>();
+        messages.add(m);
         if (m.getType() == OFType.STATS_REQUEST) {
             OFStatsRequest sr = (OFStatsRequest) m;
             log.debug("OPLK ROADM rebuilding stats request type {}", sr.getStatsType());
             switch (sr.getStatsType()) {
                 case PORT:
                     //replace with Oplink experiment stats message to get the port current power
-                    OFOplinkPortPowerRequest pRequest = this.factory().buildOplinkPortPowerRequest()
+                    OFOplinkPortPowerRequest powerRequest = this.factory().buildOplinkPortPowerRequest()
                             .setXid(sr.getXid())
                             .setFlags(sr.getFlags())
                             .build();
-                    newMsg = pRequest;
+                    messages.add(powerRequest);
+                    OFExpPortAdjacencyRequest adjacencyRequest = this.factory().buildExpPortAdjacencyRequest()
+                            .setXid(sr.getXid())
+                            .setFlags(sr.getFlags())
+                            .build();
+                    messages.add(adjacencyRequest);
                     break;
                 default:
                     break;
@@ -193,7 +214,9 @@ public class OplinkRoadmHandshaker extends AbstractOpenFlowSwitch implements Ope
             log.debug("OPLK ROADM sends msg:{}, as is", m.getType());
         }
 
-        super.sendMsg(newMsg);
+        for (OFMessage message : messages) {
+            super.sendMsg(message);
+        }
     }
 
     private void sendHandshakeOFExperimenterPortDescRequest() throws IOException {
@@ -223,33 +246,124 @@ public class OplinkRoadmHandshaker extends AbstractOpenFlowSwitch implements Ope
     public List<PortDescription> processExpPortStats(OFMessage msg) {
         if (msg instanceof OFOplinkPortPowerReply) {
             return buildPortPowerDescriptions(((OFOplinkPortPowerReply) msg).getEntries());
+        } else if (msg instanceof OFExpPortAdjacencyReply) {
+            return buildPortAdjacencyDescriptions(((OFExpPortAdjacencyReply) msg).getEntries());
         }
         return Collections.emptyList();
-    }
-
-    private OFOplinkPortPower getPortPower(List<OFOplinkPortPower> portPowers, PortNumber portNum) {
-        for (OFOplinkPortPower power : portPowers) {
-            if (power.getPort() == portNum.toLong()) {
-                return power;
-            }
-        }
-        return null;
     }
 
     private List<PortDescription> buildPortPowerDescriptions(List<OFOplinkPortPower> portPowers) {
         DeviceService deviceService = this.handler().get(DeviceService.class);
         List<Port> ports = deviceService.getPorts(this.data().deviceId());
+        HashMap<Long, OFOplinkPortPower> powerMap = new HashMap<>(portPowers.size());
+        portPowers.forEach(power -> powerMap.put((long) power.getPort(), power));
         final List<PortDescription> portDescs = new ArrayList<>();
         for (Port port : ports) {
             DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
             builder.putAll(port.annotations());
-            OFOplinkPortPower power = getPortPower(portPowers, port.number());
+            OFOplinkPortPower power = powerMap.get(port.number().toLong());
             if (power != null) {
-                builder.set(AnnotationKeys.CURRENT_POWER, Long.toString(power.getPowerValue()));
+                builder.set(OpticalAnnotations.CURRENT_POWER, Long.toString(power.getPowerValue()));
             }
             portDescs.add(new DefaultPortDescription(port.number(), port.isEnabled(),
                     port.type(), port.portSpeed(), builder.build()));
         }
         return portDescs;
+    }
+
+    private OplinkPortAdjacency getNeighbor(OFExpPortAdjacency ad) {
+        for (OFExpPortAdjacencyId adid : ad.getProperties()) {
+            List<OFExpExtAdId> otns = adid.getAdId();
+            if (otns != null && otns.size() > 0) {
+                OFExpPortAdidOtn otn = (OFExpPortAdidOtn) otns.get(0);
+                // ITU-T G.7714 ETH MAC Format (in second 16 bytes of the following)
+                // |---------------------------------------------------------------------------|
+                // | Other format (16 bytes)                                                   |
+                // |---------------------------------------------------------------------------|
+                // | Header (2 bytes) | ID (4 bits) | MAC (6 bytes) | Port (4 bytes) | Unused  |
+                // |---------------------------------------------------------------------------|
+                ChannelBuffer buffer = ChannelBuffers.buffer(32);
+                otn.getOpspec().write32Bytes(buffer);
+                long mac = buffer.getLong(18) << 4 >>> 16;
+                int port = (int) (buffer.getLong(24) << 4 >>> 32);
+                // Oplink does not use the 4 most significant bytes of Dpid so Dpid can be
+                // constructed from MAC address
+                return new OplinkPortAdjacency(DeviceId.deviceId(Dpid.uri(new Dpid(mac))),
+                        PortNumber.portNumber(port));
+            }
+        }
+        return null;
+    }
+
+    private List<PortDescription> buildPortAdjacencyDescriptions(List<OFExpPortAdjacency> portAds) {
+        DeviceService deviceService = this.handler().get(DeviceService.class);
+        List<Port> ports = deviceService.getPorts(this.data().deviceId());
+
+        // Map port's number with port's adjacency
+        HashMap<Long, OFExpPortAdjacency> adMap = new HashMap<>(portAds.size());
+        portAds.forEach(ad -> adMap.put((long) ad.getPortNo().getPortNumber(), ad));
+
+        List<PortDescription> portDescs = new ArrayList<>();
+        for (Port port : ports) {
+            DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
+            Annotations oldAnnotations = port.annotations();
+            builder.putAll(oldAnnotations);
+            OFExpPortAdjacency ad = adMap.get(port.number().toLong());
+            if (ad != null) {
+                // neighbor discovered, add to port descriptions
+                OplinkPortAdjacency neighbor = getNeighbor(ad);
+                String newId = neighbor.getDeviceId().toString();
+                String newPort = neighbor.getPort().toString();
+                // Check if annotation already exists
+                if (!newId.equals(oldAnnotations.value(OpticalAnnotations.NEIGHBOR_ID)) ||
+                    !newPort.equals(oldAnnotations.value(OpticalAnnotations.NEIGHBOR_PORT))) {
+                    builder.set(OpticalAnnotations.NEIGHBOR_ID, newId);
+                    builder.set(OpticalAnnotations.NEIGHBOR_PORT, newPort);
+                }
+                addLink(port.number(), neighbor);
+            } else {
+                // no neighbors found
+                builder.remove(OpticalAnnotations.NEIGHBOR_ID);
+                builder.remove(OpticalAnnotations.NEIGHBOR_PORT);
+                removeLink(port.number());
+            }
+            portDescs.add(new DefaultPortDescription(port.number(), port.isEnabled(),
+                    port.type(), port.portSpeed(), builder.build()));
+        }
+        return portDescs;
+    }
+
+    private void addLink(PortNumber portNumber, OplinkPortAdjacency neighbor) {
+        ConnectPoint dst = new ConnectPoint(handler().data().deviceId(), portNumber);
+        ConnectPoint src = new ConnectPoint(neighbor.getDeviceId(), neighbor.portNumber);
+        OpticalAdjacencyLinkService adService =
+                this.handler().get(OpticalAdjacencyLinkService.class);
+        adService.linkDetected(new DefaultLinkDescription(src, dst, Link.Type.OPTICAL));
+    }
+
+    // Remove incoming link with port if there are any.
+    private void removeLink(PortNumber portNumber) {
+        ConnectPoint dst = new ConnectPoint(handler().data().deviceId(), portNumber);
+        OpticalAdjacencyLinkService adService =
+                this.handler().get(OpticalAdjacencyLinkService.class);
+        adService.linksVanished(dst);
+    }
+
+    private class OplinkPortAdjacency {
+        private DeviceId deviceId;
+        private PortNumber portNumber;
+
+        public OplinkPortAdjacency(DeviceId deviceId, PortNumber portNumber) {
+            this.deviceId = deviceId;
+            this.portNumber = portNumber;
+        }
+
+        public DeviceId getDeviceId() {
+            return deviceId;
+        }
+
+        public PortNumber getPort() {
+            return portNumber;
+        }
     }
 }

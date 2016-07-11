@@ -15,8 +15,6 @@
  */
 package org.onosproject.net;
 
-import com.google.common.annotations.Beta;
-
 /**
  * Collection of keys for annotation.
  * <p>
@@ -110,18 +108,6 @@ public final class AnnotationKeys {
      * Annotation key for the static lambda.
      */
     public static final String STATIC_LAMBDA = "staticLambda";
-
-    /**
-     * Annotation key for optical port's target power.
-     */
-    @Beta
-    public static final String TARGET_POWER = "targetPower";
-
-    /**
-     * Annotation key for optical port's current power.
-     */
-    @Beta
-    public static final String CURRENT_POWER = "currentPower";
 
     /**
      * Annotation key for the static port.

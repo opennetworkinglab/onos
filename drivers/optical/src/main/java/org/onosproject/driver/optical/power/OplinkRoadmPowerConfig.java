@@ -18,13 +18,13 @@ package org.onosproject.driver.optical.power;
 
 import java.util.Optional;
 
-import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.Direction;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.PowerConfig;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.optical.OpticalAnnotations;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowController;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
@@ -69,7 +69,7 @@ public class OplinkRoadmPowerConfig extends AbstractHandlerBehaviour
             DeviceService deviceService = this.handler().get(DeviceService.class);
             Port port = deviceService.getPort(this.data().deviceId(), portNum);
             if (port != null) {
-                String currentPower = port.annotations().value(AnnotationKeys.CURRENT_POWER);
+                String currentPower = port.annotations().value(OpticalAnnotations.CURRENT_POWER);
                 if (currentPower != null) {
                     returnVal = Long.valueOf(currentPower);
                 }
