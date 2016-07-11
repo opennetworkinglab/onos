@@ -140,7 +140,7 @@ public class YangList
      *
      * If no "max-elements" statement is present, it defaults to "unbounded".
      */
-    private int maxElements = Integer.MAX_VALUE;
+    private YangMaxElement maxElements;
 
     /**
      * Reference RFC 6020.
@@ -160,7 +160,7 @@ public class YangList
      *
      * o Otherwise, it is enforced if the ancestor node exists.
      */
-    private int minElements = 0;
+    private YangMinElement minElements;
 
     /**
      * reference.
@@ -381,7 +381,7 @@ public class YangList
      *
      * @return the max elements
      */
-    public int getMaxElements() {
+    public YangMaxElement getMaxElements() {
         return maxElements;
     }
 
@@ -390,8 +390,8 @@ public class YangList
      *
      * @param max the max elements
      */
-    public void setMaxElements(int max) {
-        maxElements = max;
+    public void setMaxElements(YangMaxElement max) {
+        this.maxElements = max;
     }
 
     /**
@@ -399,7 +399,7 @@ public class YangList
      *
      * @return the minimum elements
      */
-    public int getMinElements() {
+    public YangMinElement getMinElements() {
         return minElements;
     }
 
@@ -408,7 +408,7 @@ public class YangList
      *
      * @param minElements the minimum elements
      */
-    public void setMinElements(int minElements) {
+    public void setMinElements(YangMinElement minElements) {
         this.minElements = minElements;
     }
 

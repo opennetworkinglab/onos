@@ -23,6 +23,9 @@ import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
 
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.CHOICE_DATA;
+import static org.onosproject.yangutils.datamodel.utils.YangErrMsgConstants.DATA_MISSING_ERROR_TAG;
+import static org.onosproject.yangutils.datamodel.utils.YangErrMsgConstants.ERROR_PATH_MISSING_CHOICE;
+import static org.onosproject.yangutils.datamodel.utils.YangErrMsgConstants.MISSING_CHOICE_ERROR_APP_TAG;
 
 /*-
  * Reference RFC 6020.
@@ -65,7 +68,7 @@ import static org.onosproject.yangutils.datamodel.utils.YangConstructType.CHOICE
  */
 public class YangChoice extends YangNode
         implements YangCommonInfo, Parsable, CollisionDetector, YangAugmentableNode,
-        YangWhenHolder, YangIfFeatureHolder {
+        YangWhenHolder, YangIfFeatureHolder, YangAppErrorHolder {
 
     private static final long serialVersionUID = 806201604L;
 
@@ -160,10 +163,19 @@ public class YangChoice extends YangNode
     private List<YangAugmentedInfo> yangAugmentedInfo = new ArrayList<>();
 
     /**
+     * YANG application error information.
+     */
+    private YangAppErrorInfo yangAppErrorInfo;
+
+    /**
      * Create a choice node.
      */
     public YangChoice() {
         super(YangNodeType.CHOICE_NODE);
+        yangAppErrorInfo = new YangAppErrorInfo();
+        yangAppErrorInfo.setErrorTag(DATA_MISSING_ERROR_TAG);
+        yangAppErrorInfo.setErrorAppTag(MISSING_CHOICE_ERROR_APP_TAG);
+        yangAppErrorInfo.setErrorAppPath(ERROR_PATH_MISSING_CHOICE);
     }
 
     /**
@@ -435,4 +447,15 @@ public class YangChoice extends YangNode
     public List<YangAugmentedInfo> getAugmentedInfoList() {
         return yangAugmentedInfo;
     }
+
+    @Override
+    public void setAppErrorInfo(YangAppErrorInfo yangAppErrorInfo) {
+        this.yangAppErrorInfo = yangAppErrorInfo;
+    }
+
+    @Override
+    public YangAppErrorInfo getAppErrorInfo() {
+        return yangAppErrorInfo;
+    }
+
 }

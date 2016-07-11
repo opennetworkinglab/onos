@@ -18,6 +18,7 @@ package org.onosproject.yangutils.parser.impl.listeners;
 
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangList;
+import org.onosproject.yangutils.datamodel.YangMaxElement;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
@@ -81,11 +82,15 @@ public final class MaxElementsListener {
         switch (tmpData.getYangConstructType()) {
             case LEAF_LIST_DATA:
                 YangLeafList leafList = (YangLeafList) tmpData;
-                leafList.setMaxElelements(maxElementsValue);
+                YangMaxElement maxLeafListElement = new YangMaxElement();
+                maxLeafListElement.setMaxElement(maxElementsValue);
+                leafList.setMaxElements(maxLeafListElement);
                 break;
             case LIST_DATA:
                 YangList yangList = (YangList) tmpData;
-                yangList.setMaxElements(maxElementsValue);
+                YangMaxElement maxListElement = new YangMaxElement();
+                maxListElement.setMaxElement(maxElementsValue);
+                yangList.setMaxElements(maxListElement);
                 break;
             default:
                 throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, MAX_ELEMENT_DATA, "", ENTRY));

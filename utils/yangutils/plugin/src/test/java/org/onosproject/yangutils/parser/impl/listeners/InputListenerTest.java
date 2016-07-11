@@ -72,8 +72,8 @@ public class InputListenerTest {
         assertThat(yangList.getName(), is("ospf"));
         assertThat(yangList.getKeyList().contains("invalid-interval"), is(true));
         assertThat(yangList.isConfig(), is(true));
-        assertThat(yangList.getMaxElements(), is(10));
-        assertThat(yangList.getMinElements(), is(3));
+        assertThat(yangList.getMaxElements().getMaxElement(), is(10));
+        assertThat(yangList.getMinElements().getMinElement(), is(3));
         leafIterator = yangList.getListOfLeaf().listIterator();
         leafInfo = leafIterator.next();
         assertThat(leafInfo.getName(), is("invalid-interval"));

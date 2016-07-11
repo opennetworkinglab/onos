@@ -33,7 +33,7 @@ import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangUint64;
 /**
  * Represents the restriction for length data type.
  */
-public class YangLengthRestriction implements YangDesc, YangReference, YangAppErrorInfo, Parsable, Serializable {
+public class YangLengthRestriction implements YangDesc, YangReference, Parsable, Serializable, YangAppErrorHolder {
 
     /*-
      * Reference RFC 6020.
@@ -84,19 +84,14 @@ public class YangLengthRestriction implements YangDesc, YangReference, YangAppEr
     private String reference;
 
     /**
-     * Application's error message, to be used for data error.
-     */
-    private String errorMessage;
-
-    /**
-     * Application's error tag, to be filled in data validation error response.
-     */
-    private String errorAppTag;
-
-    /**
      * Textual description.
      */
     private String description;
+
+    /**
+     * YANG application error information.
+     */
+    private YangAppErrorInfo yangAppErrorInfo;
 
     /**
      * Creates a YANG length restriction object.
@@ -164,47 +159,6 @@ public class YangLengthRestriction implements YangDesc, YangReference, YangAppEr
 
     }
 
-    /**
-     * Returns application's error message, to be used for data error.
-     *
-     * @return Application's error message, to be used for data error
-     */
-    @Override
-    public String getGetErrorMessage() {
-        return errorMessage;
-    }
-
-    /**
-     * Sets Application's error message, to be used for data error.
-     *
-     * @param errMsg Application's error message, to be used for data error
-     */
-    @Override
-    public void setErrorMessage(String errMsg) {
-        errorMessage = errMsg;
-
-    }
-
-    /**
-     * Returns application's error tag, to be used for data error.
-     *
-     * @return application's error tag, to be used for data error
-     */
-    @Override
-    public String getGetErrorAppTag() {
-        return errorAppTag;
-    }
-
-    /**
-     * Sets application's error tag, to be used for data error.
-     *
-     * @param errTag application's error tag, to be used for data error.
-     */
-    @Override
-    public void setErrorAppTag(String errTag) {
-        errorAppTag = errTag;
-    }
-
     @Override
     public YangConstructType getYangConstructType() {
         return YangConstructType.PATTERN_DATA;
@@ -218,5 +172,25 @@ public class YangLengthRestriction implements YangDesc, YangReference, YangAppEr
     @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO: implement the method.
+    }
+
+    /**
+     * Sets the application's error information.
+     *
+     * @param yangAppErrorInfo the application's error information
+     */
+    @Override
+    public void setAppErrorInfo(YangAppErrorInfo yangAppErrorInfo) {
+        this.yangAppErrorInfo = yangAppErrorInfo;
+    }
+
+    /**
+     * Returns application's error information.
+     *
+     * @return application's error information
+     */
+    @Override
+    public YangAppErrorInfo getAppErrorInfo() {
+        return yangAppErrorInfo;
     }
 }

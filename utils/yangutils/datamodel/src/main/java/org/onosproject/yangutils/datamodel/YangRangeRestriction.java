@@ -59,7 +59,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @param <T> range type (data type)
  */
 public class YangRangeRestriction<T extends YangBuiltInDataTypeInfo<T>>
-        implements YangDesc, YangReference, YangAppErrorInfo, Parsable, Serializable {
+        implements YangDesc, YangReference, Parsable, Serializable, YangAppErrorHolder {
 
     private static final long serialVersionUID = 8062016051L;
 
@@ -75,19 +75,14 @@ public class YangRangeRestriction<T extends YangBuiltInDataTypeInfo<T>>
     private String reference;
 
     /**
-     * Application's error message, to be used for data error.
-     */
-    private String errorMessage;
-
-    /**
-     * Application's error tag, to be filled in data validation error response.
-     */
-    private String errorAppTag;
-
-    /**
      * Textual description.
      */
     private String description;
+
+    /**
+     * YANG application error information.
+     */
+    private YangAppErrorInfo yangAppErrorInfo;
 
     /**
      * Creates YANG range restriction object.
@@ -278,47 +273,6 @@ public class YangRangeRestriction<T extends YangBuiltInDataTypeInfo<T>>
 
     }
 
-    /**
-     * Returns application's error message, to be used for data error.
-     *
-     * @return Application's error message, to be used for data error
-     */
-    @Override
-    public String getGetErrorMessage() {
-        return errorMessage;
-    }
-
-    /**
-     * Sets Application's error message, to be used for data error.
-     *
-     * @param errMsg Application's error message, to be used for data error
-     */
-    @Override
-    public void setErrorMessage(String errMsg) {
-        errorMessage = errMsg;
-
-    }
-
-    /**
-     * Returns application's error tag, to be used for data error.
-     *
-     * @return application's error tag, to be used for data error
-     */
-    @Override
-    public String getGetErrorAppTag() {
-        return errorAppTag;
-    }
-
-    /**
-     * Sets application's error tag, to be used for data error.
-     *
-     * @param errTag application's error tag, to be used for data error.
-     */
-    @Override
-    public void setErrorAppTag(String errTag) {
-        errorAppTag = errTag;
-    }
-
     @Override
     public YangConstructType getYangConstructType() {
         return YangConstructType.RANGE_DATA;
@@ -332,5 +286,15 @@ public class YangRangeRestriction<T extends YangBuiltInDataTypeInfo<T>>
     @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO: implement the method.
+    }
+
+    @Override
+    public void setAppErrorInfo(YangAppErrorInfo yangAppErrorInfo) {
+        this.yangAppErrorInfo = yangAppErrorInfo;
+    }
+
+    @Override
+    public YangAppErrorInfo getAppErrorInfo() {
+        return yangAppErrorInfo;
     }
 }

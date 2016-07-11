@@ -18,6 +18,7 @@ package org.onosproject.yangutils.parser.impl.listeners;
 
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangList;
+import org.onosproject.yangutils.datamodel.YangMinElement;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
@@ -78,11 +79,15 @@ public final class MinElementsListener {
         switch (tmpData.getYangConstructType()) {
             case LEAF_LIST_DATA:
                 YangLeafList leafList = (YangLeafList) tmpData;
-                leafList.setMinElements(minElementValue);
+                YangMinElement minLeafListElement = new YangMinElement();
+                minLeafListElement.setMinElement(minElementValue);
+                leafList.setMinElements(minLeafListElement);
                 break;
             case LIST_DATA:
                 YangList yangList = (YangList) tmpData;
-                yangList.setMinElements(minElementValue);
+                YangMinElement minElement = new YangMinElement();
+                minElement.setMinElement(minElementValue);
+                yangList.setMinElements(minElement);
                 break;
             default:
                 throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, MIN_ELEMENT_DATA,

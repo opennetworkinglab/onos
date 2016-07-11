@@ -88,7 +88,8 @@ import org.onosproject.yangutils.parser.impl.listeners.UsesListener;
 import org.onosproject.yangutils.parser.impl.listeners.ValueListener;
 import org.onosproject.yangutils.parser.impl.listeners.VersionListener;
 import org.onosproject.yangutils.parser.impl.listeners.WhenListener;
-
+import org.onosproject.yangutils.parser.impl.listeners.ErrorMessageListener;
+import org.onosproject.yangutils.parser.impl.listeners.ErrorAppTagListener;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.handleUnsupportedYangConstruct;
 import static org.onosproject.yangutils.utils.UtilConstants.CURRENTLY_UNSUPPORTED;
 import static org.onosproject.yangutils.utils.UtilConstants.UNSUPPORTED_YANG_CONSTRUCT;
@@ -845,7 +846,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterErrorMessageStatement(GeneratedYangParser.ErrorMessageStatementContext ctx) {
-        handleUnsupportedYangConstruct(YangConstructType.ERROR_MESSAGE_DATA, ctx, CURRENTLY_UNSUPPORTED);
+        ErrorMessageListener.processErrorMessageEntry(this, ctx);
     }
 
     @Override
@@ -855,7 +856,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterErrorAppTagStatement(GeneratedYangParser.ErrorAppTagStatementContext ctx) {
-        handleUnsupportedYangConstruct(YangConstructType.ERROR_APP_TAG_DATA, ctx, CURRENTLY_UNSUPPORTED);
+        ErrorAppTagListener.processErrorAppTagMessageEntry(this, ctx);
     }
 
     @Override

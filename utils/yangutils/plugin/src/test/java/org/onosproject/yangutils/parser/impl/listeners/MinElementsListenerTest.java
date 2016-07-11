@@ -65,7 +65,7 @@ public class MinElementsListenerTest {
         YangLeafList leafListInfo = leafListIterator.next();
 
         assertThat(leafListInfo.getName(), is("invalid-interval"));
-        assertThat(leafListInfo.getMinElements(), is(3));
+        assertThat(leafListInfo.getMinElements().getMinElement(), is(3));
     }
 
     /**
@@ -88,7 +88,7 @@ public class MinElementsListenerTest {
         // Check whether the list is child of module
         YangList yangList = (YangList) yangNode.getChild();
         assertThat(yangList.getName(), is("valid"));
-        assertThat(yangList.getMinElements(), is(3));
+        assertThat(yangList.getMinElements().getMinElement(), is(3));
     }
 
     /**
@@ -158,6 +158,6 @@ public class MinElementsListenerTest {
         YangLeafList leafListInfo = leafListIterator.next();
 
         assertThat(leafListInfo.getName(), is("invalid-interval"));
-        assertThat(leafListInfo.getMinElements(), is(0));
+        assertThat(leafListInfo.getMinElements().getMinElement(), is(0));
     }
 }

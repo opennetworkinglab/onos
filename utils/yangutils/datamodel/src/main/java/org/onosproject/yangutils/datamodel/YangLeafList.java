@@ -87,7 +87,7 @@ public class YangLeafList
      *
      * If no "max-elements" statement is present, it defaults to "unbounded".
      */
-    private int maxElelements = Integer.MAX_VALUE;
+    private YangMaxElement maxElement;
 
     /**
      * Reference:RFC 6020.
@@ -107,7 +107,7 @@ public class YangLeafList
      *
      * o Otherwise, it is enforced if the ancestor node exists.
      */
-    private int minElements = 0;
+    private YangMinElement minElements;
 
     /**
      * The textual reference to this leaf-list.
@@ -153,6 +153,8 @@ public class YangLeafList
      * Creates a YANG leaf-list.
      */
     public YangLeafList() {
+        setMinElements(new YangMinElement());
+        setMaxElements(new YangMaxElement());
     }
 
     /**
@@ -232,38 +234,38 @@ public class YangLeafList
     }
 
     /**
-     * Returns the max elements no.
+     * Returns the maximum elements number.
      *
-     * @return the max elements no
+     * @return the maximum elements number
      */
-    public int getMaxElelements() {
-        return maxElelements;
+    public YangMaxElement getMaxElements() {
+        return maxElement;
     }
 
     /**
-     * Sets the max elements no.
+     * Sets the maximum elements number.
      *
-     * @param maxElelements max elements no
+     * @param maxElement maximum elements number
      */
-    public void setMaxElelements(int maxElelements) {
-        this.maxElelements = maxElelements;
+    public void setMaxElements(YangMaxElement maxElement) {
+        this.maxElement = maxElement;
     }
 
     /**
-     * Returns the min elements no.
+     * Returns the minimum elements number.
      *
-     * @return the min elements no
+     * @return the minimum elements number
      */
-    public int getMinElements() {
+    public YangMinElement getMinElements() {
         return minElements;
     }
 
     /**
-     * Sets the min elements no.
+     * Sets the minimum elements number.
      *
-     * @param minElements the min elements no
+     * @param minElements the minimum elements number
      */
-    public void setMinElements(int minElements) {
+    public void setMinElements(YangMinElement minElements) {
         this.minElements = minElements;
     }
 

@@ -29,6 +29,9 @@ import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 
 import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.INTRA_FILE_RESOLVED;
 import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.RESOLVED;
+import static org.onosproject.yangutils.datamodel.utils.YangErrMsgConstants.DATA_MISSING_ERROR_TAG;
+import static org.onosproject.yangutils.datamodel.utils.YangErrMsgConstants.ERROR_PATH_LEAFREF_LEAF;
+import static org.onosproject.yangutils.datamodel.utils.YangErrMsgConstants.INSTANCE_REQUIRED_ERROR_APP_TAG;
 
 /*
  * Reference:RFC 6020.
@@ -44,7 +47,7 @@ import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.RESOLVE
  * @param <T> YANG leafref info
  */
 public class YangLeafRef<T> implements Parsable, Resolvable, Serializable, YangIfFeatureHolder,
-        YangXPathResolver {
+        YangXPathResolver, YangAppErrorHolder {
 
     private static final long serialVersionUID = 286201644L;
 
@@ -95,6 +98,21 @@ public class YangLeafRef<T> implements Parsable, Resolvable, Serializable, YangI
      * List of if-feature.
      */
     private List<YangIfFeature> ifFeatureList;
+
+    /**
+     * YANG application error information.
+     */
+    private YangAppErrorInfo yangAppErrorInfo;
+
+    /**
+     * Creates a YANG leaf ref.
+     */
+    public YangLeafRef() {
+        yangAppErrorInfo = new YangAppErrorInfo();
+        yangAppErrorInfo.setErrorTag(DATA_MISSING_ERROR_TAG);
+        yangAppErrorInfo.setErrorAppTag(INSTANCE_REQUIRED_ERROR_APP_TAG);
+        yangAppErrorInfo.setErrorAppPath(ERROR_PATH_LEAFREF_LEAF);
+    }
 
     /**
      * Returns the status of the require instance in leafref.
@@ -263,6 +281,16 @@ public class YangLeafRef<T> implements Parsable, Resolvable, Serializable, YangI
     @Override
     public void setResolvableStatus(ResolvableStatus resolvableStatus) {
         this.resolvableStatus = resolvableStatus;
+    }
+
+    @Override
+    public void setAppErrorInfo(YangAppErrorInfo yangAppErrorInfo) {
+        this.yangAppErrorInfo = yangAppErrorInfo;
+    }
+
+    @Override
+    public YangAppErrorInfo getAppErrorInfo() {
+        return yangAppErrorInfo;
     }
 
     @Override

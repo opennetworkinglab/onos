@@ -20,6 +20,8 @@ import java.io.Serializable;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
+import static org.onosproject.yangutils.datamodel.utils.YangErrMsgConstants.OPERATION_FAILED_ERROR_TAG;
+import static org.onosproject.yangutils.datamodel.utils.YangErrMsgConstants.MUST_VIOLATION_ERROR_APP_TAG;
 
 /*-
  * The "must" statement, which is optional, takes as an argument a string that
@@ -48,7 +50,7 @@ import org.onosproject.yangutils.datamodel.utils.YangConstructType;
 /**
  * Represents information defined in YANG must.
  */
-public class YangMust implements YangDesc, YangReference, Parsable, Serializable {
+public class YangMust implements YangDesc, YangReference, Parsable, Serializable, YangAppErrorHolder {
 
     private static final long serialVersionUID = 806201646L;
 
@@ -68,9 +70,17 @@ public class YangMust implements YangDesc, YangReference, Parsable, Serializable
     private String reference;
 
     /**
+     * YANG application error information.
+     */
+    private YangAppErrorInfo yangAppErrorInfo;
+
+    /**
      * Creates a YANG must restriction.
      */
     public YangMust() {
+        yangAppErrorInfo = new YangAppErrorInfo();
+        yangAppErrorInfo.setErrorTag(OPERATION_FAILED_ERROR_TAG);
+        yangAppErrorInfo.setErrorAppTag(MUST_VIOLATION_ERROR_APP_TAG);
     }
 
     /**
@@ -159,5 +169,15 @@ public class YangMust implements YangDesc, YangReference, Parsable, Serializable
     @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
+    }
+
+    @Override
+    public void setAppErrorInfo(YangAppErrorInfo yangAppErrorInfo) {
+        this.yangAppErrorInfo = yangAppErrorInfo;
+    }
+
+    @Override
+    public YangAppErrorInfo getAppErrorInfo() {
+        return yangAppErrorInfo;
     }
 }

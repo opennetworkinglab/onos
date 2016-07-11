@@ -65,7 +65,7 @@ public class MaxElementsListenerTest {
         YangLeafList leafListInfo = leafListIterator.next();
 
         assertThat(leafListInfo.getName(), is("invalid-interval"));
-        assertThat(leafListInfo.getMaxElelements(), is(3));
+        assertThat(leafListInfo.getMaxElements().getMaxElement(), is(3));
     }
 
     /**
@@ -88,7 +88,7 @@ public class MaxElementsListenerTest {
         // Check whether the list is child of module
         YangList yangList = (YangList) yangNode.getChild();
         assertThat(yangList.getName(), is("valid"));
-        assertThat(yangList.getMaxElements(), is(3));
+        assertThat(yangList.getMaxElements().getMaxElement(), is(3));
     }
 
     /**
@@ -136,7 +136,7 @@ public class MaxElementsListenerTest {
         YangLeafList leafListInfo = leafListIterator.next();
 
         assertThat(leafListInfo.getName(), is("invalid-interval"));
-        assertThat(leafListInfo.getMaxElelements(), is(2147483647));
+        assertThat(leafListInfo.getMaxElements().getMaxElement(), is(2147483647));
     }
 
     /**
@@ -161,7 +161,7 @@ public class MaxElementsListenerTest {
         YangLeafList leafListInfo = leafListIterator.next();
 
         assertThat(leafListInfo.getName(), is("invalid-interval"));
-        assertThat(leafListInfo.getMaxElelements(), is(2147483647));
+        assertThat(leafListInfo.getMaxElements().getMaxElement(), is(2147483647));
     }
 
     /**

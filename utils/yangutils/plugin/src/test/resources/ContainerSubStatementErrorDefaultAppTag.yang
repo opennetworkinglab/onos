@@ -1,0 +1,24 @@
+module ErrorAppTag {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+    container interface {
+        leaf ifType {
+            type enumeration {
+                enum ethernet;
+                enum atm;
+            }
+        }
+        leaf ifMTU {
+            type uint32;
+        }
+        must "ifType != 'ethernet' or " +
+             "(ifType = 'ethernet' and ifMTU = 1500)" {
+            description "An ethernet MTU must be 1500";
+        }
+        must "ifType != 'atm' or " +
+             "(ifType = 'atm' and ifMTU <= 17966 and ifMTU >= 64)" {
+            description "An atm MTU must be  64 .. 17966";
+        }
+    }
+}

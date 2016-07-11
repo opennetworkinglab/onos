@@ -72,7 +72,7 @@ public class LeafListListenerTest {
         assertThat(leafListInfo.getUnits(), is("\"seconds\""));
         assertThat(leafListInfo.getDescription(), is("\"Interval before a route is declared invalid\""));
         assertThat(leafListInfo.isConfig(), is(true));
-        assertThat(leafListInfo.getMaxElelements(), is(3));
+        assertThat(leafListInfo.getMaxElements().getMaxElement(), is(3));
         assertThat(leafListInfo.getStatus(), is(YangStatusType.CURRENT));
         assertThat(leafListInfo.getReference(), is("\"RFC 6020\""));
     }
@@ -162,8 +162,8 @@ public class LeafListListenerTest {
         assertThat(leafListInfo.getUnits(), is("\"seconds\""));
         assertThat(leafListInfo.getDescription(), is("\"Interval before a route is declared invalid\""));
         assertThat(leafListInfo.isConfig(), is(true));
-        assertThat(leafListInfo.getMinElements(), is(1));
-        assertThat(leafListInfo.getMaxElelements(), is(2147483647));
+        assertThat(leafListInfo.getMinElements().getMinElement(), is(1));
+        assertThat(leafListInfo.getMaxElements().getMaxElement(), is(2147483647));
         assertThat(leafListInfo.getStatus(), is(YangStatusType.CURRENT));
         assertThat(leafListInfo.getReference(), is("\"RFC 6020\""));
     }
