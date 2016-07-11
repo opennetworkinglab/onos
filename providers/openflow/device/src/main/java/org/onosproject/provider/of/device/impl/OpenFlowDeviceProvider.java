@@ -103,6 +103,7 @@ import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -145,7 +146,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     private final InternalDeviceProvider listener = new InternalDeviceProvider();
 
-    // TODO: We need to make the poll interval configurable.
     static final int POLL_INTERVAL = 5;
     @Property(name = "PortStatsPollFrequency", intValue = POLL_INTERVAL,
     label = "Frequency (in seconds) for polling switch Port statistics")
@@ -185,7 +185,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     @Modified
     public void modified(ComponentContext context) {
-        Dictionary<?, ?> properties = context.getProperties();
+        Dictionary<?, ?> properties = context != null ? context.getProperties() : new Properties();
         int newPortStatsPollFrequency;
         try {
             String s = get(properties, "PortStatsPollFrequency");
