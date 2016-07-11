@@ -778,7 +778,7 @@ public class PceManager implements PceService {
             bwToAllocate = 0;
             if ((shBwConstraint != null) && (shBwConstraint.links().contains(link))) {
                 if (additionalBwValue != null) {
-                    bwToAllocate = bandwidthConstraint - additionalBwValue;
+                    bwToAllocate = additionalBwValue;
                 }
             } else {
                 bwToAllocate = bandwidthConstraint;

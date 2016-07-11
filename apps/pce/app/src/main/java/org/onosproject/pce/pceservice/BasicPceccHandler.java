@@ -269,7 +269,6 @@ public final class BasicPceccHandler {
      * @param tunnel tunnel between ingress to egress
      */
     public void releaseLabel(Tunnel tunnel) {
-       boolean isLastLabelToPush = false;
 
        checkNotNull(labelRsrcService, LABEL_RESOURCE_SERVICE_NULL);
        checkNotNull(pceStore, PCE_STORE_NULL);
@@ -287,19 +286,14 @@ public final class BasicPceccHandler {
                    PortNumber inPort = lspLocalLabelInfo.inPort();
                    PortNumber outPort = lspLocalLabelInfo.outPort();
 
-                   // Check whether this is last link label to push
-                   if (!iterator.hasNext()) {
-                      isLastLabelToPush = true;
-                   }
-
                    // Push into device
                    if ((inLabelId != null) && (inPort != null)) {
-                       installLocalLabelRule(deviceId, inLabelId, inPort, tunnel.tunnelId(), isLastLabelToPush,
+                       installLocalLabelRule(deviceId, inLabelId, inPort, tunnel.tunnelId(), false,
                                              Long.valueOf(LabelType.IN_LABEL.value), Objective.Operation.REMOVE);
                    }
 
                    if ((outLabelId != null) && (outPort != null)) {
-                       installLocalLabelRule(deviceId, outLabelId, outPort, tunnel.tunnelId(), isLastLabelToPush,
+                       installLocalLabelRule(deviceId, outLabelId, outPort, tunnel.tunnelId(), false,
                                              Long.valueOf(LabelType.OUT_LABEL.value), Objective.Operation.REMOVE);
                    }
 

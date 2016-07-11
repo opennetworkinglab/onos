@@ -499,7 +499,7 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
          */
         if (!deviceId.equals(tunnel.path().src().deviceId()) && !deviceId.equals(tunnel.path().dst().deviceId())) {
             //Device is transit node
-            if (labelType == IN_LABEL_TYPE) {
+            if (labelType == OUT_LABEL_TYPE) {
                 //Store label object having IN label value
                 this.labelObj = labelObj;
                 return;
