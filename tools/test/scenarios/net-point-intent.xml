@@ -17,12 +17,7 @@
           description="Network point to point intent connectivity test">
     <!-- TODO: parametrize this via recipes -->
     <group name="P2P-Intent-Connectivity">
-        <step name="P2P-Intent.Uninstall-Reactive-Forwarding"
-              exec="onos ${OC1} app deactivate org.onosproject.fwd org.onosproject.ifwd"/>
-        <step name="P2P-Intent.Check-Apps" requires="^"
-              exec="onos-check-apps ${OC1} fwd,ifwd excludes"/>
-
-        <step name="P2P-Intent.Find-Host-1" requires="^"
+        <step name="P2P-Intent.Find-Host-1"
               exec="onos-mininet sendAndExpect h1 ping -c1 -w1 h4 --expect ."/>
         <step name="P2P-Intent.Find-Host-2" requires="^"
               exec="onos-mininet sendAndExpect h4 ping -c1 -w1 h1 --expect ."/>

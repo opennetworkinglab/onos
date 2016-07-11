@@ -1,0 +1,29 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Checks ONOS flows
+# -----------------------------------------------------------------------------
+
+aux=/tmp/stc-$$.log
+trap "rm -f $aux 2>/dev/null" EXIT
+
+want_present=0
+
+if [ "$3" == "present" ]; then
+    want_present=1
+fi
+
+for i in {1..5}; do
+    onos ${1:-$OCI} "onos:flows added $2" > $aux
+    grep "ETH_TYPE:ipv4" $aux
+    found=$?
+
+    if [ $want_present == 1 -a $found -eq 0 ] ||
+         [ $want_present == 0 -a $found -ne 0 ]; then
+        cat $aux
+        exit 0
+    else
+        sleep 1
+    fi
+done
+cat $aux
+exit 1

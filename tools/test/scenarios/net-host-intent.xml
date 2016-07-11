@@ -16,12 +16,8 @@
 <scenario name="net-host-intent" description="Network host intent connectivity test">
     <!-- TODO: parametrize this via recipes -->
     <group name="Host-Intent-Connectivity">
-        <step name="Host-Intent.Uninstall-Reactive-Forwarding"
-              exec="onos ${OC1} app deactivate org.onosproject.fwd org.onosproject.ifwd"/>
-        <step name="Host-Intent.Check-Apps" requires="^"
-              exec="onos-check-apps ${OC1} fwd,ifwd excludes"/>
 
-        <step name="Host-Intent.Find-Host-1" requires="^"
+        <step name="Host-Intent.Find-Host-1"
               exec="onos-mininet sendAndExpect h1 ping -c1 -w1 h4 --expect ."/>
         <step name="Host-Intent.Find-Host-2" requires="^"
               exec="onos-mininet sendAndExpect h4 ping -c1 -w1 h1 --expect ."/>

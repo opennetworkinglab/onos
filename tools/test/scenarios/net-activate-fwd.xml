@@ -1,0 +1,76 @@
+<!--
+  ~ Copyright 2015-present Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="net-activate-fwd" description="Activate forwarding apps">
+    <group name="Net-Activate-Fwd">
+        <!-- TODO: parametrize this via recipes -->
+
+        <step name="Install-Fwd-Apps"
+              exec="onos ${OC1} app activate org.onosproject.openflow org.onosproject.proxyarp org.onosproject.fwd"/>
+        <step name="Check-Fwd-Apps" requires="Install-Fwd-Apps"
+              exec="onos-check-apps ${OC1} drivers,openflow,proxyarp,fwd includes"/>
+
+        <step name="Check-Fwd-Flows1" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000001 present"/>
+        <step name="Check-Fwd-Flows2" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000002 present"/>
+        <step name="Check-Fwd-Flows3" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000003 present"/>
+        <step name="Check-Fwd-Flows4" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000004 present"/>
+        <step name="Check-Fwd-Flows5" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000005 present"/>
+        <step name="Check-Fwd-Flows6" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000006 present"/>
+        <step name="Check-Fwd-Flows7" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000007 present"/>
+        <step name="Check-Fwd-Flows8" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000008 present"/>
+        <step name="Check-Fwd-Flows9" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000009 present"/>
+        <step name="Check-Fwd-Flowsa" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:000000000000000a present"/>
+        <step name="Check-Fwd-Flowsb" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:000000000000000b present"/>
+        <step name="Check-Fwd-Flowsc" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:000000000000000c present"/>
+        <step name="Check-Fwd-Flowsd" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:000000000000000d present"/>
+        <step name="Check-Fwd-Flowse" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:000000000000000e present"/>
+        <step name="Check-Fwd-Flowsf" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:000000000000000f present"/>
+        <step name="Check-Fwd-Flows10" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000010 present"/>
+        <step name="Check-Fwd-Flows11" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000011 present"/>
+        <step name="Check-Fwd-Flows12" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000012 present"/>
+        <step name="Check-Fwd-Flows13" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000013 present"/>
+        <step name="Check-Fwd-Flows14" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000014 present"/>
+        <step name="Check-Fwd-Flows15" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000015 present"/>
+        <step name="Check-Fwd-Flows16" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000016 present"/>
+        <step name="Check-Fwd-Flows17" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000017 present"/>
+        <step name="Check-Fwd-Flows18" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000018 present"/>
+        <step name="Check-Fwd-Flows19" requires="Check-Fwd-Apps"
+              exec="onos-check-ipv4-flows ${OC1} of:0000000000000019 present"/>
+    </group>
+</scenario>

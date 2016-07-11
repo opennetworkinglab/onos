@@ -17,15 +17,8 @@
           description="Network REST API test">
     <!-- TODO: parametrize this via recipes -->
     <group name="Net-REST">
-
-        <!-- Make sure that reactive forwarding is off -->
-        <step name="Net-REST.Uninstall-Reactive-Forwarding"
-              exec="onos ${OC1} app deactivate org.onosproject.fwd org.onosproject.ifwd"/>
-        <step name="Net-REST.Check-Apps" requires="^"
-              exec="onos-check-apps ${OC1} fwd,ifwd excludes"/>
-
         <!-- Force discovery of hosts -->
-        <step name="Net-REST.Find-Host-1" requires="^"
+        <step name="Net-REST.Find-Host-1"
               exec="onos-mininet sendAndExpect h1 ping -c1 -w1 h4 --expect ."/>
         <step name="Net-REST.Find-Host-2" requires="^"
               exec="onos-mininet sendAndExpect h4 ping -c1 -w1 h1 --expect ."/>

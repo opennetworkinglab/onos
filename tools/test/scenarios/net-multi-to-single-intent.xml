@@ -17,13 +17,9 @@
           description="Network single point to multi point intent connectivity test">
     <!-- TODO: parametrize this via recipes -->
     <group name="M2S-Intent-Connectivity">
-        <step name="M2S-Intent.Uninstall-Reactive-Forwarding"
-              exec="onos ${OC1} app deactivate org.onosproject.fwd org.onosproject.ifwd"/>
-        <step name="M2S-Intent.Check-Apps" requires="^"
-              exec="onos-check-apps ${OC1} fwd,ifwd excludes"/>
 
         <!-- Create a single point to three points intent -->
-        <step name="M2S-Intent.Create-Intent-forward" requires="^"
+        <step name="M2S-Intent.Create-Intent-forward"
               exec="onos-create-intent ${OC1} forward multi-to-single of:0000000000000014/1 of:0000000000000002/1 of:000000000000000E/1 of:0000000000000011/1"/>
 
         <!-- Create back links from the 3 points back to the source using a single to multi intent -->
