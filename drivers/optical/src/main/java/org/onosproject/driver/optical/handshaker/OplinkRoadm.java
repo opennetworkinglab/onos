@@ -41,6 +41,7 @@ import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.link.DefaultLinkDescription;
+import org.onosproject.net.link.LinkService;
 import org.onosproject.net.optical.OpticalAnnotations;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowOpticalSwitch;
@@ -190,17 +191,19 @@ public class OplinkRoadm extends AbstractOpenFlowSwitch implements OpenFlowOptic
     public final void sendMsg(OFMessage m) {
         List<OFMessage> messages = new ArrayList<>();
         messages.add(m);
+
         if (m.getType() == OFType.STATS_REQUEST) {
             OFStatsRequest sr = (OFStatsRequest) m;
             log.debug("OPLK ROADM rebuilding stats request type {}", sr.getStatsType());
             switch (sr.getStatsType()) {
                 case PORT:
-                    //replace with Oplink experiment stats message to get the port current power
+                    //add Oplink experiment stats message to get the port's current power
                     OFOplinkPortPowerRequest powerRequest = this.factory().buildOplinkPortPowerRequest()
                             .setXid(sr.getXid())
                             .setFlags(sr.getFlags())
                             .build();
                     messages.add(powerRequest);
+                    // add experiment message to get adjacent ports
                     OFExpPortAdjacencyRequest adjacencyRequest = this.factory().buildExpPortAdjacencyRequest()
                             .setXid(sr.getXid())
                             .setFlags(sr.getFlags())
@@ -335,7 +338,7 @@ public class OplinkRoadm extends AbstractOpenFlowSwitch implements OpenFlowOptic
 
     private void addLink(PortNumber portNumber, OplinkPortAdjacency neighbor) {
         ConnectPoint dst = new ConnectPoint(handler().data().deviceId(), portNumber);
-        ConnectPoint src = new ConnectPoint(neighbor.getDeviceId(), neighbor.portNumber);
+        ConnectPoint src = new ConnectPoint(neighbor.getDeviceId(), neighbor.getPort());
         OpticalAdjacencyLinkService adService =
                 this.handler().get(OpticalAdjacencyLinkService.class);
         adService.linkDetected(new DefaultLinkDescription(src, dst, Link.Type.OPTICAL));
@@ -344,9 +347,13 @@ public class OplinkRoadm extends AbstractOpenFlowSwitch implements OpenFlowOptic
     // Remove incoming link with port if there are any.
     private void removeLink(PortNumber portNumber) {
         ConnectPoint dst = new ConnectPoint(handler().data().deviceId(), portNumber);
-        OpticalAdjacencyLinkService adService =
-                this.handler().get(OpticalAdjacencyLinkService.class);
-        adService.linksVanished(dst);
+        // Check so only incoming links are removed
+        Set<Link> links = this.handler().get(LinkService.class).getIngressLinks(dst);
+        if (!links.isEmpty()) {
+            OpticalAdjacencyLinkService adService =
+                    this.handler().get(OpticalAdjacencyLinkService.class);
+            adService.linksVanished(dst);
+        }
     }
 
     private class OplinkPortAdjacency {

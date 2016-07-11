@@ -58,6 +58,10 @@
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
         <behaviour api="org.onosproject.net.behaviour.PowerConfig"
                    impl="org.onosproject.driver.optical.power.OplinkRoadmPowerConfig"/>
+        <behaviour api="org.onosproject.codec.ExtensionTreatmentCodec"
+                   impl="org.onosproject.driver.optical.extensions.OplinkExtensionTreatmentCodec"/>
+        <behaviour api="org.onosproject.openflow.controller.ExtensionTreatmentInterpreter"
+                   impl="org.onosproject.driver.extensions.OplinkExtensionTreatmentInterpreter"/>
     </driver>
 
 </drivers>
