@@ -78,5 +78,26 @@
         <step name="Net-Flow-Objectives.Ping-YX" requires="^"
               exec="onos-mininet sendAndExpect h4 ping -c1 h1 --expect \ 0% packet loss"/>
 
+        <!-- Use REST API to remove flow objectives -->
+        <step name="Net-Flow-Objectives.Objective-R1F" requires="Net-Flow-Objectives.Ping-YX, Net-Flow-Objectives.Ping-XY"
+              exec="remove-forward-objective.sh ${OC1} of:0000000000000001 00:00:00:00:00:01 00:00:00:00:00:04 1 2"/>
+        <step name="Net-Flow-Objectives.Objective-R1R" requires="Net-Flow-Objectives.Ping-YX, Net-Flow-Objectives.Ping-XY"
+              exec="remove-forward-objective.sh ${OC1} of:0000000000000001 00:00:00:00:00:04 00:00:00:00:00:01 2 1"/>
+
+        <step name="Net-Flow-Objectives.Objective-R19F" requires="Net-Flow-Objectives.Ping-YX, Net-Flow-Objectives.Ping-XY"
+              exec="remove-forward-objective.sh ${OC1} of:0000000000000019 00:00:00:00:00:01 00:00:00:00:00:04 2 8"/>
+        <step name="Net-Flow-Objectives.Objective-R19R" requires="Net-Flow-Objectives.Ping-YX, Net-Flow-Objectives.Ping-XY"
+              exec="remove-forward-objective.sh ${OC1} of:0000000000000019 00:00:00:00:00:04 00:00:00:00:00:01 8 2"/>
+
+        <step name="Net-Flow-Objectives.Objective-R7F" requires="Net-Flow-Objectives.Ping-YX, Net-Flow-Objectives.Ping-XY"
+              exec="remove-forward-objective.sh ${OC1} of:0000000000000007 00:00:00:00:00:01 00:00:00:00:00:04 2 3"/>
+        <step name="Net-Flow-Objectives.Objective-R7R" requires="Net-Flow-Objectives.Ping-YX, Net-Flow-Objectives.Ping-XY"
+              exec="remove-forward-objective.sh ${OC1} of:0000000000000007 00:00:00:00:00:04 00:00:00:00:00:01 3 2"/>
+
+        <step name="Net-Flow-Objectives.Objective-R4F" requires="Net-Flow-Objectives.Ping-YX, Net-Flow-Objectives.Ping-XY"
+              exec="remove-forward-objective.sh ${OC1} of:0000000000000004 00:00:00:00:00:01 00:00:00:00:00:04 3 1"/>
+        <step name="Net-Flow-Objectives.Objective-R4R" requires="Net-Flow-Objectives.Ping-YX, Net-Flow-Objectives.Ping-XY"
+              exec="remove-forward-objective.sh ${OC1} of:0000000000000004 00:00:00:00:00:04 00:00:00:00:00:01 1 3"/>
+
     </group>
 </scenario>
