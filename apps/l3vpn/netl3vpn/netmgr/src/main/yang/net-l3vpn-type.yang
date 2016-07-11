@@ -1,0 +1,43 @@
+module netl3vpn-type {
+  namespace "net:l3vpn:type";
+  prefix netl3vpn-type;
+  import ne-l3vpncomm-type {
+        prefix l3vpncomm-type;
+  }
+  organization
+    "Huawei Technologies Co., Ltd";
+  contact
+    "Huawei Industrial Base
+    Bantian, Longgang
+    Shenzhen 518129
+    People's Republic of China
+    Website: http://www.huawei.com
+    Email: support@huawei.com
+   ";
+  description
+    "";
+  revision 2016-07-01 {
+    description "Initial version";
+  }
+
+ 
+  grouping l2-access {
+      leaf access-type {
+          type string;
+          mandatory true;
+      }
+      container port {
+      when access-type=port;
+          leaf ltp-id {
+              type  string;
+          }
+      }
+  }
+  grouping l3-access {
+      leaf address {
+          description "ip address of gateway on PE node";
+          type "l3vpncomm-type:ipv4Address";
+      }
+  }
+
+}

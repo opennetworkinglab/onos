@@ -1,0 +1,79 @@
+module netl3vpn {
+  namespace "net:l3vpn";
+  prefix netl3vpn;
+
+  import netl3vpn-type { prefix netl3vpn-type; revision-date 2016-07-01;}
+
+  organization
+    "Huawei Technologies Co., Ltd";
+  contact
+    "Huawei Industrial Base
+    Bantian, Longgang
+    Shenzhen 518129
+    People's Republic of China
+    Website: http://www.huawei.com
+    Email: support@huawei.com
+   ";
+  description
+    "";
+  revision 2016-07-01 {
+    description "Initial version";
+  }
+
+  
+    container instances {
+      list instance {
+        key "id";
+        leaf id {
+          description "This is a UUID of the vpn-instance, which should be allocated by the Application that wants to create a vpn instance";
+           type string;
+          mandatory true;
+        }
+        leaf name {
+          description "This is the name of the vpn-instance, be created by the application, which is just used to identify the differnent vpn instances created by the application, and the name on forwarding device can be created differently  by controller ";
+          type string {
+            length "1..64";
+          }
+        }
+        leaf mode {
+              description "l3vpn网络topo类型，包括fullmesh、hub-spoke";
+              type string;
+              default full-mesh;
+        }
+        container nes {
+            list ne {
+                key "id";
+                leaf id {
+                     type string;
+                    description "Id of NE";
+                }
+            }
+        }
+	uses ac-group;
+      }
+    }
+
+  grouping ac-group{
+    container acs {
+      list ac {
+        key "id";
+        leaf id {
+          type  string;
+        }
+        leaf ne-id {
+           type string;
+          description "Id of NE";
+        }
+        container l2-access {
+          uses netl3vpn-type:l2-access;
+          must "access-type = 'netl3vpn-type:port' or " +
+                "access-type = 'netl3vpn-type:dot1q' or " +
+                "access-type = 'netl3vpn-type:vxlan'";
+        }
+        container l3-access {
+          uses netl3vpn-type:l3-access;
+        }
+      }
+    }
+}
+}
