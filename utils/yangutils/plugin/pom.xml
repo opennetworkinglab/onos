@@ -180,7 +180,7 @@
                             </excludes>
                         </fileset>
                     </filesets>
-                    <verbose>true</verbose>
+                    <verbose>false</verbose>
                 </configuration>
             </plugin>
             <plugin>
