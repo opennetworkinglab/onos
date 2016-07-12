@@ -86,7 +86,7 @@ final class ContinuousResourceAllocation {
                         ((ContinuousResource) x.resource()).value() == resource.value()))
                 .collect(Collectors.toList());
 
-        if (matched.size() > 1) {
+        if (matched.size() > 0) {
             matched.remove(0);
         }
 
