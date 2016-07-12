@@ -289,6 +289,24 @@ public class NetconfSessionImpl implements NetconfSession {
     }
 
     @Override
+    public String doWrappedRpc(String request) throws NetconfException {
+        StringBuilder rpc = new StringBuilder(XML_HEADER);
+        rpc.append(RPC_OPEN);
+        rpc.append(MESSAGE_ID_STRING);
+        rpc.append(EQUAL);
+        rpc.append("\"");
+        rpc.append(messageIdInteger.get());
+        rpc.append("\"  ");
+        rpc.append(NETCONF_BASE_NAMESPACE).append(">\n");
+        rpc.append(request);
+        rpc.append(RPC_CLOSE).append(NEW_LINE);
+        rpc.append(ENDPATTERN);
+        String reply = sendRequest(rpc.toString());
+        checkReply(reply);
+        return reply;
+    }
+
+    @Override
     public String get(String request) throws NetconfException {
         return requestSync(request);
     }

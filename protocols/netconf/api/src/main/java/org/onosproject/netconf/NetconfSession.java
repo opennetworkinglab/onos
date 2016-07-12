@@ -60,6 +60,16 @@ public interface NetconfSession {
             throws NetconfException;
 
     /**
+     * Executes an RPC to the server and wrap the request in RPC header.
+     *
+     * @param request the XML containing the request to the server.
+     * @return Server response or ERROR
+     * @throws NetconfException when there is a problem in the communication process on
+     * the underlying connection
+     */
+    String doWrappedRpc(String request) throws NetconfException;
+
+    /**
      * Executes an synchronous RPC to the server.
      *
      * @param request the XML containing the RPC for the server.

@@ -13,29 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.behaviour;
+package org.onosproject.drivers.fujitsu.behaviour;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.driver.HandlerBehaviour;
 
 /**
- * Device behaviour to obtain and set parameters of PON links in vOLT.
+ * Device behaviour to perform actions in an ONU in vOLT.
  */
-public interface VoltPonLinkConfig extends HandlerBehaviour {
+@Beta
+public interface VoltOnuOperConfig extends HandlerBehaviour {
 
     /**
-     * Obtain all GPON PON links or a specific PON link in the device.
+     * Reboot an ONU in the device.
      *
      * @param target input data in string
-     * @return response string
      */
-    String getPonLinks(String target);
+    String rebootOnu(String target);
 
     /**
-     * Set a parameter value of PON link in the device.
+     * Operate/release loopback on Ethernet port an ONU in the device.
      *
      * @param target input data in string
-     *
      */
-    void setPonLink(String target);
+    String loopbackEthOnu(String target);
 
 }

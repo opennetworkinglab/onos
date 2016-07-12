@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open tworking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,23 +19,23 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
-import org.onosproject.drivers.fujitsu.behaviour.VoltPonLinkConfig;
+import org.onosproject.drivers.fujitsu.behaviour.VoltOnuOperConfig;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 
 /**
- * Gets PON links in vOLT.
+ * Reboots an ONU in vOLT.
  */
-@Command(scope = "onos", name = "volt-ponlinks",
-        description = "Gets PON links in vOLT")
-public class VoltGetPonLinksCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "volt-rebootonu",
+        description = "Reboots an ONU in vOLT")
+public class VoltRebootOnuCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = true, multiValued = false)
     String uri = null;
 
-    @Argument(index = 1, name = "target", description = "PON link ID",
-            required = false, multiValued = false)
+    @Argument(index = 1, name = "target", description = "PON link ID-ONU ID",
+            required = true, multiValued = false)
     String target = null;
 
     private DeviceId deviceId;
@@ -45,12 +45,12 @@ public class VoltGetPonLinksCommand extends AbstractShellCommand {
         DriverService service = get(DriverService.class);
         deviceId = DeviceId.deviceId(uri);
         DriverHandler h = service.createHandler(deviceId);
-        VoltPonLinkConfig volt = h.behaviour(VoltPonLinkConfig.class);
-        String reply = volt.getPonLinks(target);
+        VoltOnuOperConfig volt = h.behaviour(VoltOnuOperConfig.class);
+        String reply = volt.rebootOnu(target);
         if (reply != null) {
             print("%s", reply);
         } else {
-            print("No replay from %s", deviceId.toString());
+            print("No reply from %s", deviceId.toString());
         }
     }
 

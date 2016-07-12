@@ -23,12 +23,41 @@
             <ref component-id="deviceIdCompleter"/>
         </completers>
         </command>
-
         <command>
             <action class="org.onosproject.drivers.fujitsu.cli.VoltSetPonLinkCommand"/>
         <completers>
             <ref component-id="deviceIdCompleter"/>
         </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.drivers.fujitsu.cli.VoltGetOnusCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.drivers.fujitsu.cli.VoltSetOnuCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.drivers.fujitsu.cli.VoltGetOnuStatsCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.drivers.fujitsu.cli.VoltEthLoopbackCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.drivers.fujitsu.cli.VoltRebootOnuCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
         </command>
     </command-bundle>
 

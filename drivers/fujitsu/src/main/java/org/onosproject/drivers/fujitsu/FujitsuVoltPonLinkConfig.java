@@ -18,7 +18,7 @@ package org.onosproject.drivers.fujitsu;
 
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.behaviour.VoltPonLinkConfig;
+import org.onosproject.drivers.fujitsu.behaviour.VoltPonLinkConfig;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.netconf.NetconfController;

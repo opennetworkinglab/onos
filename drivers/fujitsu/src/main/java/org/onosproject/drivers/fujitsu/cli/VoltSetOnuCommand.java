@@ -19,23 +19,23 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
-import org.onosproject.drivers.fujitsu.behaviour.VoltPonLinkConfig;
+import org.onosproject.drivers.fujitsu.behaviour.VoltOnuConfig;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 
 /**
- * Gets PON links in vOLT.
+ * Sets a parameter value of an ONU in vOLT.
  */
-@Command(scope = "onos", name = "volt-ponlinks",
-        description = "Gets PON links in vOLT")
-public class VoltGetPonLinksCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "volt-setonu",
+        description = "Sets a parameter value of an ONU in vOLT")
+public class VoltSetOnuCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = true, multiValued = false)
     String uri = null;
 
-    @Argument(index = 1, name = "target", description = "PON link ID",
-            required = false, multiValued = false)
+    @Argument(index = 1, name = "target", description = "PON link ID-ONU ID:parameter:value",
+            required = true, multiValued = false)
     String target = null;
 
     private DeviceId deviceId;
@@ -45,12 +45,12 @@ public class VoltGetPonLinksCommand extends AbstractShellCommand {
         DriverService service = get(DriverService.class);
         deviceId = DeviceId.deviceId(uri);
         DriverHandler h = service.createHandler(deviceId);
-        VoltPonLinkConfig volt = h.behaviour(VoltPonLinkConfig.class);
-        String reply = volt.getPonLinks(target);
+        VoltOnuConfig volt = h.behaviour(VoltOnuConfig.class);
+        String reply = volt.setOnu(target);
         if (reply != null) {
             print("%s", reply);
         } else {
-            print("No replay from %s", deviceId.toString());
+            print("No reply from %s", deviceId.toString());
         }
     }
 
