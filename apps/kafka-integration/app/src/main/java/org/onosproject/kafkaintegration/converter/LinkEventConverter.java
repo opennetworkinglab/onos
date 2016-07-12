@@ -40,7 +40,7 @@ class LinkEventConverter implements EventConverter {
 
         LinkEvent linkEvent = (LinkEvent) event;
 
-        if (!linkEventSubtypeSupported(linkEvent)) {
+        if (!linkEventTypeSupported(linkEvent)) {
             log.error("Unsupported Onos Event {}. There is no matching"
                     + "proto Event type", linkEvent.type().toString());
             return null;
@@ -49,9 +49,9 @@ class LinkEventConverter implements EventConverter {
         return buildDeviceProtoMessage(linkEvent);
     }
 
-    private boolean linkEventSubtypeSupported(LinkEvent event) {
-        LinkType[] kafkaLinkEvents = LinkType.values();
-        for (LinkType linkEventType : kafkaLinkEvents) {
+    private boolean linkEventTypeSupported(LinkEvent event) {
+        LinkEventType[] kafkaLinkEvents = LinkEventType.values();
+        for (LinkEventType linkEventType : kafkaLinkEvents) {
             if (linkEventType.name().equals(event.type().name())) {
                 return true;
             }

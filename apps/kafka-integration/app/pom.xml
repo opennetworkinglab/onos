@@ -167,7 +167,8 @@
                         org.onlab.packet.*,
                         org.onosproject.*,
                         org.onlab.util.*,
-                        com.google.common.*
+                        com.google.common.*,
+                        com.google.protobuf.*
                     </Import-Package>
                     <Web-ContextPath>${web.context}</Web-ContextPath>
                 </instructions>

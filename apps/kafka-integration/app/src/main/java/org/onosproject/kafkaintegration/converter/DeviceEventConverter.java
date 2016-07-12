@@ -40,7 +40,7 @@ class DeviceEventConverter implements EventConverter {
 
         DeviceEvent deviceEvent = (DeviceEvent) event;
 
-        if (!deviceEventSubtypeSupported(deviceEvent)) {
+        if (!deviceEventTypeSupported(deviceEvent)) {
             log.error("Unsupported Onos Device Event {}. There is no matching"
                     + "proto Device Event type", deviceEvent.type().toString());
             return null;
@@ -55,7 +55,7 @@ class DeviceEventConverter implements EventConverter {
      * @param event ONOS Device event
      * @return true if there is a match and false otherwise
      */
-    private boolean deviceEventSubtypeSupported(DeviceEvent event) {
+    private boolean deviceEventTypeSupported(DeviceEvent event) {
         DeviceEventType[] deviceEvents = DeviceEventType.values();
         for (DeviceEventType deviceEventType : deviceEvents) {
             if (deviceEventType.name().equals(event.type().name())) {
@@ -67,9 +67,11 @@ class DeviceEventConverter implements EventConverter {
     }
 
     private DeviceNotification buildDeviceProtoMessage(DeviceEvent deviceEvent) {
-        DeviceNotification notification = DeviceNotification.newBuilder()
-                .setDeviceEventType(getProtoType(deviceEvent))
-                .setDevice(DeviceCore.newBuilder()
+        DeviceNotification.Builder notificationBuilder =
+                DeviceNotification.newBuilder();
+
+        DeviceCore deviceCore =
+                DeviceCore.newBuilder()
                         .setChassisId(deviceEvent.subject().chassisId().id()
                                 .toString())
                         .setDeviceId(deviceEvent.subject().id().toString())
@@ -77,18 +79,29 @@ class DeviceEventConverter implements EventConverter {
                         .setManufacturer(deviceEvent.subject().manufacturer())
                         .setSerialNumber(deviceEvent.subject().serialNumber())
                         .setSwVersion(deviceEvent.subject().swVersion())
-                        .setType(DeviceType.valueOf(deviceEvent.type().name()))
-                        .build())
-                .setPort(PortCore.newBuilder()
-                        .setIsEnabled(deviceEvent.port().isEnabled())
-                        .setPortNumber(deviceEvent.port().number().toString())
-                        .setPortSpeed(deviceEvent.port().portSpeed())
-                        .setType(PortType
-                                .valueOf(deviceEvent.port().type().name()))
-                        .build())
-                .build();
+                        .setType(DeviceType
+                                .valueOf(deviceEvent.subject().type().name()))
+                        .build();
 
-        return notification;
+        PortCore portCore = null;
+        if (deviceEvent.port() != null) {
+            portCore =
+                    PortCore.newBuilder()
+                            .setIsEnabled(deviceEvent.port().isEnabled())
+                            .setPortNumber(deviceEvent.port().number()
+                                    .toString())
+                            .setPortSpeed(deviceEvent.port().portSpeed())
+                            .setType(PortType
+                                    .valueOf(deviceEvent.port().type().name()))
+                            .build();
+
+            notificationBuilder.setPort(portCore);
+        }
+
+        notificationBuilder.setDeviceEventType(getProtoType(deviceEvent))
+                .setDevice(deviceCore);
+
+        return notificationBuilder.build();
     }
 
     /**
