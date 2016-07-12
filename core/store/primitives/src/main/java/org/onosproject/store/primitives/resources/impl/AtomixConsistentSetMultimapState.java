@@ -53,28 +53,28 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Clear;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.ContainsEntry;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.ContainsKey;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.ContainsValue;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Entries;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Get;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.IsEmpty;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.KeySet;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Keys;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.MultiRemove;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.MultimapCommand;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Put;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.RemoveAll;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Replace;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Size;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Values;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Clear;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.ContainsEntry;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.ContainsKey;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.ContainsValue;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Entries;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Get;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.IsEmpty;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.KeySet;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Keys;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.MultiRemove;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.MultimapCommand;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Put;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.RemoveAll;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Replace;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Size;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Values;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * State Machine for {@link AsyncConsistentSetMultimap} resource.
+ * State Machine for {@link AtomixConsistentSetMultimap} resource.
  */
-public class AsyncConsistentSetMultimapState extends ResourceStateMachine
+public class AtomixConsistentSetMultimapState extends ResourceStateMachine
         implements SessionListener, Snapshottable {
 
     private final Logger log = getLogger(getClass());
@@ -82,7 +82,7 @@ public class AsyncConsistentSetMultimapState extends ResourceStateMachine
     //TODO Add listener map here
     private final Map<String, MapEntryValue> backingMap = Maps.newHashMap();
 
-    public AsyncConsistentSetMultimapState(Properties properties) {
+    public AtomixConsistentSetMultimapState(Properties properties) {
         super(properties);
     }
 

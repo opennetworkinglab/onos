@@ -37,9 +37,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Tests the {@link AsyncConsistentSetMultimap}.
+ * Tests the {@link AtomixConsistentSetMultimap}.
  */
-public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
+public class AtomixConsistentSetMultimapTest extends AtomixTestBase {
     private final String keyOne = "hello";
     private final String keyTwo = "goodbye";
     private final String keyThree = "foo";
@@ -67,7 +67,7 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
 
     @Override
     protected ResourceType resourceType() {
-        return new ResourceType(AsyncConsistentSetMultimap.class);
+        return new ResourceType(AtomixConsistentSetMultimap.class);
     }
 
     /**
@@ -76,7 +76,7 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
      */
     @Test
     public void testSize() throws Throwable {
-        AsyncConsistentSetMultimap map = createResource("testOneMap");
+        AtomixConsistentSetMultimap map = createResource("testOneMap");
         //Simplest operation case
         map.isEmpty().thenAccept(result -> assertTrue(result));
         map.put(keyOne, valueOne).
@@ -125,7 +125,7 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
      */
     @Test
     public void containsTest() throws Throwable {
-        AsyncConsistentSetMultimap map = createResource("testTwoMap");
+        AtomixConsistentSetMultimap map = createResource("testTwoMap");
 
         //Populate the maps
         allKeys.forEach(key -> {
@@ -184,7 +184,7 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
      */
     @Test
     public void addAndRemoveTest() throws Exception {
-        AsyncConsistentSetMultimap map = createResource("testThreeMap");
+        AtomixConsistentSetMultimap map = createResource("testThreeMap");
 
         //Test single put
         allKeys.forEach(key -> {
@@ -318,7 +318,7 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
      */
     @Test
     public void testAccessors() throws Exception {
-        AsyncConsistentSetMultimap map = createResource("testFourMap");
+        AtomixConsistentSetMultimap map = createResource("testFourMap");
 
         //Populate for full map behavior tests
         allKeys.forEach(key -> {
@@ -401,10 +401,10 @@ public class AsyncConsistentSetMultimapTest extends AtomixTestBase {
         map.destroy().join();
     }
 
-    private AsyncConsistentSetMultimap createResource(String mapName) {
+    private AtomixConsistentSetMultimap createResource(String mapName) {
         try {
-            AsyncConsistentSetMultimap map = createAtomixClient().
-                    getResource("mapName", AsyncConsistentSetMultimap.class)
+            AtomixConsistentSetMultimap map = createAtomixClient().
+                    getResource("mapName", AtomixConsistentSetMultimap.class)
                     .join();
             return map;
         } catch (Throwable e) {

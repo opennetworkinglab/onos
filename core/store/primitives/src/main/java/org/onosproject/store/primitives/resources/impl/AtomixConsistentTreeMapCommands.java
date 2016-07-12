@@ -39,9 +39,9 @@ import java.util.Set;
  * {@link org.onosproject.store.service.AsyncConsistentTreeMap} Resource
  * state machine operations.
  */
-public final class AsyncConsistentTreeMapCommands {
+public final class AtomixConsistentTreeMapCommands {
 
-    private AsyncConsistentTreeMapCommands() {
+    private AtomixConsistentTreeMapCommands() {
     }
 
     /**

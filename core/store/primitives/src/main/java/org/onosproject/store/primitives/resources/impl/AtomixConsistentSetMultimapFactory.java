@@ -24,23 +24,23 @@ import io.atomix.resource.ResourceStateMachine;
 import java.util.Properties;
 
 /**
- * {@link AsyncConsistentSetMultimap} resource factory.
+ * {@link AtomixConsistentSetMultimap} resource factory.
  */
-public class AsyncConsistentSetMultimapFactory implements
-        ResourceFactory<AsyncConsistentSetMultimap> {
+public class AtomixConsistentSetMultimapFactory implements
+        ResourceFactory<AtomixConsistentSetMultimap> {
     @Override
     public SerializableTypeResolver createSerializableTypeResolver() {
-        return new AsyncConsistentMultimapCommands.TypeResolver();
+        return new AtomixConsistentMultimapCommands.TypeResolver();
     }
 
     @Override
     public ResourceStateMachine createStateMachine(Properties config) {
-        return new AsyncConsistentSetMultimapState(config);
+        return new AtomixConsistentSetMultimapState(config);
     }
 
     @Override
-    public AsyncConsistentSetMultimap createInstance(CopycatClient client,
-                                                     Properties properties) {
-        return new AsyncConsistentSetMultimap(client, properties);
+    public AtomixConsistentSetMultimap createInstance(CopycatClient client,
+                                                      Properties properties) {
+        return new AtomixConsistentSetMultimap(client, properties);
     }
 }

@@ -37,9 +37,9 @@ import java.util.Set;
 /**
  * AsyncConsistentMultimap state machine commands.
  */
-public final class AsyncConsistentMultimapCommands {
+public final class AtomixConsistentMultimapCommands {
 
-    private AsyncConsistentMultimapCommands() {
+    private AtomixConsistentMultimapCommands() {
     }
 
     /**

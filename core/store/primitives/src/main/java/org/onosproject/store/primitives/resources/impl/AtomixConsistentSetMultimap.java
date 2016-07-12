@@ -31,39 +31,39 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Clear;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.ContainsEntry;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.ContainsKey;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.ContainsValue;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Entries;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Get;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.IsEmpty;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.KeySet;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Keys;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.MultiRemove;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Put;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.RemoveAll;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Replace;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Size;
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Values;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Clear;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.ContainsEntry;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.ContainsKey;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.ContainsValue;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Entries;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Get;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.IsEmpty;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.KeySet;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Keys;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.MultiRemove;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Put;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.RemoveAll;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Replace;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Size;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Values;
 
 /**
  * Set based implementation of the {@link AsyncConsistentMultimap}.
  * <p>
  * Note: this implementation does not allow null entries or duplicate entries.
  */
-@ResourceTypeInfo(id = -153, factory = AsyncConsistentSetMultimapFactory.class)
-public class AsyncConsistentSetMultimap
-        extends AbstractResource<AsyncConsistentSetMultimap>
+@ResourceTypeInfo(id = -153, factory = AtomixConsistentSetMultimapFactory.class)
+public class AtomixConsistentSetMultimap
+        extends AbstractResource<AtomixConsistentSetMultimap>
         implements AsyncConsistentMultimap<String, byte[]> {
 
-    public AsyncConsistentSetMultimap(CopycatClient client,
-                                      Properties properties) {
+    public AtomixConsistentSetMultimap(CopycatClient client,
+                                       Properties properties) {
         super(client, properties);
     }
 
     @Override
-    public CompletableFuture<AsyncConsistentSetMultimap> open() {
+    public CompletableFuture<AtomixConsistentSetMultimap> open() {
         return super.open();
         //TODO
     }
