@@ -1,0 +1,8 @@
+module module3 {
+    yang-version 1;
+    namespace "http://huawei.com";
+    prefix Ant;
+    import module1 {
+        prefix p;
+    }
+}

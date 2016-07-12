@@ -984,4 +984,52 @@ public class InterFileLinkingTest {
         assertThat(leafref.getEffectiveDataType().getDataType(),
                 is(YangDataTypes.STRING));
     }
+
+    /**
+     * Checks priority of the file.
+     */
+    @Test
+    public void interFilePriority()
+            throws IOException, ParserException, MojoExecutionException {
+
+        String searchDir = "src/test/resources/interfilepriority";
+        utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
+        utilManager.parseYangFileInfoSet();
+        utilManager.resolveDependenciesUsingLinker();
+
+        YangNode selfNode = null;
+        YangNode refNode1 = null;
+        YangNode refNode2 = null;
+
+        for (YangNode rootNode : utilManager.getYangNodeSet()) {
+            if (rootNode.getName().equals("module1")) {
+                selfNode = rootNode;
+            } else if (rootNode.getName().equals("module2")) {
+                refNode1 = rootNode;
+            } else {
+                refNode2 = rootNode;
+            }
+        }
+
+        // Check whether the data model tree returned is of type module.
+        assertThat(selfNode instanceof YangModule, is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(selfNode.getNodeType(), is(MODULE_NODE));
+
+        // Check whether the module name is set correctly.
+        YangModule yangNode = (YangModule) selfNode;
+        assertThat(yangNode.getName(), is("module1"));
+        assertThat(yangNode.getPriority(), is(2));
+
+        // Check whether the data model tree returned is of type module.
+        assertThat(refNode1 instanceof YangModule, is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(refNode1.getNodeType(), is(MODULE_NODE));
+
+        YangModule referredNode1 = (YangModule) refNode1;
+        assertThat(referredNode1.getName(), is("module2"));
+        assertThat(referredNode1.getPriority(), is(3));
+    }
 }

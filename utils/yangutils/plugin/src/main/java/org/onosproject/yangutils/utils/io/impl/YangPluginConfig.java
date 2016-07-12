@@ -59,7 +59,7 @@ public final class YangPluginConfig {
     /**
      * Sets the string sbi or nbi for code generation.
      *
-     * @par code generation is for sbi
+     * @param codeGenerateForsbi generation is for sbi
      */
     public void setCodeGenerateForsbi(String codeGenerateForsbi) {
         this.codeGenerateForsbi = codeGenerateForsbi;

@@ -29,7 +29,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.updateClo
  * Represents base class of a node in data model tree.
  */
 public abstract class YangNode
-        implements Cloneable, Serializable, YangDataNode {
+        implements Cloneable, Serializable, YangDataNode, Comparable<YangNode> {
 
     private static final long serialVersionUID = 806201601L;
 
@@ -57,6 +57,29 @@ public abstract class YangNode
      * Previous sibling reference.
      */
     private YangNode previousSibling;
+
+    /**
+     * Priority of the node.
+     */
+    private int priority;
+
+    /**
+     * Returns the priority of the node.
+     *
+     * @return priority of the node
+     */
+    public int getPriority() {
+        return priority;
+    }
+
+    /**
+     * Sets the priority of the node.
+     *
+     * @param priority of the node
+     */
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
 
     /**
      * Returns the nodes name.
@@ -232,6 +255,14 @@ public abstract class YangNode
             curNode.setNextSibling(newChild);
             newChild.setPreviousSibling(curNode);
         }
+    }
+
+    @Override
+    public int compareTo(YangNode otherNode) {
+        if (priority == otherNode.getPriority()) {
+            return 1;
+        }
+        return ((Integer) otherNode.getPriority()).compareTo(priority);
     }
 
     /**
