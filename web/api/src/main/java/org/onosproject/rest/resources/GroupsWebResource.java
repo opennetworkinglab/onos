@@ -43,6 +43,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.onlab.util.HexString;
 import static org.onlab.util.Tools.nullIsNotFound;
 
 /**
@@ -110,7 +111,12 @@ public class GroupsWebResource extends AbstractWebResource {
     public Response getGroupByDeviceIdAndAppCookie(@PathParam("deviceId") String deviceId,
                                                    @PathParam("appCookie") String appCookie) {
         final DeviceId deviceIdInstance = DeviceId.deviceId(deviceId);
-        final GroupKey appCookieInstance = new DefaultGroupKey(appCookie.getBytes());
+
+        if (!appCookie.startsWith("0x")) {
+            throw new IllegalArgumentException("APP_COOKIE must be a hex string starts with 0x");
+        }
+        final GroupKey appCookieInstance = new DefaultGroupKey(HexString.fromHexString(
+                appCookie.split("0x")[1], ""));
 
         Group group = nullIsNotFound(groupService.getGroup(deviceIdInstance, appCookieInstance),
                 GROUP_NOT_FOUND);
@@ -172,7 +178,12 @@ public class GroupsWebResource extends AbstractWebResource {
     public void deleteGroupByDeviceIdAndAppCookie(@PathParam("deviceId") String deviceId,
                                                   @PathParam("appCookie") String appCookie) {
         DeviceId deviceIdInstance = DeviceId.deviceId(deviceId);
-        GroupKey appCookieInstance = new DefaultGroupKey(appCookie.getBytes());
+
+        if (!appCookie.startsWith("0x")) {
+            throw new IllegalArgumentException("APP_COOKIE must be a hex string starts with 0x");
+        }
+        GroupKey appCookieInstance = new DefaultGroupKey(HexString.fromHexString(
+                appCookie.split("0x")[1], ""));
 
         groupService.removeGroup(deviceIdInstance, appCookieInstance, null);
     }

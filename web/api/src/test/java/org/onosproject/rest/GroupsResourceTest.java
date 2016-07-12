@@ -94,14 +94,14 @@ public class GroupsResourceTest extends ResourceTest {
     final Device device2 = new DefaultDevice(null, deviceId2, Device.Type.OTHER,
             "", "", "", "", null);
 
-    final MockGroup group1 = new MockGroup(deviceId1, 1, "111", 1);
-    final MockGroup group2 = new MockGroup(deviceId1, 2, "222", 2);
+    final MockGroup group1 = new MockGroup(deviceId1, 1, "0x111", 1);
+    final MockGroup group2 = new MockGroup(deviceId1, 2, "0x222", 2);
 
-    final MockGroup group3 = new MockGroup(deviceId2, 3, "333", 3);
-    final MockGroup group4 = new MockGroup(deviceId2, 4, "444", 4);
+    final MockGroup group3 = new MockGroup(deviceId2, 3, "0x333", 3);
+    final MockGroup group4 = new MockGroup(deviceId2, 4, "0x444", 4);
 
-    final MockGroup group5 = new MockGroup(deviceId3, 5, "555", 5);
-    final MockGroup group6 = new MockGroup(deviceId3, 6, "666", 6);
+    final MockGroup group5 = new MockGroup(deviceId3, 5, "0x555", 5);
+    final MockGroup group6 = new MockGroup(deviceId3, 6, "0x666", 6);
 
     public GroupsResourceTest() {
         super(CoreWebApplication.class);
@@ -460,7 +460,7 @@ public class GroupsResourceTest extends ResourceTest {
                 .andReturn(group5).anyTimes();
         replay(mockGroupService);
         final WebResource rs = resource();
-        final String response = rs.path("groups/" + deviceId3 + "/" + "111").get(String.class);
+        final String response = rs.path("groups/" + deviceId3 + "/" + "0x111").get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -481,7 +481,7 @@ public class GroupsResourceTest extends ResourceTest {
                 .andReturn(null).anyTimes();
         replay(mockGroupService);
         final WebResource rs = resource();
-        final ClientResponse response = rs.path("groups/" + deviceId3 + "/" + "222").get(ClientResponse.class);
+        final ClientResponse response = rs.path("groups/" + deviceId3 + "/" + "0x222").get(ClientResponse.class);
 
         assertEquals(404, response.getStatus());
     }
@@ -517,7 +517,7 @@ public class GroupsResourceTest extends ResourceTest {
 
         WebResource rs = resource();
 
-        String location = "/groups/1/111";
+        String location = "/groups/1/0x111";
 
         ClientResponse deleteResponse = rs.path(location)
                 .type(MediaType.APPLICATION_JSON_TYPE)
