@@ -97,6 +97,47 @@ alias sshctl='onos-ssh'
 alias sshnet='onos-ssh $OCN'
 
 
+
+# Applies the settings in the specified topology recipe file or lists current
+# topo recipe definition if no topo recipe file is given.
+function topo {
+    topo=${1:-""}
+    case "$topo" in
+    "")
+        env | egrep "ONOS_TOPO"
+        env | egrep "(OTD|OTL|OTH)="
+        ;;
+
+    *)
+        [ ! -f $ONOS_ROOT/tools/test/topos/$1.recipe ] && echo "No such topo recipe: $1" >&2 && return 1
+        unset ONOS_TOPO OTD OTL OTH ONOS_DEVICES ONOS_HOSTS
+        unset $(env | sed -n 's:\(^OT[DLH][0-9]\{1,\}\)=.*:\1 :g p')
+        export ONOS_TOPO=$1
+        . $ONOS_ROOT/tools/test/topos/$1.recipe
+        let d=1; while [ $d -le $OTD ]; do
+            dev="$(printf 'of:%016x' $d)"
+            export OTD$d=$dev; export ONOS_DEVICES="$ONOS_DEVICES $dev"
+            let d=d+1;
+        done
+        let h=1; while [ $h -le $OTH ]; do
+            host="$(printf '00:00:00:00:00:%02x/-1' $h)"
+            export OTH$h=$host; export ONOS_HOSTS="$ONOS_HOSTS $host"
+            let h=h+1
+        done
+        topo
+    esac
+}
+
+# Lists available topo recipes
+function topos {
+    for topo in $(ls -1 $ONOS_ROOT/tools/test/topos/*.recipe); do
+        name=$(basename $topo .recipe)
+        printf "%-16s  %s\n" \
+            "$([ $name = $ONOS_TOPO ] && echo $name '*' || echo $name)" \
+            "$(grep '^#' $topo | head -n 1)"
+    done
+}
+
 # Sets the primary instance to the specified instance number.
 function setPrimaryInstance {
     export ONOS_INSTANCES=$(env | grep 'OC[0-9]*=' | sort | cut -d= -f2)
@@ -132,6 +173,7 @@ function cell {
         rm -f $aux
         setPrimaryInstance 1 >/dev/null
         onos-verify-cell
+        topo default >/dev/null
         ;;
     "return")
         curl -sS -X DELETE "http://$CELL_WARDEN:4321/?user=${2:-$(id -un)}"
@@ -147,7 +189,7 @@ function cell {
         env | egrep "OCI"
         env | egrep "OC[0-9]+" | sort
         env | egrep "OC[NT]"
-        env | egrep "ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL|ONOS_INSTANCES' | sort
+        env | egrep "ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL|ONOS_INSTANCES|ONOS_DEVICES|ONOS_HOSTS' | sort
         ;;
 
     *)
@@ -161,6 +203,7 @@ function cell {
         . $ONOS_ROOT/tools/test/cells/$1
         setPrimaryInstance 1 >/dev/null
         cell
+        topo default >/dev/null
     esac
 }
 

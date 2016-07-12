@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <scenario name="net-setup" description="Network setup steps">
-    <!-- TODO: parametrize this via recipes -->
+    <!-- Note: This scenario is tailored using 'topo' recipe mechanism; see topos/*.recipe files -->
     <group name="Net-Setup">
         <step name="Push-Topos" exec="onos-push-topos ${OCN}"/>
 
@@ -25,11 +25,11 @@
               exec="onos-check-summary ${OC1} [0-9]* 0 0 0"/>
 
         <step name="Config-Topo" requires="~Initial-Summary-Check"
-              exec="onos-netcfg ${OC1} ${ONOS_ROOT}/tools/test/topos/attmpls-cfg.json"/>
+              exec="onos-netcfg ${OC1} ${ONOS_ROOT}/tools/test/topos/${ONOS_TOPO}.json"/>
 
         <step name="Start-Mininet"
               requires="Install-Apps,Config-Topo,Push-Topos,Stop-Mininet-If-Needed"
-              exec="onos-mininet start topos/topo attmplsfast.py ${ONOS_INSTANCES}"/>
+              exec="onos-mininet start topos/topo ${ONOS_TOPO}.py ${ONOS_INSTANCES}"/>
 
         <step name="Wait-For-Mininet" requires="Start-Mininet"
               exec="onos-mininet wait 10"/>
@@ -38,7 +38,7 @@
               exec="onos-mininet sendAndExpect gratuitousArp --expect ."/>
 
         <step name="Check-Summary" requires="ARP-Hosts"
-              exec="onos-check-summary ${OC1} [0-9]* 25 140 25"/>
+              exec="onos-check-summary ${OC1} [0-9]* ${OTD} ${OTL} ${OTH}"/>
 
         <step name="Balance-Masters" requires="~Check-Summary" if="${OC2}"
               exec="onos ${OC1} balance-masters"/>

@@ -15,61 +15,14 @@
   -->
 <scenario name="net-deactivate-fwd" description="Deactivate forwarding apps">
     <group name="Net-Deactivate-Fwd">
-        <!-- TODO: parametrize this via recipes -->
-        <step name="Net-Deactivate-Fwd.Uninstall-Reactive-Forwarding"
+        <step name="Deactivate-Fwd-Apps"
               exec="onos ${OC1} app deactivate org.onosproject.fwd org.onosproject.ifwd"/>
-        <step name="Net-Deactivate-Fwd.Check-Apps" requires="Net-Deactivate-Fwd.Uninstall-Reactive-Forwarding"
+        <step name="Check-Fwd-Apps-Deactivated" requires="Deactivate-Fwd-Apps"
               exec="onos-check-apps ${OC1} fwd,ifwd excludes"/>
 
-        <step name="Check-DFwd-Flows1" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000001 not-present"/>
-        <step name="Check-DFwd-Flows2" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000002 not-present"/>
-        <step name="Check-DFwd-Flows3" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000003 not-present"/>
-        <step name="Check-DFwd-Flows4" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000004 not-present"/>
-        <step name="Check-DFwd-Flows5" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000005 not-present"/>
-        <step name="Check-DFwd-Flows6" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000006 not-present"/>
-        <step name="Check-DFwd-Flows7" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000007 not-present"/>
-        <step name="Check-DFwd-Flows8" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000008 not-present"/>
-        <step name="Check-DFwd-Flows9" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000009 not-present"/>
-        <step name="Check-DFwd-Flowsa" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:000000000000000a not-present"/>
-        <step name="Check-DFwd-Flowsb" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:000000000000000b not-present"/>
-        <step name="Check-DFwd-Flowsc" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:000000000000000c not-present"/>
-        <step name="Check-DFwd-Flowsd" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:000000000000000d not-present"/>
-        <step name="Check-DFwd-Flowse" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:000000000000000e not-present"/>
-        <step name="Check-DFwd-Flowsf" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:000000000000000f not-present"/>
-        <step name="Check-DFwd-Flows10" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000010 not-present"/>
-        <step name="Check-DFwd-Flows11" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000011 not-present"/>
-        <step name="Check-DFwd-Flows12" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000012 not-present"/>
-        <step name="Check-DFwd-Flows13" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000013 not-present"/>
-        <step name="Check-DFwd-Flows14" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000014 not-present"/>
-        <step name="Check-DFwd-Flows15" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000015 not-present"/>
-        <step name="Check-DFwd-Flows16" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000016 not-present"/>
-        <step name="Check-DFwd-Flows17" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000017 not-present"/>
-        <step name="Check-DFwd-Flows18" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000018 not-present"/>
-        <step name="Check-DFwd-Flows19" requires="Net-Deactivate-Fwd.Check-Apps"
-              exec="onos-check-ipv4-flows ${OC1} of:0000000000000019 not-present"/>
+        <parallel var="${OTD#}">
+            <step name="Check-DFwd-Flows-${#}" requires="Check-Fwd-Apps-Deactivated"
+                  exec="onos-check-ipv4-flows ${OC1} ${OTD#} not-present"/>
+        </parallel>
     </group>
 </scenario>

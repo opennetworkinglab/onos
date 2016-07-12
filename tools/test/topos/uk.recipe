@@ -1,0 +1,13 @@
+# Simple UK topology recipe
+export OTD=12
+export OTL=46
+export OTH=12
+
+# Variables for the pingall scenario.
+export OPALL=132
+
+# Variables for link-up-down-up scenario.
+export OPS=h6
+export OPD=h11
+export OPL1="s11 s7"
+export OPL2="s11 s9"

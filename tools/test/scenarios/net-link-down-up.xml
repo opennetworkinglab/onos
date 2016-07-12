@@ -14,31 +14,31 @@
   ~ limitations under the License.
   -->
 <scenario name="net-link-down-up" description="Network link up-down test">
-    <!-- TODO: parametrize this via recipes -->
+    <!-- Note: This scenario is tailored using 'topo' recipe mechanism; see topos/*.recipe files -->
     <group name="Net-Link-Down-Up">
         <step name="Ping-1"
-              exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"/>
+              exec="onos-mininet sendAndExpect ${OPS} ping -c1 ${OPD} --expect \ 0% packet loss"/>
         <step name="Link-1-Down" requires="~Ping-1"
-              exec="onos-mininet sendAndExpect link s4 s7 down --expect ."/>
+              exec="onos-mininet sendAndExpect link ${OPL1} down --expect ."/>
         <step name="Ping-2-Prep" requires="~Link-1-Down"
-              exec="onos-mininet sendAndExpect h1 ping -c5 h4 --expect ."/>
+              exec="onos-mininet sendAndExpect ${OPS} ping -c5 ${OPD} --expect ."/>
         <step name="Ping-2" requires="~Ping-2-Prep"
-              exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"/>
+              exec="onos-mininet sendAndExpect ${OPS} ping -c1 ${OPD} --expect \ 0% packet loss"/>
         <step name="Link-2-Down" requires="~Ping-2"
-              exec="onos-mininet sendAndExpect link s4 s5 down --expect ."/>
+              exec="onos-mininet sendAndExpect link ${OPL2} down --expect ."/>
         <step name="Ping-3" requires="~Link-2-Down"
-              exec="onos-mininet sendAndExpect h1 ping -c1 -w1 h4 --expect 100% packet loss"/>
+              exec="onos-mininet sendAndExpect ${OPS} ping -c1 -w1 ${OPD} --expect 100% packet loss"/>
         <step name="Link-1-Up" requires="~Ping-3"
-              exec="onos-mininet sendAndExpect link s4 s7 up --expect ."/>
+              exec="onos-mininet sendAndExpect link ${OPL1} up --expect ."/>
         <step name="Ping-4-Prep" requires="~Link-1-Up"
-              exec="onos-mininet sendAndExpect h1 ping -c5 h4 --expect ."/>
+              exec="onos-mininet sendAndExpect ${OPS} ping -c5 ${OPD} --expect ."/>
         <step name="Ping-4" requires="~Ping-4-Prep"
-              exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"/>
+              exec="onos-mininet sendAndExpect ${OPS} ping -c1 ${OPD} --expect \ 0% packet loss"/>
         <step name="Link-2-Up" requires="~Ping-4"
-              exec="onos-mininet sendAndExpect link s4 s5 up --expect ."/>
+              exec="onos-mininet sendAndExpect link ${OPL2} up --expect ."/>
         <step name="Ping-5-Prep" requires="~Link-2-Up"
-              exec="onos-mininet sendAndExpect h1 ping -c5 h4 --expect ."/>
+              exec="onos-mininet sendAndExpect ${OPS} ping -c5 ${OPD} --expect ."/>
         <step name="Ping-5" requires="~Ping-5-Prep"
-              exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"/>
+              exec="onos-mininet sendAndExpect ${OPS} ping -c1 ${OPD} --expect \ 0% packet loss"/>
     </group>
 </scenario>

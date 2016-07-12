@@ -118,8 +118,8 @@ class GeantMplsTopo( Topo ):
         self.addLink( HAM , HAM_host )
         self.addLink( AMS , AMS_host )
         self.addLink( STO , STO_host )
-        self.addLink( HEL , HEL_host )
         self.addLink( OSL , OSL_host )
+        self.addLink( HEL , HEL_host )
 
         # add edges between switches
         self.addLink( ATH , MIL, bw=10 )

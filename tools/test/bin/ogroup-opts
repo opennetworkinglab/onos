@@ -46,6 +46,16 @@ function _cell-opts () {
 
 complete -F _cell-opts cell vicell
 
+# Tab completion settings for topo recipes
+function _topo-opts () {
+  local cur=${COMP_WORDS[COMP_CWORD]}
+  if [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $( compgen -W "$(cd $ONOS_ROOT/tools/test/topos && ls -1 *.recipe | sed 's/\.recipe//g')" -- $cur ) )
+  fi
+}
+
+complete -F _topo-opts topo
+
 
 # Tab completion settings for onos-create-app.
 function _ocapp-opts () {

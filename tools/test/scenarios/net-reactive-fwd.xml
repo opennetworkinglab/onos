@@ -14,18 +14,16 @@
   ~ limitations under the License.
   -->
 <scenario name="net-reactive-fwd" description="Network reactive forwarding test">
-    <!-- TODO: parametrize this via recipes -->
     <group name="Net-Reactive-Fwd">
         <import file="${ONOS_SCENARIOS}/net-activate-fwd.xml" namespace="Net-Reactive-Fwd"/>
-        <dependency name="Net-Reactive-Fwd.Net-Activate-Fwd" requires="Net-Setup"/>
 
         <import file="${ONOS_SCENARIOS}/net-pingall.xml" namespace="Net-Reactive-Fwd"/>
         <dependency name="Net-Reactive-Fwd.Net-Pingall" requires="Net-Reactive-Fwd.Net-Activate-Fwd"/>
 
         <import file="${ONOS_SCENARIOS}/net-link-down-up.xml" namespace="Net-Reactive-Fwd"/>
-        <dependency name="Net-Reactive-Fwd.Net-Link-Down-Up" requires="Net-Setup,~Net-Reactive-Fwd.Net-Pingall"/>
+        <dependency name="Net-Reactive-Fwd.Net-Link-Down-Up" requires="~Net-Reactive-Fwd.Net-Pingall"/>
 
         <import file="${ONOS_SCENARIOS}/net-deactivate-fwd.xml" namespace="Net-Reactive-Fwd"/>
-        <dependency name="Net-Reactive-Fwd.Net-Deactivate-Fwd" requires="Net-Reactive-Fwd.Net-Link-Down-Up"/>
+        <dependency name="Net-Reactive-Fwd.Net-Deactivate-Fwd" requires="~Net-Reactive-Fwd.Net-Link-Down-Up"/>
     </group>
 </scenario>

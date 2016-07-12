@@ -1,0 +1,13 @@
+# GEANT & Nordnet topology recipe
+export OTD=31
+export OTL=108
+export OTH=31
+
+# Variables for the pingall scenario.
+export OPALL=930
+
+# Variables for link-up-down-up scenario.
+export OPS=h3
+export OPD=h31
+export OPL1="s31 s14"
+export OPL2="s31 s30"
