@@ -26,7 +26,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * Distributed Work Queue primitive.
  * <p>
- * Work queue serves as a buffer allowing producers to {@link #add(Collection) add} tasks and consumers
+ * Work queue serves as a buffer allowing producers to {@link #addMultiple(Collection) add} tasks and consumers
  * to {@link #take() take} tasks to process.
  * <p>
  * In the system each task is tracked via its unique task identifier which is returned when a task is taken.
