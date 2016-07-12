@@ -30,6 +30,7 @@ import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
@@ -41,6 +42,7 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.BridgeConfig;
 import org.onosproject.net.behaviour.BridgeDescription;
+import org.onosproject.net.behaviour.BridgeName;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.behaviour.DefaultBridgeDescription;
 import org.onosproject.net.behaviour.DefaultPatchDescription;
@@ -72,6 +74,7 @@ import org.onosproject.store.service.Versioned;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
@@ -89,7 +92,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
-
 /**
  * Initializes devices in compute/gateway nodes according to there type.
  */
@@ -106,8 +108,6 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
             .register(NodeState.class);
 
     private static final String OVSDB_PORT = "ovsdbPort";
-    private static final int DEFAULT_OVSDB_PORT = 6640;
-    private static final int DEFAULT_OFPORT = 6653;
     private static final int DPID_BEGIN = 3;
 
     private static final String APP_ID = "org.onosproject.openstacknode";
@@ -120,7 +120,7 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OvsdbController controller;
+    protected OvsdbController ovsdbController;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
@@ -142,7 +142,7 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
     private int ovsdbPort = DEFAULT_OVSDB_PORT;
 
     private final ExecutorService eventExecutor =
-            newSingleThreadScheduledExecutor(groupedThreads("onos/openstack-node", "event-handler"));
+            newSingleThreadScheduledExecutor(groupedThreads("onos/openstack-node", "event-handler", log));
 
     private final ConfigFactory configFactory =
             new ConfigFactory<ApplicationId, OpenstackNodeConfig>(
@@ -221,10 +221,6 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
 
     @Override
     public void deleteNode(OpenstackNode node) {
-        if (isOvsdbConnected(node)) {
-            OvsdbNodeId ovsdb = new OvsdbNodeId(node.managementIp(), ovsdbPort);
-            controller.getOvsdbClient(ovsdb).disconnect();
-        }
         nodeStore.remove(node.hostname());
         process(new OpenstackNodeEvent(INCOMPLETE, node));
     }
@@ -236,15 +232,13 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
             connectOvsdb(node);
             return;
         }
-
         process(new OpenstackNodeEvent(INIT, node));
-        createBridge(node, INTEGRATION_BRIDGE,
-                     node.intBridge().toString().substring(DPID_BEGIN));
 
-        // creates additional router bridge if the node type is GATEWAY
+        createBridge(node, INTEGRATION_BRIDGE, node.intBridge());
         if (node.type().equals(NodeType.GATEWAY)) {
-            createBridge(node, ROUTER_BRIDGE,
-                         node.routerBridge().get().toString().substring(DPID_BEGIN));
+            createBridge(node, ROUTER_BRIDGE, node.routerBridge().get());
+            // TODO remove this when OVSDB provides port event
+            setNodeState(node, nodeState(node));
         }
     }
 
@@ -256,20 +250,18 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
             return;
         }
         process(new OpenstackNodeEvent(DEVICE_CREATED, node));
+
         createTunnelInterface(node);
-        // creates additional patch ports connecting integration bridge and
-        // router bridge if the node type is GATEWAY
         if (node.type().equals(NodeType.GATEWAY)) {
             createPatchInterface(node);
+            addUplink(node);
+            // TODO remove this when OVSDB provides port event
+            setNodeState(node, nodeState(node));
         }
     }
 
     @Override
     public void processCompleteState(OpenstackNode node) {
-        if (isOvsdbConnected(node)) {
-            OvsdbNodeId ovsdb = new OvsdbNodeId(node.managementIp(), ovsdbPort);
-            controller.getOvsdbClient(ovsdb).disconnect();
-        }
         process(new OpenstackNodeEvent(COMPLETE, node));
         log.info("Finished init {}", node.hostname());
     }
@@ -334,50 +326,84 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
     }
 
     private void setNodeState(OpenstackNode node, NodeState newState) {
-        log.debug("Changed {} state: {}", node.hostname(), newState);
-        nodeStore.put(node.hostname(), OpenstackNode.getUpdatedNode(node, newState));
+        if (node.state() != newState) {
+            log.debug("Changed {} state: {}", node.hostname(), newState);
+            nodeStore.put(node.hostname(), OpenstackNode.getUpdatedNode(node, newState));
+        }
     }
 
     private NodeState nodeState(OpenstackNode node) {
-        if (!deviceService.isAvailable(node.intBridge())) {
+        if (!isOvsdbConnected(node) || !deviceService.isAvailable(node.intBridge())) {
             return INIT;
         }
+
+        // TODO use device service when we use single ONOS cluster for both openstackNode and vRouter
         if (node.type().equals(NodeType.GATEWAY) &&
-                !deviceService.isAvailable(node.routerBridge().get())) {
+                !isBridgeCreated(node.ovsdbId(), ROUTER_BRIDGE)) {
             return INIT;
         }
 
-        if (!isIfaceCreated(node.intBridge(), DEFAULT_TUNNEL)) {
-            return DEVICE_CREATED;
-        }
-        if (node.type().equals(NodeType.GATEWAY) && (
-                !isIfaceCreated(node.routerBridge().get(), PATCH_ROUT_BRIDGE) ||
-                !isIfaceCreated(node.intBridge(), PATCH_INTG_BRIDGE))) {
+        if (!isIfaceCreated(node.ovsdbId(), DEFAULT_TUNNEL)) {
             return DEVICE_CREATED;
         }
 
+        if (node.type().equals(NodeType.GATEWAY) && (
+                !isIfaceCreated(node.ovsdbId(), PATCH_ROUT_BRIDGE) ||
+                !isIfaceCreated(node.ovsdbId(), PATCH_INTG_BRIDGE) ||
+                !isIfaceCreated(node.ovsdbId(), node.uplink().get()))) {
+            return DEVICE_CREATED;
+        }
         return COMPLETE;
     }
 
     private boolean isIfaceCreated(DeviceId deviceId, String ifaceName) {
-        return deviceService.getPorts(deviceId).stream()
-                .filter(p -> p.annotations().value(PORT_NAME).contains(ifaceName) &&
-                        p.isEnabled())
+        Device device = deviceService.getDevice(deviceId);
+        if (device == null || !device.is(BridgeConfig.class)) {
+            return false;
+        }
+
+        BridgeConfig bridgeConfig =  device.as(BridgeConfig.class);
+        return bridgeConfig.getPorts().stream()
+                .filter(port -> port.annotations().value(PORT_NAME).equals(ifaceName))
                 .findAny()
                 .isPresent();
     }
 
-    private void createBridge(OpenstackNode node, String bridgeName, String dpid) {
+    private boolean isBridgeCreated(DeviceId deviceId, String bridgeName) {
+        Device device = deviceService.getDevice(deviceId);
+        if (device == null || !device.is(BridgeConfig.class)) {
+            return false;
+        }
+
+        BridgeConfig bridgeConfig =  device.as(BridgeConfig.class);
+        return bridgeConfig.getBridges().stream()
+                .filter(bridge -> bridge.name().equals(bridgeName))
+                .findAny()
+                .isPresent();
+    }
+
+    private void createBridge(OpenstackNode node, String bridgeName, DeviceId deviceId) {
         Device device = deviceService.getDevice(node.ovsdbId());
         if (device == null || !device.is(BridgeConfig.class)) {
             log.error("Failed to create integration bridge on {}", node.ovsdbId());
             return;
         }
 
-        List<ControllerInfo> controllers = clusterService.getNodes().stream()
-                .map(controller -> new ControllerInfo(controller.ip(), DEFAULT_OFPORT, "tcp"))
-                .collect(Collectors.toList());
+        // TODO fix this when we use single ONOS cluster for both openstackNode and vRouter
+        Set<IpAddress> controllerIps;
+        if (bridgeName.equals(ROUTER_BRIDGE)) {
+            controllerIps = Sets.newHashSet(node.routerController().get());
+        } else {
+            controllerIps = clusterService.getNodes().stream()
+                    .map(ControllerNode::ip)
+                    .collect(Collectors.toSet());
+        }
 
+        List<ControllerInfo> controllers = controllerIps.stream()
+                    .map(ip -> new ControllerInfo(ip, DEFAULT_OFPORT, DEFAULT_OF_PROTO))
+                    .collect(Collectors.toList());
+
+        String dpid = deviceId.toString().substring(DPID_BEGIN);
         BridgeDescription bridgeDesc = DefaultBridgeDescription.builder()
                 .name(bridgeName)
                 .failMode(BridgeDescription.FailMode.SECURE)
@@ -386,11 +412,15 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
                 .controllers(controllers)
                 .build();
 
-        BridgeConfig bridgeConfig =  device.as(BridgeConfig.class);
+        BridgeConfig bridgeConfig = device.as(BridgeConfig.class);
         bridgeConfig.addBridge(bridgeDesc);
     }
 
     private void createTunnelInterface(OpenstackNode node) {
+        if (isIfaceCreated(node.ovsdbId(), DEFAULT_TUNNEL)) {
+            return;
+        }
+
         Device device = deviceService.getDevice(node.ovsdbId());
         if (device == null || !device.is(InterfaceConfig.class)) {
             log.error("Failed to create tunnel interface on {}", node.ovsdbId());
@@ -405,11 +435,17 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
                 .key(TunnelKeys.flowTunnelKey())
                 .build();
 
-        InterfaceConfig ifaceConfig =  device.as(InterfaceConfig.class);
+        InterfaceConfig ifaceConfig = device.as(InterfaceConfig.class);
         ifaceConfig.addTunnelMode(DEFAULT_TUNNEL, tunnelDesc);
     }
 
     private void createPatchInterface(OpenstackNode node) {
+        checkArgument(node.type().equals(NodeType.GATEWAY));
+        if (isIfaceCreated(node.ovsdbId(), PATCH_INTG_BRIDGE) &&
+                isIfaceCreated(node.ovsdbId(), PATCH_ROUT_BRIDGE)) {
+            return;
+        }
+
         Device device = deviceService.getDevice(node.ovsdbId());
         if (device == null || !device.is(InterfaceConfig.class)) {
             log.error("Failed to create patch interfaces on {}", node.hostname());
@@ -428,21 +464,38 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
                 .peer(PATCH_INTG_BRIDGE)
                 .build();
 
-        InterfaceConfig ifaceConfig =  device.as(InterfaceConfig.class);
+        InterfaceConfig ifaceConfig = device.as(InterfaceConfig.class);
         ifaceConfig.addPatchMode(PATCH_INTG_BRIDGE, patchIntg);
         ifaceConfig.addPatchMode(PATCH_ROUT_BRIDGE, patchRout);
     }
 
+    private void addUplink(OpenstackNode node) {
+        checkArgument(node.type().equals(NodeType.GATEWAY));
+        if (isIfaceCreated(node.ovsdbId(), node.uplink().get())) {
+            return;
+        }
+
+        Device device = deviceService.getDevice(node.ovsdbId());
+        if (device == null || !device.is(BridgeConfig.class)) {
+            log.error("Failed to add port {} on {}", node.uplink().get(), node.ovsdbId());
+            return;
+        }
+
+        BridgeConfig bridgeConfig =  device.as(BridgeConfig.class);
+        bridgeConfig.addPort(BridgeName.bridgeName(ROUTER_BRIDGE),
+                             node.uplink().get());
+    }
+
     private boolean isOvsdbConnected(OpenstackNode node) {
         OvsdbNodeId ovsdb = new OvsdbNodeId(node.managementIp(), ovsdbPort);
-        OvsdbClientService client = controller.getOvsdbClient(ovsdb);
+        OvsdbClientService client = ovsdbController.getOvsdbClient(ovsdb);
         return deviceService.isAvailable(node.ovsdbId()) &&
                 client != null &&
                 client.isConnected();
     }
 
     private void connectOvsdb(OpenstackNode node) {
-        controller.connect(node.managementIp(), TpPort.tpPort(ovsdbPort));
+        ovsdbController.connect(node.managementIp(), TpPort.tpPort(ovsdbPort));
     }
 
     private Set<String> systemIfaces(OpenstackNode node) {
@@ -450,6 +503,7 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
         if (node.type().equals(NodeType.GATEWAY)) {
             ifaces.add(PATCH_INTG_BRIDGE);
             ifaces.add(PATCH_ROUT_BRIDGE);
+            ifaces.add(node.uplink().get());
         }
         return ifaces;
     }
@@ -482,7 +536,11 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
 
         @Override
         public void disconnected(Device device) {
-            log.debug("Device {} is disconnected", device.id());
+            OpenstackNode node = nodeByDeviceId(device.id());
+            if (node != null) {
+                log.warn("Device {} is disconnected", device.id());
+                setNodeState(node, NodeState.INCOMPLETE);
+            }
         }
     }
 
@@ -566,6 +624,7 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
                     (device.type().equals(SWITCH) ? bridgeHandler : ovsdbHandler);
 
             switch (event.type()) {
+                // TODO implement OVSDB port event so that we can handle updates on the OVSDB
                 case PORT_ADDED:
                     eventExecutor.execute(() -> bridgeHandler.portAdded(event.port()));
                     break;
@@ -640,7 +699,7 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
                     oldNode = event.oldValue().value();
                     newNode = event.newValue().value();
 
-                    log.debug("Reloaded {}", newNode.hostname());
+                    log.info("Reloaded {}", newNode.hostname());
                     if (!newNode.equals(oldNode)) {
                         log.debug("New node: {}", newNode);
                     }

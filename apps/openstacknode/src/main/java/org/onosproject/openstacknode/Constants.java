@@ -28,4 +28,8 @@ public final class Constants {
     public static final String DEFAULT_TUNNEL = "vxlan";
     public static final String PATCH_INTG_BRIDGE = "patch-intg";
     public static final String PATCH_ROUT_BRIDGE = "patch-rout";
+
+    public static final int DEFAULT_OVSDB_PORT = 6640;
+    public static final int DEFAULT_OFPORT = 6653;
+    public static final String DEFAULT_OF_PROTO = "tcp";
 }

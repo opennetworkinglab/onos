@@ -40,7 +40,12 @@ public final class OpenstackNodeConfig extends Config<ApplicationId> {
     private static final String MANAGEMENT_IP = "managementIp";
     private static final String DATA_IP = "dataIp";
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
+
+    // GATEWAY node specific fields
     private static final String ROUTER_BRIDGE = "routerBridge";
+    private static final String UPLINK_PORT_NAME = "uplinkPort";
+    // TODO remove this when vRouter supports multiple switches
+    private static final String ROUTER_CONTROLLER = "routerController";
 
     @Override
     public boolean isValid() {
@@ -59,7 +64,9 @@ public final class OpenstackNodeConfig extends Config<ApplicationId> {
                     MANAGEMENT_IP,
                     DATA_IP,
                     INTEGRATION_BRIDGE,
-                    ROUTER_BRIDGE
+                    ROUTER_BRIDGE,
+                    UPLINK_PORT_NAME,
+                    ROUTER_CONTROLLER
             );
 
             result &= isString(osNode, HOST_NAME, MANDATORY);
@@ -74,6 +81,8 @@ public final class OpenstackNodeConfig extends Config<ApplicationId> {
             if (osNode.get(TYPE).asText().equals(GATEWAY.name())) {
                 result &= isString(osNode, ROUTER_BRIDGE, MANDATORY);
                 DeviceId.deviceId(osNode.get(ROUTER_BRIDGE).asText());
+                result &= isString(osNode, UPLINK_PORT_NAME, MANDATORY);
+                result &= isIpAddress(osNode, ROUTER_CONTROLLER, MANDATORY);
             }
         }
         return result;
@@ -97,7 +106,9 @@ public final class OpenstackNodeConfig extends Config<ApplicationId> {
                     .hostname(get(node, HOST_NAME));
 
             if (type.equals(GATEWAY)) {
-                nodeBuilder.routerBridge(DeviceId.deviceId(get(node, ROUTER_BRIDGE)));
+                nodeBuilder.routerBridge(DeviceId.deviceId(get(node, ROUTER_BRIDGE)))
+                        .uplink(get(node, UPLINK_PORT_NAME))
+                        .routerController(IpAddress.valueOf(get(node, ROUTER_CONTROLLER)));
             }
             nodes.add(nodeBuilder.build());
         }

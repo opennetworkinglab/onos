@@ -22,9 +22,13 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.Device;
+import org.onosproject.net.behaviour.BridgeConfig;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.device.PortDescription;
 import org.onosproject.openstacknode.OpenstackNode;
 import org.onosproject.openstacknode.OpenstackNodeService;
+
+import java.util.Optional;
 
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknode.Constants.*;
@@ -60,7 +64,7 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
             return;
         }
 
-        print("%n[Integration Bridge Status]");
+        print("[Integration Bridge Status]");
         Device device = deviceService.getDevice(node.intBridge());
         if (device != null) {
             print("%s %s=%s available=%s %s",
@@ -79,23 +83,30 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
         }
 
         if (node.type().equals(GATEWAY)) {
-            print("%n[Router Bridge Status]");
-            device = deviceService.getDevice(node.routerBridge().get());
-            if (device != null) {
-                print("%s %s=%s available=%s %s",
-                        deviceService.isAvailable(device.id()) ? MSG_OK : MSG_NO,
-                        ROUTER_BRIDGE,
-                        device.id(),
-                        deviceService.isAvailable(device.id()),
-                        device.annotations());
+            print(getPortState(deviceService, node.intBridge(), PATCH_INTG_BRIDGE));
 
-                print(getPortState(deviceService, node.routerBridge().get(), PATCH_ROUT_BRIDGE));
-                print(getPortState(deviceService, node.intBridge(), PATCH_INTG_BRIDGE));
+            print("%n[Router Bridge Status]");
+            device = deviceService.getDevice(node.ovsdbId());
+            if (device == null || !device.is(BridgeConfig.class)) {
+                print("%s %s=%s is not available(unable to connect OVSDB)",
+                      MSG_NO,
+                      ROUTER_BRIDGE,
+                      node.intBridge());
             } else {
-                print("%s %s=%s is not available",
-                        MSG_NO,
-                        ROUTER_BRIDGE,
-                        node.intBridge());
+                BridgeConfig bridgeConfig = device.as(BridgeConfig.class);
+                boolean available = bridgeConfig.getBridges().stream()
+                        .filter(bridge -> bridge.name().equals(ROUTER_BRIDGE))
+                        .findAny()
+                        .isPresent();
+
+                print("%s %s=%s available=%s",
+                      available ? MSG_OK : MSG_NO,
+                      ROUTER_BRIDGE,
+                      node.routerBridge().get(),
+                      available);
+
+                print(getPortStateOvsdb(deviceService, node.ovsdbId(), PATCH_ROUT_BRIDGE));
+                print(getPortStateOvsdb(deviceService, node.ovsdbId(), node.uplink().get()));
             }
         }
     }
@@ -113,6 +124,30 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
                     port.number(),
                     port.isEnabled() ? Boolean.TRUE : Boolean.FALSE,
                     port.annotations());
+        } else {
+            return String.format("%s %s does not exist", MSG_NO, portName);
+        }
+    }
+
+    private String getPortStateOvsdb(DeviceService deviceService, DeviceId deviceId, String portName) {
+        Device device = deviceService.getDevice(deviceId);
+        if (device == null || !device.is(BridgeConfig.class)) {
+            return String.format("%s %s does not exist(unable to connect OVSDB)",
+                                 MSG_NO, portName);
+        }
+
+        BridgeConfig bridgeConfig =  device.as(BridgeConfig.class);
+        Optional<PortDescription> port = bridgeConfig.getPorts().stream()
+                .filter(p -> p.annotations().value(PORT_NAME).contains(portName))
+                .findAny();
+
+        if (port.isPresent()) {
+            return String.format("%s %s portNum=%s enabled=%s %s",
+                                 port.get().isEnabled() ? MSG_OK : MSG_NO,
+                                 portName,
+                                 port.get().portNumber(),
+                                 port.get().isEnabled() ? Boolean.TRUE : Boolean.FALSE,
+                                 port.get().annotations());
         } else {
             return String.format("%s %s does not exist", MSG_NO, portName);
         }
