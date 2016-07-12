@@ -79,7 +79,7 @@ public class AnnotateDeviceCommand extends AbstractShellCommand {
         return new DefaultDeviceDescription(device.id().uri(), device.type(),
                                             device.manufacturer(), device.hwVersion(),
                                             device.swVersion(), device.serialNumber(),
-                                            device.chassisId(), builder.build());
+                                            device.chassisId(), false, builder.build());
     }
 
     // Token provider entity
