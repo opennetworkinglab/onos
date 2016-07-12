@@ -368,7 +368,7 @@ public class OnosAppMojo extends AbstractMojo {
 
     // Generates artifact directory name from the specified elements.
     private String artifactDir(String gid, String aid, String version) {
-        return gid.replace('.', '/') + "/" + aid.replace('.', '/') + "/" + version;
+        return gid.replace('.', '/') + "/" + aid + "/" + version;
     }
 
     // Generates artifact file name from the specified fields.

@@ -43,7 +43,7 @@
         <onos-build-conf.version>1.3</onos-build-conf.version>
         <netty4.version>4.0.36.Final</netty4.version>
         <openflowj.version>0.9.4.onos</openflowj.version>
-        <onos-maven-plugin.version>1.9</onos-maven-plugin.version>
+        <onos-maven-plugin.version>1.10-SNAPSHOT</onos-maven-plugin.version>
         <osgi.version>5.0.0</osgi.version>
         <karaf.version>3.0.5</karaf.version>
         <jersey.version>2.22.2</jersey.version>

@@ -53,6 +53,9 @@
     </licenses>
 
     <modules>
+        <!-- FIXME remove after 1.10 is released -->
+        <module>tools/package/maven-plugin</module>
+
         <module>lib</module>
 
         <module>utils</module>
