@@ -16,7 +16,7 @@
 <scenario name="net-teardown-vnets" description="Network (vnets) teardown steps">
     <group name="Net-Teardown-Vnets">
 
-        <step name="Check-NetworkId-Variable-Exists" 
+        <step name="Check-NetworkId-Variable-Exists"
               exec="test '${networkId}' != ''"/>
 
         <step name="Check-Vnet-Link" requires="^"
@@ -46,14 +46,11 @@
         <step name="Remove-Vnet" requires="^"
               exec="onos ${OCI} vnet-remove ${networkId}"/>
 
-        <step name="Check-TenantId-Variable-Exists" requires="^" 
+        <step name="Check-TenantId-Variable-Exists" requires="^"
               exec="test '${tenantId}' != ''"/>
 
         <step name="Remove-Tenant" requires="Check-TenantId-Variable-Exists"
               exec="onos ${OCI} vnet-remove-tenant ${tenantId}"/>
-
-        <step name="Enable-FwdApp" requires="^" if="echo $ONOS_APPS | grep -w fwd"
-              exec="onos ${OCI} onos:app activate org.onosproject.fwd"/>
 
     </group>
 </scenario>

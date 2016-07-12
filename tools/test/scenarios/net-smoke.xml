@@ -17,27 +17,18 @@
     <group name="Net-Smoke">
         <import file="${ONOS_SCENARIOS}/net-setup.xml"/>
 
-        <import file="${ONOS_SCENARIOS}/net-activate-fwd.xml" namespace="Reactive-Forwarding"/>
-        <dependency name="Reactive-Forwarding.Net-Activate-Fwd" requires="Net-Setup"/>
-
-        <import file="${ONOS_SCENARIOS}/net-pingall.xml" namespace="Reactive-Forwarding"/>
-        <dependency name="Reactive-Forwarding.Net-Pingall" requires="Reactive-Forwarding.Net-Activate-Fwd"/>
-
-        <import file="${ONOS_SCENARIOS}/net-link-down-up.xml" namespace="Reactive-Forwarding"/>
-        <dependency name="Reactive-Forwarding.Net-Link-Down-Up" requires="Net-Setup,~Reactive-Forwarding.Net-Pingall"/>
-
-        <import file="${ONOS_SCENARIOS}/net-deactivate-fwd.xml" namespace="Reactive-Forwarding"/>
-        <dependency name="Reactive-Forwarding.Net-Deactivate-Fwd" requires="Reactive-Forwarding.Net-Link-Down-Up"/>
+        <import file="${ONOS_SCENARIOS}/net-reactive-fwd.xml"/>
+        <dependency name="Net-Reactive-Fwd" requires="Net-Setup"/>
 
         <import file="${ONOS_SCENARIOS}/net-host-intent.xml"/>
-        <dependency name="Host-Intent-Connectivity" requires="Net-Setup,~Reactive-Forwarding.Net-Link-Down-Up"/>
+        <dependency name="Host-Intent-Connectivity" requires="Net-Reactive-Fwd"/>
 
         <import file="${ONOS_SCENARIOS}/net-point-intent.xml"/>
-        <dependency name="P2P-Intent-Connectivity" requires="Net-Setup,~Reactive-Forwarding.Net-Link-Down-Up,Host-Intent-Connectivity"/>
+        <dependency name="P2P-Intent-Connectivity" requires="Net-Setup,~Net-Reactive-Fwd,Host-Intent-Connectivity"/>
 
         <import file="${ONOS_SCENARIOS}/net-single-to-multi-intent.xml"/>
         <dependency name="S2M-Intent-Connectivity"
-                    requires="Net-Setup,~Reactive-Forwarding.Net-Link-Down-Up,Host-Intent-Connectivity,P2P-Intent-Connectivity"/>
+                    requires="Net-Setup,~Net-Reactive-Fwd,Host-Intent-Connectivity,P2P-Intent-Connectivity"/>
 
         <import file="${ONOS_SCENARIOS}/net-multi-to-single-intent.xml"/>
         <dependency name="M2S-Intent-Connectivity"

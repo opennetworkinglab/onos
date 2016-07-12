@@ -17,13 +17,10 @@
     <group name="Net-Fast">
         <import file="${ONOS_SCENARIOS}/net-setup.xml"/>
 
-        <import file="${ONOS_SCENARIOS}/net-pingall.xml" namespace="Reactive-Forwarding"/>
-        <dependency name="Reactive-Forwarding.Net-Pingall" requires="Net-Setup"/>
-
-        <import file="${ONOS_SCENARIOS}/net-link-down-up.xml" namespace="Reactive-Forwarding"/>
-        <dependency name="Reactive-Forwarding.Net-Link-Down-Up" requires="Net-Setup,~Reactive-Forwarding.Net-Pingall"/>
+        <import file="${ONOS_SCENARIOS}/net-reactive-fwd.xml"/>
+        <dependency name="Net-Reactive-Fwd" requires="Net-Setup"/>
 
         <import file="${ONOS_SCENARIOS}/net-teardown.xml"/>
-        <dependency name="Net-Teardown" requires="~Reactive-Forwarding.Net-Link-Down-Up"/>
+        <dependency name="Net-Teardown" requires="~Net-Reactive-Fwd"/>
     </group>
 </scenario>

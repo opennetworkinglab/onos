@@ -16,9 +16,6 @@
 <scenario name="net-setup-vnets" description="Network (vnets) setup steps">
     <group name="Net-Setup-Vnets">
 
-        <step name="Disable-FwdApp" if="echo $ONOS_APPS | grep -w fwd"
-              exec="onos ${OCI} onos:app deactivate org.onosproject.fwd"/>
-
         <step name="Get-TenantId" requires="^" unless="${tenantId}"
               exec="echo @stc tenantId=TestTenant"/>
 

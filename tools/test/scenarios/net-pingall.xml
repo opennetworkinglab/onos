@@ -16,15 +16,12 @@
 <scenario name="net-pingall" description="Network pingall test">
     <!-- TODO: parametrize this via recipes -->
     <group name="Net-Pingall">
-        <step name="Install-Apps"
-              exec="onos ${OC1} app activate org.onosproject.openflow org.onosproject.proxyarp org.onosproject.fwd"/>
-        <step name="Check-Apps" requires="Install-Apps"
-              exec="onos-check-apps ${OC1} drivers,openflow,proxyarp,fwd includes"/>
 
         <step name="Ping-All" requires="Check-Apps"
               exec="onos-mininet sendAndExpect pingall --expect 600/600 received"/>
 
         <step name="Check-Summary-For-Hosts" requires="~Ping-All"
               exec="onos-check-summary ${OC1} [0-9]* 25 140 25"/>
+
     </group>
 </scenario>

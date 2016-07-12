@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright 2015-present Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="net-reactive-fwd" description="Network reactive forwarding test">
+    <!-- TODO: parametrize this via recipes -->
+    <group name="Net-Reactive-Fwd">
+        <import file="${ONOS_SCENARIOS}/net-activate-fwd.xml" namespace="Net-Reactive-Fwd"/>
+        <dependency name="Net-Reactive-Fwd.Net-Activate-Fwd" requires="Net-Setup"/>
+
+        <import file="${ONOS_SCENARIOS}/net-pingall.xml" namespace="Net-Reactive-Fwd"/>
+        <dependency name="Net-Reactive-Fwd.Net-Pingall" requires="Net-Reactive-Fwd.Net-Activate-Fwd"/>
+
+        <import file="${ONOS_SCENARIOS}/net-link-down-up.xml" namespace="Net-Reactive-Fwd"/>
+        <dependency name="Net-Reactive-Fwd.Net-Link-Down-Up" requires="Net-Setup,~Net-Reactive-Fwd.Net-Pingall"/>
+
+        <import file="${ONOS_SCENARIOS}/net-deactivate-fwd.xml" namespace="Net-Reactive-Fwd"/>
+        <dependency name="Net-Reactive-Fwd.Net-Deactivate-Fwd" requires="Net-Reactive-Fwd.Net-Link-Down-Up"/>
+    </group>
+</scenario>
