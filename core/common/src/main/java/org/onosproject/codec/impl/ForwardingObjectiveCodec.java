@@ -50,10 +50,6 @@ public class ForwardingObjectiveCodec extends JsonCodec<ForwardingObjective> {
             " member is required in ForwardingObjective";
     private static final String NOT_NULL_MESSAGE =
             "ForwardingObjective cannot be null";
-    private static final String INVALID_FLAG_MESSAGE =
-            "The requested flag {} is not defined in ForwardingObjective.";
-    private static final String INVALID_OP_MESSAGE =
-            "The requested operation {} is not defined for FilteringObjective.";
 
     public static final String REST_APP_ID = "org.onosproject.rest";
 
@@ -129,8 +125,8 @@ public class ForwardingObjectiveCodec extends JsonCodec<ForwardingObjective> {
                 builder.withFlag(ForwardingObjective.Flag.VERSATILE);
                 break;
             default:
-                log.warn(INVALID_FLAG_MESSAGE, flagStr);
-                return null;
+                throw new IllegalArgumentException("The requested flag " + flagStr +
+                " is not defined for FilteringObjective.");
         }
 
         // decode selector
@@ -155,7 +151,7 @@ public class ForwardingObjectiveCodec extends JsonCodec<ForwardingObjective> {
 
         // decode operation
         String opStr = nullIsIllegal(json.get(OPERATION), OPERATION + MISSING_MEMBER_MESSAGE).asText();
-        ForwardingObjective forwardingObjective;
+        ForwardingObjective forwardingObjective = null;
 
         switch (opStr) {
             case "ADD":
@@ -165,8 +161,8 @@ public class ForwardingObjectiveCodec extends JsonCodec<ForwardingObjective> {
                 forwardingObjective = builder.remove();
                 break;
             default:
-                log.warn(INVALID_OP_MESSAGE, opStr);
-                return null;
+                throw new IllegalArgumentException("The requested operation " + opStr +
+                " is not defined for FilteringObjective.");
         }
 
         return forwardingObjective;

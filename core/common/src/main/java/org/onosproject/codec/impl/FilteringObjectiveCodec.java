@@ -53,10 +53,6 @@ public class FilteringObjectiveCodec extends JsonCodec<FilteringObjective> {
             " member is required in FilteringObjective";
     private static final String NOT_NULL_MESSAGE =
             "FilteringObjective cannot be null";
-    private static final String INVALID_TYPE_MESSAGE =
-            "The requested type {} is not defined in FilteringObjective.";
-    private static final String INVALID_OP_MESSAGE =
-            "The requested operation {} is not defined for FilteringObjective.";
 
     public static final String REST_APP_ID = "org.onosproject.rest";
 
@@ -133,8 +129,8 @@ public class FilteringObjectiveCodec extends JsonCodec<FilteringObjective> {
                 builder.deny();
                 break;
             default:
-                log.warn(INVALID_TYPE_MESSAGE, typeStr);
-                return null;
+                throw new IllegalArgumentException("The requested type " + typeStr +
+                " is not defined for FilteringObjective.");
         }
 
         // decode key
@@ -173,8 +169,8 @@ public class FilteringObjectiveCodec extends JsonCodec<FilteringObjective> {
                 filteringObjective = builder.remove();
                 break;
             default:
-                log.warn(INVALID_OP_MESSAGE, opStr);
-                return null;
+                throw new IllegalArgumentException("The requested operation " + opStr +
+                " is not defined for FilteringObjective.");
         }
 
         return filteringObjective;
