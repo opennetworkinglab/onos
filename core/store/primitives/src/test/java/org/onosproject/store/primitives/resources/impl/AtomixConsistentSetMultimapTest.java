@@ -404,7 +404,7 @@ public class AtomixConsistentSetMultimapTest extends AtomixTestBase {
     private AtomixConsistentSetMultimap createResource(String mapName) {
         try {
             AtomixConsistentSetMultimap map = createAtomixClient().
-                    getResource("mapName", AtomixConsistentSetMultimap.class)
+                    getResource(mapName, AtomixConsistentSetMultimap.class)
                     .join();
             return map;
         } catch (Throwable e) {

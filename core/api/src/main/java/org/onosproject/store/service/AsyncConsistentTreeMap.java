@@ -19,6 +19,7 @@ package org.onosproject.store.service;
 import org.onosproject.store.primitives.DefaultConsistentTreeMap;
 
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.concurrent.CompletableFuture;
 
@@ -42,26 +43,28 @@ public interface AsyncConsistentTreeMap<K, V> extends AsyncConsistentMap<K, V> {
     CompletableFuture<K> lastKey();
 
     /**
-     * Returns the entry associated with the least key greater than or equal to the key.
+     * Returns the entry associated with the least key greater than or equal to
+     * the key.
      *
      * @param key the key
-     * @return the entry or null
+     * @return the entry or null if no suitable key exists
      */
     CompletableFuture<Map.Entry<K, Versioned<V>>> ceilingEntry(K key);
 
     /**
-     * Returns the entry associated with the greatest key less than or equal to key.
+     * Returns the entry associated with the greatest key less than or equal
+     * to key.
      *
      * @param key the key
-     * @return the entry or null
+     * @return the entry or null if no suitable key exists
      */
     CompletableFuture<Map.Entry<K, Versioned<V>>> floorEntry(K key);
 
     /**
-     * Returns the entry associated with the lest key greater than key.
+     * Returns the entry associated with the least key greater than key.
      *
      * @param key the key
-     * @return the entry or null
+     * @return the entry or null if no suitable key exists
      */
     CompletableFuture<Map.Entry<K, Versioned<V>>> higherEntry(K key);
 
@@ -69,35 +72,35 @@ public interface AsyncConsistentTreeMap<K, V> extends AsyncConsistentMap<K, V> {
      * Returns the entry associated with the largest key less than key.
      *
      * @param key the key
-     * @return the entry or null
+     * @return the entry or null if no suitable key exists
      */
     CompletableFuture<Map.Entry<K, Versioned<V>>> lowerEntry(K key);
 
     /**
      * Return the entry associated with the lowest key in the map.
      *
-     * @return the entry or null
+     * @return the entry or null if none exist
      */
     CompletableFuture<Map.Entry<K, Versioned<V>>> firstEntry();
 
     /**
-     * Return the entry assocaited with the highest key in the map.
+     * Return the entry associated with the highest key in the map.
      *
-     * @return the entry or null
+     * @return the entry or null if none exist
      */
     CompletableFuture<Map.Entry<K, Versioned<V>>> lastEntry();
 
     /**
      * Return and remove the entry associated with the lowest key.
      *
-     * @return the entry or null
+     * @return the entry or null if none exist
      */
     CompletableFuture<Map.Entry<K, Versioned<V>>> pollFirstEntry();
 
     /**
      * Return and remove the entry associated with the highest key.
      *
-     * @return the entry or null
+     * @return the entry or null if none exist
      */
     CompletableFuture<Map.Entry<K, Versioned<V>>> pollLastEntry();
 
@@ -105,15 +108,15 @@ public interface AsyncConsistentTreeMap<K, V> extends AsyncConsistentMap<K, V> {
      * Return the entry associated with the greatest key less than key.
      *
      * @param key the key
-     * @return the entry or null
+     * @return the entry or null if no suitable key exists
      */
     CompletableFuture<K> lowerKey(K key);
 
     /**
-     * Return the entry associated with the highest key less than or equal to key.
+     * Return the highest key less than or equal to key.
      *
      * @param key the key
-     * @return the entry or null
+     * @return the entry or null if no suitable key exists
      */
     CompletableFuture<K> floorKey(K key);
 
@@ -121,7 +124,7 @@ public interface AsyncConsistentTreeMap<K, V> extends AsyncConsistentMap<K, V> {
      * Return the lowest key greater than or equal to key.
      *
      * @param key the key
-     * @return the key or null
+     * @return the entry or null if no suitable key exists
      */
     CompletableFuture<K> ceilingKey(K key);
 
@@ -129,16 +132,34 @@ public interface AsyncConsistentTreeMap<K, V> extends AsyncConsistentMap<K, V> {
      * Return the lowest key greater than key.
      *
      * @param key the key
-     * @return the key or null
+     * @return the entry or null if no suitable key exists
      */
     CompletableFuture<K> higherKey(K key);
 
     /**
      * Returns a navigable set of the keys in this map.
      *
-     * @return a navigable key set
+     * @return a navigable key set (this may be empty)
      */
     CompletableFuture<NavigableSet<K>> navigableKeySet();
+
+    /**
+     * Returns a navigable map containing the entries from the original map
+     * which are larger than (or if specified equal to) {@code lowerKey} AND
+     * less than (or if specified equal to) {@code upperKey}.
+     *
+     * @param upperKey the upper bound for the keys in this map
+     * @param lowerKey the lower bound for the keys in this map
+     * @param inclusiveUpper whether keys equal to the upperKey should be
+     *                       included
+     * @param inclusiveLower whether keys equal to the lowerKey should be
+     *                       included
+     * @return a navigable map containing entries in the specified range (this
+     * may be empty)
+     */
+    CompletableFuture<NavigableMap<K, V>> subMap(K upperKey, K lowerKey,
+                                                 boolean inclusiveUpper,
+                                                 boolean inclusiveLower);
 
     default ConsistentTreeMap<K, V> asTreeMap() {
         return asTreeMap(DistributedPrimitive.DEFAULT_OPERTATION_TIMEOUT_MILLIS);

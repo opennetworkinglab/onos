@@ -243,8 +243,9 @@ public interface AsyncConsistentMap<K, V> extends DistributedPrimitive {
     CompletableFuture<Set<Entry<K, Versioned<V>>>> entrySet();
 
     /**
-     * If the specified key is not already associated with a value
-     * associates it with the given value and returns null, else returns the current value.
+     * If the specified key is not already associated with a value associates
+     * it with the given value and returns null, else behaves as a get
+     * returning the existing mapping without making any changes.
      *
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key

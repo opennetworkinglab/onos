@@ -266,7 +266,7 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     public synchronized CompletableFuture<Void> addListener(MapEventListener<String, byte[]> listener,
                                                             Executor executor) {
         if (mapEventListeners.isEmpty()) {
-            return client.submit(new Listen()).thenRun(() -> mapEventListeners.putIfAbsent(listener, executor));
+            return client.submit(new Listen()).thenRun(() -> mapEventListeners.put(listener, executor));
         } else {
             mapEventListeners.put(listener, executor);
             return CompletableFuture.completedFuture(null);
