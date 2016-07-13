@@ -3,6 +3,7 @@
   "title": "nextObjective",
   "required": [
     "type",
+    "id",
     "priority",
     "timeout",
     "isPermanent",
@@ -15,6 +16,11 @@
     "type": {
       "type": "string",
       "example": "HASHED"
+    },
+    "id": {
+      "type": "integer",
+      "format": "int64",
+      "example": 1
     },
     "priority": {
       "type": "integer",

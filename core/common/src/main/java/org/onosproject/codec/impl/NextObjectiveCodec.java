@@ -53,10 +53,6 @@ public final class NextObjectiveCodec extends JsonCodec<NextObjective> {
             " member is required in NextObjective";
     private static final String NOT_NULL_MESSAGE =
             "NextObjective cannot be null";
-    private static final String INVALID_TYPE_MESSAGE =
-            "The requested flag {} is not defined in NextObjective.";
-    private static final String INVALID_OP_MESSAGE =
-            "The requested operation {} is not defined for NextObjective.";
 
     public static final String REST_APP_ID = "org.onosproject.rest";
 
@@ -142,8 +138,8 @@ public final class NextObjectiveCodec extends JsonCodec<NextObjective> {
                 builder.withType(NextObjective.Type.SIMPLE);
                 break;
             default:
-                log.warn(INVALID_TYPE_MESSAGE, typeStr);
-                return null;
+                throw new IllegalArgumentException("The requested type " + typeStr +
+                " is not defined for FilteringObjective.");
         }
 
         // decode treatments
@@ -175,8 +171,8 @@ public final class NextObjectiveCodec extends JsonCodec<NextObjective> {
                 nextObjective = builder.remove();
                 break;
             default:
-                log.warn(INVALID_OP_MESSAGE, opStr);
-                return null;
+                throw new IllegalArgumentException("The requested operation " + opStr +
+                " is not defined for FilteringObjective.");
         }
 
         return nextObjective;
