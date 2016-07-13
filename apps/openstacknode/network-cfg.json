@@ -23,7 +23,7 @@
                         "managementIp" : "10.203.198.125",
                         "dataIp" : "10.134.33.208",
                         "integrationBridge" : "of:00000000000000a3",
-                        "routerBridge" : "of:00000000000000b3"
+                        "routerBridge" : "of:00000000000000b1"
                     },
                     {
                         "hostname" : "gateway-02",
@@ -31,9 +31,31 @@
                         "managementIp" : "10.203.198.131",
                         "dataIp" : "10.134.33.209",
                         "integrationBridge" : "of:00000000000000a4",
-                        "routerBridge" : "of:00000000000000b4"
+                        "routerBridge" : "of:00000000000000b2"
                     }
                 ]
+            }
+        }
+    },
+    "devices" : {
+        "of:00000000000000a1" : {
+            "basic" : {
+                "driver" : "sona"
+            }
+        },
+        "of:00000000000000a2" : {
+            "basic" : {
+                "driver" : "sona"
+            }
+        },
+        "of:00000000000000b1" : {
+            "basic" : {
+                "driver" : "softrouter"
+            }
+        },
+        "of:00000000000000b2" : {
+            "basic" : {
+                "driver" : "softrouter"
             }
         }
     }

@@ -4,26 +4,9 @@
             "openstackinterface" : {
                  "neutron_server" : "http://10.40.101.209:9696/v2.0/",
                  "keystone_server" : "http://10.40.101.209:5000/v2.0/",
-		 "user_name" : "admin",
+                 "user_name" : "admin",
                  "password" : "nova"
              }
          }
-    },
-    "devices" : {
-        "of:0000000000000001" : {
-            "basic" : {
-                "driver" : "sona"
-            }
-        },
-        "of:0000000000000002" : {
-            "basic" : {
-                "driver" : "sona"
-            }
-        },
-        "of:0000000000000003" : {
-            "basic" : {
-                "driver" : "sona"
-            }
-        }
     }
 }
