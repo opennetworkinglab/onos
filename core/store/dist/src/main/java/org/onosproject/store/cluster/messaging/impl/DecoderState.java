@@ -20,6 +20,8 @@ package org.onosproject.store.cluster.messaging.impl;
  */
 public enum DecoderState {
     READ_MESSAGE_PREAMBLE,
+    READ_LOGICAL_TIME,
+    READ_LOGICAL_COUNTER,
     READ_MESSAGE_ID,
     READ_SENDER_IP_VERSION,
     READ_SENDER_IP,

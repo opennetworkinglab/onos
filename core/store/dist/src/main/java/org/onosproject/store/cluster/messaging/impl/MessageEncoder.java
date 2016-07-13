@@ -51,6 +51,10 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
 
         out.writeInt(this.preamble);
 
+        // write time
+        out.writeLong(message.time().logicalTime());
+        out.writeLong(message.time().logicalCounter());
+
         // write message id
         out.writeLong(message.id());
 

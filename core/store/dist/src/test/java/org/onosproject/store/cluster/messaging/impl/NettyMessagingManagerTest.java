@@ -21,10 +21,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 
 import com.google.common.collect.Sets;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,6 +36,8 @@ import org.onosproject.cluster.ClusterMetadataEventListener;
 import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.core.HybridLogicalClockService;
+import org.onosproject.core.HybridLogicalTime;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.cluster.messaging.Endpoint;
 
@@ -47,6 +51,18 @@ import static org.onlab.junit.TestTools.findAvailablePort;
  * Unit tests for NettyMessaging.
  */
 public class NettyMessagingManagerTest {
+
+    HybridLogicalClockService testClockService = new HybridLogicalClockService() {
+        AtomicLong counter = new AtomicLong();
+        @Override
+        public HybridLogicalTime timeNow() {
+            return new HybridLogicalTime(counter.incrementAndGet(), 0);
+        }
+
+        @Override
+        public void recordEventTime(HybridLogicalTime time) {
+        }
+    };
 
     NettyMessagingManager netty1;
     NettyMessagingManager netty2;
@@ -63,11 +79,13 @@ public class NettyMessagingManagerTest {
         ep1 = new Endpoint(IpAddress.valueOf("127.0.0.1"), findAvailablePort(5001));
         netty1 = new NettyMessagingManager();
         netty1.clusterMetadataService = dummyMetadataService(DUMMY_NAME, IP_STRING, ep1);
+        netty1.clockService = testClockService;
         netty1.activate();
 
         ep2 = new Endpoint(IpAddress.valueOf("127.0.0.1"), findAvailablePort(5003));
         netty2 = new NettyMessagingManager();
         netty2.clusterMetadataService = dummyMetadataService(DUMMY_NAME, IP_STRING, ep2);
+        netty2.clockService = testClockService;
         netty2.activate();
     }
 
