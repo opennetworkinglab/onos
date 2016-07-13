@@ -1,0 +1,15 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+# Loops the System Test Coordinator invocations while success/until failure.
+#-------------------------------------------------------------------------------
+
+let run=1
+while true; do
+    printf "\033]0;%s\007" "STC Run #$run"
+    printf "Starting run %d...\n" $run
+    stc "$@"
+    status=$?
+    printf "Finished run %d...\n" $run
+    [ $status -ne 0 ] && break
+    let run=run+1
+done
