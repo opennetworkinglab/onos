@@ -29,7 +29,8 @@
         <group name="Query1" requires="Netcfg.Post-1">
             <parallel var="${OC#}" starts="Netcfg.Query-1-${#}">
                 <!-- Check that the values made it into the config for the DHCP server -->
-                <step name="Netcfg.QueryDhcp-1-${#}" exec="check-dhcp-netcfg.py ${OC#} ttl=1 lease=2 renew=3 rebind=4 delay=5 timeout=6"/>
+                <step name="Netcfg.QueryDhcp-1-${#}" delay="2"
+                      exec="check-dhcp-netcfg.py ${OC#} ttl=1 lease=2 renew=3 rebind=4 delay=5 timeout=6"/>
             </parallel>
         </group>
 
@@ -41,7 +42,8 @@
         <group name="Query2" requires="Netcfg.Post-2">
             <parallel var="${OC#}" starts="Netcfg.Query-2-${#}">
                 <!-- Check that the values made it into the config for the DHCP server -->
-                <step name="Netcfg.QueryDhcp-2-${#}" exec="check-dhcp-netcfg.py ${OC#} ttl=21 lease=22 renew=23 rebind=24 delay=25 timeout=26"/>
+                <step name="Netcfg.QueryDhcp-2-${#}" delay="2"
+                      exec="check-dhcp-netcfg.py ${OC#} ttl=21 lease=22 renew=23 rebind=24 delay=25 timeout=26"/>
             </parallel>
         </group>
 
