@@ -325,7 +325,7 @@ public final class BasicPceccHandler {
    }
 
     // Install a rule for pushing local labels to the device which is specific to path.
-    private void installLocalLabelRule(DeviceId deviceId, LabelResourceId labelId,
+    private synchronized void installLocalLabelRule(DeviceId deviceId, LabelResourceId labelId,
                                        PortNumber portNum, TunnelId tunnelId,
                                        Boolean isBos, Long labelType,
                                        Objective.Operation type) {

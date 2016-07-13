@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -88,6 +89,7 @@ import org.onosproject.pcep.controller.ClientCapability;
 import org.onosproject.pcep.controller.LspKey;
 import org.onosproject.pcep.controller.PccId;
 
+import com.esotericsoftware.minlog.Log;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 
@@ -223,6 +225,7 @@ public class PcepTunnelAddedTest {
                         tunnel.path(),
                         tunnel.resource(),
                         tunnel.annotations());
+                Log.info("tunnel.annotations().toString() " + tunnel.annotations().toString());
                 tunnelService.tunnelIdAsKeyStore.put(id, storedTunnel);
                 return id;
             }
@@ -237,6 +240,18 @@ public class PcepTunnelAddedTest {
 
             @Override
             public void tunnelUpdated(TunnelDescription tunnel, State state) {
+                TunnelId id = TunnelId.valueOf(String.valueOf(++tunnelIdCounter));
+                Tunnel storedTunnel = new DefaultTunnel(ProviderId.NONE,
+                        tunnel.src(), tunnel.dst(),
+                        tunnel.type(),
+                        tunnel.groupId(),
+                        id,
+                        tunnel.tunnelName(),
+                        tunnel.path(),
+                        tunnel.resource(),
+                        tunnel.annotations());
+                tunnelService.tunnelIdAsKeyStore.put(id, storedTunnel);
+                Log.info("tunnelService.tunnelIdAsKeyStore ++ " + tunnelService.tunnelIdAsKeyStore.toString());
             }
 
             @Override
@@ -254,6 +269,7 @@ public class PcepTunnelAddedTest {
         public TunnelId setupTunnel(ApplicationId producerId, ElementId srcElementId, Tunnel tunnel, Path path) {
             TunnelId tunnelId = TunnelId.valueOf(String.valueOf(++tunnelIdCounter));
             tunnelIdAsKeyStore.put(tunnelId, tunnel);
+            Log.info("tunnelIdAsKeyStore insetup :: " + tunnelIdAsKeyStore.toString());
             return tunnelId;
         }
 
@@ -592,8 +608,11 @@ public class PcepTunnelAddedTest {
 
         controller.processClientMessage(PccId.pccId(IpAddress.valueOf("1.1.1.1")), message);
         TimeUnit.MILLISECONDS.sleep(4000);
-        assertThat(registry.tunnelIdCounter, is((long) 1));
-        assertThat(tunnelService.tunnelIdAsKeyStore.values().iterator().next().annotations().value(DELEGATE),
+        assertThat(registry.tunnelIdCounter, is((long) 2));
+
+        Iterator<Tunnel> iterator = tunnelService.tunnelIdAsKeyStore.values().iterator();
+        iterator.next();
+        assertThat(iterator.next().annotations().value(DELEGATE),
                 is("true"));
     }
 

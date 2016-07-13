@@ -31,7 +31,6 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -110,14 +109,14 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
-import static org.onosproject.incubator.net.tunnel.Tunnel.Type.MPLS;
+import static org.onosproject.incubator.net.tunnel.Tunnel.State.ACTIVE;
 import static org.onosproject.incubator.net.tunnel.Tunnel.State.INIT;
 import static org.onosproject.incubator.net.tunnel.Tunnel.State.ESTABLISHED;
 import static org.onosproject.incubator.net.tunnel.Tunnel.State.UNSTABLE;
+import static org.onosproject.incubator.net.tunnel.Tunnel.Type.MPLS;
 import static org.onosproject.pce.pceservice.LspType.WITH_SIGNALLING;
 import static org.onosproject.pce.pceservice.LspType.SR_WITHOUT_SIGNALLING;
 import static org.onosproject.pce.pceservice.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
-
 import static org.onosproject.pce.pceservice.PcepAnnotationKeys.BANDWIDTH;
 import static org.onosproject.pce.pceservice.PcepAnnotationKeys.LOCAL_LSP_ID;
 import static org.onosproject.pce.pceservice.PcepAnnotationKeys.LSP_SIG_TYPE;
@@ -619,6 +618,12 @@ public class PceManager implements PceService {
 
         if (tunnel == null) {
             return false;
+        }
+
+        LspType lspType = LspType.valueOf(tunnel.annotations().value(LSP_SIG_TYPE));
+        // Release basic PCECC labels.
+        if (lspType == WITHOUT_SIGNALLING_AND_WITHOUT_SR) {
+            crHandler.releaseLabel(tunnel);
         }
 
         // 2. Call tunnel service.
@@ -1148,6 +1153,22 @@ public class PceManager implements PceService {
                     }
                 }
 
+                //In CR case, release labels when new tunnel for it is updated.
+                if (lspType == WITHOUT_SIGNALLING_AND_WITHOUT_SR && tunnel.state() == ACTIVE
+                        && mastershipService.getLocalRole(tunnel.path().src().deviceId()) == MastershipRole.MASTER) {
+                    Collection<Tunnel> tunnels = tunnelService.queryTunnel(tunnel.src(), tunnel.dst());
+
+                    for (Tunnel t : tunnels) {
+                          if (tunnel.annotations().value(PLSP_ID).equals(t.annotations().value(PLSP_ID))
+                              && !tunnel.annotations().value(LOCAL_LSP_ID)
+                                  .equals(t.annotations().value(LOCAL_LSP_ID))) {
+                              // Release basic PCECC labels.
+                              crHandler.releaseLabel(t);
+                              break;
+                          }
+                    }
+                }
+
                 if (tunnel.state() == UNSTABLE) {
                     /*
                      * During LSP DB sync if PCC doesn't report LSP which was PCE initiated, it's state is turned into
@@ -1183,23 +1204,16 @@ public class PceManager implements PceService {
                 if (lspType != WITH_SIGNALLING) {
                     localLspIdFreeList.add(Short.valueOf(tunnel.annotations().value(LOCAL_LSP_ID)));
                 }
-
                 // If not zero bandwidth, and delegated (initiated LSPs will also be delegated).
-                if (bwConstraintValue != 0) {
-                    releaseBandwidth(event.subject());
-
-                    // Release basic PCECC labels.
-                    if (lspType == WITHOUT_SIGNALLING_AND_WITHOUT_SR) {
-                        // Delete stored tunnel consumer id from PCE store (while still retaining label list.)
-                        PceccTunnelInfo pceccTunnelInfo = pceStore.getTunnelInfo(tunnel.tunnelId());
-                        pceccTunnelInfo.tunnelConsumerId(null);
-                        if (mastershipService.getLocalRole(tunnel.path().src().deviceId()) == MastershipRole.MASTER) {
-                            crHandler.releaseLabel(tunnel);
-                        }
-                    } else {
-                        pceStore.removeTunnelInfo(tunnel.tunnelId());
-                    }
+                if (Double.parseDouble(tunnel.annotations().value(BANDWIDTH)) != 0.0
+                        && mastershipService.getLocalRole(tunnel.path().src().deviceId()) == MastershipRole.MASTER) {
+                    releaseBandwidth(tunnel);
                 }
+
+                if (pceStore.getTunnelInfo(tunnel.tunnelId()) != null) {
+                    pceStore.removeTunnelInfo(tunnel.tunnelId());
+                }
+
                 break;
 
             default:
