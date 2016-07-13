@@ -1,0 +1,19 @@
+module ietf-network {
+    yang-version 1;
+    namespace "urn:ietf:params:xml:ns:yang:ietf-network";
+    prefix nd;
+    container networks {
+        description
+        "Serves as top-level container for a list of networks.";
+        leaf network-id {
+            type uint8;
+            description
+            "Identifies a network.";
+        }
+    }
+    leaf network-ref {
+            type leafref {
+            path "../../../define/network-id";
+        }
+    }
+}

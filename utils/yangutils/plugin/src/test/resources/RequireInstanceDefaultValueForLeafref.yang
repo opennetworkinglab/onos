@@ -1,0 +1,31 @@
+module PathListener {
+    namespace "test";
+    prefix test;
+     list interface {
+         key "name";
+         leaf name {
+             type string;
+         }
+         leaf admin-status {
+             type string;
+         }
+         list address {
+             key "ip";
+             leaf ip {
+                 type string;
+             }
+         }
+     }
+     container default-address {
+         leaf ifname {
+             type leafref {
+                 path "../../test:interface/test:name";
+             }
+         }
+         leaf status {
+             type leafref {
+                 path "/test:interface[name = current()/../ifname]/test:admin-status";
+             }
+         }
+     }
+}

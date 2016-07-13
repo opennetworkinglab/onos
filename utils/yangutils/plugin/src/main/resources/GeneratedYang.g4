@@ -534,7 +534,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                             require-instance-arg >
      *  require-instance-arg = true-keyword / false-keyword
      */
-    requireInstanceStatement : REQUIRE_INSTANCE_KEYWORD (TRUE_KEYWORD | FALSE_KEYWORD) STMTEND;
+    requireInstanceStatement : REQUIRE_INSTANCE_KEYWORD requireInstance STMTEND;
 
     /**
      *  instance-identifier-specification =
@@ -1278,6 +1278,8 @@ package org.onosproject.yangutils.parser.antlrgencode;
     unique : string;
 
     refine : string;
+
+    requireInstance : string;
 
     augment : string;
 

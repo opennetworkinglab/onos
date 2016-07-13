@@ -34,5 +34,10 @@ public enum ResolvableType {
     /**
      * Identifies the if-feature.
      */
-    YANG_IF_FEATURE
+    YANG_IF_FEATURE,
+
+    /**
+     * Identifies the leafref.
+     */
+    YANG_LEAFREF
 }

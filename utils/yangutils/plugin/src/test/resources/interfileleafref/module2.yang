@@ -1,0 +1,8 @@
+module module2 {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant2;
+    leaf hello {
+        type string;
+    }
+}

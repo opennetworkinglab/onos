@@ -1,0 +1,14 @@
+module ietf-network {
+    yang-version 1;
+    namespace
+      "urn:ietf:params:xml:ns:yang:ietf-inet-types";
+    prefix nw;
+    import ietf-inet-types {
+       prefix inet;
+    }
+    container termination-point {
+        leaf tp-id {
+            type string;
+        }
+    }
+}

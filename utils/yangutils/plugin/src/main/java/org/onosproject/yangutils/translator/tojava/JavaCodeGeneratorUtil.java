@@ -19,6 +19,8 @@ package org.onosproject.yangutils.translator.tojava;
 import java.io.IOException;
 
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangTypeDef;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
@@ -80,7 +82,20 @@ public final class JavaCodeGeneratorUtil {
                 if (!(codeGenNode instanceof JavaCodeGenerator)) {
                     throw new TranslatorException("Unsupported node to generate code");
                 }
-
+                if (codeGenNode instanceof YangTypeDef) {
+                    YangTypeDef typeDef = (YangTypeDef) codeGenNode;
+                    if (typeDef.getTypeDefBaseType().getDataType() == YangDataTypes.LEAFREF
+                            || typeDef.getTypeDefBaseType().getDataType() == YangDataTypes.IDENTITYREF) {
+                        if (codeGenNode.getNextSibling() != null) {
+                            curTraversal = SIBILING;
+                            codeGenNode = codeGenNode.getNextSibling();
+                        } else {
+                            curTraversal = PARENT;
+                            codeGenNode = codeGenNode.getParent();
+                        }
+                        continue;
+                    }
+                }
                 setCurNode(codeGenNode);
                 try {
                     generateCodeEntry(codeGenNode, yangPlugin);

@@ -20,6 +20,7 @@ import java.util.ListIterator;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.onosproject.yangutils.datamodel.YangContainer;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
@@ -121,20 +122,6 @@ public class TypeListenerTest {
     }
 
     /**
-     * Checks for unsupported type leafref.
-     */
-    @Test
-    public void processLeafrefType() throws IOException, ParserException {
-
-        thrown.expect(ParserException.class);
-        thrown.expectMessage("YANG file error : \"leafref\" is not supported in current version,"
-                + " please check wiki for YANG utils road map.");
-
-        YangNode node = manager
-                .getDataModel("src/test/resources/LeafrefInvalidIdentifier.yang");
-    }
-
-    /**
      * Checks for unsupported type identityref.
      */
     @Test
@@ -149,16 +136,29 @@ public class TypeListenerTest {
     }
 
     /**
-     * Checks for unsupported type instance identifier.
+     * Checks for type instance-identifier.
      */
     @Test
     public void processInstanceIdentifierType() throws IOException, ParserException {
 
-        thrown.expect(ParserException.class);
-        thrown.expectMessage("YANG file error : \"instance-identifier\" is not supported in current version,"
-                + " please check wiki for YANG utils road map.");
-
         YangNode node = manager
-                .getDataModel("src/test/resources/InstanceIdentifierInvalidIdentifier.yang");
+                .getDataModel("src/test/resources/InstanceIdentifierListener.yang");
+
+        // Check whether the data model tree returned is of type module.
+        assertThat((node instanceof YangModule), is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+
+        // Check whether the module name is set correctly.
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+        YangContainer container = (YangContainer) yangNode.getChild();
+        ListIterator<YangLeaf> leafIterator = container.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        assertThat(leafInfo.getName(), is("invalid-interval"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("instance-identifier"));
+        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.INSTANCE_IDENTIFIER));
     }
 }

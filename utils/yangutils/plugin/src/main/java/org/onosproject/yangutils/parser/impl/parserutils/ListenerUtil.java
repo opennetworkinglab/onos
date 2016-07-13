@@ -18,28 +18,44 @@ package org.onosproject.yangutils.parser.impl.parserutils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.onosproject.yangutils.datamodel.YangAtomicPath;
+import org.onosproject.yangutils.datamodel.YangLeafRef;
 import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
+import org.onosproject.yangutils.datamodel.YangPathPredicate;
+import org.onosproject.yangutils.datamodel.YangRelativePath;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 
+import static org.onosproject.yangutils.datamodel.YangPathArgType.ABSOLUTE_PATH;
+import static org.onosproject.yangutils.datamodel.YangPathArgType.RELATIVE_PATH;
+import static org.onosproject.yangutils.datamodel.YangPathOperator.EQUALTO;
 import static org.onosproject.yangutils.utils.UtilConstants.ADD;
+import static org.onosproject.yangutils.utils.UtilConstants.ANCESTOR_ACCESSOR;
+import static org.onosproject.yangutils.utils.UtilConstants.ANCESTOR_ACCESSOR_IN_PATH;
 import static org.onosproject.yangutils.utils.UtilConstants.CARET;
+import static org.onosproject.yangutils.utils.UtilConstants.CHAR_OF_CLOSE_SQUARE_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.CHAR_OF_OPEN_SQUARE_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.CHAR_OF_SLASH;
+import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.COLON;
+import static org.onosproject.yangutils.utils.UtilConstants.CURRENT;
 import static org.onosproject.yangutils.utils.UtilConstants.CURRENTLY_UNSUPPORTED;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.FALSE;
 import static org.onosproject.yangutils.utils.UtilConstants.IDENTITYREF;
-import static org.onosproject.yangutils.utils.UtilConstants.INSTANCE_IDENTIFIER;
-import static org.onosproject.yangutils.utils.UtilConstants.LEAFREF;
+import static org.onosproject.yangutils.utils.UtilConstants.OPEN_SQUARE_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.QUOTES;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
+import static org.onosproject.yangutils.utils.UtilConstants.SLASH_FOR_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.TRUE;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_FILE_ERROR;
 
@@ -52,6 +68,7 @@ public final class ListenerUtil {
     private static final String DATE_PATTERN = "[0-9]{4}-([0-9]{2}|[0-9])-([0-9]{2}|[0-9])";
     private static final String NON_NEGATIVE_INTEGER_PATTERN = "[0-9]+";
     private static final Pattern INTEGER_PATTERN = Pattern.compile("[-][0-9]+|[0-9]+");
+    private static final Pattern PATH_PREDICATE_PATTERN = Pattern.compile("\\[(.*?)\\]");
     private static final String XML = "xml";
     private static final String ONE = "1";
     private static final int IDENTIFIER_LENGTH = 64;
@@ -104,6 +121,42 @@ public final class ListenerUtil {
         } else if (identifierString.toLowerCase().startsWith(XML)) {
             parserException = new ParserException("YANG file error : " +
                     YangConstructType.getYangConstructType(yangConstruct) + " identifier " + identifierString +
+                    " must not start with (('X'|'x') ('M'|'m') ('L'|'l')).");
+        } else {
+            return identifierString;
+        }
+
+        parserException.setLine(ctx.getStart().getLine());
+        parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+        throw parserException;
+    }
+
+    /**
+     * Validates identifier and returns concatenated string if string contains plus symbol.
+     *
+     * @param identifier string from yang file
+     * @param yangConstruct yang construct for creating error message
+     * @param ctx yang construct's context to get the line number and character position
+     * @param yangLeafRef instance of leafref where the path argument has to be set
+     * @return concatenated string after removing double quotes
+     */
+    public static String getValidIdentifierForLeafref(String identifier, YangConstructType yangConstruct,
+            ParserRuleContext ctx, YangLeafRef yangLeafRef) {
+
+        String identifierString = removeQuotesAndHandleConcat(identifier);
+        ParserException parserException;
+
+        if (identifierString.length() > IDENTIFIER_LENGTH) {
+            parserException = new ParserException("YANG file error : " + " identifier " + identifierString + " in " +
+                    YangConstructType.getYangConstructType(yangConstruct) + " " + yangLeafRef.getPath() + " is " +
+                    "greater than 64 characters.");
+        } else if (!IDENTIFIER_PATTERN.matcher(identifierString).matches()) {
+            parserException = new ParserException("YANG file error : " + " identifier " + identifierString + " in " +
+                    YangConstructType.getYangConstructType(yangConstruct) + " " + yangLeafRef.getPath() + " is not " +
+                    "valid.");
+        } else if (identifierString.toLowerCase().startsWith(XML)) {
+            parserException = new ParserException("YANG file error : " + " identifier " + identifierString + " in " +
+                    YangConstructType.getYangConstructType(yangConstruct) + " " + yangLeafRef.getPath() +
                     " must not start with (('X'|'x') ('M'|'m') ('L'|'l')).");
         } else {
             return identifierString;
@@ -307,6 +360,352 @@ public final class ListenerUtil {
     }
 
     /**
+     * Checks and return valid node identifier specific to nodes in leafref path.
+     *
+     * @param nodeIdentifierString string from yang file
+     * @param yangConstruct yang construct for creating error message
+     * @param ctx yang construct's context to get the line number and character position
+     * @param yangLeafRef instance of leafref where the path argument has to be set
+     * @return valid node identifier
+     */
+    public static YangNodeIdentifier getValidNodeIdentifierForLeafref(String nodeIdentifierString,
+            YangConstructType yangConstruct, ParserRuleContext ctx, YangLeafRef yangLeafRef) {
+
+        String tmpIdentifierString = removeQuotesAndHandleConcat(nodeIdentifierString);
+        String[] tmpData = tmpIdentifierString.split(Pattern.quote(COLON));
+        if (tmpData.length == 1) {
+            YangNodeIdentifier nodeIdentifier = new YangNodeIdentifier();
+            checkForUnsupportedTypes(tmpData[0], yangConstruct, ctx);
+            nodeIdentifier.setName(getValidIdentifierForLeafref(tmpData[0], yangConstruct, ctx, yangLeafRef));
+            return nodeIdentifier;
+        } else if (tmpData.length == 2) {
+            YangNodeIdentifier nodeIdentifier = new YangNodeIdentifier();
+            nodeIdentifier.setPrefix(getValidIdentifierForLeafref(tmpData[0], yangConstruct, ctx, yangLeafRef));
+            nodeIdentifier.setName(getValidIdentifierForLeafref(tmpData[1], yangConstruct, ctx, yangLeafRef));
+            return nodeIdentifier;
+        } else {
+            ParserException parserException = new ParserException("YANG file error : " +
+                    YangConstructType.getYangConstructType(yangConstruct) + yangLeafRef.getPath() +
+                    " is not valid.");
+            parserException.setLine(ctx.getStart().getLine());
+            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+            throw parserException;
+        }
+    }
+
+    /**
+     * Validates the path argument. It can be either absolute or relative path.
+     *
+     * @param pathString the path string from the path type
+     * @param yangConstruct yang construct for creating error message
+     * @param ctx yang construct's context to get the line number and character position
+     * @param yangLeafRef instance of leafref where the path argument has to be set
+     */
+    public static void validatePathArgument(String pathString, YangConstructType yangConstruct,
+            ParserRuleContext ctx, YangLeafRef yangLeafRef) {
+
+        String completePathString = removeQuotesAndHandleConcat(pathString);
+        yangLeafRef.setPath(completePathString);
+        if (completePathString.startsWith(SLASH)) {
+            yangLeafRef.setPathType(ABSOLUTE_PATH);
+            List<YangAtomicPath> yangAtomicPathListList = validateAbsolutePath(completePathString, yangConstruct, ctx,
+                    yangLeafRef);
+            yangLeafRef.setAtomicPath(yangAtomicPathListList);
+        } else if (completePathString.startsWith(ANCESTOR_ACCESSOR)) {
+            yangLeafRef.setPathType(RELATIVE_PATH);
+            validateRelativePath(completePathString, yangConstruct, ctx, yangLeafRef);
+        } else {
+            ParserException parserException = new ParserException("YANG file error : " +
+                    YangConstructType.getYangConstructType(yangConstruct) + yangLeafRef.getPath() +
+                    " does not follow valid path syntax");
+            parserException.setLine(ctx.getStart().getLine());
+            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+            throw parserException;
+        }
+    }
+
+    /**
+     * Validates the relative path.
+     *
+     * @param completePathString the path string of relative path
+     * @param yangConstruct yang construct for creating error message
+     * @param ctx yang construct's context to get the line number and character position
+     * @param yangLeafRef instance of leafref where the path argument has to be set
+     */
+    private static void validateRelativePath(String completePathString, YangConstructType yangConstruct,
+            ParserRuleContext ctx, YangLeafRef yangLeafRef) {
+
+        YangRelativePath relativePath = new YangRelativePath();
+        int numberOfAncestors = 0;
+        while (completePathString.startsWith(ANCESTOR_ACCESSOR_IN_PATH)) {
+            completePathString = completePathString.replaceFirst(ANCESTOR_ACCESSOR_IN_PATH, EMPTY_STRING);
+            numberOfAncestors = numberOfAncestors + 1;
+        }
+        if (completePathString == null || completePathString.length() == 0) {
+            ParserException parserException = new ParserException("YANG file error : "
+                    + YangConstructType.getYangConstructType(yangConstruct) + yangLeafRef.getPath() +
+                    " does not follow valid path syntax");
+            parserException.setLine(ctx.getStart().getLine());
+            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+            throw parserException;
+        }
+        relativePath.setAncestorNodeCount(numberOfAncestors);
+        List<YangAtomicPath> atomicPath = validateAbsolutePath(SLASH_FOR_STRING + completePathString,
+                yangConstruct,
+                ctx, yangLeafRef);
+        relativePath.setAtomicPathList(atomicPath);
+        yangLeafRef.setRelativePath(relativePath);
+    }
+
+    /**
+     * Validates the absolute path.
+     *
+     * @param completePathString the path string of absolute path
+     * @param yangConstruct yang construct for creating error message
+     * @param ctx yang construct's context to get the line number and character position
+     * @param yangLeafRef instance of leafref where the path argument has to be set
+     * @return list of object of node in absolute path
+     */
+    private static List<YangAtomicPath> validateAbsolutePath(String completePathString,
+            YangConstructType yangConstruct, ParserRuleContext ctx, YangLeafRef yangLeafRef) {
+
+        List<YangAtomicPath> absolutePathList = new LinkedList<>();
+        YangPathPredicate yangPathPredicate = new YangPathPredicate();
+        YangNodeIdentifier yangNodeIdentifier;
+
+        while (completePathString != null) {
+            String path = completePathString.replaceFirst(SLASH_FOR_STRING, EMPTY_STRING);
+            if (path == null || path.length() == 0) {
+                ParserException parserException = new ParserException("YANG file error : "
+                        + YangConstructType.getYangConstructType(yangConstruct) + " " + yangLeafRef.getPath() +
+                        " does not follow valid path syntax");
+                parserException.setLine(ctx.getStart().getLine());
+                parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+                throw parserException;
+            }
+            String matchedPathPredicate;
+            String nodeIdentifier;
+            String[] differentiate = new String[2];
+            int forNodeIdentifier = path.indexOf(CHAR_OF_SLASH);
+            int forPathPredicate = path.indexOf(CHAR_OF_OPEN_SQUARE_BRACKET);
+
+            // Checks if path predicate is present for the node.
+            if ((forPathPredicate < forNodeIdentifier) && (forPathPredicate != -1)) {
+                List<String> pathPredicate = new ArrayList<>();
+                matchedPathPredicate = matchForPathPredicate(path);
+
+                if (matchedPathPredicate == null || matchedPathPredicate.length() == 0) {
+                    ParserException parserException = new ParserException("YANG file error : "
+                            + YangConstructType.getYangConstructType(yangConstruct) + " " + yangLeafRef.getPath() +
+                            " does not follow valid path syntax");
+                    parserException.setLine(ctx.getStart().getLine());
+                    parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+                    throw parserException;
+                }
+                int indexOfMatchedFirstOpenBrace = path.indexOf(CHAR_OF_OPEN_SQUARE_BRACKET);
+                differentiate[0] = path.substring(0, indexOfMatchedFirstOpenBrace);
+                differentiate[1] = path.substring(indexOfMatchedFirstOpenBrace);
+                pathPredicate.add(matchedPathPredicate);
+                nodeIdentifier = differentiate[0];
+                // Starts adding all path predicates of a node into the list.
+                if (!differentiate[1].isEmpty()) {
+                    while (differentiate[1].startsWith(OPEN_SQUARE_BRACKET)) {
+                        matchedPathPredicate = matchForPathPredicate(differentiate[1]);
+                        if (matchedPathPredicate == null || matchedPathPredicate.length() == 0) {
+                            ParserException parserException = new ParserException(
+                                    "YANG file error : " + YangConstructType.getYangConstructType(yangConstruct) + " "
+                                            + yangLeafRef.getPath() +
+                                            " does not follow valid path syntax");
+                            parserException.setLine(ctx.getStart().getLine());
+                            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+                            throw parserException;
+                        }
+                        pathPredicate.add(matchedPathPredicate);
+                        differentiate[1] = differentiate[1].substring(matchedPathPredicate.length());
+                    }
+                }
+
+                List<YangPathPredicate> pathPredicateList = validatePathPredicate(pathPredicate, yangConstruct, ctx,
+                        yangPathPredicate, yangLeafRef);
+                YangAtomicPath atomicPath = new YangAtomicPath();
+                yangNodeIdentifier = getValidNodeIdentifierForLeafref(nodeIdentifier, yangConstruct, ctx, yangLeafRef);
+                atomicPath.setNodeIdentifier(yangNodeIdentifier);
+                atomicPath.setPathPredicatesList(pathPredicateList);
+                absolutePathList.add(atomicPath);
+            } else {
+                if (path.contains(SLASH_FOR_STRING)) {
+                    nodeIdentifier = path.substring(0, path.indexOf(CHAR_OF_SLASH));
+                    differentiate[1] = path.substring(path.indexOf(CHAR_OF_SLASH));
+                } else {
+                    nodeIdentifier = path;
+                    differentiate[1] = null;
+                }
+                yangNodeIdentifier = getValidNodeIdentifierForLeafref(nodeIdentifier, yangConstruct, ctx, yangLeafRef);
+
+                YangAtomicPath atomicPath = new YangAtomicPath();
+                atomicPath.setNodeIdentifier(yangNodeIdentifier);
+                atomicPath.setPathPredicatesList(null);
+                absolutePathList.add(atomicPath);
+            }
+            if (differentiate[1] == null || differentiate[1].length() == 0) {
+                completePathString = null;
+            } else {
+                completePathString = differentiate[1];
+            }
+        }
+        return absolutePathList;
+    }
+
+    /**
+     * Validates path predicate in the absolute path's node.
+     *
+     * @param pathPredicate list of path predicates in the node of absolute path
+     * @param yangConstruct yang construct for creating error message
+     * @param ctx yang construct's context to get the line number and character position
+     * @param yangPathPredicate instance of path predicate where it has to be set
+     * @param yangLeafRef instance of leafref where the path argument has to be set
+     * @return list of object of path predicates in absolute path's node
+     */
+    private static List<YangPathPredicate> validatePathPredicate(List<String> pathPredicate,
+            YangConstructType yangConstruct, ParserRuleContext ctx, YangPathPredicate yangPathPredicate,
+            YangLeafRef yangLeafRef) {
+
+        Iterator<String> pathPredicateString = pathPredicate.iterator();
+        List<String> pathEqualityExpression = new ArrayList<>();
+
+        while (pathPredicateString.hasNext()) {
+            String pathPredicateForNode = pathPredicateString.next();
+            pathPredicateForNode = (pathPredicateForNode.substring(1)).trim();
+            pathPredicateForNode = pathPredicateForNode.substring(0,
+                    pathPredicateForNode.indexOf(CHAR_OF_CLOSE_SQUARE_BRACKET));
+            pathEqualityExpression.add(pathPredicateForNode);
+        }
+        List<YangPathPredicate> validatedPathPredicateList = validatePathEqualityExpression(pathEqualityExpression,
+                yangConstruct, ctx, yangPathPredicate, yangLeafRef);
+        return validatedPathPredicateList;
+    }
+
+    /**
+     * Validates the path equality expression.
+     *
+     * @param pathEqualityExpression list of path equality expression in the path predicates of the node
+     * @param yangConstruct yang construct for creating error message
+     * @param ctx yang construct's context to get the line number and character position
+     * @param yangPathPredicate instance of path predicate where it has to be set
+     * @param yangLeafRef instance of leafref where the path argument has to be set
+     * @return list of object of path predicates in absolute path's node
+     */
+    private static List<YangPathPredicate> validatePathEqualityExpression(List<String> pathEqualityExpression,
+            YangConstructType yangConstruct, ParserRuleContext ctx, YangPathPredicate yangPathPredicate,
+            YangLeafRef yangLeafRef) {
+
+        Iterator<String> pathEqualityExpressionString = pathEqualityExpression.iterator();
+        List<YangPathPredicate> yangPathPredicateList = new ArrayList<>();
+
+        while (pathEqualityExpressionString.hasNext()) {
+            String pathEqualityExpressionForNode = pathEqualityExpressionString.next();
+            String[] pathEqualityExpressionArray = pathEqualityExpressionForNode.split("[=]");
+
+            YangNodeIdentifier yangNodeIdentifierForPredicate;
+            YangRelativePath yangRelativePath;
+            yangNodeIdentifierForPredicate = getValidNodeIdentifierForLeafref(pathEqualityExpressionArray[0].trim(),
+                    yangConstruct, ctx, yangLeafRef);
+            yangRelativePath = validatePathKeyExpression(pathEqualityExpressionArray[1].trim(), yangConstruct, ctx,
+                    yangLeafRef);
+            yangPathPredicate.setNodeIdentifier(yangNodeIdentifierForPredicate);
+            yangPathPredicate.setPathOperator(EQUALTO);
+            yangPathPredicate.setRightRelativePath(yangRelativePath);
+            yangPathPredicateList.add(yangPathPredicate);
+        }
+        return yangPathPredicateList;
+    }
+
+    /**
+     * Validate the path key expression.
+     *
+     * @param rightRelativePath relative path in the path predicate
+     * @param yangConstruct yang construct for creating error message
+     * @param ctx yang construct's context to get the line number and character position
+     * @param yangLeafRef instance of leafref where the path argument has to be set
+     * @return object of right relative path in path predicate
+     */
+    private static YangRelativePath validatePathKeyExpression(String rightRelativePath,
+            YangConstructType yangConstruct, ParserRuleContext ctx, YangLeafRef yangLeafRef) {
+
+        YangRelativePath yangRelativePath = new YangRelativePath();
+        String[] relativePath = rightRelativePath.split(SLASH_FOR_STRING);
+        List<String> rightAbsolutePath = new ArrayList<>();
+        int accessAncestor = 0;
+        for (String path : relativePath) {
+            if (path.trim().equals(ANCESTOR_ACCESSOR)) {
+                accessAncestor = accessAncestor + 1;
+            } else {
+                rightAbsolutePath.add(path);
+            }
+        }
+        List<YangAtomicPath> atomicPathInRelativePath = validateRelativePathKeyExpression(rightAbsolutePath,
+                yangConstruct, ctx, yangLeafRef);
+        yangRelativePath.setAtomicPathList(atomicPathInRelativePath);
+        yangRelativePath.setAncestorNodeCount(accessAncestor);
+        return yangRelativePath;
+    }
+
+    /**
+     * Validates the relative path key expression.
+     *
+     * @param rightAbsolutePath absolute path nodes present in the relative path
+     * @param yangConstruct yang construct for creating error message
+     * @param ctx yang construct's context to get the line number and character position
+     * @param yangLeafRef instance of leafref where the path argument has to be set
+     * @return list of object of absolute path nodes present in the relative path
+     */
+    private static List<YangAtomicPath> validateRelativePathKeyExpression(List<String> rightAbsolutePath,
+            YangConstructType yangConstruct, ParserRuleContext ctx, YangLeafRef yangLeafRef) {
+
+        List<YangAtomicPath> atomicPathList = new ArrayList<>();
+        YangNodeIdentifier yangNodeIdentifier;
+
+        Iterator<String> nodes = rightAbsolutePath.iterator();
+        String currentInvocationFunction = nodes.next();
+        currentInvocationFunction = currentInvocationFunction.trim();
+        String[] currentFunction = currentInvocationFunction.split("[(]");
+
+        if (!(currentFunction[0].trim().equals(CURRENT)) || !(currentFunction[1].trim().equals(CLOSE_PARENTHESIS))) {
+            ParserException parserException = new ParserException("YANG file error : "
+                    + YangConstructType.getYangConstructType(yangConstruct) + " " + yangLeafRef.getPath() +
+                    " does not follow valid path syntax");
+            parserException.setLine(ctx.getStart().getLine());
+            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+            throw parserException;
+        }
+
+        while (nodes.hasNext()) {
+            YangAtomicPath atomicPath = new YangAtomicPath();
+            String node = nodes.next();
+            yangNodeIdentifier = getValidNodeIdentifierForLeafref(node.trim(), yangConstruct, ctx, yangLeafRef);
+            atomicPath.setNodeIdentifier(yangNodeIdentifier);
+            atomicPathList.add(atomicPath);
+        }
+        return atomicPathList;
+    }
+
+    /**
+     * Validates the match for first path predicate in a given string.
+     *
+     * @param matchRequiredString string for which match has to be done
+     * @return the matched string
+     */
+    private static String matchForPathPredicate(String matchRequiredString) {
+
+        String matchedString = null;
+        java.util.regex.Matcher matcher = PATH_PREDICATE_PATTERN.matcher(matchRequiredString);
+        if (matcher.find()) {
+            matchedString = matcher.group(0);
+        }
+        return matchedString;
+    }
+
+    /**
      * Checks whether the type is an unsupported type.
      *
      * @param typeName name of the type
@@ -317,14 +716,8 @@ public final class ListenerUtil {
             YangConstructType yangConstruct, ParserRuleContext ctx) {
 
         if (yangConstruct == YangConstructType.TYPE_DATA) {
-            if (typeName.equalsIgnoreCase(LEAFREF)) {
-                handleUnsupportedYangConstruct(YangConstructType.LEAFREF_DATA,
-                        ctx, CURRENTLY_UNSUPPORTED);
-            } else if (typeName.equalsIgnoreCase(IDENTITYREF)) {
+            if (typeName.equalsIgnoreCase(IDENTITYREF)) {
                 handleUnsupportedYangConstruct(YangConstructType.IDENTITYREF_DATA,
-                        ctx, CURRENTLY_UNSUPPORTED);
-            } else if (typeName.equalsIgnoreCase(INSTANCE_IDENTIFIER)) {
-                handleUnsupportedYangConstruct(YangConstructType.INSTANCE_IDENTIFIER_DATA,
                         ctx, CURRENTLY_UNSUPPORTED);
             }
         }

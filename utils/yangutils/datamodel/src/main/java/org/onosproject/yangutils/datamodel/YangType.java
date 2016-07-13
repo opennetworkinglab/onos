@@ -17,6 +17,7 @@
 package org.onosproject.yangutils.datamodel;
 
 import java.io.Serializable;
+
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.ResolvableStatus;
@@ -43,7 +44,7 @@ import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangData
  * | bit              | 9.7.4   | 0..n        | - YangBit used in YangBits         |
  * | enum             | 9.6.4   | 0..n        | - YangEnum used in YangEnumeration |
  * | length           | 9.4.4   | 0..1        | - used for string                  |
- * | path             | 9.9.2   | 0..1        | - TODO leaf-ref                    |
+ * | path             | 9.9.2   | 0..1        | - path for referred leaf/leaf-list |
  * | pattern          | 9.4.6   | 0..n        | - used for string                  |
  * | range            | 9.2.4   | 0..1        | - used for integer data type       |
  * | require-instance | 9.13.2  | 0..1        | - TODO instance-identifier         |
@@ -65,11 +66,6 @@ public class YangType<T>
      * YANG node identifier.
      */
     private YangNodeIdentifier nodeIdentifier;
-
-    /**
-     * Java package in which the Java type is defined.
-     */
-    private String javaPackage;
 
     /**
      * YANG data type.
@@ -137,24 +133,6 @@ public class YangType<T>
     }
 
     /**
-     * Returns the Java package where the type is defined.
-     *
-     * @return Java package where the type is defined
-     */
-    public String getJavaPackage() {
-        return javaPackage;
-    }
-
-    /**
-     * Sets Java package where the type is defined.
-     *
-     * @param javaPackage Java package where the type is defined
-     */
-    public void setJavaPackage(String javaPackage) {
-        this.javaPackage = javaPackage;
-    }
-
-    /**
      * Returns the type of data.
      *
      * @return the data type
@@ -206,6 +184,16 @@ public class YangType<T>
      */
     public void setNodeIdentifier(YangNodeIdentifier nodeIdentifier) {
         this.nodeIdentifier = nodeIdentifier;
+    }
+
+    /**
+     * Resets the class attributes to its default value.
+     */
+    public void resetYangType() {
+        nodeIdentifier = new YangNodeIdentifier();
+        resolvableStatus = ResolvableStatus.UNRESOLVED;
+        dataType = null;
+        dataTypeExtendedInfo = null;
     }
 
     /**

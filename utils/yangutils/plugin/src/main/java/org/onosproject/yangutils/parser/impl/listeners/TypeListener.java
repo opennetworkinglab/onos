@@ -101,6 +101,9 @@ public final class TypeListener {
         type.setNodeIdentifier(nodeIdentifier);
         type.setDataType(yangDataTypes);
 
+        // Set default require instance value as true for instance identifier.
+        setDefaultRequireInstanceForInstanceIdentifier(type);
+
         int errorLine = ctx.getStart().getLine();
         int errorPosition = ctx.getStart().getCharPositionInLine();
 
@@ -233,6 +236,18 @@ public final class TypeListener {
     }
 
     /**
+     * Sets the default require instance value as true when the type is instance identifier.
+     *
+     * @param type type to which the value has to be set
+     */
+    private static void setDefaultRequireInstanceForInstanceIdentifier(YangType<?> type) {
+
+        if (type.getDataType() == YangDataTypes.INSTANCE_IDENTIFIER) {
+            ((YangType<Boolean>) type).setDataTypeExtendedInfo(true);
+        }
+    }
+
+    /**
      * It is called when parser exits from grammar rule (type), it perform
      * validations and update the data model tree.
      *
@@ -291,7 +306,11 @@ public final class TypeListener {
                     parserException = new ParserException("YANG file error : a type bits" +
                             " must have atleast one bit statement.");
                     break;
-                // TODO : decimal64, identity ref, leafref
+                case LEAFREF:
+                    parserException = new ParserException("YANG file error : a type leafref" +
+                            " must have one path statement.");
+                    break;
+                // TODO : decimal64, identity ref
                 default:
                     return;
             }

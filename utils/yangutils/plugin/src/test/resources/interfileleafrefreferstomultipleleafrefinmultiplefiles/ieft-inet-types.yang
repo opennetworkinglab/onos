@@ -1,0 +1,11 @@
+module ietf-inet-types {
+    yang-version 1;
+    namespace
+      "urn:ietf:params:xml:ns:yang:ietf-inet-types";
+    prefix inet;
+    typedef tp-ref {
+        type leafref {
+            path "/nwtp:value";
+        }
+    }
+}

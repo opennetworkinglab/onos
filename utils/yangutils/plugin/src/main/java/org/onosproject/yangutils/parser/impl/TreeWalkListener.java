@@ -49,6 +49,7 @@ import org.onosproject.yangutils.parser.impl.listeners.InputListener;
 import org.onosproject.yangutils.parser.impl.listeners.KeyListener;
 import org.onosproject.yangutils.parser.impl.listeners.LeafListListener;
 import org.onosproject.yangutils.parser.impl.listeners.LeafListener;
+import org.onosproject.yangutils.parser.impl.listeners.LeafrefListener;
 import org.onosproject.yangutils.parser.impl.listeners.LengthRestrictionListener;
 import org.onosproject.yangutils.parser.impl.listeners.ListListener;
 import org.onosproject.yangutils.parser.impl.listeners.MandatoryListener;
@@ -56,16 +57,18 @@ import org.onosproject.yangutils.parser.impl.listeners.MaxElementsListener;
 import org.onosproject.yangutils.parser.impl.listeners.MinElementsListener;
 import org.onosproject.yangutils.parser.impl.listeners.ModuleListener;
 import org.onosproject.yangutils.parser.impl.listeners.MustListener;
-import org.onosproject.yangutils.parser.impl.listeners.NotificationListener;
 import org.onosproject.yangutils.parser.impl.listeners.NamespaceListener;
+import org.onosproject.yangutils.parser.impl.listeners.NotificationListener;
 import org.onosproject.yangutils.parser.impl.listeners.OrganizationListener;
 import org.onosproject.yangutils.parser.impl.listeners.OutputListener;
+import org.onosproject.yangutils.parser.impl.listeners.PathListener;
 import org.onosproject.yangutils.parser.impl.listeners.PatternRestrictionListener;
 import org.onosproject.yangutils.parser.impl.listeners.PositionListener;
 import org.onosproject.yangutils.parser.impl.listeners.PrefixListener;
 import org.onosproject.yangutils.parser.impl.listeners.PresenceListener;
 import org.onosproject.yangutils.parser.impl.listeners.RangeRestrictionListener;
 import org.onosproject.yangutils.parser.impl.listeners.ReferenceListener;
+import org.onosproject.yangutils.parser.impl.listeners.RequireInstanceListener;
 import org.onosproject.yangutils.parser.impl.listeners.RevisionDateListener;
 import org.onosproject.yangutils.parser.impl.listeners.RevisionListener;
 import org.onosproject.yangutils.parser.impl.listeners.RpcListener;
@@ -81,9 +84,9 @@ import org.onosproject.yangutils.parser.impl.listeners.ValueListener;
 import org.onosproject.yangutils.parser.impl.listeners.VersionListener;
 import org.onosproject.yangutils.parser.impl.listeners.WhenListener;
 
-import static org.onosproject.yangutils.utils.UtilConstants.UNSUPPORTED_YANG_CONSTRUCT;
-import static org.onosproject.yangutils.utils.UtilConstants.CURRENTLY_UNSUPPORTED;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.handleUnsupportedYangConstruct;
+import static org.onosproject.yangutils.utils.UtilConstants.CURRENTLY_UNSUPPORTED;
+import static org.onosproject.yangutils.utils.UtilConstants.UNSUPPORTED_YANG_CONSTRUCT;
 
 /**
  * Represents ANTLR generates parse-tree. ANTLR generates a parse-tree listener interface that responds to events
@@ -667,17 +670,17 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterLeafrefSpecification(GeneratedYangParser.LeafrefSpecificationContext ctx) {
-        // do nothing.
+        LeafrefListener.processLeafrefEntry(this, ctx);
     }
 
     @Override
     public void exitLeafrefSpecification(GeneratedYangParser.LeafrefSpecificationContext ctx) {
-        // do nothing.
+        LeafrefListener.processLeafrefExit(this, ctx);
     }
 
     @Override
     public void enterPathStatement(GeneratedYangParser.PathStatementContext ctx) {
-        handleUnsupportedYangConstruct(YangConstructType.PATH_DATA, ctx, CURRENTLY_UNSUPPORTED);
+        PathListener.processPathEntry(this, ctx);
     }
 
     @Override
@@ -687,7 +690,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterRequireInstanceStatement(GeneratedYangParser.RequireInstanceStatementContext ctx) {
-        handleUnsupportedYangConstruct(YangConstructType.REQUIRE_INSTANCE_DATA, ctx, UNSUPPORTED_YANG_CONSTRUCT);
+        RequireInstanceListener.processRequireInstanceEntry(this, ctx);
     }
 
     @Override
@@ -1485,6 +1488,16 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void exitValue(GeneratedYangParser.ValueContext ctx) {
+        // do nothing.
+    }
+
+    @Override
+    public void enterRequireInstance(GeneratedYangParser.RequireInstanceContext ctx) {
+        // do nothing.
+    }
+
+    @Override
+    public void exitRequireInstance(GeneratedYangParser.RequireInstanceContext ctx) {
         // do nothing.
     }
 

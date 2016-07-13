@@ -25,14 +25,14 @@ public enum YangDataTypes {
      *
      * int8 represents integer values between -128 and 127, inclusively.
      */
-    INT8,
+    INT8("int8"),
 
     /**
      * Reference:RFC 6020.
      *
      * int16 represents integer values between -32768 and 32767, inclusively.
      */
-    INT16,
+    INT16("int16"),
 
     /**
      * Reference:RFC 6020.
@@ -40,7 +40,7 @@ public enum YangDataTypes {
      * int32 represents integer values between -2147483648 and 2147483647,
      * inclusively.
      */
-    INT32,
+    INT32("int32"),
 
     /**
      * Reference:RFC 6020.
@@ -48,28 +48,28 @@ public enum YangDataTypes {
      * int64 represents integer values between -9223372036854775808 and
      * 9223372036854775807, inclusively.
      */
-    INT64,
+    INT64("int64"),
 
     /**
      * Reference:RFC 6020.
      *
      * uint8 represents integer values between 0 and 255, inclusively.
      */
-    UINT8,
+    UINT8("uint8"),
 
     /**
      * Reference:RFC 6020.
      *
      * uint16 represents integer values between 0 and 65535, inclusively.
      */
-    UINT16,
+    UINT16("uint16"),
 
     /**
      * Reference:RFC 6020.
      *
      * uint32 represents integer values between 0 and 4294967295, inclusively.
      */
-    UINT32,
+    UINT32("uint32"),
 
     /**
      * Reference:RFC 6020.
@@ -77,7 +77,7 @@ public enum YangDataTypes {
      * uint64 represents integer values between 0 and 18446744073709551615,
      * inclusively.
      */
-    UINT64,
+    UINT64("uint64"),
 
     /**
      * Reference:RFC 6020.
@@ -88,7 +88,7 @@ public enum YangDataTypes {
      * a negative power of ten, i.e., expressible as "i x 10^-n" where i is an
      * integer64 and n is an integer between 1 and 18, inclusively.
      */
-    DECIMAL64, // TODO: need to implement in type.
+    DECIMAL64("decimal64"), // TODO: need to implement in type.
 
     /**
      * Reference:RFC 6020.
@@ -97,14 +97,14 @@ public enum YangDataTypes {
      * characters are tab, carriage return, line feed, and the legal characters
      * of Unicode and ISO/IEC 10646
      */
-    STRING,
+    STRING("string"),
 
     /**
      * Reference:RFC 6020.
      *
      * The boolean built-in type represents a boolean value.
      */
-    BOOLEAN,
+    BOOLEAN("boolean"),
 
     /**
      * Reference:RFC 6020.
@@ -112,7 +112,7 @@ public enum YangDataTypes {
      * The enumeration built-in type represents values from a set of assigned
      * names.
      */
-    ENUMERATION,
+    ENUMERATION("enumeration"),
 
     /**
      * Reference:RFC 6020.
@@ -121,7 +121,7 @@ public enum YangDataTypes {
      * set of flags identified by small integer position numbers starting at 0.
      * Each bit number has an assigned name.
      */
-    BITS,
+    BITS("bits"),
 
     /**
      * Reference:RFC 6020.
@@ -129,7 +129,7 @@ public enum YangDataTypes {
      * The binary built-in type represents any binary data, i.e., a sequence of
      * octets.
      */
-    BINARY,
+    BINARY("binary"),
 
     /**
      * Reference:RFC 6020.
@@ -150,14 +150,14 @@ public enum YangDataTypes {
      * more features, then the leaf with the leafref type MUST also be
      * conditional based on at least the same set of features.
      */
-    LEAFREF, // TODO: need to implement in type.
+    LEAFREF("leafref"),
 
     /**
      * Reference:RFC 6020.
      *
      * The identityref type is used to reference an existing identity.
      */
-    IDENTITYREF,
+    IDENTITYREF("identityref"),
 
     /**
      * Reference:RFC 6020.
@@ -167,7 +167,7 @@ public enum YangDataTypes {
      *
      * An empty type cannot have a default value.
      */
-    EMPTY,
+    EMPTY("empty"),
 
     /**
      * Reference:RFC 6020.
@@ -189,7 +189,7 @@ public enum YangDataTypes {
      * Any default value or "units" property defined in the member types is not
      * inherited by the union type.
      */
-    UNION,
+    UNION("union"),
 
     /**
      * Reference:RFC 6020.
@@ -212,12 +212,26 @@ public enum YangDataTypes {
      * valid data. All such leaf nodes MUST reference existing nodes or leaf
      * nodes with their default value in use for the data to be valid.
      */
-    INSTANCE_IDENTIFIER,
+    INSTANCE_IDENTIFIER("instance-identifier"),
 
     /**
      * Derived data type.
      */
-    DERIVED;
+    DERIVED("derived");
+
+    /**
+     * Defined type from the enum value.
+     */
+    private String definedType;
+
+    /**
+     * Constructs type value from enum.
+     *
+     * @param definedType value of enum
+     */
+    YangDataTypes(String definedType) {
+        this.definedType = definedType;
+    }
 
     /**
      * Returns YANG data type for corresponding type name.
@@ -228,7 +242,7 @@ public enum YangDataTypes {
     public static YangDataTypes getType(String name) {
         name = name.replace("\"", "");
         for (YangDataTypes yangDataType : values()) {
-            if (yangDataType.name().toLowerCase().equals(name)) {
+            if (yangDataType.definedType.toLowerCase().equals(name)) {
                 return yangDataType;
             }
         }

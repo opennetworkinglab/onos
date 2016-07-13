@@ -16,7 +16,6 @@
 
 // Generated from GeneratedYang.g4 by ANTLR 4.5
 
-
 package org.onosproject.yangutils.parser.antlrgencode;
 
 import org.antlr.v4.runtime.tree.ParseTreeListener;
@@ -1950,4 +1949,18 @@ public interface GeneratedYangListener extends ParseTreeListener {
      */
     void exitAnnotationIdentifier(GeneratedYangParser.AnnotationIdentifierContext
                                           currentContext);
+
+    /**
+     * Enters a parse tree produced by GeneratedYangParser for grammar rule require instance.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterRequireInstance(GeneratedYangParser.RequireInstanceContext currentContext);
+
+    /**
+     * Exits a parse tree produced by GeneratedYangParser for grammar require instance.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitRequireInstance(GeneratedYangParser.RequireInstanceContext currentContext);
 }

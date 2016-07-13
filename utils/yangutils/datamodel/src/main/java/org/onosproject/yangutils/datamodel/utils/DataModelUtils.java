@@ -24,6 +24,7 @@ import org.onosproject.yangutils.datamodel.ResolvableType;
 import org.onosproject.yangutils.datamodel.YangIfFeature;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
+import org.onosproject.yangutils.datamodel.YangLeafRef;
 import org.onosproject.yangutils.datamodel.YangLeavesHolder;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangReferenceResolver;
@@ -171,6 +172,10 @@ public final class DataModelUtils {
                 .getEntityToResolve() instanceof YangIfFeature) {
             resolutionNode.addToResolutionList(resolutionInfo,
                     ResolvableType.YANG_IF_FEATURE);
+        } else if (resolutionInfo.getEntityToResolveInfo()
+                .getEntityToResolve() instanceof YangLeafRef) {
+            resolutionNode.addToResolutionList(resolutionInfo,
+                    ResolvableType.YANG_LEAFREF);
         }
     }
 

@@ -24,6 +24,11 @@ import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 
 import com.google.common.base.Strings;
 
+import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.INTRA_FILE_RESOLVED;
+import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.RESOLVED;
+import static org.onosproject.yangutils.datamodel.utils.RestrictionResolver.processLengthRestriction;
+import static org.onosproject.yangutils.datamodel.utils.RestrictionResolver.processRangeRestriction;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypeUtils.isOfRangeRestrictedType;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BINARY;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BITS;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BOOLEAN;
@@ -34,11 +39,6 @@ import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangData
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.LEAFREF;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.STRING;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.UNION;
-import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.INTRA_FILE_RESOLVED;
-import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.RESOLVED;
-import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypeUtils.isOfRangeRestrictedType;
-import static org.onosproject.yangutils.datamodel.utils.RestrictionResolver.processLengthRestriction;
-import static org.onosproject.yangutils.datamodel.utils.RestrictionResolver.processRangeRestriction;
 
 /**
  * Represents the derived information.
@@ -334,6 +334,9 @@ public class YangDerivedInfo<T>
                     return RESOLVED;
                 }
             }
+        } else if (baseType.getDataType() == LEAFREF) {
+            setEffectiveBuiltInType(baseType.getDataType());
+            return RESOLVED;
         } else {
             setEffectiveBuiltInType(baseType.getDataType());
             /*
@@ -412,7 +415,6 @@ public class YangDerivedInfo<T>
                 }
             }
         }
-
         /*
          * Check if the data type is the one which can't be restricted, in this
          * case check whether no self restrictions should be present.
@@ -426,7 +428,6 @@ public class YangDerivedInfo<T>
                 throw new DataModelException("YANG file error: Restrictions can't be applied to a given type");
             }
         }
-
         // Throw exception for unsupported types
         throw new DataModelException("Linker error: Unable to process the derived type.");
     }

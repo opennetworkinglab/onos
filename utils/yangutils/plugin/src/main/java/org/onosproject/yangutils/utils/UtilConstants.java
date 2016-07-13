@@ -282,6 +282,16 @@ public final class UtilConstants {
     public static final String INPUT = "input";
 
     /**
+     * Static attribute for output string.
+     */
+    public static final String OUTPUT = "output";
+
+    /**
+     * Static attribute for current string.
+     */
+    public static final String CURRENT = "current";
+
+    /**
      * Static attribute for leafref string.
      */
     public static final String LEAFREF = "leafref";
@@ -340,6 +350,41 @@ public final class UtilConstants {
      * Static attribute for comma.
      */
     public static final String COMMA = ",";
+
+    /**
+     * Static attribute for slash character.
+     */
+    public static final char CHAR_OF_SLASH = '/';
+
+    /**
+     * Static attribute for open square bracket character.
+     */
+    public static final char CHAR_OF_OPEN_SQUARE_BRACKET = '[';
+
+    /**
+     * Static attribute for close square bracket character.
+     */
+    public static final char CHAR_OF_CLOSE_SQUARE_BRACKET = ']';
+
+    /**
+     * Static attribute for slash string.
+     */
+    public static final String SLASH_FOR_STRING = "/";
+
+    /**
+     * Static attribute for open square bracket.
+     */
+    public static final String OPEN_SQUARE_BRACKET = "[";
+
+    /**
+     * Static attribute for ancestor accessor.
+     */
+    public static final String ANCESTOR_ACCESSOR = "..";
+
+    /**
+     * Static attribute for ancestor accessor along with path.
+     */
+    public static final String ANCESTOR_ACCESSOR_IN_PATH = "../";
 
     /**
      * Static attribute for add syntax.
@@ -1110,7 +1155,6 @@ public final class UtilConstants {
      */
     public static final String YANG_DECIMAL64_CLASS = "YangDecimal64";
 
-
     /**
      * Static attribute for YANG file error.
      */
@@ -1140,10 +1184,16 @@ public final class UtilConstants {
             + "grouping for given uses";
 
     /**
-     * Static attribute for grouping linker error information.
+     * Static attribute for if-feature linker error information.
      */
     public static final String FEATURE_LINKER_ERROR = "YANG file error: Unable to find feature "
             + "for given if-feature";
+
+    /**
+     * Static attribute for leafref linker error information.
+     */
+    public static final String LEAFREF_LINKER_ERROR = "YANG file error: Unable to find base "
+            + "leaf/leaf-list for given leafref";
 
     /**
      * Static attribute for reference.

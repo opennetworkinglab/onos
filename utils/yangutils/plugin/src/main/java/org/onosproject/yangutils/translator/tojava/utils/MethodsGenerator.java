@@ -18,8 +18,9 @@ package org.onosproject.yangutils.translator.tojava.utils;
 
 import java.util.List;
 import java.util.Map;
-import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
+
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
 import org.onosproject.yangutils.utils.io.impl.JavaDocGen;
@@ -118,6 +119,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.TWELVE_SPACE_INDENTA
 import static org.onosproject.yangutils.utils.UtilConstants.VALUE;
 import static org.onosproject.yangutils.utils.UtilConstants.VOID;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_UTILS_TODO;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILD_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.CONSTRUCTOR;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.DEFAULT_CONSTRUCTOR;
@@ -127,7 +129,6 @@ import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.MAN
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.OF_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.SETTER_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.TYPE_CONSTRUCTOR;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCamelCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getSmallCase;

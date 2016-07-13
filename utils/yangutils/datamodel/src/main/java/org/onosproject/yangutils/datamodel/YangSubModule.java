@@ -209,6 +209,11 @@ public class YangSubModule
     private List<YangResolutionInfo> ifFeatureResolutionList;
 
     /**
+     * leafref resolution list.
+     */
+    private List<YangResolutionInfo> leafrefResolutionList;
+
+    /**
      * Creates a sub module node.
      */
     public YangSubModule() {
@@ -216,6 +221,7 @@ public class YangSubModule
         derivedTypeResolutionList = new LinkedList<>();
         usesResolutionList = new LinkedList<>();
         ifFeatureResolutionList = new LinkedList<>();
+        leafrefResolutionList = new LinkedList<>();
         importList = new LinkedList<YangImport>();
         includeList = new LinkedList<YangInclude>();
         listOfLeaf = new LinkedList<YangLeaf>();
@@ -551,8 +557,10 @@ public class YangSubModule
             return derivedTypeResolutionList;
         } else if (type == ResolvableType.YANG_USES) {
             return usesResolutionList;
-        } else {
+        } else if (type == ResolvableType.YANG_IF_FEATURE) {
             return ifFeatureResolutionList;
+        } else {
+            return leafrefResolutionList;
         }
     }
 
@@ -565,6 +573,8 @@ public class YangSubModule
             usesResolutionList.add(resolutionInfo);
         } else if (type == ResolvableType.YANG_IF_FEATURE) {
             ifFeatureResolutionList.add(resolutionInfo);
+        } else {
+            leafrefResolutionList.add(resolutionInfo);
         }
     }
 
@@ -576,7 +586,9 @@ public class YangSubModule
         } else if (type == ResolvableType.YANG_USES) {
             usesResolutionList = resolutionList;
         } else if (type == ResolvableType.YANG_IF_FEATURE) {
-            ifFeatureResolutionList = resolutionList;
+            ifFeatureResolutionList.add((YangResolutionInfo) resolutionList);
+        } else if (type == ResolvableType.YANG_LEAFREF) {
+            leafrefResolutionList = resolutionList;
         }
 
     }

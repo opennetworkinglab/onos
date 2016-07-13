@@ -20,27 +20,34 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.ListIterator;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangGrouping;
 import org.onosproject.yangutils.datamodel.YangLeaf;
+import org.onosproject.yangutils.datamodel.YangLeafRef;
+import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.YangUses;
 import org.onosproject.yangutils.datamodel.utils.ResolvableStatus;
+import org.onosproject.yangutils.linker.exceptions.LinkerException;
 import org.onosproject.yangutils.linker.impl.YangLinkerManager;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
+import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.STRING;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.DERIVED;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.LEAFREF;
 import static org.onosproject.yangutils.datamodel.YangNodeType.MODULE_NODE;
 import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.RESOLVED;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
@@ -50,6 +57,10 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirector
  */
 public class InterFileLinkingTest {
 
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
+    private final YangUtilsParserManager manager = new YangUtilsParserManager();
     private final YangUtilManager utilManager = new YangUtilManager();
     private final YangLinkerManager yangLinkerManager = new YangLinkerManager();
 
@@ -725,5 +736,254 @@ public class InterFileLinkingTest {
 
         deleteDirectory(userDir + "/target/groupingNodeSameAsModule/");
 
+    }
+
+    /**
+     * Checks inter file leafref linking.
+     */
+    @Test
+    public void processInterFileLeafrefLinking()
+            throws IOException, ParserException, MojoExecutionException {
+
+        String searchDir = "src/test/resources/interfileleafref";
+        utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
+        utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
+        YangNode refNode = null;
+        YangNode selfNode = null;
+
+        // Create YANG node set
+        yangLinkerManager.createYangNodeSet(utilManager.getYangNodeSet());
+
+        // Add references to import list.
+        yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        // Carry out inter-file linking.
+        yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
+
+        Iterator<YangNode> yangNodeIterator = utilManager.getYangNodeSet().iterator();
+
+        YangNode rootNode = yangNodeIterator.next();
+
+        if (rootNode.getName().equals("module1")) {
+            selfNode = rootNode;
+            refNode = yangNodeIterator.next();
+        } else {
+            refNode = rootNode;
+            selfNode = yangNodeIterator.next();
+        }
+
+        // Check whether the data model tree returned is of type module.
+        assertThat(selfNode instanceof YangModule, is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(selfNode.getNodeType(), is(MODULE_NODE));
+
+        // Check whether the module name is set correctly.
+        YangModule yangNode = (YangModule) selfNode;
+        assertThat(yangNode.getName(), is("module1"));
+
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        assertThat(leafInfo.getName(), is("invalid-interval"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("leafref"));
+        assertThat(leafInfo.getDataType().getDataType(), is(LEAFREF));
+
+        // Check whether the data model tree returned is of type module.
+        assertThat(refNode instanceof YangModule, is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(refNode.getNodeType(), is(MODULE_NODE));
+
+        // Check whether the module name is set correctly.
+        YangModule yangNode1 = (YangModule) refNode;
+        assertThat(yangNode1.getName(), is("module2"));
+        YangLeaf leafInfo1 = yangNode1.getListOfLeaf().listIterator().next();
+
+        YangLeafRef leafref = (YangLeafRef) leafInfo.getDataType().getDataTypeExtendedInfo();
+
+        assertThat(leafref.getReferredLeafOrLeafList(), is(leafInfo1));
+        assertThat(leafref.getResolvableStatus(), is(RESOLVED));
+
+        assertThat(leafref.getEffectiveDataType().getDataType(),
+                is(YangDataTypes.STRING));
+    }
+
+    /**
+     * Checks error scenerio where the node is invalid.
+     */
+    @Test
+    public void processSelfResolutionWhenLeafrefInModuleReferToInvalidNode()
+            throws IOException, ParserException {
+
+        thrown.expect(LinkerException.class);
+        thrown.expectMessage(
+                "YANG file error: Unable to find base leaf/leaf-list for given leafref");
+        String searchDir = "src/test/resources/interFileInvalidNode";
+        utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
+        utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
+
+        YangNode selfNode = null;
+
+        // Create YANG node set
+        yangLinkerManager.createYangNodeSet(utilManager.getYangNodeSet());
+
+        // Add references to import list.
+        yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        // Carry out inter-file linking.
+        yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
+    }
+
+    /**
+     * Checks the error scenerio when there is no referref leaf/leaf-list in any file.
+     */
+    @Test
+    public void processSelfResolutionWhenLeafrefDoesNotReferToLeafOrLeafList()
+            throws IOException, ParserException {
+
+        thrown.expect(LinkerException.class);
+        thrown.expectMessage(
+                "YANG file error: Unable to find base leaf/leaf-list for given leafref");
+        String searchDir = "src/test/resources/interfileleafrefwithinvaliddestinationnode";
+        utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
+        utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
+        YangNode selfNode = null;
+
+        // Create YANG node set
+        yangLinkerManager.createYangNodeSet(utilManager.getYangNodeSet());
+
+        // Add references to import list.
+        yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        // Carry out inter-file linking.
+        yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
+    }
+
+    /**
+     * Checks inter file resolution when leafref from grouping refers to other file.
+     */
+    @Test
+    public void processInterFileLeafrefFromGroupingRefersToOtherFile()
+            throws IOException, ParserException {
+
+        String searchDir = "src/test/resources/interfileleafreffromgroupingreferstootherfile";
+        utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
+        utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
+        YangNode selfNode = null;
+        YangNode refNode = null;
+
+        // Create YANG node set
+        yangLinkerManager.createYangNodeSet(utilManager.getYangNodeSet());
+
+        // Add references to import list.
+        yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        // Carry out inter-file linking.
+        yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
+
+        Iterator<YangNode> yangNodeIterator = utilManager.getYangNodeSet().iterator();
+
+        YangNode rootNode = yangNodeIterator.next();
+
+        if (rootNode.getName().equals("module1")) {
+            selfNode = rootNode;
+            refNode = yangNodeIterator.next();
+        } else {
+            refNode = rootNode;
+            selfNode = yangNodeIterator.next();
+        }
+
+        // Check whether the data model tree returned is of type module.
+        assertThat(selfNode instanceof YangModule, is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(selfNode.getNodeType(), is(MODULE_NODE));
+
+        // Check whether the module name is set correctly.
+        YangModule yangNode = (YangModule) selfNode;
+        assertThat(yangNode.getName(), is("module1"));
+
+        YangList list = (YangList) yangNode.getChild().getChild();
+        ListIterator<YangLeaf> leafIterator = list.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        assertThat(leafInfo.getName(), is("link-tp"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("leafref"));
+        assertThat(leafInfo.getDataType().getDataType(), is(LEAFREF));
+
+        YangLeafRef leafref = (YangLeafRef) leafInfo.getDataType().getDataTypeExtendedInfo();
+
+        YangLeaf leafInfo2 = (YangLeaf) leafref.getReferredLeafOrLeafList();
+        assertThat(leafref.getReferredLeafOrLeafList(), is(leafInfo2));
+        assertThat(leafref.getResolvableStatus(), is(RESOLVED));
+
+        assertThat(leafref.getEffectiveDataType().getDataType(),
+                is(YangDataTypes.STRING));
+    }
+
+    /**
+     * Checks inter file resolution when leafref refers to multiple leafrefs through many files.
+     */
+    @Test
+    public void processInterFileLeafrefRefersToMultipleLeafrefInMultipleFiles()
+            throws IOException, ParserException {
+
+        String searchDir = "src/test/resources/interfileleafrefreferstomultipleleafrefinmultiplefiles";
+        utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
+        utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
+        YangNode refNode1 = null;
+        YangNode refNode2 = null;
+        YangNode selfNode = null;
+
+        // Create YANG node set
+        yangLinkerManager.createYangNodeSet(utilManager.getYangNodeSet());
+
+        // Add references to import list.
+        yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        // Carry out inter-file linking.
+        yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
+
+        for (YangNode rootNode : utilManager.getYangNodeSet()) {
+            if (rootNode.getName().equals("ietf-network-topology")) {
+                selfNode = rootNode;
+            } else if (rootNode.getName().equals("ietf-network")) {
+                refNode1 = rootNode;
+            } else {
+                refNode2 = rootNode;
+            }
+        }
+        // Check whether the data model tree returned is of type module.
+        assertThat(selfNode instanceof YangModule, is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(selfNode.getNodeType(), is(MODULE_NODE));
+
+        // Check whether the module name is set correctly.
+        YangModule yangNode = (YangModule) selfNode;
+        assertThat(yangNode.getName(), is("ietf-network-topology"));
+
+        YangList list = (YangList) yangNode.getChild().getChild();
+        ListIterator<YangLeaf> leafIterator = list.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        assertThat(leafInfo.getName(), is("link-tp"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("leafref"));
+        assertThat(leafInfo.getDataType().getDataType(), is(LEAFREF));
+
+        YangLeafRef leafref = (YangLeafRef) leafInfo.getDataType().getDataTypeExtendedInfo();
+
+        YangLeaf leafInfo2 = (YangLeaf) leafref.getReferredLeafOrLeafList();
+        assertThat(leafref.getReferredLeafOrLeafList(), is(leafInfo2));
+        assertThat(leafref.getResolvableStatus(), is(RESOLVED));
+
+        assertThat(leafref.getEffectiveDataType().getDataType(),
+                is(YangDataTypes.STRING));
     }
 }
