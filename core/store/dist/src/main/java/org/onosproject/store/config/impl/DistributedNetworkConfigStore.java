@@ -132,8 +132,12 @@ public class DistributedNetworkConfigStore
         ImmutableSet.copyOf(configs.keySet()).forEach(k -> {
             if (Objects.equals(k.configKey, configFactory.configKey()) &&
                     isAssignableFrom(configFactory, k)) {
-                validateConfig(k, configFactory, configs.get(k).value());
-                configs.remove(k); // Prune whether valid or not
+                // Prune whether valid or not
+                Versioned<JsonNode> versioned = configs.remove(k);
+                // Allow for the value to be processed by another node already
+                if (versioned != null) {
+                    validateConfig(k, configFactory, versioned.value());
+                }
             }
         });
     }
