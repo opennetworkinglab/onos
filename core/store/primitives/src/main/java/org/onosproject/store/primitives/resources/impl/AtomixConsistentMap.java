@@ -35,6 +35,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.onlab.util.Match;
+import org.onlab.util.Tools;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Clear;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.ContainsKey;
@@ -53,6 +54,7 @@ import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapComman
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.UpdateAndGet;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Values;
 import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.MapTransaction;
@@ -245,11 +247,18 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
             Match<byte[]> valueMatch = r1 == null ? Match.NULL : Match.ANY;
             Match<Long> versionMatch = r1 == null ? Match.ANY : Match.ifValue(r1.version());
             return client.submit(new UpdateAndGet(key,
-                    computedValue.get(),
-                    valueMatch,
-                    versionMatch))
-                    .whenComplete((r, e) -> throwIfLocked(r.status()))
-                    .thenApply(v -> v.newValue());
+                                                  computedValue.get(),
+                                                  valueMatch,
+                                                  versionMatch))
+                         .whenComplete((r, e) -> throwIfLocked(r.status()))
+                         .thenCompose(r -> {
+                             if (r.status() == MapEntryUpdateResult.Status.PRECONDITION_FAILED ||
+                                     r.status() == MapEntryUpdateResult.Status.WRITE_LOCK) {
+                                 return Tools.exceptionalFuture(new ConsistentMapException.ConcurrentModification());
+                             }
+                             return CompletableFuture.completedFuture(r);
+                         })
+                         .thenApply(v -> v.newValue());
         });
     }
 
