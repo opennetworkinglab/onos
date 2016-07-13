@@ -69,6 +69,7 @@ import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.osgi.DefaultServiceDirectory.getService;
+import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
 /**
  * Populates Routing Flow Rules.
@@ -86,12 +87,10 @@ public class OpenstackRoutingRulePopulator {
     private final OpenstackNodeService nodeService;
 
     private static final String PORTNAME_PREFIX_TUNNEL = "vxlan";
-    private static final String PORTNAME = "portName";
     private static final String PORTNAME_PREFIX_VM = "tap";
 
     private static final String PORTNOTNULL = "Port can not be null";
     private static final String DEVICENOTNULL = "Device can not be null";
-    private static final String EXTPORTNOTNULL = "External port can not be null";
     private static final String TUNNEL_DESTINATION = "tunnelDst";
     private static final int ROUTING_RULE_PRIORITY = 25000;
     private static final int FLOATING_RULE_PRIORITY = 42000;
@@ -113,6 +112,7 @@ public class OpenstackRoutingRulePopulator {
      * @param flowObjectiveService FlowObjectiveService
      * @param deviceService DeviceService
      * @param driverService DriverService
+     * @param nodeService openstack node service
      * @param gatewayService scalable gateway service
      */
     public OpenstackRoutingRulePopulator(ApplicationId appId,
@@ -205,7 +205,7 @@ public class OpenstackRoutingRulePopulator {
 
     private Port getPortOfExternalInterface() {
         return deviceService.getPorts(getGatewayNode().id()).stream()
-                .filter(p -> p.annotations().value(PORTNAME)
+                .filter(p -> p.annotations().value(PORT_NAME)
                         .equals(org.onosproject.openstacknode.Constants.PATCH_INTG_BRIDGE))
                 .findAny().orElse(null);
     }
@@ -293,7 +293,7 @@ public class OpenstackRoutingRulePopulator {
     private boolean findPortinDevice(DeviceId deviceId, String openstackPortName) {
         Port port = deviceService.getPorts(deviceId)
                 .stream()
-                .filter(p -> p.isEnabled() && p.annotations().value(PORTNAME).equals(openstackPortName))
+                .filter(p -> p.isEnabled() && p.annotations().value(PORT_NAME).equals(openstackPortName))
                 .findAny()
                 .orElse(null);
         return port != null;
@@ -332,7 +332,7 @@ public class OpenstackRoutingRulePopulator {
      */
     public PortNumber getTunnelPort(DeviceId deviceId) {
         Port port = deviceService.getPorts(deviceId).stream()
-                .filter(p -> p.annotations().value(PORTNAME).equals(PORTNAME_PREFIX_TUNNEL))
+                .filter(p -> p.annotations().value(PORT_NAME).equals(PORTNAME_PREFIX_TUNNEL))
                 .findAny().orElse(null);
 
         if (port == null) {
@@ -403,29 +403,6 @@ public class OpenstackRoutingRulePopulator {
 
         flowObjectiveService.forward(deviceId, fo);
     }
-
-    /*
-    private void populateRuleToGateway(DeviceId deviceId, Device gatewayDevice, long vni) {
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
-
-        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
-                .matchTunnelId(vni)
-                .matchEthDst(Constants.GATEWAY_MAC);
-        tBuilder.extension(buildNiciraExtenstion(deviceId, nodeService.nodes().get(gatewayDevice.id())), deviceId)
-                .setOutput(getTunnelPort(deviceId));
-
-        ForwardingObjective fo = DefaultForwardingObjective.builder()
-                .withSelector(sBuilder.build())
-                .withTreatment(tBuilder.build())
-                .withFlag(ForwardingObjective.Flag.SPECIFIC)
-                .withPriority(ROUTING_RULE_PRIORITY)
-                .fromApp(appId)
-                .add();
-
-        flowObjectiveService.forward(deviceId, fo);
-    }
-    */
 
     private Device getGatewayNode() {
 
@@ -628,7 +605,6 @@ public class OpenstackRoutingRulePopulator {
                             getHostIpfromOpenstackPort(openstackPort).getIp4Address());
                 }
             });
-
         });
     }
 
@@ -679,7 +655,7 @@ public class OpenstackRoutingRulePopulator {
         String openstackPortName = PORTNAME_PREFIX_VM + p.id().substring(0, 11);
         return  deviceService.getPorts(device.id())
                 .stream()
-                .filter(pt -> pt.annotations().value(PORTNAME).equals(openstackPortName))
+                .filter(pt -> pt.annotations().value(PORT_NAME).equals(openstackPortName))
                 .findAny()
                 .orElse(null);
     }

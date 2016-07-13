@@ -84,6 +84,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
 @Component(immediate = true)
 @Service
@@ -137,8 +138,6 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     private ConsistentMap<String, String> routerInterfaceMap;
     private static final ProviderId PID = new ProviderId("of", "org.onosproject.openstackroutering", true);
     private static final String APP_ID = "org.onosproject.openstackrouting";
-    private static final String PORT_NAME = "portName";
-    private static final String PORTNAME_PREFIX_VM = "tap";
     private static final String DEVICE_OWNER_ROUTER_INTERFACE = "network:router_interface";
     private static final String FLOATING_IP_MAP_NAME = "openstackrouting-floatingip";
     private static final String TP_PORT_MAP_NAME = "openstackrouting-tpportnum";
@@ -251,8 +250,6 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                     new OpenstackFloatingIPHandler(rulePopulator, openstackFloatingIp, Action.ASSOCIATE, null));
             registerFloatingIpToHostService(openstackFloatingIp, Action.ASSOCIATE);
         }
-
-
     }
 
     @Override
@@ -382,34 +379,6 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                 }
         );
     }
-
-    /*
-    @Override
-    public void checkDisassociatedFloatingIp(String portId, OpenstackPortInfo portInfo) {
-        if (floatingIpMap.size() < 1) {
-            log.info("No information in FloatingIpMap");
-            return;
-        }
-        OpenstackFloatingIP floatingIp = associatedFloatingIps()
-                .stream()
-                .filter(fIp -> fIp.portId().equals(portId))
-                .findAny()
-                .orElse(null);
-        if (floatingIp != null && portInfo != null) {
-            l3EventExecutorService.execute(
-                    new OpenstackFloatingIPHandler(rulePopulator, floatingIp, false, portInfo));
-            OpenstackFloatingIP.Builder fBuilder = new OpenstackFloatingIP.Builder()
-                    .floatingIpAddress(floatingIp.floatingIpAddress())
-                    .id(floatingIp.id())
-                    .networkId(floatingIp.networkId())
-                    .status(floatingIp.status())
-                    .tenantId(floatingIp.tenantId());
-            floatingIpMap.replace(floatingIp.id(), fBuilder.build());
-        } else if (portInfo == null) {
-            log.warn("portInfo is null as timing issue between ovs port update event and openstack deletePort event");
-        }
-    }
-    */
 
     @Override
     public String networkIdForRouterInterface(String portId) {
@@ -662,7 +631,6 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     private class InternalHostListener implements HostListener {
 
         private void hostDetected(Host host) {
-
             String portId = host.annotations().value(Constants.PORT_ID);
             OpenstackPort openstackPort = openstackService.port(portId);
             if (openstackPort == null) {
@@ -769,7 +737,6 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                 default:
                     break;
             }
-
         }
     }
 
@@ -787,5 +754,4 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
             // nothing to do
         }
     }
-
 }

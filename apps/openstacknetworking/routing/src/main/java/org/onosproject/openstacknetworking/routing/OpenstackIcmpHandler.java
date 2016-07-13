@@ -146,31 +146,6 @@ public class OpenstackIcmpHandler {
         PortNumber portNumber = context.inPacket().receivedFrom().port();
         if (icmp.getIcmpType() == ICMP.TYPE_ECHO_REQUEST) {
             //TODO: Considers icmp between internal subnets which are belonged to the same router.
-
-            //OpenstackPortInfo openstackPortInfo =
-            //        getOpenstackPortInfo(Ip4Address.valueOf(ipPacket.getSourceAddress()), ethernet.getSourceMAC());
-
-            //checkNotNull(openstackPortInfo, "openstackPortInfo can not be null");
-            /* XXX Is this handling ICMP to gateway ?????
-            if (requestToOpenstackRoutingNetwork(ipPacket.getDestinationAddress())) {
-                Host host =
-                if (openstackPortInfo == null) {
-                    if (config.gatewayBridgeId().equals(context.inPacket().receivedFrom().deviceId().toString())) {
-                         if (portNumber.equals(getPortForAnnotationPortName(deviceId,
-                                        config.gatewayExternalInterfaceName()))) {
-                            processIcmpPacketSentToExtenal(ipPacket, icmp, ipPacket.getSourceAddress(),
-                                    ethernet.getSourceMAC(), deviceId, portNumber);
-                            return;
-                        }
-                    }
-                    return;
-                } else {
-                    processIcmpPacketSentToGateway(ipPacket, icmp, host);
-                    return;
-                }
-            }
-            */
-
             Optional<Host> host = hostService.getHostsByMac(ethernet.getSourceMAC()).stream().findFirst();
             if (!host.isPresent()) {
                 log.warn("No host found for MAC {}", ethernet.getSourceMAC());

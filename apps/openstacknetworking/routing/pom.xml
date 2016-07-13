@@ -35,7 +35,8 @@
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.requires>
             org.onosproject.openstackinterface,
-            org.onosproject.openstacknode
+            org.onosproject.openstacknode,
+            org.onosproject.scalablegateway
         </onos.app.requires>
     </properties>
 
@@ -65,7 +66,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-scalablegateway</artifactId>
+            <artifactId>onos-app-scalablegateway</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
