@@ -590,15 +590,12 @@ public class DistributedFlowRuleStore
         log.trace("Forwarding removeFlowRule to {}, which is the master for device {}",
                   master, deviceId);
 
-        return Futures.get(clusterCommunicator.sendAndReceive(
+        return Futures.getUnchecked(clusterCommunicator.sendAndReceive(
                                rule,
                                REMOVE_FLOW_ENTRY,
                                SERIALIZER::encode,
                                SERIALIZER::decode,
-                               master),
-                           FLOW_RULE_STORE_TIMEOUT_MILLIS,
-                           TimeUnit.MILLISECONDS,
-                           RuntimeException.class);
+                               master));
     }
 
     private FlowRuleEvent removeFlowRuleInternal(FlowEntry rule) {
