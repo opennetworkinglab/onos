@@ -16,10 +16,10 @@
 <scenario name="net-setup-vnets" description="Network (vnets) setup steps">
     <group name="Net-Setup-Vnets">
 
-        <step name="Get-TenantId" requires="^" unless="${tenantId}"
+        <step name="Get-TenantId" unless="${tenantId}"
               exec="echo @stc tenantId=TestTenant"/>
 
-        <step name="Create-Tenant" requires="^"
+        <step name="Create-Tenant" requires="~Get-TenantId"
               exec="onos ${OCI} vnet-add-tenant ${tenantId}"/>
 
         <step name="Query-Tenant" requires="^"
@@ -46,8 +46,17 @@
         <step name="Create-Bidirectional-Link" requires="^"
               exec="onos -f ${OCI} vnet-create-link --bidirectional ${networkId} device2 2 device1 1"/>
 
-        <step name="Check-intents-installed" requires="^"
-              exec="onos-check-intent ${OCI} networkId=${networkId} INSTALLED 2"/>
+        <step name="Create-Intent-1" requires="^"
+              exec="onos -f ${OCI} add-vnet-intent --key 21 --encapsulation VLAN ${networkId} device2/2 device1/1"/>
+
+        <step name="Check-intents-installed-1" requires="^"
+              exec="onos-check-intent ${OCI} 21 INSTALLED 1"/>
+
+        <step name="Create-Intent-2" requires="^"
+              exec="onos -f ${OCI} add-vnet-intent --key 12 --encapsulation VLAN ${networkId} device1/1 device2/2"/>
+
+        <step name="Check-intents-installed-2" requires="^"
+              exec="onos-check-intent ${OCI} 12 INSTALLED 1"/>
 
         <step name="Ping-hosts-1" requires="^"
               exec="onos-mininet sendAndExpect h4 ping -c1 h9 --expect \ 0% packet loss"/>

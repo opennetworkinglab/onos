@@ -17,8 +17,11 @@
 
     <import file="${ONOS_SCENARIOS}/net-setup.xml"/>
 
+    <import file="${ONOS_SCENARIOS}/net-reactive-fwd.xml"/>
+    <dependency name="Net-Reactive-Fwd" requires="Net-Setup"/>
+
     <import file="${ONOS_SCENARIOS}/net-setup-vnets.xml"/>
-    <dependency name="Net-Setup-Vnets" requires="Net-Setup"/>
+    <dependency name="Net-Setup-Vnets" requires="Net-Reactive-Fwd"/>
 
     <import file="${ONOS_SCENARIOS}/net-teardown-vnets.xml"/>
     <dependency name="Net-Teardown-Vnets" requires="Net-Setup-Vnets"/>
