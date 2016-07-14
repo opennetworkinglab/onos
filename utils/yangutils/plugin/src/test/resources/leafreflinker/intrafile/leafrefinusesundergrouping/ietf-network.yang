@@ -1,0 +1,33 @@
+module ietf-network {
+    yang-version 1;
+    namespace "urn:ietf:params:xml:ns:yang:ietf-network";
+    prefix nd;
+    import network {
+       prefix "nw";
+    }
+    grouping xyz {
+        leaf network-id-ref {
+            type leafref {
+                path "/nw:networks/nw:network/nw:network-id";
+                require-instance false;
+            }
+            description
+                "A reference to a network-id in base ietf-network module.";
+        }
+    }
+    grouping yzx {
+        container hi {
+        uses xyz;
+        }
+    }
+    container fine {
+        uses yzx;
+    }
+    container networks {
+        leaf network {
+            type string;
+        }
+    }
+}
+
+

@@ -3,7 +3,7 @@ module Test {
     namespace http://huawei.com;
     prefix Ant;
     list valid {
-        key "invalid-interval";
+        key "invalid";
         leaf-list invalid-interval {
             type union {
             type int32;
@@ -11,6 +11,9 @@ module Test {
                     enum "unbounded";
                 }
             }
+        }
+        leaf invalid {
+            type string;
         }
     }
 }

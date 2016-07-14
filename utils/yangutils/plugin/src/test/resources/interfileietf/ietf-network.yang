@@ -87,7 +87,10 @@
          "Contains the information necessary to reference a network,
           for example an underlay network.";
        leaf network-ref {
-         type network-id;
+         type leafref {
+           path "/nd:networks/nd:network/nd:network-id";
+         require-instance false;
+         }
          description
            "Used to reference a network, for example an underlay
             network.";
@@ -98,7 +101,11 @@
        description
          "Contains the information necessary to reference a node.";
        leaf node-ref {
-         type node-id;
+         type leafref {
+           path "/nd:networks/nd:network[nd:network-id=current()/../"+
+             "network-ref]/nd:node/nd:node-id";
+           require-instance false;
+         }
          description
            "Used to reference a node.
             Nodes are identified relative to the network they are
@@ -135,7 +142,10 @@
              "An underlay network, used to represent layered network
               topologies.";
            leaf network-ref {
-             type network-id;
+             type leafref {
+               path "/networks/network/network-id";
+             require-instance false;
+             }
              description
                "References the underlay network.";
            }
@@ -157,13 +167,19 @@
                 this node is supported by.  Used to represent layering
                 structure.";
              leaf network-ref {
-               type network-id;
+               type leafref {
+                 path "../../../supporting-network/network-ref";
+               require-instance false;
+               }
                description
                  "References the underlay network that the
                   underlay node is part of.";
              }
              leaf node-ref {
-               type node-id;
+               type leafref {
+                 path "/networks/network/node/node-id";
+               require-instance false;
+               }
                description
                  "References the underlay node itself.";
              }

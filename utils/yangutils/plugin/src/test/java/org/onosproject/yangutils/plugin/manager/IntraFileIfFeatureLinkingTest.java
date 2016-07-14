@@ -16,17 +16,11 @@
 
 package org.onosproject.yangutils.plugin.manager;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.ListIterator;
-
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangContainer;
-import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangFeature;
 import org.onosproject.yangutils.datamodel.YangIfFeature;
 import org.onosproject.yangutils.datamodel.YangLeaf;
-import org.onosproject.yangutils.datamodel.YangLeafRef;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeType;
@@ -34,6 +28,9 @@ import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.utils.ResolvableStatus;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
+
+import java.io.IOException;
+import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -220,112 +217,5 @@ public class IntraFileIfFeatureLinkingTest {
         YangIfFeature ifFeature = ifFeatureList.iterator().next();
         assertThat(ifFeature.getName().getName(), is("local-storage"));
         assertThat(ifFeature.getResolvableStatus(), is(ResolvableStatus.RESOLVED));
-    }
-
-    /**
-     * Checks addition of if-feature list to leafref.
-     */
-    @Test
-    public void processSelfFileLinkingWithFeatureReferredByLeafref()
-            throws IOException, ParserException {
-
-        YangNode node = manager
-                .getDataModel("src/test/resources/SelfFileLinkingWithFeatureReferredByLeafref.yang");
-
-        // Check whether the data model tree returned is of type module.
-        assertThat((node instanceof YangModule), is(true));
-
-        // Check whether the node type is set properly to module.
-        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
-
-        // Check whether the module name is set correctly.
-        YangModule yangNode = (YangModule) node;
-        assertThat(yangNode.getName(), is("syslog"));
-
-        List<YangFeature> featureList = yangNode.getFeatureList();
-        YangFeature feature = featureList.iterator().next();
-        assertThat(feature.getName(), is("local-storage"));
-
-        YangContainer container = (YangContainer) yangNode.getChild();
-        assertThat(container.getName(), is("speed"));
-
-        List<YangLeaf> listOfLeaf = container.getListOfLeaf();
-        YangLeaf leaf = listOfLeaf.iterator().next();
-        assertThat(leaf.getName(), is("local-storage-limit"));
-
-        List<YangIfFeature> ifFeatureList = leaf.getIfFeatureList();
-        YangIfFeature ifFeature = ifFeatureList.iterator().next();
-        assertThat(ifFeature.getName().getName(), is("local-storage"));
-        assertThat(ifFeature.getResolvableStatus(), is(ResolvableStatus.RESOLVED));
-
-        ListIterator<YangLeaf> listOfLeafInModule =  yangNode.getListOfLeaf().listIterator();
-        YangLeaf yangLeaf = listOfLeafInModule.next();
-        assertThat(yangLeaf.getName(), is("storage-value"));
-
-        YangLeafRef leafRef = (YangLeafRef) yangLeaf.getDataType().getDataTypeExtendedInfo();
-
-        assertThat(leafRef.getEffectiveDataType().getDataType(), is(YangDataTypes.UINT64));
-
-        List<YangIfFeature> ifFeatureListInLeafref = leafRef.getIfFeatureList();
-        YangIfFeature ifFeatureInLeafref = ifFeatureListInLeafref.iterator().next();
-        assertThat(ifFeatureInLeafref.getName().getName(), is("local-storage"));
-        assertThat(ifFeatureInLeafref.getResolvableStatus(), is(ResolvableStatus.RESOLVED));
-    }
-
-    /**
-     * Checks addition of if-feature list to leafref when referred leaf is again having leafref in it.
-     */
-    @Test
-    public void processSelfFileLinkingWithFeatureReferredByMultiLeafref()
-            throws IOException, ParserException {
-
-        YangNode node = manager
-                .getDataModel("src/test/resources/SelfFileLinkingWithFeatureReferredByMultiLeafref.yang");
-
-        // Check whether the data model tree returned is of type module.
-        assertThat((node instanceof YangModule), is(true));
-
-        // Check whether the node type is set properly to module.
-        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
-
-        // Check whether the module name is set correctly.
-        YangModule yangNode = (YangModule) node;
-        assertThat(yangNode.getName(), is("syslog"));
-
-        List<YangFeature> featureList = yangNode.getFeatureList();
-        YangFeature feature = featureList.iterator().next();
-        assertThat(feature.getName(), is("local-storage"));
-
-        YangContainer container = (YangContainer) yangNode.getChild();
-        assertThat(container.getName(), is("speed"));
-
-        List<YangLeaf> listOfLeaf = container.getListOfLeaf();
-        YangLeaf leaf = listOfLeaf.iterator().next();
-        assertThat(leaf.getName(), is("local-storage-limit"));
-
-        List<YangIfFeature> ifFeatureList = leaf.getIfFeatureList();
-        YangIfFeature ifFeature = ifFeatureList.iterator().next();
-        assertThat(ifFeature.getName().getName(), is("local-storage"));
-        assertThat(ifFeature.getResolvableStatus(), is(ResolvableStatus.RESOLVED));
-
-        ListIterator<YangLeaf> listOfLeafInModule =  yangNode.getListOfLeaf().listIterator();
-        YangLeaf yangLeaf = listOfLeafInModule.next();
-        assertThat(yangLeaf.getName(), is("storage-value"));
-
-        YangLeafRef leafRef = (YangLeafRef) yangLeaf.getDataType().getDataTypeExtendedInfo();
-
-        assertThat(leafRef.getEffectiveDataType().getDataType(), is(YangDataTypes.UINT64));
-
-        List<YangIfFeature> ifFeatureListInLeafref = leafRef.getIfFeatureList();
-        YangIfFeature ifFeatureInLeafref = ifFeatureListInLeafref.iterator().next();
-
-        assertThat(ifFeatureInLeafref.getName().getName(), is("main-storage"));
-        assertThat(ifFeatureInLeafref.getResolvableStatus(), is(ResolvableStatus.RESOLVED));
-
-        YangIfFeature ifFeatureInLeafref1 = ifFeatureListInLeafref.iterator().next();
-
-        assertThat(ifFeatureInLeafref1.getName().getName(), is("main-storage"));
-        assertThat(ifFeatureInLeafref1.getResolvableStatus(), is(ResolvableStatus.RESOLVED));
-
     }
 }

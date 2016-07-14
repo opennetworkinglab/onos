@@ -1,0 +1,23 @@
+module SelfResolutionWhenLeafrefInModuleReferToLeafInInputOfRpc {
+    yang-version 1;
+    namespace "urn:ietf:params:xml:ns:yang:ietf-network";
+    prefix nd;
+    rpc networks {
+        description
+        "Serves as top-level container for a list of networks.";
+        input {
+            leaf network-id {
+                type uint8;
+                description
+                "Identifies a network.";
+            }
+        }
+        output {
+        }
+    }
+    leaf network-ref {
+        type leafref {
+        path "/networks/input/network-id";
+        }
+    }
+}

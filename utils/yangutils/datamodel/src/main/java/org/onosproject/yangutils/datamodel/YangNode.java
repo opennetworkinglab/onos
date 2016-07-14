@@ -272,12 +272,12 @@ public abstract class YangNode
      * @throws CloneNotSupportedException clone is not supported by the referred
      *                                    node
      */
-    public YangNode clone()
+    public YangNode clone(YangUses yangUses)
             throws CloneNotSupportedException {
         YangNode clonedNode = (YangNode) super.clone();
         if (clonedNode instanceof YangLeavesHolder) {
             try {
-                cloneLeaves((YangLeavesHolder) clonedNode);
+                cloneLeaves((YangLeavesHolder) clonedNode, yangUses);
             } catch (DataModelException e) {
                 throw new CloneNotSupportedException(e.getMessage());
             }
@@ -299,7 +299,7 @@ public abstract class YangNode
      * @param dstRootNode destination node where the sub tree needs to be cloned
      * @throws DataModelException data model error
      */
-    public static void cloneSubTree(YangNode srcRootNode, YangNode dstRootNode)
+    public static void cloneSubTree(YangNode srcRootNode, YangNode dstRootNode, YangUses yangUses)
             throws DataModelException {
 
         YangNode nextNodeToClone = srcRootNode;
@@ -327,7 +327,7 @@ public abstract class YangNode
                     throw new DataModelException("Internal error: Cloning failed, source tree null pointer reached");
                 }
                 if (curTraversal != PARENT) {
-                    newNode = nextNodeToClone.clone();
+                    newNode = nextNodeToClone.clone(yangUses);
                     detectCollisionWhileCloning(clonedTreeCurNode, newNode, curTraversal);
                 }
 

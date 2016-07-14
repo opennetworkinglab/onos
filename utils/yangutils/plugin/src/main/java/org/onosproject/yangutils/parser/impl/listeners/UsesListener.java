@@ -137,6 +137,7 @@ public final class UsesListener {
             YangUses usesNode = getYangUsesNode(JAVA_GENERATION);
             YangNodeIdentifier nodeIdentifier = getValidNodeIdentifier(ctx.string().getText(), USES_DATA, ctx);
             usesNode.setNodeIdentifier(nodeIdentifier);
+            usesNode.setCurrentGroupingDepth(listener.getGroupingDepth());
             YangNode curNode = (YangNode) curData;
 
             try {

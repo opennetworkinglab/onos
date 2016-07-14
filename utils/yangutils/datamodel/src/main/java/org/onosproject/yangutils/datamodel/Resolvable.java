@@ -22,8 +22,10 @@ import org.onosproject.yangutils.datamodel.utils.ResolvableStatus;
 /**
  * Abstraction of YANG resolvable information. Abstracted to obtain the
  * information required for linking resolution.
+ *
+ * @param <T>  YANG resolvable info
  */
-public interface Resolvable {
+public interface Resolvable<T> {
 
     /**
      * Returns the status of resolution. If completely resolved returns enum
@@ -48,8 +50,9 @@ public interface Resolvable {
     /**
      * Resolves the linking.
      *
+     * @return list of entities to be added for resolution
      * @throws DataModelException data model exception
      */
-    void resolve()
+    T resolve()
             throws DataModelException;
 }

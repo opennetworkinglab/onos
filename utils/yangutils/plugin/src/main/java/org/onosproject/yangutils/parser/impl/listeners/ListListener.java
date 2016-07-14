@@ -54,6 +54,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.validateUniqueInList;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityMaxOne;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityNonZero;
@@ -174,6 +175,7 @@ public final class ListListener {
             YangList yangList = (YangList) listener.getParsedDataStack().peek();
             try {
                 yangList.validateDataOnExit();
+                validateUniqueInList(yangList, ctx);
             } catch (DataModelException e) {
                 throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA,
                         LIST_DATA, ctx.identifier().getText(), EXIT, e.getMessage()));

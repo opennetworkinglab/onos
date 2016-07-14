@@ -16,6 +16,27 @@
 
 package org.onosproject.yangutils.linker.impl;
 
+import org.onosproject.yangutils.datamodel.YangAtomicPath;
+import org.onosproject.yangutils.datamodel.YangAugment;
+import org.onosproject.yangutils.datamodel.YangCase;
+import org.onosproject.yangutils.datamodel.YangChoice;
+import org.onosproject.yangutils.datamodel.YangGrouping;
+import org.onosproject.yangutils.datamodel.YangImport;
+import org.onosproject.yangutils.datamodel.YangInclude;
+import org.onosproject.yangutils.datamodel.YangInput;
+import org.onosproject.yangutils.datamodel.YangLeaf;
+import org.onosproject.yangutils.datamodel.YangLeafList;
+import org.onosproject.yangutils.datamodel.YangLeafRef;
+import org.onosproject.yangutils.datamodel.YangLeavesHolder;
+import org.onosproject.yangutils.datamodel.YangModule;
+import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
+import org.onosproject.yangutils.datamodel.YangOutput;
+import org.onosproject.yangutils.datamodel.YangSubModule;
+import org.onosproject.yangutils.datamodel.YangTypeDef;
+import org.onosproject.yangutils.datamodel.YangUses;
+import org.onosproject.yangutils.linker.exceptions.LinkerException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -23,24 +44,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-import org.onosproject.yangutils.datamodel.YangAtomicPath;
-import org.onosproject.yangutils.datamodel.YangAugment;
-import org.onosproject.yangutils.datamodel.YangImport;
-import org.onosproject.yangutils.datamodel.YangInclude;
-import org.onosproject.yangutils.datamodel.YangLeaf;
-import org.onosproject.yangutils.datamodel.YangLeafList;
-import org.onosproject.yangutils.datamodel.YangLeavesHolder;
-import org.onosproject.yangutils.datamodel.YangModule;
-import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
-import org.onosproject.yangutils.datamodel.YangSubModule;
-import org.onosproject.yangutils.linker.exceptions.LinkerException;
-
 import static org.onosproject.yangutils.linker.impl.PrefixResolverType.INTER_TO_INTER;
 import static org.onosproject.yangutils.linker.impl.PrefixResolverType.INTER_TO_INTRA;
 import static org.onosproject.yangutils.linker.impl.PrefixResolverType.INTRA_TO_INTER;
 import static org.onosproject.yangutils.linker.impl.PrefixResolverType.NO_PREFIX_CHANGE_FOR_INTER;
 import static org.onosproject.yangutils.linker.impl.PrefixResolverType.NO_PREFIX_CHANGE_FOR_INTRA;
+import static org.onosproject.yangutils.utils.UtilConstants.INPUT;
+import static org.onosproject.yangutils.utils.UtilConstants.OUTPUT;
 
 /**
  * Represents x-path linking.
@@ -194,30 +204,34 @@ public class YangXpathLinker<T> {
     /**
      * Process absolute node path for target leaf.
      *
-     * @param absPaths absolute path node list
-     * @param root     root node
+     * @param atomicPaths atomic path node list
+     * @param root root node
+     * @param leafref instance of YANG leafref
      * @return linked target node
      */
-    T processLeafRefXpathLinking(List<YangAtomicPath> absPaths, YangNode root) {
+    public T processLeafRefXpathLinking(List<YangAtomicPath> atomicPaths, YangNode root, YangLeafRef leafref) {
 
         YangNode targetNode = null;
         setRootNode(root);
         setPrefixResolverTypes(new HashMap<>());
-        parsePrefixResolverList(absPaths);
-        YangAtomicPath leafRefPath = absPaths.get(absPaths.size() - 1);
+        parsePrefixResolverList(atomicPaths);
+        YangAtomicPath leafRefPath = atomicPaths.get(atomicPaths.size() - 1);
 
         // When leaf-ref path contains only one absolute path.
-        if (absPaths.size() == 1) {
-            targetNode = getTargetNodewhenSizeIsOne(absPaths);
+        if (atomicPaths.size() == 1) {
+            targetNode = getTargetNodewhenSizeIsOne(atomicPaths);
         } else {
-            absPaths.remove(absPaths.size() - 1);
+            atomicPaths.remove(atomicPaths.size() - 1);
 
-            setAbsPaths(absPaths);
+            setAbsPaths(atomicPaths);
             targetNode = parseData(root);
         }
         if (targetNode == null) {
             targetNode = searchInSubModule(root);
         }
+
+        // Invalid path presence in the node list is checked.
+        validateInvalidNodesInThePath(leafref);
 
         if (targetNode != null) {
             YangLeaf targetLeaf = searchReferredLeaf(targetNode, leafRefPath.getNodeIdentifier().getName());
@@ -227,14 +241,41 @@ public class YangXpathLinker<T> {
                 if (targetLeafList != null) {
                     return (T) targetLeafList;
                 } else {
-                    throw new LinkerException(
-                            "YANG file error: Unable to find base leaf/leaf-list for given leafref "
-                                    + leafRefPath.getNodeIdentifier().getName());
+                    LinkerException linkerException = new LinkerException("YANG file error: Unable to find base " +
+                            "leaf/leaf-list for given leafref path "
+                            + leafref.getPath());
+                    linkerException.setCharPosition(leafref.getCharPosition());
+                    linkerException.setLine(leafref.getLineNumber());
+                    throw linkerException;
                 }
             }
             return (T) targetLeaf;
         }
         return null;
+    }
+
+    /**
+     * Validates the nodes in the path for any invalid node.
+     *
+     * @param leafref instance of YANG leafref
+     */
+    private void validateInvalidNodesInThePath(YangLeafRef leafref) {
+        Map<YangAtomicPath, YangNode> nodes = getResolvedNodes();
+        Iterator<Map.Entry<YangAtomicPath, YangNode>> nodesIterator = nodes.entrySet().iterator();
+        while (nodesIterator.hasNext()) {
+            Map.Entry<YangAtomicPath, YangNode> nodeInList = nodesIterator.next();
+            YangNode nodeInPath = nodeInList.getValue();
+
+            if (nodeInPath instanceof YangGrouping || nodeInPath instanceof YangUses
+                    || nodeInPath instanceof YangTypeDef || nodeInPath instanceof YangCase
+                    || nodeInPath instanceof YangChoice) {
+                LinkerException linkerException = new LinkerException("YANG file error: The target node, in the " +
+                        "leafref path " + leafref.getPath() + ", is invalid.");
+                linkerException.setCharPosition(leafref.getCharPosition());
+                linkerException.setLine(leafref.getLineNumber());
+                throw linkerException;
+            }
+        }
     }
 
     /**
@@ -289,9 +330,13 @@ public class YangXpathLinker<T> {
         }
         YangLeavesHolder holder = (YangLeavesHolder) targetNode;
         List<YangLeaf> leaves = holder.getListOfLeaf();
-        for (YangLeaf leaf : leaves) {
-            if (leaf.getName().equals(leafName)) {
-                return leaf;
+        if (leaves != null && !leaves.isEmpty()) {
+            Iterator<YangLeaf> leafIterator = leaves.listIterator();
+            while (leafIterator.hasNext()) {
+                YangLeaf leaf = leafIterator.next();
+                if (leaf.getName().equals(leafName)) {
+                    return leaf;
+                }
             }
         }
         return null;
@@ -311,9 +356,13 @@ public class YangXpathLinker<T> {
         }
         YangLeavesHolder holder = (YangLeavesHolder) targetNode;
         List<YangLeafList> leavesList = holder.getListOfLeafList();
-        for (YangLeafList leafList : leavesList) {
-            if (leafList.getName().equals(leafListName)) {
-                return leafList;
+        if (leavesList != null && !leavesList.isEmpty()) {
+            Iterator<YangLeafList> leafListIterator = leavesList.listIterator();
+            while (leafListIterator.hasNext()) {
+                YangLeafList leafList = leafListIterator.next();
+                if (leafList.getName().equals(leafListName)) {
+                    return leafList;
+                }
             }
         }
         return null;
@@ -709,6 +758,15 @@ public class YangXpathLinker<T> {
         }
 
         while (node != null) {
+            if (node instanceof YangInput) {
+                if (curNodeId.getName().equalsIgnoreCase(INPUT)) {
+                    return node;
+                }
+            } else if (node instanceof YangOutput) {
+                if (curNodeId.getName().equalsIgnoreCase(OUTPUT)) {
+                    return node;
+                }
+            }
             if (node.getName().equals(curNodeId.getName())) {
                 return node;
             }

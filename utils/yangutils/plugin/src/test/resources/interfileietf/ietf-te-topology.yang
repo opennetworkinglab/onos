@@ -515,14 +515,14 @@
          "A container controlling performance metric throttle.";
        container performance-metric-throttle {
          if-feature te-performance-metric;
-         /*must "suppression-interval >= measure-interval" {
+         must "suppression-interval >= measure-interval" {
            error-message
              "suppression-interval cannot be less then
               measure-interval.";
            description
              "Constraint on suppression-interval and
               measure-interval.";
-         }*/
+         }
          description
            "Link performance information in real time.";
          reference
@@ -549,7 +549,7 @@
          }
          leaf suppression-interval {
            type uint32 {
-             range "1..max";
+             range "1 .. max";
            }
            default 120;
            description
@@ -633,13 +633,25 @@
                    "Identify the sequence in the bundle.";
                }
                leaf src-tp-ref {
-                 type nt:tp-id;
+                 type leafref {
+                   path "../../../../../../nw:node[nw:node-id = "
+                     + "current()/../../../../../nt:source/"
+                     + "nt:source-node]/"
+                     + "nt:termination-point/nt:tp-id";
+                   require-instance true;
+                 }
                  description
                    "Reference to another TE termination point on the
                     same souruce node.";
                }
                leaf des-tp-ref {
-                 type nt:tp-id;
+                 type leafref {
+                   path "../../../../../../nw:node[nw:node-id = "
+                     + "current()/../../../../../nt:destination/"
+                     + "nt:dest-node]/"
+                     + "nt:termination-point/nt:tp-id";
+                   require-instance true;
+                 }
                  description
                    "Reference to another TE termination point on the
                     same destination node.";
@@ -682,7 +694,9 @@
 
        leaf-list te-link-template {
          if-feature template;
-         type te-template-name;
+         type leafref {
+           path "../../../../../te/templates/link-template/name";
+         }
          description
            "The reference to a TE link template.";
        }
@@ -862,12 +876,16 @@
             RFC4203: OSPF Extensions in Support of Generalized
             Multi-Protocol Label Switching (GMPLS).";
          leaf switching-capability {
-           type string;
+           type identityref {
+             base te-types:switching-capabilities;
+           }
            description
              "Switching Capability for this interface.";
          }
          leaf encoding {
-           type string;
+           type identityref {
+             base te-types:lsp-encoding-types;
+           }
            description
              "Encoding supported by this interface.";
          }
@@ -929,12 +947,16 @@
              "RFC6001: Generalized MPLS (GMPLS) Protocol Extensions
               for Multi-Layer and Multi-Region Networks (MLN/MRN).";
            leaf upper-sc {
-             type string;
+             type identityref {
+               base te-types:switching-capabilities;
+             }
              description
                "Switching Capability for this interface.";
            }
            leaf upper-encoding {
-             type string;
+             type identityref {
+               base te-types:lsp-encoding-types;
+             }
              description
                "Encoding supported by this interface.";
            }
@@ -1140,13 +1162,17 @@
 
              uses te-node-tunnel-termination-capability;
              leaf switching-capability {
-               type string;
+               type identityref {
+                 base te-types:switching-capabilities;
+               }
                mandatory true;
                description
                  "Switching Capability.";
              }
              leaf encoding {
-               type string;
+               type identityref {
+                 base te-types:lsp-encoding-types;
+               }
                mandatory true;
                description
                  "Encoding type.";
@@ -1162,7 +1188,9 @@
 
        leaf-list te-node-template {
          if-feature template;
-         type te-template-name;
+         type leafref {
+           path "../../../../../te/templates/node-template/name";
+         }
          description
            "The reference to a TE node template.";
        }
@@ -1231,7 +1259,9 @@
          }
          container from {
            leaf tp-ref {
-             type nt:tp-id;
+             type leafref {
+               path "../../../../../../nt:termination-point/nt:tp-id";
+             }
              description
                "Relative reference to source termination point.";
            }
@@ -1240,7 +1270,9 @@
          }
          container to {
            leaf tp-ref {
-             type nt:tp-id;
+             type leafref {
+               path "../../../../../../nt:termination-point/nt:tp-id";
+             }
              description
                "Relative reference to destination termination point.";
            }
@@ -1402,7 +1434,9 @@
             The capability information can be used to compute
             the tunnel path.";
          leaf link-tp {
-           type nt:tp-id;
+           type leafref {
+             path "../../../../../nt:termination-point/nt:tp-id";
+           }
            description
              "Link termination point.";
          }
@@ -1562,22 +1596,37 @@
        description
          "References a TE topology.";
        leaf provider-id-ref {
-         type te-global-id;
+         type leafref {
+           path "/nw:networks/nw:network[nw:network-id = "
+             + "current()/../network-id-ref]/tet:te/tet:provider-id";
+           require-instance false;
+         }
          description
            "A reference to a provider-id.";
        }
        leaf client-id-ref {
-         type te-global-id;
+         type leafref {
+           path "/nw:networks/nw:network[nw:network-id = "
+             + "current()/../network-id-ref]/tet:te/tet:client-id";
+           require-instance false;
+         }
          description
            "A reference to a client-id.";
        }
        leaf te-topology-id-ref {
-         type tet:te-topology-id;
+         type leafref {
+           path "/nw:networks/nw:network[nw:network-id = "
+             + "current()/../network-id-ref]/tet:te/tet:te-topology-id";
+           require-instance false;
+         }
          description
            "A reference to a te-topology-id.";
        }
        leaf network-id-ref {
-         type nw:network-id;
+         type leafref {
+           path "/nw:networks/nw:network/nw:network-id";
+           require-instance false;
+         }
          description
            "A reference to a network-id in base ietf-network module.";
        }

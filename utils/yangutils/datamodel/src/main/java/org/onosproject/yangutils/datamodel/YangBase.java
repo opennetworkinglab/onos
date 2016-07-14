@@ -109,6 +109,7 @@ import java.io.Serializable;
     }
 
     @Override
-    public void resolve() throws DataModelException {
+    public Object resolve() throws DataModelException {
+        return null;
     }
 }

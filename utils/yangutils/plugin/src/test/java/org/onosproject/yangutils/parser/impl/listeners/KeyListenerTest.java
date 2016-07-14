@@ -143,26 +143,6 @@ public class KeyListenerTest {
     }
 
     /**
-     * Checks key values are set correctly.
-     */
-    @Test
-    public void processConfigFalseValidKeyValidLeafList() throws IOException, ParserException {
-        YangNode node = manager.getDataModel("src/test/resources/ConfigFalseValidKeyValidLeafList.yang");
-
-        assertThat((node instanceof YangModule), is(true));
-        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
-        YangModule yangNode = (YangModule) node;
-        assertThat(yangNode.getName(), is("Test"));
-
-        // Check whether the list is child of module
-        YangList yangList = (YangList) yangNode.getChild();
-        assertThat(yangList.getName(), is("valid"));
-
-        ListIterator<String> keyList = yangList.getKeyList().listIterator();
-        assertThat(keyList.next(), is("invalid-interval"));
-    }
-
-    /**
      * Checks whether exception is thrown when list's config is set to true and there is no key.
      */
     @Test
@@ -230,26 +210,6 @@ public class KeyListenerTest {
         thrown.expect(ParserException.class);
         thrown.expectMessage("An identifier, in key, must refer to a child leaf of the list");
         YangNode node = manager.getDataModel("src/test/resources/InvalidLeafIdentifier.yang");
-    }
-
-    /**
-     * Checks whether exception is thrown when key leaf-list identifier is not found in list.
-     */
-    @Test
-    public void processInvalidLeafListIdentifier() throws IOException, ParserException {
-        thrown.expect(ParserException.class);
-        thrown.expectMessage("An identifier, in key, must refer to a child leaf of the list");
-        YangNode node = manager.getDataModel("src/test/resources/InvalidLeafListIdentifier.yang");
-    }
-
-    /**
-     * Checks whether exception is thrown when key leaf-list is of type empty.
-     */
-    @Test
-    public void processKeyLeafListTypeEmpty() throws IOException, ParserException {
-        thrown.expect(ParserException.class);
-        thrown.expectMessage("A leaf-list that is part of the key must not be the built-in type \"empty\".");
-        YangNode node = manager.getDataModel("src/test/resources/KeyLeafListTypeEmpty.yang");
     }
 
     /**

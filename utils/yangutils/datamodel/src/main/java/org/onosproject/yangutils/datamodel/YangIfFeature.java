@@ -170,7 +170,7 @@ public class YangIfFeature implements Parsable, Resolvable, Serializable {
     }
 
     @Override
-    public void resolve() throws DataModelException {
+    public Object resolve() throws DataModelException {
         YangFeature feature = getReferredFeature();
 
         // check whether feature has if-feature
@@ -181,9 +181,10 @@ public class YangIfFeature implements Parsable, Resolvable, Serializable {
                 YangIfFeature ifFeature = ifFeatureIterator.next();
                 if (ifFeature.getResolvableStatus() != ResolvableStatus.RESOLVED) {
                     setResolvableStatus(ResolvableStatus.INTRA_FILE_RESOLVED);
-                    return;
+                    return null;
                 }
             }
         }
+        return null;
     }
 }

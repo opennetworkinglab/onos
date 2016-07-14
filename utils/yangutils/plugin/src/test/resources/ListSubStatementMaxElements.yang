@@ -3,12 +3,15 @@ module Test {
     namespace http://huawei.com;
     prefix Ant;
     list valid {
-        key "invalid-interval";
+        key "invalid";
         max-elements 3;
         leaf-list invalid-interval {
             type "uint16";
             units "seconds";
             description "Interval before a route is declared invalid";
+        }
+        leaf invalid {
+            type "uint16";
         }
     }
 }

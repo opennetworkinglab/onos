@@ -16,8 +16,6 @@
 
 package org.onosproject.yangutils.parser.impl;
 
-import java.util.Stack;
-
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -42,12 +40,14 @@ import org.onosproject.yangutils.parser.impl.listeners.DefaultListener;
 import org.onosproject.yangutils.parser.impl.listeners.DescriptionListener;
 import org.onosproject.yangutils.parser.impl.listeners.EnumListener;
 import org.onosproject.yangutils.parser.impl.listeners.EnumerationListener;
+import org.onosproject.yangutils.parser.impl.listeners.ErrorAppTagListener;
+import org.onosproject.yangutils.parser.impl.listeners.ErrorMessageListener;
 import org.onosproject.yangutils.parser.impl.listeners.FeatureListener;
 import org.onosproject.yangutils.parser.impl.listeners.FractionDigitsListener;
 import org.onosproject.yangutils.parser.impl.listeners.GroupingListener;
+import org.onosproject.yangutils.parser.impl.listeners.IdentityListener;
 import org.onosproject.yangutils.parser.impl.listeners.IdentityrefListener;
 import org.onosproject.yangutils.parser.impl.listeners.IfFeatureListener;
-import org.onosproject.yangutils.parser.impl.listeners.IdentityListener;
 import org.onosproject.yangutils.parser.impl.listeners.ImportListener;
 import org.onosproject.yangutils.parser.impl.listeners.IncludeListener;
 import org.onosproject.yangutils.parser.impl.listeners.InputListener;
@@ -83,13 +83,15 @@ import org.onosproject.yangutils.parser.impl.listeners.SubModuleListener;
 import org.onosproject.yangutils.parser.impl.listeners.TypeDefListener;
 import org.onosproject.yangutils.parser.impl.listeners.TypeListener;
 import org.onosproject.yangutils.parser.impl.listeners.UnionListener;
+import org.onosproject.yangutils.parser.impl.listeners.UniqueListener;
 import org.onosproject.yangutils.parser.impl.listeners.UnitsListener;
 import org.onosproject.yangutils.parser.impl.listeners.UsesListener;
 import org.onosproject.yangutils.parser.impl.listeners.ValueListener;
 import org.onosproject.yangutils.parser.impl.listeners.VersionListener;
 import org.onosproject.yangutils.parser.impl.listeners.WhenListener;
-import org.onosproject.yangutils.parser.impl.listeners.ErrorMessageListener;
-import org.onosproject.yangutils.parser.impl.listeners.ErrorAppTagListener;
+
+import java.util.Stack;
+
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.handleUnsupportedYangConstruct;
 import static org.onosproject.yangutils.utils.UtilConstants.CURRENTLY_UNSUPPORTED;
 import static org.onosproject.yangutils.utils.UtilConstants.UNSUPPORTED_YANG_CONSTRUCT;
@@ -107,6 +109,34 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     // Parse tree root node
     private YangNode rootNode;
+
+    /**
+     * Parent depth of grouping count for any node.
+     */
+    private int groupingDepth;
+
+    /**
+     * Returns number of grouping parents, by a node, at any level.
+     *
+     * @return depth of grouping
+     */
+    public int getGroupingDepth() {
+        return groupingDepth;
+    }
+
+    /**
+     * Sets number of grouping parents by a node at any level.
+     */
+    public void increaseGroupingDepth() {
+        groupingDepth++;
+    }
+
+    /**
+     * Sets number of grouping parents by a node at any level.
+     */
+    public void decreaseGroupingDepth() {
+        groupingDepth--;
+    }
 
     /**
      * Returns stack of parsable data.
@@ -956,7 +986,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterUniqueStatement(GeneratedYangParser.UniqueStatementContext ctx) {
-        handleUnsupportedYangConstruct(YangConstructType.UNIQUE_DATA, ctx, CURRENTLY_UNSUPPORTED);
+        UniqueListener.processUniqueEntry(this, ctx);
     }
 
     @Override

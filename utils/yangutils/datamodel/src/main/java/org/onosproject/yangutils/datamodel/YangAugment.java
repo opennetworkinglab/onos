@@ -442,8 +442,9 @@ public class YangAugment
     }
 
     @Override
-    public void resolve() throws DataModelException {
+    public Object resolve() throws DataModelException {
         // Resolving of target node is being done in XPathLinker.
+        return null;
     }
 
     /**

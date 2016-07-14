@@ -1,0 +1,64 @@
+module topology {
+    yang-version 1;
+    namespace "onos-yang-19:level1:newlevel";
+    prefix test;
+    organization "huawei";
+    contact "adarsh.m@huawei.com";
+    description "leaf scenario";
+    container networks {
+        list network {
+            key "network-id";
+            description
+                "Describes a network.
+                A network typically contains an inventory of nodes,
+                topological information (augmented through
+                network-topology model), as well as layering
+                information.";
+            container network-types {
+                description
+                    "Serves as an augmentation target.
+                    The network type is indicated through corresponding
+                    presence containers augmented into this container.";
+            }
+            leaf network-id {
+                type string;
+                description
+                "Identifies a network.";
+            }
+        }
+        leaf network-ip {
+            type uint8;
+            description
+            "Identifies a network.";
+        }
+    }
+    augment "/networks/network" {
+        container config {
+            description
+                "Configuration data.";
+            choice bundle-stack-level {
+                description
+                    "The TE link can be partitioned into bundled
+                    links, or component links.";
+                case bundle {
+                    container bundled-links {
+                        description
+                            "A set of bundled links.";
+                        reference
+                            "RFC4201: Link Bundling in MPLS Traffic Engineering
+                            (TE).";
+                        list bundled-link {
+                            key "src-tp-ref";
+                            leaf src-tp-ref {
+                                type leafref {
+                                    path "../../../../../network-ip";
+                                    require-instance true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

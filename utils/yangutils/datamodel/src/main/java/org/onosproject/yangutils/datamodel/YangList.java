@@ -16,14 +16,14 @@
 
 package org.onosproject.yangutils.datamodel;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
 
@@ -117,6 +117,26 @@ public class YangList
      * List of key leaf names.
      */
     private List<String> keyList;
+
+    /**
+     * Reference RFC 6020.
+     *
+     * The "unique" statement is used to put constraints on valid list
+     * entries.  It takes as an argument a string that contains a space-
+     * separated list of schema node identifiers, which MUST be given in the
+     * descendant form.  Each such schema node identifier MUST refer to a leaf.
+     *
+     * If one of the referenced leafs represents configuration data, then
+     * all of the referenced leafs MUST represent configuration data.
+     *
+     * The "unique" constraint specifies that the combined values of all the
+     * leaf instances specified in the argument string, including leafs with
+     * default values, MUST be unique within all list entry instances in
+     * which all referenced leafs exist.
+     *
+     * List of unique leaf/leaf-list names
+     */
+    private List<String> uniqueList;
 
     /**
      * List of leaves.
@@ -271,6 +291,24 @@ public class YangList
     }
 
     /**
+     * Returns the list of unique field names.
+     *
+     * @return the list of unique field names
+     */
+    public List<String> getUniqueList() {
+        return uniqueList;
+    }
+
+    /**
+     * Sets the list of unique field names.
+     *
+     * @param uniqueList the list of unique field names
+     */
+    private void setUniqueList(List<String> uniqueList) {
+        this.uniqueList = uniqueList;
+    }
+
+    /**
      * Returns the list of key field names.
      *
      * @return the list of key field names
@@ -306,6 +344,24 @@ public class YangList
         }
 
         getKeyList().add(key);
+    }
+
+    /**
+     * Adds a unique field name.
+     *
+     * @param unique unique field name.
+     * @throws DataModelException a violation of data model rules
+     */
+    public void addUnique(String unique)
+            throws DataModelException {
+        if (getUniqueList() == null) {
+            setUniqueList(new LinkedList<>());
+        }
+        if (getUniqueList().contains(unique)) {
+            throw new DataModelException("A leaf identifier must not appear more than once in the\n" +
+                    "   unique");
+        }
+        getUniqueList().add(unique);
     }
 
     /**
@@ -489,11 +545,11 @@ public class YangList
         validateConfig(leaves, leafLists);
 
         /* A list must have atleast one key leaf if config is true */
-        if (isConfig && (keys == null || leaves == null && leafLists == null) && !isUsesPresentInList()
+        if (isConfig && (keys == null || leaves == null) && !isUsesPresentInList()
                 && !isListPresentInGrouping()) {
             throw new DataModelException("A list must have atleast one key leaf if config is true;");
         } else if (keys != null) {
-            validateKey(leaves, leafLists, keys);
+            validateKey(leaves, keys);
         }
     }
 
@@ -501,7 +557,7 @@ public class YangList
      * Sets the config's value to all leaf if leaf's config statement is not
      * specified.
      *
-     * @param leaves list of leaf attributes of YANG list
+     * @param leaves    list of leaf attributes of YANG list
      * @param leafLists list of leaf-list attributes of YANG list
      */
     private void setDefaultConfigValueToChild(List<YangLeaf> leaves, List<YangLeafList> leafLists) {
@@ -534,7 +590,7 @@ public class YangList
     /**
      * Validates config statement of YANG list.
      *
-     * @param leaves list of leaf attributes of YANG list
+     * @param leaves    list of leaf attributes of YANG list
      * @param leafLists list of leaf-list attributes of YANG list
      * @throws DataModelException a violation of data model rules
      */
@@ -567,16 +623,15 @@ public class YangList
     /**
      * Validates key statement of list.
      *
-     * @param leaves list of leaf attributes of list
+     * @param leaves    list of leaf attributes of list
      * @param leafLists list of leaf-list attributes of list
-     * @param keys list of key attributes of list
+     * @param keys      list of key attributes of list
      * @throws DataModelException a violation of data model rules
      */
-    private void validateKey(List<YangLeaf> leaves, List<YangLeafList> leafLists, List<String> keys)
+    private void validateKey(List<YangLeaf> leaves, List<String> keys)
             throws DataModelException {
         boolean leafFound = false;
         List<YangLeaf> keyLeaves = new LinkedList<>();
-        List<YangLeafList> keyLeafLists = new LinkedList<>();
 
         /*
          * 1. Leaf identifier must refer to a child leaf of the list 2. A leaf
@@ -597,20 +652,6 @@ public class YangList
                 }
             }
 
-            if (leafLists != null && !leafLists.isEmpty()) {
-                for (YangLeafList leafList : leafLists) {
-                    if (key.equals(leafList.getName())) {
-                        if (leafList.getDataType().getDataType() == YangDataTypes.EMPTY) {
-                            throw new DataModelException(" A leaf-list that is part of the key" +
-                                    " must not be the built-in type \"empty\".");
-                        }
-                        leafFound = true;
-                        keyLeafLists.add(leafList);
-                        break;
-                    }
-                }
-            }
-
             if (!leafFound && !isUsesPresentInList() && !isListPresentInGrouping()) {
                 throw new DataModelException("An identifier, in key, must refer to a child leaf of the list");
             }
@@ -624,17 +665,6 @@ public class YangList
         for (YangLeaf keyLeaf : keyLeaves) {
             if (isConfig != keyLeaf.isConfig()) {
                 throw new DataModelException("All key leafs in a list must have the same value for their" +
-                        " \"config\" as the list itself.");
-            }
-        }
-
-         /*
-         * All key leafs in a list MUST have the same value for their "config"
-         * as the list itself.
-         */
-        for (YangLeafList keyLeafList : keyLeafLists) {
-            if (isConfig() != keyLeafList.isConfig()) {
-                throw new DataModelException("All key leaf-lists in a list must have the same value for their" +
                         " \"config\" as the list itself.");
             }
         }

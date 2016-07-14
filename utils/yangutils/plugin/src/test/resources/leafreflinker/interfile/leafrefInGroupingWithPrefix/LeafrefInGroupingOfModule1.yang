@@ -1,0 +1,40 @@
+module LeafrefInGroupingOfModule1 {
+    yang-version 1;
+    namespace "onos-yang-19:level1:newlevel";
+    prefix test2;
+    description "leaf scenario";
+    container networks {
+        list network {
+            key "network-id";
+            description
+                "Describes a network.
+                A network typically contains an inventory of nodes,
+                topological information (augmented through
+                network-topology model), as well as layering
+                information.";
+            container network-types {
+                description
+                    "Serves as an augmentation target.
+                    The network type is indicated through corresponding
+                    presence containers augmented into this container.";
+            }
+            leaf network-id {
+                type string;
+                description
+                "Identifies a network.";
+            }
+        }
+        leaf network-ip {
+            type uint8;
+            description
+            "Identifies a network.";
+        }
+    }
+    grouping network-ref {
+        leaf network-ref {
+            type leafref {
+                path "/test2:networks/test2:network/test2:network-id";
+            }
+        }
+    }
+}

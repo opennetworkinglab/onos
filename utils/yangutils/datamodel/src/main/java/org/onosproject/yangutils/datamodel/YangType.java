@@ -239,7 +239,7 @@ public class YangType<T>
     }
 
     @Override
-    public void resolve()
+    public Object resolve()
             throws DataModelException {
         /*
          * Check whether the data type is derived.
@@ -260,6 +260,7 @@ public class YangType<T>
         } catch (DataModelException e) {
             throw new DataModelException(e.getMessage());
         }
+        return null;
     }
 
     /**

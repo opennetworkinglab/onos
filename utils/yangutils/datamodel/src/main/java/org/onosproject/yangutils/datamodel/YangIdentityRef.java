@@ -80,7 +80,7 @@ public class YangIdentityRef extends YangNode implements Parsable, Resolvable, S
     }
 
     @Override
-    public void resolve() throws DataModelException {
+    public Object resolve() throws DataModelException {
 
         // Check if the derived info is present.
         YangIdentity identity = getReferredIdentity();
@@ -92,10 +92,11 @@ public class YangIdentityRef extends YangNode implements Parsable, Resolvable, S
         while (identity.getBaseNode() != null) {
             if (identity.getBaseNode().getResolvableStatus() != ResolvableStatus.RESOLVED) {
                 setResolvableStatus(ResolvableStatus.INTRA_FILE_RESOLVED);
-                return;
+                return null;
             }
             identity = identity.getBaseNode().getReferredIdentity();
         }
+        return null;
     }
 
     /**

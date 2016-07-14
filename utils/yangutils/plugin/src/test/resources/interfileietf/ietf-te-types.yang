@@ -580,7 +580,7 @@
 
      typedef admin-group {
        type binary {
-          length 32;
+         length 32;
        }
        description
          "Administrative group/Resource class/Color.";
@@ -680,12 +680,18 @@
              "The tunnel path hop limit.";
          }
          leaf metric-type {
-           type string;
+           type identityref {
+             base path-metric-type;
+           }
+           default path-metric-te;
            description
              "The tunnel path metric type.";
          }
          leaf tiebreaker-type {
-           type string;
+           type identityref {
+             base path-tiebreaker-type;
+           }
+           default path-tiebreaker-maxfill;
            description
              "The tunnel path computation tie breakers.";
          }
@@ -729,7 +735,9 @@
              list constraints {
                key "usage";
                leaf usage {
-                 type string;
+                 type identityref {
+                   base resource-affinities-type;
+                 }
                  description "Affinities usage";
                }
                container constraint {
@@ -765,7 +773,9 @@
              "Type of SRLG representation";
            case values {
              leaf usage {
-               type string;
+               type identityref {
+                 base route-exclude-srlg;
+               }
                description "SRLG usage";
              }
              leaf-list values {
@@ -777,7 +787,9 @@
              list constraints {
                key "usage";
                leaf usage {
-                 type string;
+                 type identityref {
+                   base route-exclude-srlg;
+                 }
                  description "SRLG usage";
                }
                container constraint {
@@ -829,12 +841,17 @@
                source.";
            }
            leaf type {
-             type string;
+             type identityref {
+               base bidir-association-type;
+             }
+             default bidir-assoc-non-corouted;
              description
                "The TE tunnel association type.";
            }
            leaf provisioing {
-             type string;
+             type identityref {
+               base bidir-provisioning-mode;
+             }
              description
                "Describes the provisioning model of the
                associated bidirectional LSP";

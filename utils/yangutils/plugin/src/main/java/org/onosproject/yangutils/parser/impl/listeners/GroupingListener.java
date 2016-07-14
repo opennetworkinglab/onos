@@ -106,6 +106,8 @@ public final class GroupingListener {
         // Validate sub statement cardinality.
         validateSubStatementsCardinality(ctx);
 
+        // Increase the grouping count by one.
+        listener.increaseGroupingDepth();
         Parsable curData = listener.getParsedDataStack().peek();
 
         // Check for identifier collision
@@ -149,6 +151,8 @@ public final class GroupingListener {
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, GROUPING_DATA, ctx.identifier().getText(), EXIT);
 
+        // Decrease the grouping count by one.
+        listener.decreaseGroupingDepth();
         if (listener.getParsedDataStack().peek() instanceof YangGrouping) {
             listener.getParsedDataStack().pop();
         } else {

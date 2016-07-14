@@ -1,0 +1,19 @@
+module SelfResolutionWhenLeafrefInModuleReferToGroupingInModule {
+    yang-version 1;
+    namespace "urn:ietf:params:xml:ns:yang:ietf-network";
+    prefix nd;
+    grouping networks {
+        leaf network-id {
+            type uint8;
+            description
+            "Identifies a network.";
+        }
+    }
+    container current {
+        leaf network-ref {
+            type leafref {
+            path "/networks/network-id";
+            }
+        }
+    }
+}

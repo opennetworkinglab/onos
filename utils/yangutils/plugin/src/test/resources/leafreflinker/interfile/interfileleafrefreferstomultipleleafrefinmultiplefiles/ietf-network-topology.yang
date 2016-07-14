@@ -1,0 +1,28 @@
+module ietf-network-topology {
+    yang-version 1;
+    namespace "urn:ietf:params:xml:ns:yang:ietf-te-topology";
+    prefix "tet";
+    import ietf-network {
+        prefix "nt";
+    }
+    container te-node-tunnel-termination-capability {
+        description
+        "Termination capability of a tunnel termination point on a
+        TE node.";
+        list termination-capability {
+            key "link-tp";
+            description
+            "The termination capabilities between
+            tunnel-termination-point and link termination-point.
+            The capability information can be used to compute
+            the tunnel path.";
+            leaf link-tp {
+                type leafref {
+                    path "/nt:termination-point/nt:tp-id";
+                }
+                description
+                "Link termination point.";
+            }
+        } // termination-capability
+    } // te-node-tunnel-termination-capability
+}

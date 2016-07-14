@@ -1,0 +1,37 @@
+module ietf-te-topology {
+    yang-version 1;
+    namespace "onos-yang-19:level1:newlevel";
+    prefix test;
+     import ietf-network {
+       prefix "nw";
+     }
+    description "leaf scenario";
+         typedef te-topology-event-type {
+           type enumeration {
+             enum "add" {
+               value 0;
+               description
+                 "A TE node or te-link has been added.";
+             }
+             enum "remove" {
+               value 1;
+               description
+                 "A TE node or te-link has been removed.";
+             }
+             enum "update" {
+               value 2;
+               description
+                 "A TE node or te-link has been updated.";
+             }
+           }
+           description "TE  Event type for notifications";
+         } // te-topology-event-type
+     container te-node-event {
+       leaf event-type {
+         type te-topology-event-type;
+         description "Event type.";
+       }
+       description "Notification event for TE node.";
+       uses nw:node-ref;
+     }
+}

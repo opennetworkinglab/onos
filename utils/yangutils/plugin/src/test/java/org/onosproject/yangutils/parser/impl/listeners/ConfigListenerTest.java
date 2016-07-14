@@ -444,33 +444,6 @@ public class ConfigListenerTest {
      * config statement's value.
      */
     @Test
-    public void processNoConfigListSubStatementLeafList() throws IOException, ParserException {
-
-        YangNode node = manager.getDataModel("src/test/resources/NoConfigListSubStatementLeafList.yang");
-
-        assertThat((node instanceof YangModule), is(true));
-        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
-        YangModule yangNode = (YangModule) node;
-        assertThat(yangNode.getName(), is("Test"));
-
-        // Check whether the config value is set correctly.
-        YangList list1 = (YangList) yangNode.getChild();
-        assertThat(list1.getName(), is("valid"));
-        assertThat(list1.isConfig(), is(true));
-
-        ListIterator<YangLeafList> leafListIterator = list1.getListOfLeafList().listIterator();
-        YangLeafList leafListInfo = leafListIterator.next();
-
-        // Check whether config value is set correctly.
-        assertThat(leafListInfo.getName(), is("invalid-interval"));
-        assertThat(leafListInfo.isConfig(), is(true));
-    }
-
-    /**
-     * Checks when config is not specified, the default is same as the parent's schema node's
-     * config statement's value.
-     */
-    @Test
     public void processNoConfigListSubStatementLeaf() throws IOException, ParserException {
 
         YangNode node = manager.getDataModel("src/test/resources/NoConfigListSubStatementLeaf.yang");

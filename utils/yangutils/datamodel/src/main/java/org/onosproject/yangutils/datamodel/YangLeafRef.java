@@ -16,16 +16,17 @@
 
 package org.onosproject.yangutils.datamodel;
 
-import java.io.Serializable;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.ResolvableStatus;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
+
+import java.io.Serializable;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.INTRA_FILE_RESOLVED;
 import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.RESOLVED;
@@ -47,7 +48,7 @@ import static org.onosproject.yangutils.datamodel.utils.YangErrMsgConstants.INST
  * @param <T> YANG leafref info
  */
 public class YangLeafRef<T> implements Parsable, Resolvable, Serializable, YangIfFeatureHolder,
-        YangXPathResolver, YangAppErrorHolder {
+        YangXPathResolver, YangAppErrorHolder, LocationInfo {
 
     private static final long serialVersionUID = 286201644L;
 
@@ -99,6 +100,61 @@ public class YangLeafRef<T> implements Parsable, Resolvable, Serializable, YangI
      */
     private List<YangIfFeature> ifFeatureList;
 
+    /**
+     * Parent node of the leafref's leaf.
+     */
+    private YangNode parentNodeOfLeafref;
+
+    /**
+     * Error line number.
+     */
+    private transient int lineNumber;
+
+    /**
+     * Error character position in number.
+     */
+    private transient int charPositionInLine;
+
+    /**
+     * Prefix in the nodes of the leafref path and its imported node name.
+     */
+    private Map<String, String> prefixAndItsImportedModule;
+
+    /**
+     * Returns the prefix in the leafref path and its imported node name.
+     *
+     * @return the list of leafref prefix and imported node name
+     */
+    public Map<String, String> getPrefixAndItsImportedModule() {
+        return prefixAndItsImportedModule;
+    }
+
+    /**
+     * Sets the prefix in the leafref path and its imported node name.
+     *
+     * @param prefixAndItsImportedModule the list of leafref prefix and imported node name
+     */
+    public void setPrefixAndItsImportedModule(Map<String, String> prefixAndItsImportedModule) {
+        this.prefixAndItsImportedModule = prefixAndItsImportedModule;
+    }
+
+    /**
+     * Returns the parent node from the leafref's leaf.
+     *
+     * @return parent node of the leafref
+     */
+    public YangNode getParentNodeOfLeafref() {
+        return parentNodeOfLeafref;
+    }
+
+    /**
+     * Sets the parent node from the leafref's leaf.
+     *
+     * @param parentNodeOfLeafref parent node of the leafref
+     */
+    public void setParentNodeOfLeafref(YangNode parentNodeOfLeafref) {
+        this.parentNodeOfLeafref = parentNodeOfLeafref;
+    }
     /**
      * YANG application error information.
      */
@@ -294,7 +350,7 @@ public class YangLeafRef<T> implements Parsable, Resolvable, Serializable, YangI
     }
 
     @Override
-    public void resolve() throws DataModelException {
+    public Object resolve() throws DataModelException {
 
         if (getReferredLeafOrLeafList() == null) {
             throw new DataModelException("Linker Error: The leafref does not refer to any leaf/leaf-list.");
@@ -306,6 +362,7 @@ public class YangLeafRef<T> implements Parsable, Resolvable, Serializable, YangI
         } catch (DataModelException e) {
             throw new DataModelException(e.getMessage());
         }
+        return null;
     }
 
     /**
@@ -442,5 +499,25 @@ public class YangLeafRef<T> implements Parsable, Resolvable, Serializable, YangI
         } else {
             throw new DataModelException("Linker Error: The leafref must refer only to leaf/leaf-list.");
         }
+    }
+
+    @Override
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
+    @Override
+    public int getCharPosition() {
+        return charPositionInLine;
+    }
+
+    @Override
+    public void setLineNumber(int lineNumber) {
+        this.lineNumber = lineNumber;
+    }
+
+    @Override
+    public void setCharPosition(int charPositionInLine) {
+        this.charPositionInLine = charPositionInLine;
     }
 }

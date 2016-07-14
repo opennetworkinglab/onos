@@ -4,7 +4,7 @@ module Test {
     namespace http://huawei.com;
     prefix Ant;
     list valid {
-        key "invalid-interval";
+        key "invalid";
         leaf-list invalid-interval {
             type "uint16";
             units "seconds";
@@ -12,6 +12,9 @@ module Test {
             config true;
             status current;
             reference "RFC 6020";
+        }
+        leaf invalid {
+            type "uint16";
         }
     }
 }

@@ -1,0 +1,12 @@
+module GroupingCopiedInModule2 {
+    yang-version 1;
+    namespace "onos-yang-19:level1:newlevel";
+    prefix test;
+    import LeafrefInGroupingOfModule1 {
+        prefix module1;
+    }
+    description "leaf scenario";
+    container value {
+        uses "module1:network-ref";
+    }
+}

@@ -103,7 +103,11 @@
      description
        "References a link in a specific network.";
      leaf link-ref {
-       type link-id;
+       type leafref {
+         path "/nd:networks/nd:network[nd:network-id=current()/../"+
+           "network-ref]/lnk:link/lnk:link-id";
+         require-instance false;
+       }
        description
          "A type for an absolute reference a link instance.
           (This type should not be used for relative references.
@@ -116,7 +120,12 @@
      description
        "References a termination point in a specific node.";
      leaf tp-ref {
-       type tp-id;
+       type leafref {
+         path "/nd:networks/nd:network[nd:network-id=current()/../"+
+           "network-ref]/nd:node[nd:node-id=current()/../"+
+           "node-ref]/lnk:termination-point/lnk:tp-id";
+         require-instance false;
+       }
        description
          "A type for an absolute reference to a termination point.
           (This type should not be used for relative references.
@@ -150,13 +159,18 @@
            "This container holds the logical source of a particular
             link.";
          leaf source-node {
-           type nd:node-id;
+           type leafref {
+             path "../../../nd:node/nd:node-id";
+           }
            mandatory true;
            description
              "Source node identifier, must be in same topology.";
          }
          leaf source-tp {
-           type tp-id;
+           type leafref {
+             path "../../../nd:node[nd:node-id=current()/../"+
+               "source-node]/termination-point/tp-id";
+           }
            description
              "Termination point within source node that terminates
               the link.";
@@ -167,14 +181,19 @@
            "This container holds the logical destination of a
             particular link.";
          leaf dest-node {
-           type nd:node-id;
+           type leafref {
+             path "../../../nd:node/nd:node-id";
+           }
            mandatory true;
            description
              "Destination node identifier, must be in the same
               network.";
          }
          leaf dest-tp {
-           type tp-id;
+           type leafref {
+             path "../../../nd:node[nd:node-id=current()/../"+
+               "dest-node]/termination-point/tp-id";
+           }
            description
              "Termination point within destination node that
               terminates the link.";
@@ -192,13 +211,20 @@
            "Identifies the link, or links, that this link
             is dependent on.";
          leaf network-ref {
-           type nd:network-id;
+           type leafref {
+             path "../../../nd:supporting-network/nd:network-ref";
+           require-instance false;
+           }
            description
              "This leaf identifies in which underlay topology
               supporting link is present.";
          }
          leaf link-ref {
-           type link-id;
+           type leafref {
+             path "/nd:networks/nd:network[nd:network-id=current()/"+
+               "../network-ref]/link/link-id";
+             require-instance false;
+           }
            description
              "This leaf identifies a link which is a part
               of this link's underlay. Reference loops, in which
@@ -237,19 +263,30 @@
             The corresponding information is simply provided by the
             implementing system.";
          leaf network-ref {
-           type nd:network-id;
+           type leafref {
+             path "../../../nd:supporting-node/nd:network-ref";
+           require-instance false;
+           }
            description
              "This leaf identifies in which topology the
               supporting termination point is present.";
          }
          leaf node-ref {
-           type nd:node-id;
+           type leafref {
+             path "../../../nd:supporting-node/nd:node-ref";
+           require-instance false;
+           }
            description
              "This leaf identifies in which node the supporting
               termination point is present.";
          }
          leaf tp-ref {
-           type tp-id;
+           type leafref {
+             path "/nd:networks/nd:network[nd:network-id=current()/"+
+               "../network-ref]/nd:node[nd:node-id=current()/../"+
+               "node-ref]/termination-point/tp-id";
+             require-instance false;
+           }
            description
              "Reference to the underlay node, must be in a
               different topology";

@@ -26,6 +26,8 @@ import org.onosproject.yangutils.datamodel.utils.YangConstructType;
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.getParentNodeInGenCode;
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.updateClonedLeavesUnionEnumRef;
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.resolveLeafrefUnderGroupingForLeaf;
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.resolveLeafrefUnderGroupingForLeafList;
 
 /*-
  * Reference RFC 6020.
@@ -126,6 +128,16 @@ public class YangUses
     private List<List<YangLeafList>> resolvedGroupingLeafLists;
 
     /**
+     * Effective list of leaf lists of grouping that needs to replicated at YANG uses.
+     */
+    private List<YangEntityToResolveInfoImpl> entityToResolveInfoList;
+
+    /**
+     * Current grouping depth for uses.
+     */
+    private int currentGroupingDepth;
+
+    /**
      * Creates an YANG uses node.
      */
     public YangUses() {
@@ -135,6 +147,38 @@ public class YangUses
         resolvedGroupingNodes = new LinkedList<YangNode>();
         resolvedGroupingLeaves = new LinkedList<List<YangLeaf>>();
         resolvedGroupingLeafLists = new LinkedList<List<YangLeafList>>();
+    }
+
+    /**
+     * Returns the list of entity to resolve.
+     *
+     * @return the list of entity to resolve
+     */
+    public List<YangEntityToResolveInfoImpl> getEntityToResolveInfoList() {
+        return entityToResolveInfoList;
+    }
+
+    /**
+     * Sets the list of entity to resolve.
+     *
+     * @param entityToResolveInfoList the list of entity to resolve
+     */
+    public void setEntityToResolveInfoList(List<YangEntityToResolveInfoImpl> entityToResolveInfoList) {
+        this.entityToResolveInfoList = entityToResolveInfoList;
+    }
+
+    /**
+     * Adds an entity to resolve in list.
+     *
+     * @param entityToResolve entity to resolved
+     * @throws DataModelException a violation of data model rules
+     */
+    public void addEntityToResolve(YangEntityToResolveInfoImpl entityToResolve)
+            throws DataModelException {
+        if (getEntityToResolveInfoList() == null) {
+            setEntityToResolveInfoList(new LinkedList<YangEntityToResolveInfoImpl>());
+        }
+        getEntityToResolveInfoList().add(entityToResolve);
     }
 
     /**
@@ -314,7 +358,7 @@ public class YangUses
     }
 
     @Override
-    public void resolve()
+    public Object resolve()
             throws DataModelException {
 
         YangGrouping referredGrouping = getRefGroup();
@@ -337,7 +381,13 @@ public class YangUses
                     ((CollisionDetector) usesParentLeavesHolder).detectCollidingChild(leaf.getName(),
                             YangConstructType.LEAF_DATA);
                     clonedLeaf = leaf.clone();
-
+                    if (getCurrentGroupingDepth() == 0) {
+                        YangEntityToResolveInfoImpl resolveInfo = resolveLeafrefUnderGroupingForLeaf(clonedLeaf,
+                                usesParentLeavesHolder, this);
+                        if (resolveInfo != null) {
+                            addEntityToResolve(resolveInfo);
+                        }
+                    }
                 } catch (CloneNotSupportedException | DataModelException e) {
                     throw new DataModelException(e.getMessage());
                 }
@@ -353,7 +403,13 @@ public class YangUses
                     ((CollisionDetector) usesParentLeavesHolder).detectCollidingChild(leafList.getName(),
                             YangConstructType.LEAF_LIST_DATA);
                     clonedLeafList = leafList.clone();
-
+                    if (getCurrentGroupingDepth() == 0) {
+                        YangEntityToResolveInfoImpl resolveInfo =
+                                    resolveLeafrefUnderGroupingForLeafList(clonedLeafList, usesParentLeavesHolder);
+                        if (resolveInfo != null) {
+                            addEntityToResolve(resolveInfo);
+                        }
+                    }
                 } catch (CloneNotSupportedException | DataModelException e) {
                     throw new DataModelException(e.getMessage());
                 }
@@ -364,11 +420,12 @@ public class YangUses
         }
 
         try {
-            YangNode.cloneSubTree(referredGrouping, usesParentNode);
+            YangNode.cloneSubTree(referredGrouping, usesParentNode, this);
         } catch (DataModelException e) {
             throw new DataModelException(e.getMessage());
         }
         updateClonedLeavesUnionEnumRef(usesParentLeavesHolder);
+        return getEntityToResolveInfoList();
     }
 
     /**
@@ -378,7 +435,7 @@ public class YangUses
      * @param usesHolder     holder of uses
      */
     private void addResolvedUsesInfoOfGrouping(YangUses usesInGrouping,
-            YangLeavesHolder usesHolder) throws DataModelException {
+                                               YangLeavesHolder usesHolder) throws DataModelException {
         for (YangNode usesResolvedNode : usesInGrouping.getUsesResolvedNodeList()) {
             addNodeOfGrouping(usesResolvedNode);
         }
@@ -402,7 +459,7 @@ public class YangUses
      * @throws DataModelException a violation in data model rule
      */
     private List<YangLeaf> cloneLeavesList(List<YangLeaf> listOfLeaves,
-            YangLeavesHolder usesParentNode) throws DataModelException {
+                                           YangLeavesHolder usesParentNode) throws DataModelException {
         if (listOfLeaves == null || listOfLeaves.size() == 0) {
             throw new DataModelException("No leaves to clone");
         }
@@ -433,7 +490,7 @@ public class YangUses
      * @return cloned list of leaf list
      */
     private List<YangLeafList> cloneListOfLeafList(List<YangLeafList> listOfLeafList,
-            YangLeavesHolder usesParentNode) throws DataModelException {
+                                                   YangLeavesHolder usesParentNode) throws DataModelException {
         if (listOfLeafList == null || listOfLeafList.size() == 0) {
             throw new DataModelException("No leaf lists to clone");
         }
@@ -556,4 +613,13 @@ public class YangUses
     public void setIfFeatureList(List<YangIfFeature> ifFeatureList) {
         this.ifFeatureList = ifFeatureList;
     }
+
+    public void setCurrentGroupingDepth(int currentGroupingDepth) {
+        this.currentGroupingDepth = currentGroupingDepth;
+    }
+
+    public int getCurrentGroupingDepth() {
+        return currentGroupingDepth;
+    }
+
 }
