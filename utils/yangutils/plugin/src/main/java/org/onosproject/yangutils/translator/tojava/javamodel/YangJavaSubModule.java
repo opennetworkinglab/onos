@@ -40,6 +40,7 @@ import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.gen
 import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.isManagerCodeGenRequired;
 import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.isGenerationOfCodeReq;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
+import static org.onosproject.yangutils.utils.UtilConstants.SBI;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.searchAndDeleteTempDir;
 
 /**
@@ -127,8 +128,7 @@ public class YangJavaSubModule
     /**
      * Returns the name space of the module to which the sub module belongs to.
      *
-     * @param belongsToInfo Information of the module to which the sub module
-     *                      belongs
+     * @param belongsToInfo Information of the module to which the sub module belongs
      * @return the name space string of the module.
      */
     public String getNameSpaceFromModule(YangBelongsTo belongsToInfo) {
@@ -136,8 +136,7 @@ public class YangJavaSubModule
     }
 
     /**
-     * Prepares the information for java code generation corresponding to YANG
-     * submodule info.
+     * Prepares the information for java code generation corresponding to YANG submodule info.
      *
      * @param yangPlugin YANG plugin config
      * @throws TranslatorException when fails to translate
@@ -171,9 +170,11 @@ public class YangJavaSubModule
          */
         try {
             if (isManagerCodeGenRequired(this) && isGenerationOfCodeReq(getJavaFileInfo())) {
-
-                getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
-                getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
+                if ((getJavaFileInfo().getPluginConfig().getCodeGenerateForsbi() == null) ||
+                        (!getJavaFileInfo().getPluginConfig().getCodeGenerateForsbi().equals(SBI))) {
+                    getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
+                    getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
+                }
             }
             searchAndDeleteTempDir(getJavaFileInfo().getBaseCodeGenPath() +
                     getJavaFileInfo().getPackageFilePath());

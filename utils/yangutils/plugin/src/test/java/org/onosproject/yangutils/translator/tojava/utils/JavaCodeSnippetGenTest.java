@@ -102,20 +102,24 @@ public class JavaCodeSnippetGenTest {
     @Test
     public void testForJavaAttributeInfo() {
 
-        String attributeWithoutTypePkg = getJavaAttributeDefination(null, STRING_DATA_TYPE, YANG_NAME, false);
+        String attributeWithoutTypePkg = getJavaAttributeDefination(null, STRING_DATA_TYPE, YANG_NAME,
+                                                                    false, PRIVATE);
         assertThat(true, is(attributeWithoutTypePkg.equals(
                 PRIVATE + SPACE + STRING_DATA_TYPE + SPACE + YANG_NAME + SEMI_COLAN + NEW_LINE)));
 
-        String attributeWithTypePkg = getJavaAttributeDefination(JAVA_LANG, STRING_DATA_TYPE, YANG_NAME, false);
+        String attributeWithTypePkg = getJavaAttributeDefination(JAVA_LANG, STRING_DATA_TYPE, YANG_NAME,
+                                                                 false, PRIVATE);
         assertThat(true, is(attributeWithTypePkg.equals(PRIVATE + SPACE + JAVA_LANG + PERIOD
                 + STRING_DATA_TYPE + SPACE + YANG_NAME + SEMI_COLAN + NEW_LINE)));
 
-        String attributeWithListPkg = getJavaAttributeDefination(JAVA_LANG, STRING_DATA_TYPE, YANG_NAME, true);
+        String attributeWithListPkg = getJavaAttributeDefination(JAVA_LANG, STRING_DATA_TYPE, YANG_NAME,
+                                                                 true, PRIVATE);
         assertThat(true, is(attributeWithListPkg.equals(
                 PRIVATE + SPACE + LIST + DIAMOND_OPEN_BRACKET + JAVA_LANG + PERIOD + STRING_DATA_TYPE
                         + DIAMOND_CLOSE_BRACKET + SPACE + YANG_NAME + SEMI_COLAN + NEW_LINE)));
 
-        String attributeWithListWithoutPkg = getJavaAttributeDefination(null, STRING_DATA_TYPE, YANG_NAME, true);
+        String attributeWithListWithoutPkg = getJavaAttributeDefination(null, STRING_DATA_TYPE, YANG_NAME,
+                                                                        true, PRIVATE);
         assertThat(true, is(attributeWithListWithoutPkg.equals(
                 PRIVATE + SPACE + LIST + DIAMOND_OPEN_BRACKET + STRING_DATA_TYPE + DIAMOND_CLOSE_BRACKET + SPACE
                         + YANG_NAME + SEMI_COLAN + NEW_LINE)));

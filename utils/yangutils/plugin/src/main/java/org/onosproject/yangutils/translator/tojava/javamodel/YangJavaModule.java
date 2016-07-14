@@ -39,6 +39,7 @@ import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.isM
 import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.isGenerationOfCodeReq;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.searchAndDeleteTempDir;
+import static org.onosproject.yangutils.utils.UtilConstants.SBI;
 
 /**
  * Represents module information extended to support java code generation.
@@ -159,10 +160,13 @@ public class YangJavaModule
 
         try {
             if (isManagerCodeGenRequired(this) && isGenerationOfCodeReq(getJavaFileInfo())) {
-                getTempJavaCodeFragmentFiles()
-                        .generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
-                getTempJavaCodeFragmentFiles()
-                        .generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
+                if ((getJavaFileInfo().getPluginConfig().getCodeGenerateForsbi() == null) ||
+                        (!getJavaFileInfo().getPluginConfig().getCodeGenerateForsbi().equals(SBI))) {
+                    getTempJavaCodeFragmentFiles()
+                            .generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
+                    getTempJavaCodeFragmentFiles()
+                            .generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
+                }
             }
             searchAndDeleteTempDir(getJavaFileInfo().getBaseCodeGenPath() +
                     getJavaFileInfo().getPackageFilePath());

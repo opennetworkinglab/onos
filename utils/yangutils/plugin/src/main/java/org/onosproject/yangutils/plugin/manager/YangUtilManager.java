@@ -150,6 +150,12 @@ public class YangUtilManager
     @Parameter(readonly = true, defaultValue = "${project.remoteArtifactRepositories}")
     private List<ArtifactRepository> remoteRepository;
 
+    /**
+     * Code generation is for nbi or sbi.
+     */
+    @Parameter(property = "generateJavaFileForsbi", defaultValue = "nbi")
+    private String generateJavaFileForsbi;
+
     @Override
     public void execute()
             throws MojoExecutionException, MojoFailureException {
@@ -177,6 +183,7 @@ public class YangUtilManager
             yangPlugin.setManagerCodeGenDir(managerCodeGenDir);
             yangPlugin.setConflictResolver(conflictResolver);
 
+            yangPlugin.setCodeGenerateForsbi(generateJavaFileForsbi.toLowerCase());
             /*
              * Obtain the YANG files at a path mentioned in plugin and creates
              * YANG file information set.

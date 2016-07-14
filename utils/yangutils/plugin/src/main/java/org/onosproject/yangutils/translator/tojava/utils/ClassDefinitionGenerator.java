@@ -38,11 +38,14 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.OPERATION_BUILDER_CLASS_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.OPERATION_CLASS_MASK;
 import static org.onosproject.yangutils.utils.UtilConstants.ABSTRACT;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
 import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT;
+import static org.onosproject.yangutils.utils.UtilConstants.OPERATION;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_CLOSE_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_OPEN_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.EIGHT_SPACE_INDENTATION;
@@ -123,8 +126,12 @@ public final class ClassDefinitionGenerator {
                 return getInterfaceDefinition(yangName, curNode);
             case BUILDER_CLASS_MASK:
                 return getBuilderClassDefinition(yangName, curNode);
+            case OPERATION_BUILDER_CLASS_MASK:
+                return getOpParamBuilderClassDefinition(yangName, curNode);
             case IMPL_CLASS_MASK:
                 return getImplClassDefinition(yangName, curNode);
+            case OPERATION_CLASS_MASK:
+                return getOperClassDefinition(yangName, curNode);
             case BUILDER_INTERFACE_MASK:
                 return getBuilderInterfaceDefinition(yangName, curNode);
             case GENERATE_SERVICE_AND_MANAGER:
@@ -205,6 +212,26 @@ public final class ClassDefinitionGenerator {
     }
 
     /**
+     * Returns operation param builder file class definition.
+     *
+     * @param yangName class name
+     * @param curNode   YANG node
+     * @return definition returns operation param builder file class definition
+     */
+    private static String getOpParamBuilderClassDefinition(String yangName, YangNode curNode) {
+        String clsDef = "";
+        if (curNode instanceof YangAugment) {
+            clsDef = getClassDefinitionForWhenExtended(curNode, yangName, OPERATION_BUILDER_CLASS_MASK);
+            if (clsDef != null) {
+                return clsDef;
+            }
+        }
+        return PUBLIC + SPACE + CLASS + SPACE + yangName + OPERATION + BUILDER + SPACE + EXTEND +
+                SPACE + getCapitalCase(DEFAULT) + yangName + PERIOD + yangName + BUILDER + SPACE +
+                OPEN_CURLY_BRACKET + NEW_LINE;
+    }
+
+    /**
      * Returns impl file class definition.
      *
      * @param yangName file name
@@ -220,6 +247,26 @@ public final class ClassDefinitionGenerator {
         }
         return PUBLIC + SPACE + CLASS + SPACE + getCapitalCase(DEFAULT) + yangName + SPACE + IMPLEMENTS + SPACE
                 + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+    }
+
+    /**
+     * Returns operation param file class definition.
+     *
+     * @param yangName class name
+     * @param curNode   YANG node
+     * @return definition returns operation param file class definition
+     */
+    private static String getOperClassDefinition(String yangName, YangNode curNode) {
+        String clsDef = "";
+        if (curNode instanceof YangAugment) {
+            clsDef = getClassDefinitionForWhenExtended(curNode, yangName, OPERATION_CLASS_MASK);
+            if (clsDef != null) {
+                return clsDef;
+            }
+        }
+
+        return PUBLIC + SPACE + CLASS + SPACE + yangName + OPERATION + SPACE + EXTEND + SPACE
+                + getCapitalCase(DEFAULT) + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
     }
 
     /**
@@ -413,6 +460,19 @@ public final class ClassDefinitionGenerator {
                     return def + SPACE + IMPLEMENTS + SPACE
                             + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
 
+                case OPERATION_CLASS_MASK:
+                    def = def + SPACE + CLASS + SPACE + yangName + OPERATION + SPACE;
+                    for (JavaQualifiedTypeInfo info : holder.getExtendsList()) {
+                        if (!info.getClassInfo().contains(BUILDER)
+                                && info.getClassInfo().contains(OPERATION)) {
+                            def = getDefinitionString(def, info, holder);
+                        }
+                    }
+
+                    def = trimAtLast(def, COMMA);
+
+                    return def + SPACE + EXTEND + SPACE
+                            + getCapitalCase(DEFAULT) + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
                 default:
                     return null;
             }

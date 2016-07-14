@@ -19,6 +19,9 @@ package org.onosproject.yangutils.translator.tojava.utils;
 import java.util.List;
 import java.util.Map;
 
+import org.onosproject.yangutils.datamodel.YangLeaf;
+import org.onosproject.yangutils.datamodel.YangLeafList;
+import org.onosproject.yangutils.datamodel.YangLeavesHolder;
 import org.onosproject.yangutils.datamodel.YangAtomicPath;
 import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangNode;
@@ -27,15 +30,29 @@ import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
+import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
+import org.onosproject.yangutils.translator.tojava.TempJavaBeanFragmentFiles;
 import org.onosproject.yangutils.utils.io.impl.JavaDocGen;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.DECIMAL64;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.INT8;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.INT16;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.INT32;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.INT64;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.UINT8;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.UINT16;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BOOLEAN;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.UINT64;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.UINT32;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_SUBJECT_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getAugmentedClassNameForDataMethods;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getParentNodeNameForDataMethods;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getResolvedAugmentsForManager;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getSetOfNodeIdentifiers;
+import static org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles.getJavaAttributeOfLeaf;
+import static org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles.getJavaAttributeOfLeafList;
 import static org.onosproject.yangutils.utils.UtilConstants.ACTIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.ACTIVATE_ANNOTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.ADD_STRING;
@@ -134,6 +151,25 @@ import static org.onosproject.yangutils.utils.UtilConstants.VALUE;
 import static org.onosproject.yangutils.utils.UtilConstants.VOID;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_UTILS_TODO;
+import static org.onosproject.yangutils.utils.UtilConstants.OPERATION;
+import static org.onosproject.yangutils.utils.UtilConstants.BITSET;
+import static org.onosproject.yangutils.utils.UtilConstants.GET_FILTER_LEAF;
+import static org.onosproject.yangutils.utils.UtilConstants.FILTER_LEAF;
+import static org.onosproject.yangutils.utils.UtilConstants.GET_SELECT_LEAF;
+import static org.onosproject.yangutils.utils.UtilConstants.SELECT_LEAF;
+import static org.onosproject.yangutils.utils.UtilConstants.GET_FILTER_LEAF_LIST;
+import static org.onosproject.yangutils.utils.UtilConstants.FILTER_LEAF_LIST;
+import static org.onosproject.yangutils.utils.UtilConstants.GET_SELECT_LEAF_LIST;
+import static org.onosproject.yangutils.utils.UtilConstants.SELECT_LEAF_LIST;
+import static org.onosproject.yangutils.utils.UtilConstants.OPERATION_ENUM;
+import static org.onosproject.yangutils.utils.UtilConstants.GET_OPERATION_TYPE;
+import static org.onosproject.yangutils.utils.UtilConstants.OP_PARAM_TYPE;
+import static org.onosproject.yangutils.utils.UtilConstants.SET_OPERATION_TYPE;
+import static org.onosproject.yangutils.utils.UtilConstants.RECEIVED_OBJECT;
+import static org.onosproject.yangutils.utils.UtilConstants.FILTER_CONTENT_MATCH;
+import static org.onosproject.yangutils.utils.UtilConstants.APP_INSTANCE;
+import static org.onosproject.yangutils.utils.UtilConstants.NOT;
+import static org.onosproject.yangutils.utils.UtilConstants.OR_OPERATION;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILD_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.CONSTRUCTOR;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.DEFAULT_CONSTRUCTOR;
@@ -537,6 +573,21 @@ public final class MethodsGenerator {
     }
 
     /**
+     * Returns constructor string for op param class.
+     *
+     * @param yangName      class name
+     * @param pluginConfig    plugin configurations
+     * @return     constructor string
+     */
+    public static String getOpParamConstructorStart(String yangName, YangPluginConfig pluginConfig) {
+
+        String javadoc = getConstructorString(yangName, pluginConfig);
+        String constructor = FOUR_SPACE_INDENTATION + PUBLIC + SPACE + yangName + OPERATION +
+                OPEN_PARENTHESIS + yangName + OPERATION + BUILDER + SPACE + BUILDER.toLowerCase() + OBJECT
+                + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+        return javadoc + constructor;
+    }
+    /**
      * Returns the constructor strings for class file.
      *
      * @param attr               attribute info
@@ -649,6 +700,278 @@ public final class MethodsGenerator {
         return getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + STRING_DATA_TYPE + SPACE + TO
                 + STRING_DATA_TYPE + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
                 + EIGHT_SPACE_INDENTATION + RETURN + GOOGLE_MORE_OBJECT_METHOD_STRING + NEW_LINE;
+    }
+
+    /**
+     * Returns to string leaf for get method.
+     *
+     * @return  string leaf for get method
+     */
+    public static String getToStringLeafgetter() {
+        return NEW_LINE + NEW_LINE + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + BITSET + SPACE + GET_FILTER_LEAF
+                +  OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
+                + EIGHT_SPACE_INDENTATION + RETURN + SPACE + FILTER_LEAF + SEMI_COLAN + NEW_LINE
+                + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+    }
+
+    /**
+     * Returns to string select leaf for get method.
+     *
+     * @return select leaf string for get method
+     */
+    public static String getToStringSelectLeafgetter() {
+        return NEW_LINE + NEW_LINE + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + BITSET + SPACE + GET_SELECT_LEAF
+                +  OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
+                + EIGHT_SPACE_INDENTATION + RETURN + SPACE + SELECT_LEAF + SEMI_COLAN + NEW_LINE
+                + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+    }
+
+    /**
+     * Returns to string leaf list for get method.
+     *
+     * @return  string leaf list for get method
+     */
+    public static String getToStringLeafListgetter() {
+        return NEW_LINE + NEW_LINE + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + BITSET + SPACE + GET_FILTER_LEAF_LIST
+                +  OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
+                + EIGHT_SPACE_INDENTATION + RETURN + SPACE + FILTER_LEAF_LIST + SEMI_COLAN + NEW_LINE
+                + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+    }
+
+    /**
+     * Returns to string select leaf list for get.
+     *
+     * @return select leaf list list for get
+     */
+    public static String getToStringSelectLeafListgetter() {
+        return NEW_LINE + NEW_LINE + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + BITSET + SPACE + GET_SELECT_LEAF_LIST
+                +  OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
+                + EIGHT_SPACE_INDENTATION + RETURN + SPACE + SELECT_LEAF_LIST + SEMI_COLAN + NEW_LINE
+                + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+    }
+
+    /**
+     * Returns to string operation type for get method.
+     *
+     * @return operation type for get method
+     */
+    public static String getOperationTypegetter() {
+        return NEW_LINE + NEW_LINE + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + OPERATION_ENUM
+                + SPACE + GET_OPERATION_TYPE +  OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE
+                + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + RETURN + SPACE
+                + OP_PARAM_TYPE + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+    }
+
+    /**
+     * Returns to string operation type for set.
+     *
+     * @return operation type set method
+     */
+    public static String getOperationTypeSetter() {
+        return NEW_LINE + NEW_LINE + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + VOID + SPACE + SET_OPERATION_TYPE
+                +  OPEN_PARENTHESIS + OPERATION_ENUM + SPACE + getSmallCase(OPERATION_ENUM) + CLOSE_PARENTHESIS
+                + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + THIS + PERIOD
+                + OP_PARAM_TYPE + SPACE + EQUAL + SPACE + getSmallCase(OPERATION_ENUM) + SEMI_COLAN + NEW_LINE
+                + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE;
+    }
+
+    /**
+     * Returns string for leaf set method.
+     *
+     * @param className   class name
+     * @param curnode    current YANG node
+     * @param pluginConfig plugin configurations
+     * @return  string for leaf set method
+     */
+    public static String getSetterForLeaf(String className, YangNode curnode, YangPluginConfig pluginConfig) {
+
+        int numleaf = 1;
+        String filterMethod = "";
+        TempJavaBeanFragmentFiles tempFragmentFiles = ((JavaCodeGeneratorInfo) curnode)
+                .getTempJavaCodeFragmentFiles().getBeanTempFiles();
+        if (curnode instanceof YangLeavesHolder) {
+            YangLeavesHolder leavesHolder = (YangLeavesHolder) curnode;
+            List<YangLeaf> leaves = leavesHolder.getListOfLeaf();
+            if (leaves !=  null && !leaves.isEmpty()) {
+                for (YangLeaf leaf : leaves) {
+                    JavaAttributeInfo javaAttributeInfo = getJavaAttributeOfLeaf(tempFragmentFiles, leaf, pluginConfig);
+                    String attrQuaifiedType = getReturnType(javaAttributeInfo);
+                    String attributeName = javaAttributeInfo.getAttributeName();
+
+                    filterMethod = filterMethod + NEW_LINE + FOUR_SPACE_INDENTATION + OVERRIDE + NEW_LINE
+                            + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + className + BUILDER + SPACE
+                            + attributeName + OPEN_PARENTHESIS + attrQuaifiedType
+                            + SPACE + RECEIVED_OBJECT + attributeName + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET
+                            + NEW_LINE + EIGHT_SPACE_INDENTATION + attributeName + SPACE + EQUAL + SPACE
+                            + RECEIVED_OBJECT + attributeName + SEMI_COLAN + NEW_LINE + EIGHT_SPACE_INDENTATION
+                            + GET_FILTER_LEAF + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + PERIOD + SET_METHOD_PREFIX
+                            + OPEN_PARENTHESIS + String.valueOf(numleaf) + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE
+                            + EIGHT_SPACE_INDENTATION + RETURN + SPACE + THIS + SEMI_COLAN + NEW_LINE
+                            + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+                    numleaf++;
+                }
+            }
+        }
+        return filterMethod;
+    }
+
+    /**
+     * Returns string for leaf list set method.
+     *
+     * @param className  class name
+     * @param curnode    current YANG node
+     * @param pluginConfig  plugin configurations
+     * @return string for leaf list set method
+     */
+    public static String getSetterForLeafList(String className, YangNode curnode, YangPluginConfig pluginConfig) {
+
+        int numleaf = 1;
+        String filterMethod = "";
+        TempJavaBeanFragmentFiles tempFragmentFiles = ((JavaCodeGeneratorInfo) curnode)
+                .getTempJavaCodeFragmentFiles().getBeanTempFiles();
+        if (curnode instanceof YangLeavesHolder) {
+            YangLeavesHolder leavesHolder = (YangLeavesHolder) curnode;
+            List<YangLeafList> listOfLeafList = leavesHolder.getListOfLeafList();
+
+            if (listOfLeafList !=  null && !listOfLeafList.isEmpty()) {
+                for (YangLeafList leafList : listOfLeafList) {
+                    JavaAttributeInfo javaAttributeInfo = getJavaAttributeOfLeafList(tempFragmentFiles, leafList,
+                                                                                     pluginConfig);
+                    String attributeName = javaAttributeInfo.getAttributeName();
+                    String attrQuaifiedType = getReturnType(javaAttributeInfo);
+                    if (javaAttributeInfo.isListAttr()) {
+                        attrQuaifiedType = getListString() + attrQuaifiedType + DIAMOND_CLOSE_BRACKET;
+                    }
+                    filterMethod = filterMethod + NEW_LINE + FOUR_SPACE_INDENTATION + OVERRIDE + NEW_LINE
+                            + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + className + BUILDER + SPACE
+                            + attributeName + OPEN_PARENTHESIS + attrQuaifiedType
+                            + SPACE + RECEIVED_OBJECT + attributeName + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET
+                            + NEW_LINE + EIGHT_SPACE_INDENTATION + attributeName + SPACE + EQUAL + SPACE
+                            + RECEIVED_OBJECT + attributeName + SEMI_COLAN + NEW_LINE + EIGHT_SPACE_INDENTATION
+                            + GET_FILTER_LEAF_LIST + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + PERIOD + SET_METHOD_PREFIX
+                            + OPEN_PARENTHESIS + String.valueOf(numleaf) + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE
+                            + EIGHT_SPACE_INDENTATION + RETURN + SPACE + THIS + SEMI_COLAN + NEW_LINE
+                            + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+                    numleaf++;
+                }
+            }
+        }
+        return filterMethod;
+    }
+
+    /**
+     * Returns whether the data type is of primitive data type.
+     *
+     * @param dataType data type to be checked
+     * @return true, if data type can have primitive data type, false otherwise
+     */
+    public static boolean isPrimitiveDataType(YangDataTypes dataType) {
+        return dataType == INT8
+                || dataType == INT16
+                || dataType == INT32
+                || dataType == INT64
+                || dataType == UINT8
+                || dataType == UINT16
+                || dataType == UINT32
+                || dataType == UINT64
+                || dataType == DECIMAL64
+                || dataType == BOOLEAN;
+    }
+
+    /**
+     * Returns string for is filter content match method.
+     *
+     * @param className   class name
+     * @param curnode   current YANG node
+     * @param pluginConfig   plugin configurations
+     * @return  string for is filter content match method
+     */
+    public static String getisFilterContentMatch(String className, YangNode curnode, YangPluginConfig pluginConfig) {
+
+        int numleaf = 1;
+        String filterMethod = "";
+        TempJavaBeanFragmentFiles tempFragmentFiles = ((JavaCodeGeneratorInfo) curnode)
+                .getTempJavaCodeFragmentFiles().getBeanTempFiles();
+
+        if (curnode instanceof YangLeavesHolder) {
+            YangLeavesHolder leavesHolder = (YangLeavesHolder) curnode;
+            List<YangLeaf> leaves = leavesHolder.getListOfLeaf();
+            List<YangLeafList> listOfLeafList = leavesHolder.getListOfLeafList();
+            if (leaves !=  null || listOfLeafList != null) {
+                filterMethod = NEW_LINE + NEW_LINE + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + BOOLEAN_DATA_TYPE
+                        + SPACE + FILTER_CONTENT_MATCH + OPEN_PARENTHESIS + getCapitalCase(DEFAULT)
+                        + getCapitalCase(className) + SPACE + APP_INSTANCE + CLOSE_PARENTHESIS + SPACE
+                        + OPEN_CURLY_BRACKET + NEW_LINE;
+            }
+            if (leaves !=  null) {
+                for (YangLeaf leaf : leaves) {
+                    JavaAttributeInfo javaAttributeInfo = getJavaAttributeOfLeaf(tempFragmentFiles, leaf,
+                                                                                 pluginConfig);
+                    String attributeName = javaAttributeInfo.getAttributeName();
+
+                    String attrQuaifiedType = "";
+                    if (isPrimitiveDataType(leaf.getDataType().getDataType())) {
+                        attrQuaifiedType = APP_INSTANCE + PERIOD + attributeName + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
+                                + SPACE + NOT + EQUAL + SPACE + attributeName + OPEN_PARENTHESIS
+                                + CLOSE_PARENTHESIS;
+                    } else {
+                        attrQuaifiedType = APP_INSTANCE + PERIOD + attributeName + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
+                                + SPACE + EQUAL + EQUAL + SPACE + NULL + SPACE + OR_OPERATION + SPACE + OPEN_PARENTHESIS
+                                + NOT + OPEN_PARENTHESIS + attributeName + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
+                                + PERIOD + EQUALS_STRING + OPEN_PARENTHESIS + APP_INSTANCE + PERIOD
+                                + attributeName + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + CLOSE_PARENTHESIS
+                                + CLOSE_PARENTHESIS + CLOSE_PARENTHESIS;
+                    }
+
+                    filterMethod = filterMethod + EIGHT_SPACE_INDENTATION + IF + SPACE + OPEN_PARENTHESIS
+                            + GET_FILTER_LEAF + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + PERIOD + GET_METHOD_PREFIX
+                            + OPEN_PARENTHESIS + String.valueOf(numleaf) + CLOSE_PARENTHESIS + CLOSE_PARENTHESIS
+                            + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + TWELVE_SPACE_INDENTATION + IF + SPACE
+                            + OPEN_PARENTHESIS + attrQuaifiedType + CLOSE_PARENTHESIS + SPACE
+                            + OPEN_CURLY_BRACKET + NEW_LINE + SIXTEEN_SPACE_INDENTATION + RETURN + SPACE + FALSE
+                            + SEMI_COLAN + NEW_LINE + TWELVE_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE
+                            + EIGHT_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE;
+                    numleaf++;
+                }
+            }
+
+            if (listOfLeafList !=  null) {
+                numleaf = 1;
+                for (YangLeafList leafList : listOfLeafList) {
+                    JavaAttributeInfo javaAttributeInfo = getJavaAttributeOfLeafList(tempFragmentFiles, leafList,
+                                                                                 pluginConfig);
+                    String attributeName = javaAttributeInfo.getAttributeName();
+                    String attrQuaifiedType = "";
+                    if (isPrimitiveDataType(leafList.getDataType().getDataType())) {
+                        attrQuaifiedType = APP_INSTANCE + PERIOD + attributeName + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
+                                + SPACE + NOT + EQUAL + SPACE + attributeName + OPEN_PARENTHESIS
+                                + CLOSE_PARENTHESIS;
+                    } else {
+                        attrQuaifiedType = APP_INSTANCE + PERIOD + attributeName + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
+                                + SPACE + EQUAL + EQUAL + SPACE + NULL + OR_OPERATION + OPEN_PARENTHESIS + NOT
+                                + OPEN_PARENTHESIS + attributeName + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
+                                + PERIOD + EQUALS_STRING + OPEN_PARENTHESIS + APP_INSTANCE + PERIOD
+                                + attributeName + OPEN_PARENTHESIS + CLOSE_PARENTHESIS;
+                    }
+
+                    filterMethod = filterMethod + EIGHT_SPACE_INDENTATION + IF + SPACE + OPEN_PARENTHESIS
+                            + GET_FILTER_LEAF_LIST + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + PERIOD + GET_METHOD_PREFIX
+                            + OPEN_PARENTHESIS + String.valueOf(numleaf) + CLOSE_PARENTHESIS + CLOSE_PARENTHESIS
+                            + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + TWELVE_SPACE_INDENTATION + IF + SPACE
+                            + OPEN_PARENTHESIS + attrQuaifiedType + CLOSE_PARENTHESIS + SPACE
+                            + OPEN_CURLY_BRACKET + NEW_LINE + SIXTEEN_SPACE_INDENTATION + RETURN + SPACE + FALSE
+                            + SEMI_COLAN + NEW_LINE + TWELVE_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE
+                            + EIGHT_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE;
+                    numleaf++;
+                }
+            }
+
+            if (leaves !=  null || listOfLeafList != null) {
+                filterMethod = filterMethod + EIGHT_SPACE_INDENTATION + RETURN + SPACE + TRUE + SEMI_COLAN +
+                        NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE;
+            }
+        }
+        return filterMethod;
     }
 
     /**

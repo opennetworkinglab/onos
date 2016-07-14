@@ -32,6 +32,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.HASH_MAP;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_LANG;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_UTIL_OBJECTS_IMPORT_CLASS;
+import static org.onosproject.yangutils.utils.UtilConstants.BITSET;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_UTIL_OBJECTS_IMPORT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_REG;
@@ -206,6 +207,15 @@ public class JavaImportData {
      */
     public String getImportForToString() {
         return IMPORT + GOOGLE_MORE_OBJECT_IMPORT_PKG + PERIOD + GOOGLE_MORE_OBJECT_IMPORT_CLASS;
+    }
+
+    /**
+     * Returns import for to bitset method.
+     *
+     * @return import for to bitset method
+     */
+    public String getImportForToBitSet() {
+        return IMPORT + JAVA_UTIL_OBJECTS_IMPORT_PKG + PERIOD + BITSET + SEMI_COLAN + NEW_LINE;
     }
 
     /**

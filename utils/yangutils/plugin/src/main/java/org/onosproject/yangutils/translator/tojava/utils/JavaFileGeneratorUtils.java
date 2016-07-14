@@ -55,6 +55,8 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.OPERATION_BUILDER_CLASS_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.OPERATION_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ATTRIBUTES_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.AUGMENTE_CLASS_CONSTRUCTOR_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_FOR_TYPE_MASK;
@@ -95,6 +97,7 @@ import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.ENU
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.EVENT;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.EVENT_LISTENER;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.EVENT_SUBJECT_CLASS;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.OPERATION_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.IMPL_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.INTERFACE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.RPC_INTERFACE;
@@ -371,7 +374,14 @@ public final class JavaFileGeneratorUtils {
                 appendHeaderContents(file, pkgString, importsList);
                 write(file, genType, IMPL_CLASS, curNode, className);
                 break;
+            case OPERATION_CLASS_MASK:
+                appendHeaderContents(file, pkgString, importsList);
+                write(file, genType, OPERATION_CLASS, curNode, className);
+                break;
             case BUILDER_CLASS_MASK:
+                write(file, genType, BUILDER_CLASS, curNode, className);
+                break;
+            case OPERATION_BUILDER_CLASS_MASK:
                 write(file, genType, BUILDER_CLASS, curNode, className);
                 break;
             case BUILDER_INTERFACE_MASK:

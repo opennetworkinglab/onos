@@ -20,6 +20,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_CLASS_JAVA_DOC;
+import static org.onosproject.yangutils.utils.UtilConstants.OP_PARAM_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_INTERFACE_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_OBJECT;
 import static org.onosproject.yangutils.utils.UtilConstants.CLASS;
@@ -96,6 +97,12 @@ public final class JavaDocGen {
             }
             case BUILDER_CLASS: {
                 return generateForBuilderClass(name);
+            }
+            case OPERATION_CLASS: {
+                return generateForOpParamClass(name);
+            }
+            case OPERATION_BUILDER_CLASS: {
+                return generateForOpParamClass(name);
             }
             case INTERFACE: {
                 return generateForInterface(name);
@@ -401,6 +408,17 @@ public final class JavaDocGen {
     }
 
     /**
+     * Generates javaDocs for the op param class.
+     *
+     * @param className class name
+     * @return javaDocs
+     */
+    private static String generateForOpParamClass(String className) {
+        return NEW_LINE + JAVA_DOC_FIRST_LINE + OP_PARAM_JAVA_DOC + className + PERIOD + NEW_LINE
+                + JAVA_DOC_END_LINE;
+    }
+
+    /**
      * Generates javaDoc for the interface.
      *
      * @param interfaceName interface name
@@ -623,6 +641,16 @@ public final class JavaDocGen {
         /**
          * For event subject.
          */
-        EVENT_SUBJECT_CLASS
+        EVENT_SUBJECT_CLASS,
+
+        /**
+         * For operation.
+         */
+        OPERATION_CLASS,
+
+        /**
+         * For operation builder.
+         */
+        OPERATION_BUILDER_CLASS
     }
 }

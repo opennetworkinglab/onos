@@ -47,6 +47,11 @@ public final class UtilConstants {
     public static final String EVENT_JAVA_DOC = " * Represents event implementation of ";
 
     /**
+     * JavaDocs for op param class.
+     */
+    public static final String OP_PARAM_JAVA_DOC = " * Represents operation parameter implementation of ";
+
+    /**
      * JavaDocs for event listener.
      */
     public static final String EVENT_LISTENER_JAVA_DOC = " * Abstraction for event listener of ";
@@ -165,6 +170,21 @@ public final class UtilConstants {
      * Static attribute for default.
      */
     public static final String DEFAULT = "default";
+
+    /**
+     * Static attribute for op param class.
+     */
+    public static final String OPERATION = "OpParam";
+
+    /**
+     * Static attribute for operation type.
+     */
+    public static final String OPERATION_ENUM = "OperationType";
+
+    /**
+     * Static attribute for java code generation for sbi.
+     */
+    public static final String SBI = "sbi";
 
     /**
      * Static attribute for multiple new line.
@@ -512,6 +532,11 @@ public final class UtilConstants {
     public static final String OPEN_PARENTHESIS = "(";
 
     /**
+     * Static attribute for received syntax.
+     */
+    public static final String RECEIVED_OBJECT = "recv";
+
+    /**
      * Static attribute for switch syntax.
      */
     public static final String SWITCH = "switch";
@@ -562,9 +587,74 @@ public final class UtilConstants {
     public static final String SET_METHOD_PREFIX = "set";
 
     /**
+     * Static attribute for get filter leaf flags.
+     */
+    public static final String GET_FILTER_LEAF = "getFilterLeafFlags";
+
+    /**
+     * Static attribute for get filter leaf list flags.
+     */
+    public static final String GET_FILTER_LEAF_LIST = "getFilterLeafListFlags";
+
+    /**
+     * Static attribute for filter leaf flags.
+     */
+    public static final String FILTER_LEAF = "filterLeafFlags";
+
+    /**
+     * Static attribute for filter leaf list flags.
+     */
+    public static final String FILTER_LEAF_LIST = "filterLeafListFlags";
+
+    /**
+     * Static attribute for get select leaf flags.
+     */
+    public static final String GET_SELECT_LEAF = "getSelectLeafFlags";
+
+    /**
+     * Static attribute for get select leaf list flags.
+     */
+    public static final String GET_SELECT_LEAF_LIST = "getSelectLeafListFlags";
+
+    /**
+     * Static attribute for get operation type.
+     */
+    public static final String GET_OPERATION_TYPE = "getOpertionType";
+
+    /**
+     * Static attribute for set operation type.
+     */
+    public static final String SET_OPERATION_TYPE = "setOpertionType";
+
+    /**
+     * Static attribute for select leaf flags.
+     */
+    public static final String SELECT_LEAF = "selectLeafFlags";
+
+    /**
+     * Static attribute for select leaf list flags.
+     */
+    public static final String SELECT_LEAF_LIST = "selectLeafListFlags";
+
+    /**
+     * Static attribute for op param type.
+     */
+    public static final String OP_PARAM_TYPE = "opParamType";
+
+    /**
+     * Static attribute for is filter content match method prefix.
+     */
+    public static final String FILTER_CONTENT_MATCH = "isFilterContentMatch";
+
+    /**
      * Static attribute for four space indentation.
      */
     public static final String FOUR_SPACE_INDENTATION = "    ";
+
+    /**
+     * Static attribute for not syntax.
+     */
+    public static final String NOT = "!";
 
     /**
      * Static attribute for try syntax.
@@ -580,6 +670,31 @@ public final class UtilConstants {
      * Static attribute for super syntax.
      */
     public static final String SUPER = "super";
+
+    /**
+     * Static attribute for merge syntax.
+     */
+    public static final String MERGE = "MERGE,";
+
+    /**
+     * Static attribute for replace syntax.
+     */
+    public static final String REPLACE = "REPLACE,";
+
+    /**
+     * Static attribute for create syntax.
+     */
+    public static final String CREATE = "CREATE,";
+
+    /**
+     * Static attribute for delete syntax.
+     */
+    public static final String DELETE = "DELETE,";
+
+    /**
+     * Static attribute for remove syntax.
+     */
+    public static final String REMOVE = "REMOVE";
 
     /**
      * Static attribute for eight space indentation.
@@ -635,6 +750,11 @@ public final class UtilConstants {
      * Static attribute for abstract modifier.
      */
     public static final String ABSTRACT = "abstract";
+
+    /**
+     * Static attribute for protected modifier.
+     */
+    public static final String PROTECTED = "protected";
 
     /**
      * Void java type.
@@ -927,6 +1047,11 @@ public final class UtilConstants {
     public static final String OBJECT = "Object";
 
     /**
+     * Static attribute for app instance.
+     */
+    public static final String APP_INSTANCE = "appInstance";
+
+    /**
      * Static attribute for override annotation.
      */
     public static final String OVERRIDE = "@Override";
@@ -966,6 +1091,11 @@ public final class UtilConstants {
      * Static attribute for java utilities import package.
      */
     public static final String JAVA_UTIL_OBJECTS_IMPORT_PKG = "java.util";
+
+    /**
+     * Static attribute for bitset.
+     */
+    public static final String BITSET = "BitSet";
 
     /**
      * Static attribute for java utilities objects import class.
@@ -1109,6 +1239,11 @@ public final class UtilConstants {
      * Static attribute for EventListener.
      */
     public static final String EVENT_LISTENER = "EventListener";
+
+    /**
+     * Static attribute for or operator.
+     */
+    public static final String OR_OPERATION = "||";
 
     /**
      * Static attribute for YANG file error.

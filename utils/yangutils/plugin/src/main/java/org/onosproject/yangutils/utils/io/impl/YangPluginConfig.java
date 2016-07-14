@@ -43,6 +43,29 @@ public final class YangPluginConfig {
     }
 
     /**
+     * Java code generation is for sbi.
+     */
+    private String codeGenerateForsbi;
+
+    /**
+     * Returns the string for code generation.
+     *
+     * @return returns the string for code generation.
+     */
+    public String getCodeGenerateForsbi() {
+        return codeGenerateForsbi;
+    }
+
+    /**
+     * Sets the string sbi or nbi for code generation.
+     *
+     * @par code generation is for sbi
+     */
+    public void setCodeGenerateForsbi(String codeGenerateForsbi) {
+        this.codeGenerateForsbi = codeGenerateForsbi;
+    }
+
+    /**
      * Sets the path of the java code where it has to be generated.
      *
      * @param codeGenDir path of the directory

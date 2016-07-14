@@ -105,16 +105,17 @@ public final class JavaCodeSnippetGen {
     /**
      * Returns the textual java code for attribute definition in class.
      *
-     * @param javaAttributeTypePkg Package of the attribute type
-     * @param javaAttributeType    java attribute type
-     * @param javaAttributeName    name of the attribute
-     * @param isList               is list attribute
-     * @return the textual java code for attribute definition in class
+     * @param javaAttributeTypePkg  Package of the attribute type
+     * @param javaAttributeType     java attribute type
+     * @param javaAttributeName     name of the attribute
+     * @param isList                is list attribute
+     * @param attributeAccessType   attribute access type
+     * @return  the textual java code for attribute definition in class
      */
     public static String getJavaAttributeDefination(String javaAttributeTypePkg, String javaAttributeType,
-                                                    String javaAttributeName, boolean isList) {
+            String javaAttributeName, boolean isList, String attributeAccessType) {
 
-        String attributeDefination = PRIVATE + SPACE;
+        String attributeDefination = attributeAccessType + SPACE;
 
         if (!isList) {
             if (javaAttributeTypePkg != null) {
