@@ -397,6 +397,16 @@ public class GrpcRemoteServiceServer {
 
         @Override
         public void triggerProbe(DeviceId deviceId) {
+            try {
+                onTriggerProbe(deviceId);
+            } catch (Exception e) {
+                log.error("Exception caught handling triggerProbe({})",
+                          deviceId, e);
+                toDeviceProvider.onError(e);
+            }
+        }
+
+        private void onTriggerProbe(DeviceId deviceId) {
             log.trace("triggerProbe({})", deviceId);
             DeviceProviderMsg.Builder msgBuilder = DeviceProviderMsg.newBuilder();
             msgBuilder.setTriggerProbe(msgBuilder.getTriggerProbeBuilder()
@@ -404,11 +414,20 @@ public class GrpcRemoteServiceServer {
                                        .build());
             DeviceProviderMsg triggerProbeMsg = msgBuilder.build();
             toDeviceProvider.onNext(triggerProbeMsg);
-            // TODO Catch Exceptions and call onError()
         }
 
         @Override
         public void roleChanged(DeviceId deviceId, MastershipRole newRole) {
+            try {
+                onRoleChanged(deviceId, newRole);
+            } catch (Exception e) {
+                log.error("Exception caught handling onRoleChanged({}, {})",
+                          deviceId, newRole, e);
+                toDeviceProvider.onError(e);
+            }
+        }
+
+        private void onRoleChanged(DeviceId deviceId, MastershipRole newRole) {
             log.trace("roleChanged({}, {})", deviceId, newRole);
             DeviceProviderMsg.Builder msgBuilder = DeviceProviderMsg.newBuilder();
             msgBuilder.setRoleChanged(msgBuilder.getRoleChangedBuilder()
@@ -416,11 +435,22 @@ public class GrpcRemoteServiceServer {
                                           .setNewRole(translate(newRole))
                                           .build());
             toDeviceProvider.onNext(msgBuilder.build());
-            // TODO Catch Exceptions and call onError()
         }
 
         @Override
         public boolean isReachable(DeviceId deviceId) {
+            try {
+                return onIsReachable(deviceId);
+            } catch (Exception e) {
+                log.error("Exception caught handling onIsReachable({})",
+                          deviceId, e);
+                toDeviceProvider.onError(e);
+                return false;
+            }
+        }
+
+        private boolean onIsReachable(DeviceId deviceId) {
+
             log.trace("isReachable({})", deviceId);
             CompletableFuture<Boolean> result = new CompletableFuture<>();
             final int xid = xidPool.incrementAndGet();
@@ -450,10 +480,10 @@ public class GrpcRemoteServiceServer {
                 log.warn("isReachable({}) Timed out", deviceId, e);
             } catch (ExecutionException e) {
                 log.error("isReachable({}) Execution failed", deviceId, e);
-                // close session?
+                // close session
+                toDeviceProvider.onError(e);
             }
             return false;
-            // TODO Catch Exceptions and call onError()
         }
 
         @Override
@@ -464,8 +494,9 @@ public class GrpcRemoteServiceServer {
         @Override
         public void changePortState(DeviceId deviceId, PortNumber portNumber,
                                     boolean enable) {
-            // TODO if required
-
+            // TODO Implement if required
+            log.error("changePortState not supported yet");
+            toDeviceProvider.onError(new UnsupportedOperationException("not implemented yet"));
         }
 
     }
