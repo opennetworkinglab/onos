@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaGrouping;
 import org.onosproject.yangutils.translator.tojava.utils.JavaExtendsListHolder;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
@@ -501,8 +502,13 @@ public class TempJavaEventFragmentFiles
             throws IOException {
 
         JavaFileInfo parentInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
-        JavaFileInfo childInfo = ((JavaFileInfoContainer) curNode.getChild()).getJavaFileInfo();
+        YangNode childNode = curNode.getChild();
 
+        // Skip grouping, as it wont have the package name.
+        while (childNode instanceof YangJavaGrouping) {
+            childNode = childNode.getNextSibling();
+        }
+        JavaFileInfo childInfo = ((JavaFileInfoContainer) childNode).getJavaFileInfo();
         return getFileObject(getDirPath(parentInfo), name, JAVA_FILE_EXTENSION,
                 childInfo.getBaseCodeGenPath());
     }
