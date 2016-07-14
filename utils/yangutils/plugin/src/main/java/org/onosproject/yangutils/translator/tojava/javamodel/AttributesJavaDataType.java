@@ -34,7 +34,7 @@ import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.utils.io.impl.YangToJavaNamingConflictUtil;
 
-import static org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModelUtils.getCurNodePackage;
+import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.getCurNodePackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 import static org.onosproject.yangutils.utils.UtilConstants.BIG_INTEGER;
 import static org.onosproject.yangutils.utils.UtilConstants.BIG_DECIMAL;

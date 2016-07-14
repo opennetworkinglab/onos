@@ -206,7 +206,7 @@ public class InterJarLinkerTest {
         File folder = new File(System.getProperty("user.dir") + SLASH + FLOW_CLASSIFIER_FOLDER);
         File file = new File(System.getProperty("user.dir") + SLASH + FLOW_CLASSIFIER_MANAGER);
         assertThat(true, is(folder.exists()));
-        assertThat(false, is(file.exists()));
+        assertThat(true, is(file.exists()));
     }
 
     /**

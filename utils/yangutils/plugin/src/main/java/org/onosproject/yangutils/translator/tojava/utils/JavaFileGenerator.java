@@ -22,7 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangAugment;
+import org.onosproject.yangutils.datamodel.YangAugmentableNode;
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
@@ -63,12 +65,19 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.TO_STRING_IMPL_MASK;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getDataFromTempFileHandle;
+import static org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles.getCurNodeAsAttributeInTarget;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.addAugmentationAttribute;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getEnumsValueAttribute;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getEventEnumTypeStart;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getDataFromTempFileHandle;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.initiateJavaFileGeneration;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.addActivateMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.addDeActivateMethod;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAddAugmentInfoMethodImpl;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAugmentInfoImpl;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAugmentedNodesConstructorStart;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAugmentsDataMethodForManager;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAugmentsDataMethodForService;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getConstructorStart;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getEnumsConstructor;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getEnumsOfMethod;
@@ -77,12 +86,16 @@ import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getFromStringMethodClose;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getFromStringMethodSignature;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getGetter;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getGetterForClass;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getGetterString;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getHashCodeMethodClose;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getHashCodeMethodOpen;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getOmitNullValueString;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getOverRideString;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getSetterForClass;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getSetterString;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringMethodClose;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringMethodOpen;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getEventEnumTypeStart;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
@@ -317,15 +330,13 @@ public final class JavaFileGenerator {
     /**
      * Returns generated manager class file for current node.
      *
-     * @param file          file
-     * @param imports       imports for the file
-     * @param curNode       current YANG node
-     * @param isAttrPresent if any attribute is present or not
+     * @param file    file
+     * @param imports imports for the file
+     * @param curNode current YANG node
      * @return builder class file
      * @throws IOException when fails to write in file
      */
-    public static File generateManagerClassFile(File file, List<String> imports, YangNode curNode,
-                                                boolean isAttrPresent)
+    public static File generateManagerClassFile(File file, List<String> imports, YangNode curNode)
             throws IOException {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
@@ -341,25 +352,26 @@ public final class JavaFileGenerator {
         methods.add(addActivateMethod());
         methods.add(addDeActivateMethod());
 
-        try {
-            if (isAttrPresent) {
-                /**
-                 * Getter methods.
-                 */
-                methods.add(
-                        getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK,
-                                ((TempJavaCodeFragmentFilesContainer) curNode)
-                                        .getTempJavaCodeFragmentFiles().getServiceTempFiles(), path));
-                /**
-                 * Setter methods.
-                 */
-                methods.add(
-                        getDataFromTempFileHandle(SETTER_FOR_CLASS_MASK,
-                                ((TempJavaCodeFragmentFilesContainer) curNode)
-                                        .getTempJavaCodeFragmentFiles().getServiceTempFiles(), path)
-                                + NEW_LINE);
+        TempJavaServiceFragmentFiles tempJavaServiceFragmentFiles = ((JavaCodeGeneratorInfo) curNode)
+                .getTempJavaCodeFragmentFiles().getServiceTempFiles();
 
-            }
+        JavaAttributeInfo rootAttribute = getCurNodeAsAttributeInTarget(curNode, curNode, false,
+                tempJavaServiceFragmentFiles);
+        try {
+            /**
+             * Getter methods.
+             */
+            methods.add(getOverRideString() +
+                    getGetterForClass(rootAttribute, GENERATE_SERVICE_AND_MANAGER) + NEW_LINE);
+            /**
+             * Setter methods.
+             */
+            methods.add(getOverRideString() +
+                    getSetterForClass(rootAttribute, className, GENERATE_SERVICE_AND_MANAGER)
+                    + NEW_LINE);
+
+            methods.add(getAugmentsDataMethodForManager(curNode) + NEW_LINE);
+
             if (((JavaCodeGeneratorInfo) curNode).getTempJavaCodeFragmentFiles().getServiceTempFiles() != null) {
                 JavaCodeGeneratorInfo javaGeninfo = (JavaCodeGeneratorInfo) curNode;
                 /**
@@ -410,7 +422,9 @@ public final class JavaFileGenerator {
         if (curNode instanceof YangAugment) {
             isAugmentNode = true;
         }
-
+        if (curNode instanceof YangAugmentableNode) {
+            insertDataIntoJavaFile(file, addAugmentationAttribute());
+        }
         if (isAttrPresent) {
             /**
              * Add attribute strings.
@@ -481,6 +495,11 @@ public final class JavaFileGenerator {
         } catch (IOException e) {
             throw new IOException("No data found in temporary java code fragment files for " + className
                     + " while impl class file generation");
+        }
+
+        if (curNode instanceof YangAugmentableNode) {
+            methods.add(getAddAugmentInfoMethodImpl());
+            methods.add(getAugmentInfoImpl());
         }
 
         /**
@@ -796,38 +815,38 @@ public final class JavaFileGenerator {
      * @param file               generated file
      * @param curNode            current YANG node
      * @param imports            imports for file
-     * @param isAttributePresent is attribute present
      * @return rpc class file
      * @throws IOException when fails to generate class file
      */
-    public static File generateServiceInterfaceFile(File file, YangNode curNode, List<String> imports,
-                                                    boolean isAttributePresent)
+    public static File generateServiceInterfaceFile(File file, YangNode curNode, List<String> imports)
             throws IOException {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
+        TempJavaServiceFragmentFiles tempJavaServiceFragmentFiles = ((JavaCodeGeneratorInfo) curNode)
+                .getTempJavaCodeFragmentFiles().getServiceTempFiles();
         String className = getCapitalCase(javaFileInfo.getJavaName()) + SERVICE_METHOD_STRING;
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
         initiateJavaFileGeneration(file, GENERATE_SERVICE_AND_MANAGER, imports, curNode, className);
 
         List<String> methods = new ArrayList<>();
+        JavaAttributeInfo rootAttribute = getCurNodeAsAttributeInTarget(curNode, curNode, false,
+                tempJavaServiceFragmentFiles);
 
         try {
-            if (isAttributePresent) {
+            /**
+             * Getter methods.
+             */
+            methods.add(getGetterString(rootAttribute, GENERATE_SERVICE_AND_MANAGER,
+                    javaFileInfo.getPluginConfig()) + NEW_LINE);
+            /**
+             * Setter methods.
+             */
+            methods.add(getSetterString(rootAttribute, className, GENERATE_SERVICE_AND_MANAGER,
+                    javaFileInfo.getPluginConfig()) + NEW_LINE);
 
-                /**
-                 * Getter methods.
-                 */
-                methods.add(getDataFromTempFileHandle(GETTER_FOR_INTERFACE_MASK,
-                        ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
-                                .getServiceTempFiles(), path));
-                /**
-                 * Setter methods.
-                 */
-                methods.add(getDataFromTempFileHandle(SETTER_FOR_INTERFACE_MASK,
-                        ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
-                                .getServiceTempFiles(), path));
-            }
+            methods.add(getAugmentsDataMethodForService(curNode) + NEW_LINE);
+
             if (((JavaCodeGeneratorInfo) curNode).getTempJavaCodeFragmentFiles().getServiceTempFiles() != null) {
                 JavaCodeGeneratorInfo javaGeninfo = (JavaCodeGeneratorInfo) curNode;
                 /**

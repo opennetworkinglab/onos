@@ -2,10 +2,7 @@ submodule acme-types {
         
     belongs-to "test" {
          prefix "test";
-    }           
-    import test1{  
-       prefix test1;
-    }  
+    }
     organization "";  
     contact "";  
          

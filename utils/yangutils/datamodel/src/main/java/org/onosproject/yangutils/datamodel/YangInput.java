@@ -144,7 +144,6 @@ public class YangInput
         listOfLeaf = leafsList;
     }
 
-
     @Override
     public void addLeaf(YangLeaf leaf) {
         getListOfLeaf().add(leaf);

@@ -19,14 +19,14 @@ module test {
     }
 
     augment /test2:cont1/test2:cont2/cont2 {
-       leaf a {
+       leaf leaf {
           type int32;
        }
        uses group1; 
     }
 
-    augment /test2:cont1/test2:cont2/cont2/group1/cont1/cont2 {
-          leaf a {
+    augment /test2:cont1/test2:cont2/cont2/cont1/cont2 {
+          leaf leaf1 {
           type int32;
        }
     } 

@@ -1,0 +1,37 @@
+submodule test4 {  
+
+    belongs-to test {
+         prefix test;
+    } 
+      
+    include test2;
+    organization "";  
+    contact "";  
+       
+    description   
+        "Defines basic service types for L3VPN service.";  
+       
+    revision "2015-12-16" {  
+        reference "";  
+    }  
+
+    grouping group1 {
+        container cont3 {
+           leaf leaf3 {
+              type int32;
+           }
+           container cont4 {
+                 leaf leaf4 {
+                    type int32;
+                 }
+            }
+        }
+    }
+
+    augment /ethernet/cont11 {
+       leaf leaf11 {
+             type int32;
+       }
+   }
+    
+}

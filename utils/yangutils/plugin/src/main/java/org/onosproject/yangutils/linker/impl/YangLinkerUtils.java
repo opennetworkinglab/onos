@@ -21,6 +21,7 @@ import java.util.List;
 import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangAugmentableNode;
 import org.onosproject.yangutils.datamodel.YangAugmentedInfo;
+import org.onosproject.yangutils.datamodel.YangChoice;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangLeavesHolder;
@@ -36,8 +37,7 @@ public final class YangLinkerUtils {
     }
 
     /**
-     * Detects collision between target nodes leaf/leaf-list or child node with
-     * augmented leaf/leaf-list or child node.
+     * Detects collision between target nodes leaf/leaf-list or child node with augmented leaf/leaf-list or child node.
      *
      * @param targetNode target node
      * @param augment    augment node
@@ -46,57 +46,66 @@ public final class YangLinkerUtils {
         YangNode targetNodesChild = targetNode.getChild();
         YangNode augmentsChild = augment.getChild();
         YangLeavesHolder augmentsLeavesHolder = augment;
-        YangLeavesHolder targetNodesLeavesHolder = (YangLeavesHolder) targetNode;
+        if (targetNode instanceof YangChoice) {
+            if (augmentsLeavesHolder.getListOfLeaf() != null
+                    || augmentsLeavesHolder.getListOfLeafList() != null) {
+                throw new LinkerException("target node " + targetNode.getName()
+                        + "is a instance of choice. it can " +
+                        "only be augmented with leaf using a case node.");
+            }
+        } else {
+            YangLeavesHolder targetNodesLeavesHolder = (YangLeavesHolder) targetNode;
 
-        YangNode parent = targetNode;
-        if (targetNode instanceof YangAugment) {
-            parent = targetNode.getParent();
-        } else {
-            while (parent.getParent() != null) {
-                parent = parent.getParent();
-            }
-        }
-        if (augmentsLeavesHolder.getListOfLeaf() != null && augmentsLeavesHolder.getListOfLeaf().size() != 0
-                && targetNodesLeavesHolder.getListOfLeaf() != null) {
-            for (YangLeaf leaf : augmentsLeavesHolder.getListOfLeaf()) {
-                for (YangLeaf targetLeaf : targetNodesLeavesHolder.getListOfLeaf()) {
-                    if (targetLeaf.getName().equals(leaf.getName())) {
-                        throw new LinkerException("target node " + targetNode.getName()
-                                + " contains augmented leaf " + leaf.getName() + " in module "
-                                + parent.getName());
-                    }
+            YangNode parent = targetNode;
+            if (targetNode instanceof YangAugment) {
+                parent = targetNode.getParent();
+            } else {
+                while (parent.getParent() != null) {
+                    parent = parent.getParent();
                 }
             }
-        } else if (augmentsLeavesHolder.getListOfLeafList() != null
-                && augmentsLeavesHolder.getListOfLeafList().size() != 0
-                && targetNodesLeavesHolder.getListOfLeafList() != null) {
-            for (YangLeafList leafList : augmentsLeavesHolder.getListOfLeafList()) {
-                for (YangLeafList targetLeafList : targetNodesLeavesHolder.getListOfLeafList()) {
-                    if (targetLeafList.getName().equals(leafList.getName())) {
-                        throw new LinkerException("target node " + targetNode.getName()
-                                + " contains augmented leaf-list" + leafList.getName() + " in module "
-                                + parent.getName());
+            if (augmentsLeavesHolder.getListOfLeaf() != null && augmentsLeavesHolder.getListOfLeaf().size() != 0
+                    && targetNodesLeavesHolder.getListOfLeaf() != null) {
+                for (YangLeaf leaf : augmentsLeavesHolder.getListOfLeaf()) {
+                    for (YangLeaf targetLeaf : targetNodesLeavesHolder.getListOfLeaf()) {
+                        if (targetLeaf.getName().equals(leaf.getName())) {
+                            throw new LinkerException("target node " + targetNode.getName()
+                                    + " contains augmented leaf " + leaf.getName() + " in module "
+                                    + parent.getName());
+                        }
                     }
                 }
-            }
-        } else {
-            while (augmentsChild != null) {
-                while (targetNodesChild != null) {
-                    if (targetNodesChild.getName().equals(augmentsChild.getName())) {
-                        throw new LinkerException("target node " + targetNode.getName()
-                                + " contains augmented child node" + augmentsChild.getName() + " in module "
-                                + parent.getName());
+            } else if (augmentsLeavesHolder.getListOfLeafList() != null
+                    && augmentsLeavesHolder.getListOfLeafList().size() != 0
+                    && targetNodesLeavesHolder.getListOfLeafList() != null) {
+                for (YangLeafList leafList : augmentsLeavesHolder.getListOfLeafList()) {
+                    for (YangLeafList targetLeafList : targetNodesLeavesHolder.getListOfLeafList()) {
+                        if (targetLeafList.getName().equals(leafList.getName())) {
+                            throw new LinkerException("target node " + targetNode.getName()
+                                    + " contains augmented leaf-list" + leafList.getName() + " in module "
+                                    + parent.getName());
+                        }
                     }
-                    targetNodesChild = targetNodesChild.getNextSibling();
                 }
-                augmentsChild = augmentsChild.getNextSibling();
+            } else {
+                while (augmentsChild != null) {
+                    while (targetNodesChild != null) {
+                        if (targetNodesChild.getName().equals(augmentsChild.getName())) {
+                            throw new LinkerException("target node " + targetNode.getName()
+                                    + " contains augmented child node" + augmentsChild.getName() + " in module "
+                                    + parent.getName());
+                        }
+                        targetNodesChild = targetNodesChild.getNextSibling();
+                    }
+                    augmentsChild = augmentsChild.getNextSibling();
+                }
             }
         }
     }
 
     /**
-     * Detects collision between target nodes and its all leaf/leaf-list or child node with
-     * augmented leaf/leaf-list or child node.
+     * Detects collision between target nodes and its all leaf/leaf-list or child node with augmented leaf/leaf-list or
+     * child node.
      *
      * @param targetNode target node
      * @param augment    augment node

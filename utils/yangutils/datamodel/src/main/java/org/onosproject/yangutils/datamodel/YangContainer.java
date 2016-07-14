@@ -406,7 +406,7 @@ public class YangContainer
      * Sets the config's value to all leaf if leaf's config statement is not
      * specified.
      *
-     * @param leaves list of leaf attributes of container
+     * @param leaves    list of leaf attributes of container
      * @param leafLists list of leaf-list attributes of container
      */
     private void setDefaultConfigValueToChild(List<YangLeaf> leaves, List<YangLeafList> leafLists) {
@@ -439,7 +439,7 @@ public class YangContainer
     /**
      * Validates config statement of container.
      *
-     * @param leaves list of leaf attributes of container
+     * @param leaves    list of leaf attributes of container
      * @param leafLists list of leaf-list attributes of container
      * @throws DataModelException a violation of data model rules
      */

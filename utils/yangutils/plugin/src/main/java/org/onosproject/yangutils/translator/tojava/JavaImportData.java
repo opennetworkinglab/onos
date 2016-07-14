@@ -21,11 +21,14 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import static org.onosproject.yangutils.utils.UtilConstants.ABSTRACT_EVENT;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_INFO_CLASS_IMPORT_CLASS;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_INFO_CLASS_IMPORT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.COLLECTION_IMPORTS;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.EVENT_LISTENER;
 import static org.onosproject.yangutils.utils.UtilConstants.GOOGLE_MORE_OBJECT_IMPORT_CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.GOOGLE_MORE_OBJECT_IMPORT_PKG;
+import static org.onosproject.yangutils.utils.UtilConstants.HASH_MAP;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_LANG;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_UTIL_OBJECTS_IMPORT_CLASS;
@@ -33,6 +36,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.JAVA_UTIL_OBJECTS_IM
 import static org.onosproject.yangutils.utils.UtilConstants.LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_REG;
 import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_SERVICE;
+import static org.onosproject.yangutils.utils.UtilConstants.MAP;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.ONOS_EVENT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
@@ -247,5 +251,32 @@ public class JavaImportData {
      */
     public String getEventListenerImport() {
         return IMPORT + ONOS_EVENT_PKG + PERIOD + EVENT_LISTENER + SEMI_COLAN + NEW_LINE;
+    }
+
+    /**
+     * Returns import string for map class.
+     *
+     * @return import string for map class
+     */
+    public String getMapImport() {
+        return IMPORT + COLLECTION_IMPORTS + PERIOD + MAP + SEMI_COLAN + NEW_LINE;
+    }
+
+    /**
+     * Returns import string for hash map class.
+     *
+     * @return import string for hash map class
+     */
+    public String getHashMapImport() {
+        return IMPORT + COLLECTION_IMPORTS + PERIOD + HASH_MAP + SEMI_COLAN + NEW_LINE;
+    }
+
+    /**
+     * Returns import string for hash map class.
+     *
+     * @return import string for hash map class
+     */
+    public String getYangAugmentedInfoImport() {
+        return IMPORT + YANG_AUGMENTED_INFO_CLASS_IMPORT_PKG + PERIOD + YANG_AUGMENTED_INFO_CLASS_IMPORT_CLASS;
     }
 }

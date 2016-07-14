@@ -67,7 +67,7 @@ public final class YangIoUtilsTest {
         addPackageInfo(dirPath, CHECK1, CREATE_PATH, false, getStubPluginConfig());
         File filePath = new File(dirPath + File.separator + PKG_INFO);
         assertThat(filePath.isFile(), is(true));
-        FileUtils.deleteDirectory(dirPath);
+        FileUtils.deleteDirectory(new File(BASE_DIR));
     }
 
     /**
@@ -83,7 +83,7 @@ public final class YangIoUtilsTest {
         addPackageInfo(dirPath, CHECK1, PATH + CREATE_PATH, false, getStubPluginConfig());
         File filePath = new File(dirPath + File.separator + PKG_INFO);
         assertThat(filePath.isFile(), is(true));
-        FileUtils.deleteDirectory(dirPath);
+        FileUtils.deleteDirectory(new File(BASE_DIR));
     }
 
     /**
@@ -99,7 +99,7 @@ public final class YangIoUtilsTest {
         addPackageInfo(dirPath, CHECK1, PATH + CREATE_PATH, true, getStubPluginConfig());
         File filePath = new File(dirPath + File.separator + PKG_INFO);
         assertThat(filePath.isFile(), is(true));
-        FileUtils.deleteDirectory(dirPath);
+        FileUtils.deleteDirectory(new File(BASE_DIR));
     }
 
     /**
@@ -117,6 +117,7 @@ public final class YangIoUtilsTest {
         File filePath1 = new File(dirPath + File.separator + PKG_INFO);
         assertThat(filePath1.isFile(), is(false));
         FileUtils.deleteDirectory(dirPath);
+        FileUtils.deleteDirectory(new File(BASE_DIR));
     }
 
     /**
@@ -180,7 +181,7 @@ public final class YangIoUtilsTest {
 
         File dirPath = createDirectories(CREATE_PATH);
         assertThat(dirPath.isDirectory(), is(true));
-        FileUtils.deleteDirectory(dirPath);
+        FileUtils.deleteDirectory(new File(BASE_DIR));
     }
 
     /**

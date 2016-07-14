@@ -26,15 +26,18 @@ import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.JavaImportData;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
+import org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles;
 
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getTempJavaFragment;
 
 /**
  * Represent the extends list for generated java classes. It holds the class details which needs
  * to be extended by the generated java code.
  */
 public class JavaExtendsListHolder {
+
+    private Map<JavaQualifiedTypeInfo, Boolean> extendedClassStore;
+    private List<JavaQualifiedTypeInfo> extendsList;
 
     /**
      * Creates an instance of JavaExtendsListHolder.
@@ -43,9 +46,6 @@ public class JavaExtendsListHolder {
         setExtendedClassStore(new HashMap<>());
         setExtendsList(new ArrayList<>());
     }
-
-    private Map<JavaQualifiedTypeInfo, Boolean> extendedClassStore;
-    private List<JavaQualifiedTypeInfo> extendsList;
 
     /**
      * Returns extends list.
@@ -68,13 +68,15 @@ public class JavaExtendsListHolder {
     /**
      * Adds to the extends list.
      *
-     * @param info java file info
-     * @param node YANG node
+     * @param info                  java file info
+     * @param node                  YANG node
+     * @param tempJavaFragmentFiles temp java fragment files
      */
-    public void addToExtendsList(JavaQualifiedTypeInfo info, YangNode node) {
+    public void addToExtendsList(JavaQualifiedTypeInfo info, YangNode node,
+                                 TempJavaFragmentFiles tempJavaFragmentFiles) {
         JavaFileInfo fileInfo = ((JavaFileInfoContainer) node).getJavaFileInfo();
 
-        JavaImportData importData = getTempJavaFragment(node).getJavaImportData();
+        JavaImportData importData = tempJavaFragmentFiles.getJavaImportData();
         boolean qualified = importData.addImportInfo(info,
                 getCapitalCase(fileInfo.getJavaName()), fileInfo.getPackage());
 

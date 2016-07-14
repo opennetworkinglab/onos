@@ -19,14 +19,14 @@ package org.onosproject.yangutils.translator.tojava.utils;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
-import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
-import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
-import org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles;
+import org.onosproject.yangutils.translator.tojava.TempJavaServiceFragmentFiles;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getEnumJavaAttribute;
 import static org.onosproject.yangutils.utils.UtilConstants.ACTIVATE_ANNOTATION_IMPORT;
+import static org.onosproject.yangutils.utils.UtilConstants.CLASS_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
@@ -38,6 +38,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_OPEN_BRACKET
 import static org.onosproject.yangutils.utils.UtilConstants.ENUM;
 import static org.onosproject.yangutils.utils.UtilConstants.EQUAL;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.HASH_MAP;
 import static org.onosproject.yangutils.utils.UtilConstants.IMMEDIATE;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.INT;
@@ -45,18 +46,22 @@ import static org.onosproject.yangutils.utils.UtilConstants.LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.LOGGER_FACTORY_IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.LOGGER_IMPORT;
+import static org.onosproject.yangutils.utils.UtilConstants.MAP;
+import static org.onosproject.yangutils.utils.UtilConstants.NEW;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.PRIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
+import static org.onosproject.yangutils.utils.UtilConstants.QUESTION_MARK;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SERVICE_ANNOTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.SERVICE_ANNOTATION_IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.UtilConstants.TRUE;
 import static org.onosproject.yangutils.utils.UtilConstants.TYPE;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.ENUM_ATTRIBUTE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getSmallCase;
@@ -221,11 +226,13 @@ public final class JavaCodeSnippetGen {
     public static void addListenersImport(YangNode curNode, List<String> imports, boolean operation,
                                           String classInfo) {
         String thisImport = "";
+        TempJavaServiceFragmentFiles tempJavaServiceFragmentFiles = ((JavaCodeGeneratorInfo) curNode)
+                .getTempJavaCodeFragmentFiles().getServiceTempFiles();
         if (classInfo.equals(LISTENER_SERVICE)) {
-            thisImport = getTempJavaFragment(curNode).getJavaImportData().getListenerServiceImport();
+            thisImport = tempJavaServiceFragmentFiles.getJavaImportData().getListenerServiceImport();
             performOperationOnImports(imports, thisImport, operation);
         } else {
-            thisImport = getTempJavaFragment(curNode).getJavaImportData().getListenerRegistryImport();
+            thisImport = tempJavaServiceFragmentFiles.getJavaImportData().getListenerRegistryImport();
             performOperationOnImports(imports, thisImport, operation);
         }
     }
@@ -250,25 +257,6 @@ public final class JavaCodeSnippetGen {
     }
 
     /**
-     * Returns temp java fragment.
-     *
-     * @param curNode current YANG node
-     * @return temp java fragments
-     */
-    public static TempJavaFragmentFiles getTempJavaFragment(YangNode curNode) {
-        TempJavaCodeFragmentFiles container = ((TempJavaCodeFragmentFilesContainer) curNode)
-                .getTempJavaCodeFragmentFiles();
-        if (container.getBeanTempFiles() != null) {
-            return container.getBeanTempFiles();
-        }
-        if (container.getServiceTempFiles() != null) {
-            return container.getServiceTempFiles();
-        }
-
-        return null;
-    }
-
-    /**
      * Returns integer attribute for enum's class to get the values.
      *
      * @param className enum's class name
@@ -285,7 +273,20 @@ public final class JavaCodeSnippetGen {
      * @return component string
      */
     public static String addComponentString() {
-        return NEW_LINE + COMPONENT_ANNOTATION + SPACE + OPEN_PARENTHESIS + IMMEDIATE + SPACE
+        return NEW_LINE + COMPONENT_ANNOTATION + OPEN_PARENTHESIS + IMMEDIATE + SPACE
                 + EQUAL + SPACE + TRUE + CLOSE_PARENTHESIS + NEW_LINE + SERVICE_ANNOTATION;
+    }
+
+    /**
+     * Returns attribute for augmentation.
+     *
+     * @return attribute for augmentation
+     */
+    public static String addAugmentationAttribute() {
+        return NEW_LINE + FOUR_SPACE_INDENTATION + PRIVATE + SPACE + MAP + DIAMOND_OPEN_BRACKET + CLASS_STRING
+                + DIAMOND_OPEN_BRACKET + QUESTION_MARK + DIAMOND_CLOSE_BRACKET + COMMA + SPACE + YANG_AUGMENTED_INFO
+                + DIAMOND_CLOSE_BRACKET + SPACE + getSmallCase(YANG_AUGMENTED_INFO) + MAP + SPACE + EQUAL + SPACE +
+                NEW + SPACE + HASH_MAP + DIAMOND_OPEN_BRACKET + DIAMOND_CLOSE_BRACKET + OPEN_PARENTHESIS
+                + CLOSE_PARENTHESIS + SEMI_COLAN;
     }
 }

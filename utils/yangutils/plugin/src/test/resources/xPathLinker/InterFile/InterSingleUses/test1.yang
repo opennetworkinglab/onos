@@ -21,7 +21,7 @@ submodule test1 {
     grouping group1 {
         container cont1 {
            container cont2 {
-               leaf a {
+               leaf leaf2 {
                   type string;
                }
            }
@@ -29,7 +29,7 @@ submodule test1 {
     }
 
     augment /test2:cont1/test2:cont2 {
-       leaf a {
+       leaf leaf3 {
           type int32;
        }
        container cont2 {

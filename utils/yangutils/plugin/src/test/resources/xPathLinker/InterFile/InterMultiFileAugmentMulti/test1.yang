@@ -29,7 +29,7 @@ module test1 {
              type int32;
           }
           container cont2 {
-             leaf leaf1 {
+             leaf leaf3 {
                 type int32;
              }
           }
@@ -37,12 +37,12 @@ module test1 {
     }
    
     augment /test2:cont1/test2:cont2/test2:cont3 {
-       leaf a {
+       leaf leaf2 {
           type int32;
        }
 
        container cont2 {
-             leaf leaf1 {
+             leaf leaf4 {
                 type int32;
              }
         }

@@ -39,7 +39,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.getParent
 import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getAttributeInfoForTheData;
 import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getQualifiedTypeInfoOfCurNode;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
-import static org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModelUtils.updatePackageInfo;
+import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.updatePackageInfo;
 import static org.onosproject.yangutils.utils.UtilConstants.ACTIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.COMPONENT;
 import static org.onosproject.yangutils.utils.UtilConstants.DEACTIVATE;

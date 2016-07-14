@@ -30,7 +30,8 @@ import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
-import static org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModelUtils.generateCodeOfAugmentableNode;
+import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.generateCodeOfAugmentableNode;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCamelCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 
 /**
@@ -154,10 +155,11 @@ public class YangJavaAugment
      */
     public String getAugmentClassName() {
         YangNodeIdentifier nodeId = getTargetNode().get(getTargetNode().size() - 1).getNodeIdentifier();
+        String name = getCapitalCase(getCamelCase(nodeId.getName(), null));
         if (nodeId.getPrefix() != null) {
-            return AUGMENTED + getCapitalCase(nodeId.getPrefix()) + getCapitalCase(nodeId.getName());
+            return AUGMENTED + getCapitalCase(nodeId.getPrefix()) + name;
         } else {
-            return AUGMENTED + getCapitalCase(nodeId.getName());
+            return AUGMENTED + name;
         }
     }
 
@@ -173,7 +175,7 @@ public class YangJavaAugment
     /**
      * Sets extended class info.
      *
-     * @param augmentedInfo  extended class info
+     * @param augmentedInfo extended class info
      */
     private void setExtendedClassInfo(List<JavaQualifiedTypeInfo> augmentedInfo) {
         extendedClassInfo = augmentedInfo;

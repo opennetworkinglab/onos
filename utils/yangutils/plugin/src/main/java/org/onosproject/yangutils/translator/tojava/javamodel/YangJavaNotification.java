@@ -28,12 +28,13 @@ import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
+import org.onosproject.yangutils.translator.tojava.TempJavaServiceFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.JavaExtendsListHolder;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
-import static org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModelUtils.generateCodeOfAugmentableNode;
+import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.generateCodeOfAugmentableNode;
 import static org.onosproject.yangutils.utils.UtilConstants.EVENT_LISTENER_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.EVENT_STRING;
 
@@ -143,22 +144,23 @@ public class YangJavaNotification
     /*Adds current notification info to the extends list so its parents service*/
     private void addNotificationToExtendsList() {
         YangNode parent = getParent();
-        JavaExtendsListHolder holder = ((TempJavaCodeFragmentFilesContainer) parent)
+        TempJavaServiceFragmentFiles tempJavaServiceFragmentFiles = ((TempJavaCodeFragmentFilesContainer) parent)
                 .getTempJavaCodeFragmentFiles()
-                .getServiceTempFiles().getJavaExtendsListHolder();
+                .getServiceTempFiles();
+        JavaExtendsListHolder holder = tempJavaServiceFragmentFiles.getJavaExtendsListHolder();
         JavaQualifiedTypeInfo event = new JavaQualifiedTypeInfo();
 
         String parentInfo = getCapitalCase(((JavaFileInfoContainer) parent)
                 .getJavaFileInfo().getJavaName());
         event.setClassInfo(parentInfo + EVENT_STRING);
         event.setPkgInfo(getJavaFileInfo().getPackage());
-        holder.addToExtendsList(event, parent);
+        holder.addToExtendsList(event, parent, tempJavaServiceFragmentFiles);
 
         JavaQualifiedTypeInfo eventListener = new JavaQualifiedTypeInfo();
 
         eventListener.setClassInfo(parentInfo + EVENT_LISTENER_STRING);
         eventListener.setPkgInfo(getJavaFileInfo().getPackage());
-        holder.addToExtendsList(eventListener, parent);
+        holder.addToExtendsList(eventListener, parent, tempJavaServiceFragmentFiles);
 
     }
 

@@ -349,6 +349,7 @@ public final class DataModelUtils {
      * type info needs to be updated to the cloned new type node.
      *
      * @param leavesHolder cloned leaves holder, for whom the leaves reference needs to be updated
+     * @throws DataModelException when fails to do data model operations
      */
     public static void updateClonedLeavesUnionEnumRef(YangLeavesHolder leavesHolder) throws DataModelException {
         List<YangLeaf> currentListOfLeaves = leavesHolder.getListOfLeaf();

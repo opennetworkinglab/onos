@@ -189,8 +189,6 @@ public class TempJavaCodeFragmentFiles {
         if (fileType == GENERATE_ENUM_CLASS) {
             getEnumerationTempFiles().generateJavaFile(GENERATE_ENUM_CLASS, curNode);
         }
-
-        freeTemporaryResources(false);
     }
 
     /**

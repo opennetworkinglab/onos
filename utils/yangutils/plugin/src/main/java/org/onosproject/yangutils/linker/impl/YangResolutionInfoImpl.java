@@ -32,9 +32,9 @@ import org.onosproject.yangutils.datamodel.YangEntityToResolveInfo;
 import org.onosproject.yangutils.datamodel.YangFeature;
 import org.onosproject.yangutils.datamodel.YangFeatureHolder;
 import org.onosproject.yangutils.datamodel.YangGrouping;
-import org.onosproject.yangutils.datamodel.YangIfFeature;
 import org.onosproject.yangutils.datamodel.YangIdentity;
 import org.onosproject.yangutils.datamodel.YangIdentityRef;
+import org.onosproject.yangutils.datamodel.YangIfFeature;
 import org.onosproject.yangutils.datamodel.YangImport;
 import org.onosproject.yangutils.datamodel.YangInclude;
 import org.onosproject.yangutils.datamodel.YangInput;
@@ -73,16 +73,16 @@ import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.UNRESOL
 import static org.onosproject.yangutils.linker.YangLinkingPhase.INTER_FILE;
 import static org.onosproject.yangutils.linker.YangLinkingPhase.INTRA_FILE;
 import static org.onosproject.yangutils.linker.impl.YangLinkerUtils.detectCollisionForAugmentedNode;
+import static org.onosproject.yangutils.utils.UtilConstants.BASE_LINKER_ERROR;
 import static org.onosproject.yangutils.utils.UtilConstants.FEATURE_LINKER_ERROR;
 import static org.onosproject.yangutils.utils.UtilConstants.GROUPING_LINKER_ERROR;
+import static org.onosproject.yangutils.utils.UtilConstants.IDENTITYREF;
+import static org.onosproject.yangutils.utils.UtilConstants.IDENTITYREF_LINKER_ERROR;
 import static org.onosproject.yangutils.utils.UtilConstants.INPUT;
 import static org.onosproject.yangutils.utils.UtilConstants.LEAFREF;
-import static org.onosproject.yangutils.utils.UtilConstants.IDENTITYREF;
 import static org.onosproject.yangutils.utils.UtilConstants.LEAFREF_LINKER_ERROR;
 import static org.onosproject.yangutils.utils.UtilConstants.OUTPUT;
 import static org.onosproject.yangutils.utils.UtilConstants.TYPEDEF_LINKER_ERROR;
-import static org.onosproject.yangutils.utils.UtilConstants.IDENTITYREF_LINKER_ERROR;
-import static org.onosproject.yangutils.utils.UtilConstants.BASE_LINKER_ERROR;
 
 /**
  * Represents implementation of resolution object which will be resolved by
@@ -128,7 +128,6 @@ public class YangResolutionInfoImpl<T>
      */
     @SuppressWarnings("unused")
     private YangResolutionInfoImpl() {
-
     }
 
     /**
@@ -153,7 +152,6 @@ public class YangResolutionInfoImpl<T>
             throws DataModelException {
 
         setCurReferenceResolver(dataModelRootNode);
-
         /**
          * Current node to resolve, it can be a YANG type, YANG uses or YANG if-feature or
          * YANG leafref or YANG base or YANG identityref.
@@ -173,7 +171,6 @@ public class YangResolutionInfoImpl<T>
             throw new DataModelException("Data Model Exception: Entity to resolved is other than " +
                     "type/uses/if-feature/leafref/base/identityref");
         }
-
         // Push the initial entity to resolve in stack.
         addInPartialResolvedStack(getEntityToResolveInfo());
 
@@ -191,7 +188,6 @@ public class YangResolutionInfoImpl<T>
             throws DataModelException {
 
         while (getPartialResolvedStack().size() != 0) {
-
             /**
              * Current node to resolve, it can be a YANG type or YANG uses or
              * YANG if-feature or YANG leafref or YANG base or YANG identityref.
@@ -1479,6 +1475,7 @@ public class YangResolutionInfoImpl<T>
                     detectCollisionForAugmentedNode(targetNode, augment);
                     ((YangAugmentableNode) targetNode).addAugmentation(augment);
                     augment.setAugmentedNode(targetNode);
+                    augment.setResolveNodeInPath(xPathLinker.getResolvedNodes());
                     Resolvable resolvable = (Resolvable) entityToResolve;
                     resolvable.setResolvableStatus(RESOLVED);
                 } else {

@@ -21,7 +21,7 @@ module test {
     }  
 
      augment /test2:cont1/test2:cont2/test2:cont3/test1:cont2 {
-       leaf a {
+       leaf leaf8 {
           type int32;
        }
      }

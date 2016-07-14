@@ -158,7 +158,6 @@ public class YangOutput
         this.listOfLeafList = listOfLeafList;
     }
 
-
     @Override
     public void addLeafList(YangLeafList leafList) {
         getListOfLeafList().add(leafList);

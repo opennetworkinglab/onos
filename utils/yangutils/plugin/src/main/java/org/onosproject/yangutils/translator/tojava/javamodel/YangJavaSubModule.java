@@ -34,10 +34,11 @@ import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_LISTENER_INTERFACE;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_SUBJECT_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
-import static org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModelUtils.generateCodeOfRootNode;
-import static org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModelUtils.isManagerCodeGenRequired;
-import static org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModelUtils.isGenerationOfCodeReq;
+import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.generateCodeOfRootNode;
+import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.isManagerCodeGenRequired;
+import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.isGenerationOfCodeReq;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.searchAndDeleteTempDir;
 
@@ -72,7 +73,7 @@ public class YangJavaSubModule
     public YangJavaSubModule() {
         super();
         setJavaFileInfo(new JavaFileInfo());
-        int gentype = GENERATE_SERVICE_AND_MANAGER;
+        int gentype = GENERATE_SERVICE_AND_MANAGER | GENERATE_INTERFACE_WITH_BUILDER;
         if (isNotificationChildNodePresent(this)) {
             gentype = GENERATE_SERVICE_AND_MANAGER | GENERATE_EVENT_SUBJECT_CLASS | GENERATE_EVENT_CLASS
                     | GENERATE_EVENT_LISTENER_INTERFACE;
@@ -170,6 +171,8 @@ public class YangJavaSubModule
          */
         try {
             if (isManagerCodeGenRequired(this) && isGenerationOfCodeReq(getJavaFileInfo())) {
+
+                getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
                 getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
             }
             searchAndDeleteTempDir(getJavaFileInfo().getBaseCodeGenPath() +

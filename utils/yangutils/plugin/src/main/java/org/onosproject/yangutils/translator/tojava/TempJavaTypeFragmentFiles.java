@@ -332,7 +332,7 @@ public class TempJavaTypeFragmentFiles
          * Creates type def class file.
          */
         if ((fileType & GENERATE_TYPEDEF_CLASS) != 0) {
-            addImportsToStringAndHasCodeMethods(curNode, imports);
+            addImportsToStringAndHasCodeMethods(imports);
             setTypedefClassJavaFileHandle(getJavaFileHandle(getJavaClassName(TYPEDEF_CLASS_FILE_NAME_SUFFIX)));
             generateTypeDefClassFile(getTypedefClassJavaFileHandle(), curNode, imports);
         }
@@ -340,7 +340,7 @@ public class TempJavaTypeFragmentFiles
          * Creates type class file.
          */
         if ((fileType & GENERATE_UNION_CLASS) != 0) {
-            addImportsToStringAndHasCodeMethods(curNode, imports);
+            addImportsToStringAndHasCodeMethods(imports);
             setTypeClassJavaFileHandle(getJavaFileHandle(getJavaClassName(UNION_TYPE_CLASS_FILE_NAME_SUFFIX)));
             generateUnionClassFile(getTypeClassJavaFileHandle(), curNode, imports);
         }

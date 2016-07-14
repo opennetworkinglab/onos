@@ -1,6 +1,8 @@
-module test2 {  
-    namespace "xpath:inter:multi";  
-    prefix test2 ;  
+submodule test4 {  
+
+    belongs-to test {
+         prefix test;
+    } 
       
     organization "";  
     contact "";  
@@ -12,12 +14,12 @@ module test2 {
         reference "";  
     }  
 
-    container cont1 {
-       leaf leaf4 {
+    container cont3 {
+       leaf leaf3 {
           type int32;
        }
-       container cont2 {
-          leaf leaf5 {
+       container cont4 {
+          leaf leaf4 {
              type int32;
           }
        }

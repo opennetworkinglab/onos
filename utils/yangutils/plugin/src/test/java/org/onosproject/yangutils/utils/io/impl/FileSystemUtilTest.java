@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import static org.apache.commons.io.FileUtils.deleteDirectory;
@@ -84,5 +86,6 @@ public final class FileSystemUtilTest {
         appendFileContents(createFile, createSourceFile);
         updateFileHandle(createFile, null, true);
         deleteDirectory(dir);
+        FileUtils.deleteDirectory(new File(BASE_PKG));
     }
 }

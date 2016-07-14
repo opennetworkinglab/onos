@@ -103,7 +103,7 @@ public final class YangIoUtils {
      * @throws IOException when fails to create package info file
      */
     public static void addPackageInfo(File path, String classInfo, String pack, boolean isChildNode,
-            YangPluginConfig pluginConfig)
+                                      YangPluginConfig pluginConfig)
             throws IOException {
 
         pack = parsePkg(pack);
@@ -385,7 +385,7 @@ public final class YangIoUtils {
 
     /* Updates the given line with the given size conditions. */
     private static StringBuilder updateString(String[] strArray, StringBuilder stringBuilder, String string,
-            int lineSize) {
+                                              int lineSize) {
 
         StringBuilder tempBuilder = new StringBuilder();
         for (String str : strArray) {
@@ -481,7 +481,7 @@ public final class YangIoUtils {
     /**
      * Adds prefix, if the string begins with digit or is a java key word.
      *
-     * @param camelCasePrefix string for adding prefix
+     * @param camelCasePrefix  string for adding prefix
      * @param conflictResolver object of YANG to java naming conflict util
      * @return prefixed camel case string
      */
@@ -502,7 +502,7 @@ public final class YangIoUtils {
      * Applies the rule that a string does not end with a capitalized letter and capitalizes
      * the letter next to a number in an array.
      *
-     * @param stringArray containing strings for camel case separation
+     * @param stringArray      containing strings for camel case separation
      * @param conflictResolver object of YANG to java naming conflict util
      * @return camel case rule checked string
      */
@@ -545,7 +545,7 @@ public final class YangIoUtils {
     /**
      * Resolves the conflict when input has upper case.
      *
-     * @param stringArray containing strings for upper case conflict resolver
+     * @param stringArray      containing strings for upper case conflict resolver
      * @param conflictResolver object of YANG to java naming conflict util
      * @return camel cased string
      */
@@ -597,7 +597,7 @@ public final class YangIoUtils {
     /**
      * Returns the YANG identifier name as java identifier.
      *
-     * @param yangIdentifier identifier in YANG file
+     * @param yangIdentifier   identifier in YANG file
      * @param conflictResolver object of YANG to java naming conflict util
      * @return corresponding java identifier
      */

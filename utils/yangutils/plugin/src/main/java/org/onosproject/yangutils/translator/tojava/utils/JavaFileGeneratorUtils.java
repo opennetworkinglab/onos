@@ -18,14 +18,23 @@ package org.onosproject.yangutils.translator.tojava.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.onosproject.yangutils.datamodel.YangAtomicPath;
 import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
+import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
+import org.onosproject.yangutils.translator.tojava.JavaImportData;
+import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaBeanFragmentFiles;
+import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaEnumerationFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaServiceFragmentFiles;
@@ -67,6 +76,8 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.TO_STRING_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getQualifiedTypeInfoOfCurNode;
+import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.getAugmentedNodesPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.ClassDefinitionGenerator.generateClassDefinition;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
@@ -551,6 +562,193 @@ public final class JavaFileGeneratorUtils {
             throws IOException {
         insertDataIntoJavaFile(file, getJavaDoc(javaDocType, fileName, false, pluginConfig));
         insertDataIntoJavaFile(file, generateClassDefinition(genType, fileName));
+    }
+
+    /**
+     * Returns resolved augments for manager classes.
+     *
+     * @param parent parent node
+     * @return resolved augments for manager classes
+     */
+    public static Map<YangAtomicPath, YangAugment> getResolvedAugmentsForManager(YangNode parent) {
+        Map<YangAtomicPath, YangAugment> resolvedAugmentsForManager = new HashMap<>();
+        YangNodeIdentifier nodeId;
+        List<YangAtomicPath> targets = new ArrayList<>();
+        for (YangAugment augment : getListOfAugments(parent)) {
+            nodeId = augment.getTargetNode().get(0).getNodeIdentifier();
+            if (validateNodeIdentifierInSet(nodeId, targets)) {
+                targets.add(augment.getTargetNode().get(0));
+                resolvedAugmentsForManager.put(augment.getTargetNode().get(0), augment);
+            }
+        }
+        return resolvedAugmentsForManager;
+    }
+
+    /**
+     * Returns set of node identifiers.
+     *
+     * @param parent parent node
+     * @return set of node identifiers
+     */
+    public static List<YangAtomicPath> getSetOfNodeIdentifiers(YangNode parent) {
+
+        List<YangAtomicPath> targets = new ArrayList<>();
+        YangNodeIdentifier nodeId;
+        List<YangAugment> augments = getListOfAugments(parent);
+        for (YangAugment augment : augments) {
+            nodeId = augment.getTargetNode().get(0).getNodeIdentifier();
+
+            if (validateNodeIdentifierInSet(nodeId, targets)) {
+                targets.add(augment.getTargetNode().get(0));
+            }
+        }
+        return targets;
+    }
+
+    /* Returns list of augments.*/
+    private static List<YangAugment> getListOfAugments(YangNode parent) {
+        List<YangAugment> augments = new ArrayList<>();
+        YangNode child = parent.getChild();
+        while (child != null) {
+            if (child instanceof YangAugment) {
+                augments.add((YangAugment) child);
+            }
+            child = child.getNextSibling();
+        }
+        return augments;
+    }
+
+    /*Validates the set for duplicate names of node identifiers.*/
+    private static boolean validateNodeIdentifierInSet(YangNodeIdentifier nodeId, List<YangAtomicPath> targets) {
+        boolean isPresent = true;
+        for (YangAtomicPath target : targets) {
+            if (target.getNodeIdentifier().getName().equals(nodeId.getName())) {
+                if (target.getNodeIdentifier().getPrefix() != null) {
+                    isPresent = !target.getNodeIdentifier().getPrefix().equals(nodeId.getPrefix());
+                } else {
+                    isPresent = nodeId.getPrefix() != null;
+                }
+            }
+        }
+        return isPresent;
+    }
+
+    /**
+     * Adds resolved augmented node imports to manager class.
+     *
+     * @param parent parent node
+     */
+    public static void addResolvedAugmentedDataNodeImports(YangNode parent) {
+        Map<YangAtomicPath, YangAugment> resolvedAugmentsForManager = getResolvedAugmentsForManager(parent);
+        List<YangAtomicPath> targets = getSetOfNodeIdentifiers(parent);
+        TempJavaCodeFragmentFiles tempJavaCodeFragmentFiles = ((JavaCodeGeneratorInfo) parent)
+                .getTempJavaCodeFragmentFiles();
+        YangNode augmentedNode;
+        JavaQualifiedTypeInfo javaQualifiedTypeInfo;
+        String curNodeName;
+        JavaFileInfo parentInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo();
+        for (YangAtomicPath nodeId : targets) {
+            augmentedNode = resolvedAugmentsForManager.get(nodeId).getResolveNodeInPath().get(nodeId);
+            if (((JavaFileInfoContainer) augmentedNode).getJavaFileInfo().getJavaName() != null) {
+                curNodeName = ((JavaFileInfoContainer) augmentedNode).getJavaFileInfo().getJavaName();
+            } else {
+                curNodeName = getCapitalCase(getCamelCase(augmentedNode.getName(), parentInfo.getPluginConfig()
+                        .getConflictResolver()));
+            }
+
+            javaQualifiedTypeInfo = getQualifiedTypeInfoOfAugmentedNode(augmentedNode, getCapitalCase(curNodeName),
+                    parentInfo.getPluginConfig());
+            tempJavaCodeFragmentFiles.getServiceTempFiles().getJavaImportData().addImportInfo(javaQualifiedTypeInfo,
+                    parentInfo.getJavaName(), parentInfo.getPackage());
+
+        }
+    }
+
+    /**
+     * Returns qualified type info of augmented node.
+     *
+     * @param augmentedNode augmented node
+     * @param curNodeName   current node name
+     * @param pluginConfig  plugin configurations
+     * @return qualified type info of augmented node
+     */
+    public static JavaQualifiedTypeInfo getQualifiedTypeInfoOfAugmentedNode(YangNode augmentedNode, String curNodeName,
+                                                                            YangPluginConfig pluginConfig) {
+        JavaQualifiedTypeInfo javaQualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(augmentedNode,
+                getCapitalCase(curNodeName));
+        if (javaQualifiedTypeInfo.getPkgInfo() == null) {
+            javaQualifiedTypeInfo.setPkgInfo(getAugmentedNodesPackage(augmentedNode,
+                    pluginConfig));
+        }
+        return javaQualifiedTypeInfo;
+    }
+
+    /**
+     * Validates if augmented node is imported in parent node.
+     *
+     * @param javaQualifiedTypeInfo qualified type info
+     * @param importData            import data
+     * @return true if present in imports
+     */
+    private static boolean validateQualifiedInfoOfAugmentedNode(JavaQualifiedTypeInfo javaQualifiedTypeInfo,
+                                                                JavaImportData importData) {
+        for (JavaQualifiedTypeInfo curImportInfo : importData.getImportSet()) {
+            if (curImportInfo.getClassInfo()
+                    .contentEquals(javaQualifiedTypeInfo.getClassInfo())) {
+                return curImportInfo.getPkgInfo()
+                        .contentEquals(javaQualifiedTypeInfo.getPkgInfo());
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Return augmented class name for data methods in manager and service.
+     *
+     * @param augmentedNode augmented node
+     * @param parent        parent node
+     * @return augmented class name for data methods in manager and service
+     */
+    public static String getAugmentedClassNameForDataMethods(YangNode augmentedNode, YangNode parent) {
+        String curNodeName;
+        JavaQualifiedTypeInfo javaQualifiedTypeInfo;
+        JavaFileInfo parentInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo();
+        YangPluginConfig pluginConfig = parentInfo.getPluginConfig();
+        TempJavaServiceFragmentFiles tempJavaServiceFragmentFiles = ((JavaCodeGeneratorInfo) parent)
+                .getTempJavaCodeFragmentFiles().getServiceTempFiles();
+        if (((JavaFileInfoContainer) augmentedNode).getJavaFileInfo().getJavaName() != null) {
+            curNodeName = ((JavaFileInfoContainer) augmentedNode).getJavaFileInfo().getJavaName();
+        } else {
+            curNodeName = getCapitalCase(getCamelCase(augmentedNode.getName(), pluginConfig
+                    .getConflictResolver()));
+        }
+
+        javaQualifiedTypeInfo = getQualifiedTypeInfoOfAugmentedNode(augmentedNode,
+                getCapitalCase(curNodeName),
+                parentInfo.getPluginConfig());
+        if (validateQualifiedInfoOfAugmentedNode(javaQualifiedTypeInfo,
+                tempJavaServiceFragmentFiles.getJavaImportData())) {
+            return javaQualifiedTypeInfo.getClassInfo();
+        } else {
+            return javaQualifiedTypeInfo.getPkgInfo() + PERIOD + javaQualifiedTypeInfo.getClassInfo();
+        }
+    }
+
+    /**
+     * Returns parent node name for data methods in manager and service.
+     *
+     * @param parent       parent node
+     * @param pluginConfig plugin configurations
+     * @return parent node name for data methods in manager and service
+     */
+    public static String getParentNodeNameForDataMethods(YangNode parent, YangPluginConfig pluginConfig) {
+        JavaFileInfo parentInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo();
+        if (parentInfo.getJavaName() != null) {
+            return getCapitalCase(parentInfo.getJavaName());
+        }
+        return getCapitalCase(getCamelCase(parent.getName(), pluginConfig
+                .getConflictResolver()));
+
     }
 
 }

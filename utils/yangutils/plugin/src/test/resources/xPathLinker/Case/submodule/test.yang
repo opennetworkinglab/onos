@@ -1,11 +1,11 @@
 module test {  
     namespace "xpath:intra:single";  
     prefix test ;  
-    
-    import test2 {
-       prefix test2;
-    }
    
+    include test1;
+    include test2;
+    include test4;
+
     organization "";  
     contact "";  
        
@@ -14,19 +14,18 @@ module test {
        
     revision "2015-12-16" {  
         reference "";  
-    }
+    }  
 
-    container cont2 {
+    augment /cont5/cont6 {
        leaf a {
           type int32;
        }
-       uses test2:group1; 
     }
 
-    augment /cont2/cont1/cont2 {
-          leaf a {
+   augment /cont3/cont4/cont8 {
+       leaf a {
           type int32;
        }
-    } 
+    }
 }
     

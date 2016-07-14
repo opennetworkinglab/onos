@@ -19,19 +19,29 @@ package org.onosproject.yangutils.translator.tojava.utils;
 import java.util.List;
 import java.util.Map;
 
+import org.onosproject.yangutils.datamodel.YangAtomicPath;
+import org.onosproject.yangutils.datamodel.YangAugment;
+import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.utils.io.impl.JavaDocGen;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_SUBJECT_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getAugmentedClassNameForDataMethods;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getParentNodeNameForDataMethods;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getResolvedAugmentsForManager;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getSetOfNodeIdentifiers;
 import static org.onosproject.yangutils.utils.UtilConstants.ACTIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.ACTIVATE_ANNOTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.ADD_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.AND;
+import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED;
 import static org.onosproject.yangutils.utils.UtilConstants.BIG_DECIMAL;
 import static org.onosproject.yangutils.utils.UtilConstants.BIG_INTEGER;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_DATA_TYPE;
@@ -43,6 +53,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.BYTE_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.CASE;
 import static org.onosproject.yangutils.utils.UtilConstants.CATCH;
 import static org.onosproject.yangutils.utils.UtilConstants.CHECK_NOT_NULL_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.CLASS;
+import static org.onosproject.yangutils.utils.UtilConstants.CLASS_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.COLAN;
@@ -63,6 +75,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.FALSE;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_METHOD_NAME;
 import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_PARAM_NAME;
+import static org.onosproject.yangutils.utils.UtilConstants.GET;
 import static org.onosproject.yangutils.utils.UtilConstants.GET_BYTES;
 import static org.onosproject.yangutils.utils.UtilConstants.GET_METHOD_PREFIX;
 import static org.onosproject.yangutils.utils.UtilConstants.GOOGLE_MORE_OBJECT_METHOD_STRING;
@@ -75,6 +88,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.INTEGER_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.LONG;
 import static org.onosproject.yangutils.utils.UtilConstants.LONG_WRAPPER;
+import static org.onosproject.yangutils.utils.UtilConstants.MAP;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.NULL;
@@ -94,6 +108,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.PARSE_LONG;
 import static org.onosproject.yangutils.utils.UtilConstants.PARSE_SHORT;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
+import static org.onosproject.yangutils.utils.UtilConstants.PUT;
 import static org.onosproject.yangutils.utils.UtilConstants.QUOTES;
 import static org.onosproject.yangutils.utils.UtilConstants.RETURN;
 import static org.onosproject.yangutils.utils.UtilConstants.RPC_INPUT_VAR_NAME;
@@ -117,6 +132,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.TRY;
 import static org.onosproject.yangutils.utils.UtilConstants.TWELVE_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.VALUE;
 import static org.onosproject.yangutils.utils.UtilConstants.VOID;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_UTILS_TODO;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILD_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.CONSTRUCTOR;
@@ -127,6 +143,8 @@ import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.MAN
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.OF_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.SETTER_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.TYPE_CONSTRUCTOR;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.generateForAddAugmentation;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.generateForGetAugmentation;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.generateForTypeConstructor;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCamelCase;
@@ -941,6 +959,38 @@ public final class MethodsGenerator {
     }
 
     /**
+     * Returns implementation of add augmentation.
+     *
+     * @return implementation of add augmentation
+     */
+    public static String getAddAugmentInfoMethodImpl() {
+        return NEW_LINE + generateForAddAugmentation() + FOUR_SPACE_INDENTATION +
+                PUBLIC + SPACE + VOID + SPACE + ADD_STRING
+                + AUGMENTATION + OPEN_PARENTHESIS + YANG_AUGMENTED_INFO + SPACE + VALUE + COMMA + SPACE + CLASS_STRING +
+                SPACE + CLASS + OBJECT_STRING + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE +
+                EIGHT_SPACE_INDENTATION + getSmallCase(YANG_AUGMENTED_INFO) + MAP + PERIOD + PUT + OPEN_PARENTHESIS +
+                CLASS + OBJECT_STRING + COMMA + SPACE + VALUE +
+                CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION +
+                CLOSE_CURLY_BRACKET + NEW_LINE;
+    }
+
+    /**
+     * Returns implementation of get augment info.
+     *
+     * @return implementation of get augment info
+     */
+    public static String getAugmentInfoImpl() {
+
+        return generateForGetAugmentation() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE +
+                YANG_AUGMENTED_INFO + SPACE + GET_METHOD_PREFIX +
+                YANG_AUGMENTED_INFO + OPEN_PARENTHESIS + CLASS_STRING + SPACE + CLASS + OBJECT_STRING +
+                CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION +
+                RETURN + SPACE + getSmallCase(YANG_AUGMENTED_INFO) + MAP + PERIOD + GET + OPEN_PARENTHESIS + CLASS +
+                OBJECT_STRING + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION +
+                CLOSE_CURLY_BRACKET + NEW_LINE;
+    }
+
+    /**
      * Returns enum's constructor.
      *
      * @param className enum's class name
@@ -1096,4 +1146,90 @@ public final class MethodsGenerator {
                 + VALUE + PERIOD + attributeName + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
                 + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
     }
+
+    /**
+     * Returns augmented data getter and setter methods for service class.
+     *
+     * @param parent parent node
+     * @return augmented data getter and setter methods for service class
+     */
+    public static String getAugmentsDataMethodForService(YangNode parent) {
+        Map<YangAtomicPath, YangAugment> resolvedAugmentsForManager = getResolvedAugmentsForManager(parent);
+        List<YangAtomicPath> targets = getSetOfNodeIdentifiers(parent);
+        YangNode augmentedNode;
+        String curNodeName;
+        String method;
+        StringBuilder methods = new StringBuilder();
+        String parentName;
+        String returnType;
+        YangPluginConfig pluginConfig = ((JavaFileInfoContainer) parent).getJavaFileInfo().getPluginConfig();
+        for (YangAtomicPath nodeId : targets) {
+            augmentedNode = resolvedAugmentsForManager.get(nodeId).getResolveNodeInPath().get(nodeId);
+            if (((JavaFileInfoContainer) augmentedNode).getJavaFileInfo().getJavaName() != null) {
+                curNodeName = ((JavaFileInfoContainer) augmentedNode).getJavaFileInfo().getJavaName();
+            } else {
+                curNodeName = getCapitalCase(getCamelCase(augmentedNode.getName(), pluginConfig
+                        .getConflictResolver()));
+            }
+            returnType = getAugmentedClassNameForDataMethods(augmentedNode, parent);
+            parentName = getParentNodeNameForDataMethods(augmentedNode.getParent(), pluginConfig);
+            method = getJavaDoc(GETTER_METHOD, getSmallCase(AUGMENTED + parentName + curNodeName), false,
+                    pluginConfig) + getGetterForInterface(AUGMENTED + parentName
+                            + getCapitalCase(curNodeName),
+                    returnType, false, GENERATE_SERVICE_AND_MANAGER)
+                    + NEW_LINE;
+            methods.append(method);
+
+            method = getJavaDoc(MANAGER_SETTER_METHOD, AUGMENTED +
+                    getCapitalCase(parentName) + curNodeName, false, pluginConfig) +
+                    getSetterForInterface(getSmallCase(AUGMENTED) + parentName +
+                                    getCapitalCase(curNodeName), returnType, parentName,
+                            false,
+                            GENERATE_SERVICE_AND_MANAGER) + NEW_LINE;
+            methods.append(method);
+        }
+        return methods.toString();
+    }
+
+    /**
+     * Returns augmented data getter and setter methods for manager class.
+     *
+     * @param parent parent node
+     * @return augmented data getter and setter methods for manager class
+     */
+    public static String getAugmentsDataMethodForManager(YangNode parent) {
+        Map<YangAtomicPath, YangAugment> resolvedAugmentsForManager = getResolvedAugmentsForManager(parent);
+        List<YangAtomicPath> targets = getSetOfNodeIdentifiers(parent);
+        YangNode augmentedNode;
+        String curNodeName;
+        String returnType;
+        String method;
+        StringBuilder methods = new StringBuilder();
+        String parentName;
+        YangPluginConfig pluginConfig = ((JavaFileInfoContainer) parent).getJavaFileInfo().getPluginConfig();
+        for (YangAtomicPath nodeId : targets) {
+            augmentedNode = resolvedAugmentsForManager.get(nodeId).getResolveNodeInPath().get(nodeId);
+            if (((JavaFileInfoContainer) augmentedNode).getJavaFileInfo().getJavaName() != null) {
+                curNodeName = ((JavaFileInfoContainer) augmentedNode).getJavaFileInfo().getJavaName();
+            } else {
+                curNodeName = getCapitalCase(getCamelCase(augmentedNode.getName(), pluginConfig
+                        .getConflictResolver()));
+            }
+            returnType = getAugmentedClassNameForDataMethods(augmentedNode, parent);
+            parentName = getParentNodeNameForDataMethods(augmentedNode.getParent(), pluginConfig);
+            method = getOverRideString() + getGetter(returnType, AUGMENTED
+                            + parentName + getCapitalCase(curNodeName),
+                    GENERATE_SERVICE_AND_MANAGER) + NEW_LINE;
+            methods.append(method);
+
+            method = getOverRideString() + getSetter(parentName, getSmallCase(AUGMENTED) +
+                            getCapitalCase(parentName) + getCapitalCase(curNodeName),
+                    returnType,
+                    GENERATE_SERVICE_AND_MANAGER)
+                    + NEW_LINE;
+            methods.append(method);
+        }
+        return methods.toString();
+    }
+
 }

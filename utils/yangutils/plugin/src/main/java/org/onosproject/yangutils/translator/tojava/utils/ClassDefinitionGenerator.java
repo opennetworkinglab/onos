@@ -282,7 +282,7 @@ public final class ClassDefinitionGenerator {
             curNode = curNode.getChild();
             while (curNode != null) {
                 if (curNode instanceof YangNotification) {
-                    return getRpcInterfaceDefinitionWhenItExtends(yangName, holder);
+                    return getRpcInterfaceDefinitionWhenItExtends(yangName);
                 }
                 curNode = curNode.getNextSibling();
             }
@@ -295,8 +295,7 @@ public final class ClassDefinitionGenerator {
     }
 
     /* Provides class definition when RPC interface needs to extends any event.*/
-    private static String getRpcInterfaceDefinitionWhenItExtends(String yangName,
-                                                                 JavaExtendsListHolder holder) {
+    private static String getRpcInterfaceDefinitionWhenItExtends(String yangName) {
 
         if (yangName.matches(REGEX_FOR_ANY_STRING_ENDING_WITH_SERVICE)) {
             String[] strArray = yangName.split(SERVICE);

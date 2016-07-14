@@ -29,7 +29,7 @@ module test {
          uses group1;
     }
 
-    augment /cont2/group1/cont1/cont3 {
+    augment /cont2/cont1/cont3 {
        leaf a {
           type int32;
        }

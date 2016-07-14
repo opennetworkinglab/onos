@@ -50,6 +50,7 @@ public final class NotificationTranslatorTest {
         generateJavaCode(node, yangPluginConfig);
 
         deleteDirectory("target/NotificationTest/");
+        deleteDirectory("target/NotificationTest1/");
     }
 
     // TODO enhance the test cases, after having a framework of translator test.

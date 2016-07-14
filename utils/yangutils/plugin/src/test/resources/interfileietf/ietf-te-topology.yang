@@ -1723,9 +1723,9 @@
        uses tet:te-link-state-derived;
      }
 
-     /*
+     
      augment "/te-link-event/te-link-attributes/underlay" {
        description "Add state attributes to te-link underlay.";
        uses te-link-state-underlay-attributes;
-     } */
+     }
    }

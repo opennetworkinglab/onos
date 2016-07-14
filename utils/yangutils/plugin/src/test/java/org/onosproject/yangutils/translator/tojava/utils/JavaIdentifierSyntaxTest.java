@@ -113,8 +113,6 @@ public final class JavaIdentifierSyntaxTest {
     private static final String BASE_DIR_PKG = "target.UnitTestCase.";
     private static final String DIR_PATH = "exist1.exist2.exist3";
     private static final String PKG_INFO = "package-info.java";
-    private static final String BASE_PKG = "target/UnitTestCase";
-    private static final String TEST_DATA_1 = "This is to append a text to the file first1\n";
 
     /**
      * Unit test for private constructor.
@@ -319,5 +317,6 @@ public final class JavaIdentifierSyntaxTest {
         assertThat(true, is(doesPackageExist(strPath)));
         createDir.delete();
         deleteDirectory(createDir);
+        deleteDirectory(new File(BASE_DIR_PKG.replace(PERIOD, SLASH)));
     }
 }
