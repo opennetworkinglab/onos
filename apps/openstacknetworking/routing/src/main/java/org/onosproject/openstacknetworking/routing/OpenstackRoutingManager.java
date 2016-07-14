@@ -468,7 +468,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                         DeviceId deviceId = pkt.receivedFrom().deviceId();
                         Port port = null;
                         port = deviceService.getPort(deviceId,
-                                gatewayService.getGatewayExternalPorts(deviceId).get(0));
+                                gatewayService.getGatewayExternalPort(deviceId));
                         if (port != null) {
                             OpenstackPort openstackPort = getOpenstackPort(ethernet.getSourceMAC(),
                                     Ip4Address.valueOf(iPacket.getSourceAddress()));

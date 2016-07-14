@@ -188,7 +188,7 @@ public class OpenstackRoutingRulePopulator {
 
         tBuilder.setIpSrc(externalIp);
         gatewayService.getGatewayNodes().forEach(node -> {
-            tBuilder.setOutput(gatewayService.getGatewayExternalPorts(node.getGatewayDeviceId()).get(0));
+            tBuilder.setOutput(gatewayService.getGatewayExternalPort(node.getGatewayDeviceId()));
             ForwardingObjective fo = DefaultForwardingObjective.builder()
                     .withSelector(sBuilder.build())
                     .withTreatment(tBuilder.build())
@@ -548,7 +548,7 @@ public class OpenstackRoutingRulePopulator {
     }
 
     private PortNumber getExternalPortNum(DeviceId deviceId) {
-        return checkNotNull(gatewayService.getGatewayExternalPorts(deviceId).get(0), PORTNOTNULL);
+        return checkNotNull(gatewayService.getGatewayExternalPort(deviceId), PORTNOTNULL);
     }
 
     /**

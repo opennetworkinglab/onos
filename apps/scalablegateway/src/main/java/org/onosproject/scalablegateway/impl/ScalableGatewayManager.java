@@ -155,23 +155,16 @@ public class ScalableGatewayManager implements ScalableGatewayService {
     }
 
     @Override
-    public List<PortNumber> getGatewayExternalPorts(DeviceId deviceId) {
+    public PortNumber getGatewayExternalPort(DeviceId deviceId) {
         GatewayNode gatewayNode = checkNotNull(gatewayNodeMap.get(deviceId).value(), GATEWAYNODE_CAN_NOT_BE_NULL);
-        List<PortNumber> portNumbers = Lists.newArrayList();
-        gatewayNode.getGatewayExternalInterfaceNames()
+        String externalInterfaceName = gatewayNode.getGatewayExternalInterfaceName();
+        Optional<Port> port = deviceService.getPorts(deviceId)
                 .stream()
-                .forEach(name -> portNumbers.add(findPortNumFromPortName(gatewayNode.getGatewayDeviceId(), name)));
-        return portNumbers;
-    }
-
-    private PortNumber findPortNumFromPortName(DeviceId gatewayDeviceId, String name) {
-        Optional<Port> port = deviceService.getPorts(gatewayDeviceId)
-                .stream()
-                .filter(p -> p.annotations().value(PORT_NAME).equals(name))
+                .filter(p -> p.annotations().value(PORT_NAME).equals(externalInterfaceName))
                 .findFirst();
 
         if (!port.isPresent()) {
-            log.error("Cannot find port {} in gateway device {}", name, gatewayDeviceId);
+            log.error("Cannot find port {} in gateway device {}", externalInterfaceName, deviceId);
             return null;
         }
 

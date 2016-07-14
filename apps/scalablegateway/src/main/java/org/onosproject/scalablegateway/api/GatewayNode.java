@@ -15,11 +15,8 @@
  */
 package org.onosproject.scalablegateway.api;
 
-import com.google.common.collect.ImmutableList;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.net.DeviceId;
-
-import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -28,13 +25,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class GatewayNode {
     private final DeviceId gatewayDeviceId;
-    private final List<String> gatewayExternalInterfaceNames;
+    private final String gatewayExternalInterfaceName;
     private final Ip4Address dataIpAddress;
 
-    private GatewayNode(DeviceId gatewayDeviceId, List<String> gatewayExternalInterfaceNames,
+    private GatewayNode(DeviceId gatewayDeviceId, String gatewayExternalInterfaceName,
                         Ip4Address dataIpAddress) {
         this.gatewayDeviceId = gatewayDeviceId;
-        this.gatewayExternalInterfaceNames = gatewayExternalInterfaceNames;
+        this.gatewayExternalInterfaceName = gatewayExternalInterfaceName;
         this.dataIpAddress = dataIpAddress;
     }
 
@@ -48,12 +45,12 @@ public final class GatewayNode {
     }
 
     /**
-     * Returns the list of gateway`s interface names.
+     * Returns the gateway`s interface name.
      *
-     * @return The list of interface names
+     * @return The gateway`s interface name
      */
-    public List<String> getGatewayExternalInterfaceNames() {
-        return ImmutableList.copyOf(gatewayExternalInterfaceNames);
+    public String getGatewayExternalInterfaceName() {
+        return gatewayExternalInterfaceName;
     }
 
     /**
@@ -80,7 +77,7 @@ public final class GatewayNode {
     public static final class Builder {
 
         private DeviceId gatewayDeviceId;
-        private List<String> gatewayExternalInterfaceNames;
+        private String gatewayExternalInterfaceName;
         private Ip4Address dataIpAddress;
 
         /**
@@ -95,13 +92,13 @@ public final class GatewayNode {
         }
 
         /**
-         * Sets the list of gateway`s interface names.
+         * Sets the gateway`s interface name.
          *
-         * @param names The list of gateway`s interface name
+         * @param name The gateway`s interface name
          * @return Builder object
          */
-        public Builder gatewayExternalInterfaceNames(List<String> names) {
-            this.gatewayExternalInterfaceNames = names;
+        public Builder gatewayExternalInterfaceName(String name) {
+            this.gatewayExternalInterfaceName = name;
             return this;
         }
 
@@ -122,7 +119,7 @@ public final class GatewayNode {
          * @return GatewayNode object
          */
         public GatewayNode build() {
-            return new GatewayNode(checkNotNull(gatewayDeviceId), checkNotNull(gatewayExternalInterfaceNames),
+            return new GatewayNode(checkNotNull(gatewayDeviceId), checkNotNull(gatewayExternalInterfaceName),
                     checkNotNull(dataIpAddress));
         }
     }

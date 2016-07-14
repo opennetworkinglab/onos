@@ -18,7 +18,6 @@ package org.onosproject.scalablegateway.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.core.ApplicationId;
@@ -26,8 +25,6 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
 import org.slf4j.Logger;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.StreamSupport;
 
@@ -64,19 +61,13 @@ public class GatewayNodeConfig extends Config<ApplicationId> {
             try {
                 nodes.add(new GatewayNode.Builder()
                         .gatewayDeviceId(DeviceId.deviceId(jsonNode.path(BRIDGE_ID).asText()))
-                        .gatewayExternalInterfaceNames(
-                                getExternalInterfaceName(jsonNode.path(EXTERNAL_INTERFACE_NAME).asText()))
+                        .gatewayExternalInterfaceName(jsonNode.path(EXTERNAL_INTERFACE_NAME).asText())
                         .dataIpAddress(Ip4Address.valueOf(jsonNode.path(DATAPLANE_IP).asText())).build());
             } catch (IllegalArgumentException | NullPointerException e) {
                 log.error("Failed to read {}", e.toString());
             }
         });
         return nodes;
-    }
-
-    private List<String> getExternalInterfaceName(String s) {
-        List<String> list = Lists.newArrayList();
-        return Collections.addAll(list, s.split(",")) ? list : null;
     }
 
     @Override

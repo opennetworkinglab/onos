@@ -35,12 +35,12 @@ public interface ScalableGatewayService {
     GatewayNode getGatewayNode(DeviceId deviceId);
 
     /**
-     * Returns the list of gateway`s port numbers with the given device identifier.
+     * Returns the gateway`s port number with the given device identifier.
      *
      * @param deviceId The gateway node deviceId
-     * @return The list of external interface port number
+     * @return The external interface port number
      */
-    List<PortNumber> getGatewayExternalPorts(DeviceId deviceId);
+    PortNumber getGatewayExternalPort(DeviceId deviceId);
 
     /**
      * Returns group id for gateway load balance.

@@ -16,7 +16,6 @@
 
 package org.onosproject.scalablegateway.cli;
 
-import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.Ip4Address;
@@ -24,9 +23,6 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.scalablegateway.api.GatewayNode;
 import org.onosproject.scalablegateway.api.ScalableGatewayService;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Adds gateway node information for scalablegateway node managements.
@@ -60,7 +56,7 @@ public class ScalableGatewayAddCommand extends AbstractShellCommand {
         GatewayNode gatewayNode = GatewayNode.builder()
                 .gatewayDeviceId(DeviceId.deviceId(deviceId))
                 .dataIpAddress(Ip4Address.valueOf(ipAddress))
-                .gatewayExternalInterfaceNames(splitNameList(interfaceName))
+                .gatewayExternalInterfaceName(interfaceName)
                 .build();
         if (service.addGatewayNode(gatewayNode)) {
             print(SUCCESS);
@@ -69,8 +65,4 @@ public class ScalableGatewayAddCommand extends AbstractShellCommand {
         }
     }
 
-    private List<String> splitNameList(String interfaceName) {
-        List<String> list = Lists.newArrayList();
-        return Collections.addAll(list, interfaceName.split(",")) ? list : null;
-    }
 }
