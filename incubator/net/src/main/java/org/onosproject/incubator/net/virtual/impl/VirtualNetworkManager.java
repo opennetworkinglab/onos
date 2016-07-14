@@ -52,6 +52,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
@@ -338,6 +339,8 @@ public class VirtualNetworkManager
             service = new VirtualNetworkTopologyService(this, network);
         } else if (serviceKey.serviceClass.equals(IntentService.class)) {
             service = new VirtualNetworkIntentService(this, network, new DefaultServiceDirectory());
+        } else if (serviceKey.serviceClass.equals(HostService.class)) {
+            service = new VirtualNetworkHostService(this, network);
         } else {
             return null;
         }
