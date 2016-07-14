@@ -1,8 +1,0 @@
-export ONOS_NIC=192.168.1.*
-export OC1="192.168.1.11"
-export OC2="192.168.1.12"
-export OC3="192.168.1.13"
-export OC4="192.168.1.14"
-# export OC5="192.168.1.15"
-export OCN="192.168.1.15"
-export OCI="${OC1}"

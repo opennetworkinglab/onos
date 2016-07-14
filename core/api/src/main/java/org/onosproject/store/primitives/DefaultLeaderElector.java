@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.primitives;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -87,6 +88,21 @@ public class DefaultLeaderElector extends Synchronous<AsyncLeaderElector> implem
     @Override
     public void removeChangeListener(Consumer<Change<Leadership>> consumer) {
         complete(asyncElector.removeChangeListener(consumer));
+    }
+
+    @Override
+    public void addStatusChangeListener(Consumer<Status> listener) {
+        asyncElector.addStatusChangeListener(listener);
+    }
+
+    @Override
+    public void removeStatusChangeListener(Consumer<Status> listener) {
+        asyncElector.removeStatusChangeListener(listener);
+    }
+
+    @Override
+    public Collection<Consumer<Status>> statusChangeListeners() {
+        return asyncElector.statusChangeListeners();
     }
 
     private <T> T complete(CompletableFuture<T> future) {

@@ -4,7 +4,7 @@
         <h2>Component Settings ({{tableData.length}} total)</h2>
         <div class="ctrl-btns">
             <div class="refresh" ng-class="{active: autoRefresh}"
-                 icon icon-size="36" icon-id="refresh"
+                 icon icon-size="42" icon-id="refresh"
                  tooltip tt-msg="autoRefreshTip"
                  ng-click="toggleRefresh()"></div>
         </div>
@@ -15,11 +15,11 @@
             <table>
                 <tr>
                     <td colId="component" sortable col-width="300px">Component </td>
-                    <td colId="id" sortable>Property </td>
-                    <td colId="type" sortable col-width="70px">Type </td>
-                    <td colId="value" sortable>Value </td>
-                    <td colId="defValue" sortable>Default </td>
-                    <td colId="desc" col-width="400px">Description </td>
+                    <td colId="id" sortable col-width="240px">Property </td>
+                    <td colId="type" sortable col-width="100px">Type </td>
+                    <td colId="value" sortable col-width="100px">Value </td>
+                    <td colId="defValue" sortable col-width="100px">Default </td>
+                    <td colId="desc">Description </td>
                 </tr>
             </table>
         </div>

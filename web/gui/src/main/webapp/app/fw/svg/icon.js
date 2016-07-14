@@ -1,5 +1,5 @@
 /*
- * Copyright 2015,2016 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,8 @@
         minus: 'minus',
         play: 'play',
         stop: 'stop',
+        
+        close: 'xClose',
 
         topo: 'topo',
 
@@ -60,15 +62,18 @@
         hostIcon_router: 'router',
         hostIcon_bgpSpeaker: 'bgpSpeaker',
 
+        // navigation menu icons...
         nav_apps: 'bird',
         nav_settings: 'chain',
         nav_cluster: 'node',
+        nav_processors: 'allTraffic',
+
         nav_topo: 'topo',
         nav_devs: 'switch',
         nav_links: 'ports',
         nav_hosts: 'endstation',
         nav_intents: 'relatedIntents',
-        nav_processors: 'allTraffic'
+        nav_tunnels: 'ports'  // TODO: use tunnel glyph, when available
     };
 
     function ensureIconLibDefs() {
@@ -139,56 +144,16 @@
     function loadEmbeddedIcon(div, iconCls, size) {
         loadIconByClass(div, iconCls, size, true);
     }
-
-
-    // configuration for device and host icons in the topology view
-    var config = {
-        device: {
-            dim: 36,
-            rx: 4
-        },
-        host: {
-            badge: {
-                dx: 14,
-                dy: -14
-            },
-            radius: {
-                noGlyph: 9,
-                withGlyph: 14
-            },
-            glyphed: {
-                endstation: 1,
-                bgpSpeaker: 1,
-                router: 1
-            }
-        }
-    };
-
-
-    // Adds a device icon to the specified element, using the given glyph.
-    // Returns the D3 selection of the icon.
-    function addDeviceIcon(elem, glyphId) {
-        var cfg = config.device,
-            gid = gs.glyphDefined(glyphId) ? glyphId : 'query',
-            g = elem.append('g')
-                .attr('class', 'svgIcon deviceIcon');
-
-        g.append('rect').attr({
-            x: 0,
-            y: 0,
-            rx: cfg.rx,
-            width: cfg.dim,
-            height: cfg.dim
-        });
-
-        g.append('use').attr({
+    
+    // Adds a device glyph to the specified element.
+    // Returns the D3 selection of the glyph (use) element.
+    function addDeviceIcon(elem, glyphId, iconDim) {
+        var gid = gs.glyphDefined(glyphId) ? glyphId : 'query';
+        return elem.append('use').attr({
             'xlink:href': '#' + gid,
-            width: cfg.dim,
-            height: cfg.dim
+            width: iconDim,
+            height: iconDim
         });
-
-        g.dim = cfg.dim;
-        return g;
     }
 
     function addHostIcon(elem, radius, glyphId) {
@@ -265,7 +230,6 @@
                 loadEmbeddedIcon: loadEmbeddedIcon,
                 addDeviceIcon: addDeviceIcon,
                 addHostIcon: addHostIcon,
-                iconConfig: function () { return config; },
                 sortIcons: sortIcons,
                 registerIconMapping: registerIconMapping
             };

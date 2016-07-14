@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,21 @@
  */
 package org.onosproject.cli;
 
-import java.util.Set;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.karaf.shell.commands.Command;
+import org.onlab.packet.IpAddress;
+import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.core.CoreService;
-import org.onosproject.cluster.ClusterService;
+import org.onosproject.core.Version;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkService;
-import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyService;
+
+import java.util.Set;
 
 /**
  * Provides summary of ONOS model.
@@ -43,46 +44,42 @@ public class SummaryCommand extends AbstractShellCommand {
      * @param nodes set of all of the controller nodes in the cluster
      * @return count of active nodes
      */
-    private int activeNodes(Set<ControllerNode> nodes) {
-        int nodeCount = 0;
+    private long activeNodes(Set<ControllerNode> nodes) {
+        ClusterService clusterService = get(ClusterService.class);
 
-        for (final ControllerNode node : nodes) {
-            final ControllerNode.State nodeState =
-                    get(ClusterService.class).getState(node.id());
-            if (nodeState == ControllerNode.State.ACTIVE) {
-                nodeCount++;
-            }
-        }
-        return nodeCount;
+        return nodes.stream()
+                .map(node -> clusterService.getState(node.id()))
+                .filter(nodeState -> nodeState.isActive())
+                .count();
     }
 
     @Override
     protected void execute() {
-        TopologyService topologyService = get(TopologyService.class);
-        Topology topology = topologyService.currentTopology();
+        IpAddress nodeIp = get(ClusterService.class).getLocalNode().ip();
+        Version version = get(CoreService.class).version();
+        long numNodes = activeNodes(get(ClusterService.class).getNodes());
+        int numDevices = get(DeviceService.class).getDeviceCount();
+        int numLinks = get(LinkService.class).getLinkCount();
+        int numHosts = get(HostService.class).getHostCount();
+        int numScc = get(TopologyService.class).currentTopology().clusterCount();
+        int numFlows = get(FlowRuleService.class).getFlowRuleCount();
+        long numIntents = get(IntentService.class).getIntentCount();
+
         if (outputJson()) {
             print("%s", new ObjectMapper().createObjectNode()
-                    .put("node", get(ClusterService.class).getLocalNode().ip().toString())
-                    .put("version", get(CoreService.class).version().toString())
-                    .put("nodes", get(ClusterService.class).getNodes().size())
-                    .put("devices", topology.deviceCount())
-                    .put("links", topology.linkCount())
-                    .put("hosts", get(HostService.class).getHostCount())
-                    .put("SCC(s)", topology.clusterCount())
-                    .put("flows", get(FlowRuleService.class).getFlowRuleCount())
-                    .put("intents", get(IntentService.class).getIntentCount()));
+                    .put("node", nodeIp.toString())
+                    .put("version", version.toString())
+                    .put("nodes", numNodes)
+                    .put("devices", numDevices)
+                    .put("links", numLinks)
+                    .put("hosts", numHosts)
+                    .put("SCC(s)", numScc)
+                    .put("flows", numFlows)
+                    .put("intents", numIntents));
         } else {
-            print("node=%s, version=%s",
-                  get(ClusterService.class).getLocalNode().ip(),
-                  get(CoreService.class).version().toString());
+            print("node=%s, version=%s", nodeIp, version);
             print("nodes=%d, devices=%d, links=%d, hosts=%d, SCC(s)=%s, flows=%d, intents=%d",
-                  activeNodes(get(ClusterService.class).getNodes()),
-                  get(DeviceService.class).getDeviceCount(),
-                  get(LinkService.class).getLinkCount(),
-                  get(HostService.class).getHostCount(),
-                  topologyService.getClusters(topology).size(),
-                  get(FlowRuleService.class).getFlowRuleCount(),
-                  get(IntentService.class).getIntentCount());
+                  numNodes, numDevices, numLinks, numHosts, numScc, numFlows, numIntents);
         }
     }
 

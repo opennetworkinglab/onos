@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Efficiently and adaptively collects flow statistics for the specified switch.
  */
-public class NewAdaptiveFlowStatsCollector {
+public class NewAdaptiveFlowStatsCollector implements SwitchDataCollector {
     private final Logger log = getLogger(getClass());
 
     private static final String CHECK_AND_MOVE_LOG =
@@ -78,7 +78,7 @@ public class NewAdaptiveFlowStatsCollector {
     private final OpenFlowSwitch sw;
 
     private ScheduledExecutorService adaptiveFlowStatsScheduler =
-            Executors.newScheduledThreadPool(4, groupedThreads("onos/flow", "device-stats-collector-%d"));
+            Executors.newScheduledThreadPool(4, groupedThreads("onos/flow", "device-stats-collector-%d", log));
     private ScheduledFuture<?> calAndShortFlowsThread;
     private ScheduledFuture<?> midFlowsThread;
     private ScheduledFuture<?> longFlowsThread;

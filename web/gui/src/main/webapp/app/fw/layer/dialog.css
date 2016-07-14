@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,34 +15,22 @@
  */
 
 /*
- ONOS GUI -- Dialog Service -- CSS file
+ ONOS GUI -- Dialog Service (layout) -- CSS file
  */
 
 .dialog h2 {
-    padding: 0 4px;
     margin: 0;
     word-wrap: break-word;
     display: inline-block;
     width: 210px;
     vertical-align: middle;
 }
-.light .dialog h2 {
-    color: black;
-}
-.dark .dialog h2 {
-    color: #ddd;
-}
 
 .dialog .dialog-button {
-    border-radius: 3px;
     display: inline-block;
     cursor: pointer;
     height: 20px;
     padding: 6px 8px 2px 8px;
     margin: 4px;
     float: right;
-    /* color works for both light and dark themes */
-    background-color: #c55;
-    color: white;
 }
-

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,13 @@ public final class TrafficTreatmentCodec extends JsonCodec<TrafficTreatment> {
 
         for (final Instruction instruction : treatment.immediate()) {
             jsonInstructions.add(instructionCodec.encode(instruction, context));
+        }
+
+        if (treatment.metered() != null) {
+            jsonInstructions.add(instructionCodec.encode(treatment.metered(), context));
+        }
+        if (treatment.tableTransition() != null) {
+            jsonInstructions.add(instructionCodec.encode(treatment.tableTransition(), context));
         }
 
         final ArrayNode jsonDeferred = result.putArray("deferred");

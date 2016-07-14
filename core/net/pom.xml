@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2014-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-core</artifactId>
-        <version>1.5.2-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.6.0</version>
     </parent>
 
     <artifactId>onos-core-net</artifactId>
@@ -52,12 +51,6 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <version>${project.version}</version>
-            <artifactId>onos-cli</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
             <artifactId>onos-core-common</artifactId>
             <version>${project.version}</version>
             <classifier>tests</classifier>
@@ -69,6 +62,14 @@
             <artifactId>onos-core-dist</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-core-dist</artifactId>
+            <scope>test</scope>
+            <classifier>tests</classifier>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -86,6 +87,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-incubator-api</artifactId>
         </dependency>
@@ -98,6 +104,11 @@
         <dependency>
             <groupId>org.apache.karaf.system</groupId>
             <artifactId>org.apache.karaf.system.core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr</artifactId>
         </dependency>
     </dependencies>
 

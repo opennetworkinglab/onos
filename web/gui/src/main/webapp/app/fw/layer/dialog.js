@@ -1,5 +1,5 @@
 /*
- *  Copyright 2016 Open Networking Laboratory
+ *  Copyright 2016-present Open Networking Laboratory
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -96,14 +96,16 @@
         };
     }
 
-    function makeButton(callback, text, keyName) {
+    function makeButton(callback, text, keyName, chained) {
         var cb = fs.isF(callback),
             key = fs.isS(keyName);
 
         function invoke() {
             cb && cb();
-            clearBindings();
-            panel.hide();
+            if (!chained) {
+                clearBindings();
+                panel.hide();
+            }
         }
 
         if (key) {
@@ -129,15 +131,23 @@
         return dApi;
     }
 
-    function addButton(cb, text, key) {
+    function addButton(cb, text, key, chained) {
         if (pApi) {
-            pApi.appendFooter(makeButton(cb, text, key));
+            pApi.appendFooter(makeButton(cb, text, key, chained));
         }
         return dApi;
     }
 
+    function _addOk(cb, text, chained) {
+        return addButton(cb, text || 'OK', 'enter', chained);
+    }
+    
     function addOk(cb, text) {
-        return addButton(cb, text || 'OK', 'enter');
+        return _addOk(cb, text, false);
+    }
+
+    function addOkChained(cb, text) {
+        return _addOk(cb, text, true);
     }
 
     function addCancel(cb, text) {
@@ -164,6 +174,7 @@
             addContent: addContent,
             addButton: addButton,
             addOk: addOk,
+            addOkChained: addOkChained,
             addCancel: addCancel,
             bindKeys: function () {
                 ks.dialogKeys(keyBindings);

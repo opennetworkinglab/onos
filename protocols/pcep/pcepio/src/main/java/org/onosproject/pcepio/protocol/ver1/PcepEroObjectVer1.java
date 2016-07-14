@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 package org.onosproject.pcepio.protocol.ver1;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
+import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.exceptions.PcepParseException;
@@ -399,10 +401,47 @@ public class PcepEroObjectVer1 implements PcepEroObject {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(eroObjHeader, subObjectList);
+    }
+
+    @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass()).omitNullValues()
                 .add("EroObjHeader", eroObjHeader)
                 .add("SubObjects", subObjectList)
                 .toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof PcepEroObjectVer1) {
+            int countObjSubTlv = 0;
+            int countOtherSubTlv = 0;
+            boolean isCommonSubTlv = true;
+            PcepEroObjectVer1 other = (PcepEroObjectVer1) obj;
+            Iterator<PcepValueType> objListIterator = other.subObjectList.iterator();
+            countOtherSubTlv = other.subObjectList.size();
+            countObjSubTlv = subObjectList.size();
+            if (countObjSubTlv != countOtherSubTlv) {
+                return false;
+            } else {
+                while (objListIterator.hasNext() && isCommonSubTlv) {
+                    PcepValueType subTlv = objListIterator.next();
+                    if (subObjectList.contains(subTlv)) {
+                        isCommonSubTlv = Objects.equals(subObjectList.get(subObjectList.indexOf(subTlv)),
+                                         other.subObjectList.get(other.subObjectList.indexOf(subTlv)));
+                    } else {
+                        isCommonSubTlv = false;
+                    }
+                }
+                return isCommonSubTlv && Objects.equals(eroObjHeader, other.eroObjHeader);
+            }
+        }
+        return false;
     }
 }

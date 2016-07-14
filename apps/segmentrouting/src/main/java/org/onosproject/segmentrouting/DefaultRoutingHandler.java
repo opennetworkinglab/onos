@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,13 @@
  */
 package org.onosproject.segmentrouting;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpPrefix;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -32,6 +34,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -42,9 +47,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * routing rule population.
  */
 public class DefaultRoutingHandler {
-
-    private static Logger log = LoggerFactory
-            .getLogger(DefaultRoutingHandler.class);
+    private static final int MAX_RETRY_ATTEMPTS = 25;
+    private static final String ECMPSPG_MISSING = "ECMP shortest path graph not found";
+    private static Logger log = LoggerFactory.getLogger(DefaultRoutingHandler.class);
 
     private SegmentRoutingManager srManager;
     private RoutingRulePopulator rulePopulator;
@@ -54,6 +59,7 @@ public class DefaultRoutingHandler {
     private final Lock statusLock = new ReentrantLock();
     private volatile Status populationStatus;
     private boolean linkHasWeight;
+    private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
     /**
      * Represents the default routing population status.
@@ -111,7 +117,7 @@ public class DefaultRoutingHandler {
                 }
 
                 EcmpShortestPathGraph ecmpSpg = new EcmpShortestPathGraph(sw.id(), srManager, linkHasWeight);
-                if (!populateEcmpRoutingRules(sw.id(), ecmpSpg)) {
+                if (!populateEcmpRoutingRules(sw.id(), ecmpSpg, ImmutableSet.of())) {
                     log.debug("populateAllRoutingRules: populationStatus is ABORTED");
                     populationStatus = Status.ABORTED;
                     log.debug("Abort routing rule population");
@@ -168,12 +174,18 @@ public class DefaultRoutingHandler {
             log.trace("populateRoutingRulesForLinkStatusChange: "
                     + "populationStatus is STARTED");
             populationStatus = Status.STARTED;
+            // optimized re-routing
             if (linkFail == null) {
                 // Compare all routes of existing ECMP SPG with the new ones
                 routeChanges = computeRouteChange();
             } else {
                 // Compare existing ECMP SPG only with the link removed
                 routeChanges = computeDamagedRoutes(linkFail);
+            }
+
+            // null routeChanges indicates that full re-routing is required
+            if (routeChanges == null) {
+                return populateAllRoutingRules();
             }
 
             if (routeChanges.isEmpty()) {
@@ -209,12 +221,12 @@ public class DefaultRoutingHandler {
             if (link.size() == 1) {
                 log.trace("repopulateRoutingRulesForRoutes: running ECMP graph for device {}", link.get(0));
                 EcmpShortestPathGraph ecmpSpg = new EcmpShortestPathGraph(link.get(0), srManager, linkHasWeight);
-                if (populateEcmpRoutingRules(link.get(0), ecmpSpg)) {
-                    log.debug("Populating flow rules from {} to all is successful",
+                if (populateEcmpRoutingRules(link.get(0), ecmpSpg, ImmutableSet.of())) {
+                    log.debug("Populating flow rules from all to dest:{} is successful",
                               link.get(0));
                     currentEcmpSpgMap.put(link.get(0), ecmpSpg);
                 } else {
-                    log.warn("Failed to populate the flow rules from {} to all", link.get(0));
+                    log.warn("Failed to populate the flow rules from all to dest:{}", link.get(0));
                     return false;
                 }
             } else {
@@ -254,7 +266,8 @@ public class DefaultRoutingHandler {
                                 nextHops.add(via.get(0));
                             }
                         }
-                        if (!populateEcmpRoutingRulePartial(targetSw, dst, nextHops)) {
+                        if (!populateEcmpRoutingRulePartial(targetSw, dst,
+                                nextHops, ImmutableSet.of())) {
                             return false;
                         }
                         log.debug("Populating flow rules from {} to {} is successful",
@@ -273,6 +286,15 @@ public class DefaultRoutingHandler {
         return true;
     }
 
+    /**
+     * Computes set of affected ECMP routes due to failed link. Assumes
+     * previous ecmp shortest-path graph exists for a switch in order to compute
+     * affected routes. If such a graph does not exist, the method returns null.
+     *
+     * @param linkFail the failed link
+     * @return the set of affected routes which may be empty if no routes were
+     *         affected, or null if no previous ecmp spg was found for comparison
+     */
     private Set<ArrayList<DeviceId>> computeDamagedRoutes(Link linkFail) {
 
         Set<ArrayList<DeviceId>> routes = new HashSet<>();
@@ -281,20 +303,31 @@ public class DefaultRoutingHandler {
             log.debug("Computing the impacted routes for device {} due to link fail",
                       sw.id());
             if (!srManager.mastershipService.isLocalMaster(sw.id())) {
+                log.debug("No mastership for {} .. skipping route optimization",
+                          sw.id());
                 continue;
             }
             EcmpShortestPathGraph ecmpSpg = currentEcmpSpgMap.get(sw.id());
             if (ecmpSpg == null) {
-                log.error("No existing ECMP graph for switch {}", sw.id());
-                continue;
+                log.warn("No existing ECMP graph for switch {}. Aborting optimized"
+                        + " rerouting and opting for full-reroute", sw.id());
+                return null;
             }
             HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia =
                     ecmpSpg.getAllLearnedSwitchesAndVia();
             for (Integer itrIdx : switchVia.keySet()) {
+                log.trace("Iterindex# {}", itrIdx);
                 HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> swViaMap =
                         switchVia.get(itrIdx);
                 for (DeviceId targetSw : swViaMap.keySet()) {
                     DeviceId destSw = sw.id();
+                    if (log.isTraceEnabled()) {
+                        log.trace("TargetSwitch {} --> RootSwitch {}", targetSw, destSw);
+                        for (ArrayList<DeviceId> via : swViaMap.get(targetSw)) {
+                            log.trace(" Via:");
+                            via.forEach(e -> { log.trace("  {}", e); });
+                        }
+                    }
                     Set<ArrayList<DeviceId>> subLinks =
                             computeLinks(targetSw, destSw, swViaMap);
                     for (ArrayList<DeviceId> alink: subLinks) {
@@ -324,20 +357,18 @@ public class DefaultRoutingHandler {
         Set<ArrayList<DeviceId>> routes = new HashSet<>();
 
         for (Device sw : srManager.deviceService.getDevices()) {
-            log.debug("Computing the impacted routes for device {}",
-                      sw.id());
+            log.debug("Computing the impacted routes for device {}", sw.id());
             if (!srManager.mastershipService.isLocalMaster(sw.id())) {
-                log.debug("No mastership for {} and skip route optimization",
+                log.debug("No mastership for {} ... skipping route optimization",
                           sw.id());
                 continue;
             }
-
-            log.trace("link of {} - ", sw.id());
-            for (Link link: srManager.linkService.getDeviceLinks(sw.id())) {
-                log.trace("{} -> {} ", link.src().deviceId(), link.dst().deviceId());
+            if (log.isTraceEnabled()) {
+                log.trace("link of {} - ", sw.id());
+                for (Link link: srManager.linkService.getDeviceLinks(sw.id())) {
+                    log.trace("{} -> {} ", link.src().deviceId(), link.dst().deviceId());
+                }
             }
-
-            log.debug("Checking route change for switch {}", sw.id());
             EcmpShortestPathGraph ecmpSpg = currentEcmpSpgMap.get(sw.id());
             if (ecmpSpg == null) {
                 log.debug("No existing ECMP graph for device {}", sw.id());
@@ -360,7 +391,7 @@ public class DefaultRoutingHandler {
                     ArrayList<ArrayList<DeviceId>> viaUpdated = swViaMapUpdated.get(srcSw);
                     ArrayList<ArrayList<DeviceId>> via = getVia(switchVia, srcSw);
                     if ((via == null) || !viaUpdated.equals(via)) {
-                        log.debug("Impacted route:{}->{}", srcSw, sw.id());
+                        log.debug("Impacted route:{} -> {}", srcSw, sw.id());
                         ArrayList<DeviceId> route = new ArrayList<>();
                         route.add(srcSw);
                         route.add(sw.id());
@@ -370,15 +401,16 @@ public class DefaultRoutingHandler {
             }
         }
 
-        for (ArrayList<DeviceId> link: routes) {
-            log.trace("Route changes - ");
-            if (link.size() == 1) {
-                log.trace(" : {} - all", link.get(0));
-            } else {
-                log.trace(" : {} - {}", link.get(0), link.get(1));
+        if (log.isTraceEnabled()) {
+            for (ArrayList<DeviceId> link: routes) {
+                log.trace("Route changes - ");
+                if (link.size() == 1) {
+                    log.trace(" : all -> {}", link.get(0));
+                } else {
+                    log.trace(" : {} -> {}", link.get(0), link.get(1));
+                }
             }
         }
-
         return routes;
     }
 
@@ -421,8 +453,17 @@ public class DefaultRoutingHandler {
         return subLinks;
     }
 
+    /**
+     * Populate ECMP rules for subnets from all switches to destination.
+     *
+     * @param destSw Device ID of destination switch
+     * @param ecmpSPG ECMP shortest path graph
+     * @param subnets Subnets to be populated. If empty, populate all configured subnets.
+     * @return true if succeed
+     */
     private boolean populateEcmpRoutingRules(DeviceId destSw,
-                                             EcmpShortestPathGraph ecmpSPG) {
+                                             EcmpShortestPathGraph ecmpSPG,
+                                             Set<Ip4Prefix> subnets) {
 
         HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia = ecmpSPG
                 .getAllLearnedSwitchesAndVia();
@@ -439,7 +480,7 @@ public class DefaultRoutingHandler {
                         nextHops.add(via.get(0));
                     }
                 }
-                if (!populateEcmpRoutingRulePartial(targetSw, destSw, nextHops)) {
+                if (!populateEcmpRoutingRulePartial(targetSw, destSw, nextHops, subnets)) {
                     return false;
                 }
             }
@@ -448,9 +489,19 @@ public class DefaultRoutingHandler {
         return true;
     }
 
+    /**
+     * Populate ECMP rules for subnets from target to destination via nexthops.
+     *
+     * @param targetSw Device ID of target switch in which rules will be programmed
+     * @param destSw Device ID of final destination switch to which the rules will forward
+     * @param nextHops List of next hops via which destSw will be reached
+     * @param subnets Subnets to be populated. If empty, populate all configured subnets.
+     * @return true if succeed
+     */
     private boolean populateEcmpRoutingRulePartial(DeviceId targetSw,
                                                    DeviceId destSw,
-                                                   Set<DeviceId> nextHops) {
+                                                   Set<DeviceId> nextHops,
+                                                   Set<Ip4Prefix> subnets) {
         boolean result;
 
         if (nextHops.isEmpty()) {
@@ -472,13 +523,11 @@ public class DefaultRoutingHandler {
         }
 
         if (targetIsEdge && destIsEdge) {
-            Set<Ip4Prefix> subnets = config.getSubnets(destSw);
+            subnets = (subnets != null && !subnets.isEmpty()) ? subnets : config.getSubnets(destSw);
             log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for subnets {}",
                       targetSw, destSw, subnets);
-            result = rulePopulator.populateIpRuleForSubnet(targetSw,
-                                                           subnets,
-                                                           destSw,
-                                                           nextHops);
+            result = rulePopulator.populateIpRuleForSubnet(targetSw, subnets,
+                                                           destSw, nextHops);
             if (!result) {
                 return false;
             }
@@ -519,9 +568,16 @@ public class DefaultRoutingHandler {
      * @param deviceId Switch ID to set the rules
      */
     public void populatePortAddressingRules(DeviceId deviceId) {
-        rulePopulator.populateRouterMacVlanFilters(deviceId);
-        rulePopulator.populateXConnectVlanFilters(deviceId);
         rulePopulator.populateRouterIpPunts(deviceId);
+
+        // Although device is added, sometimes device store does not have the
+        // ports for this device yet. It results in missing filtering rules in the
+        // switch. We will attempt it a few times. If it still does not work,
+        // user can manually repopulate using CLI command sr-reroute-network
+        boolean success = rulePopulator.populateRouterMacVlanFilters(deviceId);
+        if (!success) {
+            executorService.schedule(new RetryFilters(deviceId), 200, TimeUnit.MILLISECONDS);
+        }
     }
 
     /**
@@ -565,4 +621,70 @@ public class DefaultRoutingHandler {
             statusLock.unlock();
         }
     }
+
+    /**
+     * Populate rules of given subnet at given location.
+     *
+     * @param cp connect point of the subnet being added
+     * @param subnets subnet being added
+     * @return true if succeed
+     */
+    protected boolean populateSubnet(ConnectPoint cp, Set<Ip4Prefix> subnets) {
+        statusLock.lock();
+        try {
+            EcmpShortestPathGraph ecmpSpg = currentEcmpSpgMap.get(cp.deviceId());
+            if (ecmpSpg == null) {
+                log.warn("Fail to populating subnet {}: {}", subnets, ECMPSPG_MISSING);
+                return false;
+            }
+            return populateEcmpRoutingRules(cp.deviceId(), ecmpSpg, subnets);
+        } finally {
+            statusLock.unlock();
+        }
+    }
+
+    /**
+     * Revoke rules of given subnet at given location.
+     *
+     * @param subnets subnet being removed
+     * @return true if succeed
+     */
+    protected boolean revokeSubnet(Set<Ip4Prefix> subnets) {
+        statusLock.lock();
+        try {
+            return srManager.routingRulePopulator.revokeIpRuleForSubnet(subnets);
+        } finally {
+            statusLock.unlock();
+        }
+    }
+
+    protected void purgeEcmpGraph(DeviceId deviceId) {
+        currentEcmpSpgMap.remove(deviceId);
+        if (updatedEcmpSpgMap != null) {
+            updatedEcmpSpgMap.remove(deviceId);
+        }
+    }
+
+    private final class RetryFilters implements Runnable {
+        int attempts = MAX_RETRY_ATTEMPTS;
+        DeviceId devId;
+
+        private RetryFilters(DeviceId deviceId) {
+            devId = deviceId;
+        }
+
+        @Override
+        public void run() {
+            log.info("RETRY FILTER ATTEMPT# {} for dev:{}",
+                     MAX_RETRY_ATTEMPTS - attempts, devId);
+            boolean success = rulePopulator.populateRouterMacVlanFilters(devId);
+            if (!success && --attempts > 0) {
+                executorService.schedule(this, 200, TimeUnit.MILLISECONDS);
+            } else if (attempts == 0) {
+                log.error("Unable to populate MacVlan filters in dev:{}", devId);
+            }
+        }
+
+    }
+
 }

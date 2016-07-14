@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,65 +15,35 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapBuilder;
 
-import static com.google.common.base.Preconditions.checkState;
-
 /**
- * Default Consistent Map builder.
+ * Default {@link AsyncConsistentMap} builder.
  *
  * @param <K> type for map key
  * @param <V> type for map value
  */
 public class DefaultConsistentMapBuilder<K, V> extends ConsistentMapBuilder<K, V> {
 
-    private final DatabaseManager manager;
+    private final DistributedPrimitiveCreator primitiveCreator;
 
-    public DefaultConsistentMapBuilder(DatabaseManager manager) {
-        this.manager = manager;
-    }
-
-    private void validateInputs() {
-        checkState(name() != null, "name must be specified");
-        checkState(serializer() != null, "serializer must be specified");
-        if (purgeOnUninstall()) {
-            checkState(applicationId() != null, "ApplicationId must be specified when purgeOnUninstall is enabled");
-        }
+    public DefaultConsistentMapBuilder(DistributedPrimitiveCreator primitiveCreator) {
+        this.primitiveCreator = primitiveCreator;
     }
 
     @Override
     public ConsistentMap<K, V> build() {
-        return buildAndRegisterMap().asConsistentMap();
+        return buildAsyncMap().asConsistentMap();
     }
 
     @Override
     public AsyncConsistentMap<K, V> buildAsyncMap() {
-        return buildAndRegisterMap();
-    }
-
-    private DefaultAsyncConsistentMap<K, V> buildAndRegisterMap() {
-        validateInputs();
-        Database database = partitionsDisabled() ? manager.inMemoryDatabase : manager.partitionedDatabase;
-        if (relaxedReadConsistency()) {
-            return manager.registerMap(
-                    new AsyncCachingConsistentMap<>(name(),
-                        applicationId(),
-                        database,
-                        serializer(),
-                        readOnly(),
-                        purgeOnUninstall(),
-                        meteringEnabled()));
-        } else {
-            return manager.registerMap(
-                    new DefaultAsyncConsistentMap<>(name(),
-                        applicationId(),
-                        database,
-                        serializer(),
-                        readOnly(),
-                        purgeOnUninstall(),
-                        meteringEnabled()));
-        }
+        AsyncConsistentMap<K, V> map = primitiveCreator.newAsyncConsistentMap(name(), serializer());
+        map = relaxedReadConsistency() ? DistributedPrimitives.newCachingMap(map) : map;
+        map = readOnly() ? DistributedPrimitives.newUnmodifiableMap(map) : map;
+        return meteringEnabled() ? DistributedPrimitives.newMeteredMap(map) : map;
     }
 }

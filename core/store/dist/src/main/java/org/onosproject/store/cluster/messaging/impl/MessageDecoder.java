@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,6 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final int correctPreamble;
     private long messageId;
     private int preamble;
     private Version ipVersion;
@@ -50,9 +49,8 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
     private Status status;
     private int contentLength;
 
-    public MessageDecoder(int correctPreamble) {
+    public MessageDecoder() {
         super(DecoderState.READ_MESSAGE_PREAMBLE);
-        this.correctPreamble = correctPreamble;
     }
 
     @Override
@@ -65,9 +63,6 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
         switch (state()) {
         case READ_MESSAGE_PREAMBLE:
             preamble = buffer.readInt();
-            if (preamble != correctPreamble) {
-                throw new IllegalStateException("This message had an incorrect preamble.");
-            }
             checkpoint(DecoderState.READ_MESSAGE_ID);
         case READ_MESSAGE_ID:
             messageId = buffer.readLong();
@@ -106,7 +101,8 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
             } else {
                 payload = new byte[0];
             }
-            InternalMessage message = new InternalMessage(messageId,
+            InternalMessage message = new InternalMessage(preamble,
+                                                          messageId,
                                                           new Endpoint(senderIp, senderPort),
                                                           messageType,
                                                           payload,

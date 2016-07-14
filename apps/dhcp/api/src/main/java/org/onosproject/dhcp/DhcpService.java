@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.HostId;
 
-import java.util.List;
 import java.util.Map;
 
 
@@ -58,16 +57,12 @@ public interface DhcpService {
 
     /**
      * Registers a static IP mapping with the DHCP Server.
-     * Supports rangeNotEnforced option
      *
-     * @param macID macID of the client
-     * @param ipAddress IP Address requested for the client
-     * @param rangeNotEnforced true if rangeNotEnforced was set and the mapping will be eternal
-     * @param addressList subnetMask, DHCP/Router/DNS IP Addresses if rangeNotEnforced was set
+     * @param macAddress mac address to have a given ip assignment
+     * @param ipRequest ip address and dhcp options
      * @return true if the mapping was successfully added, false otherwise
      */
-    boolean setStaticMapping(MacAddress macID, Ip4Address ipAddress, boolean rangeNotEnforced,
-                             List<Ip4Address> addressList);
+    boolean setStaticMapping(MacAddress macAddress, IpAssignment ipRequest);
 
     /**
      * Removes a static IP mapping with the DHCP Server.

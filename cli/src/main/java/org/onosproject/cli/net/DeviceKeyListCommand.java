@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.cli.Comparators;
+import org.onosproject.utils.Comparators;
 import org.onosproject.net.key.DeviceKey;
 import org.onosproject.net.key.DeviceKeyService;
 

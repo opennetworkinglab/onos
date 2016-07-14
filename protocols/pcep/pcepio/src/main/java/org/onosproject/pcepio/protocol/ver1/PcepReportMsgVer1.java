@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,8 +65,8 @@ class PcepReportMsgVer1 implements PcepReportMsg {
     protected static final Logger log = LoggerFactory.getLogger(PcepReportMsgVer1.class);
 
     public static final byte PACKET_VERSION = 1;
-    //PACKET_MINIMUM_LENGTH = CommonHeaderLen(4)+LspObjMinLen(8)+EroObjMinLen(12)
-    public static final int PACKET_MINIMUM_LENGTH = 24;
+    //PACKET_MINIMUM_LENGTH = CommonHeaderLen(4)+LspObjMinLen(8)+EroObjMinLen(4)
+    public static final int PACKET_MINIMUM_LENGTH = 16;
     public static final PcepType MSG_TYPE = PcepType.REPORT;
     public static final byte REPORT_OBJ_TYPE = 1;
     //Optional TLV

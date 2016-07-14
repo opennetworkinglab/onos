@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,10 +48,10 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.MplsPathIntent;
-import org.onosproject.net.newresource.Resource;
-import org.onosproject.net.newresource.ResourceService;
-import org.onosproject.net.newresource.Resources;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
+import org.onosproject.net.resource.Resource;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceService;
+import org.onosproject.net.resource.Resources;
 import org.slf4j.Logger;
 
 import java.util.Collections;
@@ -68,6 +68,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.LinkKey.linkKey;
 import static org.slf4j.LoggerFactory.getLogger;
 
+/**
+ * @deprecated in Goldeneye Release, in favour of encapsulation
+ * constraint {@link org.onosproject.net.intent.constraint.EncapsulationConstraint}
+ */
+@Deprecated
 @Component(immediate = true)
 public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
 
@@ -85,8 +90,7 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
     protected ApplicationId appId;
 
     @Override
-    public List<Intent> compile(MplsPathIntent intent, List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
+    public List<Intent> compile(MplsPathIntent intent, List<Intent> installable) {
         Map<LinkKey, MplsLabel> labels = assignMplsLabel(intent);
         List<FlowRule> rules = generateRules(intent, labels);
 
@@ -131,7 +135,7 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
                                 .resource()
                 ))
                 .collect(Collectors.toSet());
-        List<org.onosproject.net.newresource.ResourceAllocation> allocations =
+        List<ResourceAllocation> allocations =
                 resourceService.allocate(intent.id(), ImmutableList.copyOf(resources));
         if (allocations.isEmpty()) {
             Collections.emptyMap();

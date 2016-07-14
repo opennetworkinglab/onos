@@ -1,0 +1,16 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api',
+    '//apps/routing-api:onos-apps-routing-api',
+]
+
+osgi_jar (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'SDN-IP Reactive Routing App',
+    category = 'Traffic Steering',
+    url = 'http://onosproject.org',
+    description = 'SDN-IP reactive routing application.',
+)

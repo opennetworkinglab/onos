@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ import java.util.List;
 
 /**
  * Quick and dirty device abstraction for SNMP-based Lumentum devices.
- *
+ * <p>
  * TODO: Refactor once SnmpDevice is finished
  */
 public class LumentumSnmpDevice {
@@ -67,6 +67,14 @@ public class LumentumSnmpDevice {
         String ipAddress = deviceComponents[1];
         String port = deviceComponents[2];
 
+        createDevice(ipAddress, Integer.parseInt(port));
+    }
+
+    public LumentumSnmpDevice(String ipAddress, int port) throws IOException {
+        createDevice(ipAddress, port);
+    }
+
+    private void createDevice(String ipAddress, int port) throws IOException {
         Address targetAddress = GenericAddress.parse("udp:" + ipAddress + "/" + port);
         TransportMapping transport = new DefaultUdpTransportMapping();
         transport.listen();

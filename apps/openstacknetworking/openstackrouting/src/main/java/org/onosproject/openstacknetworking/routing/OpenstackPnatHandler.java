@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackNetwork;
 import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstackinterface.OpenstackRouter;
+import org.onosproject.openstacknetworking.OpenstackNetworkingConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,12 +57,12 @@ public class OpenstackPnatHandler implements Runnable {
     private final int portNum;
     private final OpenstackPort openstackPort;
     private final Port port;
-    private OpenstackRoutingConfig config;
+    private OpenstackNetworkingConfig config;
 
     private static final String DEVICE_OWNER_ROUTER_INTERFACE = "network:router_interface";
 
     OpenstackPnatHandler(OpenstackRoutingRulePopulator rulePopulator, PacketContext context,
-                         int portNum, OpenstackPort openstackPort, Port port, OpenstackRoutingConfig config) {
+                         int portNum, OpenstackPort openstackPort, Port port, OpenstackNetworkingConfig config) {
         this.rulePopulator = checkNotNull(rulePopulator);
         this.context = checkNotNull(context);
         this.portNum = checkNotNull(portNum);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,26 @@ import java.util.Arrays;
  */
 public class MacAddress {
 
+    /**
+     * Dummy MAC address.
+     */
     public static final MacAddress NONE = valueOf("a4:23:05:00:00:00");
+    /**
+     * All-zero MAC address.
+     */
     public static final MacAddress ZERO = valueOf("00:00:00:00:00:00");
+    /**
+     * Broadcast MAC address.
+     */
     public static final MacAddress BROADCAST = valueOf("ff:ff:ff:ff:ff:ff");
+    /**
+     * IPv4 multicast MAC address.
+     */
+    public static final MacAddress IPV4_MULTICAST = valueOf("01:00:5e:00:00:00");
+    /**
+     * IPv4 multicast MAC mask.
+     */
+    public static final MacAddress IPV4_MULTICAST_MASK = valueOf("ff:ff:ff:80:00:00");
 
     private static final byte[] LL = new byte[]{
             0x01, (byte) 0x80, (byte) 0xc2, 0x00, 0x00,

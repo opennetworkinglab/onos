@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,13 @@ public interface FlowClassifier {
      * @return IP protocol
      */
     String protocol();
+
+    /**
+     * Returns priority.
+     *
+     * @return priority
+     */
+    int priority();
 
     /**
      * Returns minimum source port range.
@@ -191,6 +198,14 @@ public interface FlowClassifier {
          * @return builder object by setting IP protocol
          */
         Builder setProtocol(String protocol);
+
+        /**
+         * Sets priority.
+         *
+         * @param priority priority
+         * @return builder object by setting priority
+         */
+        Builder setPriority(int priority);
 
         /**
          * Set minimum source port range.

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2016 Open Networking Laboratory
+  ~ Copyright 2016-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
     <parent>
         <artifactId>onos-drivers-general</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.5.2-SNAPSHOT</version>
+        <version>1.6.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -35,6 +35,10 @@
         <onos.app.category>Drivers</onos.app.category>
         <onos.app.title>Lumentum Device Drivers</onos.app.title>
         <onos.app.url>http://onosproject.org</onos.app.url>
+        <onos.app.requires>
+            org.onosproject.snmp,
+            org.onosproject.faultmanagement
+        </onos.app.requires>
     </properties>
 
     <dependencies>
@@ -42,6 +46,11 @@
             <groupId>org.apache.servicemix.bundles</groupId>
             <artifactId>org.apache.servicemix.bundles.snmp4j</artifactId>
             <version>2.3.4_1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-snmp-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

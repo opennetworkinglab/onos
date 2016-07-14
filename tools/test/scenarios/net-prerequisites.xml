@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2016 Open Networking Laboratory
+  ~ Copyright 2016-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,6 +17,5 @@
     <group name="Net-Prerequisites">
         <step name="Check-mininet" exec="ssh ${ONOS_USER}@${OCN} type mn"/>
         <step name="Check-screen" exec="ssh ${ONOS_USER}@${OCN} type screen"/>
-        <step name="Check-arping" exec="ssh ${ONOS_USER}@${OCN} type arping"/>
     </group>
 </scenario>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceEvent;
+import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
@@ -65,9 +67,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import static org.slf4j.LoggerFactory.getLogger;
 import static com.google.common.base.Preconditions.checkState;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages connectivity between peers redirecting control traffic to a routing
@@ -115,6 +118,7 @@ public class ControlPlaneRedirectManager {
     private final InternalNetworkConfigListener networkConfigListener =
             new InternalNetworkConfigListener();
     private final InternalHostListener hostListener = new InternalHostListener();
+    private final InternalInterfaceListener interfaceListener = new InternalInterfaceListener();
 
     @Activate
     public void activate() {
@@ -123,6 +127,7 @@ public class ControlPlaneRedirectManager {
         deviceService.addListener(deviceListener);
         networkConfigService.addListener(networkConfigListener);
         hostService.addListener(hostListener);
+        interfaceService.addListener(interfaceListener);
 
         updateConfig();
     }
@@ -132,6 +137,7 @@ public class ControlPlaneRedirectManager {
         deviceService.removeListener(deviceListener);
         networkConfigService.removeListener(networkConfigListener);
         hostService.removeListener(hostListener);
+        interfaceService.removeListener(interfaceListener);
     }
 
     private void updateConfig() {
@@ -167,33 +173,44 @@ public class ControlPlaneRedirectManager {
         }
     }
 
-    private void provisionInterface(Interface intf) {
-        addBasicInterfaceForwarding(intf);
-        updateOspfForwarding(intf);
+    private void removeInterface(Interface intf) {
+        modifyBasicInterfaceForwarding(intf, false);
+        updateOspfForwarding(intf, false);
     }
 
-    private void addBasicInterfaceForwarding(Interface intf) {
+    private void provisionInterface(Interface intf) {
+        modifyBasicInterfaceForwarding(intf, true);
+        updateOspfForwarding(intf, true);
+    }
+    /**
+     * Installs or removes the basic forwarding flows for each interface
+     * based on the flag used.
+     *
+     * @param intf the Interface on which event is received
+     * @param install true to create an add objective, false to create a remove
+     *            objective
+     **/
+    private void modifyBasicInterfaceForwarding(Interface intf, boolean install) {
         log.debug("Adding interface objectives for {}", intf);
 
         DeviceId deviceId = controlPlaneConnectPoint.deviceId();
         PortNumber controlPlanePort = controlPlaneConnectPoint.port();
-
         for (InterfaceIpAddress ip : intf.ipAddresses()) {
             // create nextObjectives for forwarding to this interface and the
             // controlPlaneConnectPoint
             int cpNextId, intfNextId;
             if (intf.vlan() == VlanId.NONE) {
-                cpNextId = createNextObjective(deviceId, controlPlanePort,
+                cpNextId = modifyNextObjective(deviceId, controlPlanePort,
                                VlanId.vlanId(SingleSwitchFibInstaller.ASSIGNED_VLAN),
-                               true);
-                intfNextId = createNextObjective(deviceId, intf.connectPoint().port(),
+                               true, install);
+                intfNextId = modifyNextObjective(deviceId, intf.connectPoint().port(),
                                VlanId.vlanId(SingleSwitchFibInstaller.ASSIGNED_VLAN),
-                               true);
+                               true, install);
             } else {
-                cpNextId = createNextObjective(deviceId, controlPlanePort,
-                                               intf.vlan(), false);
-                intfNextId = createNextObjective(deviceId, intf.connectPoint().port(),
-                                                 intf.vlan(), false);
+                cpNextId = modifyNextObjective(deviceId, controlPlanePort,
+                                               intf.vlan(), false, install);
+                intfNextId = modifyNextObjective(deviceId, intf.connectPoint().port(),
+                                                 intf.vlan(), false, install);
             }
 
             // IPv4 to router
@@ -206,7 +223,7 @@ public class ControlPlaneRedirectManager {
                     .build();
 
             flowObjectiveService.forward(deviceId,
-                    buildForwardingObjective(toSelector, null, cpNextId, true));
+                    buildForwardingObjective(toSelector, null, cpNextId, install));
 
             // IPv4 from router
             TrafficSelector fromSelector = DefaultTrafficSelector.builder()
@@ -218,7 +235,7 @@ public class ControlPlaneRedirectManager {
                     .build();
 
             flowObjectiveService.forward(deviceId,
-                    buildForwardingObjective(fromSelector, null, intfNextId, true));
+                    buildForwardingObjective(fromSelector, null, intfNextId, install));
 
             // ARP to router
             toSelector = DefaultTrafficSelector.builder()
@@ -232,7 +249,7 @@ public class ControlPlaneRedirectManager {
                     .build();
 
             flowObjectiveService.forward(deviceId,
-                    buildForwardingObjective(toSelector, puntTreatment, cpNextId, true));
+                    buildForwardingObjective(toSelector, puntTreatment, cpNextId, install));
 
             // ARP from router
             fromSelector = DefaultTrafficSelector.builder()
@@ -244,11 +261,18 @@ public class ControlPlaneRedirectManager {
                     .build();
 
             flowObjectiveService.forward(deviceId,
-            buildForwardingObjective(fromSelector, puntTreatment, intfNextId, true));
+            buildForwardingObjective(fromSelector, puntTreatment, intfNextId, install));
         }
     }
 
-    private void updateOspfForwarding(Interface intf) {
+    /**
+     * Installs or removes OSPF forwarding rules.
+     *
+     * @param intf the interface on which event is received
+     * @param install true to create an add objective, false to create a remove
+     *            objective
+     **/
+    private void updateOspfForwarding(Interface intf, boolean install) {
         // OSPF to router
         TrafficSelector toSelector = DefaultTrafficSelector.builder()
                 .matchInPort(intf.connectPoint().port())
@@ -262,16 +286,16 @@ public class ControlPlaneRedirectManager {
         PortNumber controlPlanePort = controlPlaneConnectPoint.port();
         int cpNextId;
         if (intf.vlan() == VlanId.NONE) {
-            cpNextId = createNextObjective(deviceId, controlPlanePort,
+            cpNextId = modifyNextObjective(deviceId, controlPlanePort,
                            VlanId.vlanId(SingleSwitchFibInstaller.ASSIGNED_VLAN),
-                           true);
+                           true, install);
         } else {
-            cpNextId = createNextObjective(deviceId, controlPlanePort,
-                                           intf.vlan(), false);
+            cpNextId = modifyNextObjective(deviceId, controlPlanePort,
+                                           intf.vlan(), false, install);
         }
-        log.debug("ospf flows intf:{} nextid:{}", intf, cpNextId);
+        log.debug("OSPF flows intf:{} nextid:{}", intf, cpNextId);
         flowObjectiveService.forward(controlPlaneConnectPoint.deviceId(),
-                buildForwardingObjective(toSelector, null, cpNextId, ospfEnabled));
+                buildForwardingObjective(toSelector, null, cpNextId, install ? ospfEnabled : install));
     }
 
     /**
@@ -282,10 +306,12 @@ public class ControlPlaneRedirectManager {
      * @param portNumber the egress port
      * @param vlanId vlan information for egress port
      * @param popVlan if vlan tag should be popped or not
+     * @param install true to create an add next objective, false to create a remove
+     *            next objective
      * @return nextId of the next objective created
      */
-    private int createNextObjective(DeviceId deviceId, PortNumber portNumber,
-                                    VlanId vlanId, boolean popVlan) {
+    private int modifyNextObjective(DeviceId deviceId, PortNumber portNumber,
+                                    VlanId vlanId, boolean popVlan, boolean install) {
         int nextId = flowObjectiveService.allocateNextId();
         NextObjective.Builder nextObjBuilder = DefaultNextObjective
                 .builder().withId(nextId)
@@ -305,12 +331,15 @@ public class ControlPlaneRedirectManager {
 
         nextObjBuilder.withMeta(metabuilder.build());
         nextObjBuilder.addTreatment(ttBuilder.build());
-        log.debug("Submited next objective {} in device {} for port/vlan {}/{}",
+        log.debug("Submitted next objective {} in device {} for port/vlan {}/{}",
                 nextId, deviceId, portNumber, vlanId);
-        flowObjectiveService.next(deviceId, nextObjBuilder.add());
+        if (install) {
+             flowObjectiveService.next(deviceId, nextObjBuilder.add());
+        } else {
+             flowObjectiveService.next(deviceId, nextObjBuilder.remove());
+        }
         return nextId;
     }
-
     /**
      * Builds a forwarding objective from the given selector, treatment and nextId.
      *
@@ -344,6 +373,7 @@ public class ControlPlaneRedirectManager {
      * Listener for device events.
      */
     private class InternalDeviceListener implements DeviceListener {
+
         @Override
         public void event(DeviceEvent event) {
             if (controlPlaneConnectPoint != null &&
@@ -355,7 +385,6 @@ public class ControlPlaneRedirectManager {
                         log.info("Device connected {}", event.subject().id());
                         updateDevice();
                     }
-
                     break;
                 case DEVICE_UPDATED:
                 case DEVICE_REMOVED:
@@ -374,6 +403,7 @@ public class ControlPlaneRedirectManager {
      * Listener for network config events.
      */
     private class InternalNetworkConfigListener implements NetworkConfigListener {
+
         @Override
         public void event(NetworkConfigEvent event) {
             if (event.configClass().equals(RoutingService.ROUTER_CONFIG_CLASS)) {
@@ -396,6 +426,7 @@ public class ControlPlaneRedirectManager {
      * Listener for host events.
      */
     private class InternalHostListener implements HostListener {
+
         private void peerAdded(HostEvent event) {
             Host peer = event.subject();
             Optional<Interface> peerIntf =
@@ -535,5 +566,61 @@ public class ControlPlaneRedirectManager {
         return (prefix.isIp4()) ?
                 2000 * prefix.prefixLength() + MIN_IP_PRIORITY :
                 500 * prefix.prefixLength() + MIN_IP_PRIORITY;
+    }
+
+    /**
+     * Update the flows comparing previous event and current event.
+     *
+     * @param prevIntf the previous interface event
+     * @param intf the current occured update envent
+     **/
+    private void updateInterface(Interface prevIntf, Interface intf) {
+        if (!prevIntf.vlan().equals(intf.vlan()) || !prevIntf.mac().equals(intf)) {
+            removeInterface(prevIntf);
+            provisionInterface(intf);
+        } else {
+            List<InterfaceIpAddress> removeIps =
+                    prevIntf.ipAddressesList().stream()
+                    .filter(pre -> !intf.ipAddressesList().contains(pre))
+                    .collect(Collectors.toList());
+            List<InterfaceIpAddress> addIps =
+                    intf.ipAddressesList().stream()
+                    .filter(cur -> !prevIntf.ipAddressesList().contains(cur))
+                    .collect(Collectors.toList());
+            // removing flows with match parameters present in previous subject
+            modifyBasicInterfaceForwarding(new Interface(prevIntf.name(), prevIntf.connectPoint(),
+                    removeIps, prevIntf.mac(), prevIntf.vlan()), false);
+            // adding flows with match parameters present in event subject
+            modifyBasicInterfaceForwarding(new Interface(intf.name(), intf.connectPoint(),
+                    addIps, intf.mac(), intf.vlan()), true);
+        }
+    }
+
+    private class InternalInterfaceListener implements InterfaceListener {
+
+        @Override
+        public void event(InterfaceEvent event) {
+             Interface intf = event.subject();
+             Interface prevIntf = event.prevSubject();
+                switch (event.type()) {
+                case INTERFACE_ADDED:
+                    if (intf != null && !intf.connectPoint().equals(controlPlaneConnectPoint)) {
+                        provisionInterface(intf);
+                    }
+                    break;
+                case INTERFACE_UPDATED:
+                    if (intf != null && !intf.connectPoint().equals(controlPlaneConnectPoint)) {
+                        updateInterface(prevIntf, intf);
+                    }
+                    break;
+                case INTERFACE_REMOVED:
+                    if (intf != null && !intf.connectPoint().equals(controlPlaneConnectPoint)) {
+                        removeInterface(intf);
+                    }
+                    break;
+                default:
+                    break;
+                }
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,11 @@ import com.google.common.annotations.Beta;
 import org.onlab.util.Bandwidth;
 import org.onlab.util.DataRateUnit;
 import org.onosproject.net.Link;
-import org.onosproject.net.resource.link.BandwidthResourceRequest;
-import org.onosproject.net.resource.link.LinkResourceService;
-import org.onosproject.net.resource.ResourceRequest;
-import org.onosproject.net.resource.ResourceType;
+import org.onosproject.net.intent.ResourceContext;
+import org.onosproject.net.resource.Resources;
 
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -64,16 +63,10 @@ public final class BandwidthConstraint extends BooleanConstraint {
     }
 
     @Override
-    public boolean isValid(Link link, LinkResourceService resourceService) {
-        for (ResourceRequest request : resourceService.getAvailableResources(link)) {
-            if (request.type() == ResourceType.BANDWIDTH) {
-                BandwidthResourceRequest brr = (BandwidthResourceRequest) request;
-                if (brr.bandwidth().toDouble() >= bandwidth.bps()) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    public boolean isValid(Link link, ResourceContext context) {
+        return Stream.of(link.src(), link.dst())
+                .map(cp -> Resources.continuous(cp.deviceId(), cp.port(), Bandwidth.class).resource(bandwidth.bps()))
+                .allMatch(context::isAvailable);
     }
 
     /**

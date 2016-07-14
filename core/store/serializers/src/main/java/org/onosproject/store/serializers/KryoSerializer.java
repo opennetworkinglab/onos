@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,10 @@ import com.google.common.base.MoreObjects;
 
 /**
  * StoreSerializer implementation using Kryo.
+ *
+ * @deprecated in Goldeneye (1.6.0)
  */
+@Deprecated
 public class KryoSerializer implements StoreSerializer {
 
     protected KryoNamespace serializerPool;
@@ -75,6 +78,11 @@ public class KryoSerializer implements StoreSerializer {
     @Override
     public <T> T decode(InputStream stream) {
         return serializerPool.deserialize(stream);
+    }
+
+    @Override
+    public <T> T copy(T object) {
+        return decode(encode(object));
     }
 
     @Override

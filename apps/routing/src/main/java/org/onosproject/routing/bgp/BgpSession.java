@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -327,6 +327,7 @@ public class BgpSession extends SimpleChannelHandler {
                   ctx.getChannel().getRemoteAddress(),
                   ctx.getChannel().getLocalAddress(),
                   e);
+        log.debug("Exception:", e.getCause());
         processChannelDisconnected();
     }
 
@@ -350,8 +351,8 @@ public class BgpSession extends SimpleChannelHandler {
         BgpRouteSelector bgpRouteSelector =
             bgpSessionManager.getBgpRouteSelector();
         Collection<BgpRouteEntry> addedRoutes = Collections.emptyList();
-        bgpRouteSelector.routeUpdates(this, addedRoutes, deletedRoutes4);
-        bgpRouteSelector.routeUpdates(this, addedRoutes, deletedRoutes6);
+        bgpRouteSelector.routeUpdates(addedRoutes, deletedRoutes4);
+        bgpRouteSelector.routeUpdates(addedRoutes, deletedRoutes6);
 
         bgpSessionManager.peerDisconnected(this);
     }

@@ -40,7 +40,7 @@ complete -F _stl-opts stl
 function _cell-opts () {
   local cur=${COMP_WORDS[COMP_CWORD]}
   if [ $COMP_CWORD -eq 1 ]; then
-    COMPREPLY=( $( compgen -W "$(cd $ONOS_ROOT/tools/test/cells && ls -1)" -- $cur ) )
+    COMPREPLY=( $( compgen -W "$(cd $ONOS_ROOT/tools/test/cells && ls -1) borrow return status" -- $cur ) )
   fi
 }
 

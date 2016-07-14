@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2014-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,6 +24,14 @@
             <completers>
                 <ref component-id="reviewAppNameCompleter"/>
             </completers>
+        </command>
+
+        <command>
+            <action class="org.onosproject.cli.net.FlowObjectiveNextListCommand"/>
+        </command>
+
+        <command>
+            <action class="org.onosproject.cli.net.FlowObjectivePendingNextCommand"/>
         </command>
 
         <command>
@@ -119,6 +127,15 @@
             </completers>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.DevicePortStateCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+                <ref component-id="portNumberCompleter"/>
+                <ref component-id="portStateCompleter"/>
+                <null/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.DeviceControllersCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
@@ -162,6 +179,12 @@
         </command>
         <command>
             <action class="org.onosproject.cli.net.DeviceInterfaceRemoveCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.DeviceInterfacesListCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
             </completers>
@@ -364,29 +387,6 @@
             </completers>
         </command>
 
-        <!-- Should deprecate following 3 commands soon. -->
-        <command>
-            <action class="org.onosproject.cli.net.ResourceAllocationsCommand"/>
-            <completers>
-                <ref component-id="connectPointCompleter"/>
-                <ref component-id="connectPointCompleter"/>
-            </completers>
-        </command>
-        <command>
-            <action class="org.onosproject.cli.net.ResourceAvailableCommand"/>
-            <completers>
-                <ref component-id="connectPointCompleter"/>
-                <ref component-id="connectPointCompleter"/>
-            </completers>
-        </command>
-        <command>
-            <action class="org.onosproject.cli.net.LinkResourceTestCommand"/>
-            <completers>
-                <ref component-id="connectPointCompleter"/>
-                <ref component-id="connectPointCompleter"/>
-                <null/>
-            </completers>
-        </command>
         <command>
             <action class="org.onosproject.cli.net.ClustersListCommand"/>
         </command>
@@ -452,6 +452,11 @@
 
         <command>
             <action class="org.onosproject.cli.net.DevicePortStatsCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+                <ref component-id="portNumberCompleter"/>
+                <null/>
+            </completers>
         </command>
 
         <command>
@@ -499,6 +504,19 @@
                 <entry key="--extHdr" value-ref="ExtHeaderCompleter"/>
                 <entry key="-a" value-ref="allAppNameCompleter"/>
             </optional-completers>
+        </command>
+
+        <command>
+            <action class="org.onosproject.cli.net.RoutesListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.RouteAddCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.RouteRemoveCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.NextHopsListCommand"/>
         </command>
 
         <command>
@@ -609,6 +627,53 @@
                 <ref component-id="deviceIdCompleter"/>
             </completers>
         </command>
+
+        <!--virtual network commands -->
+        <command>
+            <action class="org.onosproject.cli.net.vnet.TenantListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.TenantAddCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.TenantRemoveCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualNetworkListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualNetworkCreateCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualNetworkRemoveCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualDeviceListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualDeviceCreateCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualDeviceRemoveCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualLinkListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualLinkCreateCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualLinkRemoveCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualPortListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualPortCreateCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualPortRemoveCommand"/>
+        </command>
     </command-bundle>
 
     <bean id="reviewAppNameCompleter" class="org.onosproject.cli.security.ReviewApplicationNameCompleter"/>
@@ -622,6 +687,7 @@
     <bean id="nodeIdCompleter" class="org.onosproject.cli.NodeIdCompleter"/>
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
     <bean id="portNumberCompleter" class="org.onosproject.cli.net.PortNumberCompleter"/>
+    <bean id="portStateCompleter" class="org.onosproject.cli.net.PortStateCompleter"/>
     <bean id="clusterIdCompleter" class="org.onosproject.cli.net.ClusterIdCompleter"/>
     <bean id="roleCompleter" class="org.onosproject.cli.net.RoleCompleter"/>
     <bean id="hostIdCompleter" class="org.onosproject.cli.net.HostIdCompleter"/>

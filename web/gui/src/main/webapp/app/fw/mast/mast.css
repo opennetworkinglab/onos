@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,88 +15,86 @@
  */
 
 /*
- ONOS GUI -- Masthead -- CSS file
+ ONOS GUI -- Masthead (layout) -- CSS file
  */
 
 #mast {
-    height: 36px;
-    padding: 4px;
-    vertical-align: baseline;
+    height: 48px;
+    padding: 0;
+}
+
+#mast a:hover {
+    text-decoration: none;
 }
 
 html[data-platform='iPad'] #mast {
     padding-top: 16px;
 }
 
-.light #mast {
-    background-color: #bbb;
-    box-shadow: 0 2px 8px #777;
-}
-.dark #mast {
-    background-color: #444;
-    box-shadow: 0 2px 8px #222;
-}
-
 #mast .nav-menu-button {
-    width: 30px;
-    height: 30px;
-    margin-left: 8px;
-    margin-bottom: 4px;
-    cursor: pointer;
-}
-.light #mast .nav-menu-button:hover {
-    background-color: #ddd;
-}
-.dark #mast .nav-menu-button:hover {
-    background-color: #777;
+    width: 26px;
+    height: 21px;
+    margin: 14px 18px 14px 14px;
 }
 
 #mast img.logo {
-    height: 38px;
-    padding-left: 8px;
-    padding-right: 8px;
-}
-
-#mast img.logo:hover {
-    /* need something better */
-    /*background-color: #888;*/
-}
-
-#mast .title {
-    font-size: 14pt;
-    font-style: italic;
-    vertical-align: 12px;
-}
-
-.light #mast .title {
-    color: #369;
-}
-.dark #mast .title {
-    color: #eee;
+    height: 47px;
+    width: 511px;
+    margin: 0;
 }
 
 #mast-right {
     display: inline-block;
-    padding-top: 8px;
-    padding-right: 16px;
     float: right;
-    /*border: 1px solid red;*/
+    position: relative;
+    top: 0;
+    padding-right: 15px;
+    line-height: 44px;
 }
 
-#mast-right a {
+
+/*
+    MAST HEAD DROPDOWN MENU
+*/
+
+#mast .dropdown-parent {
+    position: relative;
+}
+
+#mast .dropdown-parent i.dropdown-icon {
+    display: inline-block;
+    height: 7px;
+    width: 9px;
+    margin-left: 10px;
+    background: url('../../../data/img/dropdown-icon.png') no-repeat;
+}
+
+#mast .dropdown {
+    position: absolute;
+    top: 40px;
+    right: -8px;
+    display: none;
+    min-width: 100px;
+    line-height: 16px;
     font-size: 12pt;
-    font-style: normal;
-    font-weight: bold;
+    z-index: 1000;
+}
+
+#mast .dropdown a {
     text-decoration: none;
+    font-size: 12px;
+    display: block;
+    padding: 8px 16px 6px 12px;
 }
 
-.light #mast-right a {
-    color: #369;
-}
-.dark #mast-right a {
-    color: #eee;
+#mast .dropdown-parent:hover .dropdown {
+    display: block;
 }
 
-#mast-right a:hover {
-    color: #CE5650;
+#mast .dropdown-parent:hover i.dropdown-icon {
+    background-position-x: -14px
+}
+
+html[data-platform='iPad'] #mast .dropdown {
+    top: 57px;
 }

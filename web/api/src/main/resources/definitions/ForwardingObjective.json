@@ -18,12 +18,12 @@
     },
     "priority": {
       "type": "integer",
-      "format": "int64",
-      "example": 400000
+      "format": "int32",
+      "example": 40000
     },
     "timeout": {
       "type": "integer",
-      "format": "int64",
+      "format": "int32",
       "example": 0
     },
     "isPermanent": {

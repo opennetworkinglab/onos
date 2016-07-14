@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.onosproject.pcepio.protocol.PcepFactory;
 import org.onosproject.pcepio.protocol.PcepMessage;
+import org.onosproject.pcepio.protocol.PcepStateReport;
 
 /**
  * Represents to provider facing side of a path computation client(pcc).
@@ -95,16 +96,104 @@ public interface PcepClient {
     String channelId();
 
     /**
-     * To set the status of state synchronization.
+     * Sets the status of LSP state synchronization.
      *
-     * @param value to set the synchronization status
+     * @param syncStatus LSP synchronization status to be set
      */
-    void setIsSyncComplete(boolean value);
+    void setLspDbSyncStatus(PcepSyncStatus syncStatus);
 
     /**
-     * Indicates the state synchronization status of this pcc.
+     * Indicates the LSP state synchronization status of this pcc.
      *
-     * @return true/false if the synchronization is completed/not completed
+     * @return LSP state synchronization status.
      */
-    boolean isSyncComplete();
+    PcepSyncStatus lspDbSyncStatus();
+
+    /**
+     * Sets the status of label DB synchronization.
+     *
+     * @param syncStatus label DB synchronization status to be set
+     */
+    void setLabelDbSyncStatus(PcepSyncStatus syncStatus);
+
+    /**
+     * Indicates the label DB synchronization status of this pcc.
+     *
+     * @return label DB synchronization status.
+     */
+    PcepSyncStatus labelDbSyncStatus();
+
+    /**
+     * Sets capability negotiated during open message exchange.
+     *
+     * @param capability supported by client
+     */
+    void setCapability(ClientCapability capability);
+
+    /**
+     * Obtains capability supported by client.
+     *
+     * @return capability supported by client
+     */
+    ClientCapability capability();
+
+    /**
+     * Adds PCEP device when session is successfully established.
+     *
+     * @param pc PCEP client details
+     */
+    void addNode(PcepClient pc);
+
+    /**
+     * Removes PCEP device when session is disconnected.
+     *
+     * @param pccId PCEP client ID
+     */
+    void deleteNode(PccId pccId);
+
+     /**
+     * Sets D flag for the given LSP and its LSP info.
+     *
+     * @param lspKey contains LSP info
+     * @param dFlag delegation flag in LSP object
+     */
+    void setLspAndDelegationInfo(LspKey lspKey, boolean dFlag);
+
+    /**
+     * Returns delegation flag for the given LSP info.
+     *
+     * @param lspKey contains LSP info
+     * @return delegation flag
+     */
+    Boolean delegationInfo(LspKey lspKey);
+
+    /**
+     * Creates a temporary cache to hold report messages received during LSPDB sync.
+     *
+     * @param pccId PCC id which is the key to store report messages
+     */
+    void initializeSyncMsgList(PccId pccId);
+
+    /**
+     * Returns the list of report messages received during LSPDB sync.
+     *
+     * @param pccId PCC id which is the key for all the report messages
+     * @return list of report messages received during LSPDB sync
+     */
+    List<PcepStateReport> getSyncMsgList(PccId pccId);
+
+    /**
+     * Removes the list of report messages received during LSPDB sync.
+     *
+     * @param pccId PCC id which is the key for all the report messages
+     */
+    void removeSyncMsgList(PccId pccId);
+
+    /**
+     * Adds report message received during LSPDB sync into temporary cache.
+     *
+     * @param pccId PCC id which is the key to store report messages
+     * @param rptMsg the report message to be stored
+     */
+    void addSyncMsgToList(PccId pccId, PcepStateReport rptMsg);
 }

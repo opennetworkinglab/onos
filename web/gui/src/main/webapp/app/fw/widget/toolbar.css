@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,8 @@
  */
 
 /*
- ONOS GUI -- Toolbar Service -- CSS file
+ ONOS GUI -- Toolbar Service (layout) -- CSS file
  */
-
-.light .tbar-arrow svg.embeddedIcon .icon .glyph {
-    fill: #838383;
-}
-.dark .tbar-arrow svg.embeddedIcon .icon .glyph {
-    fill: #B2B2B2;
-}
-
 
 div.tbar-arrow {
     position: absolute;
@@ -42,17 +34,6 @@ div.tbar-arrow {
     margin-right: -3%;
 }
 
-.tbar-arrow svg.embeddedIcon .icon rect {
-    stroke: none;
-}
-.light .tbar-arrow svg.embeddedIcon .icon rect {
-    fill: none;
-}
-.dark .tbar-arrow svg.embeddedIcon .icon rect {
-    fill: none;
-}
-
-
 .toolbar {
     line-height: 125%;
 }
@@ -60,18 +41,10 @@ div.tbar-arrow {
     display: inline-block;
 }
 
-
-
 .separator {
     border: 1px solid;
     margin: 0 4px 0 4px;
     display: inline-block;
     height: 23px;
     width: 0;
-}
-.light .separator {
-    border-color: #ddd;
-}
-.dark .separator {
-    border-color: #1A1A1A;
 }

@@ -1,0 +1,14 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:netty-transport',
+    '//lib:netty-buffer',
+    '//lib:netty-codec',
+    '//lib:netty-handler',
+    '//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc',
+    '//protocols/ovsdb/api:onos-protocols-ovsdb-api',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)
+

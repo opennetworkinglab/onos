@@ -1,0 +1,15 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+    '//core/store/serializers:onos-core-serializers',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_REST',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)

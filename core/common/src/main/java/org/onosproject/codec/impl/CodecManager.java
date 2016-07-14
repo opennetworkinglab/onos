@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,24 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.RoleInfo;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.Application;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.incubator.net.virtual.TenantId;
+import org.onosproject.incubator.net.virtual.VirtualDevice;
+import org.onosproject.incubator.net.virtual.VirtualLink;
+import org.onosproject.incubator.net.virtual.VirtualNetwork;
+import org.onosproject.incubator.net.virtual.VirtualPort;
+import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Path;
 import org.onosproject.net.Port;
 import org.onosproject.net.device.PortStatistics;
@@ -87,6 +96,7 @@ public class CodecManager implements CodecService {
     public void activate() {
         codecs.clear();
         registerCodec(Application.class, new ApplicationCodec());
+        registerCodec(ApplicationId.class, new ApplicationIdCodec());
         registerCodec(ControllerNode.class, new ControllerNodeCodec());
         registerCodec(Annotations.class, new AnnotationsCodec());
         registerCodec(Device.class, new DeviceCodec());
@@ -126,6 +136,14 @@ public class CodecManager implements CodecService {
         registerCodec(McastRoute.class, new McastRouteCodec());
         registerCodec(DeviceKey.class, new DeviceKeyCodec());
         registerCodec(Region.class, new RegionCodec());
+        registerCodec(TenantId.class, new TenantIdCodec());
+        registerCodec(VirtualNetwork.class, new VirtualNetworkCodec());
+        registerCodec(VirtualDevice.class, new VirtualDeviceCodec());
+        registerCodec(VirtualPort.class, new VirtualPortCodec());
+        registerCodec(VirtualLink.class, new VirtualLinkCodec());
+        registerCodec(MastershipTerm.class, new MastershipTermCodec());
+        registerCodec(MastershipRole.class, new MastershipRoleCodec());
+        registerCodec(RoleInfo.class, new RoleInfoCodec());
         log.info("Started");
     }
 

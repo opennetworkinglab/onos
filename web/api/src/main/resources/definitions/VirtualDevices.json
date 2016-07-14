@@ -1,0 +1,36 @@
+{
+  "type": "object",
+  "title": "VirtualDevices",
+  "required": [
+    "devices"
+  ],
+  "properties": {
+    "devices": {
+      "type": "array",
+      "xml": {
+        "name": "devices",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "vdev",
+        "required": [
+          "networkId",
+          "deviceId"
+        ],
+        "properties": {
+          "networkId": {
+            "type": "int64",
+            "description": "Network identifier",
+            "example": 3
+          },
+          "deviceId": {
+            "type": "String",
+            "description": "Device identifier",
+            "example": "of:0000000000000042"
+          }
+        }
+      }
+    }
+  }
+}

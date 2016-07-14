@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class OpenflowPipelineFactory
 
         ChannelPipeline pipeline = Channels.pipeline();
         if (sslContext != null) {
-            log.info("OpenFlow SSL enabled.");
+            log.debug("OpenFlow SSL enabled.");
             SSLEngine sslEngine = sslContext.createSSLEngine();
 
             sslEngine.setNeedClientAuth(true);
@@ -79,7 +79,7 @@ public class OpenflowPipelineFactory
             SslHandler sslHandler = new SslHandler(sslEngine);
             pipeline.addLast("ssl", sslHandler);
         } else {
-            log.info("OpenFlow SSL disabled");
+            log.debug("OpenFlow SSL disabled.");
         }
         pipeline.addLast("ofmessagedecoder", new OFMessageDecoder());
         pipeline.addLast("ofmessageencoder", new OFMessageEncoder());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public class MetricsComponent implements MetricsComponentRegistry {
      *
      * @param newName name of the component
      */
-    MetricsComponent(final String newName) {
+    public MetricsComponent(final String newName) {
         name = newName;
     }
 

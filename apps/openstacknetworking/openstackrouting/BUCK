@@ -1,0 +1,24 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//core/store/serializers:onos-core-serializers',
+    '//apps/openstackinterface/api:onos-apps-openstackinterface-api',
+    '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
+]
+
+BUNDLES = [
+    '//apps/openstackinterface/api:onos-apps-openstackinterface-api',
+    '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
+    '//apps/openstacknetworking/openstackrouting:onos-apps-openstacknetworking-openstackrouting',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'OpenStack Routing App',
+    category = 'Utility',
+    url = 'http://onosproject.org',
+    description = 'OpenStack routing application.',
+    included_bundles = BUNDLES,
+)

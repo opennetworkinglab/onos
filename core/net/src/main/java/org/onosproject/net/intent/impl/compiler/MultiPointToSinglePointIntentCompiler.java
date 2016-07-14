@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.onosproject.net.topology.PathService;
 
 import java.util.Collections;
@@ -74,8 +73,7 @@ public class MultiPointToSinglePointIntentCompiler
     }
 
     @Override
-    public List<Intent> compile(MultiPointToSinglePointIntent intent, List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
+    public List<Intent> compile(MultiPointToSinglePointIntent intent, List<Intent> installable) {
         Map<DeviceId, Link> links = new HashMap<>();
         ConnectPoint egressPoint = intent.egressPoint();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -25,35 +25,38 @@
     var $log, $scope, wss, fs, ks, ps, is;
 
     // internal state
-    var  detailsPanel,
-         pStartY,
-         pHeight,
-         top,
-         middle,
-         bottom,
-         wSize = false;
+    var detailsPanel,
+        pStartY,
+        pHeight,
+        top,
+        middle,
+        bottom,
+        wSize = false,
+        activateImmediately;
 
     // constants
     var INSTALLED = 'INSTALLED',
         ACTIVE = 'ACTIVE',
         appMgmtReq = 'appManagementRequest',
-        topPdg = 50,
-        panelWidth = 500,
+        topPdg = 60,
+        panelWidth = 540,
         pName = 'application-details-panel',
         detailsReq = 'appDetailsRequest',
         detailsResp = 'appDetailsResponse',
         fileUploadUrl = 'applications/upload',
+        activateOption = '?activate=true',
         iconUrlPrefix = 'rs/applications/',
         iconUrlSuffix = '/icon',
         dialogId = 'app-dialog',
         dialogOpts = {
-            edge: 'right'
+            edge: 'right',
+            width: 400
         },
         strongWarning = {
             'org.onosproject.drivers': true
         },
         discouragement = 'Deactivating or uninstalling this component can' +
-        ' have serious negative consequences! Do so at your own risk!!',
+        ' have serious negative consequences! <br> = DO SO AT YOUR OWN RISK =',
         propOrder = ['id', 'state', 'category', 'version', 'origin', 'role'],
         friendlyProps = ['App ID', 'State', 'Category', 'Version', 'Origin', 'Role'];
         // note: url is handled separately
@@ -82,8 +85,7 @@
     }
 
     function addCloseBtn(div) {
-        is.loadEmbeddedIcon(div, 'plus', 30);
-        div.select('g').attr('transform', 'translate(25, 0) rotate(45)');
+        is.loadEmbeddedIcon(div, 'close', 26);
         div.on('click', closePanel);
     }
 
@@ -134,19 +136,18 @@
     }
 
     function addProp(tbody, index, value) {
-        var tr = tbody.append('tr'),
-            vcls = index ? 'value' : 'value-bold';
+        var tr = tbody.append('tr');
 
         function addCell(cls, txt) {
             tr.append('td').attr('class', cls).html(txt);
         }
 
         addCell('label', friendlyProps[index] + ':');
-        addCell(vcls, value);
+        addCell('value', value);
     }
 
     function urlize(u) {
-        return '<i>URL:</i> <a href="' + u + '" target="_blank">' + u + '</a>';
+        return 'Url:<br/> <a href="' + u + '" target="_blank">' + u + '</a>';
     }
 
     function addIcon(elem, value) {
@@ -200,16 +201,18 @@
 
     function respDetailsCb(data) {
         $scope.panelData = data.details;
+        $scope.selId = data.details.id;
+        $scope.ctrlBtnState.selection = data.details.id;
         $scope.$apply();
     }
 
     angular.module('ovApp', [])
     .controller('OvAppCtrl',
-        ['$log', '$scope', '$http',
+        ['$log', '$scope', '$http', '$timeout',
          'WebSocketService', 'FnService', 'KeyService', 'PanelService',
          'IconService', 'UrlFnService', 'DialogService', 'TableBuilderService',
 
-    function (_$log_, _$scope_, $http, _wss_, _fs_, _ks_, _ps_, _is_, ufs, ds, tbs) {
+    function (_$log_, _$scope_, $http, $timeout, _wss_, _fs_, _ks_, _ps_, _is_, ufs, ds, tbs) {
         $log = _$log_;
         $scope = _$scope_;
         wss = _wss_;
@@ -285,7 +288,7 @@
             var content = ds.createDiv();
             content.append('p').text(fs.cap(action) + ' ' + itemId);
             if (strongWarning[itemId]) {
-                content.append('p').text(discouragement).classed('strong', true);
+                content.append('p').html(discouragement).classed('strong', true);
             }
             return content;
         }
@@ -302,6 +305,11 @@
                     sortCol: spar.sortCol,
                     sortDir: spar.sortDir
                 });
+                if (action == 'uninstall') {
+                    detailsPanel.hide();
+                } else {
+                    wss.sendEvent(detailsReq, {id: itemId});
+                }
             }
 
             function dCancel() {
@@ -323,25 +331,36 @@
         };
 
         $scope.$on('FileChanged', function () {
-            var formData = new FormData();
+            var formData = new FormData(),
+                url;
             if ($scope.appFile) {
                 formData.append('file', $scope.appFile);
-                $http.post(ufs.rsUrl(fileUploadUrl), formData, {
+                url = fileUploadUrl + (activateImmediately || '');
+                $http.post(ufs.rsUrl(url), formData, {
                     transformRequest: angular.identity,
                     headers: {
                         'Content-Type': undefined
                     }
                 })
                     .finally(function () {
+                        activateImmediately = null;
                         $scope.sortCallback($scope.sortParams);
                         document.getElementById('inputFileForm').reset();
+                        $timeout(function () { wss.sendEvent(detailsReq); }, 250);
                     });
             }
         });
 
+        $scope.appDropped = function() {
+            activateImmediately = activateOption;
+            $scope.$emit('FileChanged');
+            $scope.appFile = null;
+        };
+
         $scope.$on('$destroy', function () {
             ks.unbindKeys();
             wss.unbindHandlers(handlers);
+            ds.closeDialog();
         });
 
         $log.log('OvAppCtrl has been created');
@@ -379,6 +398,44 @@
             }
         };
     }])
+
+    .directive("filedrop", function ($parse, $document) {
+        return {
+            restrict: "A",
+            link: function (scope, element, attrs) {
+                var onAppDrop = $parse(attrs.onFileDrop);
+
+                // When an item is dragged over the document
+                var onDragOver = function (e) {
+                    d3.select('#frame').classed('dropping', true);
+                    e.preventDefault();
+                };
+
+                // When the user leaves the window, cancels the drag or drops the item
+                var onDragEnd = function (e) {
+                    d3.select('#frame').classed('dropping', false);
+                    e.preventDefault();
+                };
+
+                // When a file is dropped
+                var loadFile = function (file) {
+                    scope.appFile = file;
+                    scope.$apply(onAppDrop(scope));
+                };
+
+                // Dragging begins on the document
+                $document.bind("dragover", onDragOver);
+
+                // Dragging ends on the overlay, which takes the whole window
+                element.bind("dragleave", onDragEnd)
+                    .bind("drop", function (e) {
+                        $log.info('Drag leave', e);
+                        loadFile(e.dataTransfer.files[0]);
+                        onDragEnd(e);
+                    });
+            }
+        };
+    })
 
     .directive('applicationDetailsPanel',
         ['$rootScope', '$window', '$timeout', 'KeyService',

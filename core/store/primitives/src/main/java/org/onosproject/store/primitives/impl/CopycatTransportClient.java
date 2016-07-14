@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import com.google.common.collect.Sets;
 import io.atomix.catalyst.transport.Address;
 import io.atomix.catalyst.transport.Client;
 import io.atomix.catalyst.transport.Connection;
-import io.atomix.catalyst.util.concurrent.ThreadContext;
+import io.atomix.catalyst.concurrent.ThreadContext;
 
 /**
  * {@link Client} implementation for {@link CopycatTransport}.

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2016-present Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+    <rpc-reply message-id="101" xmlns="urn:ietf:params:netconf:base:1.0">
+    <data><xml-config-data><Device-Configuration xmlns="urn:cisco:xml-pi">
+    <version><Param>15.0</Param></version>
+    <service operation="delete" ><pad/></service>
+    <service><timestamps><debug><datetime><msec/></datetime></debug></timestamps></service>
+    <service><timestamps><log><datetime><msec/></datetime></log></timestamps></service>
+    <service operation="delete" ><password-encryption/></service>
+    <hostname><SystemNetworkName>switch02</SystemNetworkName></hostname>
+    <boot-start-marker></boot-start-marker>
+    <boot-end-marker></boot-end-marker>
+    <system><mtu><routing><MTUSizeBytes>1500</MTUSizeBytes></routing></mtu></system>
+    <mls><qos/></mls>
+    <cts operation="delete" ><server><test><all><enable/></all></test></server></cts>
+    <X-Interface>cts server test all idle-time 0</X-Interface>
+    <X-Interface>cts server test all deadtime 0</X-Interface>
+    <spanning-tree><mode><pvst/></mode></spanning-tree>
+    <spanning-tree><extend><system-id/></extend></spanning-tree>
+    <vlan><internal><allocation><policy><ascending/></policy></allocation></internal></vlan>
+    <lldp><run/></lldp>
+    <interface><Param>GigabitEthernet0/1</Param>
+        <ConfigIf-Configuration>
+        </ConfigIf-Configuration>
+    </interface>
+    <interface><Param>GigabitEthernet0/2</Param>
+        <ConfigIf-Configuration>
+            <switchport><access><vlan><VLANIDVLANPortAccessMode>100</VLANIDVLANPortAccessMode></vlan></access></switchport>
+        </ConfigIf-Configuration>
+    </interface>
+    <interface><Param>GigabitEthernet0/3</Param>
+        <ConfigIf-Configuration>
+            <switchport><trunk><encapsulation><dot1q/></encapsulation></trunk></switchport>
+            <switchport><trunk><allowed><vlan><VLANIDsAllowedVLANsPortTrunkingMode>200,201</VLANIDsAllowedVLANsPortTrunkingMode></vlan></allowed></trunk></switchport>
+            <switchport><mode><trunk/></mode></switchport>
+        </ConfigIf-Configuration>
+    </interface>
+    <interface><Param>GigabitEthernet0/4</Param>
+        <ConfigIf-Configuration>
+            <srr-queue><bandwidth><limit><EnterBandwidthLimitInterfaceAsPercentage>75</EnterBandwidthLimitInterfaceAsPercentage></limit></bandwidth></srr-queue>
+        </ConfigIf-Configuration>
+    </interface>
+    <interface><Param>GigabitEthernet0/5</Param>
+        <ConfigIf-Configuration>
+            <switchport><trunk><encapsulation><dot1q/></encapsulation></trunk></switchport>
+            <switchport><trunk><allowed><vlan><VLANIDsAllowedVLANsPortTrunkingMode>300-302</VLANIDsAllowedVLANsPortTrunkingMode></vlan></allowed></trunk></switchport>
+            <switchport><mode><trunk/></mode></switchport>
+            <srr-queue><bandwidth><limit><EnterBandwidthLimitInterfaceAsPercentage>50</EnterBandwidthLimitInterfaceAsPercentage></limit></bandwidth></srr-queue>
+        </ConfigIf-Configuration>
+    </interface>
+    <ip><http><server/></http></ip>
+    <ip><http><secure-server/></http></ip>
+    <netconf><max-sessions><MaxNETCONFSessions>5</MaxNETCONFSessions></max-sessions></netconf>
+    <netconf><lock-time><MaxNETCONFConfigLockTimeSeconds>120</MaxNETCONFConfigLockTimeSeconds></lock-time></netconf>
+    <netconf><ssh/></netconf>
+    <end></end>
+</Device-Configuration></xml-config-data></data></rpc-reply>

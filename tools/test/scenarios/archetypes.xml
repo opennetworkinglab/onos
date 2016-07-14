@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -78,7 +78,8 @@
               exec="onos-app ${OCI} uninstall org.foo.app"/>
 
         <parallel var="${OC#}">
-            <step name="Archetypes-Check-Logs-${#}" exec="onos-check-logs ${OC#}"/>
+            <step name="Archetypes-Check-Logs-${#}" requires="Uninstall-App"
+                  exec="onos-check-logs ${OC#}"/>
         </parallel>
     </group>
 </scenario>

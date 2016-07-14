@@ -1,0 +1,11 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//core/net:onos-core-net',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
+)
+

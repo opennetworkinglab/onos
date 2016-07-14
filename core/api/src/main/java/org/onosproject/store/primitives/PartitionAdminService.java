@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.onosproject.store.primitives;
 
 import java.util.List;
 
+import org.onosproject.store.service.PartitionClientInfo;
 import org.onosproject.store.service.PartitionInfo;
 
 /**
@@ -29,4 +30,10 @@ public interface PartitionAdminService {
      * @return list of {@code PartitionInfo}
      */
     List<PartitionInfo> partitionInfo();
+
+    /**
+     * Returns the {@link PartitionClientInfo information} for partition clients.
+     * @return list of {@code PartitionClientInfo}
+     */
+    List<PartitionClientInfo> partitionClientInfo();
 }

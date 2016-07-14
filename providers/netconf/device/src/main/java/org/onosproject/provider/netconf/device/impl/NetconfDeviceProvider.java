@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,12 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.config.basics.ConfigException;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
@@ -40,21 +43,27 @@ import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.DriverService;
+import org.onosproject.net.key.DeviceKey;
+import org.onosproject.net.key.DeviceKeyAdminService;
+import org.onosproject.net.key.DeviceKeyId;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.netconf.NetconfController;
-import org.onosproject.netconf.NetconfDevice;
-import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceListener;
 import org.onosproject.netconf.NetconfException;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -68,6 +77,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 public class NetconfDeviceProvider extends AbstractProvider
         implements DeviceProvider {
+
+    public static final String ACTIVE = "active";
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -83,21 +94,36 @@ public class NetconfDeviceProvider extends AbstractProvider
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DriverService driverService;
+    protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceService deviceService;
+    protected DeviceKeyAdminService deviceKeyAdminService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService clusterService;
 
     private static final String APP_NAME = "org.onosproject.netconf";
     private static final String SCHEME_NAME = "netconf";
     private static final String DEVICE_PROVIDER_PACKAGE = "org.onosproject.netconf.provider.device";
     private static final String UNKNOWN = "unknown";
+    protected static final String ISNULL = "NetconfDeviceInfo is null";
+    private static final String IPADDRESS = "ipaddress";
+    private static final String NETCONF = "netconf";
+    private static final String PORT = "port";
+    //FIXME eventually a property
+    private static final int ISREACHABLE_TIMEOUT = 2000;
 
     private final ExecutorService executor =
-            Executors.newFixedThreadPool(5, groupedThreads("onos/netconfdeviceprovider", "device-installer-%d", log));
+            Executors.newFixedThreadPool(5, groupedThreads("onos/netconfdeviceprovider",
+                                                           "device-installer-%d", log));
 
     private DeviceProviderService providerService;
     private NetconfDeviceListener innerNodeListener = new InnerNetconfDeviceListener();
+    private InternalDeviceListener deviceListener = new InternalDeviceListener();
+    private NodeId localNodeId;
 
     private final ConfigFactory factory =
             new ConfigFactory<ApplicationId, NetconfProviderConfig>(APP_SUBJECT_FACTORY,
@@ -109,31 +135,40 @@ public class NetconfDeviceProvider extends AbstractProvider
                     return new NetconfProviderConfig();
                 }
             };
-    private final NetworkConfigListener cfgLister = new InternalNetworkConfigListener();
+    private final NetworkConfigListener cfgListener = new InternalNetworkConfigListener();
     private ApplicationId appId;
+    private boolean active;
 
 
     @Activate
     public void activate() {
+        active = true;
         providerService = providerRegistry.register(this);
         appId = coreService.registerApplication(APP_NAME);
         cfgService.registerConfigFactory(factory);
-        cfgService.addListener(cfgLister);
+        cfgService.addListener(cfgListener);
         controller.addDeviceListener(innerNodeListener);
+        deviceService.addListener(deviceListener);
         executor.execute(NetconfDeviceProvider.this::connectDevices);
+        localNodeId = clusterService.getLocalNode().id();
         log.info("Started");
     }
 
 
     @Deactivate
     public void deactivate() {
+        deviceService.removeListener(deviceListener);
+        active = false;
+        controller.getNetconfDevices().forEach(id -> {
+            deviceKeyAdminService.removeKey(DeviceKeyId.deviceKeyId(id.toString()));
+            controller.disconnectDevice(id, true);
+        });
         controller.removeDeviceListener(innerNodeListener);
-        controller.getNetconfDevices().forEach(id ->
-            controller.removeDevice(controller.getDevicesMap().get(id)
-                                            .getDeviceInfo()));
+        deviceService.removeListener(deviceListener);
         providerRegistry.unregister(this);
         providerService = null;
         cfgService.unregisterConfigFactory(factory);
+        executor.shutdown();
         log.info("Stopped");
     }
 
@@ -149,18 +184,77 @@ public class NetconfDeviceProvider extends AbstractProvider
 
     @Override
     public void roleChanged(DeviceId deviceId, MastershipRole newRole) {
-        // TODO: This will be implemented later.
+        if (active) {
+            switch (newRole) {
+                case MASTER:
+                    initiateConnection(deviceId, newRole);
+                    log.debug("Accepting mastership role change to {} for device {}", newRole, deviceId);
+                    break;
+                case STANDBY:
+                    controller.disconnectDevice(deviceId, false);
+                    providerService.receivedRoleReply(deviceId, newRole, MastershipRole.STANDBY);
+                    //else no-op
+                    break;
+                case NONE:
+                    controller.disconnectDevice(deviceId, false);
+                    providerService.receivedRoleReply(deviceId, newRole, MastershipRole.NONE);
+                    break;
+                default:
+                    log.error("Unimplemented Mastership state : {}", newRole);
+
+            }
+        }
     }
 
     @Override
     public boolean isReachable(DeviceId deviceId) {
-        NetconfDevice netconfDevice = controller.getNetconfDevice(deviceId);
-        if (netconfDevice == null) {
-            log.debug("Requested device id: {} is not associated to any " +
-                              "NETCONF Device", deviceId.toString());
-            return false;
+        //FIXME this is a workaround util device state is shared
+        // between controller instances.
+        Device device = deviceService.getDevice(deviceId);
+        String ip;
+        int port;
+        Socket socket = null;
+        if (device != null) {
+            ip = device.annotations().value(IPADDRESS);
+            port = Integer.parseInt(device.annotations().value(PORT));
+        } else {
+            String[] info = deviceId.toString().split(":");
+            if (info.length == 3) {
+                ip = info[1];
+                port = Integer.parseInt(info[2]);
+            } else {
+                ip = Arrays.asList(info).stream().filter(el -> !el.equals(info[0])
+                        && !el.equals(info[info.length - 1]))
+                        .reduce((t, u) -> t + ":" + u)
+                        .get();
+                log.debug("ip v6 {}", ip);
+                port = Integer.parseInt(info[info.length - 1]);
+            }
         }
-        return netconfDevice.isActive();
+        //test connection to device opening a socket to it.
+        try {
+            socket = new Socket(ip, port);
+            log.debug("rechability of {}, {}, {}", deviceId, socket.isConnected() && !socket.isClosed());
+            return socket.isConnected() && !socket.isClosed();
+        } catch (IOException e) {
+            log.info("Device {} is not reachable", deviceId);
+            return false;
+        } finally {
+            if (socket != null) {
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    log.debug("Test Socket failed {} ", deviceId);
+                    return false;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void changePortState(DeviceId deviceId, PortNumber portNumber,
+                                boolean enable) {
+        // TODO if required
     }
 
     @Override
@@ -175,36 +269,18 @@ public class NetconfDeviceProvider extends AbstractProvider
 
     private class InnerNetconfDeviceListener implements NetconfDeviceListener {
 
-        private static final String IPADDRESS = "ipaddress";
-        protected static final String ISNULL = "NetconfDeviceInfo is null";
 
         @Override
-        public void deviceAdded(NetconfDeviceInfo nodeId) {
-            Preconditions.checkNotNull(nodeId, ISNULL);
-            DeviceId deviceId = nodeId.getDeviceId();
-            //Netconf configuration object
-            ChassisId cid = new ChassisId();
-            String ipAddress = nodeId.ip().toString();
-            SparseAnnotations annotations = DefaultAnnotations.builder()
-                    .set(IPADDRESS, ipAddress)
-                    .set(AnnotationKeys.PROTOCOL, SCHEME_NAME.toUpperCase())
-                    .build();
-            DeviceDescription deviceDescription = new DefaultDeviceDescription(
-                    deviceId.uri(),
-                    Device.Type.SWITCH,
-                    UNKNOWN, UNKNOWN,
-                    UNKNOWN, UNKNOWN,
-                    cid,
-                    annotations);
-            providerService.deviceConnected(deviceId, deviceDescription);
+        public void deviceAdded(DeviceId deviceId) {
+            //no-op
+            log.debug("Netconf device {} added to Netconf subController", deviceId);
         }
 
         @Override
-        public void deviceRemoved(NetconfDeviceInfo nodeId) {
-            Preconditions.checkNotNull(nodeId, ISNULL);
-            DeviceId deviceId = nodeId.getDeviceId();
+        public void deviceRemoved(DeviceId deviceId) {
+            Preconditions.checkNotNull(deviceId, ISNULL);
+            log.debug("Netconf device {} removed from Netconf subController", deviceId);
             providerService.deviceDisconnected(deviceId);
-
         }
     }
 
@@ -212,41 +288,87 @@ public class NetconfDeviceProvider extends AbstractProvider
         NetconfProviderConfig cfg = cfgService.getConfig(appId, NetconfProviderConfig.class);
         if (cfg != null) {
             try {
-                cfg.getDevicesAddresses().stream()
-                        .forEach(addr -> {
-                                     try {
-                                         NetconfDeviceInfo netconf = new NetconfDeviceInfo(addr.name(),
-                                                               addr.password(),
-                                                               addr.ip(),
-                                                               addr.port());
-                                         controller.connectDevice(netconf);
-                                         Device device = deviceService.getDevice(netconf.getDeviceId());
-                                         if (device.is(PortDiscovery.class)) {
-                                             PortDiscovery portConfig = device.as(PortDiscovery.class);
-                                             if (portConfig != null) {
-                                                 providerService.updatePorts(netconf.getDeviceId(),
-                                                                             portConfig.getPorts());
-                                             }
-                                         } else {
-                                             log.warn("No portGetter behaviour for device {}", netconf.getDeviceId());
-                                         }
+                cfg.getDevicesAddresses().stream().forEach(addr -> {
+                    DeviceId deviceId = getDeviceId(addr.ip().toString(), addr.port());
+                    Preconditions.checkNotNull(deviceId, ISNULL);
+                    //Netconf configuration object
+                    ChassisId cid = new ChassisId();
+                    String ipAddress = addr.ip().toString();
+                    SparseAnnotations annotations = DefaultAnnotations.builder()
+                            .set(IPADDRESS, ipAddress)
+                            .set(PORT, String.valueOf(addr.port()))
+                            .set(AnnotationKeys.PROTOCOL, SCHEME_NAME.toUpperCase())
+                            .build();
+                    DeviceDescription deviceDescription = new DefaultDeviceDescription(
+                            deviceId.uri(),
+                            Device.Type.SWITCH,
+                            UNKNOWN, UNKNOWN,
+                            UNKNOWN, UNKNOWN,
+                            cid,
+                            annotations);
+                    deviceKeyAdminService.addKey(
+                            DeviceKey.createDeviceKeyUsingUsernamePassword(
+                                    DeviceKeyId.deviceKeyId(deviceId.toString()),
+                                    null, addr.name(), addr.password()));
+                    providerService.deviceConnected(deviceId, deviceDescription);
 
-                                     } catch (IOException e) {
-                                         throw new RuntimeException(
-                                                 new NetconfException(
-                                                         "Can't connect to NETCONF " +
-                                                                 "device on " + addr.ip() +
-                                                                 ":" + addr.port(), e));
-                                     }
-                                 }
-                        );
 
+                });
             } catch (ConfigException e) {
                 log.error("Cannot read config error " + e);
             }
         }
     }
 
+    private void initiateConnection(DeviceId deviceId, MastershipRole newRole) {
+        try {
+            if (isReachable(deviceId)) {
+                controller.connectDevice(deviceId);
+                providerService.receivedRoleReply(deviceId, newRole, MastershipRole.MASTER);
+            } else {
+                return;
+            }
+        } catch (Exception e) {
+            if (deviceService.getDevice(deviceId) != null) {
+                providerService.deviceDisconnected(deviceId);
+            }
+            deviceKeyAdminService.removeKey(DeviceKeyId.deviceKeyId(deviceId.toString()));
+            throw new RuntimeException(new NetconfException(
+                    "Can't connect to NETCONF " + "device on " + deviceId + ":" + deviceId, e));
+
+        }
+    }
+
+    private void discoverPorts(DeviceId deviceId) {
+        Device device = deviceService.getDevice(deviceId);
+        if (device.is(PortDiscovery.class)) {
+            PortDiscovery portConfig = device.as(PortDiscovery.class);
+            providerService.updatePorts(deviceId,
+                                        portConfig.getPorts());
+        } else {
+            log.warn("No portGetter behaviour for device {}", deviceId);
+        }
+    }
+
+    /**
+     * Return the DeviceId about the device containing the URI.
+     *
+     * @param ip IP address
+     * @param port port number
+     * @return DeviceId
+     */
+    public DeviceId getDeviceId(String ip, int port) {
+        try {
+            return DeviceId.deviceId(new URI(NETCONF, ip + ":" + port, null));
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Unable to build deviceID for device "
+                                                       + ip + ":" + port, e);
+        }
+    }
+
+    /**
+     * Listener for configuration events.
+     */
     private class InternalNetworkConfigListener implements NetworkConfigListener {
 
 
@@ -257,10 +379,35 @@ public class NetconfDeviceProvider extends AbstractProvider
 
         @Override
         public boolean isRelevant(NetworkConfigEvent event) {
-            //TODO refactor
             return event.configClass().equals(NetconfProviderConfig.class) &&
                     (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
                             event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED);
+        }
+    }
+
+    /**
+     * Listener for core device events.
+     */
+    private class InternalDeviceListener implements DeviceListener {
+        @Override
+        public void event(DeviceEvent event) {
+            if ((event.type() == DeviceEvent.Type.DEVICE_ADDED)) {
+                executor.execute(() -> discoverPorts(event.subject().id()));
+            } else if ((event.type() == DeviceEvent.Type.DEVICE_REMOVED)) {
+                log.debug("removing device {}", event.subject().id());
+                deviceService.getDevice(event.subject().id()).annotations().keys();
+                controller.disconnectDevice(event.subject().id(), true);
+            }
+        }
+
+        @Override
+        public boolean isRelevant(DeviceEvent event) {
+            if (mastershipService.getMasterFor(event.subject().id()) == null) {
+                return true;
+            }
+            return event.subject().annotations().value(AnnotationKeys.PROTOCOL)
+                    .equals(SCHEME_NAME.toUpperCase()) &&
+                    mastershipService.getMasterFor(event.subject().id()).equals(localNodeId);
         }
     }
 }

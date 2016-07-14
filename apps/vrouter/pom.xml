@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2016 Open Networking Laboratory
+  ~ Copyright 2016-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,13 +21,12 @@
     <parent>
         <artifactId>onos-apps</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.5.2-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.6.0</version>
     </parent>
 
     <groupId>org.onosproject</groupId>
     <artifactId>onos-app-vrouter</artifactId>
-    <version>1.5.2-SNAPSHOT</version>
+    <version>1.6.0</version>
     <packaging>bundle</packaging>
 
     <description>Virtual router (vRouter) application</description>

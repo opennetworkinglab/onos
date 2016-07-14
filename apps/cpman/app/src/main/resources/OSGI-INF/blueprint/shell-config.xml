@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2016 Open Networking Laboratory
+  ~ Copyright 2016-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,12 +19,14 @@
         <command>
             <action class="org.onosproject.cpman.cli.ControlMetricsStatsListCommand"/>
             <completers>
+                <ref component-id="nodeIdCompleter"/>
                 <ref component-id="controlResourceTypeCompleter"/>
                 <ref component-id="resourceNameCompleter"/>
             </completers>
         </command>
     </command-bundle>
 
+    <bean id="nodeIdCompleter" class="org.onosproject.cli.NodeIdCompleter"/>
     <bean id="controlResourceTypeCompleter" class="org.onosproject.cpman.cli.ControlResourceTypeCompleter"/>
     <bean id="resourceNameCompleter" class="org.onosproject.cpman.cli.ResourceNameCompleter"/>
 </blueprint>

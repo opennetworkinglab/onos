@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.onosproject.bgpio.types.MpUnReachNlri;
 import org.onosproject.bgpio.util.UnSupportedAttribute;
 import org.onosproject.bgpio.util.Validation;
 import org.onosproject.bgpio.util.Constants;
+import org.onosproject.bgpio.types.attr.WideCommunity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -149,6 +150,9 @@ public class BgpPathAttributes {
             case EXTENDED_COMMUNITY_TYPE:
                 pathAttribute = BgpExtendedCommunity.read(cb);
                 break;
+            case WideCommunity.TYPE:
+                pathAttribute = WideCommunity.read(cb);
+                break;
             default:
                 //skip bytes for unsupported attribute types
                 UnSupportedAttribute.read(cb);
@@ -213,6 +217,10 @@ public class BgpPathAttributes {
             case Constants.BGP_EXTENDED_COMMUNITY:
                 BgpExtendedCommunity extendedCommunity = (BgpExtendedCommunity) attr;
                 extendedCommunity.write(cb);
+                break;
+            case WideCommunity.TYPE:
+                WideCommunity wideCommunity = (WideCommunity) attr;
+                wideCommunity.write(cb);
                 break;
             case MpReachNlri.MPREACHNLRI_TYPE:
                 MpReachNlri mpReach = (MpReachNlri) attr;

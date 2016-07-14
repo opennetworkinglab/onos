@@ -1,0 +1,19 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
+    import_packages = '*,org.onosproject.cli.net',
+)
+
+onos_app (
+    title = 'Null Southbound Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    description = 'ONOS null southbound provider.',
+)

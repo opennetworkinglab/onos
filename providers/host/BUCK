@@ -1,0 +1,21 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//utils/osgi:onlab-osgi-tests',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
+
+onos_app (
+    app_name = 'org.onosproject.hostprovider',
+    title = 'Host Location Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    description = 'ONOS host location provider.',
+)

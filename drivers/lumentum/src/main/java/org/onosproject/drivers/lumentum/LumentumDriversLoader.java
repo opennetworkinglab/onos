@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,17 @@ package org.onosproject.drivers.lumentum;
 
 import org.apache.felix.scr.annotations.Component;
 import org.onosproject.net.driver.AbstractDriverLoader;
+import org.onosproject.net.optical.OpticalDevice;
 
 /**
  * Loader for Lumentum device drivers from specific xml.
  */
 @Component(immediate = true)
 public class LumentumDriversLoader extends AbstractDriverLoader {
+
+    // OSGI: help bundle plugin discover runtime package dependency.
+    @SuppressWarnings("unused")
+    private OpticalDevice optical;
 
     public LumentumDriversLoader() {
         super("/lumentum-drivers.xml");

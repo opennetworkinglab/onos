@@ -1,0 +1,4 @@
+{
+  "ingressVlan" : "None",
+  "egressVlan" : "5000"
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.onosproject.store.primitives.PartitionAdminService;
 import org.onosproject.store.primitives.PartitionEvent;
 import org.onosproject.store.primitives.PartitionEventListener;
 import org.onosproject.store.primitives.PartitionService;
+import org.onosproject.store.service.PartitionClientInfo;
 import org.onosproject.store.service.PartitionInfo;
 import org.slf4j.Logger;
 
@@ -89,12 +90,11 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
         currentClusterMetadata.get()
                        .getPartitions()
                        .stream()
-                       .filter(partition -> !partition.getId().equals(PartitionId.from(0))) // exclude p0
                        .forEach(partition -> partitions.put(partition.getId(), new StoragePartition(partition,
                                messagingService,
                                clusterService,
                                CatalystSerializers.getSerializer(),
-                               new File(System.getProperty("karaf.data") + "/data/" + partition.getId()))));
+                               new File(System.getProperty("karaf.data") + "/partitions/" + partition.getId()))));
 
         CompletableFuture<Void> openFuture = CompletableFuture.allOf(partitions.values()
                                                                                .stream()
@@ -164,8 +164,6 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
         diffExaminer.partitionDiffs()
                     .values()
                     .stream()
-                    // TODO: Remove after partition 0 is removed from cluster metadata.
-                    .filter(diff -> !diff.partitionId().equals(PartitionId.from(0)))
                     .filter(PartitionDiff::hasChanged)
                     .forEach(diff -> partitions.get(diff.partitionId()).onUpdate(diff.newValue()));
     }
@@ -175,5 +173,14 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
         public void event(ClusterMetadataEvent event) {
             processMetadataUpdate(event.subject());
         }
+    }
+
+    @Override
+    public List<PartitionClientInfo> partitionClientInfo() {
+        return partitions.values()
+                         .stream()
+                         .map(StoragePartition::client)
+                         .map(StoragePartitionClient::clientInfo)
+                         .collect(Collectors.toList());
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,11 @@
  */
 
 /*
- ONOS GUI -- core -- CSS file
+ ONOS GUI -- core (layout) -- CSS file
  */
 
 html {
-    font-family: sans-serif;
+    font-family: 'Open Sans', sans-serif;
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
     height: 100%;
@@ -35,13 +35,6 @@ body {
     overflow: hidden;
 }
 
-body.light {
-    background-color: white;
-}
-body.dark {
-    background-color: #2b2b2b;
-}
-
 #view {
     padding: 6px;
     width: 100%;
@@ -49,24 +42,24 @@ body.dark {
 }
 
 #view h2 {
-    padding-left: 12px;
+    -webkit-margin-before: 0;
+    -webkit-margin-after: 0;
+    margin: 32px 0 4px 16px;
+    padding: 0;
+    font-size: 21pt;
+    font-weight: lighter;
 }
 
-.light #view h2 {
-    color: #800;
-}
-.dark #view h2 {
-    color: #CE5650;
-}
 
-.centered {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    -webkit-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
-    box-shadow: 2px 2px 24px 5px #888;
-    background-color: #eee;
-    margin: 0;
-    padding: 10px;
+/* TODO: dark versions for links */
+a {
+    color: #009fdb;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+a:visited {
+    color: #7fabdb;
+    text-decoration: none;
 }

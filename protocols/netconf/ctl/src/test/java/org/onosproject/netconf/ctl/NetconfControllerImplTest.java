@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,13 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.osgi.ComponentContextAdapter;
 import org.onlab.packet.IpAddress;
+import org.onosproject.cfg.ComponentConfigAdapter;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.key.DeviceKeyService;
 import org.onosproject.netconf.NetconfDevice;
 import org.onosproject.netconf.NetconfDeviceFactory;
 import org.onosproject.netconf.NetconfDeviceInfo;
@@ -30,8 +35,11 @@ import org.onosproject.netconf.NetconfDeviceOutputEvent;
 import org.onosproject.netconf.NetconfDeviceOutputEventListener;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
+import org.osgi.service.component.ComponentContext;
 
 import java.lang.reflect.Field;
+import java.util.Dictionary;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -44,12 +52,14 @@ import static org.junit.Assert.*;
  * Unit tests for the Netconf controller implementation test.
  */
 public class NetconfControllerImplTest {
+
     NetconfControllerImpl ctrl;
 
     //DeviceInfo
     NetconfDeviceInfo deviceInfo1;
     NetconfDeviceInfo deviceInfo2;
     NetconfDeviceInfo badDeviceInfo3;
+    NetconfDeviceInfo deviceInfoIpV6;
 
     //Devices & DeviceId
     NetconfDevice device1;
@@ -68,21 +78,32 @@ public class NetconfControllerImplTest {
     private static final String DEVICE_1_IP = "10.10.10.11";
     private static final String DEVICE_2_IP = "10.10.10.12";
     private static final String BAD_DEVICE_IP = "10.10.10.13";
+    private static final String DEVICE_IPV6 = "2001:db8::1";
 
     private static final int DEVICE_1_PORT = 11;
     private static final int DEVICE_2_PORT = 12;
     private static final int BAD_DEVICE_PORT = 13;
+    private static final int IPV6_DEVICE_PORT = 14;
 
+    private static ComponentConfigService cfgService = new ComponentConfigAdapter();
+    private static DeviceService deviceService = new NetconfDeviceServiceMock();
+    private static DeviceKeyService deviceKeyService = new NetconfDeviceKeyServiceMock();
+
+    private final ComponentContext context = new MockComponentContext();
 
     @Before
     public void setUp() throws Exception {
         ctrl = new NetconfControllerImpl();
         ctrl.deviceFactory = new TestNetconfDeviceFactory();
+        ctrl.cfgService = cfgService;
+        ctrl.deviceService = deviceService;
+        ctrl.deviceKeyService = deviceKeyService;
 
         //Creating mock devices
         deviceInfo1 = new NetconfDeviceInfo("device1", "001", IpAddress.valueOf(DEVICE_1_IP), DEVICE_1_PORT);
         deviceInfo2 = new NetconfDeviceInfo("device2", "002", IpAddress.valueOf(DEVICE_2_IP), DEVICE_2_PORT);
         badDeviceInfo3 = new NetconfDeviceInfo("device3", "003", IpAddress.valueOf(BAD_DEVICE_IP), BAD_DEVICE_PORT);
+        deviceInfoIpV6 = new NetconfDeviceInfo("deviceIpv6", "004", IpAddress.valueOf(DEVICE_IPV6), IPV6_DEVICE_PORT);
 
         device1 = new TestNetconfDevice(deviceInfo1);
         deviceId1 = deviceInfo1.getDeviceId();
@@ -102,14 +123,38 @@ public class NetconfControllerImplTest {
         reflectedDownListener = (NetconfDeviceOutputEventListener) field2.get(ctrl);
 
         eventForDeviceInfo1 = new NetconfDeviceOutputEvent(NetconfDeviceOutputEvent.Type.DEVICE_NOTIFICATION, null,
-                null, Optional.of(1), deviceInfo1);
+                                                           null, Optional.of(1), deviceInfo1);
         eventForDeviceInfo2 = new NetconfDeviceOutputEvent(NetconfDeviceOutputEvent.Type.DEVICE_UNREGISTERED, null,
-                null, Optional.of(2), deviceInfo2);
+                                                           null, Optional.of(2), deviceInfo2);
     }
 
     @After
     public void tearDown() {
         ctrl.deactivate();
+    }
+
+    /**
+     * Test initialization of component configuration.
+     */
+    @Test
+    public void testActivate() {
+        assertEquals("Incorrect NetConf session timeout, should be default",
+                     5, ctrl.netconfReplyTimeout);
+        ctrl.activate(null);
+        assertEquals("Incorrect NetConf session timeout, should be default",
+                     5, ctrl.netconfReplyTimeout);
+    }
+
+    /**
+     * Test modification of component configuration.
+     */
+    @Test
+    public void testModified() {
+        assertEquals("Incorrect NetConf session timeout, should be default",
+                     5, ctrl.netconfReplyTimeout);
+        ctrl.modified(context);
+        assertEquals("Incorrect NetConf session timeout",
+                     1, ctrl.netconfReplyTimeout);
     }
 
     /**
@@ -128,7 +173,7 @@ public class NetconfControllerImplTest {
         ctrl.addDeviceListener(deviceListener3);
         assertThat("Incorrect number of listeners", ctrl.netconfDeviceListeners, hasSize(3));
         assertThat("Not matching listeners", ctrl.netconfDeviceListeners, hasItems(deviceListener1,
-                deviceListener2, deviceListener3));
+                                                                                   deviceListener2, deviceListener3));
 
         ctrl.removeDeviceListener(deviceListener1);
         assertThat("Incorrect number of listeners", ctrl.netconfDeviceListeners, hasSize(2));
@@ -168,7 +213,7 @@ public class NetconfControllerImplTest {
     public void testConnectBadDevice() throws Exception {
         reflectedDeviceMap.clear();
         try {
-            ctrl.connectDevice(badDeviceInfo3);
+            ctrl.connectDevice(badDeviceInfo3.getDeviceId());
         } finally {
             assertEquals("Incorrect device connection", 0, ctrl.getDevicesMap().size());
         }
@@ -180,11 +225,23 @@ public class NetconfControllerImplTest {
     @Test
     public void testConnectCorrectDevice() throws Exception {
         reflectedDeviceMap.clear();
-        ctrl.connectDevice(deviceInfo1);
-        ctrl.connectDevice(deviceInfo2);
+        ctrl.connectDevice(deviceInfo1.getDeviceId());
+        ctrl.connectDevice(deviceInfo2.getDeviceId());
         assertTrue("Incorrect device connection", ctrl.getDevicesMap().containsKey(deviceId1));
         assertTrue("Incorrect device connection", ctrl.getDevicesMap().containsKey(deviceId2));
         assertEquals("Incorrect device connection", 2, ctrl.getDevicesMap().size());
+    }
+
+    /**
+     * Check for correct ipv6 device connection. In this case the device map get modified.
+     */
+    @Test
+    public void testConnectCorrectIpv6Device() throws Exception {
+        reflectedDeviceMap.clear();
+        ctrl.connectDevice(deviceInfoIpV6.getDeviceId());
+        assertTrue("Incorrect device connection", ctrl.getDevicesMap()
+                .containsKey(deviceInfoIpV6.getDeviceId()));
+        assertEquals("Incorrect device connection", 1, ctrl.getDevicesMap().size());
     }
 
 
@@ -193,12 +250,12 @@ public class NetconfControllerImplTest {
      */
     @Test
     public void testConnectAlreadyExistingDevice() throws Exception {
-        NetconfDevice alreadyExistingDevice1 = ctrl.connectDevice(deviceInfo1);
-        NetconfDevice alreadyExistingDevice2 = ctrl.connectDevice(deviceInfo2);
+        NetconfDevice alreadyExistingDevice1 = ctrl.connectDevice(deviceInfo1.getDeviceId());
+        NetconfDevice alreadyExistingDevice2 = ctrl.connectDevice(deviceInfo2.getDeviceId());
         assertEquals("Incorrect device connection", alreadyExistingDevice1.getDeviceInfo().getDeviceId(),
-                deviceInfo1.getDeviceId());
+                     deviceInfo1.getDeviceId());
         assertEquals("Incorrect device connection", alreadyExistingDevice2.getDeviceInfo().getDeviceId(),
-                deviceInfo2.getDeviceId());
+                     deviceInfo2.getDeviceId());
     }
 
     /**
@@ -206,7 +263,7 @@ public class NetconfControllerImplTest {
      */
     @Test
     public void testDisconnectDevice() throws Exception {
-        ctrl.disconnectDevice(deviceInfo1);
+        ctrl.disconnectDevice(deviceInfo1.getDeviceId(), true);
         assertFalse("Incorrect device removal", ctrl.getDevicesMap().containsKey(deviceId1));
     }
 
@@ -215,7 +272,7 @@ public class NetconfControllerImplTest {
      */
     @Test
     public void testRemoveDevice() throws Exception {
-        ctrl.removeDevice(deviceInfo1);
+        ctrl.removeDevice(deviceInfo1.getDeviceId());
         assertFalse("Incorrect device removal", ctrl.getDevicesMap().containsKey(deviceId1));
     }
 
@@ -234,13 +291,13 @@ public class NetconfControllerImplTest {
     @Test
     public void testDeviceDownEventListener() throws Exception {
         reflectedDeviceMap.clear();
-        ctrl.connectDevice(deviceInfo1);
+        ctrl.connectDevice(deviceInfo1.getDeviceId());
         boolean result1 = reflectedDownListener.isRelevant(eventForDeviceInfo2);
         assertFalse("Irrelevant Device Event", result1);
         assertEquals("Incorrect device map size", 1, ctrl.getDevicesMap().size());
         reflectedDownListener.event(eventForDeviceInfo1);
         assertEquals("Incorrect device map size", 1, ctrl.getDevicesMap().size());
-        ctrl.connectDevice(deviceInfo2);
+        ctrl.connectDevice(deviceInfo2.getDeviceId());
         boolean result2 = reflectedDownListener.isRelevant(eventForDeviceInfo2);
         assertTrue("Irrelevant Device Event", result2);
         assertEquals("Incorrect device map size", 2, ctrl.getDevicesMap().size());
@@ -269,7 +326,7 @@ public class NetconfControllerImplTest {
 
         public TestNetconfDevice(NetconfDeviceInfo deviceInfo) throws NetconfException {
             netconfDeviceInfo = deviceInfo;
-            if (netconfDeviceInfo.ip() != badDeviceInfo3.ip()) {
+            if (!badDeviceInfo3.getDeviceId().equals(deviceInfo.getDeviceId())) {
                 netconfSession = EasyMock.createMock(NetconfSession.class);
                 deviceState = true;
             } else {
@@ -298,5 +355,53 @@ public class NetconfControllerImplTest {
             return netconfDeviceInfo;
         }
 
+    }
+
+    private class MockComponentContext extends ComponentContextAdapter {
+        @Override
+        public Dictionary getProperties() {
+            return new MockDictionary();
+        }
+    }
+
+    private class MockDictionary extends Dictionary {
+
+        @Override
+        public int size() {
+            return 0;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
+
+        @Override
+        public Enumeration keys() {
+            return null;
+        }
+
+        @Override
+        public Enumeration elements() {
+            return null;
+        }
+
+        @Override
+        public Object get(Object key) {
+            if (key.equals("netconfReplyTimeout")) {
+                return "1";
+            }
+            return null;
+        }
+
+        @Override
+        public Object put(Object key, Object value) {
+            return null;
+        }
+
+        @Override
+        public Object remove(Object key) {
+            return null;
+        }
     }
 }

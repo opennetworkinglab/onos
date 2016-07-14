@@ -1,0 +1,13 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//core/store/serializers:onos-core-serializers',
+    '//cli:onos-cli',
+    '//apps/vtn/vtnrsc:onos-apps-vtn-vtnrsc',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
+)

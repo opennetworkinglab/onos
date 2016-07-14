@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,10 @@
  */
 
 /*
- ONOS GUI -- Glyph Service -- CSS file
+ ONOS GUI -- Glyph Service (layout) -- CSS file
  */
 
 svg .glyph {
     stroke: none;
     fill-rule: evenodd;
-}
-
-.light svg .glyph,
-.dark svg .glyph.overlay {
-    fill: black;
-}
-
-.dark svg .glyph,
-.light svg .glyph.overlay {
-    fill: white;
 }

@@ -3,15 +3,17 @@
     <div class="tabular-header">
         <h2>Intents ({{tableData.length}} total)</h2>
         <div class="ctrl-btns">
-            <div ng-class="{active: !!selId}"
-                    icon icon-id="topo" icon-size="36"
-                    tooltip tt-msg="topoTip"
-                    ng-click="showIntent()"></div>
-            <div class="separator"></div>
             <div class="refresh" ng-class="{active: autoRefresh}"
-                 icon icon-size="36" icon-id="refresh"
+                 icon icon-size="42" icon-id="refresh"
                  tooltip tt-msg="autoRefreshTip"
                  ng-click="toggleRefresh()"></div>
+
+            <div class="separator"></div>
+
+            <div ng-class="{active: !!selId}"
+                    icon icon-id="topo" icon-size="42"
+                    tooltip tt-msg="topoTip"
+                    ng-click="showIntent()"></div>
         </div>
     </div>
 

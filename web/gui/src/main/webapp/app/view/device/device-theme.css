@@ -1,0 +1,56 @@
+/*
+ * Copyright 2016-present Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ ONOS GUI -- Device View (theme) -- CSS file
+ */
+
+
+.light .dev-icon svg.embeddedIcon .icon .glyph {
+    fill: #0071bd;
+}
+.dark .dev-icon svg.embeddedIcon .icon .glyph {
+    /* TODO: dark theme */
+    fill: #0071bd;
+}
+
+.light #device-details-panel .editable {
+    border-bottom: 1px dashed #ca504b;
+}
+
+
+.light #device-details-panel .bottom th {
+    background-color: #e5e5e6;
+}
+.dark #device-details-panel .bottom th {
+    /* TODO: dark theme */
+    background-color: #e5e5e6;
+}
+
+.light #device-details-panel .bottom tr:nth-child(odd) {
+    background-color: #fbfbfb;
+}
+.light #device-details-panel .bottom tr:nth-child(even) {
+    background-color: #f4f4f4;
+}
+.dark #device-details-panel .bottom tr:nth-child(odd) {
+    /* TODO: dark theme */
+    background-color: #fbfbfb;
+}
+.dark #device-details-panel .bottom tr:nth-child(even) {
+    /* TODO: dark theme */
+    background-color: #f4f4f4;
+}

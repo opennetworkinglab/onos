@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,30 +19,18 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.Provider;
 
 /**
- * Abstraction of a Alarm provider.
+ * Abstraction of an entity capable of supplying alarms collected from
+ * network devices.
  */
 public interface AlarmProvider extends Provider {
 
     /**
-     * Triggers an asynchronous discovery of the alarms on the specified device, intended to refresh internal alarm
-     * model for the device. An indirect result of this should be a event sent later with discovery result ie a set of
-     * alarms.
+     * Triggers an asynchronous discovery of the alarms on the specified device,
+     * intended to refresh internal alarm model for the device. An indirect
+     * result of this should be a event sent later with discovery result
+     * ie a set of alarms.
      *
      * @param deviceId ID of device to be probed
      */
     void triggerProbe(DeviceId deviceId);
-
-    /**
-     * Register a listener for alarms.
-     *
-     * @param listener the listener to notify
-     */
-    void addAlarmListener(AlarmListener listener);
-
-    /**
-     * Unregister a listener.
-     *
-     * @param listener the listener to unregister
-     */
-    void removeAlarmListener(AlarmListener listener);
 }

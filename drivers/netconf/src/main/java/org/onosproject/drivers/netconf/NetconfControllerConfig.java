@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.onosproject.drivers.netconf;
 
 import com.google.common.base.Preconditions;
 import org.onosproject.drivers.utilities.XmlConfigParser;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ControllerConfig;
 import org.onosproject.net.behaviour.ControllerInfo;
@@ -44,21 +45,29 @@ public class NetconfControllerConfig extends AbstractHandlerBehaviour
 
     private final Logger log = getLogger(NetconfControllerConfig.class);
 
+
     @Override
     public List<ControllerInfo> getControllers() {
         DriverHandler handler = handler();
         NetconfController controller = handler.get(NetconfController.class);
-        DeviceId ofDeviceId = handler.data().deviceId();
+        MastershipService mastershipService = handler.get(MastershipService.class);
+        DeviceId deviceId = handler.data().deviceId();
         Preconditions.checkNotNull(controller, "Netconf controller is null");
         List<ControllerInfo> controllers = new ArrayList<>();
-        try {
-            String reply = controller.getDevicesMap().get(ofDeviceId).getSession().
-                    getConfig("running");
-            log.debug("Reply XML {}", reply);
-            controllers.addAll(XmlConfigParser.parseStreamControllers(XmlConfigParser.
-                    loadXml(new ByteArrayInputStream(reply.getBytes(StandardCharsets.UTF_8)))));
-        } catch (IOException e) {
-            log.error("Cannot communicate with device {} ", ofDeviceId);
+        if (mastershipService.isLocalMaster(deviceId)) {
+            try {
+                String reply = controller.getNetconfDevice(deviceId).getSession().
+                        getConfig("running");
+                log.debug("Reply XML {}", reply);
+                controllers.addAll(XmlConfigParser.parseStreamControllers(XmlConfigParser.
+                        loadXml(new ByteArrayInputStream(reply.getBytes(StandardCharsets.UTF_8)))));
+            } catch (IOException e) {
+                log.error("Cannot communicate with device {} ", deviceId, e);
+            }
+        } else {
+            log.warn("I'm not master for {} please use master, {} to execute command",
+                     deviceId,
+                     mastershipService.getMasterFor(deviceId));
         }
         return controllers;
     }
@@ -69,30 +78,36 @@ public class NetconfControllerConfig extends AbstractHandlerBehaviour
         NetconfController controller = handler.get(NetconfController.class);
         DeviceId deviceId = handler.data().deviceId();
         Preconditions.checkNotNull(controller, "Netconf controller is null");
-        try {
-            NetconfDevice device = controller.getNetconfDevice(deviceId);
-            String config = null;
-
+        MastershipService mastershipService = handler.get(MastershipService.class);
+        if (mastershipService.isLocalMaster(deviceId)) {
             try {
-                String reply = device.getSession().getConfig("running");
-                log.info("reply XML {}", reply);
-                config = XmlConfigParser.createControllersConfig(
-                        XmlConfigParser.loadXml(getClass().getResourceAsStream("controllers.xml")),
-                        XmlConfigParser.loadXml(
-                                new ByteArrayInputStream(reply.getBytes(StandardCharsets.UTF_8))),
-                        "running", "merge", "create", controllers
-                );
+                NetconfDevice device = controller.getNetconfDevice(deviceId);
+                String config = null;
+
+                try {
+                    String reply = device.getSession().getConfig("running");
+                    log.info("reply XML {}", reply);
+                    config = XmlConfigParser.createControllersConfig(
+                            XmlConfigParser.loadXml(getClass().getResourceAsStream("controllers.xml")),
+                            XmlConfigParser.loadXml(
+                                    new ByteArrayInputStream(reply.getBytes(StandardCharsets.UTF_8))),
+                            "running", "merge", "create", controllers
+                    );
+                } catch (IOException e) {
+                    log.error("Cannot comunicate to device {} , exception {}", deviceId, e.getMessage());
+                }
+                device.getSession().editConfig(config.substring(config.indexOf("-->") + 3));
+            } catch (NullPointerException e) {
+                log.warn("No NETCONF device with requested parameters " + e);
+                throw new NullPointerException("No NETCONF device with requested parameters " + e);
             } catch (IOException e) {
                 log.error("Cannot comunicate to device {} , exception {}", deviceId, e.getMessage());
             }
-            device.getSession().editConfig(config.substring(config.indexOf("-->") + 3));
-        } catch (NullPointerException e) {
-            log.warn("No NETCONF device with requested parameters " + e);
-            throw new NullPointerException("No NETCONF device with requested parameters " + e);
-        } catch (IOException e) {
-            log.error("Cannot comunicate to device {} , exception {}", deviceId, e.getMessage());
+        } else {
+            log.warn("I'm not master for {} please use master, {} to execute command",
+                     deviceId,
+                     mastershipService.getMasterFor(deviceId));
         }
-
     }
 
     //TODO maybe put method getNetconfClientService like in ovsdb if we need it

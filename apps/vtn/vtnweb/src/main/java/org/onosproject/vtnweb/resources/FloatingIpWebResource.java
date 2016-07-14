@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,25 @@
  */
 package org.onosproject.vtnweb.resources;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.CONFLICT;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Sets;
+import org.onlab.packet.IpAddress;
+import org.onlab.util.ItemNotFoundException;
+import org.onosproject.rest.AbstractWebResource;
+import org.onosproject.vtnrsc.DefaultFloatingIp;
+import org.onosproject.vtnrsc.FloatingIp;
+import org.onosproject.vtnrsc.FloatingIp.Status;
+import org.onosproject.vtnrsc.FloatingIpId;
+import org.onosproject.vtnrsc.RouterId;
+import org.onosproject.vtnrsc.TenantId;
+import org.onosproject.vtnrsc.TenantNetworkId;
+import org.onosproject.vtnrsc.VirtualPortId;
+import org.onosproject.vtnrsc.floatingip.FloatingIpService;
+import org.onosproject.vtnweb.web.FloatingIpCodec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -42,27 +46,20 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.onlab.packet.IpAddress;
-import org.onlab.util.ItemNotFoundException;
-import org.onosproject.rest.AbstractWebResource;
-import org.onosproject.vtnrsc.DefaultFloatingIp;
-import org.onosproject.vtnrsc.FloatingIp;
-import org.onosproject.vtnrsc.FloatingIpId;
-import org.onosproject.vtnrsc.TenantId;
-import org.onosproject.vtnrsc.TenantNetworkId;
-import org.onosproject.vtnrsc.VirtualPortId;
-import org.onosproject.vtnrsc.RouterId;
-import org.onosproject.vtnrsc.FloatingIp.Status;
-import org.onosproject.vtnrsc.floatingip.FloatingIpService;
-import org.onosproject.vtnweb.web.FloatingIpCodec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 @Path("floatingips")
 public class FloatingIpWebResource extends AbstractWebResource {
@@ -78,6 +75,7 @@ public class FloatingIpWebResource extends AbstractWebResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response listFloatingIps() {
         Collection<FloatingIp> floatingIps = get(FloatingIpService.class)
                 .getFloatingIps();
@@ -90,6 +88,7 @@ public class FloatingIpWebResource extends AbstractWebResource {
     @GET
     @Path("{floatingIpUUID}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response getFloatingIp(@PathParam("floatingIpUUID") String id,
                                   @QueryParam("fields") List<String> fields) {
 
@@ -151,8 +150,10 @@ public class FloatingIpWebResource extends AbstractWebResource {
         }
     }
 
-    @Path("{floatingIpUUID}")
     @DELETE
+    @Path("{floatingIpUUID}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response deleteSingleFloatingIp(@PathParam("floatingIpUUID") String id)
             throws IOException {
         try {
@@ -163,7 +164,7 @@ public class FloatingIpWebResource extends AbstractWebResource {
             if (!result) {
                 return Response.status(CONFLICT).entity(DELETE_FAIL).build();
             }
-            return Response.status(NO_CONTENT).entity(DELETE_SUCCESS).build();
+            return Response.noContent().entity(DELETE_SUCCESS).build();
         } catch (Exception e) {
             return Response.status(NOT_FOUND).entity(e.getMessage()).build();
         }

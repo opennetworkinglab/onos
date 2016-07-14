@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.onosproject.incubator.net.virtual;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -96,13 +95,11 @@ public interface VirtualNetworkAdminService extends VirtualNetworkService {
      * @param networkId  network identifier
      * @param src        source connection point
      * @param dst        destination connection point
-     * @param realizedBy identifier of the tunnel using which this link is realized
      * @return newly created virtual link
      * @throws org.onlab.util.ItemNotFoundException if no such network found
      */
     VirtualLink createVirtualLink(NetworkId networkId,
-                                  ConnectPoint src, ConnectPoint dst,
-                                  TunnelId realizedBy);
+                                  ConnectPoint src, ConnectPoint dst);
 
     // TODO: Discuss whether we should provide an alternate createVirtualLink
     // which is backed by a Path instead; I'm leaning towards not doing that.
@@ -121,11 +118,11 @@ public interface VirtualNetworkAdminService extends VirtualNetworkService {
      * Creates a new virtual port on the specified device.
      *
      * @param networkId  network identifier
-     * @param deviceId   device identifier
-     * @param portNumber port number
-     * @param realizedBy underlying port using which this virtual port is realized
+     * @param deviceId   virtual device identifier
+     * @param portNumber virtual port number
+     * @param realizedBy underlying physical port using which this virtual port is realized
      * @return newly created port
-     * @throws org.onlab.util.ItemNotFoundException if no such network or device found
+     * @throws org.onlab.util.ItemNotFoundException if no such network or device is found
      */
     VirtualPort createVirtualPort(NetworkId networkId, DeviceId deviceId,
                                   PortNumber portNumber, Port realizedBy);

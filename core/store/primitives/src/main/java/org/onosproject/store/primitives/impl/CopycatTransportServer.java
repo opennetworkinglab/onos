@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,12 @@ package org.onosproject.store.primitives.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
+import io.atomix.catalyst.concurrent.CatalystThreadFactory;
+import io.atomix.catalyst.concurrent.SingleThreadContext;
+import io.atomix.catalyst.concurrent.ThreadContext;
+import io.atomix.catalyst.transport.Address;
+import io.atomix.catalyst.transport.Connection;
+import io.atomix.catalyst.transport.Server;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -35,13 +41,6 @@ import org.onosproject.store.cluster.messaging.MessagingService;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Maps;
-
-import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.Connection;
-import io.atomix.catalyst.transport.Server;
-import io.atomix.catalyst.util.concurrent.CatalystThreadFactory;
-import io.atomix.catalyst.util.concurrent.SingleThreadContext;
-import io.atomix.catalyst.util.concurrent.ThreadContext;
 
 /**
  * {@link Server} implementation for {@link CopycatTransport}.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package org.onlab.util;
-
-import java.util.concurrent.ScheduledExecutorService;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
@@ -56,7 +54,7 @@ public final class SharedScheduledExecutors {
      *
      * @return shared scheduled single thread executor
      */
-    public static ScheduledExecutorService getSingleThreadExecutor() {
+    public static SharedScheduledExecutorService getSingleThreadExecutor() {
         return singleThreadExecutor;
     }
 
@@ -65,7 +63,7 @@ public final class SharedScheduledExecutors {
      *
      * @return shared scheduled executor pool
      */
-    public static ScheduledExecutorService getPoolThreadExecutor() {
+    public static SharedScheduledExecutorService getPoolThreadExecutor() {
         return poolThreadExecutor;
     }
 

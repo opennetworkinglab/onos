@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ describe('factory: view/topo/topoEvent.js', function() {
     var $log, fs, tes, bns;
 
     beforeEach(module('ovTopo', 'onosNav', 'onosUtil', 'onosLayer', 'ngRoute',
-        'onosWidget'));
+        'onosWidget', 'onosMast'));
 
     beforeEach(inject(function (_$log_, FnService,
                                 TopoEventService, ButtonService) {
@@ -37,7 +37,7 @@ describe('factory: view/topo/topoEvent.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(tes, [
-            'start', 'stop'
+            'start', 'stop', 'bindHandlers'
         ])).toBeTruthy();
     });
 

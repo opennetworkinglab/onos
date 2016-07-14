@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,28 +15,31 @@
  */
 package org.onosproject.faultmanagement.web;
 
-import com.sun.jersey.api.client.WebResource;
 import org.junit.Before;
-import org.junit.Test;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
 import org.junit.Ignore;
+import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
-import org.onosproject.rest.ResourceTest;
+import org.onosproject.rest.resources.ResourceTest;
+
+import javax.ws.rs.client.WebTarget;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 
 /**
  * Test of the Fault Management Web REST API for Alarms.
  */
 public class AlarmsWebResourceTest extends ResourceTest {
 
+
+
     @Before
-    public void setUp() {
+    public void setUpMock() {
 
         CodecManager codecService = new CodecManager();
         codecService.activate();
@@ -51,8 +54,8 @@ public class AlarmsWebResourceTest extends ResourceTest {
     @Test
     @Ignore
     public void getAllAlarms() {
-        WebResource rs = resource();
-        String response = rs.path("/alarms").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("/alarms").request().get(String.class);
         // Ensure hard-coded alarms returned okay
         assertThat(response, containsString("\"NE is not reachable\","));
         assertThat(response, containsString("\"Equipment Missing\","));
@@ -61,8 +64,8 @@ public class AlarmsWebResourceTest extends ResourceTest {
     @Test
     @Ignore
     public void getAlarm() {
-        WebResource rs = resource();
-        String response = rs.path("/alarms/1").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("/alarms/1").request().get(String.class);
         // Ensure hard-coded alarms returned okay
         assertThat(response, containsString("\"NE is not reachable\","));
         assertThat(response, not(containsString("\"Equipment Missing\",")));

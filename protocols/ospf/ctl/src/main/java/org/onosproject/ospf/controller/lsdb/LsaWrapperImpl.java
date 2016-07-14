@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,15 @@ public class LsaWrapperImpl implements LsaWrapper {
     private int binNumber = -1;
     private OspfInterface ospfInterface;
     private LsdbAge lsdbAge;
+    private int ageCounterRollOverWhenAdded;
+
+    public int getAgeCounterRollOverWhenAdded() {
+        return ageCounterRollOverWhenAdded;
+    }
+
+    public void setAgeCounterRollOverWhenAdded(int ageCounterRollOverWhenAdded) {
+        this.ageCounterRollOverWhenAdded = ageCounterRollOverWhenAdded;
+    }
 
     /**
      * Gets the LSA type.
@@ -317,6 +326,8 @@ public class LsaWrapperImpl implements LsaWrapper {
         }
 
         if (currentAge >= OspfParameters.MAXAGE) {
+            return OspfParameters.MAXAGE;
+        } else if ((currentAge == lsaAgeReceived) && ageCounterRollOverWhenAdded != lsdbAge.getAgeCounterRollOver()) {
             return OspfParameters.MAXAGE;
         }
 

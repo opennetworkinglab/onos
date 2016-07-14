@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,21 @@ public interface L2ForwardService {
      * @param type the operation of the flow
      */
     void programLocalOut(DeviceId deviceId, SegmentationId segmentationId,
+                         PortNumber outPort, MacAddress sourceMac,
+                         Objective.Operation type);
+
+    /**
+     * The external out rule that message matches Table(50).
+     * Match: external port mac and vnid.
+     * Action: output external port.
+     *
+     * @param deviceId Device Id
+     * @param segmentationId the vnid of the host belong to
+     * @param outPort the ingress port of the external port
+     * @param sourceMac the mac of the external port
+     * @param type the operation of the flow
+     */
+    void programExternalOut(DeviceId deviceId, SegmentationId segmentationId,
                          PortNumber outPort, MacAddress sourceMac,
                          Objective.Operation type);
 

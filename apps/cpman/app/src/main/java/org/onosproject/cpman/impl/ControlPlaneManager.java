@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,10 +81,10 @@ public class ControlPlaneManager {
             // TODO: this can be changed to switch-case if we have more than
             // one event type
             if (event.type().equals(STATS_UPDATE)) {
-                controlMessages.forEach(c -> {
+                controlMessages.forEach(c ->
                     monitorService.updateMetric(getControlMetric(c), 1,
-                            Optional.of(c.deviceId()));
-                });
+                            Optional.of(c.deviceId()))
+                );
             }
         }
     }

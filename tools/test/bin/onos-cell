@@ -1,0 +1,9 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# List available ONOS cells configuration.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/dev/bash_profile
+
+cell "$@"

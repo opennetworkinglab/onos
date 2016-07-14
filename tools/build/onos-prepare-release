@@ -26,7 +26,8 @@ git fetch origin
 git checkout $BRANCH
 
 # Check existance of version
-git tag -l | grep -q $ONOS_VERSION && { echo "ERROR: Version already exists"; exit -1; }
+git tag -l | grep -q "$ONOS_VERSION\$" &&
+  { echo "ERROR: Version already exists"; exit -1; }
 
 export ONOS_ROOT=$DIR
 . $ONOS_ROOT/tools/build/envDefaults

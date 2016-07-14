@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,12 @@ import java.util.Objects;
 
 public abstract class L0ModificationInstruction implements Instruction {
 
-    public static final String SEPARATOR = ":";
+    private static final String SEPARATOR = ":";
 
     /**
      * Represents the type of traffic treatment.
      */
     public enum L0SubType {
-        /**
-         * Lambda modification.
-         */
-        LAMBDA,
         /**
          * OCh (Optical Channel) modification.
          */
@@ -42,52 +38,6 @@ public abstract class L0ModificationInstruction implements Instruction {
     @Override
     public final Type type() {
         return Type.L0MODIFICATION;
-    }
-
-    /**
-     * Represents a L0 lambda modification instruction.
-     */
-    public static final class ModLambdaInstruction extends L0ModificationInstruction {
-
-        private final L0SubType subtype;
-        private final short lambda;
-
-        ModLambdaInstruction(L0SubType subType, short lambda) {
-            this.subtype = subType;
-            this.lambda = lambda;
-        }
-
-        @Override
-        public L0SubType subtype() {
-            return this.subtype;
-        }
-
-        public short lambda() {
-            return this.lambda;
-        }
-
-        @Override
-        public String toString() {
-            return subtype().toString() + SEPARATOR + lambda;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(type(), subtype, lambda);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj instanceof ModLambdaInstruction) {
-                ModLambdaInstruction that = (ModLambdaInstruction) obj;
-                return  Objects.equals(lambda, that.lambda) &&
-                        Objects.equals(subtype, that.subtype);
-            }
-            return false;
-        }
     }
 
     /**

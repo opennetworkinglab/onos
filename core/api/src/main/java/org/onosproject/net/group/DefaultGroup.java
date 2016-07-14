@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ public class DefaultGroup extends DefaultGroupDescription
     private long bytes;
     private long referenceCount;
     private GroupId id;
+    private int age;
 
     /**
      * Initializes default values.
@@ -48,6 +49,7 @@ public class DefaultGroup extends DefaultGroupDescription
         packets = 0;
         bytes = 0;
         referenceCount = 0;
+        age = 0;
     }
 
     /**
@@ -128,6 +130,11 @@ public class DefaultGroup extends DefaultGroupDescription
         return this.bytes;
     }
 
+    @Override
+    public int age() {
+        return age;
+    }
+
     /**
      * Sets the new state for this entry.
      *
@@ -171,6 +178,11 @@ public class DefaultGroup extends DefaultGroupDescription
     @Override
     public void setReferenceCount(long referenceCount) {
         this.referenceCount = referenceCount;
+        if (referenceCount == 0) {
+            age++;
+        } else {
+            age = 0;
+        }
     }
 
     @Override
@@ -214,6 +226,7 @@ public class DefaultGroup extends DefaultGroupDescription
                 .add("description", super.toString())
                 .add("groupid", id)
                 .add("state", state)
+                .add("age", age)
                 .toString();
     }
 

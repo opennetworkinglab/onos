@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import org.onosproject.net.Link;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
-import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
@@ -132,20 +131,6 @@ public final class EncodeConstraintCodecHelper {
     }
 
     /**
-     * Encodes a lambda constraint.
-     *
-     * @return JSON ObjectNode representing the constraint
-     */
-    private ObjectNode encodeLambdaConstraint() {
-        checkNotNull(constraint, "Lambda constraint cannot be null");
-        final LambdaConstraint lambdaConstraint =
-                (LambdaConstraint) constraint;
-
-        return context.mapper().createObjectNode()
-                .put("lambda", lambdaConstraint.lambda().index());
-    }
-
-    /**
      * Encodes a link type constraint.
      *
      * @return JSON ObjectNode representing the constraint
@@ -179,8 +164,6 @@ public final class EncodeConstraintCodecHelper {
         final ObjectNode result;
         if (constraint instanceof BandwidthConstraint) {
             result = encodeBandwidthConstraint();
-        } else if (constraint instanceof LambdaConstraint) {
-            result = encodeLambdaConstraint();
         } else if (constraint instanceof LinkTypeConstraint) {
             result = encodeLinkTypeConstraint();
         } else if (constraint instanceof AnnotationConstraint) {

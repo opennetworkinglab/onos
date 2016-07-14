@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015-2016 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,4 +23,5 @@
     <artifact>mvn:${project.groupId}/onos-app-sfc-mgr/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-vtn-web/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-vtn-rsc/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-app-sfc-web/${project.version}</artifact>
 </app>

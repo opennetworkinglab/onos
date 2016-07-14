@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,10 @@ package org.onosproject.vtnrsc.virtualport.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -33,12 +31,18 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.EventuallyConsistentMapEvent;
+import org.onosproject.store.service.EventuallyConsistentMapListener;
+import org.onosproject.store.service.MultiValuedTimestamp;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.vtnrsc.AllowedAddressPair;
 import org.onosproject.vtnrsc.BindingHostId;
 import org.onosproject.vtnrsc.DefaultVirtualPort;
@@ -50,6 +54,8 @@ import org.onosproject.vtnrsc.TenantNetworkId;
 import org.onosproject.vtnrsc.VirtualPort;
 import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
+import org.onosproject.vtnrsc.virtualport.VirtualPortEvent;
+import org.onosproject.vtnrsc.virtualport.VirtualPortListener;
 import org.onosproject.vtnrsc.virtualport.VirtualPortService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +65,8 @@ import org.slf4j.LoggerFactory;
  */
 @Component(immediate = true)
 @Service
-public class VirtualPortManager implements VirtualPortService {
+public class VirtualPortManager extends AbstractListenerManager<VirtualPortEvent, VirtualPortListener>
+implements VirtualPortService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -73,8 +80,9 @@ public class VirtualPortManager implements VirtualPortService {
     private static final String DEVICEID_NOT_NULL = "DeviceId  cannot be null";
     private static final String FIXEDIP_NOT_NULL = "FixedIp  cannot be null";
     private static final String IP_NOT_NULL = "Ip  cannot be null";
+    private static final String EVENT_NOT_NULL = "event cannot be null";
 
-    protected Map<VirtualPortId, VirtualPort> vPortStore;
+    protected EventuallyConsistentMap<VirtualPortId, VirtualPort> vPortStore;
     protected ApplicationId appId;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -86,28 +94,35 @@ public class VirtualPortManager implements VirtualPortService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
+    private EventuallyConsistentMapListener<VirtualPortId, VirtualPort> virtualPortListener =
+            new InnerVirtualPortStoreListener();
+
     @Activate
     public void activate() {
 
         appId = coreService.registerApplication(VTNRSC_APP);
 
-        vPortStore = storageService.<VirtualPortId, VirtualPort>consistentMapBuilder()
+        eventDispatcher.addSink(VirtualPortEvent.class, listenerRegistry);
+
+        vPortStore = storageService.<VirtualPortId, VirtualPort>eventuallyConsistentMapBuilder()
                 .withName(VIRTUALPORT)
-                .withApplicationId(appId)
-                .withPurgeOnUninstall()
-                .withSerializer(Serializer.using(Arrays.asList(KryoNamespaces.API),
-                                                 VirtualPortId.class,
-                                                 TenantNetworkId.class,
-                                                 VirtualPort.State.class,
-                                                 TenantId.class,
-                                                 AllowedAddressPair.class,
-                                                 FixedIp.class,
-                                                 BindingHostId.class,
-                                                 SecurityGroup.class,
-                                                 SubnetId.class,
-                                                 IpAddress.class,
-                                                 DefaultVirtualPort.class))
-                .build().asJavaMap();
+                .withSerializer(KryoNamespace.newBuilder().register(KryoNamespaces.API)
+                                .register(MultiValuedTimestamp.class)
+                        .register(VirtualPortId.class,
+                                  TenantNetworkId.class,
+                                  VirtualPort.State.class,
+                                  TenantId.class,
+                                  AllowedAddressPair.class,
+                                  FixedIp.class,
+                                  BindingHostId.class,
+                                  SecurityGroup.class,
+                                  SubnetId.class,
+                                  IpAddress.class,
+                                  DefaultVirtualPort.class))
+                .withTimestampProvider((k, v) ->new WallClockTimestamp())
+                                          .build();
+
+        vPortStore.addListener(virtualPortListener);
         log.info("Started");
     }
 
@@ -246,4 +261,35 @@ public class VirtualPortManager implements VirtualPortService {
         return true;
     }
 
+    private class InnerVirtualPortStoreListener
+    implements
+    EventuallyConsistentMapListener<VirtualPortId, VirtualPort> {
+
+        @Override
+        public void event(EventuallyConsistentMapEvent<VirtualPortId, VirtualPort> event) {
+            checkNotNull(event, EVENT_NOT_NULL);
+            log.info("virtual port event raised");
+            VirtualPort virtualPort = event.value();
+            if (EventuallyConsistentMapEvent.Type.PUT == event.type()) {
+                notifyListeners(new VirtualPortEvent(
+                                                     VirtualPortEvent.Type.VIRTUAL_PORT_PUT,
+                                                     virtualPort));
+            }
+            if (EventuallyConsistentMapEvent.Type.REMOVE == event.type()) {
+                notifyListeners(new VirtualPortEvent(
+                                                     VirtualPortEvent.Type.VIRTUAL_PORT_DELETE,
+                                                     virtualPort));
+            }
+        }
+    }
+
+    /**
+     * Notifies specify event to all listeners.
+     *
+     * @param event virtual port event
+     */
+    private void notifyListeners(VirtualPortEvent event) {
+        checkNotNull(event, EVENT_NOT_NULL);
+        post(event);
+    }
 }

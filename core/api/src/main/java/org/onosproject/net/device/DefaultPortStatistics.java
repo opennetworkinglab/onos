@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -139,6 +139,16 @@ public final class DefaultPortStatistics implements PortStatistics {
     @Override
     public long durationNano() {
         return this.durationNano;
+    }
+
+    @Override
+    public boolean isZero() {
+        return  bytesReceived() == 0 &&
+                bytesSent() == 0 &&
+                packetsReceived() == 0 &&
+                packetsRxDropped() == 0 &&
+                packetsSent() == 0 &&
+                packetsTxDropped() == 0;
     }
 
     @Override
@@ -343,4 +353,5 @@ public final class DefaultPortStatistics implements PortStatistics {
         }
 
     }
+
 }

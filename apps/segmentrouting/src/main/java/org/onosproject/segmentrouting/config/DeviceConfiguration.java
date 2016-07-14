@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,12 +39,13 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Segment Routing configuration component that reads the
@@ -56,7 +57,6 @@ public class DeviceConfiguration implements DeviceProperties {
     private static final Logger log = LoggerFactory.getLogger(DeviceConfiguration.class);
     private final List<Integer> allSegmentIds = new ArrayList<>();
     private final Map<DeviceId, SegmentRouterInfo> deviceConfigMap = new ConcurrentHashMap<>();
-    private final Map<VlanId, List<ConnectPoint>> xConnects = new ConcurrentHashMap<>();
     private ApplicationId appId;
     private NetworkConfigService cfgService;
 
@@ -101,8 +101,8 @@ public class DeviceConfiguration implements DeviceProperties {
             info.mac = config.routerMac();
             info.isEdge = config.isEdgeRouter();
             info.adjacencySids = config.adjacencySids();
-
             deviceConfigMap.put(info.deviceId, info);
+            log.info("Read device config for device: {}", info.deviceId);
             allSegmentIds.add(info.nodeSid);
         });
 
@@ -111,7 +111,10 @@ public class DeviceConfiguration implements DeviceProperties {
             cfgService.getSubjects(ConnectPoint.class, InterfaceConfig.class);
         portSubjects.forEach(subject -> {
             // Do not process excluded ports
-            if (suppressSubnet().contains(subject)) {
+            SegmentRoutingAppConfig appConfig =
+                    cfgService.getConfig(appId, SegmentRoutingAppConfig.class);
+            if (appConfig != null && appConfig.suppressSubnet().contains(subject)) {
+                log.info("Ignore suppressed port {}", subject);
                 return;
             }
 
@@ -143,31 +146,8 @@ public class DeviceConfiguration implements DeviceProperties {
                         }
                         info.subnets.put(port, interfaceAddress.subnetAddress().getIp4Prefix());
                     });
-
-                    // Extract VLAN cross-connect information
-                    // Do not setup cross-connect if VLAN is NONE
-                    if (vlanId.equals(VlanId.NONE)) {
-                        return;
-                    }
-                    List<ConnectPoint> connectPoints = xConnects.get(vlanId);
-                    if (connectPoints != null) {
-                        if (connectPoints.size() != 1) {
-                            log.warn("Cross-connect should only have two endpoints. Aborting.");
-                            return;
-                        }
-                        if (!connectPoints.get(0).deviceId().equals(connectPoint.deviceId())) {
-                            log.warn("Cross-connect endpoints must be on the same switch. Aborting.");
-                            return;
-                        }
-                        connectPoints.add(connectPoint);
-                    } else {
-                        connectPoints = new LinkedList<>();
-                        connectPoints.add(connectPoint);
-                        xConnects.put(vlanId, connectPoints);
-                    }
                 }
             });
-
         });
     }
 
@@ -264,12 +244,16 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     @Override
-    public Map<Ip4Prefix, List<PortNumber>> getSubnetPortsMap(DeviceId deviceId) {
-        Map<Ip4Prefix, List<PortNumber>> subnetPortMap = new HashMap<>();
-
+    public Map<Ip4Prefix, List<PortNumber>> getSubnetPortsMap(DeviceId deviceId)
+            throws DeviceConfigNotFoundException {
+        SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
+        if (srinfo == null) {
+            String message = "getSubnetPortsMap fails for device: " + deviceId + ".";
+            throw new DeviceConfigNotFoundException(message);
+        }
         // Construct subnet-port mapping from port-subnet mapping
-        SetMultimap<PortNumber, Ip4Prefix> portSubnetMap =
-                this.deviceConfigMap.get(deviceId).subnets;
+        SetMultimap<PortNumber, Ip4Prefix> portSubnetMap = srinfo.subnets;
+        Map<Ip4Prefix, List<PortNumber>> subnetPortMap = new HashMap<>();
 
         portSubnetMap.entries().forEach(entry -> {
             PortNumber port = entry.getKey();
@@ -288,11 +272,6 @@ public class DeviceConfiguration implements DeviceProperties {
             }
         });
         return subnetPortMap;
-    }
-
-    @Override
-    public Map<VlanId, List<ConnectPoint>> getXConnects() {
-        return xConnects;
     }
 
     /**
@@ -492,15 +471,37 @@ public class DeviceConfiguration implements DeviceProperties {
         return srinfo != null && srinfo.adjacencySids.containsKey(sid);
     }
 
-    public Set<ConnectPoint> suppressSubnet() {
-        SegmentRoutingAppConfig appConfig =
-                cfgService.getConfig(appId, SegmentRoutingAppConfig.class);
-        return (appConfig != null) ? appConfig.suppressSubnet() : ImmutableSet.of();
+    /**
+     * Add subnet to specific connect point.
+     *
+     * @param cp connect point
+     * @param ip4Prefix subnet being added to the device
+     */
+    public void addSubnet(ConnectPoint cp, Ip4Prefix ip4Prefix) {
+        checkNotNull(cp);
+        checkNotNull(ip4Prefix);
+        SegmentRouterInfo srinfo = deviceConfigMap.get(cp.deviceId());
+        if (srinfo == null) {
+            log.warn("Device {} is not configured. Abort.", cp.deviceId());
+            return;
+        }
+        srinfo.subnets.put(cp.port(), ip4Prefix);
     }
 
-    public Set<ConnectPoint> suppressHost() {
-        SegmentRoutingAppConfig appConfig =
-                cfgService.getConfig(appId, SegmentRoutingAppConfig.class);
-        return (appConfig != null) ? appConfig.suppressHost() : ImmutableSet.of();
+    /**
+     * Remove subnet from specific connect point.
+     *
+     * @param cp connect point
+     * @param ip4Prefix subnet being removed to the device
+     */
+    public void removeSubnet(ConnectPoint cp, Ip4Prefix ip4Prefix) {
+        checkNotNull(cp);
+        checkNotNull(ip4Prefix);
+        SegmentRouterInfo srinfo = deviceConfigMap.get(cp.deviceId());
+        if (srinfo == null) {
+            log.warn("Device {} is not configured. Abort.", cp.deviceId());
+            return;
+        }
+        srinfo.subnets.remove(cp.port(), ip4Prefix);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.AsymmetricPathConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
-import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
@@ -135,18 +134,6 @@ public class ConstraintCodecTest {
 
         BandwidthConstraint bandwidthConstraint = (BandwidthConstraint) constraint;
         assertThat(bandwidthConstraint.bandwidth().bps(), is(345.678D));
-    }
-
-    /**
-     * Tests lambda constraint.
-     */
-    @Test
-    public void lambdaConstraint() {
-        Constraint constraint = getConstraint("LambdaConstraint.json");
-        assertThat(constraint, instanceOf(LambdaConstraint.class));
-
-        LambdaConstraint lambdaConstraint = (LambdaConstraint) constraint;
-        assertThat(lambdaConstraint.lambda().index(), is(444L));
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,26 @@ package org.onosproject.pcep.controller.impl;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.RejectedExecutionException;
 
 import org.jboss.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
+import org.onosproject.pcep.controller.ClientCapability;
+import org.onosproject.pcep.controller.LspKey;
 import org.onosproject.pcep.controller.PccId;
+import org.onosproject.pcep.controller.PcepClient;
 import org.onosproject.pcep.controller.PcepPacketStats;
+import org.onosproject.pcep.controller.PcepSyncStatus;
 import org.onosproject.pcep.controller.driver.PcepAgent;
 import org.onosproject.pcep.controller.driver.PcepClientDriver;
 import org.onosproject.pcepio.protocol.PcepFactories;
 import org.onosproject.pcepio.protocol.PcepFactory;
 import org.onosproject.pcepio.protocol.PcepMessage;
+import org.onosproject.pcepio.protocol.PcepStateReport;
 import org.onosproject.pcepio.protocol.PcepVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,17 +59,21 @@ public class PcepClientImpl implements PcepClientDriver {
     protected String channelId;
 
     private boolean connected;
-    protected boolean startDriverHandshakeCalled = false;
-    protected boolean isHandShakeComplete = false;
-    protected boolean isSyncComplete = false;
+    protected boolean startDriverHandshakeCalled;
+    protected boolean isHandShakeComplete;
+    private PcepSyncStatus lspDbSyncStatus;
+    private PcepSyncStatus labelDbSyncStatus;
     private PccId pccId;
     private PcepAgent agent;
 
+    private ClientCapability capability;
     private PcepVersion pcepVersion;
     private byte keepAliveTime;
     private byte deadTime;
     private byte sessionId;
     private PcepPacketStatsImpl pktStats;
+    private Map<LspKey, Boolean> lspDelegationInfo = new HashMap<>();
+    private Map<PccId, List<PcepStateReport>> syncRptCache = new HashMap<>();
 
     @Override
     public void init(PccId pccId, PcepVersion pcepVersion, PcepPacketStats pktStats) {
@@ -73,6 +85,16 @@ public class PcepClientImpl implements PcepClientDriver {
     @Override
     public final void disconnectClient() {
         this.channel.close();
+    }
+
+    @Override
+    public void setCapability(ClientCapability capability) {
+        this.capability = capability;
+    }
+
+    @Override
+    public ClientCapability capability() {
+        return capability;
     }
 
     @Override
@@ -163,19 +185,47 @@ public class PcepClientImpl implements PcepClientDriver {
     }
 
     @Override
-    public void setIsSyncComplete(boolean value) {
-        this.isSyncComplete = value;
+    public void setLspDbSyncStatus(PcepSyncStatus syncStatus) {
+        log.debug("LSP DB sync status set from {} to {}", this.lspDbSyncStatus, syncStatus);
+        this.lspDbSyncStatus = syncStatus;
     }
 
     @Override
-    public boolean isSyncComplete() {
-        return isSyncComplete;
+    public PcepSyncStatus lspDbSyncStatus() {
+        return lspDbSyncStatus;
+    }
+
+    @Override
+    public void setLabelDbSyncStatus(PcepSyncStatus syncStatus) {
+
+        PcepSyncStatus syncOldStatus = labelDbSyncStatus();
+        this.labelDbSyncStatus = syncStatus;
+        log.debug("Label DB sync status set from {} to {}", syncOldStatus, syncStatus);
+        if ((syncOldStatus == PcepSyncStatus.IN_SYNC) && (syncStatus == PcepSyncStatus.SYNCED)) {
+            // Perform end of LSP DB sync actions.
+            this.agent.analyzeSyncMsgList(pccId);
+        }
+    }
+
+    @Override
+    public PcepSyncStatus labelDbSyncStatus() {
+        return labelDbSyncStatus;
     }
 
     @Override
     public final void handleMessage(PcepMessage m) {
         this.pktStats.addInPacket();
         this.agent.processPcepMessage(pccId, m);
+    }
+
+    @Override
+    public void addNode(PcepClient pc) {
+        this.agent.addNode(pc);
+    }
+
+    @Override
+    public void deleteNode(PccId pccId) {
+        this.agent.deleteNode(pccId);
     }
 
     @Override
@@ -203,6 +253,39 @@ public class PcepClientImpl implements PcepClientDriver {
         if (this.agent == null) {
             this.agent = ag;
         }
+    }
+
+    @Override
+    public void setLspAndDelegationInfo(LspKey lspKey, boolean dFlag) {
+        lspDelegationInfo.put(lspKey, dFlag);
+    }
+
+    @Override
+    public Boolean delegationInfo(LspKey lspKey) {
+        return lspDelegationInfo.get(lspKey);
+    }
+
+    @Override
+    public void initializeSyncMsgList(PccId pccId) {
+        List<PcepStateReport> rptMsgList = new LinkedList<>();
+        syncRptCache.put(pccId, rptMsgList);
+    }
+
+    @Override
+    public List<PcepStateReport> getSyncMsgList(PccId pccId) {
+        return syncRptCache.get(pccId);
+    }
+
+    @Override
+    public void removeSyncMsgList(PccId pccId) {
+        syncRptCache.remove(pccId);
+    }
+
+    @Override
+    public void addSyncMsgToList(PccId pccId, PcepStateReport rptMsg) {
+        List<PcepStateReport> rptMsgList = syncRptCache.get(pccId);
+        rptMsgList.add(rptMsg);
+        syncRptCache.put(pccId, rptMsgList);
     }
 
     @Override

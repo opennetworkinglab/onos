@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class SegmentRoutingDeviceConfigTest {
     @Before
     public void setUp() throws Exception {
         InputStream jsonStream = SegmentRoutingDeviceConfigTest.class
-                .getResourceAsStream("/sr-device-config.json");
+                .getResourceAsStream("/device.json");
 
         adjacencySids1 = new HashMap<>();
         Set<Integer> ports1 = new HashSet<>();

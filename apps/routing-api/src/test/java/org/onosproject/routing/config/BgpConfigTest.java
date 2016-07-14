@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
@@ -50,6 +51,8 @@ public class BgpConfigTest {
     private static final IpAddress IP4 = IpAddress.valueOf("10.0.101.1");
     private static final IpAddress IP5 = IpAddress.valueOf("10.0.201.1");
     public static final IpAddress IP_NON_EXIST = IpAddress.valueOf("10.101.1.1");
+
+    public static final VlanId NO_VLAN = VlanId.NONE;
 
     public static final ConnectPoint CONNECT_POINT1 = ConnectPoint.
             deviceConnectPoint("of:0000000000000001/1");
@@ -230,7 +233,8 @@ public class BgpConfigTest {
         ConnectPoint connectPoint = CONNECT_POINT1;
         Set<IpAddress> connectedPeers = new HashSet<>(Arrays.asList(IP1, IP2, IP3));
 
-        return new BgpConfig.BgpSpeakerConfig(speakerName, connectPoint, connectedPeers);
+        return new BgpConfig.BgpSpeakerConfig(speakerName, NO_VLAN,
+                                              connectPoint, connectedPeers);
     }
 
     private BgpConfig.BgpSpeakerConfig createNewSpeaker() {
@@ -239,6 +243,7 @@ public class BgpConfigTest {
         Set<IpAddress> connectedPeers = new HashSet<>(
                 Arrays.asList(IP4, IP5));
 
-        return new BgpConfig.BgpSpeakerConfig(speakerName, connectPoint, connectedPeers);
+        return new BgpConfig.BgpSpeakerConfig(speakerName, NO_VLAN,
+                                              connectPoint, connectedPeers);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,11 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 import org.onosproject.utils.MeteringAgent;
 
-
+/**
+ * Default implementation of a {@code AsyncAtomicValue}.
+ *
+ * @param <V> value type
+ */
 public class DefaultAsyncAtomicValue<V> implements AsyncAtomicValue<V> {
 
     private final String name;

@@ -1,0 +1,11 @@
+COMPILE_DEPS = [
+    '//lib:COMPILE',
+    '//utils/misc:onlab-misc',
+    '//utils/osgi:onlab-osgi',
+    '//utils/rest:onlab-rest',
+]
+
+osgi_jar_with_tests (
+    name = 'onos-api',
+    deps = COMPILE_DEPS,
+)

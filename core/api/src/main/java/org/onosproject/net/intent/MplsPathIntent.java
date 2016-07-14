@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Abstraction of explicit MPLS label-switched path.
+ *
+ * @deprecated in Goldeneye Release, in favour of encapsulation
+ * constraint {@link org.onosproject.net.intent.constraint.EncapsulationConstraint}
  */
 @Beta
+@Deprecated
 public final class MplsPathIntent extends PathIntent {
 
     private final Optional<MplsLabel> ingressLabel;

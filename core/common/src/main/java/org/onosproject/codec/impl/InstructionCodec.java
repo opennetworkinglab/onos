@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ public final class InstructionCodec extends JsonCodec<Instruction> {
     protected static final String VLAN_ID = "vlanId";
     protected static final String VLAN_PCP = "vlanPcp";
     protected static final String MPLS_LABEL = "label";
+    protected static final String MPLS_BOS = "bos";
     protected static final String IP = "ip";
     protected static final String FLOW_LABEL = "flowLabel";
     protected static final String LAMBDA = "lambda";
@@ -56,6 +57,8 @@ public final class InstructionCodec extends JsonCodec<Instruction> {
     protected static final String TRIBUTARY_PORT_NUMBER = "tributaryPortNumber";
     protected static final String TRIBUTARY_SLOT_LEN = "tributarySlotLength";
     protected static final String TRIBUTARY_SLOT_BITMAP = "tributarySlotBitmap";
+    protected static final String EXTENSION = "extension";
+    protected static final String DEVICE_ID = "deviceId";
 
     protected static final String MISSING_MEMBER_MESSAGE =
             " member is required in Instruction";

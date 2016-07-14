@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ public class GrpcRemoteServiceProvider implements RemoteServiceContextProvider {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RemoteServiceProviderRegistry rpcRegistry;
 
-    private Map<URI, ManagedChannel> channels = new ConcurrentHashMap<>();
+    private final Map<URI, ManagedChannel> channels = new ConcurrentHashMap<>();
 
     private RemoteServiceContextProviderService providerService;
 
@@ -67,8 +67,8 @@ public class GrpcRemoteServiceProvider implements RemoteServiceContextProvider {
     protected void activate() {
         providerService = rpcRegistry.register(this);
 
-        // FIXME remove me. test code to see if gRPC loads in karaf
-        //getChannel(URI.create("grpc://localhost:8080"));
+        // Uncomment to test if gRPC can be loaded in karaf
+        //getChannel(URI.create("grpc://localhost:11984"));
 
         log.info("Started");
     }
@@ -111,7 +111,11 @@ public class GrpcRemoteServiceProvider implements RemoteServiceContextProvider {
 
     private ManagedChannel createChannel(URI uri) {
         log.debug("Creating channel for {}", uri);
-        return NettyChannelBuilder.forAddress(uri.getHost(), uri.getPort())
+        int port = GrpcRemoteServiceServer.DEFAULT_LISTEN_PORT;
+        if (uri.getPort() != -1) {
+            port = uri.getPort();
+        }
+        return NettyChannelBuilder.forAddress(uri.getHost(), port)
                 .negotiationType(NegotiationType.PLAINTEXT)
                 .build();
     }

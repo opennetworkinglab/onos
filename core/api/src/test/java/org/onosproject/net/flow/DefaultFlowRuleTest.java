@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -157,5 +157,35 @@ public class DefaultFlowRuleTest {
         assertThat(rule.selector(), is(SELECTOR));
         assertThat(rule.treatment(), is(TREATMENT));
         assertThat(rule.timeout(), is(44));
+    }
+
+    /**
+     * Tests flow ID is consistent.
+     */
+    @Test
+    public void testCreationWithConsistentFlowId() {
+        final FlowRule rule1 =
+                DefaultFlowRule.builder()
+                        .forDevice(did("1"))
+                        .withSelector(SELECTOR)
+                        .withTreatment(TREATMENT)
+                        .withPriority(22)
+                        .forTable(1)
+                        .fromApp(APP_ID)
+                        .makeTemporary(44)
+                        .build();
+
+        final FlowRule rule2 =
+                DefaultFlowRule.builder()
+                        .forDevice(did("1"))
+                        .withSelector(SELECTOR)
+                        .withTreatment(TREATMENT)
+                        .withPriority(22)
+                        .forTable(1)
+                        .fromApp(APP_ID)
+                        .makeTemporary(44)
+                        .build();
+
+        new EqualsTester().addEqualityGroup(rule1.id(), rule2.id()).testEquals();
     }
 }

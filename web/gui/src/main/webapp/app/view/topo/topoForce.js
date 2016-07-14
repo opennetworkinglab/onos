@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,14 +29,15 @@
     // configuration
     var linkConfig = {
         light: {
-            baseColor: '#666',
+            baseColor: '#939598',
             inColor: '#66f',
             outColor: '#f00'
         },
         dark: {
-            baseColor: '#aaa',
+            // TODO : theme
+            baseColor: '#939598',
             inColor: '#66f',
-            outColor: '#f66'
+            outColor: '#f00'
         },
         inWidth: 12,
         outWidth: 10
@@ -337,7 +338,7 @@
             modeCls = ldata.expected() ? 'inactive' : 'not-permitted',
             delay = immediate ? 0 : 1000;
 
-        // FIXME: understand why el is sometimes undefined on addLink events...
+        // NOTE: understand why el is sometimes undefined on addLink events...
         // Investigated:
         // el is undefined when it's a reverse link that is being added.
         // updateLinks (which sets ldata.el) isn't called before this is called.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public class NiciraResubmit extends AbstractExtension implements ExtensionTreatm
             .register(new PortNumberSerializer(), PortNumber.class)
             .register(Map.class).register(HashMap.class)
             .register(byte[].class)
-            .build();
+            .build("NiciraResubmit");
 
     /**
      * Creates a new resubmit instruction.

@@ -1,0 +1,10 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+    container currentcheck {
+        leaf invalid-interval {
+            type instance-identifier;
+        }
+    }
+}

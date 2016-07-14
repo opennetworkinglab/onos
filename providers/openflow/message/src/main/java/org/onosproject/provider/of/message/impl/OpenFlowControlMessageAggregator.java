@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,6 +86,7 @@ public class OpenFlowControlMessageAggregator implements Runnable {
 
         this.deviceId = deviceId;
         this.providerService = providerService;
+        metricsService.notifyReporters();
     }
 
     /**
@@ -141,7 +142,7 @@ public class OpenFlowControlMessageAggregator implements Runnable {
      * @return count value
      */
     private long getCount(OFType type) {
-        return (long) countMeterMap.get(type).getOneMinuteRate() *
-                EXECUTE_PERIOD_IN_SECOND;
+        return (long) (countMeterMap.get(type).getOneMinuteRate()
+                * EXECUTE_PERIOD_IN_SECOND);
     }
 }

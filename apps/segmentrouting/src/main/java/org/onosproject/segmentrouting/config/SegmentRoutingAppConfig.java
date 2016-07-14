@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,13 +37,17 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
     private static final String VROUTER_MACS = "vRouterMacs";
     private static final String VROUTER_ID = "vRouterId";
     private static final String SUPPRESS_SUBNET = "suppressSubnet";
-    private static final String SUPPRESS_HOST = "suppressHost";
+    private static final String SUPPRESS_HOST_BY_PORT = "suppressHostByPort";
+    // TODO We might want to move SUPPRESS_HOST_BY_PROVIDER to Component Config
+    private static final String SUPPRESS_HOST_BY_PROVIDER = "suppressHostByProvider";
 
     @Override
     public boolean isValid() {
-        return hasOnlyFields(VROUTER_MACS, VROUTER_ID, SUPPRESS_SUBNET, SUPPRESS_HOST) &&
+        return hasOnlyFields(VROUTER_MACS, VROUTER_ID, SUPPRESS_SUBNET,
+                SUPPRESS_HOST_BY_PORT, SUPPRESS_HOST_BY_PROVIDER) &&
                 vRouterMacs() != null && vRouterId() != null &&
-                suppressSubnet() != null && suppressHost() != null;
+                suppressSubnet() != null && suppressHostByPort() != null &&
+                suppressHostByProvider() != null;
     }
 
     /**
@@ -179,18 +183,18 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
     }
 
     /**
-     * Gets names of ports to which SegmentRouting does not push host rules.
+     * Gets connect points to which SegmentRouting does not push host rules.
      *
-     * @return Set of port names, empty if not specified, or null
+     * @return Set of connect points, empty if not specified, or null
      *         if not valid
      */
-    public Set<ConnectPoint> suppressHost() {
-        if (!object.has(SUPPRESS_HOST)) {
+    public Set<ConnectPoint> suppressHostByPort() {
+        if (!object.has(SUPPRESS_HOST_BY_PORT)) {
             return ImmutableSet.of();
         }
 
         ImmutableSet.Builder<ConnectPoint> builder = ImmutableSet.builder();
-        ArrayNode arrayNode = (ArrayNode) object.path(SUPPRESS_HOST);
+        ArrayNode arrayNode = (ArrayNode) object.path(SUPPRESS_HOST_BY_PORT);
         for (JsonNode jsonNode : arrayNode) {
             String portName = jsonNode.asText(null);
             if (portName == null) {
@@ -206,21 +210,60 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
     }
 
     /**
-     * Sets names of ports to which SegmentRouting does not push host rules.
+     * Sets connect points to which SegmentRouting does not push host rules.
      *
-     * @param suppressHost names of ports to which SegmentRouting does not push
+     * @param connectPoints connect points to which SegmentRouting does not push
      *                     host rules
      * @return this {@link SegmentRoutingAppConfig}
      */
-    public SegmentRoutingAppConfig setSuppressHost(Set<ConnectPoint> suppressHost) {
-        if (suppressHost == null) {
-            object.remove(SUPPRESS_HOST);
+    public SegmentRoutingAppConfig setSuppressHostByPort(Set<ConnectPoint> connectPoints) {
+        if (connectPoints == null) {
+            object.remove(SUPPRESS_HOST_BY_PORT);
         } else {
             ArrayNode arrayNode = mapper.createArrayNode();
-            suppressHost.forEach(connectPoint -> {
+            connectPoints.forEach(connectPoint -> {
                 arrayNode.add(connectPoint.deviceId() + "/" + connectPoint.port());
             });
-            object.set(SUPPRESS_HOST, arrayNode);
+            object.set(SUPPRESS_HOST_BY_PORT, arrayNode);
+        }
+        return this;
+    }
+
+    /**
+     * Gets provider names from which SegmentRouting does not learn host info.
+     *
+     * @return array of provider names that need to be ignored
+     */
+    public Set<String> suppressHostByProvider() {
+        if (!object.has(SUPPRESS_HOST_BY_PROVIDER)) {
+            return ImmutableSet.of();
+        }
+
+        ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+        ArrayNode arrayNode = (ArrayNode) object.path(SUPPRESS_HOST_BY_PROVIDER);
+        for (JsonNode jsonNode : arrayNode) {
+            String providerName = jsonNode.asText(null);
+            if (providerName == null) {
+                return null;
+            }
+            builder.add(providerName);
+        }
+        return builder.build();
+    }
+
+    /**
+     * Sets provider names from which SegmentRouting does not learn host info.
+     *
+     * @param providers set of provider names
+     * @return this {@link SegmentRoutingAppConfig}
+     */
+    public SegmentRoutingAppConfig setSuppressHostByProvider(Set<String> providers) {
+        if (providers == null) {
+            object.remove(SUPPRESS_HOST_BY_PROVIDER);
+        } else {
+            ArrayNode arrayNode = mapper.createArrayNode();
+            providers.forEach(arrayNode::add);
+            object.set(SUPPRESS_HOST_BY_PROVIDER, arrayNode);
         }
         return this;
     }
@@ -231,7 +274,8 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
                 .add("vRouterMacs", vRouterMacs())
                 .add("vRouterId", vRouterId())
                 .add("suppressSubnet", suppressSubnet())
-                .add("suppressHost", suppressHost())
+                .add("suppressHostByPort", suppressHostByPort())
+                .add("suppressHostByProvider", suppressHostByProvider())
                 .toString();
     }
 }

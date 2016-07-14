@@ -1,0 +1,24 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:gmetric4j',
+    '//lib:metrics-ganglia',
+    '//lib:remotetea-oncrpc',
+]
+
+EXCLUDED_BUNDLES = [
+    '//lib:gmetric4j',
+    '//lib:metrics-ganglia',
+    '//lib:remotetea-oncrpc',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'Ganglia Report and Query App',
+    category = 'Monitoring',
+    url = 'http://onosproject.org',
+    description = 'Performance metric service reporter',
+    excluded_bundles = EXCLUDED_BUNDLES,
+)

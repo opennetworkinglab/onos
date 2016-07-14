@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
  */
 package org.onosproject.openstackinterface;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -40,31 +40,31 @@ public final class OpenstackPort {
 
     private PortStatus status;
     private String name;
-    private Map<IpAddress, MacAddress> allowedAddressPairs;
+    private ImmutableMap<IpAddress, MacAddress> allowedAddressPairs;
     private boolean adminStateUp;
     private String networkId;
     private String tenantId;
     private String deviceOwner;
     private MacAddress macAddress;
     // <subnet id, ip address>
-    private HashMap<String, Ip4Address> fixedIps;
+    private ImmutableMap<String, Ip4Address> fixedIps;
     private String id;
     private Collection<String> securityGroups;
     private String deviceId;
 
     private OpenstackPort(PortStatus status, String name, Map<IpAddress, MacAddress> allowedAddressPairs,
                           boolean adminStateUp, String networkId, String tenantId,
-                          String deviceOwner, MacAddress macAddress, HashMap fixedIps,
+                          String deviceOwner, MacAddress macAddress, Map<String, Ip4Address> fixedIps,
                           String id, Collection<String> securityGroups, String deviceId) {
         this.status = status;
         this.name = name;
-        this.allowedAddressPairs = checkNotNull(allowedAddressPairs);
+        this.allowedAddressPairs = checkNotNull(ImmutableMap.copyOf(allowedAddressPairs));
         this.adminStateUp = adminStateUp;
         this.networkId = checkNotNull(networkId);
         this.tenantId = checkNotNull(tenantId);
         this.deviceOwner = deviceOwner;
         this.macAddress = checkNotNull(macAddress);
-        this.fixedIps = checkNotNull(fixedIps);
+        this.fixedIps = checkNotNull(ImmutableMap.copyOf(fixedIps));
         this.id = checkNotNull(id);
         this.securityGroups = securityGroups;
         this.deviceId = deviceId;
@@ -149,7 +149,7 @@ public final class OpenstackPort {
      *
      * @return fixed IP info
      */
-    public HashMap fixedIps() {
+    public Map<String, Ip4Address> fixedIps() {
         return fixedIps;
     }
 
@@ -194,7 +194,7 @@ public final class OpenstackPort {
         private String deviceOwner;
         private MacAddress macAddress;
         // list  of hash map <subnet id, ip address>
-        private HashMap<String, Ip4Address> fixedIps;
+        private Map<String, Ip4Address> fixedIps;
         private String id;
         private Collection<String> securityGroups;
         private String deviceId;
@@ -305,7 +305,7 @@ public final class OpenstackPort {
          * @param fixedIpList Fixed IP info
          * @return Builder object
          */
-        public Builder fixedIps(HashMap<String, Ip4Address> fixedIpList) {
+        public Builder fixedIps(Map<String, Ip4Address> fixedIpList) {
             fixedIps.putAll(fixedIpList);
 
             return this;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.onosproject.cluster.PartitionId;
 import org.onosproject.persistence.PersistenceService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
-import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.PartitionAdminService;
 import org.onosproject.store.primitives.PartitionService;
 import org.onosproject.store.primitives.TransactionId;
@@ -57,7 +56,6 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TransactionContextBuilder;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 
@@ -68,7 +66,7 @@ import static org.onosproject.security.AppPermission.Type.*;
  * Implementation for {@code StorageService} and {@code StorageAdminService}.
  */
 @Service
-@Component(immediate = true, enabled = false)
+@Component(immediate = true, enabled = true)
 public class StorageManager implements StorageService, StorageAdminService {
 
     private final Logger log = getLogger(getClass());
@@ -104,8 +102,6 @@ public class StorageManager implements StorageService, StorageAdminService {
         transactions = this.<TransactionId, Transaction.State>consistentMapBuilder()
                     .withName("onos-transactions")
                     .withSerializer(Serializer.using(KryoNamespaces.API,
-                            MapUpdate.class,
-                            MapUpdate.Type.class,
                             Transaction.class,
                             Transaction.State.class))
                     .buildAsyncMap();
@@ -129,7 +125,7 @@ public class StorageManager implements StorageService, StorageAdminService {
     @Override
     public <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new NewDefaultConsistentMapBuilder<>(federatedPrimitiveCreator);
+        return new DefaultConsistentMapBuilder<>(federatedPrimitiveCreator);
     }
 
     @Override
@@ -141,14 +137,13 @@ public class StorageManager implements StorageService, StorageAdminService {
     @Override
     public <E> DistributedQueueBuilder<E> queueBuilder() {
         checkPermission(STORAGE_WRITE);
-        // TODO: implement
-        throw new UnsupportedOperationException();
+        return new DefaultDistributedQueueBuilder<>(federatedPrimitiveCreator);
     }
 
     @Override
     public AtomicCounterBuilder atomicCounterBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new NewDefaultAtomicCounterBuilder(federatedPrimitiveCreator);
+        return new DefaultAtomicCounterBuilder(federatedPrimitiveCreator);
     }
 
     @Override
@@ -164,7 +159,7 @@ public class StorageManager implements StorageService, StorageAdminService {
     @Override
     public TransactionContextBuilder transactionContextBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new NewDefaultTransactionContextBuilder(transactionIdGenerator.get(),
+        return new DefaultTransactionContextBuilder(transactionIdGenerator.get(),
                 federatedPrimitiveCreator,
                 transactionCoordinator);
     }
@@ -182,26 +177,10 @@ public class StorageManager implements StorageService, StorageAdminService {
 
     @Override
     public Map<String, Long> getCounters() {
-        Map<String, Long> result = Maps.newHashMap();
-        result.putAll(getInMemoryDatabaseCounters());
-        result.putAll(getPartitionedDatabaseCounters());
-        return result;
-    }
-
-    @Override
-    public Map<String, Long> getInMemoryDatabaseCounters() {
-        return ImmutableMap.of();
-    }
-
-    @Override
-    public Map<String, Long> getPartitionedDatabaseCounters() {
-        return getCounters(federatedPrimitiveCreator);
-    }
-
-    public Map<String, Long> getCounters(DistributedPrimitiveCreator creator) {
         Map<String, Long> counters = Maps.newConcurrentMap();
-        creator.getAsyncAtomicCounterNames()
-               .forEach(name -> counters.put(name, creator.newAsyncCounter(name).asAtomicCounter().get()));
+        federatedPrimitiveCreator.getAsyncAtomicCounterNames()
+               .forEach(name -> counters.put(name,
+                       federatedPrimitiveCreator.newAsyncCounter(name).asAtomicCounter().get()));
         return counters;
     }
 

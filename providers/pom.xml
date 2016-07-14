@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2014-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos</artifactId>
-        <version>1.5.2-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.6.0</version>
     </parent>
 
     <artifactId>onos-providers</artifactId>
@@ -40,11 +39,15 @@
         <module>pcep</module>
         <module>ovsdb</module>
         <module>bgp</module>
+        <module>bgpcep</module>
         <module>snmp</module>
         <module>rest</module>
         <module>lldpcommon</module>
         <module>lldp</module>
         <module>netcfglinks</module>
+        <module>bmv2</module>
+        <module>isis</module>
+        <module>ospf</module>
     </modules>
 
     <dependencies>
@@ -67,6 +70,11 @@
             <artifactId>onlab-junit</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-app-bgp-flowapi</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.annotations</artifactId>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.onosproject.routing.cli;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.cli.Comparators;
+import org.onosproject.utils.Comparators;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.config.NetworkConfigService;
@@ -37,7 +37,7 @@ import java.util.List;
         description = "Lists all BGP speakers")
 public class BgpSpeakersListCommand extends AbstractShellCommand {
 
-    private static final String FORMAT = "port=%s/%s, peers=%s";
+    private static final String FORMAT = "port=%s/%s, vlan=%s, peers=%s";
     private static final String NAME_FORMAT = "%s: " + FORMAT;
 
     private static final Comparator<BgpConfig.BgpSpeakerConfig> SPEAKERS_COMPARATOR = (s1, s2) ->
@@ -67,10 +67,10 @@ public class BgpSpeakersListCommand extends AbstractShellCommand {
                 s -> {
                     if (s.name().isPresent()) {
                         print(NAME_FORMAT, s.name().get(), s.connectPoint().deviceId(),
-                                s.connectPoint().port(), s.peers());
+                                s.connectPoint().port(), s.vlan(), s.peers());
                     } else {
                         print(FORMAT, s.connectPoint().deviceId(),
-                                s.connectPoint().port(), s.peers());
+                                s.connectPoint().port(), s.vlan(), s.peers());
                     }
                 });
         }

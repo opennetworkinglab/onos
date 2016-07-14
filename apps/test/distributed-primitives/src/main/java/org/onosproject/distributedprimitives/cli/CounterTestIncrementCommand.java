@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,10 +39,6 @@ public class CounterTestIncrementCommand extends AbstractShellCommand {
 
     private final Logger log = getLogger(getClass());
 
-    @Option(name = "-i", aliases = "--inMemory", description = "use in memory map?",
-            required = false, multiValued = false)
-    private boolean inMemory = false;
-
     @Option(name = "-g", aliases = "--getFirst", description = "get the counter's value before adding",
             required = false, multiValued = false)
     private boolean getFirst = false;
@@ -63,16 +59,7 @@ public class CounterTestIncrementCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         StorageService storageService = get(StorageService.class);
-        if (inMemory) {
-            atomicCounter = storageService.atomicCounterBuilder()
-                    .withName(counter)
-                    .withPartitionsDisabled()
-                    .build();
-        } else {
-            atomicCounter = storageService.atomicCounterBuilder()
-                    .withName(counter)
-                    .build();
-        }
+        atomicCounter = storageService.getAsyncAtomicCounter(counter);
         CompletableFuture<Long> result;
         if (delta != null) {
             if (getFirst) {

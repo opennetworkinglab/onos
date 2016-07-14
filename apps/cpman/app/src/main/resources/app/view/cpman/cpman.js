@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,66 +20,125 @@
 (function () {
     'use strict';
 
-    // injected refs
-    var $log, $scope, wss, ks;
+    // injected references
+    var $log, $scope, $location, ks, fs, cbs, ns;
 
-    // constants
-    var dataReq = 'cpmanDataRequest',
-        dataResp = 'cpmanDataResponse';
+    var hasDeviceId;
 
-    function addKeyBindings() {
-        var map = {
-            space: [getData, 'Fetch data from server'],
-
-            _helpFormat: [
-                ['space']
-            ]
-        };
-
-        ks.keyBindings(map);
+    var labels = new Array(1);
+    var data = new Array(6);
+    for (var i = 0; i < 6; i++) {
+        data[i] = new Array(1);
     }
 
-    function getData() {
-        wss.sendEvent(dataReq);
+    var max;
+
+    function ceil(num) {
+        if (isNaN(num)) {
+            return 0;
+        }
+        var pre = num.toString().length - 1
+        var pow = Math.pow(10, pre);
+        return (Math.ceil(num / pow)) * pow;
     }
 
-    function respDataCb(data) {
-        $scope.data = data;
-        $scope.$apply();
+    function maxInArray(array) {
+        var merged = [].concat.apply([], array);
+        return Math.max.apply(null, merged);
     }
 
-
-    angular.module('ovCpman', [])
+    angular.module('ovCpman', ["chart.js"])
         .controller('OvCpmanCtrl',
-        ['$log', '$scope', 'WebSocketService', 'KeyService',
+        ['$log', '$scope', '$location', 'FnService', 'ChartBuilderService', 'NavService',
 
-        function (_$log_, _$scope_, _wss_, _ks_) {
+        function (_$log_, _$scope_, _$location_, _fs_, _cbs_, _ns_) {
+            var params;
             $log = _$log_;
             $scope = _$scope_;
-            wss = _wss_;
-            ks = _ks_;
+            $location = _$location_;
+            fs = _fs_;
+            cbs = _cbs_;
+            ns = _ns_;
 
-            var handlers = {};
-            $scope.data = {};
+            params = $location.search();
 
-            // data response handler
-            handlers[dataResp] = respDataCb;
-            wss.bindHandlers(handlers);
+            if (params.hasOwnProperty('devId')) {
+                $scope.devId = params['devId'];
+                hasDeviceId = true;
+            } else {
+                hasDeviceId = false;
+            }
 
-            addKeyBindings();
-
-            // custom click handler
-            $scope.getData = getData;
-
-            // get data the first time...
-            getData();
-
-            // cleanup
-            $scope.$on('$destroy', function () {
-                wss.unbindHandlers(handlers);
-                ks.unbindKeys();
-                $log.log('OvCpmanCtrl has been destroyed');
+            cbs.buildChart({
+                scope: $scope,
+                tag: 'cpman',
+                query: params
             });
+
+            $scope.$watch('chartData', function () {
+                if (!fs.isEmptyObject($scope.chartData)) {
+                    $scope.showLoader = false;
+                    var length = $scope.chartData.length;
+                    labels = new Array(length);
+                    for (var i = 0; i < 6; i++) {
+                        data[i] = new Array(length);
+                    }
+
+                    $scope.chartData.forEach(function (cm, idx) {
+                        data[0][idx] = cm.inbound_packet;
+                        data[1][idx] = cm.outbound_packet;
+                        data[2][idx] = cm.flow_mod_packet;
+                        data[3][idx] = cm.flow_removed_packet;
+                        data[4][idx] = cm.request_packet;
+                        data[5][idx] = cm.reply_packet;
+
+                        labels[idx] = cm.label;
+                    });
+                }
+
+                max = maxInArray(data)
+                $scope.labels = labels;
+                $scope.data = data;
+                $scope.options = {
+                    scaleOverride : true,
+                    scaleSteps : 10,
+                    scaleStepWidth : ceil(max) / 10,
+                    scaleStartValue : 0,
+                    scaleFontSize : 16
+                };
+                $scope.onClick = function (points, evt) {
+                    if (points[0]) {
+                        ns.navTo('cpman', { devId: points[0].label });
+                        $log.log(points[0].label);
+                    }
+                };
+
+                if (!fs.isEmptyObject($scope.annots)) {
+                    $scope.deviceIds = JSON.parse($scope.annots.deviceIds);
+                }
+
+                $scope.onChange = function (deviceId) {
+                    ns.navTo('cpman', { devId: deviceId });
+                };
+            });
+
+            $scope.series = ['INBOUND', 'OUTBOUND', 'FLOW-MOD',
+                             'FLOW-REMOVED', 'REQUEST', 'REPLY'];
+            $scope.labels = labels;
+            $scope.data = data;
+
+            $scope.chartColors = [
+                      '#286090',
+                      '#F7464A',
+                      '#46BFBD',
+                      '#FDB45C',
+                      '#97BBCD',
+                      '#4D5360',
+                      '#8c4f9f'
+                    ];
+            Chart.defaults.global.colours = $scope.chartColors;
+
+            $scope.showLoader = true;
 
             $log.log('OvCpmanCtrl has been created');
         }]);

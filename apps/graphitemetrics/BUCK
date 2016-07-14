@@ -1,0 +1,28 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:gmetric4j',
+    '//lib:metrics-graphite',
+]
+
+EXCLUDED_BUNDLES = [
+    '//lib:gmetric4j',
+    '//lib:metrics-graphite',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+    '//core/api:onos-api-tests',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
+
+onos_app (
+    title = 'Graphite Report and Query App',
+    category = 'Monitoring',
+    url = 'http://onosproject.org',
+    description = 'Performance metric service reporter and retriever for graphite',
+    excluded_bundles = EXCLUDED_BUNDLES,
+)

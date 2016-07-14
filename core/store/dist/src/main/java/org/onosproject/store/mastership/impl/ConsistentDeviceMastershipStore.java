@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,6 @@ import org.onosproject.store.AbstractStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.serializers.StoreSerializer;
 import org.slf4j.Logger;
 
@@ -98,6 +97,7 @@ public class ConsistentDeviceMastershipStore
     private static final Pattern DEVICE_MASTERSHIP_TOPIC_PATTERN =
             Pattern.compile("device:(.*)");
 
+    private ExecutorService eventHandler;
     private ExecutorService messageHandlingExecutor;
     private ScheduledExecutorService transferExecutor;
     private final LeadershipEventListener leadershipEventListener =
@@ -107,26 +107,26 @@ public class ConsistentDeviceMastershipStore
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
     private static final int WAIT_BEFORE_MASTERSHIP_HANDOFF_MILLIS = 3000;
 
-    public static final StoreSerializer SERIALIZER = new KryoSerializer() {
-        @Override
-        protected void setupKryoPool() {
-            serializerPool = KryoNamespace.newBuilder()
+    public static final StoreSerializer SERIALIZER = StoreSerializer.using(
+            KryoNamespace.newBuilder()
                     .register(KryoNamespaces.API)
                     .register(MastershipRole.class)
                     .register(MastershipEvent.class)
                     .register(MastershipEvent.Type.class)
-                    .build();
-        }
-    };
+                    .build("MastershipStore"));
 
     @Activate
     public void activate() {
+
+        eventHandler = Executors.newSingleThreadExecutor(
+                        groupedThreads("onos/store/device/mastership", "event-handler", log));
+
         messageHandlingExecutor =
                 Executors.newSingleThreadExecutor(
-                        groupedThreads("onos/store/device/mastership", "message-handler"));
+                        groupedThreads("onos/store/device/mastership", "message-handler", log));
         transferExecutor =
                 Executors.newSingleThreadScheduledExecutor(
-                        groupedThreads("onos/store/device/mastership", "mastership-transfer-executor"));
+                        groupedThreads("onos/store/device/mastership", "mastership-transfer-executor", log));
         clusterCommunicator.addSubscriber(ROLE_RELINQUISH_SUBJECT,
                 SERIALIZER::decode,
                 this::relinquishLocalRole,
@@ -141,10 +141,10 @@ public class ConsistentDeviceMastershipStore
     @Deactivate
     public void deactivate() {
         clusterCommunicator.removeSubscriber(ROLE_RELINQUISH_SUBJECT);
+        leadershipService.removeListener(leadershipEventListener);
         messageHandlingExecutor.shutdown();
         transferExecutor.shutdown();
-        leadershipService.removeListener(leadershipEventListener);
-
+        eventHandler.shutdown();
         log.info("Stopped");
     }
 
@@ -313,6 +313,10 @@ public class ConsistentDeviceMastershipStore
 
         @Override
         public void event(LeadershipEvent event) {
+            eventHandler.execute(() -> handleEvent(event));
+        }
+
+        private void handleEvent(LeadershipEvent event) {
             Leadership leadership = event.subject();
             DeviceId deviceId = extractDeviceIdFromTopic(leadership.topic());
             RoleInfo roleInfo = getNodes(deviceId);

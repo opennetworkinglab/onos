@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -190,9 +192,9 @@ public class PartitionedAsyncConsistentMap<K, V> implements AsyncConsistentMap<K
     }
 
     @Override
-    public CompletableFuture<Void> addListener(MapEventListener<K, V> listener) {
+    public CompletableFuture<Void> addListener(MapEventListener<K, V> listener, Executor executor) {
         return CompletableFuture.allOf(getMaps().stream()
-                                                .map(map -> map.addListener(listener))
+                                                .map(map -> map.addListener(listener, executor))
                                                 .toArray(CompletableFuture[]::new));
     }
 
@@ -234,6 +236,39 @@ public class PartitionedAsyncConsistentMap<K, V> implements AsyncConsistentMap<K
         return CompletableFuture.allOf(getMaps().stream()
                 .map(e -> e.rollback(transactionId))
                 .toArray(CompletableFuture[]::new));
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepareAndCommit(MapTransaction<K, V> transaction) {
+        Map<AsyncConsistentMap<K, V>, List<MapUpdate<K, V>>> updatesGroupedByMap = Maps.newIdentityHashMap();
+        transaction.updates().forEach(update -> {
+            AsyncConsistentMap<K, V> map = getMap(update.key());
+            updatesGroupedByMap.computeIfAbsent(map, k -> Lists.newLinkedList()).add(update);
+        });
+        Map<AsyncConsistentMap<K, V>, MapTransaction<K, V>> transactionsByMap =
+                Maps.transformValues(updatesGroupedByMap,
+                                     list -> new MapTransaction<>(transaction.transactionId(), list));
+
+        return Tools.allOf(transactionsByMap.entrySet()
+                                            .stream()
+                                            .map(e -> e.getKey().prepareAndCommit(e.getValue()))
+                                            .collect(Collectors.toList()))
+                    .thenApply(list -> list.stream().reduce(Boolean::logicalAnd).orElse(true));
+    }
+
+    @Override
+    public void addStatusChangeListener(Consumer<Status> listener) {
+        partitions.values().forEach(map -> map.addStatusChangeListener(listener));
+    }
+
+    @Override
+    public void removeStatusChangeListener(Consumer<Status> listener) {
+        partitions.values().forEach(map -> map.removeStatusChangeListener(listener));
+    }
+
+    @Override
+    public Collection<Consumer<Status>> statusChangeListeners() {
+        throw new UnsupportedOperationException();
     }
 
     /**

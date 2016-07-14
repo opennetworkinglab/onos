@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -189,4 +189,36 @@ public interface OspfNbr {
      * @return neighbor's state
      */
     OspfNeighborState getState();
+
+    /**
+     * Starts the inactivity timer.
+     */
+    void startInactivityTimeCheck();
+
+    /**
+     * Stops the inactivity timer.
+     */
+    void stopInactivityTimeCheck();
+
+    /**
+     * Sets router dead interval.
+     *
+     * @param routerDeadInterval router dead interval
+     */
+    void setRouterDeadInterval(int routerDeadInterval);
+
+    /**
+     * Stops the flooding timer.
+     */
+    void stopFloodingTimer();
+
+    /**
+     * Stops the Dd Retransmission executor task.
+     */
+    void stopRxMtDdTimer();
+
+    /**
+     * Stops Ls request retransmission executor task.
+     */
+    void stopRxMtLsrTimer();
 }

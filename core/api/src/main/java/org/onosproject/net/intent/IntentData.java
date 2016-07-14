@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public class IntentData { //FIXME need to make this "immutable"
 
     private final IntentState request; //TODO perhaps we want a full fledged object for requests
     private IntentState state;
-    private Timestamp version;
+    private final Timestamp version;
     private NodeId origin;
     private int errorCount;
 
@@ -121,6 +121,7 @@ public class IntentData { //FIXME need to make this "immutable"
     protected IntentData() {
         intent = null;
         request = null;
+        version = null;
     }
 
     /**

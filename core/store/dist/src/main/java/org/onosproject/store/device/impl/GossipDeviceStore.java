@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.impl.Timestamped;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.KryoSerializer;
+import org.onosproject.store.serializers.StoreSerializer;
 import org.onosproject.store.serializers.custom.DistributedStoreSerializers;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
@@ -96,13 +96,13 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Verify.verify;
+import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
 import static org.onlab.util.Tools.groupedThreads;
@@ -170,10 +170,7 @@ public class GossipDeviceStore
     protected MastershipTermService termService;
 
 
-    protected static final KryoSerializer SERIALIZER = new KryoSerializer() {
-        @Override
-        protected void setupKryoPool() {
-            serializerPool = KryoNamespace.newBuilder()
+    protected static final StoreSerializer SERIALIZER = StoreSerializer.using(KryoNamespace.newBuilder()
                     .register(DistributedStoreSerializers.STORE_COMMON)
                     .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
                     .register(new InternalDeviceEventSerializer(), InternalDeviceEvent.class)
@@ -186,9 +183,7 @@ public class GossipDeviceStore
                     .register(PortFragmentId.class)
                     .register(DeviceInjectedEvent.class)
                     .register(PortInjectedEvent.class)
-                    .build();
-        }
-    };
+                    .build("GossipDevice"));
 
     private ExecutorService executor;
 
@@ -200,10 +195,10 @@ public class GossipDeviceStore
 
     @Activate
     public void activate() {
-        executor = Executors.newCachedThreadPool(groupedThreads("onos/device", "fg-%d"));
+        executor = newCachedThreadPool(groupedThreads("onos/device", "fg-%d", log));
 
         backgroundExecutor =
-                newSingleThreadScheduledExecutor(minPriority(groupedThreads("onos/device", "bg-%d")));
+                newSingleThreadScheduledExecutor(minPriority(groupedThreads("onos/device", "bg-%d", log)));
 
         clusterCommunicator.addSubscriber(
                 GossipDeviceStoreMessageSubjects.DEVICE_UPDATE, new InternalDeviceEventListener(), executor);
@@ -236,10 +231,8 @@ public class GossipDeviceStore
         // Create a distributed map for port stats.
         KryoNamespace.Builder deviceDataSerializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
-                .register(DefaultPortStatistics.class)
-                .register(DeviceId.class)
-                .register(MultiValuedTimestamp.class)
-                .register(WallClockTimestamp.class);
+                .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
+                .register(MultiValuedTimestamp.class);
 
         devicePortStats = storageService.<DeviceId, Map<PortNumber, PortStatistics>>eventuallyConsistentMapBuilder()
                 .withName("port-stats")
@@ -451,7 +444,7 @@ public class GossipDeviceStore
             boolean wasOnline = availableDevices.contains(newDevice.id());
             markOnline(newDevice.id(), newTimestamp);
             if (!wasOnline) {
-                notifyDelegateIfNotNull(new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, newDevice, null));
+                notifyDelegateIfNotNull(new DeviceEvent(newDevice, true));
             }
         }
         return event;
@@ -494,7 +487,7 @@ public class GossipDeviceStore
             }
             boolean removed = availableDevices.remove(deviceId);
             if (removed) {
-                return new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, device, null);
+                return new DeviceEvent(device, false);
             }
             return null;
         }
@@ -1085,21 +1078,45 @@ public class GossipDeviceStore
 
     private Port buildTypedPort(Device device, PortNumber number, boolean isEnabled,
                                  PortDescription description, Annotations annotations) {
+        // FIXME this switch need to go away once all ports are done.
         switch (description.type()) {
             case OMS:
-                OmsPortDescription omsDesc = (OmsPortDescription) description;
-                return new OmsPort(device, number, isEnabled, omsDesc.minFrequency(),
-                        omsDesc.maxFrequency(), omsDesc.grid(), annotations);
+                if (description instanceof OmsPortDescription) {
+                    // remove if-block once deprecation is complete
+                    OmsPortDescription omsDesc = (OmsPortDescription) description;
+                    return new OmsPort(device, number, isEnabled, omsDesc.minFrequency(),
+                            omsDesc.maxFrequency(), omsDesc.grid(), annotations);
+                }
+                // same as default
+                return new DefaultPort(device, number, isEnabled, description.type(),
+                                       description.portSpeed(), annotations);
             case OCH:
-                OchPortDescription ochDesc = (OchPortDescription) description;
-                return new OchPort(device, number, isEnabled, ochDesc.signalType(),
-                        ochDesc.isTunable(), ochDesc.lambda(), annotations);
+                if (description instanceof OchPortDescription) {
+                    // remove if-block once Och deprecation is complete
+                    OchPortDescription ochDesc = (OchPortDescription) description;
+                    return new OchPort(device, number, isEnabled, ochDesc.signalType(),
+                                       ochDesc.isTunable(), ochDesc.lambda(), annotations);
+                }
+                return new DefaultPort(device, number, isEnabled, description.type(),
+                                       description.portSpeed(), annotations);
             case ODUCLT:
-                OduCltPortDescription oduDesc = (OduCltPortDescription) description;
-                return new OduCltPort(device, number, isEnabled, oduDesc.signalType(), annotations);
+                if (description instanceof OduCltPortDescription) {
+                    // remove if-block once deprecation is complete
+                    OduCltPortDescription oduDesc = (OduCltPortDescription) description;
+                    return new OduCltPort(device, number, isEnabled, oduDesc.signalType(), annotations);
+                }
+                // same as default
+                return new DefaultPort(device, number, isEnabled, description.type(),
+                                       description.portSpeed(), annotations);
             case OTU:
-                OtuPortDescription otuDesc = (OtuPortDescription) description;
-                return new OtuPort(device, number, isEnabled, otuDesc.signalType(), annotations);
+                if (description instanceof OtuPortDescription) {
+                    // remove if-block once deprecation is complete
+                    OtuPortDescription otuDesc = (OtuPortDescription) description;
+                    return new OtuPort(device, number, isEnabled, otuDesc.signalType(), annotations);
+                }
+                // same as default
+                return new DefaultPort(device, number, isEnabled, description.type(),
+                                       description.portSpeed(), annotations);
             default:
                 return new DefaultPort(device, number, isEnabled, description.type(),
                         description.portSpeed(), annotations);
@@ -1297,7 +1314,7 @@ public class GossipDeviceStore
 
     /**
      * Responds to anti-entropy advertisement message.
-     * <p/>
+     * <p>
      * Notify sender about out-dated information using regular replication message.
      * Send back advertisement to sender if not in sync.
      *

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,11 @@ import java.util.stream.IntStream;
 
 import org.onlab.util.Bandwidth;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Link;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.AsymmetricPathConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
-import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
@@ -92,19 +90,6 @@ public final class DecodeConstraintCodecHelper {
                 .asDouble();
 
         return new AnnotationConstraint(key, threshold);
-    }
-
-    /**
-     * Decodes a lambda constraint.
-     *
-     * @return lambda constraint object.
-     */
-    private Constraint decodeLambdaConstraint() {
-        long lambda = nullIsIllegal(json.get(ConstraintCodec.LAMBDA),
-                ConstraintCodec.LAMBDA + ConstraintCodec.MISSING_MEMBER_MESSAGE)
-                .asLong();
-
-        return new LambdaConstraint(new IndexedLambda(lambda));
     }
 
     /**
@@ -198,8 +183,6 @@ public final class DecodeConstraintCodecHelper {
 
         if (type.equals(BandwidthConstraint.class.getSimpleName())) {
             return decodeBandwidthConstraint();
-        } else if (type.equals(LambdaConstraint.class.getSimpleName())) {
-            return decodeLambdaConstraint();
         } else if (type.equals(LinkTypeConstraint.class.getSimpleName())) {
             return decodeLinkTypeConstraint();
         } else if (type.equals(AnnotationConstraint.class.getSimpleName())) {

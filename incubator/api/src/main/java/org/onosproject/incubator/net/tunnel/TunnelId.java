@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,39 +23,35 @@ import org.onlab.util.Identifier;
  * Representation of a Tunnel Id.
  */
 @Beta
-public final class TunnelId extends Identifier<Long> {
+public final class TunnelId extends Identifier<String> {
     /**
      * Creates an tunnel identifier from the specified tunnel.
      *
-     * @param value long value
+     * @param value string value
      * @return tunnel identifier
      */
-    public static TunnelId valueOf(long value) {
-        return new TunnelId(value);
-    }
-
     public static TunnelId valueOf(String value) {
-         return new TunnelId(Long.parseLong(value));
+        return new TunnelId(value);
     }
 
     /**
      * Constructor for serializer.
      */
     TunnelId() {
-        super(0L);
+        super("0");
     }
 
     /**
-     * Constructs the ID corresponding to a given long value.
+     * Constructs the ID corresponding to a given string value.
      *
      * @param value the underlying value of this ID
      */
-    TunnelId(long value) {
+    TunnelId(String value) {
         super(value);
     }
 
     @Override
     public String toString() {
-        return "0x" + Long.toHexString(identifier);
+        return id();
     }
 }

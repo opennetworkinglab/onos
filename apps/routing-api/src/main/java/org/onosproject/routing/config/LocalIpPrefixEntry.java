@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package org.onosproject.routing.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
@@ -53,15 +52,14 @@ public class LocalIpPrefixEntry {
     /**
      * Creates a new IP prefix entry.
      *
-     * @param ipPrefix         an IP prefix as a String
+     * @param ipPrefix         an IP prefix
      * @param type             an IP prefix type as an IpPrefixType
      * @param gatewayIpAddress IP of the gateway
      */
-    public LocalIpPrefixEntry(@JsonProperty("ipPrefix") String ipPrefix,
-                              @JsonProperty("type") IpPrefixType type,
-                              @JsonProperty("gatewayIp") IpAddress
-                                      gatewayIpAddress) {
-        this.ipPrefix = IpPrefix.valueOf(ipPrefix);
+    public LocalIpPrefixEntry(IpPrefix ipPrefix,
+                              IpPrefixType type,
+                              IpAddress gatewayIpAddress) {
+        this.ipPrefix = ipPrefix;
         this.type = type;
         this.gatewayIpAddress = gatewayIpAddress;
     }

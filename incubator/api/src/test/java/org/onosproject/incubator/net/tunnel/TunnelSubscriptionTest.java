@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ public class TunnelSubscriptionTest {
         TunnelEndPoint dst = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(32421));
         ApplicationId appId = new DefaultApplicationId(243, "test");
         ApplicationId appId2 = new DefaultApplicationId(2431, "test1");
-        TunnelId tunnelId = TunnelId.valueOf(41654654);
+        TunnelId tunnelId = TunnelId.valueOf("41654654");
         TunnelSubscription p1 = new TunnelSubscription(appId, src, dst, tunnelId, Tunnel.Type.VXLAN,
                              null);
         TunnelSubscription p2 = new TunnelSubscription(appId, src, dst, tunnelId, Tunnel.Type.VXLAN,

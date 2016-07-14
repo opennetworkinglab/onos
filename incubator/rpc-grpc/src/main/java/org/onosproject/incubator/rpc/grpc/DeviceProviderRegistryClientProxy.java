@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ final class DeviceProviderRegistryClientProxy
 
         // Create session
         DeviceProviderServiceClientProxy pService = new DeviceProviderServiceClientProxy(provider, channel);
-        log.debug("Created DeviceProviderServiceClientProxy", pService);
+        log.debug("Created DeviceProviderServiceClientProxy {}", pService);
 
         DeviceProviderServiceClientProxy old = pServices.put(provider, pService);
         if (old != null) {
@@ -68,7 +68,7 @@ final class DeviceProviderRegistryClientProxy
     @Override
     public synchronized void unregister(DeviceProvider provider) {
         DeviceProviderServiceClientProxy pService = pServices.remove(provider);
-        log.debug("Unregistering DeviceProviderServiceClientProxy", pService);
+        log.debug("Unregistering DeviceProviderServiceClientProxy {}", pService);
         super.unregister(provider);
         if (pService != null) {
             pService.shutdown();

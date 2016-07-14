@@ -1,0 +1,31 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+#   Java Package Dependency viewer
+#-------------------------------------------------------------------------------
+
+VER=${JDVUE_VERSION:-2.0}
+JAR=~/.m2/repository/org/onosproject/jdvue/$VER/jdvue-$VER.jar
+
+# Download the jdvue binary if needed
+if [ ! -f $JAR ]; then
+    printf "Downloading jdvue binary..."
+    aux=/tmp/stc-$$.log
+    mvn dependency:get -Dartifact=org.onosproject:jdvue:$VER -Dtransitive=false -B >$aux || fgrep '[ERROR]' $aux
+    rm -f $aux
+    [ -f $JAR ] && printf "Done.\n"
+fi
+
+# Assume default project to be the base-name of the argument or of current dir
+name=$(basename ${1:-$PWD})
+
+# If the -n option is specified use the next argument as the catalog name
+[ "$1" = "-n" -a $# -ge 2 ] && name=$2 && shift 2
+
+# Use the rest of the arguments as paths to scan for sources to build catalog
+find "${@:-.}" -type f -name \*.java \
+    | grep -v -E '/lost+found/|/target/|archetype-resources' \
+    | xargs grep -E "^[ \t]*import .*;.*|^[ \t]*package .*;.*" \
+    | tr -d '\r' > $name.db
+
+# Now run the Java Dependency Viewer jar on the catalog
+java -jar ${JAR} $name && rm $name.db && open $name.html

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,10 @@ import org.onosproject.net.SparseAnnotations;
 
 /**
  * Default implementation of immutable ODU client port description.
+ *
+ * @deprecated in Goldeneye (1.6.0)
  */
+@Deprecated
 public class OduCltPortDescription extends DefaultPortDescription {
 
     private final CltSignalType signalType;

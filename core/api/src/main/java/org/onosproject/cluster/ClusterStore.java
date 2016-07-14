@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,13 @@ public interface ClusterStore extends Store<ClusterEvent, ClusterStoreDelegate> 
      * @return availability state
      */
     ControllerNode.State getState(NodeId nodeId);
+
+    /**
+     * Marks the current node as fully started.
+     *
+     * @param started true indicates all components have been started
+     */
+    void markFullyStarted(boolean started);
 
     /**
      * Returns the system when the availability state was last updated.

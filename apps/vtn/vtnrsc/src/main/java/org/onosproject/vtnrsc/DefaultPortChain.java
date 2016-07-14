@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.onosproject.net.DeviceId;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -40,9 +41,12 @@ public final class DefaultPortChain implements PortChain {
     private final String description;
     private final List<PortPairGroupId> portPairGroupList;
     private final List<FlowClassifierId> flowClassifierList;
+    private final PortChain oldPortChain;
 
     private final Map<FiveTuple, LoadBalanceId> sfcLoadBalanceIdMap = new ConcurrentHashMap<>();
     private final Map<LoadBalanceId, List<PortPairId>> sfcLoadBalancePathMap = new ConcurrentHashMap<>();
+    private final Map<LoadBalanceId, List<DeviceId>> sfcClassifiersMap = new ConcurrentHashMap<>();
+    private final Map<LoadBalanceId, List<DeviceId>> sfcForwardersMap = new ConcurrentHashMap<>();
 
     /**
      * Default constructor to create port chain.
@@ -55,9 +59,10 @@ public final class DefaultPortChain implements PortChain {
      * @param flowClassifierList flow classifier list
      */
     private DefaultPortChain(PortChainId portChainId, TenantId tenantId,
-                             String name, String description,
-                             List<PortPairGroupId> portPairGroupList,
-                             List<FlowClassifierId> flowClassifierList) {
+            String name, String description,
+            List<PortPairGroupId> portPairGroupList,
+            List<FlowClassifierId> flowClassifierList,
+            PortChain portChain) {
 
         this.portChainId = portChainId;
         this.tenantId = tenantId;
@@ -65,6 +70,20 @@ public final class DefaultPortChain implements PortChain {
         this.description = description;
         this.portPairGroupList = portPairGroupList;
         this.flowClassifierList = flowClassifierList;
+        this.oldPortChain = portChain;
+    }
+
+    /**
+     * To create port chain for update with old port chain.
+     *
+     * @param newPortChain updated port chain
+     * @param oldPortChain old port chain
+     * @return port chain
+     */
+    public static PortChain create(PortChain newPortChain, PortChain oldPortChain) {
+        return new DefaultPortChain(newPortChain.portChainId(), newPortChain.tenantId(),
+                                    newPortChain.name(), newPortChain.description(),
+                                    newPortChain.portPairGroups(), newPortChain.flowClassifiers(), oldPortChain);
     }
 
     /**
@@ -106,12 +125,17 @@ public final class DefaultPortChain implements PortChain {
 
     @Override
     public List<PortPairGroupId> portPairGroups() {
-        return  ImmutableList.copyOf(portPairGroupList);
+        return ImmutableList.copyOf(portPairGroupList);
     }
 
     @Override
     public List<FlowClassifierId> flowClassifiers() {
         return ImmutableList.copyOf(flowClassifierList);
+    }
+
+    @Override
+    public PortChain oldPortChain() {
+        return oldPortChain;
     }
 
     @Override
@@ -122,6 +146,40 @@ public final class DefaultPortChain implements PortChain {
     }
 
     @Override
+    public void addSfcClassifiers(LoadBalanceId id, List<DeviceId> classifierList) {
+        this.sfcClassifiersMap.put(id, classifierList);
+    }
+
+    @Override
+    public void addSfcForwarders(LoadBalanceId id, List<DeviceId> forwarderList) {
+        this.sfcForwardersMap.put(id, forwarderList);
+    }
+
+    @Override
+    public void removeSfcClassifiers(LoadBalanceId id, List<DeviceId> classifierList) {
+        List<DeviceId> list = sfcClassifiersMap.get(id);
+        list.removeAll(classifierList);
+        this.sfcForwardersMap.put(id, list);
+    }
+
+    @Override
+    public void removeSfcForwarders(LoadBalanceId id, List<DeviceId> forwarderList) {
+        List<DeviceId> list = sfcForwardersMap.get(id);
+        list.removeAll(forwarderList);
+        this.sfcForwardersMap.put(id, list);
+    }
+
+    @Override
+    public List<DeviceId> getSfcClassifiers(LoadBalanceId id) {
+        return ImmutableList.copyOf(this.sfcClassifiersMap.get(id));
+    }
+
+    @Override
+    public List<DeviceId> getSfcForwarders(LoadBalanceId id) {
+        return ImmutableList.copyOf(this.sfcForwardersMap.get(id));
+    }
+
+    @Override
     public LoadBalanceId getLoadBalanceId(FiveTuple fiveTuple) {
         return this.sfcLoadBalanceIdMap.get(fiveTuple);
     }
@@ -129,6 +187,11 @@ public final class DefaultPortChain implements PortChain {
     @Override
     public Set<FiveTuple> getLoadBalanceIdMapKeys() {
         return ImmutableSet.copyOf(sfcLoadBalanceIdMap.keySet());
+    }
+
+    @Override
+    public Set<LoadBalanceId> getLoadBalancePathMapKeys() {
+        return ImmutableSet.copyOf(sfcLoadBalancePathMap.keySet());
     }
 
     @Override
@@ -150,7 +213,7 @@ public final class DefaultPortChain implements PortChain {
     }
 
     @Override
-    public Optional<LoadBalanceId> matchPath(List<PortPairId> path) {
+    public LoadBalanceId matchPath(List<PortPairId> path) {
 
         LoadBalanceId id = null;
         for (Map.Entry<LoadBalanceId, List<PortPairId>> entry : sfcLoadBalancePathMap.entrySet()) {
@@ -160,7 +223,7 @@ public final class DefaultPortChain implements PortChain {
                 break;
             }
         }
-        return Optional.of(id);
+        return id;
     }
 
     @Override
@@ -225,6 +288,7 @@ public final class DefaultPortChain implements PortChain {
         private String description;
         private List<PortPairGroupId> portPairGroupList;
         private List<FlowClassifierId> flowClassifierList;
+        private PortChain portChain;
 
         @Override
         public Builder setId(PortChainId portChainId) {
@@ -270,7 +334,7 @@ public final class DefaultPortChain implements PortChain {
             checkNotNull(portPairGroupList, "Port pair groups cannot be null");
 
             return new DefaultPortChain(portChainId, tenantId, name, description,
-                                        portPairGroupList, flowClassifierList);
+                                        portPairGroupList, flowClassifierList, portChain);
         }
     }
 }

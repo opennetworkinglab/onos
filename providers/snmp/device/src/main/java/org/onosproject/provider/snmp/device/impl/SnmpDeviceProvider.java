@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,16 @@
  */
 package org.onosproject.provider.snmp.device.impl;
 
-import com.btisystems.pronx.ems.core.snmp.DefaultSnmpConfigurationFactory;
-import com.btisystems.pronx.ems.core.snmp.ISnmpConfiguration;
-import com.btisystems.pronx.ems.core.snmp.ISnmpConfigurationFactory;
-import com.btisystems.pronx.ems.core.snmp.ISnmpSession;
-import com.btisystems.pronx.ems.core.snmp.ISnmpSessionFactory;
-import com.btisystems.pronx.ems.core.snmp.SnmpSessionFactory;
-import com.btisystems.pronx.ems.core.snmp.V2cSnmpConfiguration;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
-import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.cluster.ClusterService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.incubator.net.config.basics.ConfigException;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
@@ -39,33 +32,32 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
-import org.onosproject.net.behaviour.PortDiscovery;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.device.DeviceStore;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.snmp.SnmpController;
+import org.onosproject.snmp.SnmpDevice;
+import org.onosproject.snmp.ctl.DefaultSnmpDevice;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onlab.util.Tools.delay;
-import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -79,10 +71,11 @@ public class SnmpDeviceProvider extends AbstractProvider
     private final Logger log = getLogger(SnmpDeviceProvider.class);
 
     private static final String UNKNOWN = "unknown";
+    private static final String APP_NAME = "org.onosproject.snmp";
+    private static final String SCHEME = "snmp";
 
-    protected Map<DeviceId, SnmpDevice> snmpDeviceMap = new ConcurrentHashMap<>();
-
-    private DeviceProviderService providerService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected SnmpController controller;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceProviderRegistry providerRegistry;
@@ -91,69 +84,69 @@ public class SnmpDeviceProvider extends AbstractProvider
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterService clusterService;
+    protected DeviceStore deviceStore;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ComponentConfigService cfgService;
+    protected CoreService coreService;
 
-    private final ExecutorService deviceBuilder = Executors
-            .newFixedThreadPool(1, groupedThreads("onos/snmp", "device-creator", log));
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry netCfgService;
 
-    // Delay between events in ms.
-    private static final int EVENTINTERVAL = 5;
+    protected DeviceProviderService providerService;
 
-    private static final String SCHEME = "snmp";
+    protected ApplicationId appId;
 
-    @Property(name = "devConfigs", value = "", label = "Instance-specific configurations")
-    private String devConfigs = null;
+    private final ExecutorService deviceBuilderExecutor = Executors
+            .newFixedThreadPool(5, groupedThreads("onos/snmp", "device-creator", log));
 
-    @Property(name = "devPasswords", value = "", label = "Instance-specific password")
-    private String devPasswords = null;
+    protected final NetworkConfigListener cfgLister = new InternalNetworkConfigListener();
 
-    //TODO Could be replaced with a service lookup, and bundles per device variant.
-    Map<String, SnmpDeviceDescriptionProvider> providers = new HashMap<>();
 
-    private final ISnmpSessionFactory sessionFactory;
+    protected final ConfigFactory factory =
+            new ConfigFactory<ApplicationId, SnmpProviderConfig>(APP_SUBJECT_FACTORY,
+                                                                 SnmpProviderConfig.class,
+                                                                 "devices",
+                                                                 true) {
+                @Override
+                public SnmpProviderConfig createConfig() {
+                    return new SnmpProviderConfig();
+                }
+            };
+
 
     /**
      * Creates a provider with the supplier identifier.
      */
     public SnmpDeviceProvider() {
         super(new ProviderId("snmp", "org.onosproject.provider.device"));
-        sessionFactory = new SnmpSessionFactory(
-                new DefaultSnmpConfigurationFactory(new V2cSnmpConfiguration()));
-        //TODO refactor, no hardcoding in provider, device information should be in drivers
-        providers.put("1.3.6.1.4.1.18070.2.2", new Bti7000DeviceDescriptionProvider());
-        providers.put("1.3.6.1.4.1.20408", new NetSnmpDeviceDescriptionProvider());
-        providers.put("1.3.6.1.4.562.73.6", new LumentumDeviceDescriptionProvider());
+        //FIXME multiple type of SNMP sessions
     }
 
     @Activate
     public void activate(ComponentContext context) {
-        log.info("activating for snmp devices ...");
-        cfgService.registerProperties(getClass());
+
         providerService = providerRegistry.register(this);
+        appId = coreService.registerApplication(APP_NAME);
+        netCfgService.registerConfigFactory(factory);
+        netCfgService.addListener(cfgLister);
         modified(context);
-        log.info("activated ok");
+        log.info("Started");
     }
 
     @Deactivate
     public void deactivate(ComponentContext context) {
 
-        log.info("deactivating for snmp devices ...");
-
-        cfgService.unregisterProperties(getClass(), false);
         try {
-            snmpDeviceMap
-                    .entrySet().stream().forEach((deviceEntry) -> {
-                        deviceBuilder.execute(new DeviceCreator(deviceEntry.getValue(), false));
-                    });
-            deviceBuilder.awaitTermination(1000, TimeUnit.MILLISECONDS);
+            controller.getDevices().stream().forEach(device -> {
+                deviceBuilderExecutor.execute(new DeviceFactory(device, false));
+            });
+            deviceBuilderExecutor.awaitTermination(1000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             log.error("Device builder did not terminate");
         }
-        deviceBuilder.shutdownNow();
-        snmpDeviceMap.clear();
+        deviceBuilderExecutor.shutdownNow();
+        netCfgService.unregisterConfigFactory(factory);
+        netCfgService.removeListener(cfgLister);
         providerRegistry.unregister(this);
         providerService = null;
         log.info("Stopped");
@@ -161,100 +154,36 @@ public class SnmpDeviceProvider extends AbstractProvider
 
     @Modified
     public void modified(ComponentContext context) {
-        log.info("modified ...");
-
-        if (context == null) {
-            log.info("No configuration file");
-            return;
-        }
-        Dictionary<?, ?> properties = context.getProperties();
-
-        log.info("properties={}", context.getProperties());
-
-        String deviceCfgValue = get(properties, "devConfigs");
-        log.info("Settings: devConfigs={}", deviceCfgValue);
-        if (!isNullOrEmpty(deviceCfgValue)) {
-            addOrRemoveDevicesConfig(deviceCfgValue);
-        }
-        log.info("... modified");
-
+        log.info("Modified");
     }
 
-    private void addOrRemoveDevicesConfig(String deviceConfig) {
-        for (String deviceEntry : deviceConfig.split(",")) {
-            SnmpDevice device = processDeviceEntry(deviceEntry);
-            if (device != null) {
-                log.info("Device Detail:host={}, port={}, state={}",
-                        new Object[]{device.getSnmpHost(),
-                            device.getSnmpPort(),
-                            device.getDeviceState().name()}
-                );
-                if (device.isActive()) {
-                    deviceBuilder.execute(new DeviceCreator(device, true));
-                } else {
-                    deviceBuilder.execute(new DeviceCreator(device, false));
-                }
-            }
-        }
-    }
-
-    private SnmpDevice processDeviceEntry(String deviceEntry) {
-        if (deviceEntry == null) {
-            log.info("No content for Device Entry, so cannot proceed further.");
-            return null;
-        }
-        log.info("Trying to convert {} to a SNMP Device Object", deviceEntry);
-        SnmpDevice device = null;
-        try {
-            String userInfo = deviceEntry.substring(0, deviceEntry
-                    .lastIndexOf('@'));
-            String hostInfo = deviceEntry.substring(deviceEntry
-                    .lastIndexOf('@') + 1);
-            String[] infoSplit = userInfo.split(":");
-            String username = infoSplit[0];
-            String password = infoSplit[1];
-            infoSplit = hostInfo.split(":");
-            String hostIp = infoSplit[0];
-            Integer hostPort;
+    private void addOrRemoveDevicesConfig() {
+        SnmpProviderConfig cfg = netCfgService.getConfig(appId, SnmpProviderConfig.class);
+        if (cfg != null) {
             try {
-                hostPort = Integer.parseInt(infoSplit[1]);
-            } catch (NumberFormatException nfe) {
-                log.error("Bad Configuration Data: Failed to parse host port number string: "
-                        + infoSplit[1]);
-                throw nfe;
+                cfg.getDevicesInfo().stream().forEach(info -> {
+                    SnmpDevice device = new DefaultSnmpDevice(info.ip().toString(),
+                                                              info.port(), info.username(), info.password());
+                    buildDevice(device);
+                });
+            } catch (ConfigException e) {
+                log.error("Cannot read config error " + e);
             }
-            String deviceState = infoSplit[2];
-            if (isNullOrEmpty(username) || isNullOrEmpty(password)
-                    || isNullOrEmpty(hostIp) || hostPort == 0) {
-                log.warn("Bad Configuration Data: both user and device information parts of Configuration "
-                        + deviceEntry + " should be non-nullable");
-            } else {
-                device = new SnmpDevice(hostIp, hostPort, password);
-                if (!isNullOrEmpty(deviceState)) {
-                    if (deviceState.toUpperCase().equals(DeviceState.ACTIVE.name())) {
-                        device.setDeviceState(DeviceState.ACTIVE);
-                    } else if (deviceState.toUpperCase()
-                            .equals(DeviceState.INACTIVE.name())) {
-                        device.setDeviceState(DeviceState.INACTIVE);
-                    } else {
-                        log.warn("Device State Information can not be empty, so marking the state as INVALID");
-                        device.setDeviceState(DeviceState.INVALID);
-                    }
-                } else {
-                    log.warn("The device entry do not specify state information, so marking the state as INVALID");
-                    device.setDeviceState(DeviceState.INVALID);
-                }
-            }
-        } catch (ArrayIndexOutOfBoundsException aie) {
-            log.error("Error while reading config infromation from the config file: "
-                    + "The user, host and device state infomation should be "
-                    + "in the order 'userInfo@hostInfo:deviceState'"
-                    + deviceEntry, aie);
-        } catch (Exception e) {
-            log.error("Error while parsing config information for the device entry: "
-                    + deviceEntry, e);
         }
-        return device;
+    }
+
+    private void buildDevice(SnmpDevice device) {
+        if (device != null) {
+            log.debug("Device Detail:host={}, port={}, state={}",
+                      device.getSnmpHost(),
+                      device.getSnmpPort(),
+                      device.isReachable());
+            if (device.isReachable()) {
+                deviceBuilderExecutor.execute(new DeviceFactory(device, true));
+            } else {
+                deviceBuilderExecutor.execute(new DeviceFactory(device, false));
+            }
+        }
     }
 
     @Override
@@ -265,16 +194,16 @@ public class SnmpDeviceProvider extends AbstractProvider
 
     @Override
     public void roleChanged(DeviceId deviceId, MastershipRole newRole) {
-
+        // TODO Implement Masterhsip Service
     }
 
     @Override
     public boolean isReachable(DeviceId deviceId) {
-        SnmpDevice snmpDevice = snmpDeviceMap.get(deviceId);
+        SnmpDevice snmpDevice = controller.getDevice(deviceId);
         if (snmpDevice == null) {
             log.warn("BAD REQUEST: the requested device id: "
-                    + deviceId.toString()
-                    + "  is not associated to any SNMP Device");
+                             + deviceId.toString()
+                             + "  is not associated to any SNMP Device");
             return false;
         }
         return snmpDevice.isReachable();
@@ -295,12 +224,13 @@ public class SnmpDeviceProvider extends AbstractProvider
      * 'SnmpDevice' content. The functionality runs as a thread and depending on the 'createFlag' value it will create
      * or remove Device entry from the core.
      */
-    private class DeviceCreator implements Runnable {
+    //FIXME consider rework.
+    private class DeviceFactory implements Runnable {
 
         private SnmpDevice device;
         private boolean createFlag;
 
-        public DeviceCreator(SnmpDevice device, boolean createFlag) {
+        public DeviceFactory(SnmpDevice device, boolean createFlag) {
             this.device = device;
             this.createFlag = createFlag;
         }
@@ -308,10 +238,10 @@ public class SnmpDeviceProvider extends AbstractProvider
         @Override
         public void run() {
             if (createFlag) {
-                log.info("Trying to create Device Info on ONOS core");
+                log.debug("Trying to create Device Info on ONOS core");
                 advertiseDevices();
             } else {
-                log.info("Trying to remove Device Info on ONOS core");
+                log.debug("Trying to remove Device Info on ONOS core");
                 removeDevices();
             }
         }
@@ -324,24 +254,16 @@ public class SnmpDeviceProvider extends AbstractProvider
                 log.warn("The Request SNMP Device is null, cannot proceed further");
                 return;
             }
-            try {
-                DeviceId did = getDeviceId();
-                if (!snmpDeviceMap.containsKey(did)) {
-                    log.error("BAD Request: 'Currently device is not discovered, "
-                            + "so cannot remove/disconnect the device: "
-                            + device.deviceInfo() + "'");
-                    return;
-                }
-                providerService.deviceDisconnected(did);
-                device.disconnect();
-                snmpDeviceMap.remove(did);
-                delay(EVENTINTERVAL);
-            } catch (URISyntaxException uriSyntaxExcpetion) {
-                log.error("Syntax Error while creating URI for the device: "
-                        + device.deviceInfo()
-                        + " couldn't remove the device from the store",
-                        uriSyntaxExcpetion);
+            DeviceId did = device.deviceId();
+            if (controller.getDevice(did) == null) {
+                log.error("BAD Request: 'Currently device is not discovered, "
+                                  + "so cannot remove/disconnect the device: "
+                                  + device.deviceInfo() + "'");
+                return;
             }
+            providerService.deviceDisconnected(did);
+            device.disconnect();
+            controller.removeDevice(did);
         }
 
         /**
@@ -353,8 +275,7 @@ public class SnmpDeviceProvider extends AbstractProvider
                     log.warn("The Request SNMP Device is null, cannot proceed further");
                     return;
                 }
-                device.init();
-                DeviceId did = getDeviceId();
+                DeviceId did = device.deviceId();
                 ChassisId cid = new ChassisId();
 
                 SparseAnnotations annotations = DefaultAnnotations.builder()
@@ -364,78 +285,51 @@ public class SnmpDeviceProvider extends AbstractProvider
                 DeviceDescription desc = new DefaultDeviceDescription(
                         did.uri(), Device.Type.OTHER, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, cid, annotations);
 
-                desc = populateDescriptionFromDevice(did, desc);
+                log.debug("Persisting Device " + did.uri().toString());
 
-                log.info("Persisting Device " + did.uri().toString());
-
-                snmpDeviceMap.put(did, device);
+                controller.addDevice(did, device);
                 providerService.deviceConnected(did, desc);
-                log.info("Done with Device Info Creation on ONOS core. Device Info: "
-                        + device.deviceInfo() + " " + did.uri().toString());
-
-                // Do port discovery if driver supports it
+                log.info("Added device to ONOS core. Device Info: "
+                                 + device.deviceInfo() + " " + did.uri().toString());
+                //FIXME this description will be populated only if driver is pushed from outside
+                // becuase otherwise default driver is used
                 Device d = deviceService.getDevice(did);
-                if (d.is(PortDiscovery.class)) {
-                    PortDiscovery portConfig = d.as(PortDiscovery.class);
-                    if (portConfig != null) {
-                        providerService.updatePorts(did, portConfig.getPorts());
-                    }
+                if (d.is(DeviceDescriptionDiscovery.class)) {
+                    DeviceDescriptionDiscovery descriptionDiscovery = d.as(DeviceDescriptionDiscovery.class);
+                    DeviceDescription description = descriptionDiscovery.discoverDeviceDetails();
+                    deviceStore.createOrUpdateDevice(
+                            new ProviderId("snmp", "org.onosproject.provider.device"),
+                            did, description);
+                    providerService.updatePorts(did, descriptionDiscovery.discoverPortDetails());
                 } else {
-                    log.warn("No port discovery behaviour for device {}", did);
+                    log.warn("No populate description and ports behaviour for device {}", did);
                 }
-
-                delay(EVENTINTERVAL);
-            } catch (URISyntaxException e) {
-                log.error("Syntax Error while creating URI for the device: "
-                        + device.deviceInfo()
-                        + " couldn't persist the device onto the store", e);
             } catch (Exception e) {
                 log.error("Error while initializing session for the device: "
-                        + (device != null ? device.deviceInfo() : null), e);
+                                  + (device != null ? device.deviceInfo() : null), e);
             }
-        }
-        /**
-         * @deprecated 1.5.0 Falcon, not compliant with ONOS SB and driver architecture.
-         */
-        @Deprecated
-        private DeviceDescription populateDescriptionFromDevice(DeviceId did, DeviceDescription desc) {
-            String[] deviceComponents = did.toString().split(":");
-            if (deviceComponents.length > 1) {
-                String ipAddress = deviceComponents[1];
-                String port = deviceComponents[2];
-
-                ISnmpConfiguration config = new V2cSnmpConfiguration();
-                config.setPort(Integer.parseInt(port));
-
-                try (ISnmpSession session = sessionFactory.createSession(config, ipAddress)) {
-                    // Each session will be auto-closed.
-                    String deviceOid = session.identifyDevice();
-
-                    if (providers.containsKey(deviceOid)) {
-                        desc = providers.get(deviceOid).populateDescription(session, desc);
-                    }
-
-                } catch (IOException | RuntimeException ex) {
-                    log.error("Failed to walk device.", ex.getMessage());
-                    log.debug("Detailed problem was ", ex);
-                }
-            }
-            return desc;
-        }
-
-        /**
-         * This will build a device id for the device.
-         */
-        private DeviceId getDeviceId() throws URISyntaxException {
-            String additionalSsp = new StringBuilder(
-                    device.getSnmpHost()).append(":")
-                    .append(device.getSnmpPort()).toString();
-            return DeviceId.deviceId(new URI(SCHEME, additionalSsp,
-                    null));
         }
     }
 
-    protected ISnmpSessionFactory getSessionFactory(ISnmpConfigurationFactory configurationFactory) {
-        return new SnmpSessionFactory(configurationFactory);
+    private class InternalNetworkConfigListener implements NetworkConfigListener {
+
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            addOrRemoveDevicesConfig();
+        }
+
+        @Override
+        public boolean isRelevant(NetworkConfigEvent event) {
+            return event.configClass().equals(SnmpProviderConfig.class) &&
+                    (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
+                            event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED);
+        }
+    }
+
+    @Override
+    public void changePortState(DeviceId deviceId, PortNumber portNumber,
+                                boolean enable) {
+        // TODO if required
     }
 }

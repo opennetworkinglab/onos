@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@
         <step name="Net-Topo.Verify-Cluster0-LinkCount" requires="Net-Topo.Query-Cluster0"
               exec="test ${clusterTopo0LinkCount} == 140"/>
         <step name="Net-Topo.Verify-Cluster0-Root" requires="Net-Topo.Query-Cluster0"
-              exec="test '${clusterTopo0Root}' == 'of:000000000000000a' -o '${clusterTopo0Root}' == 'of:000000000000000c'"/>
+              exec="echo '${clusterTopo0Root}' | egrep -e 'of:000000000000000[0-9a-f]'"/>
 
         <!-- Verify the list of devices for the cluster -->
         <step name="Net-Topo.Verify-Cluster0-Devices"

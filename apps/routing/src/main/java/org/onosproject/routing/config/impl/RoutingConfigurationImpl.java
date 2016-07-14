@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.onosproject.routing.config.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
 import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
 import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
@@ -35,46 +35,36 @@ import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.SubjectFactories;
+import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.BgpConfig;
-import org.onosproject.routing.config.BgpPeer;
-import org.onosproject.routing.config.BgpSpeaker;
-import org.onosproject.routing.config.RouterConfig;
-import org.onosproject.routing.config.Interface;
 import org.onosproject.routing.config.LocalIpPrefixEntry;
+import org.onosproject.routing.config.ReactiveRoutingConfig;
+import org.onosproject.routing.config.RouterConfig;
 import org.onosproject.routing.config.RoutingConfigurationService;
-import org.onosproject.routing.impl.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static org.onosproject.routing.RouteEntry.createBinaryString;
 
 /**
  * Implementation of RoutingConfigurationService which reads routing
- * configuration from a file.
+ * configuration from the network configuration service.
  */
 @Component(immediate = true)
 @Service
 public class RoutingConfigurationImpl implements RoutingConfigurationService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    private static final String CONFIG_DIR = "../config";
-    private static final String DEFAULT_CONFIG_FILE = "sdnip.json";
-    private String configFileName = DEFAULT_CONFIG_FILE;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry registry;
@@ -88,8 +78,6 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InterfaceService interfaceService;
 
-    private Map<String, BgpSpeaker> bgpSpeakers = new ConcurrentHashMap<>();
-    private Map<IpAddress, BgpPeer> bgpPeers = new ConcurrentHashMap<>();
     private Set<IpAddress> gatewayIpAddresses = new HashSet<>();
     private Set<ConnectPoint> bgpPeerConnectPoints = new HashSet<>();
 
@@ -101,6 +89,8 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
                     new DefaultByteArrayNodeFactory());
 
     private MacAddress virtualGatewayMacAddress;
+    private final InternalNetworkConfigListener configListener =
+            new InternalNetworkConfigListener();
 
     private ConfigFactory<ApplicationId, BgpConfig> bgpConfigFactory =
             new ConfigFactory<ApplicationId, BgpConfig>(
@@ -114,111 +104,86 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
     private ConfigFactory<ApplicationId, RouterConfig> routerConfigFactory =
             new ConfigFactory<ApplicationId, RouterConfig>(
                     SubjectFactories.APP_SUBJECT_FACTORY, RouterConfig.class, "router") {
-                @Override
-                public RouterConfig createConfig() {
-                    return new RouterConfig();
-                }
-            };
+        @Override
+        public RouterConfig createConfig() {
+            return new RouterConfig();
+        }
+    };
+
+    private ConfigFactory<ApplicationId, ReactiveRoutingConfig>
+            reactiveRoutingConfigFactory =
+            new ConfigFactory<ApplicationId, ReactiveRoutingConfig>(
+                    SubjectFactories.APP_SUBJECT_FACTORY,
+                    ReactiveRoutingConfig.class, "reactiveRouting") {
+        @Override
+        public ReactiveRoutingConfig createConfig() {
+            return new ReactiveRoutingConfig();
+        }
+    };
 
     @Activate
     public void activate() {
+        configService.addListener(configListener);
         registry.registerConfigFactory(bgpConfigFactory);
         registry.registerConfigFactory(routerConfigFactory);
-        readConfiguration();
+        registry.registerConfigFactory(reactiveRoutingConfigFactory);
+        setUpConfiguration();
         log.info("Routing configuration service started");
     }
 
     @Deactivate
     public void deactivate() {
         registry.unregisterConfigFactory(bgpConfigFactory);
-        registry.registerConfigFactory(routerConfigFactory);
+        registry.unregisterConfigFactory(routerConfigFactory);
+        registry.unregisterConfigFactory(reactiveRoutingConfigFactory);
+        configService.removeListener(configListener);
         log.info("Routing configuration service stopped");
     }
 
     /**
-     * Reads SDN-IP related information contained in the configuration file.
-     *
-     * @param configFilename the name of the configuration file for the SDN-IP
-     * application
+     * Set up reactive routing information from configuration.
      */
-    private void readConfiguration(String configFilename) {
-        File configFile = new File(CONFIG_DIR, configFilename);
-        ObjectMapper mapper = new ObjectMapper();
-
-        try {
-            log.info("Loading config: {}", configFile.getAbsolutePath());
-            Configuration config = mapper.readValue(configFile,
-                                                    Configuration.class);
-            for (BgpSpeaker speaker : config.getBgpSpeakers()) {
-                bgpSpeakers.put(speaker.name(), speaker);
-            }
-            for (BgpPeer peer : config.getPeers()) {
-                bgpPeers.put(peer.ipAddress(), peer);
-                bgpPeerConnectPoints.add(peer.connectPoint());
-            }
-
-            for (LocalIpPrefixEntry entry : config.getLocalIp4PrefixEntries()) {
-                localPrefixTable4.put(createBinaryString(entry.ipPrefix()),
-                                      entry);
-                gatewayIpAddresses.add(entry.getGatewayIpAddress());
-            }
-            for (LocalIpPrefixEntry entry : config.getLocalIp6PrefixEntries()) {
-                localPrefixTable6.put(createBinaryString(entry.ipPrefix()),
-                                      entry);
-                gatewayIpAddresses.add(entry.getGatewayIpAddress());
-            }
-
-            virtualGatewayMacAddress = config.getVirtualGatewayMacAddress();
-
-        } catch (FileNotFoundException e) {
-            log.warn("Configuration file not found: {}", configFileName);
-        } catch (IOException e) {
-            log.error("Error loading configuration", e);
+    private void setUpConfiguration() {
+        ReactiveRoutingConfig config = configService.getConfig(
+                coreService.registerApplication(RoutingConfigurationService
+                        .REACTIVE_ROUTING_APP_ID),
+                RoutingConfigurationService.CONFIG_CLASS);
+        if (config == null) {
+            log.warn("No reactive routing config available!");
+            return;
         }
-    }
+        for (LocalIpPrefixEntry entry : config.localIp4PrefixEntries()) {
+            localPrefixTable4.put(createBinaryString(entry.ipPrefix()), entry);
+            gatewayIpAddresses.add(entry.getGatewayIpAddress());
+        }
+        for (LocalIpPrefixEntry entry : config.localIp6PrefixEntries()) {
+            localPrefixTable6.put(createBinaryString(entry.ipPrefix()), entry);
+            gatewayIpAddresses.add(entry.getGatewayIpAddress());
+        }
 
-    /**
-     * Instructs the configuration reader to read the configuration from the
-     * file.
-     */
-    public void readConfiguration() {
-        readConfiguration(configFileName);
-    }
+        virtualGatewayMacAddress = config.virtualGatewayMacAddress();
 
-    @Override
-    public Map<String, BgpSpeaker> getBgpSpeakers() {
-        return Collections.unmodifiableMap(bgpSpeakers);
-    }
-
-    @Override
-    public Map<IpAddress, BgpPeer> getBgpPeers() {
-        return Collections.unmodifiableMap(bgpPeers);
-    }
-
-    @Override
-    public Set<ConnectPoint> getBgpPeerConnectPoints() {
-        // TODO perhaps cache this result in future
-        ApplicationId routerAppId = coreService.getAppId(Router.ROUTER_APP_ID);
+        // Setup BGP peer connect points
+        ApplicationId routerAppId = coreService.getAppId(RoutingService.ROUTER_APP_ID);
         if (routerAppId == null) {
-            return Collections.emptySet();
+            log.info("Router application ID is null!");
+            return;
         }
 
         BgpConfig bgpConfig = configService.getConfig(routerAppId, BgpConfig.class);
+
         if (bgpConfig == null) {
-            return Collections.emptySet();
+            log.info("BGP config is null!");
+            return;
         } else {
-            return bgpConfig.bgpSpeakers().stream()
+            bgpPeerConnectPoints =
+                    bgpConfig.bgpSpeakers().stream()
                     .flatMap(speaker -> speaker.peers().stream())
                     .map(peer -> interfaceService.getMatchingInterface(peer))
                     .filter(Objects::nonNull)
                     .map(intf -> intf.connectPoint())
                     .collect(Collectors.toSet());
         }
-    }
-
-    @Override
-    public Interface getMatchingInterface(IpAddress ipAddress) {
-        return null;
     }
 
     @Override
@@ -252,6 +217,33 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
     @Override
     public MacAddress getVirtualGatewayMacAddress() {
         return virtualGatewayMacAddress;
+    }
+
+    private class InternalNetworkConfigListener implements NetworkConfigListener {
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            switch (event.type()) {
+            case CONFIG_REGISTERED:
+                break;
+            case CONFIG_UNREGISTERED:
+                break;
+            case CONFIG_ADDED:
+            case CONFIG_UPDATED:
+            case CONFIG_REMOVED:
+                if (event.configClass() == RoutingConfigurationService.CONFIG_CLASS) {
+                    setUpConfiguration();
+                }
+                break;
+            default:
+                break;
+            }
+        }
+    }
+
+    @Override
+    public Set<ConnectPoint> getBgpPeerConnectPoints() {
+        return ImmutableSet.copyOf(bgpPeerConnectPoints);
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ describe('factory: fw/util/keys.js', function() {
         d3Elem, elem, last;
   
 
-    beforeEach(module('onosUtil', 'onosSvg', 'onosLayer', 'onosNav'));
+    beforeEach(module('onosUtil', 'onosSvg', 'onosLayer', 'onosNav', 'onosRemote'));
 
     beforeEach(inject(function (_$log_, KeyService, FnService, QuickHelpService) {
         $log = _$log_;
@@ -51,7 +51,8 @@ describe('factory: fw/util/keys.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(ks, [
-            'bindQhs', 'installOn', 'keyBindings', 'gestureNotes', 'enableKeys'
+            'bindQhs', 'installOn', 'keyBindings', 'unbindKeys', 'dialogKeys',
+            'addSeq', 'remSeq', 'gestureNotes', 'enableKeys', 'enableGlobalKeys', 'checkNotGlobal'
         ])).toBeTruthy();
     });
 

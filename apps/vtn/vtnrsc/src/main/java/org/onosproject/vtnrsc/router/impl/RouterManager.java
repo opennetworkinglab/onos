@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ public class RouterManager implements RouterService {
                           TenantNetworkId.class, TenantId.class,
                           VirtualPortId.class, DefaultRouter.class,
                           RouterGateway.class, Router.Status.class,
-                          SubnetId.class);
+                          SubnetId.class, FixedIp.class);
         routerStore = storageService
                 .<RouterId, Router>eventuallyConsistentMapBuilder()
                 .withName(ROUTER).withSerializer(serializer)

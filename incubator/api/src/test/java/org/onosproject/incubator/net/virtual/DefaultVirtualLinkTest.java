@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,60 @@ public class DefaultVirtualLinkTest {
         assertThatClassIsImmutable(DefaultVirtualLink.class);
     }
 
+    /**
+     * Tests the DefaultVirtualLink Builder to ensure that the src cannot be null.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testBuilderNullSrc() {
+        DefaultVirtualDevice device1 =
+                new DefaultVirtualDevice(NetworkId.networkId(0), DeviceId.deviceId(deviceIdValue1));
+        DefaultVirtualDevice device2 =
+                new DefaultVirtualDevice(NetworkId.networkId(0), DeviceId.deviceId(deviceIdValue2));
+        ConnectPoint src = new ConnectPoint(device1.id(), PortNumber.portNumber(1));
+        ConnectPoint dst = new ConnectPoint(device2.id(), PortNumber.portNumber(2));
+
+        DefaultVirtualLink.builder()
+                .src(null)
+                .build();
+    }
+
+    /**
+     * Tests the DefaultVirtualLink Builder to ensure that the dst cannot be null.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testBuilderNullDst() {
+        DefaultVirtualDevice device1 =
+                new DefaultVirtualDevice(NetworkId.networkId(0), DeviceId.deviceId(deviceIdValue1));
+        DefaultVirtualDevice device2 =
+                new DefaultVirtualDevice(NetworkId.networkId(0), DeviceId.deviceId(deviceIdValue2));
+        ConnectPoint src = new ConnectPoint(device1.id(), PortNumber.portNumber(1));
+        ConnectPoint dst = new ConnectPoint(device2.id(), PortNumber.portNumber(2));
+
+        DefaultVirtualLink.builder()
+                .dst(null)
+                .build();
+    }
+
+    /**
+     * Tests the DefaultVirtualLink Builder to ensure that the networkId cannot be null.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testBuilderNullNetworkId() {
+        DefaultVirtualDevice device1 =
+                new DefaultVirtualDevice(NetworkId.networkId(0), DeviceId.deviceId(deviceIdValue1));
+        DefaultVirtualDevice device2 =
+                new DefaultVirtualDevice(NetworkId.networkId(0), DeviceId.deviceId(deviceIdValue2));
+        ConnectPoint src = new ConnectPoint(device1.id(), PortNumber.portNumber(1));
+        ConnectPoint dst = new ConnectPoint(device2.id(), PortNumber.portNumber(2));
+
+        DefaultVirtualLink.builder()
+                .networkId(null)
+                .build();
+    }
+
+    /**
+     * Tests the DefaultVirtualLink equality method.
+     */
     @Test
     public void testEquality() {
         DefaultVirtualDevice device1 =
@@ -49,10 +103,30 @@ public class DefaultVirtualLinkTest {
         ConnectPoint src = new ConnectPoint(device1.id(), PortNumber.portNumber(1));
         ConnectPoint dst = new ConnectPoint(device2.id(), PortNumber.portNumber(2));
 
-        DefaultVirtualLink link1 = new DefaultVirtualLink(NetworkId.networkId(0), src, dst, TunnelId.valueOf(0));
-        DefaultVirtualLink link2 = new DefaultVirtualLink(NetworkId.networkId(0), src, dst, TunnelId.valueOf(0));
-        DefaultVirtualLink link3 = new DefaultVirtualLink(NetworkId.networkId(0), src, dst, TunnelId.valueOf(1));
-        DefaultVirtualLink link4 = new DefaultVirtualLink(NetworkId.networkId(1), src, dst, TunnelId.valueOf(0));
+        VirtualLink link1 = DefaultVirtualLink.builder()
+                .networkId(NetworkId.networkId(0))
+                .src(src)
+                .dst(dst)
+                .tunnelId(TunnelId.valueOf("1"))
+                .build();
+        VirtualLink link2 = DefaultVirtualLink.builder()
+                .networkId(NetworkId.networkId(0))
+                .src(src)
+                .dst(dst)
+                .tunnelId(TunnelId.valueOf("1"))
+                .build();
+        VirtualLink link3 = DefaultVirtualLink.builder()
+                .networkId(NetworkId.networkId(0))
+                .src(src)
+                .dst(dst)
+                .tunnelId(TunnelId.valueOf("2"))
+                .build();
+        VirtualLink link4 = DefaultVirtualLink.builder()
+                .networkId(NetworkId.networkId(1))
+                .src(src)
+                .dst(dst)
+                .tunnelId(TunnelId.valueOf("3"))
+                .build();
 
         new EqualsTester().addEqualityGroup(link1, link2).addEqualityGroup(link3)
                 .addEqualityGroup(link4).testEquals();

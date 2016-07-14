@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,20 @@ public interface PcepLspObject {
      * @param value O flag
      */
     void setOFlag(byte value);
+
+    /**
+     * Returns C flag in LSP Object.
+     *
+     * @return C flag in LSP Object
+     */
+    boolean getCFlag();
+
+    /**
+     * Sets C flag with specified value.
+     *
+     * @param value C flag
+     */
+    void setCFlag(boolean value);
 
     /**
      * Returns A flag in LSP Object.
@@ -176,6 +190,21 @@ public interface PcepLspObject {
          * @return Builder by setting PlspId
          */
         Builder setPlspId(int value);
+
+        /**
+         * Returns C flag in LSP Object.
+         *
+         * @return C flag in LSP Object
+         */
+        boolean getCFlag();
+
+        /**
+         * Sets C flag with specific value and return its builder.
+         *
+         * @param value C flag
+         * @return Builder by setting C flag
+         */
+        Builder setCFlag(boolean value);
 
         /**
          * Returns O flag in LSP Object.

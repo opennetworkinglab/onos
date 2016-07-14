@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@
  */
 package org.onosproject.codec.impl;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -37,10 +37,14 @@ public final class FlowEntryCodec extends JsonCodec<FlowEntry> {
 
         CoreService service = context.getService(CoreService.class);
 
+        ApplicationId appId = service.getAppId(flowEntry.appId());
+
+        String strAppId = (appId == null) ? "<none>" : appId.name();
+
         final ObjectNode result = context.mapper().createObjectNode()
                 .put("id", Long.toString(flowEntry.id().value()))
                 .put("tableId", flowEntry.tableId())
-                .put("appId", service.getAppId(flowEntry.appId()).name())
+                .put("appId", strAppId)
                 .put("groupId", flowEntry.groupId().id())
                 .put("priority", flowEntry.priority())
                 .put("timeout", flowEntry.timeout())

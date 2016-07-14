@@ -1,0 +1,36 @@
+{
+  "type": "object",
+  "title": "VirtualNetworks",
+  "required": [
+    "vnets"
+  ],
+  "properties": {
+    "vnets": {
+      "type": "array",
+      "xml": {
+        "name": "vnets",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "vnet",
+        "required": [
+          "networkId",
+          "tenantId"
+        ],
+        "properties": {
+          "networkId": {
+            "type": "int64",
+            "description": "Network identifier",
+            "example": 3
+          },
+          "tenantId": {
+            "type": "String",
+            "description": "Tenant identifier",
+            "example": "Tenant123"
+          }
+        }
+      }
+    }
+  }
+}

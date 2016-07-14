@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.Config;
@@ -41,6 +42,7 @@ public class BgpConfig extends Config<ApplicationId> {
     public static final String CONNECT_POINT = "connectPoint";
     public static final String NAME = "name";
     public static final String PEERS = "peers";
+    public static final String VLAN = "vlan";
 
     /**
      * Gets the set of configured BGP speakers.
@@ -69,12 +71,24 @@ public class BgpConfig extends Config<ApplicationId> {
                 name = Optional.of(jsonNode.get(NAME).asText());
             }
 
+            VlanId vlan = getVlan(jsonNode);
+
             speakers.add(new BgpSpeakerConfig(name,
+                    vlan,
                     ConnectPoint.deviceConnectPoint(jsonNode.path(CONNECT_POINT).asText()),
                     listenAddresses));
         });
 
         return speakers;
+    }
+
+    // If configured, it retreives a VLAN Id from a BGP speaker node
+    private VlanId getVlan(JsonNode node) {
+        VlanId vlan = VlanId.NONE;
+        if (!node.path(VLAN).isMissingNode()) {
+            vlan = VlanId.vlanId(node.path(VLAN).asText());
+        }
+        return vlan;
     }
 
     /**
@@ -101,6 +115,8 @@ public class BgpConfig extends Config<ApplicationId> {
         ObjectNode speakerNode = JsonNodeFactory.instance.objectNode();
 
         speakerNode.put(NAME, speaker.name().get());
+
+        speakerNode.put(VLAN, speaker.vlan().toString());
 
         speakerNode.put(CONNECT_POINT, speaker.connectPoint().elementId().toString()
                 + "/" + speaker.connectPoint().port().toString());
@@ -157,8 +173,8 @@ public class BgpConfig extends Config<ApplicationId> {
     /**
      * Finds BGP speaker peering with a given external peer.
      *
-     * @param peerAddress peering address to be removed
-     * @return speaker
+     * @param peerAddress BGP peer address
+     * @return BGP speaker
      */
     public BgpSpeakerConfig getSpeakerFromPeer(IpAddress peerAddress) {
         for (BgpConfig.BgpSpeakerConfig speaker : bgpSpeakers()) {
@@ -207,18 +223,24 @@ public class BgpConfig extends Config<ApplicationId> {
     public static class BgpSpeakerConfig {
 
         private Optional<String> name;
+        private VlanId vlanId;
         private ConnectPoint connectPoint;
         private Set<IpAddress> peers;
 
-        public BgpSpeakerConfig(Optional<String> name, ConnectPoint connectPoint,
-                                Set<IpAddress> peers) {
+        public BgpSpeakerConfig(Optional<String> name, VlanId vlanId,
+                                ConnectPoint connectPoint, Set<IpAddress> peers) {
             this.name = checkNotNull(name);
+            this.vlanId = checkNotNull(vlanId);
             this.connectPoint = checkNotNull(connectPoint);
             this.peers = checkNotNull(peers);
         }
 
         public Optional<String> name() {
             return name;
+        }
+
+        public VlanId vlan() {
+            return vlanId;
         }
 
         public ConnectPoint connectPoint() {
@@ -252,6 +274,7 @@ public class BgpConfig extends Config<ApplicationId> {
             if (obj instanceof BgpSpeakerConfig) {
                 final BgpSpeakerConfig that = (BgpSpeakerConfig) obj;
                 return Objects.equals(this.name, that.name) &&
+                        Objects.equals(this.vlanId, that.vlanId) &&
                         Objects.equals(this.connectPoint, that.connectPoint) &&
                         Objects.equals(this.peers, that.peers);
             }
@@ -260,7 +283,7 @@ public class BgpConfig extends Config<ApplicationId> {
 
         @Override
         public int hashCode() {
-            return Objects.hash(name, connectPoint, peers);
+            return Objects.hash(name, vlanId, connectPoint, peers);
         }
     }
 }

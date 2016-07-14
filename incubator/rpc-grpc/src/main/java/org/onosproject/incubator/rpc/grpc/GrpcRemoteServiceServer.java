@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,19 +36,19 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onosproject.grpc.Device.DeviceConnected;
-import org.onosproject.grpc.Device.DeviceDisconnected;
-import org.onosproject.grpc.Device.DeviceProviderMsg;
-import org.onosproject.grpc.Device.DeviceProviderServiceMsg;
-import org.onosproject.grpc.Device.IsReachableResponse;
-import org.onosproject.grpc.Device.PortStatusChanged;
-import org.onosproject.grpc.Device.ReceivedRoleReply;
-import org.onosproject.grpc.Device.RegisterProvider;
-import org.onosproject.grpc.Device.UpdatePortStatistics;
-import org.onosproject.grpc.Device.UpdatePorts;
-import org.onosproject.grpc.DeviceProviderRegistryRpcGrpc;
-import org.onosproject.grpc.DeviceProviderRegistryRpcGrpc.DeviceProviderRegistryRpc;
-import org.onosproject.grpc.LinkProviderServiceRpcGrpc;
+import org.onosproject.grpc.net.device.DeviceProviderRegistryRpcGrpc;
+import org.onosproject.grpc.net.device.DeviceProviderRegistryRpcGrpc.DeviceProviderRegistryRpc;
+import org.onosproject.grpc.net.device.DeviceService.DeviceConnected;
+import org.onosproject.grpc.net.device.DeviceService.DeviceDisconnected;
+import org.onosproject.grpc.net.device.DeviceService.DeviceProviderMsg;
+import org.onosproject.grpc.net.device.DeviceService.DeviceProviderServiceMsg;
+import org.onosproject.grpc.net.device.DeviceService.IsReachableResponse;
+import org.onosproject.grpc.net.device.DeviceService.PortStatusChanged;
+import org.onosproject.grpc.net.device.DeviceService.ReceivedRoleReply;
+import org.onosproject.grpc.net.device.DeviceService.RegisterProvider;
+import org.onosproject.grpc.net.device.DeviceService.UpdatePortStatistics;
+import org.onosproject.grpc.net.device.DeviceService.UpdatePorts;
+import org.onosproject.grpc.net.link.LinkProviderServiceRpcGrpc;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
@@ -165,6 +165,7 @@ public class GrpcRemoteServiceServer {
      * Unregisters all registered LinkProviders.
      */
     private synchronized void unregisterLinkProviders() {
+        // TODO remove all links registered by these providers
         linkProviders.values().forEach(linkProviderRegistry::unregister);
         linkProviders.clear();
         linkProviderServices.clear();
@@ -250,6 +251,7 @@ public class GrpcRemoteServiceServer {
                 // TODO Do we care about provider name?
                 pairedProvider.setProviderId(new ProviderId(registerProvider.getProviderScheme(), RPC_PROVIDER_NAME));
                 registeredProviders.add(pairedProvider);
+                log.info("registering DeviceProvider {} via gRPC", pairedProvider.id());
                 deviceProviderService = deviceProviderRegistry.register(pairedProvider);
                 break;
 
@@ -319,8 +321,13 @@ public class GrpcRemoteServiceServer {
         @Override
         public void onError(Throwable e) {
             log.error("DeviceProviderServiceServerProxy#onError", e);
-            deviceProviderRegistry.unregister(pairedProvider);
-            registeredProviders.remove(pairedProvider);
+            if (pairedProvider != null) {
+                // TODO call deviceDisconnected against all devices
+                // registered for this provider scheme
+                log.info("unregistering DeviceProvider {} via gRPC", pairedProvider.id());
+                deviceProviderRegistry.unregister(pairedProvider);
+                registeredProviders.remove(pairedProvider);
+            }
             // TODO What is the proper clean up for bi-di stream on error?
             // sample suggests no-op
             toDeviceProvider.onError(e);
@@ -364,6 +371,7 @@ public class GrpcRemoteServiceServer {
 
         /**
          * Registers RPC stream in other direction.
+         *
          * @param deviceProviderServiceProxy {@link DeviceProviderServiceServerProxy}
          */
         void pair(DeviceProviderServiceServerProxy deviceProviderServiceProxy) {
@@ -444,6 +452,13 @@ public class GrpcRemoteServiceServer {
         @Override
         public ProviderId id() {
             return checkNotNull(providerId, "not initialized yet");
+        }
+
+        @Override
+        public void changePortState(DeviceId deviceId, PortNumber portNumber,
+                                    boolean enable) {
+            // TODO if required
+
         }
 
     }

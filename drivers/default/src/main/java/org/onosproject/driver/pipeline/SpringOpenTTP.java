@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,15 +132,15 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
     private ScheduledExecutorService groupChecker = Executors
             .newScheduledThreadPool(2,
                                     groupedThreads("onos/pipeliner",
-                                                   "spring-open-%d"));
+                                                   "spring-open-%d",
+                                                   log));
     protected KryoNamespace appKryo = new KryoNamespace.Builder()
             .register(KryoNamespaces.API)
             .register(GroupKey.class)
             .register(DefaultGroupKey.class)
             .register(TrafficTreatment.class)
             .register(SpringOpenGroup.class)
-            .register(byte[].class)
-            .build();
+            .build("SpringOpenTTP");
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
@@ -1092,7 +1092,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
      * case, we refer to this as a dummy group.
      *
      */
-    private class SpringOpenGroup implements NextGroup {
+    protected class SpringOpenGroup implements NextGroup {
         private final boolean dummy;
         private final GroupKey key;
         private final TrafficTreatment treatment;
@@ -1115,9 +1115,16 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             }
         }
 
-        @SuppressWarnings("unused")
         public GroupKey key() {
             return key;
+        }
+
+        public boolean dummy() {
+            return dummy;
+        }
+
+        public TrafficTreatment treatment() {
+            return treatment;
         }
 
         @Override
@@ -1125,5 +1132,11 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             return appKryo.serialize(this);
         }
 
+    }
+
+    @Override
+    public List<String> getNextMappings(NextGroup nextGroup) {
+        // TODO Implementation deferred to vendor
+        return null;
     }
 }

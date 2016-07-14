@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -177,4 +177,19 @@ public interface NetworkConfigService
      * @param <S>               type of subject
      */
     <S> void removeConfig(String subjectClassKey, S subject, String configKey);
+
+    /**
+     * Clears the  configuration including queued based on the subject.
+     * If does not exists this call has no effect.
+     *
+     * @param subject           configuration subject
+     */
+    <S> void removeConfig(S subject);
+
+    /**
+     * Clears the complete configuration including queued.
+     * If does not exists this call has no effect.
+     *
+     */
+    <S> void removeConfig();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,16 @@ public class NetworkLsa extends LsaHeader {
      */
     public void addAttachedRouter(Ip4Address attachedRouter) {
         attachedRouters.add(attachedRouter);
+    }
+
+    /**
+     * Gets the list of attached routers.
+     *
+     * @return list of attached routers
+     */
+    public List<Ip4Address> attachedRouters() {
+
+        return attachedRouters;
     }
 
     /**

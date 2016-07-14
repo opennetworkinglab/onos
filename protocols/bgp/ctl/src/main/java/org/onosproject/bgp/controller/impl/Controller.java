@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package org.onosproject.bgp.controller.impl;
 
 import static org.onlab.util.Tools.groupedThreads;
-
+import io.netty.util.internal.PlatformDependent;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.InetSocketAddress;
@@ -53,9 +53,11 @@ public class Controller {
     public Channel serverChannel;
 
     // Configuration options
-    private static final short BGP_PORT_NUM = 179;
+    protected static final short BGP_PORT_NUM = 179;
+    private static final short BGP_PRIVILEGED_PORT = 1790; // server port used for non root users in linux
     private static final short PORT_NUM_ZERO = 0;
     private static boolean isPortNumSet = false;
+    private static short portNumber = BGP_PORT_NUM;
     private final int workerThreads = 16;
     private final int peerWorkerThreads = 16;
 
@@ -219,6 +221,11 @@ public class Controller {
      */
     public void start() {
         log.info("Started");
+        if (!PlatformDependent.isWindows() && !PlatformDependent.isRoot()) {
+            portNumber = BGP_PRIVILEGED_PORT;
+        } else {
+            portNumber = BGP_PORT_NUM;
+        }
         this.init();
         this.run();
     }
@@ -242,7 +249,8 @@ public class Controller {
         if (isPortNumSet) {
             return PORT_NUM_ZERO;
         }
-        return BGP_PORT_NUM;
+
+        return portNumber;
     }
 
     /**

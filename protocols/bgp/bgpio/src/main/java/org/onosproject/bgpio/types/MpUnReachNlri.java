@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,9 @@ import java.util.List;
 import java.util.ListIterator;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpLSNlri;
-import org.onosproject.bgpio.protocol.flowspec.BgpFlowSpecDetails;
+import org.onosproject.bgpio.protocol.flowspec.BgpFlowSpecNlri;
 import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.BgpPrefixIPv4LSNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.BgpLinkLsNlriVer4;
@@ -44,13 +43,12 @@ public class MpUnReachNlri implements BgpValueType {
     public static final byte MPUNREACHNLRI_TYPE = 15;
     public static final byte LINK_NLRITYPE = 2;
     public static final byte FLAGS = (byte) 0x90;
-    public static final short FLOW_SPEC_LEN = 240;
     private boolean isMpUnReachNlri = false;
     private final short afi;
     private final byte safi;
     private final List<BgpLSNlri> mpUnReachNlri;
     private final int length;
-    private BgpFlowSpecDetails bgpFlowSpecInfo;
+    private BgpFlowSpecNlri bgpFlowSpecNlri;
 
     /**
      * Constructor to initialize parameters.
@@ -69,11 +67,11 @@ public class MpUnReachNlri implements BgpValueType {
         this.length = length;
     }
 
-    public MpUnReachNlri(BgpFlowSpecDetails bgpFlowSpecInfo, short afi, byte safi) {
+    public MpUnReachNlri(BgpFlowSpecNlri bgpFlowSpecNlri, short afi, byte safi) {
         this.mpUnReachNlri = null;
         this.isMpUnReachNlri = true;
         this.length = 0;
-        this.bgpFlowSpecInfo = bgpFlowSpecInfo;
+        this.bgpFlowSpecNlri = bgpFlowSpecNlri;
         this.afi = afi;
         this.safi = safi;
     }
@@ -83,8 +81,8 @@ public class MpUnReachNlri implements BgpValueType {
      *
      * @return BGP flow specification info
      */
-    public BgpFlowSpecDetails bgpFlowSpecInfo() {
-        return this.bgpFlowSpecInfo;
+    public BgpFlowSpecNlri bgpFlowSpecNlri() {
+        return this.bgpFlowSpecNlri;
     }
 
     /**
@@ -162,64 +160,70 @@ public class MpUnReachNlri implements BgpValueType {
                         routeDistinguisher = new RouteDistinguisher();
                         routeDistinguisher = RouteDistinguisher.read(tempCb);
                     }
-                    short totNlriLen = tempCb.getByte(tempCb.readerIndex());
-                    if (totNlriLen >= FLOW_SPEC_LEN) {
-                        totNlriLen = tempCb.readShort();
-                    } else {
-                        totNlriLen = tempCb.readByte();
-                    }
-                    if (tempCb.readableBytes() < totNlriLen) {
-                        Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
-                                BgpErrorType.ATTRIBUTE_LENGTH_ERROR, totNlriLen);
-                    }
-                    tempBuf = tempCb.readBytes(totNlriLen);
-                    while (tempBuf.readableBytes() > 0) {
-                        short type = tempBuf.readByte();
-                        switch (type) {
-                        case Constants.BGP_FLOWSPEC_DST_PREFIX:
-                            flowSpecComponent = BgpFsDestinationPrefix.read(tempBuf);
-                            break;
-                        case Constants.BGP_FLOWSPEC_SRC_PREFIX:
-                            flowSpecComponent = BgpFsSourcePrefix.read(tempBuf);
-                            break;
-                        case Constants.BGP_FLOWSPEC_IP_PROTO:
-                            flowSpecComponent = BgpFsIpProtocol.read(tempBuf);
-                            break;
-                        case Constants.BGP_FLOWSPEC_PORT:
-                            flowSpecComponent = BgpFsPortNum.read(tempBuf);
-                            break;
-                        case Constants.BGP_FLOWSPEC_DST_PORT:
-                            flowSpecComponent = BgpFsDestinationPortNum.read(tempBuf);
-                            break;
-                        case Constants.BGP_FLOWSPEC_SRC_PORT:
-                            flowSpecComponent = BgpFsSourcePortNum.read(tempBuf);
-                            break;
-                        case Constants.BGP_FLOWSPEC_ICMP_TP:
-                            flowSpecComponent = BgpFsIcmpType.read(tempBuf);
-                            break;
-                        case Constants.BGP_FLOWSPEC_ICMP_CD:
-                            flowSpecComponent = BgpFsIcmpType.read(tempBuf);
-                            break;
-                        case Constants.BGP_FLOWSPEC_TCP_FLAGS:
-                            flowSpecComponent = BgpFsTcpFlags.read(tempBuf);
-                            break;
-                        case Constants.BGP_FLOWSPEC_PCK_LEN:
-                            flowSpecComponent = BgpFsPacketLength.read(tempBuf);
-                            break;
-                        case Constants.BGP_FLOWSPEC_DSCP:
-                            flowSpecComponent = BgpFsDscpValue.read(tempBuf);
-                            break;
-                        case Constants.BGP_FLOWSPEC_FRAGMENT:
-                            flowSpecComponent = BgpFsFragment.read(tempBuf);
-                            break;
-                        default:
-                            log.debug("flow spec type not supported" + type);
-                            break;
+                    while (tempCb.readableBytes() > 0) {
+                        short totNlriLen = tempCb.getByte(tempCb.readerIndex());
+                        if (totNlriLen >= BgpFlowSpecNlri.FLOW_SPEC_LEN) {
+                           if (tempCb.readableBytes() < 2) {
+                                Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                    BgpErrorType.ATTRIBUTE_LENGTH_ERROR, totNlriLen);
+                            }
+                            totNlriLen = tempCb.readShort();
+                        } else {
+                            totNlriLen = tempCb.readByte();
                         }
-                        flowSpecComponents.add(flowSpecComponent);
+                        if (tempCb.readableBytes() < totNlriLen) {
+                            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                    BgpErrorType.ATTRIBUTE_LENGTH_ERROR, totNlriLen);
+                        }
+                        tempBuf = tempCb.readBytes(totNlriLen);
+                        while (tempBuf.readableBytes() > 0) {
+                            short type = tempBuf.readByte();
+                            switch (type) {
+                            case Constants.BGP_FLOWSPEC_DST_PREFIX:
+                                flowSpecComponent = BgpFsDestinationPrefix.read(tempBuf);
+                                break;
+                            case Constants.BGP_FLOWSPEC_SRC_PREFIX:
+                                flowSpecComponent = BgpFsSourcePrefix.read(tempBuf);
+                                break;
+                            case Constants.BGP_FLOWSPEC_IP_PROTO:
+                                flowSpecComponent = BgpFsIpProtocol.read(tempBuf);
+                                break;
+                            case Constants.BGP_FLOWSPEC_PORT:
+                                flowSpecComponent = BgpFsPortNum.read(tempBuf);
+                                break;
+                            case Constants.BGP_FLOWSPEC_DST_PORT:
+                                flowSpecComponent = BgpFsDestinationPortNum.read(tempBuf);
+                                break;
+                            case Constants.BGP_FLOWSPEC_SRC_PORT:
+                                flowSpecComponent = BgpFsSourcePortNum.read(tempBuf);
+                                break;
+                            case Constants.BGP_FLOWSPEC_ICMP_TP:
+                                flowSpecComponent = BgpFsIcmpType.read(tempBuf);
+                                break;
+                            case Constants.BGP_FLOWSPEC_ICMP_CD:
+                                flowSpecComponent = BgpFsIcmpCode.read(tempBuf);
+                                break;
+                            case Constants.BGP_FLOWSPEC_TCP_FLAGS:
+                                flowSpecComponent = BgpFsTcpFlags.read(tempBuf);
+                                break;
+                            case Constants.BGP_FLOWSPEC_PCK_LEN:
+                                flowSpecComponent = BgpFsPacketLength.read(tempBuf);
+                                break;
+                            case Constants.BGP_FLOWSPEC_DSCP:
+                                flowSpecComponent = BgpFsDscpValue.read(tempBuf);
+                                break;
+                            case Constants.BGP_FLOWSPEC_FRAGMENT:
+                                flowSpecComponent = BgpFsFragment.read(tempBuf);
+                                break;
+                            default:
+                                log.debug("flow spec type not supported" + type);
+                                break;
+                            }
+                            flowSpecComponents.add(flowSpecComponent);
+                        }
                     }
                 }
-                BgpFlowSpecDetails flowSpecDetails = new BgpFlowSpecDetails(flowSpecComponents);
+                BgpFlowSpecNlri flowSpecDetails = new BgpFlowSpecNlri(flowSpecComponents);
                 flowSpecDetails.setRouteDistinguiher(routeDistinguisher);
                 return new MpUnReachNlri(flowSpecDetails, afi, safi);
             } else {
@@ -286,6 +290,9 @@ public class MpUnReachNlri implements BgpValueType {
         int iLenStartIndex = cb.writerIndex();
         if ((afi == Constants.AFI_FLOWSPEC_VALUE) && ((safi == Constants.SAFI_FLOWSPEC_VALUE) ||
             (safi == Constants.VPN_SAFI_FLOWSPEC_VALUE))) {
+            List<BgpValueType> flowSpec = bgpFlowSpecNlri.flowSpecComponents();
+            ListIterator<BgpValueType> listIterator = flowSpec.listIterator();
+            boolean isAllFlowTypesIdentical = true;
 
             cb.writeByte(FLAGS);
             cb.writeByte(MPUNREACHNLRI_TYPE);
@@ -296,79 +303,27 @@ public class MpUnReachNlri implements BgpValueType {
             cb.writeShort(afi);
             cb.writeByte(safi);
 
-            if (bgpFlowSpecInfo.routeDistinguisher() != null) {
-                cb.writeLong(bgpFlowSpecInfo.routeDistinguisher().getRouteDistinguisher());
+            if (bgpFlowSpecNlri.routeDistinguisher() != null) {
+                cb.writeLong(bgpFlowSpecNlri.routeDistinguisher().getRouteDistinguisher());
             }
 
-            ChannelBuffer flowSpecTmpBuff = ChannelBuffers.dynamicBuffer();
-            int tmpBuffStartIndx = flowSpecTmpBuff.writerIndex();
-
-            List<BgpValueType> flowSpec = bgpFlowSpecInfo.flowSpecComponents();
-            ListIterator<BgpValueType> listIterator = flowSpec.listIterator();
+            BgpValueType tlv1 = null;
+            if (listIterator.hasNext()) {
+                tlv1 = listIterator.next();
+            }
             while (listIterator.hasNext()) {
                 BgpValueType tlv = listIterator.next();
-                switch (tlv.getType()) {
-                case Constants.BGP_FLOWSPEC_DST_PREFIX:
-                    BgpFsDestinationPrefix fsDstPrefix = (BgpFsDestinationPrefix) tlv;
-                    fsDstPrefix.write(flowSpecTmpBuff);
+                if (tlv.getType() != tlv1.getType()) {
+                    isAllFlowTypesIdentical = false;
                     break;
-                case Constants.BGP_FLOWSPEC_SRC_PREFIX:
-                    BgpFsSourcePrefix fsSrcPrefix = (BgpFsSourcePrefix) tlv;
-                    fsSrcPrefix.write(flowSpecTmpBuff);
-                    break;
-                case Constants.BGP_FLOWSPEC_IP_PROTO:
-                    BgpFsIpProtocol fsIpProtocol = (BgpFsIpProtocol) tlv;
-                    fsIpProtocol.write(flowSpecTmpBuff);
-                    break;
-                case Constants.BGP_FLOWSPEC_PORT:
-                    BgpFsPortNum fsPortNum = (BgpFsPortNum) tlv;
-                    fsPortNum.write(flowSpecTmpBuff);
-                    break;
-                case Constants.BGP_FLOWSPEC_DST_PORT:
-                    BgpFsDestinationPortNum fsDstPortNum = (BgpFsDestinationPortNum) tlv;
-                    fsDstPortNum.write(flowSpecTmpBuff);
-                    break;
-                case Constants.BGP_FLOWSPEC_SRC_PORT:
-                    BgpFsSourcePortNum fsSrcPortNum = (BgpFsSourcePortNum) tlv;
-                    fsSrcPortNum.write(flowSpecTmpBuff);
-                    break;
-                case Constants.BGP_FLOWSPEC_ICMP_TP:
-                    BgpFsIcmpType fsIcmpType = (BgpFsIcmpType) tlv;
-                    fsIcmpType.write(flowSpecTmpBuff);
-                    break;
-                case Constants.BGP_FLOWSPEC_ICMP_CD:
-                    BgpFsIcmpCode fsIcmpCode = (BgpFsIcmpCode) tlv;
-                    fsIcmpCode.write(flowSpecTmpBuff);
-                    break;
-                case Constants.BGP_FLOWSPEC_TCP_FLAGS:
-                    BgpFsTcpFlags fsTcpFlags = (BgpFsTcpFlags) tlv;
-                    fsTcpFlags.write(flowSpecTmpBuff);
-                    break;
-                case Constants.BGP_FLOWSPEC_PCK_LEN:
-                    BgpFsPacketLength fsPacketLen = (BgpFsPacketLength) tlv;
-                    fsPacketLen.write(flowSpecTmpBuff);
-                    break;
-                case Constants.BGP_FLOWSPEC_DSCP:
-                    BgpFsDscpValue fsDscpVal = (BgpFsDscpValue) tlv;
-                    fsDscpVal.write(flowSpecTmpBuff);
-                    break;
-                case Constants.BGP_FLOWSPEC_FRAGMENT:
-                    BgpFsFragment fsFragment = (BgpFsFragment) tlv;
-                    fsFragment.write(flowSpecTmpBuff);
-                    break;
-                default:
                 }
             }
 
-            int len = flowSpecTmpBuff.writerIndex() - tmpBuffStartIndx;
-            if (len >= FLOW_SPEC_LEN) {
-                cb.writeShort(len);
+            if (isAllFlowTypesIdentical) {
+                BgpFlowSpecNlri.updateBufferIdenticalFlowTypes(cb, bgpFlowSpecNlri());
             } else {
-                cb.writeByte(len);
+                BgpFlowSpecNlri.updateBufferNonIdenticalFlowTypes(cb, bgpFlowSpecNlri());
             }
-            //Copy from bynamic buffer to channel buffer
-            cb.writeBytes(flowSpecTmpBuff);
-
             int fsNlriLen = cb.writerIndex() - mpUnReachIndx;
             cb.setShort(mpUnReachIndx, (short) (fsNlriLen - 2));
         }
@@ -386,7 +341,7 @@ public class MpUnReachNlri implements BgpValueType {
     public String toString() {
         return MoreObjects.toStringHelper(getClass()).omitNullValues()
                 .add("mpReachNlri", mpUnReachNlri)
-                .add("bgpFlowSpecInfo", bgpFlowSpecInfo)
+                .add("bgpFlowSpecNlri", bgpFlowSpecNlri)
                 .add("afi", afi)
                 .add("safi", safi)
                 .add("length", length)

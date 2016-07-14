@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,11 @@
  */
 package org.onosproject.vtnweb.resources;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-
-import javax.ws.rs.core.MediaType;
-
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonObject;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,13 +34,27 @@ import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.portpairgroup.PortPairGroupService;
 import org.onosproject.vtnweb.web.SfcCodecContext;
 
-import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonObject;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 /**
  * Unit tests for port pair group REST APIs.
  */
@@ -117,6 +117,20 @@ public class PortPairGroupResourceTest extends VtnResourceTest {
         }
 
         @Override
+        public void addLoad(PortPairId portPairId) {
+        }
+
+        @Override
+        public int getLoad(PortPairId portPairId) {
+            return 0;
+        }
+
+        @Override
+        public Map<PortPairId, Integer> portPairLoadMap() {
+            return null;
+        }
+
+        @Override
         public boolean exactMatch(PortPairGroup portPairGroup) {
             return this.equals(portPairGroup) &&
                     Objects.equals(this.portPairGroupId, portPairGroup.portPairGroupId()) &&
@@ -124,14 +138,7 @@ public class PortPairGroupResourceTest extends VtnResourceTest {
         }
 
         @Override
-        public void addLoad(PortPairId portPairId) {
-            // TODO Auto-generated method stub
-        }
-
-        @Override
-        public int getLoad(PortPairId portPairId) {
-            // TODO Auto-generated method stub
-            return 0;
+        public void resetLoad() {
         }
     }
 
@@ -163,8 +170,8 @@ public class PortPairGroupResourceTest extends VtnResourceTest {
 
         expect(portPairGroupService.getPortPairGroups()).andReturn(null).anyTimes();
         replay(portPairGroupService);
-        final WebResource rs = resource();
-        final String response = rs.path("port_pair_groups").get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("port_pair_groups").request().get(String.class);
         assertThat(response, is("{\"port_pair_groups\":[]}"));
     }
 
@@ -181,8 +188,9 @@ public class PortPairGroupResourceTest extends VtnResourceTest {
         expect(portPairGroupService.getPortPairGroup(anyObject())).andReturn(portPairGroup1).anyTimes();
         replay(portPairGroupService);
 
-        final WebResource rs = resource();
-        final String response = rs.path("port_pair_groups/4512d643-24fc-4fae-af4b-321c5e2eb3d1").get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("port_pair_groups/4512d643-24fc-4fae-af4b-321c5e2eb3d1")
+                .request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
     }
@@ -195,13 +203,14 @@ public class PortPairGroupResourceTest extends VtnResourceTest {
         expect(portPairGroupService.getPortPairGroup(anyObject()))
         .andReturn(null).anyTimes();
         replay(portPairGroupService);
-        WebResource rs = resource();
+        WebTarget wt = target();
         try {
-            rs.path("port_pair_groups/78dcd363-fc23-aeb6-f44b-56dc5aafb3ae").get(String.class);
+            wt.path("port_pair_groups/78dcd363-fc23-aeb6-f44b-56dc5aafb3ae")
+                    .request().get(String.class);
             fail("Fetch of non-existent port pair group did not throw an exception");
-        } catch (UniformInterfaceException ex) {
+        } catch (NotFoundException ex) {
             assertThat(ex.getMessage(),
-                       containsString("returned a response status of"));
+                       containsString("HTTP 404 Not Found"));
         }
     }
 
@@ -215,12 +224,12 @@ public class PortPairGroupResourceTest extends VtnResourceTest {
         .andReturn(true).anyTimes();
         replay(portPairGroupService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
         InputStream jsonStream = PortPairGroupResourceTest.class.getResourceAsStream("post-PortPairGroup.json");
 
-        ClientResponse response = rs.path("port_pair_groups")
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, jsonStream);
+        Response response = wt.path("port_pair_groups")
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream));
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
     }
 
@@ -233,13 +242,13 @@ public class PortPairGroupResourceTest extends VtnResourceTest {
         .andReturn(true).anyTimes();
         replay(portPairGroupService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
 
         String location = "port_pair_groups/4512d643-24fc-4fae-af4b-321c5e2eb3d1";
 
-        ClientResponse deleteResponse = rs.path(location)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .delete(ClientResponse.class);
+        Response deleteResponse = wt.path(location)
+                .request(MediaType.APPLICATION_JSON_TYPE, MediaType.TEXT_PLAIN_TYPE)
+                .delete();
         assertThat(deleteResponse.getStatus(),
                    is(HttpURLConnection.HTTP_NO_CONTENT));
     }

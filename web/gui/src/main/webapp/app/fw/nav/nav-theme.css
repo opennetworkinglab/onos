@@ -1,0 +1,64 @@
+/*
+ * Copyright 2016-present Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ ONOS GUI -- Navigation (theme) -- CSS file
+ */
+
+.light #nav {
+    background-color: #231f20;
+}
+.dark #nav {
+    /* TODO: dark theme */
+    background-color: #231f20;
+}
+
+.light #nav .nav-hdr {
+    color: #716b6a;
+    background-color: #3c3a3a;
+}
+.dark #nav .nav-hdr {
+    /* TODO: dark theme */
+    color: #716b6a;
+    background-color: #3c3a3a;
+}
+
+.light #nav a {
+    color: #c7c7c0;
+    border-bottom: solid #3c3a3a 1px;
+}
+.dark #nav a {
+    /* TODO: dark theme */
+    color: #c7c7c0;
+    border-bottom: solid #3c3a3a 1px;
+}
+
+.light #nav a:hover {
+    color: #ffffff;
+}
+.dark #nav a:hover {
+    /* TODO: dark theme */
+    color: #ffffff;
+}
+
+#nav a div svg.embeddedIcon g.icon .glyph {
+    fill: #007dc4;
+}
+
+#nav a:hover div svg.embeddedIcon g.icon .glyph {
+    fill: #20b2ff;
+}
+

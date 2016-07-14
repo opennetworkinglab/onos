@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -149,6 +149,14 @@ public final class GroupOperation {
 
     }
 
+    /**
+     * Creates failure group operation object by setting failure code
+     * to inform the failure reason.
+     *
+     * @param groupOperation the original group operation
+     * @param failureCode failure code for a failed group operation
+     * @return failed group operation object
+     */
     public static GroupOperation createFailedGroupOperation(GroupOperation groupOperation,
                                                             GroupMsgErrorCode failureCode) {
         checkNotNull(groupOperation);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,10 @@
  */
 package org.onosproject.store.service;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import org.onosproject.core.ApplicationId;
 
@@ -37,6 +40,11 @@ public interface DistributedPrimitive {
          * Map with eventual consistency semantics.
          */
         EVENTUALLY_CONSISTENT_MAP,
+
+        /**
+         * Consistent Multimap.
+         */
+        CONSISTENT_MULTIMAP,
 
         /**
          * distributed set.
@@ -67,6 +75,29 @@ public interface DistributedPrimitive {
          * Transaction Context.
          */
         TRANSACTION_CONTEXT
+    }
+
+    /**
+     * Status of distributed primitive.
+     */
+    public enum Status {
+
+        /**
+         * Signifies a state wherein the primitive is operating correctly and is capable of meeting the advertised
+         * consistency and reliability guarantees.
+         */
+        ACTIVE,
+
+        /**
+         * Signifies a state wherein the primitive is temporarily incapable of providing the advertised
+         * consistency properties.
+         */
+        SUSPENDED,
+
+        /**
+         * Signifies a state wherein the primitive has been shutdown and therefore cannot perform its functions.
+         */
+        INACTIVE
     }
 
     static final long DEFAULT_OPERTATION_TIMEOUT_MILLIS = 5000L;
@@ -101,5 +132,25 @@ public interface DistributedPrimitive {
      */
     default CompletableFuture<Void> destroy() {
         return CompletableFuture.completedFuture(null);
+    }
+
+    /**
+     * Registers a listener to be called when the primitive's status changes.
+     * @param listener The listener to be called when the status changes.
+     */
+    default void addStatusChangeListener(Consumer<Status> listener) {}
+
+    /**
+     * Unregisters a previously registered listener to be called when the primitive's status changes.
+     * @param listener The listener to unregister
+     */
+    default void removeStatusChangeListener(Consumer<Status> listener) {}
+
+    /**
+     * Returns the collection of status change listeners previously registered.
+     * @return collection of status change listeners
+     */
+    default Collection<Consumer<Status>> statusChangeListeners() {
+        return Collections.emptyList();
     }
 }

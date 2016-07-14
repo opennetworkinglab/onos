@@ -1,0 +1,10 @@
+{
+  "apps":{
+    "org.onosproject.bmv2":{
+      "devices":[{
+        "ip":"192.168.57.100",
+        "port":9090
+      }]
+    }
+  }
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ import org.onosproject.store.service.Versioned;
  */
 public class UnmodifiableAsyncConsistentMap<K, V> extends DelegatingAsyncConsistentMap<K, V> {
 
+    private static final String ERROR_MSG = "map updates are not allowed";
+
     public UnmodifiableAsyncConsistentMap(AsyncConsistentMap<K, V> backingMap) {
         super(backingMap);
     }
@@ -43,56 +45,56 @@ public class UnmodifiableAsyncConsistentMap<K, V> extends DelegatingAsyncConsist
     public CompletableFuture<Versioned<V>> computeIf(K key,
             Predicate<? super V> condition,
             BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
-        return Tools.exceptionalFuture(new UnsupportedOperationException("map updates are not allowed"));
+        return Tools.exceptionalFuture(new UnsupportedOperationException(""));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> put(K key, V value) {
-        return Tools.exceptionalFuture(new UnsupportedOperationException("map updates are not allowed"));
+        return Tools.exceptionalFuture(new UnsupportedOperationException(ERROR_MSG));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> putAndGet(K key, V value) {
-        return Tools.exceptionalFuture(new UnsupportedOperationException("map updates are not allowed"));
+        return Tools.exceptionalFuture(new UnsupportedOperationException(ERROR_MSG));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> remove(K key) {
-        return Tools.exceptionalFuture(new UnsupportedOperationException("map updates are not allowed"));
+        return Tools.exceptionalFuture(new UnsupportedOperationException(ERROR_MSG));
     }
 
     @Override
     public CompletableFuture<Void> clear() {
-        return Tools.exceptionalFuture(new UnsupportedOperationException("map updates are not allowed"));
+        return Tools.exceptionalFuture(new UnsupportedOperationException(ERROR_MSG));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> putIfAbsent(K key, V value) {
-        return Tools.exceptionalFuture(new UnsupportedOperationException("map updates are not allowed"));
+        return Tools.exceptionalFuture(new UnsupportedOperationException(ERROR_MSG));
     }
 
     @Override
     public CompletableFuture<Boolean> remove(K key, V value) {
-        return Tools.exceptionalFuture(new UnsupportedOperationException("map updates are not allowed"));
+        return Tools.exceptionalFuture(new UnsupportedOperationException(ERROR_MSG));
     }
 
     @Override
     public CompletableFuture<Boolean> remove(K key, long version) {
-        return Tools.exceptionalFuture(new UnsupportedOperationException("map updates are not allowed"));
+        return Tools.exceptionalFuture(new UnsupportedOperationException(ERROR_MSG));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> replace(K key, V value) {
-        return Tools.exceptionalFuture(new UnsupportedOperationException("map updates are not allowed"));
+        return Tools.exceptionalFuture(new UnsupportedOperationException(ERROR_MSG));
     }
 
     @Override
     public CompletableFuture<Boolean> replace(K key, V oldValue, V newValue) {
-        return Tools.exceptionalFuture(new UnsupportedOperationException("map updates are not allowed"));
+        return Tools.exceptionalFuture(new UnsupportedOperationException(ERROR_MSG));
     }
 
     @Override
     public CompletableFuture<Boolean> replace(K key, long oldVersion, V newValue) {
-        return Tools.exceptionalFuture(new UnsupportedOperationException("map updates are not allowed"));
+        return Tools.exceptionalFuture(new UnsupportedOperationException(ERROR_MSG));
     }
 }

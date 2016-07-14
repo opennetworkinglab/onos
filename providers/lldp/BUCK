@@ -1,0 +1,28 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//providers/lldpcommon:onos-providers-lldpcommon',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+]
+
+BUNDLES = [
+    '//providers/lldpcommon:onos-providers-lldpcommon',
+    '//providers/lldp:onos-providers-lldp',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
+
+onos_app (
+    app_name = 'org.onosproject.lldpprovider',
+    title = 'LLDP Link Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    description = 'ONOS LLDP Link provider.',
+    included_bundles = BUNDLES,
+)
+

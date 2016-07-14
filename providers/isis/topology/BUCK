@@ -1,0 +1,14 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//protocols/isis/api:onos-protocols-isis-api',
+    '//protocols/isis/ctl:onos-protocols-isis-ctl',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)

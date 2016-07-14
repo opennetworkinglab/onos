@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.cli.Comparators;
+import org.onosproject.utils.Comparators;
 import org.onosproject.core.Application;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -69,9 +69,11 @@ public class ApplicationsListCommand extends AbstractShellCommand {
                 boolean isActive = service.getState(app.id()) == ACTIVE;
                 if (activeOnly && isActive || !activeOnly) {
                     if (shortOnly) {
+                        String shortDescription = app.title().equals(app.id().name()) ?
+                                app.description().replaceAll("[\\r\\n]", " ").replaceAll(" +", " ") :
+                                app.title();
                         print(SHORT_FMT, isActive ? "*" : " ",
-                              app.id().id(), app.id().name(), app.version(),
-                              app.description().replaceAll("[\\r\\n]", " ").replaceAll(" +", " "));
+                              app.id().id(), app.id().name(), app.version(), shortDescription);
                     } else {
                         print(FMT, isActive ? "*" : " ",
                               app.id().id(), app.id().name(), app.version(), app.origin(),

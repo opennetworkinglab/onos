@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.onosproject.core.ApplicationId;
@@ -153,8 +155,8 @@ public class DelegatingAsyncConsistentMap<K, V> implements AsyncConsistentMap<K,
     }
 
     @Override
-    public CompletableFuture<Void> addListener(MapEventListener<K, V> listener) {
-        return delegateMap.addListener(listener);
+    public CompletableFuture<Void> addListener(MapEventListener<K, V> listener, Executor executor) {
+        return delegateMap.addListener(listener, executor);
     }
 
     @Override
@@ -175,6 +177,26 @@ public class DelegatingAsyncConsistentMap<K, V> implements AsyncConsistentMap<K,
     @Override
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
         return delegateMap.rollback(transactionId);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepareAndCommit(MapTransaction<K, V> transaction) {
+        return delegateMap.prepareAndCommit(transaction);
+    }
+
+    @Override
+    public void addStatusChangeListener(Consumer<Status> listener) {
+        delegateMap.addStatusChangeListener(listener);
+    }
+
+    @Override
+    public void removeStatusChangeListener(Consumer<Status> listener) {
+        delegateMap.removeStatusChangeListener(listener);
+    }
+
+    @Override
+    public Collection<Consumer<Status>> statusChangeListeners() {
+        return delegateMap.statusChangeListeners();
     }
 
     @Override

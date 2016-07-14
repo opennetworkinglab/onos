@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,16 @@
  */
 package org.onosproject.provider.lldp.impl;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
+import java.util.Dictionary;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -26,10 +33,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
-import org.onlab.util.SharedExecutors;
-import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.cluster.ClusterMetadata;
 import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.ApplicationId;
@@ -53,30 +57,24 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.link.DefaultLinkDescription;
-import org.onosproject.net.link.LinkProvider;
 import org.onosproject.net.link.LinkProviderRegistry;
 import org.onosproject.net.link.LinkProviderService;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.net.link.ProbedLinkProvider;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.provider.lldpcommon.LinkDiscoveryContext;
 import org.onosproject.provider.lldpcommon.LinkDiscovery;
-import org.onosproject.store.service.ConsistentMapException;
+import org.onosproject.provider.lldpcommon.LinkDiscoveryContext;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import java.util.Dictionary;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
@@ -85,7 +83,6 @@ import static org.onlab.packet.Ethernet.TYPE_BSN;
 import static org.onlab.packet.Ethernet.TYPE_LLDP;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.cluster.ClusterMetadata.NO_NAME;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.onosproject.net.config.basics.SubjectFactories.CONNECT_POINT_SUBJECT_FACTORY;
@@ -96,7 +93,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Provider which uses LLDP and BDDP packets to detect network infrastructure links.
  */
 @Component(immediate = true)
-public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
+public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProvider {
 
     private static final String PROVIDER_NAME = "org.onosproject.provider.lldp";
 
@@ -145,6 +142,9 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
     private LinkProviderService providerService;
 
     private ScheduledExecutorService executor;
+    protected ExecutorService eventExecutor;
+
+    private boolean shuttingDown = false;
 
     // TODO: Add sanity checking for the configurable params based on the delays
     private static final long DEVICE_SYNC_DELAY = 5;
@@ -194,7 +194,6 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
 
     public static final String CONFIG_KEY = "suppression";
     public static final String FEATURE_NAME = "linkDiscovery";
-    public static final String FINGERPRINT_FEATURE_NAME = "fingerprint";
 
     private final Set<ConfigFactory<?, ?>> factories = ImmutableSet.of(
             new ConfigFactory<ApplicationId, SuppressionConfig>(APP_SUBJECT_FACTORY,
@@ -218,18 +217,10 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
                 public LinkDiscoveryFromPort createConfig() {
                     return new LinkDiscoveryFromPort();
                 }
-            },
-            new ConfigFactory<DeviceId, FingerprintProbeFromDevice>(DEVICE_SUBJECT_FACTORY,
-                    FingerprintProbeFromDevice.class, FINGERPRINT_FEATURE_NAME) {
-                @Override
-                public FingerprintProbeFromDevice createConfig() {
-                    return new FingerprintProbeFromDevice();
-                }
             }
     );
 
     private final InternalConfigListener cfgListener = new InternalConfigListener();
-
 
     /**
      * Creates an OpenFlow link provider.
@@ -238,22 +229,31 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
         super(new ProviderId("lldp", PROVIDER_NAME));
     }
 
+    private final String buildSrcMac() {
+        String srcMac = ProbedLinkProvider.fingerprintMac(clusterMetadataService.getClusterMetadata());
+        String defMac = ProbedLinkProvider.defaultMac();
+        if (srcMac.equals(defMac)) {
+            log.warn("Couldn't generate fingerprint. Using default value {}", defMac);
+            return defMac;
+        }
+        log.trace("Generated MAC address {}", srcMac);
+        return srcMac;
+    }
+
     @Activate
     public void activate(ComponentContext context) {
+        eventExecutor = newSingleThreadScheduledExecutor(groupedThreads("onos/linkevents", "events-%d", log));
+        shuttingDown = false;
         cfgService.registerProperties(getClass());
         appId = coreService.registerApplication(PROVIDER_NAME);
 
         cfgRegistry.addListener(cfgListener);
         factories.forEach(cfgRegistry::registerConfigFactory);
 
-        SuppressionConfig cfg =
-                Tools.retryable(() -> cfgRegistry.getConfig(appId, SuppressionConfig.class),
-                                ConsistentMapException.class, MAX_RETRIES, RETRY_DELAY).get();
+        SuppressionConfig cfg = cfgRegistry.getConfig(appId, SuppressionConfig.class);
         if (cfg == null) {
             // If no configuration is found, register default.
-            cfg = Tools.retryable(this::setDefaultSuppressionConfig,
-                                  ConsistentMapException.class,
-                                  MAX_RETRIES, RETRY_DELAY).get();
+            cfg = this.setDefaultSuppressionConfig();
         }
         cfgListener.reconfigureSuppressionRules(cfg);
 
@@ -271,11 +271,14 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
 
     @Deactivate
     public void deactivate() {
+        shuttingDown = true;
         cfgRegistry.removeListener(cfgListener);
         factories.forEach(cfgRegistry::unregisterConfigFactory);
 
         cfgService.unregisterProperties(getClass(), false);
         disable();
+        eventExecutor.shutdownNow();
+        eventExecutor = null;
         log.info("Stopped");
     }
 
@@ -338,7 +341,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
 
         loadDevices();
 
-        executor = newSingleThreadScheduledExecutor(groupedThreads("onos/link", "discovery-%d"));
+        executor = newSingleThreadScheduledExecutor(groupedThreads("onos/link", "discovery-%d", log));
         executor.scheduleAtFixedRate(new SyncDeviceInfoTask(),
                                      DEVICE_SYNC_DELAY, DEVICE_SYNC_DELAY, SECONDS);
         executor.scheduleAtFixedRate(new LinkPrunerTask(),
@@ -357,7 +360,6 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
         masterService.removeListener(roleListener);
         deviceService.removeListener(deviceListener);
         packetService.removeProcessor(packetProcessor);
-
 
         if (executor != null) {
             executor.shutdownNow();
@@ -404,14 +406,6 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
         return isBlacklisted(new ConnectPoint(port.element().id(), port.number()));
     }
 
-    private boolean isFingerprinted(DeviceId did) {
-        FingerprintProbeFromDevice cfg = cfgRegistry.getConfig(did, FingerprintProbeFromDevice.class);
-        if (cfg == null) {
-            return false;
-        }
-        return cfg.enabled();
-    }
-
     /**
      * Updates discovery helper for specified device.
      *
@@ -433,11 +427,6 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
 
         LinkDiscovery ld = discoverers.computeIfAbsent(device.id(),
                                      did -> new LinkDiscovery(device, context));
-        if (isFingerprinted(device.id())) {
-            ld.enableFingerprint();
-        } else {
-            ld.disableFingerprint();
-        }
         if (ld.isStopped()) {
             ld.start();
         }
@@ -558,27 +547,30 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
                 return;
             }
 
-            DeviceId deviceId = event.subject();
-            Device device = deviceService.getDevice(deviceId);
-            if (device == null) {
-                log.debug("Device {} doesn't exist, or isn't there yet", deviceId);
-                return;
-            }
-            if (clusterService.getLocalNode().id().equals(event.roleInfo().master())) {
-                updateDevice(device).ifPresent(ld -> updatePorts(ld, device.id()));
-            }
+            eventExecutor.execute(() -> {
+                DeviceId deviceId = event.subject();
+                Device device = deviceService.getDevice(deviceId);
+                if (device == null) {
+                    log.debug("Device {} doesn't exist, or isn't there yet", deviceId);
+                    return;
+                }
+                if (clusterService.getLocalNode().id().equals(event.roleInfo().master())) {
+                    updateDevice(device).ifPresent(ld -> updatePorts(ld, device.id()));
+                }
+            });
         }
     }
 
-    /**
-     * Processes device events.
-     */
-    private class InternalDeviceListener implements DeviceListener {
+    private class DeviceEventProcessor implements Runnable {
+
+        DeviceEvent event;
+
+        DeviceEventProcessor(DeviceEvent event) {
+            this.event = event;
+        }
+
         @Override
-        public void event(DeviceEvent event) {
-            if (event.type() == Type.PORT_STATS_UPDATED) {
-                return;
-            }
+        public void run() {
             Device device = event.subject();
             Port port = event.port();
             if (device == null) {
@@ -630,6 +622,22 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
                 default:
                     log.debug("Unknown event {}", event);
             }
+        }
+    }
+
+    /**
+     * Processes device events.
+     */
+    private class InternalDeviceListener implements DeviceListener {
+        @Override
+        public void event(DeviceEvent event) {
+            if (event.type() == Type.PORT_STATS_UPDATED) {
+                return;
+            }
+
+            Runnable deviceEventProcessor = new DeviceEventProcessor(event);
+
+            eventExecutor.execute(deviceEventProcessor);
         }
     }
 
@@ -709,7 +717,13 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
 
             } catch (Exception e) {
                 // Catch all exceptions to avoid task being suppressed
-                log.error("Exception thrown during link pruning process", e);
+                if (!shuttingDown) {
+                    // Error condition
+                    log.error("Exception thrown during link pruning process", e);
+                } else {
+                    // Provider is shutting down, the error can be ignored
+                    log.trace("Shutting down, ignoring error", e);
+                }
             }
         }
 
@@ -753,14 +767,13 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
         }
 
         @Override
-        public String fingerprint() {
-            ClusterMetadata mdata = clusterMetadataService.getClusterMetadata();
-            return mdata == null ? NO_NAME : mdata.getName();
+        public DeviceService deviceService() {
+            return deviceService;
         }
 
         @Override
-        public DeviceService deviceService() {
-            return deviceService;
+        public String fingerprint() {
+            return buildSrcMac();
         }
     }
 
@@ -773,7 +786,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
 
         private synchronized void reconfigureSuppressionRules(SuppressionConfig cfg) {
             if (cfg == null) {
-                log.error("Suppression Config is null.");
+                log.debug("Suppression Config is null.");
                 return;
             }
 
@@ -785,7 +798,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
 
         @Override
         public void event(NetworkConfigEvent event) {
-            SharedExecutors.getPoolThreadExecutor().execute(() -> {
+            eventExecutor.execute(() -> {
                 if (event.configClass() == LinkDiscoveryFromDevice.class &&
                         CONFIG_CHANGED.contains(event.type())) {
 
@@ -806,15 +819,6 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
                             Port port = deviceService.getPort(did, cp.port());
                             updateDevice(device).ifPresent(ld -> updatePort(ld, port));
                         }
-                    }
-
-                } else if (event.configClass() == FingerprintProbeFromDevice.class &&
-                        CONFIG_CHANGED.contains(event.type())) {
-
-                    if (event.subject() instanceof DeviceId) {
-                        final DeviceId did = (DeviceId) event.subject();
-                        Device device = deviceService.getDevice(did);
-                        updateDevice(device);
                     }
 
                 } else if (event.configClass().equals(SuppressionConfig.class) &&

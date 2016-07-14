@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.onosproject.openflow.controller.DefaultOpenFlowPacketContext;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowController;
 import org.onosproject.openflow.controller.OpenFlowEventListener;
+import org.onosproject.openflow.controller.OpenFlowMessageListener;
 import org.onosproject.openflow.controller.OpenFlowPacketContext;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
@@ -48,8 +49,6 @@ import org.projectfloodlight.openflow.protocol.OFExperimenter;
 import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsReply;
-import org.projectfloodlight.openflow.protocol.OFTableStatsEntry;
-import org.projectfloodlight.openflow.protocol.OFTableStatsReply;
 import org.projectfloodlight.openflow.protocol.OFGroupDescStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFGroupDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFGroupStatsEntry;
@@ -62,6 +61,8 @@ import org.projectfloodlight.openflow.protocol.OFPortStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsReplyFlags;
+import org.projectfloodlight.openflow.protocol.OFTableStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFTableStatsReply;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.slf4j.Logger;
@@ -79,6 +80,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 import static org.onlab.util.Tools.groupedThreads;
 
 @Component(immediate = true)
@@ -115,12 +117,6 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     protected ExecutorService executorMsgs =
         Executors.newFixedThreadPool(32, groupedThreads("onos/of", "event-stats-%d", log));
 
-    protected ExecutorService executorPacketIn =
-        Executors.newCachedThreadPool(groupedThreads("onos/of", "event-pkt-in-stats-%d", log));
-
-    protected ExecutorService executorFlowRemoved =
-        Executors.newCachedThreadPool(groupedThreads("onos/of", "event-flow-removed-stats-%d", log));
-
     private final ExecutorService executorBarrier =
         Executors.newFixedThreadPool(4, groupedThreads("onos/of", "event-barrier-%d", log));
 
@@ -139,7 +135,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     protected Set<OpenFlowEventListener> ofEventListener = new CopyOnWriteArraySet<>();
 
-    protected boolean monitorAllEvents = false;
+    protected Set<OpenFlowMessageListener> ofMessageListener = new CopyOnWriteArraySet<>();
 
     protected Multimap<Dpid, OFFlowStatsEntry> fullFlowStats =
             ArrayListMultimap.create();
@@ -160,25 +156,28 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Activate
     public void activate(ComponentContext context) {
-        coreService.registerApplication(APP_ID, this::preDeactivate);
+        coreService.registerApplication(APP_ID, this::cleanup);
         cfgService.registerProperties(getClass());
         ctrl.setConfigParams(context.getProperties());
         ctrl.start(agent, driverService);
     }
 
-    private void preDeactivate() {
-        // Close listening channel and all OF channels before deactivating
+    private void cleanup() {
+        // Close listening channel and all OF channels. Clean information about switches
+        // before deactivating
         ctrl.stop();
         connectedSwitches.values().forEach(OpenFlowSwitch::disconnectSwitch);
+        connectedSwitches.clear();
+        activeMasterSwitches.clear();
+        activeEqualSwitches.clear();
     }
 
     @Deactivate
     public void deactivate() {
-        preDeactivate();
+        if (!connectedSwitches.isEmpty()) {
+            cleanup();
+        }
         cfgService.unregisterProperties(getClass(), false);
-        connectedSwitches.clear();
-        activeMasterSwitches.clear();
-        activeEqualSwitches.clear();
     }
 
     @Modified
@@ -219,11 +218,6 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     }
 
     @Override
-    public void monitorAllEvents(boolean monitor) {
-        this.monitorAllEvents = monitor;
-    }
-
-    @Override
     public void addListener(OpenFlowSwitchListener listener) {
         if (!ofSwitchListener.contains(listener)) {
             this.ofSwitchListener.add(listener);
@@ -233,6 +227,16 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     @Override
     public void removeListener(OpenFlowSwitchListener listener) {
         this.ofSwitchListener.remove(listener);
+    }
+
+    @Override
+    public void addMessageListener(OpenFlowMessageListener listener) {
+        ofMessageListener.add(listener);
+    }
+
+    @Override
+    public void removeMessageListener(OpenFlowMessageListener listener) {
+        ofMessageListener.remove(listener);
     }
 
     @Override
@@ -286,19 +290,11 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             for (PacketListener p : ofPacketListener.values()) {
                 p.handlePacket(pktCtx);
             }
-            if (monitorAllEvents) {
-                executorPacketIn.execute(new OFMessageHandler(dpid, msg));
-            }
             break;
         // TODO: Consider using separate threadpool for sensitive messages.
         //    ie. Back to back error could cause us to starve.
         case FLOW_REMOVED:
-            if (monitorAllEvents) {
-                executorFlowRemoved.execute(new OFMessageHandler(dpid, msg));
-                break;
-            }
         case ERROR:
-            log.debug("Received error message from {}: {}", dpid, msg);
             executorMsgs.execute(new OFMessageHandler(dpid, msg));
             break;
         case STATS_REPLY:
@@ -635,8 +631,20 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         }
 
         @Override
+        public void processDownstreamMessage(Dpid dpid, List<OFMessage> m) {
+            for (OpenFlowMessageListener listener : ofMessageListener) {
+                listener.handleOutgoingMessage(dpid, m);
+            }
+        }
+
+
+        @Override
         public void processMessage(Dpid dpid, OFMessage m) {
             processPacket(dpid, m);
+
+            for (OpenFlowMessageListener listener : ofMessageListener) {
+                listener.handleIncomingMessage(dpid, m);
+            }
         }
 
         @Override
@@ -648,7 +656,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     }
 
     /**
-     * OpenFlow message handler for incoming control messages.
+     * OpenFlow message handler.
      */
     protected final class OFMessageHandler implements Runnable {
 

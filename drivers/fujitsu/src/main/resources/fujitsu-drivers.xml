@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2016 Open Networking Laboratory
+  ~ Copyright 2016-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@
     <driver name="fujitsu-netconf" manufacturer="Fujitsu" hwVersion="T100" swVersion="01-01-X">
         <behaviour api="org.onosproject.net.behaviour.PortDiscovery"
                    impl="org.onosproject.drivers.fujitsu.PortGetterFujitsuImpl"/>
+        <behaviour api="org.onosproject.net.optical.OpticalDevice"
+                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
     </driver>
 </drivers>
 

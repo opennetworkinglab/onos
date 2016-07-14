@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+
+import java.util.List;
 
 /**
  * Responsible for keeping track of the current set of switches
@@ -82,6 +84,14 @@ public interface OpenFlowAgent {
      * @param dpid the dpid to remove.
      */
     void removeConnectedSwitch(Dpid dpid);
+
+    /**
+     * Notify OpenFlow message listeners on all outgoing message event.
+     *
+     * @param dpid the dpid the message sent to
+     * @param m the collection of messages to sent out
+     */
+    void processDownstreamMessage(Dpid dpid, List<OFMessage> m);
 
     /**
      * Process a message coming from a switch.

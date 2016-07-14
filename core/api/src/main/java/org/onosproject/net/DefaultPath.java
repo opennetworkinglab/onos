@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public class DefaultPath extends DefaultLink implements Path {
      */
     public DefaultPath(ProviderId providerId, List<Link> links, double cost,
                        Annotations... annotations) {
-        super(providerId, source(links), destination(links), Type.INDIRECT, annotations);
+        super(providerId, source(links), destination(links), Type.INDIRECT, State.ACTIVE, annotations);
         this.links = ImmutableList.copyOf(links);
         this.cost = cost;
     }

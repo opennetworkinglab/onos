@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public class NexthopIPv4addressTlv implements PcepValueType {
         0                   1                   2                     3
         0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       | Type=TBD                      | Length = 8                    |
+       | Type=TBD                      |          Length = 4           |
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
        |                     nexthop IPv4 address                      |
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -46,7 +46,7 @@ public class NexthopIPv4addressTlv implements PcepValueType {
      */
     protected static final Logger log = LoggerFactory.getLogger(NexthopIPv4addressTlv.class);
 
-    public static final short TYPE = 2; //to be defined
+    public static final short TYPE = (short) 65289; //to be defined
     //Length is header + value
     public static final short LENGTH = 8;
     public static final short VALUE_LENGTH = 4;
@@ -93,7 +93,7 @@ public class NexthopIPv4addressTlv implements PcepValueType {
 
     @Override
     public short getLength() {
-        return LENGTH;
+        return VALUE_LENGTH;
     }
 
     @Override
@@ -117,7 +117,7 @@ public class NexthopIPv4addressTlv implements PcepValueType {
     public int write(ChannelBuffer c) {
         int iStartIndex = c.writerIndex();
         c.writeShort(TYPE);
-        c.writeShort(LENGTH);
+        c.writeShort(VALUE_LENGTH);
         c.writeInt(rawValue);
         return c.writerIndex() - iStartIndex;
     }
@@ -136,7 +136,7 @@ public class NexthopIPv4addressTlv implements PcepValueType {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("Type", TYPE)
-                .add("Length", LENGTH)
+                .add("Length", VALUE_LENGTH)
                 .add("Ipv4Address ", rawValue)
                 .toString();
     }

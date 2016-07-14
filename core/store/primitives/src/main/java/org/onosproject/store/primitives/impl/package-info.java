@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 
 /**
- * Implementation of partitioned and distributed store facility capable of
- * providing consistent update semantics.
+ * Implementation classes for various Distributed primitives.
  */
 package org.onosproject.store.primitives.impl;

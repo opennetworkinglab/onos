@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.UDP;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.dhcp.DhcpStore;
 import org.onosproject.dhcp.IpAssignment;
@@ -93,6 +94,7 @@ public class DhcpManagerTest {
         hostProviderService = new TestHostProviderService(new TestHostProvider());
         dhcpXManager.hostProviderService = hostProviderService;
         dhcpXManager.hostProviderRegistry = new TestHostRegistry();
+        dhcpXManager.componentConfigService = new TestComponentConfig();
         dhcpXManager.activate();
     }
 
@@ -228,8 +230,7 @@ public class DhcpManagerTest {
             return Ip4Address.valueOf(EXPECTED_IP);
         }
 
-        public boolean assignIP(HostId hostId, Ip4Address ipAddr, int leaseTime, boolean fromOpenStack,
-                                List<Ip4Address> addressList) {
+        public boolean assignIP(HostId hostId, IpAssignment ipAssignment) {
             return true;
         }
 
@@ -256,8 +257,7 @@ public class DhcpManagerTest {
             return map;
         }
 
-        public boolean assignStaticIP(MacAddress macID, Ip4Address ipAddr, boolean fromOpenStack,
-                                      List<Ip4Address> addressList) {
+        public boolean assignStaticIP(MacAddress macID, IpAssignment ipAssignment) {
             return true;
         }
 
@@ -323,6 +323,13 @@ public class DhcpManagerTest {
      * Mocks the NetworkConfigRegistry.
      */
     private class TestNetworkConfigRegistry extends NetworkConfigRegistryAdapter {
+
+    }
+
+    /**
+     * Mocks the ComponentConfigRegistry.
+     */
+    private class TestComponentConfig extends ComponentConfigAdapter {
 
     }
 

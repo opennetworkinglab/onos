@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPv6;
+import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -40,7 +41,6 @@ import org.slf4j.Logger;
 
 import java.util.Dictionary;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.packet.Ethernet.TYPE_ARP;
 import static org.onlab.packet.Ethernet.TYPE_IPV6;
 import static org.onlab.packet.ICMP6.NEIGHBOR_ADVERTISEMENT;
@@ -173,7 +173,7 @@ public class ProxyArp {
         Dictionary<?, ?> properties = context.getProperties();
         Boolean flag;
 
-        flag = isPropertyEnabled(properties, "ipv6NeighborDiscovery");
+        flag = Tools.isPropertyEnabled(properties, "ipv6NeighborDiscovery");
         if (flag == null) {
             log.info("IPv6 Neighbor Discovery is not configured, " +
                              "using current value of {}", ipv6NeighborDiscovery);
@@ -182,26 +182,6 @@ public class ProxyArp {
             log.info("Configured. IPv6 Neighbor Discovery is {}",
                      ipv6NeighborDiscovery ? "enabled" : "disabled");
         }
-    }
-
-    /**
-     * Check property name is defined and set to true.
-     *
-     * @param properties   properties to be looked up
-     * @param propertyName the name of the property to look up
-     * @return value when the propertyName is defined or return null
-     */
-    private static Boolean isPropertyEnabled(Dictionary<?, ?> properties,
-                                             String propertyName) {
-        Boolean value = null;
-        try {
-            String s = (String) properties.get(propertyName);
-            value = isNullOrEmpty(s) ? null : s.trim().equals("true");
-        } catch (ClassCastException e) {
-            // No propertyName defined.
-            value = null;
-        }
-        return value;
     }
 
     /**

@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "title": "mastership",
+  "required": [
+    "deviceId",
+    "nodeId",
+    "mastershipRole"
+  ],
+  "properties": {
+    "deviceId": {
+      "type": "string",
+      "example": "of:0000000000000001"
+    },
+    "nodeId": {
+      "type": "string",
+      "example": "1"
+    },
+    "mastershipRole": {
+      "type": "string",
+      "example": "MASTER"
+    }
+  }
+}

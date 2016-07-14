@@ -1,0 +1,18 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:javax.ws.rs-api',
+    '//lib:openstack4j-core',
+    '//lib:openstack4j-http-connector',
+    '//lib:openstack4j-httpclient',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'XOS Client App',
+    category = 'Utility',
+    url = 'http://onosproject.org',
+    description = 'XOS client service',
+)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -211,7 +211,7 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
             }
         }
 
-        if (groupStatsReply != null && groupDescStatsReply != null) {
+        if (providerService != null && groupStatsReply != null) {
             Collection<Group> groups = buildGroupMetrics(deviceId,
                     groupStatsReply, groupDescStatsReply);
             providerService.pushGroupMetrics(deviceId, groups);
@@ -337,11 +337,11 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
                                         GroupMsgErrorCode.values()[(code.ordinal())];
                                 GroupOperation failedOperation = GroupOperation
                                         .createFailedGroupOperation(operation, failureCode);
+                                log.warn("Received a group mod error {}", msg);
                                 providerService.groupOperationFailed(deviceId,
                                         failedOperation);
                                 pendingGroupOperations.remove(pendingGroupId);
                                 pendingXidMaps.remove(pendingGroupId);
-                                log.warn("Received a group mod error {}", msg);
                             } else {
                                 log.error("Cannot find pending group operation with group ID: {}",
                                         pendingGroupId);
@@ -363,10 +363,7 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
             if (isGroupSupported(sw)) {
                 GroupStatsCollector gsc = new GroupStatsCollector(sw, POLL_INTERVAL);
                 gsc.start();
-                GroupStatsCollector prevGsc = collectors.put(dpid, gsc);
-                if (prevGsc != null) {
-                    prevGsc.stop();
-                }
+                stopCollectorIfNeeded(collectors.put(dpid, gsc));
             }
 
             //figure out race condition
@@ -377,7 +374,10 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
 
         @Override
         public void switchRemoved(Dpid dpid) {
-            GroupStatsCollector collector = collectors.remove(dpid);
+            stopCollectorIfNeeded(collectors.remove(dpid));
+        }
+
+        private void stopCollectorIfNeeded(GroupStatsCollector collector) {
             if (collector != null) {
                 collector.stop();
             }

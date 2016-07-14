@@ -1,0 +1,26 @@
+SRC = 'src/main/java/org/onlab/**/'
+TEST = 'src/test/java/org/onlab/**/'
+CURRENT_NAME = 'onlab-osgiwrap'
+CURRENT_TARGET = ':' + CURRENT_NAME
+
+COMPILE_DEPS = [
+    '//lib:guava',
+    '//lib:bndlib',
+    '//lib:org.apache.felix.scr.bnd'
+]
+
+
+java_library(
+    name = CURRENT_NAME,
+    #maven_coords = 'org.onosproject:' + CURRENT_NAME + ':' + '1.2.3',
+    srcs = glob([SRC + '/*.java']),
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+)
+
+java_binary(
+    name = 'osgi-jar',
+    deps = COMPILE_DEPS + [ ':' + CURRENT_NAME ],
+    main_class = 'org.onlab.osgiwrap.OSGiWrapper',
+    visibility = [ 'PUBLIC' ]
+)

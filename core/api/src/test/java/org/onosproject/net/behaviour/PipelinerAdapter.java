@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.onosproject.net.behaviour;
+
+import java.util.List;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.DriverData;
@@ -64,5 +66,10 @@ public class PipelinerAdapter implements Pipeliner {
     @Override
     public void setData(DriverData data) {
 
+    }
+
+    @Override
+    public List<String> getNextMappings(NextGroup nextGroup) {
+        return null;
     }
 }

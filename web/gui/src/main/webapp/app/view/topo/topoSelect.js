@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,10 +35,14 @@
      */
 
     // internal state
-    var hovered,                // the node over which the mouse is hovering
-        selections = {},        // currently selected nodes (by id)
-        selectOrder = [],       // the order in which we made selections
+    var hovered, selections, selectOrder, consumeClick;
+
+    function setInitialState () {
+        hovered = null;         // the node over which the mouse is hovering
+        selections = {};        // currently selected nodes (by id)
+        selectOrder = [];       // the order in which we made selections
         consumeClick = false;   // used to coordinate with SVG click handler
+    }
 
     // ==========================
 
@@ -123,7 +127,9 @@
         selectOrder.push(obj.id);
 
         n.classed('selected', true);
-        api.updateDeviceColors(obj);
+        if (n.classed('device')) {
+            api.updateDeviceColors(obj);
+        }
         updateDetail();
     }
 
@@ -286,6 +292,7 @@
 
             function initSelect(_api_) {
                 api = _api_;
+                setInitialState();
             }
 
             function destroySelect() { }

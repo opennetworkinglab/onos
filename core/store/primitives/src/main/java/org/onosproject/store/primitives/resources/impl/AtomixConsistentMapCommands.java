@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,11 +49,6 @@ public final class AtomixConsistentMapCommands {
      */
     @SuppressWarnings("serial")
     public abstract static class MapCommand<V> implements Command<V>, CatalystSerializable {
-
-        @Override
-        public ConsistencyLevel consistency() {
-          return ConsistencyLevel.SEQUENTIAL;
-        }
 
         @Override
         public String toString() {
@@ -139,7 +134,7 @@ public final class AtomixConsistentMapCommands {
     }
 
     /**
-     * Abstract key-based query.
+     * Abstract value-based query.
      */
     @SuppressWarnings("serial")
     public abstract static class ValueQuery<V> extends MapQuery<V> {
@@ -153,8 +148,8 @@ public final class AtomixConsistentMapCommands {
         }
 
         /**
-         * Returns the key.
-         * @return key
+         * Returns the value.
+         * @return value
          */
         public byte[] value() {
             return value;
@@ -187,7 +182,7 @@ public final class AtomixConsistentMapCommands {
     }
 
     /**
-     * Contains key command.
+     * Contains value command.
      */
     @SuppressWarnings("serial")
     public static class ContainsValue extends ValueQuery<Boolean> {
@@ -241,6 +236,19 @@ public final class AtomixConsistentMapCommands {
             return MoreObjects.toStringHelper(getClass())
                     .add("mapTransaction", mapTransaction)
                     .toString();
+        }
+    }
+
+    /**
+     * Map prepareAndCommit command.
+     */
+    @SuppressWarnings("serial")
+    public static class TransactionPrepareAndCommit extends TransactionPrepare {
+        public TransactionPrepareAndCommit() {
+        }
+
+        public TransactionPrepareAndCommit(MapTransaction<String, byte[]> mapTransaction) {
+            super(mapTransaction);
         }
     }
 
@@ -489,12 +497,6 @@ public final class AtomixConsistentMapCommands {
         @Override
         public void readObject(BufferInput<?> buffer, Serializer serializer) {
         }
-
-        @Override
-        public String toString() {
-            return MoreObjects.toStringHelper(getClass())
-                    .toString();
-        }
     }
 
     /**
@@ -508,12 +510,6 @@ public final class AtomixConsistentMapCommands {
 
         @Override
         public void readObject(BufferInput<?> buffer, Serializer serializer) {
-        }
-
-        @Override
-        public String toString() {
-            return MoreObjects.toStringHelper(getClass())
-                    .toString();
         }
     }
 
@@ -537,7 +533,8 @@ public final class AtomixConsistentMapCommands {
             registry.register(TransactionPrepare.class, -772);
             registry.register(TransactionCommit.class, -773);
             registry.register(TransactionRollback.class, -774);
-            registry.register(UpdateAndGet.class, -775);
+            registry.register(TransactionPrepareAndCommit.class, -775);
+            registry.register(UpdateAndGet.class, -776);
         }
     }
 }

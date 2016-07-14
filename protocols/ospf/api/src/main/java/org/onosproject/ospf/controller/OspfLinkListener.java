@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,8 @@ public interface OspfLinkListener {
     /**
      * Notifies that a link got removed from network.
      *
-     * @param ospfRouter router instance
+     * @param ospfRouter  router instance
+     * @param ospfLinkTed link TED information of router
      */
-    void deleteLink(OspfRouter ospfRouter);
+    void deleteLink(OspfRouter ospfRouter, OspfLinkTed ospfLinkTed);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.onlab.metrics;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
+import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
@@ -36,6 +37,11 @@ public class MetricsServiceAdapter implements MetricsService {
     public MetricsComponent registerComponent(String name) {
         MetricsComponent metricsComponent = new MetricsComponent(name);
         return metricsComponent;
+    }
+
+    @Override
+    public MetricRegistry getMetricRegistry() {
+        return null;
     }
 
     @Override
@@ -66,6 +72,18 @@ public class MetricsServiceAdapter implements MetricsService {
     public <T extends Metric> T registerMetric(MetricsComponent component,
                                                MetricsFeature feature, String metricName, T metric) {
         return null;
+    }
+
+    @Override
+    public void registerReporter(MetricsReporter reporter) {
+    }
+
+    @Override
+    public void unregisterReporter(MetricsReporter reporter) {
+    }
+
+    @Override
+    public void notifyReporters() {
     }
 
     @Override

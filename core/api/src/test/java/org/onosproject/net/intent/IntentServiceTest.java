@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.core.IdGenerator;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.Assert.*;
 import static org.onosproject.net.intent.IntentEvent.Type.*;
@@ -220,8 +218,7 @@ public class IntentServiceTest {
         }
 
         @Override
-        public List<Intent> compile(TestIntent intent, List<Intent> installable,
-                                    Set<LinkResourceAllocations> resources) {
+        public List<Intent> compile(TestIntent intent, List<Intent> installable) {
             if (fail) {
                 throw new IntentException("compile failed by design");
             }

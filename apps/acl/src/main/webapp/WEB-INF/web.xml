@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~ Originally created by Pengfei Lu, Network and Cloud Computing Laboratory, Dalian University of Technology, China
   ~ Advisers: Keqiu Li and Heng Qi
   ~ This work is supported by the State Key Program of National Natural Science of China(Grant No. 61432002)
@@ -45,7 +45,7 @@
 
     <servlet>
         <servlet-name>JAX-RS Service</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
         <init-param>
             <param-name>javax.ws.rs.Application</param-name>
             <param-value>org.onosproject.acl.AclWebApplication</param-value>

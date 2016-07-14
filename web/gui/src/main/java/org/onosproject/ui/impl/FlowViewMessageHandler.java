@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,12 +156,20 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                 FlowEntry flow = (FlowEntry) value;
                 List<Instruction> instructions = flow.treatment().allInstructions();
 
-                if (instructions.isEmpty()) {
+                if (instructions.isEmpty()
+                        && flow.treatment().metered() == null
+                        && flow.treatment().tableTransition() == null) {
                     return "(No traffic treatment instructions for this flow)";
                 }
                 StringBuilder sb = new StringBuilder("Treatment Instructions: ");
                 for (Instruction i : instructions) {
                     sb.append(i).append(COMMA);
+                }
+                if (flow.treatment().metered() != null) {
+                    sb.append(flow.treatment().metered().toString()).append(COMMA);
+                }
+                if (flow.treatment().tableTransition() != null) {
+                    sb.append(flow.treatment().tableTransition().toString()).append(COMMA);
                 }
                 removeTrailingComma(sb);
 

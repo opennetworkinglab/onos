@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,7 +113,7 @@ public interface Driver extends Annotations {
     <T extends Behaviour> T createBehaviour(DriverData data, Class<T> behaviourClass);
 
     /**
-     * Creates an instance of behaviour primed with the specified driver data.
+     * Creates an instance of behaviour primed with the specified driver handler.
      * If the current driver does not support the specified behaviour and the
      * driver has parent, the request is delegated to the parent driver.
      *

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,6 +74,7 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -133,13 +134,13 @@ public class CentecV350Pipeline extends AbstractHandlerBehaviour implements Pipe
             .register(DefaultGroupKey.class)
             .register(CentecV350Group.class)
             .register(byte[].class)
-            .build();
+            .build("CentecV350Pipeline");
 
     private Cache<GroupKey, NextObjective> pendingGroups;
 
     private ScheduledExecutorService groupChecker =
             Executors.newScheduledThreadPool(2, groupedThreads("onos/pipeliner",
-                    "centec-V350-%d"));
+                    "centec-V350-%d", log));
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
@@ -633,5 +634,11 @@ public class CentecV350Pipeline extends AbstractHandlerBehaviour implements Pipe
             return appKryo.serialize(key);
         }
 
+    }
+
+    @Override
+    public List<String> getNextMappings(NextGroup nextGroup) {
+        // TODO Implementation deferred to vendor
+        return null;
     }
 }

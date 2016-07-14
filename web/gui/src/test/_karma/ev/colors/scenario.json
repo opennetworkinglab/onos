@@ -7,7 +7,7 @@
     "lastAuto": 29
   },
   "description": [
-    "Press '=' to load initial events.",
-    "Press '-' to fire further events."
+    "Press 'a' to load initial events.",
+    "Press 'n' to fire further events."
   ]
 }

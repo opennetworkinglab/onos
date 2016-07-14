@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
     <parent>
         <artifactId>onos-incubator</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.5.2-SNAPSHOT</version>
+        <version>1.6.0</version>
     </parent>
 
     <artifactId>onos-incubator-rpc-grpc</artifactId>
@@ -30,19 +30,12 @@
 
     <properties>
         <onos.app.name>org.onosproject.incubator.rpc.grpc</onos.app.name>
-        <onos.app.requires>org.onosproject.incubator.rpc</onos.app.requires>
+        <onos.app.requires>org.onosproject.incubator.rpc,org.onosproject.incubator.protobuf</onos.app.requires>
+        <protobuf.version>3.0.0-beta-2</protobuf.version>
         <!-- Note: update feature.xml when updating -->
-        <grpc.version>0.9.0</grpc.version>
-        <grpc.netty.version>4.1.0.Beta6</grpc.netty.version>
+        <grpc.version>0.14.0</grpc.version>
+        <grpc.netty.version>4.1.0.CR7</grpc.netty.version>
     </properties>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>protoc-plugin</id>
-            <url>https://dl.bintray.com/sergei-ivanov/maven/</url>
-        </pluginRepository>
-    </pluginRepositories>
-
 
     <dependencies>
         <dependency>
@@ -59,13 +52,7 @@
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-osgi</artifactId>
         </dependency>
-<!--
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-all</artifactId>
-            <version>${grpc.version}</version>
-        </dependency>
--->
+
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-core</artifactId>
@@ -106,10 +93,17 @@
         </dependency>
 
         <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-incubator-protobuf</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.annotations</artifactId>
             <scope>provided</scope>
         </dependency>
+
     </dependencies>
 
     <build>
@@ -117,9 +111,20 @@
             <extension>
                 <groupId>kr.motd.maven</groupId>
                 <artifactId>os-maven-plugin</artifactId>
-                <version>1.4.0.Final</version>
+                <version>1.4.1.Final</version>
             </extension>
         </extensions>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.karaf.tooling</groupId>
+                    <artifactId>karaf-maven-plugin</artifactId>
+                    <version>3.0.5</version>
+                    <extensions>true</extensions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
 
         <plugins>
             <!-- TODO This is included to suppress the generation of javadocs for
@@ -196,16 +201,17 @@
             </plugin>
 
             <plugin>
-                <groupId>com.google.protobuf.tools</groupId>
-                <artifactId>maven-protoc-plugin</artifactId>
-                <version>0.4.2</version>
+                <groupId>org.xolstice.maven.plugins</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+                <version>0.5.0</version>
                 <configuration>
                     <!-- The version of protoc must match protobuf-java. If you don't 
                         depend on protobuf-java directly, you will be transitively depending on the 
                         protobuf-java version that grpc depends on. -->
-                    <protocArtifact>com.google.protobuf:protoc:3.0.0-beta-1:exe:${os.detected.classifier}</protocArtifact>
+                    <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
                     <pluginId>grpc-java</pluginId>
                     <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
+                    <checkStaleness>true</checkStaleness>
                 </configuration>
                 <executions>
                     <execution>
@@ -220,7 +226,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.9.1</version>
+                <version>1.10</version>
                 <executions>
                     <execution>
                         <id>add-source</id>

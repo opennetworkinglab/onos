@@ -1,0 +1,12 @@
+BUNDLES = [
+    '//apps/openstackinterface/api:onos-apps-openstackinterface-api',
+    '//apps/openstackinterface/app:onos-apps-openstackinterface-app',
+]
+
+onos_app (
+    title = 'OpenStack Interface App',
+    category = 'Utility',
+    url = 'http://onosproject.org',
+    description = 'Openstack Interface Application.',
+    included_bundles = BUNDLES,
+)

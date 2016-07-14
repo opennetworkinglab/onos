@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 package org.onosproject.vtnrsc;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+
+import org.onosproject.net.DeviceId;
 
 /**
  * Abstraction of an entity providing Port Chain information.
@@ -72,6 +73,13 @@ public interface PortChain {
     List<FlowClassifierId> flowClassifiers();
 
     /**
+     * Returns the old port chain.
+     *
+     * @return old port chain
+     */
+    PortChain oldPortChain();
+
+    /**
      * Adds a new load balanced path.
      *
      * @param fiveTuple five tuple from the packet
@@ -82,7 +90,55 @@ public interface PortChain {
                             List<PortPairId> path);
 
     /**
-     * Get the load balance id from five tuple.
+     * Adds sfc classifiers to the given load balance id for a port chain.
+     *
+     * @param id load balance path identifier
+     * @param classifierList list of classifier devices
+     */
+    void addSfcClassifiers(LoadBalanceId id, List<DeviceId> classifierList);
+
+    /**
+     * Adds sfc forwarders to the given load balance id for a port chain.
+     *
+     * @param id load balance path identifier
+     * @param forwarderList list of forwarder devices
+     */
+    void addSfcForwarders(LoadBalanceId id, List<DeviceId> forwarderList);
+
+    /**
+     * Removes sfc classifiers to the given load balance id for a port chain.
+     *
+     * @param id load balance path identifier
+     * @param classifierList list of classifier devices
+     */
+    void removeSfcClassifiers(LoadBalanceId id, List<DeviceId> classifierList);
+
+    /**
+     * Removes sfc forwarders to the given load balance id for a port chain.
+     *
+     * @param id load balance path identifier
+     * @param forwarderList list of forwarder devices
+     */
+    void removeSfcForwarders(LoadBalanceId id, List<DeviceId> forwarderList);
+
+    /**
+     * Returns sfc classifiers to the given load balance id for a port chain.
+     *
+     * @param id load balance path identifier
+     * @return list of classifier devices
+     */
+    List<DeviceId> getSfcClassifiers(LoadBalanceId id);
+
+    /**
+     * Returns sfc forwarders to the given load balance id for a port chain.
+     *
+     * @param id load balance path identifier
+     * @return list of forwarder devices
+     */
+    List<DeviceId> getSfcForwarders(LoadBalanceId id);
+
+    /**
+     * Returns the load balance id from five tuple.
      *
      * @param fiveTuple five tuple from the packet
      * @return load balance identifier for the given packet
@@ -90,14 +146,21 @@ public interface PortChain {
     LoadBalanceId getLoadBalanceId(FiveTuple fiveTuple);
 
     /**
-     * Get the keys set from load balanced id map.
+     * Returns the keys set from load balance id map.
      *
      * @return set of five tuple info
      */
     Set<FiveTuple> getLoadBalanceIdMapKeys();
 
     /**
-     * Get the load balanced path from load balance Id.
+     * Returns the keys set from load balance path map.
+     *
+     * @return set of load balance id's
+     */
+    Set<LoadBalanceId> getLoadBalancePathMapKeys();
+
+    /**
+     * Returns the load balanced path from load balance Id.
      *
      * @param id load balance id.
      * @return path containing list of port pairs
@@ -105,7 +168,7 @@ public interface PortChain {
     List<PortPairId> getLoadBalancePath(LoadBalanceId id);
 
     /**
-     * Get the load balanced path from five tuple.
+     * Returns the load balanced path from five tuple.
      *
      * @param fiveTuple five tuple from the packet
      * @return path containing list of port pairs
@@ -113,7 +176,7 @@ public interface PortChain {
     List<PortPairId> getLoadBalancePath(FiveTuple fiveTuple);
 
     /**
-     * Get the no of load balance paths created.
+     * Returns the no of load balance paths created.
      *
      * @return size of load balanced paths
      */
@@ -125,7 +188,7 @@ public interface PortChain {
      * @param path load balanced path
      * @return load balance id if the path matches, null otherwise.
      */
-    Optional<LoadBalanceId> matchPath(List<PortPairId> path);
+    LoadBalanceId matchPath(List<PortPairId> path);
 
     /**
      * Returns whether this port chain is an exact match to the port chain given

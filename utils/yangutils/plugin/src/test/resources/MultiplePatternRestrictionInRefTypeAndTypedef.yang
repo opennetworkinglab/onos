@@ -1,0 +1,17 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+    leaf invalid-interval {
+        type hello {
+            pattern "[a-z]";
+            pattern "[A-Z]";
+        }
+    }
+    typedef hello {
+        type string {
+            pattern "[0-9]";
+            pattern "[\n]";
+        }
+    }
+}

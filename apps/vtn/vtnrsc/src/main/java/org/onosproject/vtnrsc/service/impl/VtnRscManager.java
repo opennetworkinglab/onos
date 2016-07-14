@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,11 +51,13 @@ import org.onosproject.vtnrsc.PortPair;
 import org.onosproject.vtnrsc.PortPairGroup;
 import org.onosproject.vtnrsc.PortPairId;
 import org.onosproject.vtnrsc.Router;
+import org.onosproject.vtnrsc.RouterId;
 import org.onosproject.vtnrsc.RouterInterface;
 import org.onosproject.vtnrsc.SegmentationId;
 import org.onosproject.vtnrsc.Subnet;
 import org.onosproject.vtnrsc.SubnetId;
 import org.onosproject.vtnrsc.TenantId;
+import org.onosproject.vtnrsc.TenantRouter;
 import org.onosproject.vtnrsc.VirtualPort;
 import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.event.VtnRscEvent;
@@ -85,6 +87,8 @@ import org.onosproject.vtnrsc.routerinterface.RouterInterfaceService;
 import org.onosproject.vtnrsc.service.VtnRscService;
 import org.onosproject.vtnrsc.subnet.SubnetService;
 import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
+import org.onosproject.vtnrsc.virtualport.VirtualPortEvent;
+import org.onosproject.vtnrsc.virtualport.VirtualPortListener;
 import org.onosproject.vtnrsc.virtualport.VirtualPortService;
 import org.slf4j.Logger;
 
@@ -110,8 +114,10 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
     private PortPairGroupListener portPairGroupListener = new InnerPortPairGroupListener();
     private FlowClassifierListener flowClassifierListener = new InnerFlowClassifierListener();
     private PortChainListener portChainListener = new InnerPortChainListener();
+    private VirtualPortListener virtualPortListener = new InnerVirtualPortListener();
 
-    private EventuallyConsistentMap<TenantId, SegmentationId> l3vniMap;
+    private EventuallyConsistentMap<TenantId, SegmentationId> l3vniTenantMap;
+    private EventuallyConsistentMap<TenantRouter, SegmentationId> l3vniTenantRouterMap;
     private EventuallyConsistentMap<TenantId, Set<DeviceId>> classifierOvsMap;
     private EventuallyConsistentMap<TenantId, Set<DeviceId>> sffOvsMap;
 
@@ -122,7 +128,8 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
     private static final String DEVICEID_NOT_NULL = "deviceId cannot be null";
     private static final String VIRTUALPORTID_NOT_NULL = "virtualPortId cannot be null";
     private static final String HOST_NOT_NULL = "host cannot be null";
-    private static final String L3VNIMAP = "l3vniMap";
+    private static final String L3VNITENANTMAP = "l3vniTenantMap";
+    private static final String L3VNITENANTROUTERMAP = "l3vniTenantRouterMap";
     private static final String CLASSIFIEROVSMAP = "classifierOvsMap";
     private static final String SFFOVSMAP = "sffOvsMap";
 
@@ -161,13 +168,21 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
         portPairGroupService.addListener(portPairGroupListener);
         flowClassifierService.addListener(flowClassifierListener);
         portChainService.addListener(portChainListener);
+        virtualPortService.addListener(virtualPortListener);
 
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
-                .register(TenantId.class, DeviceId.class, SegmentationId.class);
-        l3vniMap = storageService
+                .register(TenantId.class, DeviceId.class, SegmentationId.class,
+                          TenantRouter.class, RouterId.class);
+        l3vniTenantMap = storageService
                 .<TenantId, SegmentationId>eventuallyConsistentMapBuilder()
-                .withName(L3VNIMAP).withSerializer(serializer)
+                .withName(L3VNITENANTMAP).withSerializer(serializer)
+                .withTimestampProvider((k, v) -> clockService.getTimestamp())
+                .build();
+
+        l3vniTenantRouterMap = storageService
+                .<TenantRouter, SegmentationId>eventuallyConsistentMapBuilder()
+                .withName(L3VNITENANTROUTERMAP).withSerializer(serializer)
                 .withTimestampProvider((k, v) -> clockService.getTimestamp())
                 .build();
 
@@ -194,8 +209,10 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
         portPairGroupService.removeListener(portPairGroupListener);
         flowClassifierService.removeListener(flowClassifierListener);
         portChainService.removeListener(portChainListener);
+        virtualPortService.removeListener(virtualPortListener);
 
-        l3vniMap.destroy();
+        l3vniTenantMap.destroy();
+        l3vniTenantRouterMap.destroy();
         classifierOvsMap.destroy();
         sffOvsMap.destroy();
         log.info("Stopped");
@@ -204,13 +221,27 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
     @Override
     public SegmentationId getL3vni(TenantId tenantId) {
         checkNotNull(tenantId, "tenantId cannot be null");
-        SegmentationId l3vni = l3vniMap.get(tenantId);
+        SegmentationId l3vni = l3vniTenantMap.get(tenantId);
         if (l3vni == null) {
             long segmentationId = coreService.getIdGenerator(RUNNELOPTOPOIC)
                     .getNewId();
             l3vni = SegmentationId.segmentationId(String
                     .valueOf(segmentationId));
-            l3vniMap.put(tenantId, l3vni);
+            l3vniTenantMap.put(tenantId, l3vni);
+        }
+        return l3vni;
+    }
+
+    @Override
+    public SegmentationId getL3vni(TenantRouter tenantRouter) {
+        checkNotNull(tenantRouter, "tenantRouter cannot be null");
+        SegmentationId l3vni = l3vniTenantRouterMap.get(tenantRouter);
+        if (l3vni == null) {
+            long segmentationId = coreService.getIdGenerator(RUNNELOPTOPOIC)
+                    .getNewId();
+            l3vni = SegmentationId.segmentationId(String
+                    .valueOf(segmentationId));
+            l3vniTenantRouterMap.put(tenantRouter, l3vni);
         }
         return l3vni;
     }
@@ -371,6 +402,22 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
                 notifyListeners(new VtnRscEvent(
                         VtnRscEvent.Type.PORT_CHAIN_UPDATE,
                         new VtnRscEventFeedback(portChain)));
+            }
+        }
+    }
+
+    private class InnerVirtualPortListener implements VirtualPortListener {
+
+        @Override
+        public void event(VirtualPortEvent event) {
+            checkNotNull(event, EVENT_NOT_NULL);
+            VirtualPort virtualPort = event.subject();
+            if (VirtualPortEvent.Type.VIRTUAL_PORT_PUT == event.type()) {
+                notifyListeners(new VtnRscEvent(VtnRscEvent.Type.VIRTUAL_PORT_PUT,
+                                                new VtnRscEventFeedback(virtualPort)));
+            } else if (VirtualPortEvent.Type.VIRTUAL_PORT_DELETE == event.type()) {
+                notifyListeners(new VtnRscEvent(VtnRscEvent.Type.VIRTUAL_PORT_DELETE,
+                                                new VtnRscEventFeedback(virtualPort)));
             }
         }
     }

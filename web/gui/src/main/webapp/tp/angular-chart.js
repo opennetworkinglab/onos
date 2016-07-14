@@ -1,13 +1,3 @@
-/*!
- * angular-chart.js
- * http://jtblin.github.io/angular-chart.js/
- * Version: 0.8.8
- *
- * Copyright 2015 Jerome Touffe-Blin
- * Released under the BSD license
- * https://github.com/jtblin/angular-chart.js/blob/master/LICENSE
- */
-
 (function (factory) {
   'use strict';
   if (typeof exports === 'object') {
@@ -147,14 +137,15 @@
           // Order of setting "watch" matter
 
           scope.$watch('data', function (newVal, oldVal) {
-            if (! newVal || ! newVal.length || (Array.isArray(newVal[0]) && ! newVal[0].length)) return;
+            if (! newVal || ! newVal.length || (Array.isArray(newVal[0]) && ! newVal[0].length)) {
+              destroyChart(chart, scope);
+              return;
+            }
             var chartType = type || scope.chartType;
             if (! chartType) return;
 
-            if (chart) {
-              if (canUpdateChart(newVal, oldVal)) return updateChart(chart, newVal, scope, elem);
-              chart.destroy();
-            }
+            if (chart && canUpdateChart(newVal, oldVal))
+              return updateChart(chart, newVal, scope, elem);
 
             createChart(chartType);
           }, true);
@@ -167,12 +158,11 @@
           scope.$watch('chartType', function (newVal, oldVal) {
             if (isEmpty(newVal)) return;
             if (angular.equals(newVal, oldVal)) return;
-            if (chart) chart.destroy();
             createChart(newVal);
           });
 
           scope.$on('$destroy', function () {
-            if (chart) chart.destroy();
+            destroyChart(chart, scope);
           });
 
           function resetChart (newVal, oldVal) {
@@ -183,8 +173,6 @@
 
             // chart.update() doesn't work for series and labels
             // so we have to re-create the chart entirely
-            if (chart) chart.destroy();
-
             createChart(chartType);
           }
 
@@ -196,12 +184,16 @@
             }
             if (! scope.data || ! scope.data.length) return;
             scope.getColour = typeof scope.getColour === 'function' ? scope.getColour : getRandomColour;
-            scope.colours = getColours(type, scope);
+            var colours = getColours(type, scope);
             var cvs = elem[0], ctx = cvs.getContext('2d');
             var data = Array.isArray(scope.data[0]) ?
-              getDataSets(scope.labels, scope.data, scope.series || [], scope.colours) :
-              getData(scope.labels, scope.data, scope.colours);
+              getDataSets(scope.labels, scope.data, scope.series || [], colours) :
+              getData(scope.labels, scope.data, colours);
             var options = angular.extend({}, ChartJs.getOptions(type), scope.options);
+
+            // Destroy old chart if it exists to avoid ghost charts issue
+            // https://github.com/jtblin/angular-chart.js/issues/187
+            destroyChart(chart, scope);
             chart = new ChartJs.Chart(ctx)[type](data, options);
             scope.$emit('create', chart);
 
@@ -255,13 +247,18 @@
     }
 
     function getColours (type, scope) {
+      var notEnoughColours = false;
       var colours = angular.copy(scope.colours ||
         ChartJs.getOptions(type).colours ||
         Chart.defaults.global.colours
       );
       while (colours.length < scope.data.length) {
         colours.push(scope.getColour());
+        notEnoughColours = true;
       }
+      // mutate colours in this case as we don't want
+      // the colours to change on each refresh
+      if (notEnoughColours) scope.colours = colours;
       return colours.map(convertColour);
     }
 
@@ -367,6 +364,12 @@
     function isResponsive (type, scope) {
       var options = angular.extend({}, Chart.defaults.global, ChartJs.getOptions(type), scope.options);
       return options.responsive;
+    }
+
+    function destroyChart(chart, scope) {
+      if(! chart) return;
+      chart.destroy();
+      scope.$emit('destroy', chart);
     }
   }
 }));

@@ -1,0 +1,23 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000ffffffff000a",
+    "type": "switch",
+    "online": true,
+    "master": "192.168.56.101",
+    "x-location": {
+      "type": "lnglat",
+      "lat": 37.7833,
+      "lng": -122.4167
+    },
+    "labels": [
+      "",
+      "sw-A",
+      "0000ffffffff000a"
+    ],
+    "metaUi": {
+      "x": 520,
+      "y": 350
+    }
+  }
+}

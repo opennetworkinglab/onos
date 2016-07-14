@@ -1,0 +1,13 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:jersey-client',
+    '//lib:httpclient-osgi',
+    '//lib:httpcore-osgi',
+    '//lib:javax.ws.rs-api',
+    '//protocols/bgp/api:onos-protocols-bgp-api',
+    '//protocols/bgp/bgpio:onos-protocols-bgp-bgpio',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)

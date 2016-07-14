@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -461,6 +461,10 @@ public class DefaultOvsdbClient
             return;
         }
 
+        Map<String, String> options = new HashMap<>();
+        options.put("disable-in-band", "true");
+        bridge.setOtherConfig(options);
+
         String bridgeUuid = getBridgeUuid(bridgeName);
         if (bridgeUuid == null) {
             log.debug("Create a new bridge");
@@ -525,16 +529,18 @@ public class DefaultOvsdbClient
             return;
         }
 
+        Map<String, String> options = new HashMap<>();
+        options.put("disable-in-band", "true");
+        if (dpid != null) {
+            options.put("datapath-id", dpid);
+        }
+        bridge.setOtherConfig(options);
+
         String bridgeUuid = getBridgeUuid(bridgeName);
         if (bridgeUuid == null) {
             log.debug("Create a new bridge");
 
             bridge.setName(bridgeName);
-            if (dpid != null) {
-                Map<String, String> options = new HashMap<>();
-                options.put("datapath-id", dpid);
-                bridge.setOtherConfig(options);
-            }
             bridgeUuid = insertConfig(OvsdbConstant.BRIDGE, "_uuid",
                                       OvsdbConstant.DATABASENAME, "bridges",
                                       ovsUuid, bridge.getRow());
@@ -586,7 +592,10 @@ public class DefaultOvsdbClient
         bridge.setProtocols(protocols);
 
         Map<String, String> options = new HashMap<>();
-        options.put("datapath-id", dpid);
+        options.put("disable-in-band", "true");
+        if (dpid != null) {
+            options.put("datapath-id", dpid);
+        }
         bridge.setOtherConfig(options);
 
         String bridgeUuid = getBridgeUuid(bridgeName);
@@ -703,77 +712,6 @@ public class DefaultOvsdbClient
         }
         deleteConfig(OvsdbConstant.BRIDGE, "_uuid", bridgeUuid,
                      OvsdbConstant.DATABASENAME, "bridges");
-    }
-
-    @Override
-    public void createTunnel(IpAddress srcIp, IpAddress dstIp) {
-        String bridgeUuid = getBridgeUuid(OvsdbConstant.INTEGRATION_BRIDGE);
-        if (bridgeUuid == null) {
-            log.warn("Could not find bridge {} and Could not create tunnel. ",
-                     OvsdbConstant.INTEGRATION_BRIDGE);
-            return;
-        }
-
-        DatabaseSchema dbSchema = schema.get(OvsdbConstant.DATABASENAME);
-        String portName = getTunnelName(OvsdbConstant.TYPEVXLAN, dstIp);
-        String portUuid = getPortUuid(portName, bridgeUuid);
-
-        Port port = (Port) TableGenerator
-                .createTable(dbSchema, OvsdbTable.PORT);
-        if (port != null) {
-            port.setName(portName);
-        }
-
-        if (portUuid == null) {
-            portUuid = insertConfig(OvsdbConstant.PORT, "_uuid", OvsdbConstant.BRIDGE,
-                                    "ports", bridgeUuid, port.getRow());
-        } else {
-            updateConfig(OvsdbConstant.PORT, "_uuid", portUuid, port.getRow());
-        }
-
-        // When a tunnel is created, A row is inserted into port table and
-        // interface table of the ovsdb node.
-        // and the following step is to get the interface uuid from local store
-        // in controller node.
-        // but it need spend some time synchronising data between node and
-        // controller.
-        // so loop to judge if interfaceUUid is null is necessary.
-        String interfaceUuid = null;
-        for (int i = 0; i < 10; i++) {
-            interfaceUuid = getInterfaceUuid(portUuid, portName);
-            if (interfaceUuid == null) {
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    log.warn("Interrupted while waiting to get interfaceUuid");
-                    Thread.currentThread().interrupt();
-                }
-            } else {
-                break;
-            }
-        }
-
-        if (interfaceUuid != null) {
-
-            Interface tunInterface = (Interface) TableGenerator
-                    .createTable(dbSchema, OvsdbTable.INTERFACE);
-
-            if (tunInterface != null) {
-
-                tunInterface.setType(OvsdbConstant.TYPEVXLAN);
-                Map<String, String> options = Maps.newHashMap();
-                options.put("key", "flow");
-                options.put("local_ip", srcIp.toString());
-                options.put("remote_ip", dstIp.toString());
-                tunInterface.setOptions(options);
-                updateConfig(OvsdbConstant.INTERFACE, "_uuid", interfaceUuid,
-                             tunInterface.getRow());
-                log.info("Tunnel added success", tunInterface);
-
-            }
-        }
-
-        return;
     }
 
     @Override
@@ -926,8 +864,7 @@ public class DefaultOvsdbClient
         DatabaseSchema dbSchema = schema.get(OvsdbConstant.DATABASENAME);
         TableSchema tableSchema = dbSchema.getTableSchema(childTableName);
 
-        String namedUuid = childTableName;
-        Insert insert = new Insert(tableSchema, namedUuid, row);
+        Insert insert = new Insert(tableSchema, childTableName, row);
 
         ArrayList<Operation> operations = Lists.newArrayList();
         operations.add(insert);
@@ -940,7 +877,7 @@ public class DefaultOvsdbClient
 
             List<Mutation> mutations = Lists.newArrayList();
             Mutation mutation = MutationUtil.insert(parentColumnSchema.name(),
-                                                    Uuid.uuid(namedUuid));
+                                                    Uuid.uuid(childTableName));
             mutations.add(mutation);
 
             List<Condition> conditions = Lists.newArrayList();

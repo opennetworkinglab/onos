@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public final class BgpId extends Identifier<IpAddress> {
 
-    private static final String SCHEME = "bgp";
+    private static final String SCHEME = "l3";
     private static final long UNKNOWN = 0;
 
     /**

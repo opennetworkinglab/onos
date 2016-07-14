@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2014-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos</artifactId>
-        <version>1.5.2-SNAPSHOT</version>
+        <version>1.6.0</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
@@ -33,18 +33,6 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Bundle-SymbolicName>manual</Bundle-SymbolicName>
-                        <Import-Package>*</Import-Package>
-                        <Private-Package>!*</Private-Package>
-                        <Export-Package>
-                            org.apache.karaf.branding
-                        </Export-Package>
-                        <Spring-Context>*;public-context:=false</Spring-Context>
-                    </instructions>
-                </configuration>
             </plugin>
         </plugins>
     </build>

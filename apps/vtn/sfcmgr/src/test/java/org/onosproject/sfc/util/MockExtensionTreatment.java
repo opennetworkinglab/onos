@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,12 @@ import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 
 public class MockExtensionTreatment implements ExtensionTreatment {
+
+    private ExtensionTreatmentType type;
+
+    public MockExtensionTreatment(ExtensionTreatmentType type) {
+        this.type = type;
+    }
 
     @Override
     public <T> void setPropertyValue(String key, T value) throws ExtensionPropertyException {
@@ -48,7 +54,7 @@ public class MockExtensionTreatment implements ExtensionTreatment {
 
     @Override
     public ExtensionTreatmentType type() {
-        return null;
+        return type;
     }
 
 }

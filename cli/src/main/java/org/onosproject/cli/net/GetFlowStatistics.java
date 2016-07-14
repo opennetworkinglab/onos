@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -275,9 +275,7 @@ public class GetFlowStatistics extends AbstractShellCommand {
     private Instruction.Type getInstructionType(String instType) {
         String instTypeUC = instType.toUpperCase();
 
-        if (instTypeUC.equals("DROP")) {
-            return Instruction.Type.DROP;
-        } else if (instTypeUC.equals("OUTPUT")) {
+        if (instTypeUC.equals("OUTPUT")) {
             return Instruction.Type.OUTPUT;
         } else if (instTypeUC.equals("GROUP")) {
             return Instruction.Type.GROUP;

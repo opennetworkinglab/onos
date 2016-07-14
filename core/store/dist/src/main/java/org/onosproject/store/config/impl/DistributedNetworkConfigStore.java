@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,17 +36,16 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
-import org.onlab.util.Tools;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
 import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.InvalidConfigException;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigStore;
 import org.onosproject.net.config.NetworkConfigStoreDelegate;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
@@ -61,7 +60,11 @@ import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.onosproject.net.config.NetworkConfigEvent.Type.*;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_ADDED;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_REGISTERED;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_REMOVED;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UNREGISTERED;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UPDATED;
 
 /**
  * Implementation of a distributed network configuration store.
@@ -74,9 +77,12 @@ public class DistributedNetworkConfigStore
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final int MAX_BACKOFF = 10;
     private static final String INVALID_CONFIG_JSON =
             "JSON node does not contain valid configuration";
+    private static final String INVALID_JSON_LIST =
+            "JSON node is not a list for list type config";
+    private static final String INVALID_JSON_OBJECT =
+            "JSON node is not an object for object type config";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
@@ -207,9 +213,7 @@ public class DistributedNetworkConfigStore
 
     @Override
     public <S, T extends Config<S>> T getConfig(S subject, Class<T> configClass) {
-        // TODO: need to identify and address the root cause for timeouts.
-        Versioned<JsonNode> json = Tools.retryable(configs::get, ConsistentMapException.class, 1, MAX_BACKOFF)
-                .apply(key(subject, configClass));
+        Versioned<JsonNode> json = configs.get(key(subject, configClass));
         return json != null ? createConfig(subject, configClass, json.value()) : null;
     }
 
@@ -228,7 +232,17 @@ public class DistributedNetworkConfigStore
     public <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass, JsonNode json) {
         // Create the configuration and validate it.
         C config = createConfig(subject, configClass, json);
-        checkArgument(config.isValid(), INVALID_CONFIG_JSON);
+
+        try {
+            checkArgument(config.isValid(), INVALID_CONFIG_JSON);
+        } catch (RuntimeException e) {
+            ConfigFactory<S, C> configFactory = getConfigFactory(configClass);
+            String subjectKey = configFactory.subjectFactory().subjectClassKey();
+            String subjectString = configFactory.subjectFactory().subjectKey(config.subject());
+            String configKey = config.key();
+
+            throw new InvalidConfigException(subjectKey, subjectString, configKey, e);
+        }
 
         // Insert the validated configuration and get it back.
         Versioned<JsonNode> versioned = configs.putAndGet(key(subject, configClass), json);
@@ -253,6 +267,24 @@ public class DistributedNetworkConfigStore
         configs.remove(key(subject, configKey));
     }
 
+    @Override
+    public <S> void clearConfig(S subject) {
+        ImmutableSet.copyOf(configs.keySet()).forEach(k -> {
+            if (Objects.equals(subject, k.subject) && delegate != null) {
+                configs.remove(k);
+            }
+        });
+    }
+
+    @Override
+    public <S> void clearConfig() {
+        ImmutableSet.copyOf(configs.keySet()).forEach(k -> {
+            if (delegate != null) {
+                configs.remove(k);
+            }
+        });
+    }
+
     /**
      * Produces a config from the specified subject, config class and raw JSON.
      *
@@ -262,14 +294,37 @@ public class DistributedNetworkConfigStore
      * @return config object or null of no factory found or if the specified
      * JSON is null
      */
-    @SuppressWarnings("unchecked")
     private <S, C extends Config<S>> C createConfig(S subject, Class<C> configClass,
                                                     JsonNode json) {
+        return createConfig(subject, configClass, json, false);
+    }
+
+    /**
+     * Produces a config from the specified subject, config class and raw JSON.
+     *
+     * The config can optionally be detached, which means it does not contain a
+     * reference to an apply delegate. This means a detached config can not be
+     * applied. This should be used only for passing the config object in the
+     * NetworkConfigEvent.
+     *
+     * @param subject     config subject
+     * @param configClass config class
+     * @param json        raw JSON data
+     * @param detached    whether the config should be detached, that is, should
+     *                    be created without setting an apply delegate.
+     * @return config object or null of no factory found or if the specified
+     * JSON is null
+     */
+    @SuppressWarnings("unchecked")
+    private <S, C extends Config<S>> C createConfig(S subject, Class<C> configClass,
+                                                    JsonNode json, boolean detached) {
         if (json != null) {
             ConfigFactory<S, C> factory = factoriesByConfig.get(configClass.getName());
             if (factory != null) {
+                validateJsonType(json, factory);
                 C config = factory.createConfig();
-                config.init(subject, factory.configKey(), json, mapper, applyDelegate);
+                config.init(subject, factory.configKey(), json, mapper,
+                        detached ? null : applyDelegate);
                 return config;
             }
         }
@@ -277,30 +332,27 @@ public class DistributedNetworkConfigStore
     }
 
     /**
-     * Produces a detached config from the specified subject, config class and
-     * raw JSON.
+     * Validates that the type of the JSON node is appropriate for the type of
+     * configuration. A list type configuration must be created with an
+     * ArrayNode, and an object type configuration must be created with an
+     * ObjectNode.
      *
-     * A detached config can no longer be applied. This should be used only for
-     * passing the config object in the NetworkConfigEvent.
-     *
-     * @param subject     config subject
-     * @param configClass config class
-     * @param json        raw JSON data
-     * @return config object or null of no factory found or if the specified
-     * JSON is null
+     * @param json JSON node to check
+     * @param factory config factory of configuration
+     * @param <S> subject
+     * @param <C> configuration
+     * @return true if the JSON node type is appropriate for the configuration
      */
-    @SuppressWarnings("unchecked")
-    private Config createDetachedConfig(Object subject,
-            Class configClass, JsonNode json) {
-        if (json != null) {
-            ConfigFactory factory = factoriesByConfig.get(configClass.getName());
-            if (factory != null) {
-                Config config = factory.createConfig();
-                config.init(subject, factory.configKey(), json, mapper, null);
-                return config;
-            }
+    private <S, C extends Config<S>> boolean validateJsonType(JsonNode json,
+                                                              ConfigFactory<S, C> factory) {
+        if (factory.isList() && !(json instanceof ArrayNode)) {
+            throw new IllegalArgumentException(INVALID_JSON_LIST);
         }
-        return null;
+        if (!factory.isList() && !(json instanceof ObjectNode)) {
+            throw new IllegalArgumentException(INVALID_JSON_OBJECT);
+        }
+
+        return true;
     }
 
 
@@ -380,11 +432,11 @@ public class DistributedNetworkConfigStore
                 Versioned<JsonNode> oldValue = event.oldValue();
 
                 Config config = (newValue != null) ?
-                        createDetachedConfig(subject, configClass, newValue.value()) :
-                        null;
+                                createConfig(subject, configClass, newValue.value(), true) :
+                                null;
                 Config prevConfig = (oldValue != null) ?
-                        createDetachedConfig(subject, configClass, oldValue.value()) :
-                        null;
+                                    createConfig(subject, configClass, oldValue.value(), true) :
+                                    null;
 
                 NetworkConfigEvent.Type type;
                 switch (event.type()) {

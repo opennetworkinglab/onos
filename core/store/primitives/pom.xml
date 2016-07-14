@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2016 Open Networking Laboratory
+  ~ Copyright 2016-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-core-store</artifactId>
-        <version>1.5.2-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.6.0</version>
     </parent>
 
     <artifactId>onos-core-primitives</artifactId>
@@ -63,10 +62,16 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- for shaded atomix/copycat -->
         <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-thirdparty</artifactId>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons.io.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.atomix</groupId>
+            <artifactId>atomix</artifactId>
+            <version>1.0.0-rc9</version>
         </dependency>
     </dependencies>
 </project>

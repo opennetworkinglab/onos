@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,15 +89,16 @@ public class VbngResource extends AbstractWebResource {
      * Delete a virtual BNG connection.
      *
      * @param privateIp IP Address for the BNG private network
-     * @return public IP address for the new connection
+     * @return 200 OK
      */
     @DELETE
     @Path("{privateip}")
-    public String privateIpDeleteNotification(@PathParam("privateip")
+    public Response privateIpDeleteNotification(@PathParam("privateip")
             String privateIp) {
+        String result;
         if (privateIp == null) {
             log.info("Private IP address to delete is null");
-            return "0";
+            result = "0";
         }
         log.info("Received a private IP address : {} to delete", privateIp);
         IpAddress privateIpAddress = IpAddress.valueOf(privateIp);
@@ -109,10 +110,11 @@ public class VbngResource extends AbstractWebResource {
         assignedPublicIpAddress = vbngService.deleteVbng(privateIpAddress);
 
         if (assignedPublicIpAddress != null) {
-            return assignedPublicIpAddress.toString();
+            result = assignedPublicIpAddress.toString();
         } else {
-            return "0";
+            result = "0";
         }
+        return Response.ok().entity(result).build();
     }
 
     /**

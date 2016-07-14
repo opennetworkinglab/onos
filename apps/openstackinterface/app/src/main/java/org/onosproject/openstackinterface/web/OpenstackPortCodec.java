@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -64,7 +63,7 @@ public class OpenstackPortCodec extends JsonCodec<OpenstackPort> {
     public OpenstackPort decode(ObjectNode json, CodecContext context) {
 
         checkNotNull(json);
-        HashMap<String, Ip4Address> fixedIpMap = new HashMap<>();
+        Map<String, Ip4Address> fixedIpMap = Maps.newHashMap();
         JsonNode portInfo = json.get(PORT);
         if (portInfo == null) {
             portInfo = json;

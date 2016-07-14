@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,7 @@ import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.imageio.ImageIO;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -71,6 +69,7 @@ public class ApplicationArchive
 
     // Magic strings to search for at the beginning of the archive stream
     private static final String XML_MAGIC = "<?xml ";
+    private static final String ZIP_MAGIC = "PK";
 
     // Magic strings to search for and how deep to search it into the archive stream
     private static final String APP_MAGIC = "<app ";
@@ -218,8 +217,9 @@ public class ApplicationArchive
 
     // Indicates whether the stream encoded in the given bytes is plain XML.
     private boolean isPlainXml(byte[] bytes) {
-        return substring(bytes, XML_MAGIC.length()).equals(XML_MAGIC) ||
-                substring(bytes, APP_MAGIC_DEPTH).contains(APP_MAGIC);
+        return !substring(bytes, ZIP_MAGIC.length()).equals(ZIP_MAGIC) &&
+                (substring(bytes, XML_MAGIC.length()).equals(XML_MAGIC) ||
+                 substring(bytes, APP_MAGIC_DEPTH).contains(APP_MAGIC));
     }
 
     // Returns the substring of maximum possible length from the specified bytes.
@@ -454,25 +454,20 @@ public class ApplicationArchive
 
     // Returns the byte stream from icon.png file in oar application archive.
     private byte[] getApplicationIcon(String appName) {
-
-        byte[] icon = new byte[0];
         File iconFile = iconFile(appName, APP_PNG);
-
-        if (!iconFile.exists()) {
-            // assume that we can always fallback to default icon
-            iconFile = new File(appsDir, APP_PNG);
-        }
-
         try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ImageIO.write(ImageIO.read(iconFile), PNG, bos);
-            icon = bos.toByteArray();
-            bos.close();
+            final InputStream iconStream;
+            if (iconFile.exists()) {
+                iconStream = new FileInputStream(iconFile);
+            } else {
+                // assume that we can always fallback to default icon
+                iconStream = ApplicationArchive.class.getResourceAsStream("/" + APP_PNG);
+            }
+            return ByteStreams.toByteArray(iconStream);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("Unable to read app icon for app {}", appName, e);
         }
-
-        return icon;
+        return new byte[0];
     }
 
     // Returns application role type

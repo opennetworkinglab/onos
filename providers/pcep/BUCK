@@ -1,0 +1,16 @@
+BUNDLES = [
+    '//providers/pcep/topology:onos-providers-pcep-topology',
+    '//providers/pcep/tunnel:onos-providers-pcep-tunnel',
+    '//protocols/pcep/api:onos-protocols-pcep-api',
+    '//protocols/pcep/pcepio:onos-protocols-pcep-pcepio',
+]
+
+onos_app (
+    title = 'PCEP Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    description = 'PCEP protocol providers root.',
+    required_apps = [ 'org.onosproject.pcep-api' ],
+)
+

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@ package org.onosproject.net.intent;
 
 import com.google.common.annotations.Beta;
 import org.onlab.util.Identifier;
-import org.onosproject.net.newresource.ResourceConsumer;
+import org.onosproject.net.resource.ResourceConsumer;
+import org.onosproject.net.resource.ResourceConsumerId;
 
 /**
  * Intent identifier suitable as an external key.
@@ -66,4 +67,8 @@ public final class IntentId extends Identifier<Long> implements ResourceConsumer
         return "0x" + Long.toHexString(identifier);
     }
 
+    @Override
+    public ResourceConsumerId consumerId() {
+        return ResourceConsumerId.of(this);
+    }
 }

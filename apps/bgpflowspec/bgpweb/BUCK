@@ -1,0 +1,12 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:javax.ws.rs-api',
+    '//utils/rest:onlab-rest',
+    '//apps/bgpflowspec/flowapi:onos-apps-bgpflowspec-flowapi',
+    '//apps/bgpflowspec/flowmgr:onos-apps-bgpflowspec-flowmgr',
+]
+
+osgi_jar_with_tests (
+    name = 'onos-apps-bgpflowspec-web',
+    deps = COMPILE_DEPS,
+)

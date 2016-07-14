@@ -1,0 +1,21 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:jersey-client',
+    '//lib:javax.ws.rs-api',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+    '//utils/rest:onlab-rest',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
+)
+
+onos_app (
+    title = 'Virtual Broadband Gateway App',
+    category = 'Utility',
+    url = 'http://onosproject.org',
+    description = 'A virtual Broadband Network Gateway(BNG) application.',
+)

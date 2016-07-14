@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,44 +30,105 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class MapValue<V> implements Comparable<MapValue<V>> {
     private final Timestamp timestamp;
     private final V value;
+    private long creationTime;
 
     /**
      * Creates a tombstone value with the specified timestamp.
+     *
      * @param timestamp timestamp for tombstone
      * @return tombstone MapValue
      *
      * @param <U> value type
      */
     public static <U> MapValue<U> tombstone(Timestamp timestamp) {
-        return new MapValue<>(null, timestamp);
+        return new MapValue<>(null, timestamp, System.currentTimeMillis());
     }
 
+    /**
+     * Constructor automatically to create the system time of construction.
+     *
+     * @param value value
+     * @param timestamp value timestamp
+     */
     public MapValue(V value, Timestamp timestamp) {
+        this(value, timestamp, System.currentTimeMillis());
+    }
+
+    /**
+     * Creates a map value using value, timestamp, and creation time.
+     *
+     * @param value value
+     * @param timestamp value timestamp.
+     * @param creationTime the system time (on local instance) of construction
+     */
+    public MapValue(V value, Timestamp timestamp, long creationTime) {
         this.value = value;
         this.timestamp = checkNotNull(timestamp, "Timestamp cannot be null");
+        this.creationTime = creationTime;
     }
 
+    /**
+     * Creates a copy of MapValue.
+     * <p>
+     * The copy will have an updated creation time corresponding to when the copy was constructed.
+     *
+     * @return MapValue copy
+     */
+    public MapValue<V> copy() {
+        return new MapValue<>(this.value, this.timestamp, System.currentTimeMillis());
+    }
+
+    /**
+     * Tests if this value is tombstone value with the specified timestamp.
+     *
+     * @return true if this value is null, otherwise false
+     */
     public boolean isTombstone() {
         return value == null;
     }
 
+    /**
+     * Tests if this value is alive.
+     *
+     * @return true if this value is not null, otherwise false
+     */
     public boolean isAlive() {
         return value != null;
     }
 
+    /**
+     * Returns the timestamp of this value.
+     *
+     * @return timestamp
+     */
     public Timestamp timestamp() {
         return timestamp;
     }
 
+    /**
+     * Returns this value.
+     *
+     * @return value
+     */
     public V get() {
         return value;
     }
 
-    @Override
-    public int compareTo(MapValue<V> o) {
-        return this.timestamp.compareTo(o.timestamp);
+    /**
+     * Returns the creation time of this value.
+     *
+     * @return creationTime
+     */
+    public long creationTime() {
+        return creationTime;
     }
 
+    /**
+     * Tests if this value is newer than the specified MapValue.
+     *
+     * @param other the value to be compared
+     * @return true if this value is newer than other
+     */
     public boolean isNewerThan(MapValue<V> other) {
         if (other == null) {
             return true;
@@ -75,12 +136,28 @@ public class MapValue<V> implements Comparable<MapValue<V>> {
         return this.timestamp.isNewerThan(other.timestamp);
     }
 
+    /**
+     * Tests if this timestamp is newer than the specified timestamp.
+     *
+     * @param timestamp timestamp to be compared
+     * @return true if this instance is newer
+     */
     public boolean isNewerThan(Timestamp timestamp) {
         return this.timestamp.isNewerThan(timestamp);
     }
 
+    /**
+     * Returns summary of a MapValue for use during Anti-Entropy exchanges.
+     *
+     * @return Digest with timestamp and whether this value is null or not
+     */
     public Digest digest() {
         return new Digest(timestamp, isTombstone());
+    }
+
+    @Override
+    public int compareTo(MapValue<V> o) {
+        return this.timestamp.compareTo(o.timestamp);
     }
 
     @Override

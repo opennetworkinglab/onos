@@ -39,7 +39,7 @@ function testJavaVersion {
     trap "echo 'FAILED'" ERR
     printf "Checking Java version... "
     v=$(javac -version 2>&1 | grep 1.8.0_ | sed -e 's/.*1.8.0_\([0-9]*\).*/\1/g')
-    test "$v" -ge 74
+    test "$v" -ge 73
     echo "OK"
 }
 

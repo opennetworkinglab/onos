@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -40,6 +41,7 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective.Flag;
 import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.flowobjective.Objective.Operation;
 import org.onosproject.vtn.table.ClassifierService;
 import org.onosproject.vtnrsc.SegmentationId;
 import org.slf4j.Logger;
@@ -56,7 +58,7 @@ public class ClassifierServiceImpl implements ClassifierService {
     private static final int ARP_CLASSIFIER_PRIORITY = 60000;
     private static final int L3_CLASSIFIER_PRIORITY = 0xffff;
     private static final int L2_CLASSIFIER_PRIORITY = 50000;
-
+    private static final int USERDATA_CLASSIFIER_PRIORITY = 65535;
     private final FlowObjectiveService flowObjectiveService;
     private final ApplicationId appId;
 
@@ -217,4 +219,49 @@ public class ClassifierServiceImpl implements ClassifierService {
         }
     }
 
+    @Override
+    public void programUserdataClassifierRules(DeviceId deviceId,
+                                               IpPrefix ipPrefix,
+                                               IpAddress dstIp,
+                                               MacAddress dstmac,
+                                               SegmentationId actionVni,
+                                               Objective.Operation type) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4).matchIPSrc(ipPrefix)
+                .matchIPDst(IpPrefix.valueOf(dstIp, 32)).build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setTunnelId(Long.parseLong(actionVni.segmentationId()))
+                .setEthDst(dstmac).build();
+        ForwardingObjective.Builder objective = DefaultForwardingObjective
+                .builder().withTreatment(treatment).withSelector(selector)
+                .fromApp(appId).withFlag(Flag.SPECIFIC)
+                .withPriority(USERDATA_CLASSIFIER_PRIORITY);
+        if (type.equals(Objective.Operation.ADD)) {
+            log.debug("UserdataClassifierRules-->ADD");
+            flowObjectiveService.forward(deviceId, objective.add());
+        } else {
+            log.debug("UserdataClassifierRules-->REMOVE");
+            flowObjectiveService.forward(deviceId, objective.remove());
+        }
+    }
+
+    @Override
+    public void programExportPortArpClassifierRules(Port exportPort,
+                                                    DeviceId deviceId,
+                                                    Operation type) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(EtherType.ARP.ethType().toShort())
+                .matchInPort(exportPort.number()).build();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        treatment.add(Instructions.createOutput(PortNumber.CONTROLLER));
+        ForwardingObjective.Builder objective = DefaultForwardingObjective
+                .builder().withTreatment(treatment.build())
+                .withSelector(selector).fromApp(appId).withFlag(Flag.SPECIFIC)
+                .withPriority(L3_CLASSIFIER_PRIORITY);
+        if (type.equals(Objective.Operation.ADD)) {
+            flowObjectiveService.forward(deviceId, objective.add());
+        } else {
+            flowObjectiveService.forward(deviceId, objective.remove());
+        }
+    }
 }

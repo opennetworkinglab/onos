@@ -2,7 +2,7 @@
 """
   Generate the partitions json file from the $OC* environment variables
 
-  Usage: onos-gen-partitions [output file]
+  Usage: onos-gen-partitions [output file] [node_ip ...]
   If output file is not provided, the json is written to stdout.
 """
 
@@ -23,17 +23,13 @@ def get_OC_vars():
       vars.append(var)
   return sorted(vars, key=alphanum_key)
 
-def get_nodes(vars, port=9876):
+def get_nodes(ips=None, port=9876):
   node = lambda k: { 'id': k, 'ip': k, 'port': port }
-  return [ node(environ[v]) for v in vars ]
+  if not ips:
+    ips = [ environ[v] for v in get_OC_vars() ]
+  return [ node(v) for v in ips ]
 
-def generate_base_partition(nodes):
-  return {
-            'id': 0,
-            'members': nodes
-         }
-
-def generate_extended_partitions(nodes, k):
+def generate_partitions(nodes, k):
   l = deque(nodes)
   perms = []
   for i in range(1, len(nodes)+1):
@@ -46,16 +42,12 @@ def generate_extended_partitions(nodes, k):
   return perms
 
 if __name__ == '__main__':
-  vars = get_OC_vars()
-  nodes = get_nodes(vars)
-  base_partition = generate_base_partition([v.get('id') for v in nodes])
-  extended_partitions = generate_extended_partitions([v.get('id') for v in nodes], 3)
-  partitions = []
-  partitions.append(base_partition)
-  partitions.extend(extended_partitions)
-  name = 0
+  nodes = get_nodes(sys.argv[2:])
+  partitions = generate_partitions([v.get('id') for v in nodes], 3)
+  m = hashlib.sha256()
   for node in nodes:
-    name = name ^ hash(node['ip'])
+    m.update(node['ip'])
+  name = int(m.hexdigest()[:8], base=16) # 32-bit int based on SHA256 digest
   data = {
            'name': name,
            'nodes': nodes,
@@ -63,7 +55,7 @@ if __name__ == '__main__':
          }
   output = json.dumps(data, indent=4)
 
-  if len(sys.argv) == 2:
+  if len(sys.argv) >= 2 and sys.argv[1] != '-':
     filename = sys.argv[1]
     with open(filename, 'w') as f:
       f.write(output)

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014-2016 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,8 +21,7 @@
     <parent>
         <artifactId>onos-apps</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.5.2-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.6.0</version>
     </parent>
 
     <artifactId>onos-app-segmentrouting</artifactId>
@@ -31,11 +30,6 @@
     <description>Segment routing application</description>
 
     <properties>
-        <onos.app.name>org.onosproject.segmentrouting</onos.app.name>
-        <onos.app.title>Segment Routing App</onos.app.title>
-        <onos.app.category>Traffic Steering</onos.app.category>
-        <onos.app.url>http://onosproject.org</onos.app.url>
-        <onos.app.readme>Segment routing application.</onos.app.readme>
         <web.context>/onos/segmentrouting</web.context>
         <api.version>1.0.0</api.version>
         <api.title>ONOS Segment Routing REST API</api.title>
@@ -51,7 +45,11 @@
             <artifactId>onos-cli</artifactId>
             <version>${project.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-core-serializers</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.karaf.shell</groupId>
             <artifactId>org.apache.karaf.shell.console</artifactId>
@@ -67,24 +65,28 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>jsr311-api</artifactId>
-            <version>1.1.1</version>
+            <groupId>org.onosproject</groupId>
+            <artifactId>cord-config</artifactId>
+            <!-- TODO: Replace this with variable -->
+            <version>1.0-b1</version>
         </dependency>
         <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-servlet</artifactId>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
-
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
@@ -98,7 +100,6 @@
             <artifactId>onlab-junit</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
@@ -125,21 +126,7 @@
                             ${project.groupId}.${project.artifactId}
                         </Bundle-SymbolicName>
                         <Import-Package>
-                            org.slf4j,
-                            org.osgi.framework,
-                            javax.ws.rs,
-                            javax.ws.rs.core,
-                            com.sun.jersey.api.core,
-                            com.sun.jersey.spi.container.servlet,
-                            com.sun.jersey.server.impl.container.servlet,
-                            com.fasterxml.jackson.databind,
-                            com.fasterxml.jackson.databind.node,
-                            com.fasterxml.jackson.core,
-                            org.apache.karaf.shell.commands,
-                            com.google.common.*,
-                            org.onlab.packet.*,
-                            org.onosproject.*,
-                            org.onlab.util.*,
+                            *,org.glassfish.jersey.servlet
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>

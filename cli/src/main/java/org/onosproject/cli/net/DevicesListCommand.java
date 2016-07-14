@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,21 @@
  */
 package org.onosproject.cli.net;
 
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.karaf.shell.commands.Command;
-import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.cli.Comparators;
-import org.onosproject.net.Device;
-import org.onosproject.net.device.DeviceService;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.ImmutableSet;
+import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.Device;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.DriverService;
+import org.onosproject.utils.Comparators;
+
+import java.util.Collections;
+import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -34,20 +37,27 @@ import static com.google.common.collect.Lists.newArrayList;
  * Lists all infrastructure devices.
  */
 @Command(scope = "onos", name = "devices",
-         description = "Lists all infrastructure devices")
+        description = "Lists all infrastructure devices")
 public class DevicesListCommand extends AbstractShellCommand {
 
     private static final String FMT =
-            "id=%s, available=%s, role=%s, type=%s, mfr=%s, hw=%s, sw=%s, serial=%s%s";
+            "id=%s, available=%s, role=%s, type=%s, mfr=%s, hw=%s, sw=%s, serial=%s, driver=%s%s";
+
+    private static final String FMT_SHORT =
+            "id=%s, available=%s, role=%s, type=%s, driver=%s";
+
+    @Option(name = "-s", aliases = "--short", description = "Show short output only",
+            required = false, multiValued = false)
+    private boolean shortOnly = false;
 
     @Override
     protected void execute() {
-        DeviceService service = get(DeviceService.class);
+        DeviceService deviceService = get(DeviceService.class);
         if (outputJson()) {
-            print("%s", json(getSortedDevices(service)));
+            print("%s", json(getSortedDevices(deviceService)));
         } else {
-            for (Device device : getSortedDevices(service)) {
-                printDevice(service, device);
+            for (Device device : getSortedDevices(deviceService)) {
+                printDevice(deviceService, device);
             }
         }
     }
@@ -82,16 +92,22 @@ public class DevicesListCommand extends AbstractShellCommand {
     /**
      * Prints information about the specified device.
      *
-     * @param service device service
-     * @param device  infrastructure device
+     * @param deviceService device service
+     * @param device        infrastructure device
      */
-    protected void printDevice(DeviceService service, Device device) {
+    protected void printDevice(DeviceService deviceService, Device device) {
         if (device != null) {
-            print(FMT, device.id(), service.isAvailable(device.id()),
-                  service.getRole(device.id()), device.type(),
-                  device.manufacturer(), device.hwVersion(), device.swVersion(),
-                  device.serialNumber(), annotations(device.annotations()));
+            String driver = get(DriverService.class).getDriver(device.id()).name();
+            if (shortOnly) {
+                print(FMT_SHORT, device.id(), deviceService.isAvailable(device.id()),
+                      deviceService.getRole(device.id()), device.type(), driver);
+            } else {
+                print(FMT, device.id(), deviceService.isAvailable(device.id()),
+                      deviceService.getRole(device.id()), device.type(),
+                      device.manufacturer(), device.hwVersion(), device.swVersion(),
+                      device.serialNumber(), driver,
+                      annotations(device.annotations(), ImmutableSet.of(AnnotationKeys.DRIVER)));
+            }
         }
     }
-
 }

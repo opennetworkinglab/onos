@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.onosproject.net.PortNumber.Logical;
 
 import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.onosproject.net.PortNumber.portNumber;
 
 import java.util.List;
@@ -75,6 +75,18 @@ public class PortNumberTest {
                                 .add(portNumber(PortNumber.MAX_NUMBER, "(大)"))
                                 .build();
         ps.forEach(p -> assertEquals(p, PortNumber.fromString(p.toString())));
+    }
+
+    @Test
+    public void exactlyEquals() {
+        assertTrue(portNumber(0).exactlyEquals(portNumber(0)));
+        assertTrue(portNumber(0, "foo").exactlyEquals(portNumber(0, "foo")));
+
+        assertFalse(portNumber(0, "foo").exactlyEquals(portNumber(0, "bar")));
+        assertFalse(portNumber(0, "foo").exactlyEquals(portNumber(0)));
+        assertFalse(portNumber(0, "foo").exactlyEquals(portNumber(1, "foo")));
+
+        assertFalse(portNumber(123).exactlyEquals(portNumber(123, "123")));
     }
 
 }

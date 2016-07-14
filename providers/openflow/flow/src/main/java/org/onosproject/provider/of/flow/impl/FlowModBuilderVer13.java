@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import org.onosproject.net.flow.instructions.Instructions.GroupInstruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.flow.instructions.Instructions.SetQueueInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
-import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModOchSignalInstruction;
 import org.onosproject.net.flow.instructions.L1ModificationInstruction;
 import org.onosproject.net.flow.instructions.L1ModificationInstruction.ModOduSignalIdInstruction;
@@ -55,6 +54,8 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6Fl
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransportPortInstruction;
 import org.onosproject.openflow.controller.ExtensionTreatmentInterpreter;
+import org.onosproject.provider.of.flow.util.NoMappingFoundException;
+import org.onosproject.provider.of.flow.util.OpenFlowValueMapper;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFFlowDeleteStrict;
@@ -232,7 +233,6 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         List<OFAction> actions = new LinkedList<>();
         for (Instruction i : treatments) {
             switch (i.type()) {
-                case DROP:
                 case NOACTION:
                     return Collections.emptyList();
                 case L0MODIFICATION:
@@ -312,8 +312,6 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         L0ModificationInstruction l0m = (L0ModificationInstruction) i;
         OFOxm<?> oxm = null;
         switch (l0m.subtype()) {
-            case LAMBDA:
-                return buildModLambdaInstruction((ModLambdaInstruction) i);
             case OCH:
                 try {
                     ModOchSignalInstruction modOchSignalInstruction = (ModOchSignalInstruction) l0m;
@@ -336,11 +334,6 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
             return factory().actions().buildSetField().setField(oxm).build();
         }
         return null;
-    }
-
-    private OFAction buildModLambdaInstruction(ModLambdaInstruction instruction) {
-        return factory().actions().circuit(factory().oxms().expOchSigId(
-                new CircuitSignalID((byte) 1, (byte) 2, instruction.lambda(), (short) 1)));
     }
 
     private OFAction buildModOchSignalInstruction(ModOchSignalInstruction instruction) {

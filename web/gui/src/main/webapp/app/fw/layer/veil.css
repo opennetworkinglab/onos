@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Veil Service -- CSS file
+ ONOS GUI -- Veil Service (layout) -- CSS file
  */
 
 #veil {
@@ -24,13 +24,6 @@
     position: absolute;
     top: 0;
     left: 0;
-}
-
-.light #veil {
-    background-color: rgba(0,0,0,0.75);
-}
-.dark #veil {
-    background-color: rgba(64,64,64,0.75);
 }
 
 #veil .msg {
@@ -42,9 +35,4 @@
     display: block;
     font-size: 14pt;
     font-style: italic;
-    color: #ddd;
-}
-
-#veil svg .glyph {
-    fill: #222;
 }

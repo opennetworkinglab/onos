@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -182,11 +182,6 @@ public class InterfaceIpAddress {
 
     @Override
     public String toString() {
-        /*return toStringHelper(this).add("ipAddress", ipAddress)
-            .add("subnetAddress", subnetAddress)
-            .add("broadcastAddress", broadcastAddress)
-            .add("peerAddress", peerAddress)
-            .omitNullValues().toString();*/
         return ipAddress.toString() + "/" + subnetAddress.prefixLength();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -39,31 +41,33 @@ import static org.onosproject.net.DeviceId.deviceId;
 @Path("devices")
 public class DevicesWebResource extends AbstractWebResource {
 
-    public static final String DEVICE_NOT_FOUND = "Device is not found";
+    private static final String DEVICE_NOT_FOUND = "Device is not found";
 
     /**
-     * Get all infrastructure devices.
+     * Gets all infrastructure devices.
      * Returns array of all discovered infrastructure devices.
      *
-     * @return 200 OK
+     * @return 200 OK with a collection of devices
      * @onos.rsModel DevicesGet
      */
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getDevices() {
         Iterable<Device> devices = get(DeviceService.class).getDevices();
         return ok(encodeArray(Device.class, "devices", devices)).build();
     }
 
     /**
-     * Get details of infrastructure device.
+     * Gets details of infrastructure device.
      * Returns details of the specified infrastructure device.
      *
      * @param id device identifier
-     * @return 200 OK
+     * @return 200 OK with a device
      * @onos.rsModel DeviceGet
      */
     @GET
     @Path("{id}")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getDevice(@PathParam("id") String id) {
         Device device = nullIsNotFound(get(DeviceService.class).getDevice(deviceId(id)),
                                        DEVICE_NOT_FOUND);
@@ -71,15 +75,16 @@ public class DevicesWebResource extends AbstractWebResource {
     }
 
     /**
-     * Remove infrastructure device.
+     * Removes infrastructure device.
      * Administratively deletes the specified device from the inventory of
      * known devices.
      *
      * @param id device identifier
-     * @return 200 OK
+     * @return 200 OK with the removed device
      */
     @DELETE
     @Path("{id}")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response removeDevice(@PathParam("id") String id) {
         Device device = nullIsNotFound(get(DeviceService.class).getDevice(deviceId(id)),
                                        DEVICE_NOT_FOUND);
@@ -88,15 +93,16 @@ public class DevicesWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get ports of infrastructure device.
+     * Gets ports of infrastructure device.
      * Returns details of the specified infrastructure device.
      *
      * @onos.rsModel DeviceGetPorts
      * @param id device identifier
-     * @return 200 OK
+     * @return 200 OK with a collection of ports of the given device
      */
     @GET
     @Path("{id}/ports")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getDevicePorts(@PathParam("id") String id) {
         DeviceService service = get(DeviceService.class);
         Device device = nullIsNotFound(service.getDevice(deviceId(id)), DEVICE_NOT_FOUND);

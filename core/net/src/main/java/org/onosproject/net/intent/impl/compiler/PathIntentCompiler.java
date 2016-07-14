@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -38,19 +35,20 @@ import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.PathIntent;
-import org.onosproject.net.newresource.ResourceService;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
+import org.onosproject.net.resource.ResourceService;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableList;
+import java.util.LinkedList;
+import java.util.List;
 
 import static org.slf4j.LoggerFactory.getLogger;
+
 
 @Component(immediate = true)
 public class PathIntentCompiler
         extends PathCompiler<FlowRule>
         implements IntentCompiler<PathIntent>,
-                   PathCompiler.PathCompilerCreateFlow<FlowRule> {
+        PathCompiler.PathCompilerCreateFlow<FlowRule> {
 
     private final Logger log = getLogger(getClass());
 
@@ -77,12 +75,12 @@ public class PathIntentCompiler
     }
 
     @Override
-    public List<Intent> compile(PathIntent intent, List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
+    public List<Intent> compile(PathIntent intent, List<Intent> installable) {
 
         List<FlowRule> rules = new LinkedList<>();
         List<DeviceId> devices = new LinkedList<>();
         compile(this, intent, rules, devices);
+
 
         return ImmutableList.of(new FlowRuleIntent(appId, null, rules, intent.resources()));
     }
@@ -97,12 +95,14 @@ public class PathIntentCompiler
         return resourceService;
     }
 
+
     @Override
     public void createFlow(TrafficSelector originalSelector, TrafficTreatment originalTreatment,
                            ConnectPoint ingress, ConnectPoint egress,
                            int priority, boolean applyTreatment,
                            List<FlowRule> rules,
                            List<DeviceId> devices) {
+
         TrafficSelector selector = DefaultTrafficSelector.builder(originalSelector)
                 .matchInPort(ingress.port())
                 .build();
@@ -123,5 +123,6 @@ public class PathIntentCompiler
                 .fromApp(appId)
                 .makePermanent()
                 .build());
+
     }
 }

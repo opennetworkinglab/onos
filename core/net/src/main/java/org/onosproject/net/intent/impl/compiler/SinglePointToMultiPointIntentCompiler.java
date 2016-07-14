@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -55,8 +54,7 @@ public class SinglePointToMultiPointIntentCompiler
 
     @Override
     public List<Intent> compile(SinglePointToMultiPointIntent intent,
-                                List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
+                                List<Intent> installable) {
         Set<Link> links = new HashSet<>();
 
         for (ConnectPoint egressPoint : intent.egressPoints()) {

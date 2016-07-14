@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,117 +18,116 @@ package org.onosproject.pcepio.protocol;
 
 /**
  * Abstraction of an Message factory providing Builder functions to PCEP Messages and Objects.
- *
  */
 public interface PcepFactory {
 
     /**
-     * To get Builder Object for Open Message.
+     * Returns Builder Object for Open Message.
      *
      * @return Builder Object for Open Message
      */
     PcepOpenMsg.Builder buildOpenMsg();
 
     /**
-     * To get Builder Object for Open Object.
+     * Returns Builder Object for Open Object.
      *
      * @return Builder Object for Open Object
      */
     PcepOpenObject.Builder buildOpenObject();
 
     /**
-     * To get Builder Object for Keepalive Message.
+     * Returns Builder Object for Keepalive Message.
      *
      * @return Builder Object for Keepalive Message
      */
     PcepKeepaliveMsg.Builder buildKeepaliveMsg();
 
     /**
-     * To get Builder Object for Close Message.
+     * Returns Builder Object for Close Message.
      *
      * @return Builder Object for Close Message
      */
     PcepCloseMsg.Builder buildCloseMsg();
 
     /**
-     * To get Builder Object for Report Message.
+     * Returns Builder Object for Report Message.
      *
      * @return Builder Object for Report Message
      */
     PcepReportMsg.Builder buildReportMsg();
 
     /**
-     * To get Builder Object for Update Message.
+     * Returns Builder Object for Update Message.
      *
      * @return Builder Object for Update Message
      */
     PcepUpdateMsg.Builder buildUpdateMsg();
 
     /**
-     * To get Builder Object for Initiate Message.
+     * Returns Builder Object for Initiate Message.
      *
      * @return Builder Object for Initiate Message
      */
     PcepInitiateMsg.Builder buildPcepInitiateMsg();
 
     /**
-     * To get Builder Object for LSP Object.
+     * Returns Builder Object for LSP Object.
      *
      * @return Builder Object for LSP Object
      */
     PcepLspObject.Builder buildLspObject();
 
     /**
-     * To get Builder Object for SRP Object.
+     * Returns Builder Object for SRP Object.
      *
      * @return Builder Object for SRP Object
      */
     PcepSrpObject.Builder buildSrpObject();
 
     /**
-     * To get Builder Object for EndPoints Object.
+     * Returns Builder Object for EndPoints Object.
      *
      * @return Builder Object for EndPoints Object
      */
     PcepEndPointsObject.Builder buildEndPointsObject();
 
     /**
-     * To get Builder Object for ERO Object.
+     * Returns Builder Object for ERO Object.
      *
      * @return Builder Object for ERO Object
      */
     PcepEroObject.Builder buildEroObject();
 
     /**
-     * To get Builder Object for RRO Object.
+     * Returns Builder Object for RRO Object.
      *
      * @return Builder Object for RRO Object
      */
     PcepRroObject.Builder buildRroObject();
 
     /**
-     * To get Builder Object for LSPA Object.
+     * Returns Builder Object for LSPA Object.
      *
      * @return Builder Object for LSPA Object
      */
     PcepLspaObject.Builder buildLspaObject();
 
     /**
-     * To get Builder Object for IRO Object.
+     * Returns Builder Object for IRO Object.
      *
      * @return Builder Object for IRO Object
      */
     PcepIroObject.Builder buildIroObject();
 
     /**
-     * To get Builder Object for METRIC Object.
+     * Returns Builder Object for METRIC Object.
      *
      * @return Builder Object for METRIC Object
      */
     PcepMetricObject.Builder buildMetricObject();
 
     /**
-     * To get Builder Object for Bandwidth Object.
+     * Returns Builder Object for Bandwidth Object.
      *
      * @return Builder Object for Bandwidth Object
      */
@@ -184,70 +183,77 @@ public interface PcepFactory {
     PcepAttribute.Builder buildPcepAttribute();
 
     /**
-     * To get Builder Object for LabelUpdate message.
+     * Returns Builder Object for LabelUpdate message.
      *
      * @return Builder Object for LabelUpdate message
      */
     PcepLabelUpdateMsg.Builder buildPcepLabelUpdateMsg();
 
     /**
-     * To get Builder Object for PcepLabelUpdate Object.
+     * Returns Builder Object for PcepLabelUpdate Object.
      *
      * @return Builder Object for PcepLabelUpdate Object
      */
     PcepLabelUpdate.Builder buildPcepLabelUpdateObject();
 
     /**
-     * To get Builder Object for PcepLabel Object.
+     * Returns Builder Object for PcepLabel Object.
      *
      * @return Builder Object for PcepLabel Object
      */
     PcepLabelObject.Builder buildLabelObject();
 
     /**
-     * To get Builder Object for Error Message.
+     * Returns Builder Object for Error Message.
      *
      * @return Builder Object for Error Message
      */
     PcepErrorMsg.Builder buildPcepErrorMsg();
 
     /**
-     * To get Builder Object for Error Object.
+     * Returns Builder Object for Error Object.
      *
      * @return Builder Object for Error Object
      */
     PcepErrorObject.Builder buildPcepErrorObject();
 
     /**
-     * To get Builder Object for FecIpv4Adjacency.
+     * Returns Builder Object for FecIpv4Adjacency.
      *
      * @return Builder Object for FecIpv4Adjacency
      */
     PcepFecObjectIPv4Adjacency.Builder buildFecIpv4Adjacency();
 
     /**
-     * To get Builder Object for ErrorInfo.
+     * Returns Builder Object for FecObjectIPv4.
+     *
+     * @return Builder Object for FecObjectIPv4
+     */
+    PcepFecObjectIPv4.Builder buildFecObjectIpv4();
+
+    /**
+     * Returns Builder Object for ErrorInfo.
      *
      * @return Builder Object for ErrorInfo
      */
     PcepErrorInfo.Builder buildPcepErrorInfo();
 
     /**
-     * To get Builder Object for PcepError.
+     * Returns Builder Object for PcepError.
      *
      * @return Builder Object for PcepError
      */
     PcepError.Builder buildPcepError();
 
     /**
-     * To get Builder Object for PcepLabelRangeObject.
+     * Returns Builder Object for PcepLabelRangeObject.
      *
      * @return Builder Object for PcepLabelRangeObject
      */
     PcepLabelRangeObject.Builder buildPcepLabelRangeObject();
 
     /**
-     * To get Builder Object for PcepLabelRangeResvMsg.
+     * Returns Builder Object for PcepLabelRangeResvMsg.
      *
      * @return Builder Object for PcepLabelRangeResvMsg
      */

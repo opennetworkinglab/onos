@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,11 @@
 package org.onosproject.net.flow;
 
 import com.google.common.annotations.Beta;
+import com.google.common.base.Charsets;
+import com.google.common.hash.Funnel;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
@@ -101,10 +106,10 @@ public class DefaultFlowRule implements FlowRule {
                            ApplicationId appId, int timeout, boolean permanent,
                            FlowRuleExtPayLoad payLoad) {
 
-        if (priority < FlowRule.MIN_PRIORITY) {
-            throw new IllegalArgumentException("Priority cannot be less than "
-                    + MIN_PRIORITY);
-        }
+        checkArgument(priority >= MIN_PRIORITY, "Priority cannot be less than " +
+                MIN_PRIORITY);
+        checkArgument(priority <= MAX_PRIORITY, "Priority cannot be greater than " +
+                MAX_PRIORITY);
 
         this.deviceId = deviceId;
         this.priority = priority;
@@ -148,10 +153,10 @@ public class DefaultFlowRule implements FlowRule {
                            ApplicationId appId, GroupId groupId, int timeout,
                            boolean permanent, FlowRuleExtPayLoad payLoad) {
 
-        if (priority < FlowRule.MIN_PRIORITY) {
-            throw new IllegalArgumentException("Priority cannot be less than "
-                    + MIN_PRIORITY);
-        }
+        checkArgument(priority >= MIN_PRIORITY, "Priority cannot be less than " +
+                MIN_PRIORITY);
+        checkArgument(priority <= MAX_PRIORITY, "Priority cannot be greater than " +
+                MAX_PRIORITY);
 
         this.deviceId = deviceId;
         this.priority = priority;
@@ -364,6 +369,7 @@ public class DefaultFlowRule implements FlowRule {
 
         @Override
         public FlowRule build() {
+            FlowId localFlowId;
             checkArgument((flowId != null) ^ (appId != null), "Either an application" +
                     " id or a cookie must be supplied");
             checkNotNull(selector, "Traffic selector cannot be null");
@@ -373,15 +379,18 @@ public class DefaultFlowRule implements FlowRule {
             checkNotNull(priority, "Priority cannot be null");
             checkArgument(priority >= MIN_PRIORITY, "Priority cannot be less than " +
                     MIN_PRIORITY);
-
+            checkArgument(priority <= MAX_PRIORITY, "Priority cannot be greater than " +
+                    MAX_PRIORITY);
             // Computing a flow ID based on appId takes precedence over setting
             // the flow ID directly
             if (appId != null) {
-                flowId = computeFlowId(appId);
+                localFlowId = computeFlowId(appId);
+            } else {
+                localFlowId = flowId;
             }
 
             return new DefaultFlowRule(deviceId, selector, treatment, priority,
-                                       flowId, permanent, timeout, tableId);
+                                       localFlowId, permanent, timeout, tableId);
         }
 
         private FlowId computeFlowId(ApplicationId appId) {
@@ -390,9 +399,20 @@ public class DefaultFlowRule implements FlowRule {
         }
 
         private int hash() {
-            return Objects.hash(deviceId, priority, selector, tableId);
-        }
+            Funnel<TrafficSelector> selectorFunnel = (from, into) -> from.criteria()
+                    .stream()
+                    .forEach(c -> into.putString(c.toString(), Charsets.UTF_8));
 
+            HashFunction hashFunction = Hashing.murmur3_32();
+            HashCode hashCode = hashFunction.newHasher()
+                    .putString(deviceId.toString(), Charsets.UTF_8)
+                    .putObject(selector, selectorFunnel)
+                    .putInt(priority)
+                    .putInt(tableId)
+                    .hash();
+
+            return hashCode.asInt();
+        }
     }
 
     @Override

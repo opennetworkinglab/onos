@@ -28,5 +28,3 @@ find $M2_REPO/org/onosproject/ -name "*.oar" -path "*/${ONOS_POM_VERSION}/*" | w
     cp -rf $AUX/m2/* $KARAF_M2
     rm -fr $AUX
 done
-
-cp $ONOS_ROOT/apps/app.png $APPS/app.png

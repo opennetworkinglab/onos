@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
@@ -73,7 +72,6 @@ import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupListener;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
@@ -105,9 +103,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     private DeviceId deviceId;
     private ApplicationId appId;
-    // NOTE: OLT currently has some issue with cookie 0. Pick something larger
-    //       to avoid collision
-    private AtomicCounter counter;
+
 
     protected FlowObjectiveStore flowObjectiveStore;
 
@@ -118,8 +114,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             .register(GroupKey.class)
             .register(DefaultGroupKey.class)
             .register(OLTPipelineGroup.class)
-            .register(byte[].class)
-            .build();
+            .build("OltPipeline");
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
@@ -132,18 +127,6 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         groupService = serviceDirectory.get(GroupService.class);
         flowObjectiveStore = context.store();
         storageService = serviceDirectory.get(StorageService.class);
-
-        counter = storageService.atomicCounterBuilder()
-                .withName(String.format(OLTCOOKIES, deviceId))
-                .build()
-                .asAtomicCounter();
-
-        /*
-        magic olt number to make sure we don't collide with it's internal
-        processing
-         */
-        counter.set(123);
-
 
         appId = coreService.registerApplication(
                 "org.onosproject.driver.OLTPipeline");
@@ -326,7 +309,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 buildTreatment(Instructions.createGroup(group.id()));
 
         FlowRule rule = DefaultFlowRule.builder()
-                .withCookie(counter.getAndIncrement())
+                .fromApp(fwd.appId())
                 .forDevice(deviceId)
                 .forTable(0)
                 .makePermanent()
@@ -407,7 +390,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         Criterion innerVid = Criteria.matchVlanId(((VlanIdCriterion) innerVlan).vlanId());
 
         FlowRule.Builder outer = DefaultFlowRule.builder()
-                .withCookie(counter.getAndIncrement())
+                .fromApp(fwd.appId())
                 .forDevice(deviceId)
                 .makePermanent()
                 .withPriority(fwd.priority())
@@ -416,7 +399,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                                               Instructions.transition(QQ_TABLE)));
 
         FlowRule.Builder inner = DefaultFlowRule.builder()
-                .withCookie(counter.getAndIncrement())
+                .fromApp(fwd.appId())
                 .forDevice(deviceId)
                 .forTable(QQ_TABLE)
                 .makePermanent()
@@ -449,7 +432,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         Pair<Instruction, Instruction> outerPair = vlanOps.remove(0);
 
         FlowRule.Builder inner = DefaultFlowRule.builder()
-                .withCookie(counter.getAndIncrement())
+                .fromApp(fwd.appId())
                 .forDevice(deviceId)
                 .makePermanent()
                 .withPriority(fwd.priority())
@@ -464,7 +447,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 innerPair.getRight()).vlanId();
 
         FlowRule.Builder outer = DefaultFlowRule.builder()
-                .withCookie(counter.getAndIncrement())
+                .fromApp(fwd.appId())
                 .forDevice(deviceId)
                 .forTable(QQ_TABLE)
                 .makePermanent()
@@ -560,7 +543,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
     private void buildAndApplyRule(FilteringObjective filter, TrafficSelector selector,
                                    TrafficTreatment treatment) {
         FlowRule rule = DefaultFlowRule.builder()
-                .withCookie(counter.getAndIncrement())
+                .fromApp(filter.appId())
                 .forDevice(deviceId)
                 .forTable(0)
                 .makePermanent()
@@ -594,12 +577,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 builder.add(inner.build()).add(outer.build());
                 break;
             case REMOVE:
-                Iterable<FlowEntry> flows = flowRuleService.getFlowEntries(deviceId);
-                for (FlowEntry fe : flows) {
-                    if (fe.equals(inner.build()) || fe.equals(outer.build())) {
-                        builder.remove(fe);
-                    }
-                }
+                builder.remove(inner.build()).remove(outer.build());
                 break;
             case ADD_TO_EXISTING:
                 break;
@@ -701,5 +679,11 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             return appKryo.serialize(key);
         }
 
+    }
+
+    @Override
+    public List<String> getNextMappings(NextGroup nextGroup) {
+        // TODO Implementation deferred to vendor
+        return null;
     }
 }

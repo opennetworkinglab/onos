@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,10 @@ import java.util.Collection;
 
 /**
  * An interface to receive route updates from route providers.
+ *
+ * @deprecated in Goldeneye. Use RouteService instead.
  */
+@Deprecated
 public interface RouteListener {
     /**
      * Receives a route update from a route provider.

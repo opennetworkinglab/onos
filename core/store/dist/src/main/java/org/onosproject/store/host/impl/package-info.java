@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementation of the distributed host store using p2p synchronization protocol.
+ * Implementation of a distributed host store.
  */
 package org.onosproject.store.host.impl;

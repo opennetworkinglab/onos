@@ -1,0 +1,23 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000ffffffff000b",
+    "type": "switch",
+    "online": false,
+    "master": "ONOS-2",
+    "x-location": {
+      "type": "lnglat",
+      "lat": 37.7833,
+      "lng": -120.4167
+    },
+    "labels": [
+      "",
+      "sw-B",
+      "0000ffffffff000b"
+    ],
+    "metaUi": {
+      "x": 720,
+      "y": 300
+    }
+  }
+}

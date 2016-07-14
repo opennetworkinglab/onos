@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,25 @@
 package org.onosproject.store.primitives.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
-import io.atomix.Atomix;
 import io.atomix.AtomixClient;
 import io.atomix.catalyst.transport.Transport;
+import io.atomix.copycat.client.ConnectionStrategies;
+import io.atomix.copycat.client.CopycatClient;
+import io.atomix.copycat.client.CopycatClient.State;
+import io.atomix.copycat.client.RecoveryStrategies;
+import io.atomix.copycat.client.ServerSelectionStrategies;
+import io.atomix.manager.ResourceClient;
+import io.atomix.manager.ResourceManagerException;
+import io.atomix.manager.util.ResourceManagerTypeResolver;
+import io.atomix.resource.ResourceRegistry;
 import io.atomix.resource.ResourceType;
 import io.atomix.variables.DistributedLong;
 
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.onlab.util.HexString;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
@@ -37,13 +47,14 @@ import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncLeaderElector;
+import org.onosproject.store.service.DistributedPrimitive.Status;
 import org.onosproject.store.service.DistributedQueue;
+import org.onosproject.store.service.PartitionClientInfo;
 import org.onosproject.store.service.Serializer;
 import org.slf4j.Logger;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * StoragePartition client.
@@ -55,38 +66,44 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
     private final StoragePartition partition;
     private final Transport transport;
     private final io.atomix.catalyst.serializer.Serializer serializer;
-    private final Collection<ResourceType> resourceTypes;
-    private Atomix client;
+    private AtomixClient client;
+    private ResourceClient resourceClient;
     private static final String ATOMIC_VALUES_CONSISTENT_MAP_NAME = "onos-atomic-values";
     private final Supplier<AsyncConsistentMap<String, byte[]>> onosAtomicValuesMap =
             Suppliers.memoize(() -> newAsyncConsistentMap(ATOMIC_VALUES_CONSISTENT_MAP_NAME,
                                                           Serializer.using(KryoNamespaces.BASIC)));
+    Function<State, Status> mapper = state -> {
+                                        switch (state) {
+                                        case CONNECTED:
+                                            return Status.ACTIVE;
+                                        case SUSPENDED:
+                                            return Status.SUSPENDED;
+                                        case CLOSED:
+                                            return Status.INACTIVE;
+                                        default:
+                                            throw new IllegalStateException("Unknown state " + state);
+                                        }
+                                    };
 
     public StoragePartitionClient(StoragePartition partition,
             io.atomix.catalyst.serializer.Serializer serializer,
-            Transport transport,
-            Collection<ResourceType> resourceTypes) {
+            Transport transport) {
         this.partition = partition;
         this.serializer = serializer;
         this.transport = transport;
-        this.resourceTypes = ImmutableSet.copyOf(resourceTypes);
     }
 
     @Override
     public CompletableFuture<Void> open() {
-        if (client != null && client.isOpen()) {
-            return CompletableFuture.completedFuture(null);
-        }
         synchronized (StoragePartitionClient.this) {
-            client = AtomixClient.builder(partition.getMemberAddresses())
-                                .withSerializer(serializer.clone())
-                                .withResourceResolver(r -> {
-                                    resourceTypes.forEach(r::register);
-                                })
-                                .withTransport(transport)
-                                .build();
+            resourceClient = newResourceClient(transport,
+                                             serializer.clone(),
+                                             StoragePartition.RESOURCE_TYPES);
+            resourceClient.client().onStateChange(state -> log.debug("Partition {} client state"
+                    + " changed to {}", partition.getId(), state));
+            client = new AtomixClient(resourceClient);
         }
-        return client.open().whenComplete((r, e) -> {
+        return client.connect(partition.getMemberAddresses()).whenComplete((r, e) -> {
             if (e == null) {
                 log.info("Successfully started client for partition {}", partition.getId());
             } else {
@@ -102,8 +119,14 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
 
     @Override
     public <K, V> AsyncConsistentMap<K, V> newAsyncConsistentMap(String name, Serializer serializer) {
+        AtomixConsistentMap atomixConsistentMap = client.getResource(name, AtomixConsistentMap.class).join();
+        Consumer<State> statusListener = state -> {
+            atomixConsistentMap.statusChangeListeners()
+                               .forEach(listener -> listener.accept(mapper.apply(state)));
+        };
+        resourceClient.client().onStateChange(statusListener);
         AsyncConsistentMap<String, byte[]> rawMap =
-                new DelegatingAsyncConsistentMap<String, byte[]>(client.get(name, AtomixConsistentMap.class).join()) {
+                new DelegatingAsyncConsistentMap<String, byte[]>(atomixConsistentMap) {
                     @Override
                     public String name() {
                         return name;
@@ -115,7 +138,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                         value -> value == null ? null : serializer.encode(value),
                         bytes -> serializer.decode(bytes));
 
-        return DistributedPrimitives.newCachingMap(transcodedMap);
+        return transcodedMap;
     }
 
     @Override
@@ -125,15 +148,13 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
 
     @Override
     public AsyncAtomicCounter newAsyncCounter(String name) {
-        DistributedLong distributedLong = client.get(name, DistributedLong.class).join();
+        DistributedLong distributedLong = client.getLong(name).join();
         return new AtomixCounter(name, distributedLong);
     }
 
     @Override
     public <V> AsyncAtomicValue<V> newAsyncAtomicValue(String name, Serializer serializer) {
-       return new DefaultAsyncAtomicValue<>(name,
-                                        serializer,
-                                        onosAtomicValuesMap.get());
+       return new DefaultAsyncAtomicValue<>(name, serializer, onosAtomicValuesMap.get());
     }
 
     @Override
@@ -144,7 +165,15 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
 
     @Override
     public AsyncLeaderElector newAsyncLeaderElector(String name) {
-        return client.get(name, AtomixLeaderElector.class).join();
+        AtomixLeaderElector leaderElector = client.getResource(name, AtomixLeaderElector.class)
+                                                  .thenCompose(AtomixLeaderElector::setupCache)
+                                                  .join();
+        Consumer<State> statusListener = state -> {
+            leaderElector.statusChangeListeners()
+                         .forEach(listener -> listener.accept(mapper.apply(state)));
+        };
+        resourceClient.client().onStateChange(statusListener);
+        return leaderElector;
     }
 
     @Override
@@ -159,11 +188,43 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
 
     @Override
     public boolean isOpen() {
-        return client.isOpen();
+        return resourceClient.client().state() != State.CLOSED;
     }
 
-    @Override
-    public boolean isClosed() {
-        return client.isClosed();
+    /**
+     * Returns the {@link PartitionClientInfo information} for this client.
+     * @return partition client information
+     */
+    public PartitionClientInfo clientInfo() {
+        return new PartitionClientInfo(partition.getId(),
+                partition.getMembers(),
+                resourceClient.client().session().id(),
+                mapper.apply(resourceClient.client().state()));
+    }
+
+    private ResourceClient newResourceClient(Transport transport,
+                                           io.atomix.catalyst.serializer.Serializer serializer,
+                                           Collection<ResourceType> resourceTypes) {
+        ResourceRegistry registry = new ResourceRegistry();
+        resourceTypes.forEach(registry::register);
+        CopycatClient copycatClient = CopycatClient.builder()
+                .withServerSelectionStrategy(ServerSelectionStrategies.ANY)
+                .withConnectionStrategy(ConnectionStrategies.FIBONACCI_BACKOFF)
+                .withRecoveryStrategy(RecoveryStrategies.RECOVER)
+                .withTransport(transport)
+                .withSerializer(serializer)
+                .build();
+        copycatClient.serializer().resolve(new ResourceManagerTypeResolver());
+        for (ResourceType type : registry.types()) {
+            try {
+                type.factory()
+                    .newInstance()
+                    .createSerializableTypeResolver()
+                    .resolve(copycatClient.serializer().registry());
+            } catch (InstantiationException | IllegalAccessException e) {
+                throw new ResourceManagerException(e);
+            }
+        }
+        return new ResourceClient(new OnosCopycatClient(copycatClient, 5, 100));
     }
 }

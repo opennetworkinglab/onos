@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2014-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -31,8 +31,6 @@
     <suppress files="org.onlab.packet.*" checks="AbbreviationAsWordInName" />
     <suppress files="org.onlab.jdvue.*" checks="AbbreviationAsWordInName" />
     <suppress files="org.onosproject.driver.pipeline.*" checks="AbbreviationAsWordInName" />
-    <suppress files="org.onosproject.igmp.*" checks="AbbreviationAsWordInName" />
-    <suppress files="org.onosproject.pim.*" checks="AbbreviationAsWordInName" />
     <suppress files="org.onosproject.segmentrouting.*" checks="AbbreviationAsWordInName" />
 
     <!-- Suppressions for unit testing code -->

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2014-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-web</artifactId>
-        <version>1.5.2-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.6.0</version>
     </parent>
 
     <artifactId>onos-rest</artifactId>
@@ -52,6 +51,11 @@
             <artifactId>onos-api</artifactId>
             <scope>test</scope>
             <classifier>tests</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.test-framework.providers</groupId>
+            <artifactId>jersey-test-framework-provider-jetty</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -87,24 +91,7 @@
                             ${project.groupId}.${project.artifactId}
                         </Bundle-SymbolicName>
                         <Import-Package>
-                            org.slf4j,
-                            org.osgi.framework,
-                            javax.ws.rs,javax.ws.rs.core,javax.ws.rs.ext,
-                            com.sun.jersey.api,
-                            com.sun.jersey.spi.container.servlet,
-                            com.sun.jersey.server.impl.container.servlet,
-                            com.fasterxml.jackson.databind,
-                            com.fasterxml.jackson.databind.node,
-                            com.google.common.base.*,
-                            com.google.common.collect.*,
-                            com.google.common.io.*,
-                            org.onlab.util.*,
-                            org.onlab.osgi.*,
-                            org.onlab.packet.*,
-                            org.onlab.rest.*,
-                            org.onosproject.*,
-                            org.onlab.metrics.*,
-                            com.codahale.metrics.*
+                            *,org.glassfish.jersey.servlet
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>

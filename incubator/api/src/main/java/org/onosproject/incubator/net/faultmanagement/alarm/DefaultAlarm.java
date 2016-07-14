@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Default implementation of an alarm.
  */
+//TODO simpler creation and updating.
 public final class DefaultAlarm implements Alarm {
 
     private final AlarmId id;
@@ -41,34 +42,50 @@ public final class DefaultAlarm implements Alarm {
     private final boolean isManuallyClearable;
     private final String assignedUser;
 
+    //Only for Kryo
+    DefaultAlarm() {
+        id = null;
+        deviceId = null;
+        description = null;
+        source = null;
+        timeRaised = -1;
+        timeUpdated = -1;
+        timeCleared = null;
+        severity = null;
+        isServiceAffecting = false;
+        isAcknowledged = false;
+        isManuallyClearable = false;
+        assignedUser = null;
+    }
+
     /**
      * Instantiates a new Default alarm.
      *
-     * @param id the id
-     * @param deviceId the device id
-     * @param description the description
-     * @param source the source, null indicates none.
-     * @param timeRaised the time raised.
-     * @param timeUpdated the time last updated.
-     * @param timeCleared the time cleared, null indicates uncleared.
-     * @param severity the severity
-     * @param isServiceAffecting the service affecting
-     * @param isAcknowledged the acknowledged
+     * @param id                  the id
+     * @param deviceId            the device id
+     * @param description         the description
+     * @param source              the source, null indicates none.
+     * @param timeRaised          the time raised.
+     * @param timeUpdated         the time last updated.
+     * @param timeCleared         the time cleared, null indicates uncleared.
+     * @param severity            the severity
+     * @param isServiceAffecting  the service affecting
+     * @param isAcknowledged      the acknowledged
      * @param isManuallyClearable the manually clearable
-     * @param assignedUser the assigned user, `null` indicates none.
+     * @param assignedUser        the assigned user, `null` indicates none.
      */
     private DefaultAlarm(final AlarmId id,
-            final DeviceId deviceId,
-            final String description,
-            final AlarmEntityId source,
-            final long timeRaised,
-            final long timeUpdated,
-            final Long timeCleared,
-            final SeverityLevel severity,
-            final boolean isServiceAffecting,
-            final boolean isAcknowledged,
-            final boolean isManuallyClearable,
-            final String assignedUser) {
+                         final DeviceId deviceId,
+                         final String description,
+                         final AlarmEntityId source,
+                         final long timeRaised,
+                         final long timeUpdated,
+                         final Long timeCleared,
+                         final SeverityLevel severity,
+                         final boolean isServiceAffecting,
+                         final boolean isAcknowledged,
+                         final boolean isManuallyClearable,
+                         final String assignedUser) {
         this.id = id;
         this.deviceId = deviceId;
         this.description = description;
@@ -147,9 +164,9 @@ public final class DefaultAlarm implements Alarm {
     public int hashCode() {
         // id or timeRaised or timeUpdated may differ
         return Objects.hash(deviceId, description,
-                source, timeCleared, severity,
-                isServiceAffecting, isAcknowledged,
-                isManuallyClearable, assignedUser);
+                            source, timeCleared, severity,
+                            isServiceAffecting, isAcknowledged,
+                            isManuallyClearable, assignedUser);
     }
 
     @Override
@@ -244,7 +261,7 @@ public final class DefaultAlarm implements Alarm {
         }
 
         public Builder(final DeviceId deviceId,
-                final String description, final SeverityLevel severity, final long timeRaised) {
+                       final String description, final SeverityLevel severity, final long timeRaised) {
             super();
             this.id = AlarmId.NONE;
             this.deviceId = deviceId;
@@ -310,7 +327,7 @@ public final class DefaultAlarm implements Alarm {
             checkNotNull(severity, "Must specify a severity");
 
             return new DefaultAlarm(id, deviceId, description, source, timeRaised, timeUpdated, timeCleared,
-                    severity, isServiceAffecting, isAcknowledged, isManuallyClearable, assignedUser);
+                                    severity, isServiceAffecting, isAcknowledged, isManuallyClearable, assignedUser);
         }
     }
 }

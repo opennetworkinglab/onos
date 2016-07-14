@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/* ------ for summary-list tables ------ */
+/* ------ for summary-list tables (layout) ------ */
 
 div.summary-list {
     margin: 0 20px 16px 10px;
@@ -42,71 +42,39 @@ div.summary-list tr.no-data td {
     font-style: italic;
 }
 
-.light div.summary-list tr:nth-child(even) {
-    background-color: #ddd;
-}
-.light div.summary-list tr:nth-child(odd) {
-    background-color: #eee;
-}
-.dark div.summary-list tr:nth-child(even) {
-    background-color: #333;
-}
-.dark div.summary-list tr:nth-child(odd) {
-    background-color: #444;
-}
-
-.light div.summary-list tr.selected {
-    background-color: deepskyblue !important;
-}
-
-.dark div.summary-list tr.selected {
-    background-color: #304860;
-}
 
 /* highlighting */
 div.summary-list tr {
     transition: background-color 500ms;
 }
-.light div.summary-list tr.data-change {
-    background-color: #FDFFDC;
-}
-.dark div.summary-list tr.data-change {
-    background-color: #5A5600;
-}
 
 div.summary-list td {
-    padding: 6px;
+    padding: 4px;
     text-align: left;
     word-wrap: break-word;
+    font-size: 12pt;
+}
+
+div.summary-list td.table-icon {
+    padding-left: 4px;
+    text-align: center;
 }
 
 div.summary-list .table-header td {
+    font-weight: bold;
+    font-variant: small-caps;
+    text-transform: uppercase;
+    font-size: 11pt;
+    padding-top: 14px;
+    padding-bottom: 14px;
+
     letter-spacing: 0.02em;
     cursor: pointer;
-    font-weight: bold;
-}
-div.summary-list .table-header td:first-child {
-    border-radius: 8px 0 0 0;
-}
-div.summary-list .table-header td:last-child {
-    border-radius: 0 8px 0 0;
-}
-
-.light div.summary-list .table-header td {
-    background-color: #bbb;
-}
-.dark div.summary-list .table-header td {
-    background-color: #222;
-    color: #ccc;
 }
 
 /* rows are selectable */
 div.summary-list .table-body td {
     cursor: pointer;
-}
-
-.dark div.summary-list td {
-    color: #ccc;
 }
 
 /* Tabular view upper right control buttons */
@@ -115,76 +83,18 @@ div.ctrl-btns {
     display: inline-block;
     float: right;
     height: 44px;
-    margin-right: 24px;
-    margin-top: 7px;
+    margin-top: 24px;
+    margin-right: 20px;
 }
-
 
 div.ctrl-btns div {
     display: inline-block;
-    padding: 4px;
     cursor: pointer;
 }
 
 div.ctrl-btns div.separator  {
-    cursor: auto;
-    width: 24px;
-    border: none;
-}
-
-/* Inactive */
-.light .ctrl-btns div g.icon rect,
-.light .ctrl-btns div:hover g.icon rect {
-    fill: #eee;
-}
-.dark .ctrl-btns div g.icon rect,
-.dark .ctrl-btns div:hover g.icon rect {
-    fill: #222;
-}
-
-.light .ctrl-btns div g.icon use {
-    fill: #ddd;
-}
-.dark .ctrl-btns div g.icon use {
-    fill: #333;
-}
-
-/* Active hover */
-.light .ctrl-btns div.active:hover g.icon rect {
-    fill: #800;
-}
-
-.dark .ctrl-btns div.active:hover g.icon rect {
-    fill: #CE5650;
-}
-
-/* Active */
-.light .ctrl-btns div.active g.icon use {
-    fill: #fff;
-}
-.dark .ctrl-btns div.active g.icon use {
-    fill: #eee;
-}
-
-.light .ctrl-btns div.active g.icon rect {
-    fill: #bbb;
-}
-.dark .ctrl-btns div.active g.icon rect {
-    fill: #444;
-}
-
-/* Refresh button specific */
-.light .ctrl-btns div.refresh.active g.icon rect {
-    fill: #964949;
-}
-
-.dark .ctrl-btns div.refresh.active g.icon rect {
-    fill: #9B4641;
-}
-.light .ctrl-btns div.refresh:hover g.icon rect {
-    fill: #964949;
-}
-
-.dark .ctrl-btns div.refresh:hover g.icon rect {
-    fill: #9B4641;
+    width: 0;
+    height: 40px;
+    padding: 0;
+    border-right: 1px solid #c7c7c0;
 }

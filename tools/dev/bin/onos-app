@@ -9,6 +9,7 @@ app=${3}
 
 export URL=http://$node:8181/onos/v1/applications
 export HDR="-HContent-Type:application/octet-stream"
+export HAJ="-HContent-Type:application/json"
 export curl="curl -sS --user $ONOS_WEB_USER:$ONOS_WEB_PASS"
 
 # Prints usage help
@@ -34,6 +35,13 @@ function appName {
 
 case $cmd in
     list) $curl -X GET $URL;;
+    installUrl!|installUrl)
+        activate="false"
+        [ $cmd = "installUrl!" ] && activate="true"
+        [ $# -lt 3 ] && usage
+        appurl=$3
+        $curl -X POST $HAJ -d '{"url" : "'"$appurl"'", "activate" : "'$activate'" }' $URL
+        ;;
     install!|install)
         [ $cmd = "install!" ] && activate="?activate=true"
         [ $# -lt 3 -o ! -f $app ] && usage

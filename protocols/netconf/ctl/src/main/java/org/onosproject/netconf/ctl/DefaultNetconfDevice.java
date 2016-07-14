@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public class DefaultNetconfDevice implements NetconfDevice {
             .getLogger(DefaultNetconfDevice.class);
 
     private NetconfDeviceInfo netconfDeviceInfo;
-    private boolean deviceState = false;
+    private boolean deviceState = true;
     protected NetconfSessionFactory sessionFactory = new SshNetconfSessionFactory();
     private NetconfSession netconfSession;
 
@@ -53,10 +53,10 @@ public class DefaultNetconfDevice implements NetconfDevice {
         try {
             netconfSession = sessionFactory.createNetconfSession(deviceInfo);
         } catch (IOException e) {
+            deviceState = false;
             throw new NetconfException("Cannot create connection and session for device " +
                                                deviceInfo, e);
         }
-        deviceState = true;
     }
 
     @Override

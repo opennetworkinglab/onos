@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.onosproject.pcepio.protocol.PcepLspObject;
 import org.onosproject.pcepio.types.PcepErrorDetailInfo;
 import org.onosproject.pcepio.types.PcepObjectHeader;
 import org.onosproject.pcepio.types.PcepValueType;
-import org.onosproject.pcepio.types.StatefulIPv4LspIdentidiersTlv;
+import org.onosproject.pcepio.types.StatefulIPv4LspIdentifiersTlv;
 import org.onosproject.pcepio.types.StatefulLspDbVerTlv;
 import org.onosproject.pcepio.types.StatefulLspErrorCodeTlv;
 import org.onosproject.pcepio.types.StatefulRsvpErrorSpecTlv;
@@ -48,7 +48,7 @@ public class PcepLspObjectVer1 implements PcepLspObject {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      | Object-Class  |   OT  |Res|P|I|   Object Length (bytes)       |
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |                PLSP-ID                |    Flag |    O|A|R|S|D|
+     |                PLSP-ID                |  Flag |C|    O|A|R|S|D|
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      //                        TLVs                                 //
      |                                                               |
@@ -71,13 +71,16 @@ public class PcepLspObjectVer1 implements PcepLspObject {
     public static final boolean DEFAULT_RFLAG = false;
     public static final boolean DEFAULT_SFLAG = false;
     public static final boolean DEFAULT_DFLAG = false;
+    public static final boolean DEFAULT_CFLAG = false;
     public static final int OBJECT_HEADER_LENGTH = 4;
     public static final int PLSPID_SHIFT_VALUE = 12;
+    public static final int CFLAG_SHIFT_VALUE = 7;
     public static final int OFLAG_SHIFT_VALUE = 4;
     public static final int AFLAG_SHIFT_VALUE = 3;
     public static final int RFLAG_SHIFT_VALUE = 2;
     public static final int SFLAG_SHIFT_VALUE = 1;
     public static final int PLSPID_TEMP_SHIFT_VALUE = 0xFFFFF000;
+    public static final int CFLAG_TEMP_SHIFT_VALUE = 0x80;
     public static final int OFLAG_TEMP_SHIFT_VALUE = 0x70;
     public static final int AFLAG_TEMP_SHIFT_VALUE = 0x08;
     public static final int RFLAG_TEMP_SHIFT_VALUE = 0x04;
@@ -98,6 +101,7 @@ public class PcepLspObjectVer1 implements PcepLspObject {
     private boolean bRFlag;
     private boolean bSFlag;
     private boolean bDFlag;
+    private boolean bCFlag;
 
     // Optional TLV
     private LinkedList<PcepValueType> llOptionalTlv;
@@ -112,10 +116,11 @@ public class PcepLspObjectVer1 implements PcepLspObject {
      * @param bRFlag R flag
      * @param bSFlag S flag
      * @param bDFlag D flag
+     * @param bCFlag C flag
      * @param llOptionalTlv list of optional tlv
      */
     public PcepLspObjectVer1(PcepObjectHeader lspObjHeader, int iPlspId, byte yOFlag, boolean bAFlag, boolean bRFlag,
-            boolean bSFlag, boolean bDFlag, LinkedList<PcepValueType> llOptionalTlv) {
+            boolean bSFlag, boolean bDFlag, boolean bCFlag, LinkedList<PcepValueType> llOptionalTlv) {
 
         this.lspObjHeader = lspObjHeader;
         this.iPlspId = iPlspId;
@@ -124,6 +129,7 @@ public class PcepLspObjectVer1 implements PcepLspObject {
         this.bRFlag = bRFlag;
         this.bSFlag = bSFlag;
         this.bDFlag = bDFlag;
+        this.bCFlag = bCFlag;
         this.llOptionalTlv = llOptionalTlv;
     }
 
@@ -139,6 +145,11 @@ public class PcepLspObjectVer1 implements PcepLspObject {
     @Override
     public void setPlspId(int iPlspId) {
         this.iPlspId = iPlspId;
+    }
+
+    @Override
+    public void setCFlag(boolean bCFlag) {
+        this.bCFlag = bCFlag;
     }
 
     @Override
@@ -178,6 +189,11 @@ public class PcepLspObjectVer1 implements PcepLspObject {
     @Override
     public int getPlspId() {
         return this.iPlspId;
+    }
+
+    @Override
+    public boolean getCFlag() {
+        return this.bCFlag;
     }
 
     @Override
@@ -232,6 +248,7 @@ public class PcepLspObjectVer1 implements PcepLspObject {
         boolean bRFlag;
         boolean bSFlag;
         boolean bDFlag;
+        boolean bCFlag;
 
         // Optional TLV
         LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
@@ -246,6 +263,7 @@ public class PcepLspObjectVer1 implements PcepLspObject {
 
         Integer iTemp = tempCb.readInt();
         iPlspId = (iTemp & PLSPID_TEMP_SHIFT_VALUE) >> PLSPID_SHIFT_VALUE;
+        bCFlag = ((iTemp & CFLAG_TEMP_SHIFT_VALUE) >> CFLAG_SHIFT_VALUE) > 0;
         Integer iX = (iTemp & OFLAG_TEMP_SHIFT_VALUE) >> OFLAG_SHIFT_VALUE;
         yOFlag = iX.byteValue();
         iX = (iTemp & AFLAG_TEMP_SHIFT_VALUE) >> AFLAG_SHIFT_VALUE;
@@ -260,7 +278,8 @@ public class PcepLspObjectVer1 implements PcepLspObject {
         // parse optional TLV
         llOptionalTlv = parseOptionalTlv(tempCb);
 
-        return new PcepLspObjectVer1(lspObjHeader, iPlspId, yOFlag, bAFlag, bRFlag, bSFlag, bDFlag, llOptionalTlv);
+        return new PcepLspObjectVer1(lspObjHeader, iPlspId, yOFlag, bAFlag, bRFlag, bSFlag, bDFlag, bCFlag,
+                                     llOptionalTlv);
     }
 
     @Override
@@ -276,6 +295,9 @@ public class PcepLspObjectVer1 implements PcepLspObject {
         }
 
         int iTemp = iPlspId << PLSPID_SHIFT_VALUE;
+
+        iTemp = iTemp | (((bCFlag) ? BIT_SET : BIT_RESET) << CFLAG_SHIFT_VALUE);
+
         iTemp = iTemp | (yOFlag << OFLAG_SHIFT_VALUE);
         byte bFlag;
         iTemp = bAFlag ? (iTemp | AFLAG_TEMP_SHIFT_VALUE) : iTemp;
@@ -325,8 +347,8 @@ public class PcepLspObjectVer1 implements PcepLspObject {
 
             switch (hType) {
 
-            case StatefulIPv4LspIdentidiersTlv.TYPE:
-                tlv = StatefulIPv4LspIdentidiersTlv.read(cb);
+            case StatefulIPv4LspIdentifiersTlv.TYPE:
+                tlv = StatefulIPv4LspIdentifiersTlv.read(cb);
                 break;
             case StatefulLspErrorCodeTlv.TYPE:
                 iValue = cb.readInt();
@@ -410,6 +432,7 @@ public class PcepLspObjectVer1 implements PcepLspObject {
         private boolean bIsAFlagSet = false;
         private boolean bIsDFlagSet = false;
         private boolean bIsSFlagSet = false;
+        private boolean bIsCFlagSet = false;
 
         private PcepObjectHeader lspObjHeader;
         private byte yOFlag;
@@ -417,6 +440,7 @@ public class PcepLspObjectVer1 implements PcepLspObject {
         private boolean bDFlag;
         private boolean bSFlag;
         private boolean bRFlag;
+        private boolean bCFlag;
         LinkedList<PcepValueType> llOptionalTlv = null;
 
         private int plspId;
@@ -437,6 +461,7 @@ public class PcepLspObjectVer1 implements PcepLspObject {
             boolean bRFlag = this.bIsRFlagSet ? this.bRFlag : DEFAULT_RFLAG;
             boolean bSFlag = this.bIsSFlagSet ? this.bSFlag : DEFAULT_SFLAG;
             boolean bDFlag = this.bIsDFlagSet ? this.bDFlag : DEFAULT_DFLAG;
+            boolean bCFlag = this.bIsCFlagSet ? this.bCFlag : DEFAULT_CFLAG;
 
             if (bIsPFlagSet) {
                 lspObjHeader.setPFlag(bPFlag);
@@ -446,7 +471,8 @@ public class PcepLspObjectVer1 implements PcepLspObject {
                 lspObjHeader.setIFlag(bIFlag);
             }
 
-            return new PcepLspObjectVer1(lspObjHeader, plspId, yOFlag, bAFlag, bRFlag, bSFlag, bDFlag, llOptionalTlv);
+            return new PcepLspObjectVer1(lspObjHeader, plspId, yOFlag, bAFlag, bRFlag, bSFlag, bDFlag, bCFlag,
+                                         llOptionalTlv);
         }
 
         @Override
@@ -470,6 +496,18 @@ public class PcepLspObjectVer1 implements PcepLspObject {
         public Builder setPlspId(int value) {
             this.plspId = value;
             this.bIsPlspIdSet = true;
+            return this;
+        }
+
+        @Override
+        public boolean getCFlag() {
+            return this.bCFlag;
+        }
+
+        @Override
+        public Builder setCFlag(boolean value) {
+            this.bCFlag = value;
+            this.bIsCFlagSet = true;
             return this;
         }
 
@@ -564,6 +602,7 @@ public class PcepLspObjectVer1 implements PcepLspObject {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("PlspIDValue", iPlspId)
+                .add("CFlag", bCFlag)
                 .add("OFlag", yOFlag)
                 .add("AFlag", bAFlag)
                 .add("RFlag", bRFlag)

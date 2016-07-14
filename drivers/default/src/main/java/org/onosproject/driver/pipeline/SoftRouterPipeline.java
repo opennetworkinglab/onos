@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import static org.onlab.util.Tools.delay;
@@ -85,10 +86,9 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
     private ApplicationId driverId;
 
     private KryoNamespace appKryo = new KryoNamespace.Builder()
-        .register(DummyGroup.class)
-        .register(KryoNamespaces.API)
-        .register(byte[].class)
-        .build();
+            .register(KryoNamespaces.API)
+            .register(DummyGroup.class)
+            .build();
 
     private final Logger log = getLogger(getClass());
 
@@ -249,7 +249,8 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
         // convert filtering conditions for switch-intfs into flowrules
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         for (Criterion c : filt.conditions()) {
-            if (c.type() == Criterion.Type.ETH_DST) {
+            if (c.type() == Criterion.Type.ETH_DST ||
+                    c.type() == Criterion.Type.ETH_DST_MASKED) {
                 e = (EthCriterion) c;
             } else if (c.type() == Criterion.Type.VLAN_VID) {
                 v = (VlanIdCriterion) c;
@@ -266,7 +267,12 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
         selector.matchInPort(p.port());
 
-        selector.matchEthDst(e.mac());
+        //Multicast MAC
+        if (e.mask() != null) {
+            selector.matchEthDstMasked(e.mac(), e.mask());
+        } else {
+            selector.matchEthDst(e.mac());
+        }
         selector.matchVlanId(v.vlanId());
         selector.matchEthType(Ethernet.TYPE_IPV4);
         if (!v.vlanId().equals(VlanId.NONE)) {
@@ -465,6 +471,12 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
             return appKryo.serialize(nextActions);
         }
 
+    }
+
+    @Override
+    public List<String> getNextMappings(NextGroup nextGroup) {
+        // nextObjectives converted to flow-actions not groups
+        return Collections.emptyList();
     }
 
 }

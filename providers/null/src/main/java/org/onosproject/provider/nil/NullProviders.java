@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,7 +152,7 @@ public class NullProviders {
             label = "Number of host to generate per device")
     private int hostCount = DEFAULT_HOST_COUNT;
 
-    private static final int DEFAULT_PACKET_RATE = 5;
+    private static final int DEFAULT_PACKET_RATE = 0;
     @Property(name = "packetRate", intValue = DEFAULT_PACKET_RATE,
             label = "Packet-in/s rate; 0 for no packets")
     private int packetRate = DEFAULT_PACKET_RATE;
@@ -441,6 +441,12 @@ public class NullProviders {
 
         @Override
         public void triggerProbe(DeviceId deviceId) {
+        }
+
+        @Override
+        public void changePortState(DeviceId deviceId, PortNumber portNumber,
+                                    boolean enable) {
+            // TODO maybe required
         }
     }
 

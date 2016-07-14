@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public class RegionsWebResource extends AbstractWebResource {
     /**
      * Returns set of all regions.
      *
-     * @return 200 OK
+     * @return 200 OK with set of all regions
      * @onos.rsModel Regions
      */
     @GET
@@ -73,7 +73,7 @@ public class RegionsWebResource extends AbstractWebResource {
      * Returns the region with the specified identifier.
      *
      * @param regionId region identifier
-     * @return 200 OK, 404 not found
+     * @return 200 OK with a region, 404 not found
      * @onos.rsModel Region
      */
     @GET
@@ -90,7 +90,7 @@ public class RegionsWebResource extends AbstractWebResource {
      * Returns the set of devices that belong to the specified region.
      *
      * @param regionId region identifier
-     * @return 200 OK
+     * @return 200 OK with set of devices that belong to the specified region
      * @onos.rsModel RegionDeviceIds
      */
     @GET
@@ -143,7 +143,6 @@ public class RegionsWebResource extends AbstractWebResource {
     @PUT
     @Path("{regionId}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response updateRegion(@PathParam("regionId") String regionId,
                                  InputStream stream) {
         try {
@@ -169,15 +168,14 @@ public class RegionsWebResource extends AbstractWebResource {
      * Removes the specified region using the given region identifier.
      *
      * @param regionId region identifier
-     * @return 200 OK, 404 not found
+     * @return 204 NO CONTENT
      */
     @DELETE
     @Path("{regionId}")
-    @Produces(MediaType.APPLICATION_JSON)
     public Response removeRegion(@PathParam("regionId") String regionId) {
         final RegionId rid = RegionId.regionId(regionId);
         regionAdminService.removeRegion(rid);
-        return Response.ok().build();
+        return Response.noContent().build();
     }
 
     /**
@@ -213,13 +211,12 @@ public class RegionsWebResource extends AbstractWebResource {
      *
      * @param regionId region identifier
      * @param stream deviceIds JSON stream
-     * @return 200 OK, 404 not found
+     * @return 204 NO CONTENT
      * @onos.rsModel RegionDeviceIds
      */
     @DELETE
     @Path("{regionId}/devices")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response removeDevices(@PathParam("regionId") String regionId,
                                   InputStream stream) {
         final RegionId rid = RegionId.regionId(regionId);
@@ -230,7 +227,7 @@ public class RegionsWebResource extends AbstractWebResource {
             throw new IllegalArgumentException(e);
         }
 
-        return Response.ok().build();
+        return Response.noContent().build();
     }
 
     /**

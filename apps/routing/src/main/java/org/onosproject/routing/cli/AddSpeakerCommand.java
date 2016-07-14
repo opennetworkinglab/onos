@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.onosproject.routing.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -40,12 +41,18 @@ public class AddSpeakerCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "name",
             description = "Name of the internal BGP speaker",
             required = true, multiValued = false)
-    String name = null;
+    private String name = null;
 
     @Argument(index = 1, name = "connectionPoint",
             description = "Interface to the BGP speaker",
             required = true, multiValued = false)
-    String connectionPoint = null;
+    private String connectionPoint = null;
+
+    @Argument(index = 2, name = "vlanId",
+            description = "VLAN Id of the internal BGP speaker",
+            required = false, multiValued = false)
+    private String vlanId = null;
+    private VlanId vlanIdObj = null;
 
     private static final String SPEAKER_ADD_SUCCESS = "Speaker Successfully Added.";
 
@@ -57,10 +64,18 @@ public class AddSpeakerCommand extends AbstractShellCommand {
 
         BgpConfig config = configService.addConfig(appId, BgpConfig.class);
 
-        BgpConfig.BgpSpeakerConfig speaker = config.getSpeakerWithName(name);
-        if (speaker != null) {
-            log.debug("Speaker already exists: {}", name);
-            return;
+        if (name != null) {
+            BgpConfig.BgpSpeakerConfig speaker = config.getSpeakerWithName(name);
+            if (speaker != null) {
+                log.debug("Speaker already exists: {}", name);
+                return;
+            }
+        }
+
+        if (vlanId == null || vlanId.isEmpty()) {
+            vlanIdObj = VlanId.NONE;
+        } else {
+            vlanIdObj = VlanId.vlanId(Short.valueOf(vlanId));
         }
 
         addSpeakerToConf(config);
@@ -85,6 +100,7 @@ public class AddSpeakerCommand extends AbstractShellCommand {
         ConnectPoint connectPoint = ConnectPoint.
                 deviceConnectPoint(connectionPoint);
         return new BgpConfig.BgpSpeakerConfig(Optional.ofNullable(name),
-                connectPoint, new HashSet<IpAddress>());
+            vlanIdObj,
+            connectPoint, new HashSet<IpAddress>());
     }
 }

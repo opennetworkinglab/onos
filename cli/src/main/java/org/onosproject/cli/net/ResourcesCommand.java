@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,11 +34,11 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.TributarySlot;
-import org.onosproject.net.newresource.ContinuousResource;
-import org.onosproject.net.newresource.DiscreteResource;
-import org.onosproject.net.newresource.Resource;
-import org.onosproject.net.newresource.Resources;
-import org.onosproject.net.newresource.ResourceService;
+import org.onosproject.net.resource.ContinuousResource;
+import org.onosproject.net.resource.DiscreteResource;
+import org.onosproject.net.resource.Resource;
+import org.onosproject.net.resource.Resources;
+import org.onosproject.net.resource.ResourceQueryService;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ArrayListMultimap;
@@ -75,11 +75,11 @@ public class ResourcesCommand extends AbstractShellCommand {
     String portNumberStr = null;
 
 
-    private ResourceService resourceService;
+    private ResourceQueryService resourceService;
 
     @Override
     protected void execute() {
-        resourceService = get(ResourceService.class);
+        resourceService = get(ResourceQueryService.class);
 
         if (typeStrings != null) {
             typesToPrint = new HashSet<>(Arrays.asList(typeStrings));

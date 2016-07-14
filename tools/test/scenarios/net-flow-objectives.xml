@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2016 Open Networking Laboratory
+  ~ Copyright 2016-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -32,18 +32,18 @@
 
         <!-- Verify the hosts using the REST API -->
         <step name="Net-Flow-Objectives.Query-Host-1" requires="Net-Flow-Objectives.Find-Host-1"
-              exec="find-host.py ${OC1} host1 00:00:00:00:00:01/-1"/>
+              exec="find-host.py ${OC1} host1 00:00:00:00:00:01/None"/>
         <step name="Net-Flow-Objectives.Validate-Host-1-Id" requires="^"
-              exec="test '${host1Id}' == '00:00:00:00:00:01/-1'"/>
+              exec="test '${host1Id}' == '00:00:00:00:00:01/None'"/>
         <step name="Net-Flow-Objectives.Validate-Host-1-Mac" requires="^"
               exec="test '${host1Mac}' == '00:00:00:00:00:01'"/>
         <step name="Net-Flow-Objectives.Validate-Host-1-Ip" requires="^"
               exec="test '${host1IpAddress}' == '10.0.0.1'"/>
 
         <step name="Net-Flow-Objectives.Query-Host-2" requires="Net-Flow-Objectives.Find-Host-2"
-              exec="find-host.py ${OC1} host2 00:00:00:00:00:04/-1"/>
+              exec="find-host.py ${OC1} host2 00:00:00:00:00:04/None"/>
         <step name="Net-Flow-Objectives.Validate-Host-2-Id" requires="^"
-              exec="test '${host2Id}' == '00:00:00:00:00:04/-1'"/>
+              exec="test '${host2Id}' == '00:00:00:00:00:04/None'"/>
         <step name="Net-Flow-Objectives.Validate-Host-2-Mac" requires="^"
               exec="test '${host2Mac}' == '00:00:00:00:00:04'"/>
         <step name="Net-Flow-Objectives.Validate-Host-2-Ip" requires="^"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,13 @@ public interface MetricsDatabase {
      * @return metric name
      */
     String metricName();
+
+    /**
+     * Returns the resource name of this database.
+     *
+     * @return resource name
+     */
+    String resourceName();
 
     /**
      * Update metric value by specifying metric type.
@@ -136,6 +143,14 @@ public interface MetricsDatabase {
          * @return builder object
          */
         Builder withMetricName(String metricName);
+
+        /**
+         * Sets the resource name.
+         *
+         * @param resourceName resource name
+         * @return builder object
+         */
+        Builder withResourceName(String resourceName);
 
         /**
          * Add a new metric to be monitored.

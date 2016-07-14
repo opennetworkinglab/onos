@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import org.onosproject.event.ListenerService;
 import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.ElementId;
+import org.onosproject.net.Path;
 
 /**
  * Service for interacting with the inventory of tunnels.
@@ -90,6 +92,27 @@ public interface TunnelService
     Collection<Tunnel> borrowTunnel(ApplicationId consumerId, TunnelEndPoint src,
                                        TunnelEndPoint dst, Type type,
                                        Annotations... annotations);
+
+    /**
+     * Creates a tunnel with given path and default initial state. The state changes
+     * in due course of time based on changes happening in the network.
+     *
+     * @param producerId a tunnel producer
+     * @param srcElementId element id of the source
+     * @param tunnel to be created
+     * @param path path of the tunnel
+     * @return generated tunnel identity
+     */
+    TunnelId setupTunnel(ApplicationId producerId, ElementId srcElementId, Tunnel tunnel, Path path);
+
+    /**
+     * Triggers removal of specified tunnel.
+     *
+     * @param producerId a tunnel producer
+     * @param tunnelId identity for the tunnel to be triggered for removal
+     * @return success or failure
+     */
+    boolean downTunnel(ApplicationId producerId, TunnelId tunnelId);
 
     /**
      * Returns back a specific tunnel to store.

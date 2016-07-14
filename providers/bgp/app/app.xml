@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015-2016 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>
+    <artifact>mvn:${project.groupId}/onos-app-bgp-flowapi/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-bgpio/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-bgp-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-bgp-ctl/${project.version}</artifact>

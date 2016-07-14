@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.onosproject.pcep.controller;
 
+import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.pcepio.protocol.PcepMessage;
 /**
  * Notifies providers about PCEP message events.
@@ -28,4 +29,12 @@ public interface PcepEventListener {
      * @param msg the message
      */
     void handleMessage(PccId pccId, PcepMessage msg);
+
+    /**
+     * Handles end of LSPDB sync actions.
+     *
+     * @param tunnel the tunnel on which action needs to be taken
+     * @param endOfSyncAction the action that needs to be taken for the tunnel
+     */
+    void handleEndOfSyncAction(Tunnel tunnel, PcepLspSyncAction endOfSyncAction);
 }
