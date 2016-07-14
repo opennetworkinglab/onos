@@ -366,16 +366,6 @@ public class PcepTopologyProvider extends AbstractProvider
     }
 
     @Override
-    public void enablePort(DeviceId deviceId, PortNumber portNumber) {
-        // TODO
-    }
-
-    @Override
-    public void disablePort(DeviceId deviceId, PortNumber portNumber) {
-        // TODO
-    }
-
-    @Override
     public void changePortState(DeviceId deviceId, PortNumber portNumber,
                                 boolean enable) {
         // TODO Auto-generated method stub

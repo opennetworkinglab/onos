@@ -39,20 +39,4 @@ public interface DeviceAdminService extends DeviceService {
    * @param enable true if port is to be enabled, false to disable
    */
     void changePortState(DeviceId deviceId, PortNumber portNumber, boolean enable);
-
-    /**
-     * Disables the given port.
-     *
-     * @param deviceId device identifier
-     * @param portNumber port number
-     */
-    void disablePort(DeviceId deviceId, PortNumber portNumber);
-
-    /**
-     * Enables the given port.
-     *
-     * @param deviceId device identifier
-     * @param portNumber port number
-     */
-    void enablePort(DeviceId deviceId, PortNumber portNumber);
 }

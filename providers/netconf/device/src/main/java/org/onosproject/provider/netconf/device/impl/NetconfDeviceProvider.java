@@ -257,16 +257,6 @@ public class NetconfDeviceProvider extends AbstractProvider
         // TODO if required
     }
 
-    @Override
-    public void enablePort(DeviceId deviceId, PortNumber portNumber) {
-        //TODO
-    }
-
-    @Override
-    public void disablePort(DeviceId deviceId, PortNumber portNumber) {
-        //TODO
-    }
-
     private class InnerNetconfDeviceListener implements NetconfDeviceListener {
 
 

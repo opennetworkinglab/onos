@@ -374,16 +374,6 @@ public class GrpcRemoteServiceTest {
         }
 
         @Override
-        public void enablePort(DeviceId deviceId, PortNumber portNumber) {
-            // TODO
-        }
-
-        @Override
-        public void disablePort(DeviceId deviceId, PortNumber portNumber) {
-            // TODO
-        }
-
-        @Override
         public void changePortState(DeviceId deviceId, PortNumber portNumber,
                                     boolean enable) {
             log.info("portState change to {} on ({},{}) on Client called", enable,

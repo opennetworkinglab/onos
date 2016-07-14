@@ -167,16 +167,6 @@ public class RestDeviceProvider extends AbstractProvider
         return restDevice.isActive();
     }
 
-    @Override
-    public void enablePort(DeviceId deviceId, PortNumber portNumber) {
-        //TODO
-    }
-
-    @Override
-    public void disablePort(DeviceId deviceId, PortNumber portNumber) {
-        //TODO
-    }
-
     private void deviceAdded(RestSBDevice nodeId) {
         Preconditions.checkNotNull(nodeId, ISNOTNULL);
         DeviceId deviceId = nodeId.deviceId();

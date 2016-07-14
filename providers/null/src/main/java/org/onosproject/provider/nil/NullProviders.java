@@ -430,16 +430,6 @@ public class NullProviders {
         }
 
         @Override
-        public void enablePort(DeviceId deviceId, PortNumber portNumber) {
-            // TODO
-        }
-
-        @Override
-        public void disablePort(DeviceId deviceId, PortNumber portNumber) {
-            // TODO
-        }
-
-        @Override
         public void triggerProbe(DeviceId deviceId) {
         }
 

@@ -140,14 +140,6 @@ public class IsisTopologyProvider extends AbstractProvider implements DeviceProv
     }
 
     @Override
-    public void enablePort(DeviceId deviceId, PortNumber portNumber) {
-    }
-
-    @Override
-    public void disablePort(DeviceId deviceId, PortNumber portNumber) {
-    }
-
-    @Override
     public void changePortState(DeviceId deviceId, PortNumber portNumber, boolean enable) {
         log.debug("IsisDeviceProvider::changePortState...!!!!");
     }

@@ -106,13 +106,5 @@ public class AnnotateDeviceCommand extends AbstractShellCommand {
         public void changePortState(DeviceId deviceId, PortNumber portNumber,
                                     boolean enable) {
         }
-
-        @Override
-        public void enablePort(DeviceId deviceId, PortNumber portNumber) {
-        }
-
-        @Override
-        public void disablePort(DeviceId deviceId, PortNumber portNumber) {
-        }
     }
 }

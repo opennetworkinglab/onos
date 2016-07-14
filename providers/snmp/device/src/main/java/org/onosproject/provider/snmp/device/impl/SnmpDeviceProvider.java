@@ -209,16 +209,6 @@ public class SnmpDeviceProvider extends AbstractProvider
         return snmpDevice.isReachable();
     }
 
-    @Override
-    public void enablePort(DeviceId deviceId, PortNumber portNumber) {
-        //TODO
-    }
-
-    @Override
-    public void disablePort(DeviceId deviceId, PortNumber portNumber) {
-        //TODO
-    }
-
     /**
      * This class is intended to add or remove Configured SNMP Devices. Functionality relies on 'createFlag' and
      * 'SnmpDevice' content. The functionality runs as a thread and depending on the 'createFlag' value it will create

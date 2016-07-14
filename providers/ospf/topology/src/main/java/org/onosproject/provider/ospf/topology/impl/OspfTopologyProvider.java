@@ -116,14 +116,6 @@ public class OspfTopologyProvider extends AbstractProvider implements DeviceProv
     }
 
     @Override
-    public void enablePort(DeviceId deviceId, PortNumber portNumber) {
-    }
-
-    @Override
-    public void disablePort(DeviceId deviceId, PortNumber portNumber) {
-    }
-
-    @Override
     public void changePortState(DeviceId deviceId, PortNumber portNumber, boolean enable) {
         log.info("changePortState on device {}", deviceId);
     }

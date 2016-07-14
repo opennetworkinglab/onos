@@ -440,16 +440,6 @@ public class GrpcRemoteServiceServer {
         }
 
         @Override
-        public void enablePort(DeviceId deviceId, PortNumber portNumber) {
-            //TODO
-        }
-
-        @Override
-        public void disablePort(DeviceId deviceId, PortNumber portNumber) {
-            //TODO
-        }
-
-        @Override
         public ProviderId id() {
             return checkNotNull(providerId, "not initialized yet");
         }

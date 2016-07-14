@@ -191,14 +191,6 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
     }
 
     @Override
-    public void enablePort(DeviceId deviceId, PortNumber portNumber) {
-    }
-
-    @Override
-    public void disablePort(DeviceId deviceId, PortNumber portNumber) {
-    }
-
-    @Override
     public void changePortState(DeviceId deviceId, PortNumber portNumber, boolean enable) {
         log.warn("changePortState() not supported");
     }

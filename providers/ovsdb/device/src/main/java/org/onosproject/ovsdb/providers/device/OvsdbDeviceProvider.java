@@ -111,16 +111,6 @@ public class OvsdbDeviceProvider extends AbstractProvider
         return !(ovsdbClient == null || !ovsdbClient.isConnected());
     }
 
-    @Override
-    public void enablePort(DeviceId deviceId, PortNumber portNumber) {
-        //TODO
-    }
-
-    @Override
-    public void disablePort(DeviceId deviceId, PortNumber portNumber) {
-        //TODO
-    }
-
     private class InnerOvsdbNodeListener implements OvsdbNodeListener {
 
         @Override
