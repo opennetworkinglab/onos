@@ -213,6 +213,9 @@ public class DistributedPacketStore
         private AtomicBoolean addInternal(PacketRequest request) {
             AtomicBoolean firstRequest = new AtomicBoolean(false);
             requests.compute(request.selector(), (s, existingRequests) -> {
+                // Reset to false just in case this is a retry due to
+                // ConcurrentModificationException
+                firstRequest.set(false);
                 if (existingRequests == null) {
                     firstRequest.set(true);
                     return ImmutableSet.of(request);
@@ -239,6 +242,9 @@ public class DistributedPacketStore
         private AtomicBoolean removeInternal(PacketRequest request) {
             AtomicBoolean removedLast = new AtomicBoolean(false);
             requests.computeIfPresent(request.selector(), (s, existingRequests) -> {
+                // Reset to false just in case this is a retry due to
+                // ConcurrentModificationException
+                removedLast.set(false);
                 if (existingRequests.contains(request)) {
                     Set<PacketRequest> newRequests = Sets.newHashSet(existingRequests);
                     newRequests.remove(request);
