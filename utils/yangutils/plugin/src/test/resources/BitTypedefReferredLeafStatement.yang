@@ -1,0 +1,22 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+    typedef topBits { 
+        type bits {
+             bit disable-nagle {
+                 position 0;
+             }
+             bit auto-sense-speed {
+                 position 1;
+             }
+             bit Mb-only {
+                 position 2;
+             }
+         }
+    }
+
+    leaf myBits {
+        type topBits;
+    }
+}

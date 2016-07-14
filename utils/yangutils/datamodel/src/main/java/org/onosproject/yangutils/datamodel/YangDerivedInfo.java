@@ -478,9 +478,7 @@ public class YangDerivedInfo<T>
                 return RESOLVED;
             }
         } else if (getEffectiveBuiltInType() == DECIMAL64) {
-            if ((refDerivedInfo.getResolvedExtendedInfo() == null) ||
-                    (((YangDecimal64) refDerivedInfo.getResolvedExtendedInfo())
-                            .getRangeRestrictedExtendedInfo() == null)) {
+            if (refDerivedInfo.getResolvedExtendedInfo() == null) {
                 resolveRangeRestriction(null);
                  /*
                   * Return the resolution status as resolved, if it's not;
@@ -489,13 +487,12 @@ public class YangDerivedInfo<T>
                   */
                 return RESOLVED;
             } else {
-                if (!(((YangDecimal64) refDerivedInfo.getResolvedExtendedInfo())
-                        .getRangeRestrictedExtendedInfo() instanceof YangRangeRestriction)) {
+                if (!(refDerivedInfo.getResolvedExtendedInfo() instanceof YangRangeRestriction)) {
                     throw new DataModelException("Linker error: Referred typedef restriction info is of invalid " +
                                                          "type.");
                 }
-                resolveRangeRestriction((YangRangeRestriction) ((YangDecimal64) refDerivedInfo
-                        .getResolvedExtendedInfo()).getRangeRestrictedExtendedInfo());
+                resolveRangeRestriction((YangRangeRestriction) refDerivedInfo
+                        .getResolvedExtendedInfo());
                 /*
                  * Return the resolution status as resolved, if it's not
                  * resolve range/string restriction will throw exception in

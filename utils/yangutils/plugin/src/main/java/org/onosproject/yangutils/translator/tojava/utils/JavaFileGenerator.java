@@ -22,15 +22,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangAugment;
+import org.onosproject.yangutils.datamodel.YangAugmentableNode;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangLeavesHolder;
-import org.onosproject.yangutils.datamodel.YangAugmentableNode;
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangTypeDef;
+import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
+import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
 import org.onosproject.yangutils.translator.tojava.TempJavaEnumerationFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaServiceFragmentFiles;
@@ -70,6 +74,8 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.TO_STRING_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getAttributeInfoForTheData;
+import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getQualifiedTypeInfoOfCurNode;
 import static org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles.getCurNodeAsAttributeInTarget;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.addAugmentationAttribute;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getEnumsValueAttribute;
@@ -111,6 +117,9 @@ import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringSelectLeafListgetter;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringSelectLeafgetter;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getisFilterContentMatch;
+import static org.onosproject.yangutils.utils.UtilConstants.BASE64;
+import static org.onosproject.yangutils.utils.UtilConstants.BINARY_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.BITS_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
@@ -122,6 +131,11 @@ import static org.onosproject.yangutils.utils.UtilConstants.EVENT_LISTENER_STRIN
 import static org.onosproject.yangutils.utils.UtilConstants.EVENT_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.EVENT_SUBJECT_NAME_SUFFIX;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.GET_ENCODER;
+import static org.onosproject.yangutils.utils.UtilConstants.ENCODE_TO_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_UTIL_OBJECTS_IMPORT_PKG;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_UTIL_IMPORT_BASE64_CLASS;
+import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.INT;
 import static org.onosproject.yangutils.utils.UtilConstants.LOGGER_STATEMENT;
 import static org.onosproject.yangutils.utils.UtilConstants.MANAGER;
@@ -150,10 +164,13 @@ import static org.onosproject.yangutils.utils.UtilConstants.ENUM;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.MERGE;
 import static org.onosproject.yangutils.utils.UtilConstants.REPLACE;
+import static org.onosproject.yangutils.utils.UtilConstants.RETURN;
 import static org.onosproject.yangutils.utils.UtilConstants.CREATE;
 import static org.onosproject.yangutils.utils.UtilConstants.REMOVE;
 import static org.onosproject.yangutils.utils.UtilConstants.DELETE;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
+import static org.onosproject.yangutils.utils.UtilConstants.STRING_DATA_TYPE;
+import static org.onosproject.yangutils.utils.UtilConstants.TO;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.GETTER_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.TYPE_CONSTRUCTOR;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
@@ -830,8 +847,15 @@ public final class JavaFileGenerator {
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
         YangPluginConfig pluginConfig = javaFileInfo.getPluginConfig();
 
+        // import
         String className = getCapitalCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
+        YangTypeDef typeDef = (YangTypeDef) curNode;
+        List<YangType<?>> types = typeDef.getTypeList();
+        YangType type = types.get(0);
+        if (type.getDataType().equals(YangDataTypes.BINARY)) {
+            imports.add(IMPORT + JAVA_UTIL_OBJECTS_IMPORT_PKG + PERIOD + JAVA_UTIL_IMPORT_BASE64_CLASS);
+        }
 
         initiateJavaFileGeneration(file, className, GENERATE_TYPEDEF_CLASS, imports, path, pluginConfig);
 
@@ -899,9 +923,39 @@ public final class JavaFileGenerator {
             /**
              * To string method.
              */
-            methods.add(getToStringMethodOpen() + getDataFromTempFileHandle(TO_STRING_IMPL_MASK,
+             if (type.getDataType().equals(YangDataTypes.BINARY)) {
+                    JavaQualifiedTypeInfo qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(curNode,
+                                                                     getCapitalCase(BINARY_STRING));
+
+                    JavaAttributeInfo attr =  getAttributeInfoForTheData(qualifiedTypeInfo, BINARY_STRING, null, false,
+                                                                         false);
+                    String attributeName = attr.getAttributeName();
+                    String bitsToStringMethod = MethodsGenerator.getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC
+                            + SPACE + STRING_DATA_TYPE + SPACE + TO + STRING_DATA_TYPE + OPEN_PARENTHESIS
+                            + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION
+                            + RETURN + SPACE + BASE64 + PERIOD + GET_ENCODER + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
+                            + PERIOD + ENCODE_TO_STRING + OPEN_PARENTHESIS + attributeName + CLOSE_PARENTHESIS
+                            + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE;
+                    methods.add(bitsToStringMethod);
+             } else if (type.getDataType().equals(YangDataTypes.BITS)) {
+                    JavaQualifiedTypeInfo qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(curNode,
+                                                                     getCapitalCase(BITS_STRING));
+
+                    JavaAttributeInfo attr =  getAttributeInfoForTheData(qualifiedTypeInfo, BITS_STRING,
+                                                                         null, false, false);
+                    String attributeName = attr.getAttributeName();
+                    String bitsToStringMethod = MethodsGenerator.getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC
+                            + SPACE + STRING_DATA_TYPE + SPACE + TO + STRING_DATA_TYPE + OPEN_PARENTHESIS
+                            + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION
+                            + RETURN + SPACE + attributeName + PERIOD + TO + STRING_DATA_TYPE + OPEN_PARENTHESIS
+                            + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET
+                            + NEW_LINE;
+                    methods.add(bitsToStringMethod);
+            } else {
+                methods.add(getToStringMethodOpen() + getDataFromTempFileHandle(TO_STRING_IMPL_MASK,
                     ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles().getTypeTempFiles(),
                     path) + getToStringMethodClose());
+            }
 
             JavaCodeGeneratorInfo javaGeninfo = (JavaCodeGeneratorInfo) curNode;
             /**

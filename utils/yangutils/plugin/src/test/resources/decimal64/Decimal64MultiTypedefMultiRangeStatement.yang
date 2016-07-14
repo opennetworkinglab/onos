@@ -1,0 +1,22 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+
+    typedef topDecimal {
+         type decimal64 {
+            fraction-digits 4;
+            range 1..12;
+         }
+    }
+
+    typedef midDecimal {
+         type topDecimal;
+    }
+
+    leaf lowerDecimal {
+         type midDecimal {
+            range 4..11;
+         }
+    }
+}

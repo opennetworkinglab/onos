@@ -21,6 +21,7 @@ import static org.hamcrest.core.Is.is;
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangBit;
 import org.onosproject.yangutils.datamodel.YangBits;
+import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangModule;
@@ -151,6 +152,117 @@ public class BitListenerTest {
 
         // Check bit position map
         Map<Integer, YangBit> bitPositionMap = ((YangBits) type.getDataTypeExtendedInfo()).getBitPositionMap();
+        assertThat(bitPositionMap.size(), is(3));
+        for (Map.Entry<Integer, YangBit> element : bitPositionMap.entrySet()) {
+            int position = element.getKey();
+            YangBit yangBit = element.getValue();
+            if (position == 0) {
+                assertThat(yangBit.getBitName(), is("disable-nagle"));
+            } else if (position == 1) {
+                assertThat(yangBit.getBitName(), is("auto-sense-speed"));
+            } else if (position == 2) {
+                assertThat(yangBit.getBitName(), is("Mb-only"));
+            } else {
+                throw new IOException("Invalid bit position: " + position);
+            }
+        }
+    }
+
+    /**
+     * Checks bit statement with typedef with referred leaf.
+     */
+    @Test
+    public void processBitTypedefReferredLeafStatement() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/BitTypedefReferredLeafStatement.yang");
+
+        // Check whether the data model tree returned is of type module.
+        assertThat((node instanceof YangModule), is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+
+        // Check whether the module name is set correctly.
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        YangTypeDef typedef = (YangTypeDef) yangNode.getChild();
+        assertThat(typedef.getName(), is("topBits"));
+
+        YangType type = typedef.getTypeList().iterator().next();
+        assertThat(type.getDataType(), is(YangDataTypes.BITS));
+        assertThat(type.getDataTypeName(), is("bits"));
+
+        // Check bit name map
+        Map<String, YangBit> bitNameMap = ((YangBits) type.getDataTypeExtendedInfo()).getBitNameMap();
+        assertThat(bitNameMap.size(), is(3));
+        for (Map.Entry<String, YangBit> element : bitNameMap.entrySet()) {
+            String bitName = element.getKey();
+            YangBit yangBit = element.getValue();
+            if (bitName.equals("disable-nagle")) {
+                assertThat(yangBit.getPosition(), is(0));
+            } else if (bitName.equals("auto-sense-speed")) {
+                assertThat(yangBit.getPosition(), is(1));
+            } else if (bitName.equals("Mb-only")) {
+                assertThat(yangBit.getPosition(), is(2));
+            } else {
+                throw new IOException("Invalid bit name: " + bitName);
+            }
+        }
+
+        // Check bit position map
+        Map<Integer, YangBit> bitPositionMap = ((YangBits) type.getDataTypeExtendedInfo()).getBitPositionMap();
+        assertThat(bitPositionMap.size(), is(3));
+        for (Map.Entry<Integer, YangBit> element : bitPositionMap.entrySet()) {
+            int position = element.getKey();
+            YangBit yangBit = element.getValue();
+            if (position == 0) {
+                assertThat(yangBit.getBitName(), is("disable-nagle"));
+            } else if (position == 1) {
+                assertThat(yangBit.getBitName(), is("auto-sense-speed"));
+            } else if (position == 2) {
+                assertThat(yangBit.getBitName(), is("Mb-only"));
+            } else {
+                throw new IOException("Invalid bit position: " + position);
+            }
+        }
+
+        // Check leaf reffered typedef
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        assertThat(leafInfo.getName(), is("myBits"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("topBits"));
+        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
+        YangType<YangDerivedInfo> typeDerived = (YangType<YangDerivedInfo>) leafInfo.getDataType();
+        YangDerivedInfo derivedInfo = (YangDerivedInfo) typeDerived.getDataTypeExtendedInfo();
+        YangTypeDef prevTypedef = (YangTypeDef) derivedInfo.getReferredTypeDef();
+        assertThat(prevTypedef.getName(), is("topBits"));
+        YangType topType = prevTypedef.getTypeList().iterator().next();
+        assertThat(topType.getDataType(), is(YangDataTypes.BITS));
+        assertThat(topType.getDataTypeName(), is("bits"));
+        YangType<YangBits> typeBits = (YangType<YangBits>) topType;
+        YangBits bits = typeBits.getDataTypeExtendedInfo();
+
+        // Check bit name map
+        bitNameMap = bits.getBitNameMap();
+        assertThat(bitNameMap.size(), is(3));
+        for (Map.Entry<String, YangBit> element : bitNameMap.entrySet()) {
+            String bitName = element.getKey();
+            YangBit yangBit = element.getValue();
+            if (bitName.equals("disable-nagle")) {
+                assertThat(yangBit.getPosition(), is(0));
+            } else if (bitName.equals("auto-sense-speed")) {
+                assertThat(yangBit.getPosition(), is(1));
+            } else if (bitName.equals("Mb-only")) {
+                assertThat(yangBit.getPosition(), is(2));
+            } else {
+                throw new IOException("Invalid bit name: " + bitName);
+            }
+        }
+
+        // Check bit position map
+        bitPositionMap = bits.getBitPositionMap();
         assertThat(bitPositionMap.size(), is(3));
         for (Map.Entry<Integer, YangBit> element : bitPositionMap.entrySet()) {
             int position = element.getKey();

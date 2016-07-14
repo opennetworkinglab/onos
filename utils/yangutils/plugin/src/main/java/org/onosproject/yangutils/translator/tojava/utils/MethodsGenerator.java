@@ -59,6 +59,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.ADD_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.AND;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED;
+import static org.onosproject.yangutils.utils.UtilConstants.BASE64;
 import static org.onosproject.yangutils.utils.UtilConstants.BIG_DECIMAL;
 import static org.onosproject.yangutils.utils.UtilConstants.BIG_INTEGER;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_DATA_TYPE;
@@ -74,10 +75,11 @@ import static org.onosproject.yangutils.utils.UtilConstants.CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.CLASS_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
-import static org.onosproject.yangutils.utils.UtilConstants.COLAN;
+import static org.onosproject.yangutils.utils.UtilConstants.COLON;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
 import static org.onosproject.yangutils.utils.UtilConstants.DEACTIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.DEACTIVATE_ANNOTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.DECODE;
 import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_CLOSE_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_OPEN_BRACKET;
@@ -89,11 +91,12 @@ import static org.onosproject.yangutils.utils.UtilConstants.EQUALS_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.EXCEPTION;
 import static org.onosproject.yangutils.utils.UtilConstants.EXCEPTION_VAR;
 import static org.onosproject.yangutils.utils.UtilConstants.FALSE;
+import static org.onosproject.yangutils.utils.UtilConstants.FOR;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_METHOD_NAME;
 import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_PARAM_NAME;
 import static org.onosproject.yangutils.utils.UtilConstants.GET;
-import static org.onosproject.yangutils.utils.UtilConstants.GET_BYTES;
+import static org.onosproject.yangutils.utils.UtilConstants.GET_DECODER;
 import static org.onosproject.yangutils.utils.UtilConstants.GET_METHOD_PREFIX;
 import static org.onosproject.yangutils.utils.UtilConstants.GOOGLE_MORE_OBJECT_METHOD_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.HASH;
@@ -170,6 +173,12 @@ import static org.onosproject.yangutils.utils.UtilConstants.FILTER_CONTENT_MATCH
 import static org.onosproject.yangutils.utils.UtilConstants.APP_INSTANCE;
 import static org.onosproject.yangutils.utils.UtilConstants.NOT;
 import static org.onosproject.yangutils.utils.UtilConstants.OR_OPERATION;
+import static org.onosproject.yangutils.utils.UtilConstants.REPLACE_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.SINGLE_QUOTE;
+import static org.onosproject.yangutils.utils.UtilConstants.SPLIT_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.SQUARE_BRACKETS;
+import static org.onosproject.yangutils.utils.UtilConstants.TRIM_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.ZERO;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILD_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.CONSTRUCTOR;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.DEFAULT_CONSTRUCTOR;
@@ -188,11 +197,15 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getSmallCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BINARY;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BITS;
 
 /**
  * Represents generator for methods of generated files based on the file type.
  */
 public final class MethodsGenerator {
+    private static final String BITS_STRING_ARRAY_VAR = "bitsTemp";
+    private static final String BIT_TEMP_VAR = "bitTemp";
+    private static final String FOR_TYPE = " for type ";
 
     /**
      * Creates an instance of method generator.
@@ -1085,14 +1098,39 @@ public final class MethodsGenerator {
                                              JavaAttributeInfo fromStringAttributeInfo) {
 
         String targetDataType = getReturnType(attr);
-        if (fromStringAttributeInfo.getAttributeType().getDataType() == BINARY) {
-            return targetDataType + SPACE + TMP_VAL + SPACE + EQUAL + SPACE + FROM_STRING_PARAM_NAME
-                    + PERIOD + GET_BYTES + OPEN_PARENTHESIS + CLOSE_PARENTHESIS;
+        if (fromStringAttributeInfo.getAttributeType().getDataType() == BITS) {
+            String lines = targetDataType + SPACE + TMP_VAL + SPACE + EQUAL + SPACE + NEW + SPACE + targetDataType
+                    + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
+            lines += TWELVE_SPACE_INDENTATION + FROM_STRING_PARAM_NAME + SPACE + EQUAL + SPACE + FROM_STRING_PARAM_NAME
+                    + PERIOD + REPLACE_STRING + OPEN_PARENTHESIS + SINGLE_QUOTE + OPEN_CURLY_BRACKET + SINGLE_QUOTE
+                    + COMMA + SPACE + SINGLE_QUOTE + SPACE + SINGLE_QUOTE + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
+            lines += TWELVE_SPACE_INDENTATION + FROM_STRING_PARAM_NAME + SPACE + EQUAL + SPACE + FROM_STRING_PARAM_NAME
+                    + PERIOD + REPLACE_STRING + OPEN_PARENTHESIS + SINGLE_QUOTE + CLOSE_CURLY_BRACKET + SINGLE_QUOTE
+                    + COMMA + SPACE + SINGLE_QUOTE + SPACE + SINGLE_QUOTE + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
+            lines += TWELVE_SPACE_INDENTATION + FROM_STRING_PARAM_NAME + SPACE + EQUAL + SPACE + FROM_STRING_PARAM_NAME
+                    + PERIOD + TRIM_STRING + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
+            lines += TWELVE_SPACE_INDENTATION + STRING_DATA_TYPE + SQUARE_BRACKETS + SPACE + BITS_STRING_ARRAY_VAR
+                    + SPACE + EQUAL + SPACE + FROM_STRING_PARAM_NAME + PERIOD + SPLIT_STRING + OPEN_PARENTHESIS
+                    + QUOTES + COMMA + QUOTES + COMMA + SPACE + ZERO + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
+            lines += TWELVE_SPACE_INDENTATION + FOR + SPACE + OPEN_PARENTHESIS + STRING_DATA_TYPE + SPACE
+                    + BIT_TEMP_VAR + SPACE + COLON + SPACE + BITS_STRING_ARRAY_VAR + CLOSE_PARENTHESIS + SPACE
+                    + OPEN_CURLY_BRACKET + NEW_LINE;
+            lines += SIXTEEN_SPACE_INDENTATION + BIT_TEMP_VAR + SPACE + EQUAL + SPACE + BIT_TEMP_VAR + PERIOD
+                    + TRIM_STRING + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
+            lines += SIXTEEN_SPACE_INDENTATION + TMP_VAL + PERIOD + SET_METHOD_PREFIX + OPEN_PARENTHESIS
+                    + INTEGER_WRAPPER + PERIOD + PARSE_INT + OPEN_PARENTHESIS + BIT_TEMP_VAR + CLOSE_PARENTHESIS
+                    + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
+            lines += TWELVE_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+            return lines;
+        } else if (attr.getAttributeType().getDataType() == BINARY) {
+            return targetDataType + SPACE + TMP_VAL + SPACE + EQUAL + SPACE + BASE64 + PERIOD
+                    + GET_DECODER + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + PERIOD + DECODE + OPEN_PARENTHESIS
+                    + FROM_STRING_PARAM_NAME + CLOSE_PARENTHESIS + SEMI_COLAN;
         } else {
             String parseFromStringMethod = getParseFromStringMethod(targetDataType,
                                                                     fromStringAttributeInfo.getAttributeType());
             return targetDataType + SPACE + TMP_VAL + SPACE + EQUAL + SPACE + parseFromStringMethod
-                    + OPEN_PARENTHESIS + FROM_STRING_PARAM_NAME + CLOSE_PARENTHESIS;
+                    + OPEN_PARENTHESIS + FROM_STRING_PARAM_NAME + CLOSE_PARENTHESIS + SEMI_COLAN;
         }
     }
 
@@ -1350,15 +1388,15 @@ public final class MethodsGenerator {
         for (String str : enumList) {
 
             value = enumMap.get(str);
-            method = method + TWELVE_SPACE_INDENTATION + CASE + SPACE + value + COLAN + NEW_LINE
+            method = method + TWELVE_SPACE_INDENTATION + CASE + SPACE + value + COLON + NEW_LINE
                     + SIXTEEN_SPACE_INDENTATION + RETURN + SPACE + getCapitalCase(className) + PERIOD
                     + str + SEMI_COLAN + NEW_LINE;
         }
-        method = method + TWELVE_SPACE_INDENTATION + DEFAULT + SPACE + COLAN + NEW_LINE + SIXTEEN_SPACE_INDENTATION
+        method = method + TWELVE_SPACE_INDENTATION + DEFAULT + SPACE + COLON + NEW_LINE + SIXTEEN_SPACE_INDENTATION
                 + RETURN + SPACE + NULL + SEMI_COLAN + NEW_LINE + EIGHT_SPACE_INDENTATION + CLOSE_CURLY_BRACKET
                 + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
 
-        return getJavaDoc(OF_METHOD, getCapitalCase(className) + " for type " + attrName, false, pluginConfig)
+        return getJavaDoc(OF_METHOD, getCapitalCase(className) + FOR_TYPE + attrName, false, pluginConfig)
                 + method;
     }
 

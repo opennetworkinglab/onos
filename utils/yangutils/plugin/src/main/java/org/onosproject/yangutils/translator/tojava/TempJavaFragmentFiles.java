@@ -1613,7 +1613,6 @@ public class TempJavaFragmentFiles {
                     addBitsetImport(imports, false);
                 }
                 insertDataIntoJavaFile(getOpParamClassJavaFileHandle(), getJavaClassDefClose());
-
             }
         }
         /*

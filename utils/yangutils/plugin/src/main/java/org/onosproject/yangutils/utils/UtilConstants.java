@@ -237,6 +237,31 @@ public final class UtilConstants {
     public static final String PARSE_LONG = "parseLong";
 
     /**
+     * Static attribute for base64.
+     */
+    public static final String BASE64 = "Base64";
+
+    /**
+     * Static attribute for getEncoder.
+     */
+    public static final String GET_ENCODER = "getEncoder";
+
+    /**
+     * Static attribute for encodeToString.
+     */
+    public static final String ENCODE_TO_STRING = "encodeToString";
+
+    /**
+     * Static attribute for getDecoder.
+     */
+    public static final String GET_DECODER = "getDecoder";
+
+    /**
+     * Static attribute for decode.
+     */
+    public static final String DECODE = "decode";
+
+    /**
      * Static attribute for omit null value.
      */
     public static final String OMIT_NULL_VALUE_STRING = "omitNullValues()";
@@ -322,6 +347,16 @@ public final class UtilConstants {
     public static final String IDENTITYREF = "identityref";
 
     /**
+     * Static attribute for binary string.
+     */
+    public static final String BINARY_STRING = "binary";
+
+    /**
+     * Static attribute for bits string.
+     */
+    public static final String BITS_STRING = "bits";
+
+    /**
      * Static attribute for output variable of rpc.
      */
     public static final String RPC_INPUT_VAR_NAME = "inputVar";
@@ -342,9 +377,19 @@ public final class UtilConstants {
     public static final String ADD = "+";
 
     /**
+     * Static attribute for single quote.
+     */
+    public static final String SINGLE_QUOTE = "\'";
+
+    /**
      * Static attribute for quotes.
      */
     public static final String QUOTES = "\"";
+
+    /**
+     * Static attribute for zero.
+     */
+    public static final String ZERO = "0";
 
     /**
      * Static attribute for ampersand.
@@ -412,6 +457,21 @@ public final class UtilConstants {
     public static final String ADD_STRING = "add";
 
     /**
+     * Static attribute for string replace syntax.
+     */
+    public static final String REPLACE_STRING = "replace";
+
+    /**
+     * Static attribute for string trim syntax.
+     */
+    public static final String TRIM_STRING = "trim";
+
+    /**
+     * Static attribute for string split syntax.
+     */
+    public static final String SPLIT_STRING = "split";
+
+    /**
      * Static attribute for from syntax.
      */
     public static final String FROM_STRING_METHOD_NAME = "fromString";
@@ -455,6 +515,11 @@ public final class UtilConstants {
      * Static attribute for if.
      */
     public static final String IF = "if";
+
+    /**
+     * Static attribute for "for" syntax.
+     */
+    public static final String FOR = "for";
 
     /**
      * Static attribute for of.
@@ -1101,6 +1166,11 @@ public final class UtilConstants {
      * Static attribute for java utilities objects import class.
      */
     public static final String JAVA_UTIL_OBJECTS_IMPORT_CLASS = "Objects;\n";
+
+    /**
+     * Static attribute for java utilities import base64 class.
+     */
+    public static final String JAVA_UTIL_IMPORT_BASE64_CLASS = "Base64;\n";
 
     /**
      * Static attribute for AugmentedInfo class import package.

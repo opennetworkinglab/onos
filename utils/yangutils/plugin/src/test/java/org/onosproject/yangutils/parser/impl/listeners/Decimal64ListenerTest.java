@@ -33,6 +33,7 @@ import org.onosproject.yangutils.datamodel.YangRangeInterval;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.linker.exceptions.LinkerException;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
@@ -56,7 +57,7 @@ public class Decimal64ListenerTest {
     @Test
     public void processDecimal64TypeStatement() throws IOException, ParserException {
 
-        YangNode node = manager.getDataModel("src/test/resources/Decimal64TypeStatement.yang");
+        YangNode node = manager.getDataModel("src/test/resources/decimal64/Decimal64TypeStatement.yang");
 
         // Check whether the data model tree returned is of type module.
         assertThat((node instanceof YangModule), is(true));
@@ -84,7 +85,7 @@ public class Decimal64ListenerTest {
     @Test
     public void processDecimal64TypeWithRangeStatement() throws IOException, ParserException {
 
-        YangNode node = manager.getDataModel("src/test/resources/Decimal64TypeWithRangeStatement.yang");
+        YangNode node = manager.getDataModel("src/test/resources/decimal64/Decimal64TypeWithRangeStatement.yang");
 
         // Check whether the data model tree returned is of type module.
         assertThat((node instanceof YangModule), is(true));
@@ -122,7 +123,7 @@ public class Decimal64ListenerTest {
     @Test
     public void processDecimal64ValueSuccessfulValidation() throws IOException, ParserException, DataModelException {
 
-        YangNode node = manager.getDataModel("src/test/resources/Decimal64TypeValidation.yang");
+        YangNode node = manager.getDataModel("src/test/resources/decimal64/Decimal64TypeValidation.yang");
 
         // Check whether the data model tree returned is of type module.
         assertThat((node instanceof YangModule), is(true));
@@ -157,7 +158,7 @@ public class Decimal64ListenerTest {
         thrown.expect(DataModelException.class);
         thrown.expectMessage("YANG file error : decimal64 validation failed.");
 
-        YangNode node = manager.getDataModel("src/test/resources/Decimal64TypeValidation.yang");
+        YangNode node = manager.getDataModel("src/test/resources/decimal64/Decimal64TypeValidation.yang");
 
         // Check whether the data model tree returned is of type module.
         assertThat((node instanceof YangModule), is(true));
@@ -191,7 +192,7 @@ public class Decimal64ListenerTest {
         thrown.expect(ParserException.class);
         thrown.expectMessage("YANG file error : fraction-digits value should be between 1 and 18.");
 
-        manager.getDataModel("src/test/resources/Decimal64TypeInvalidMaxValueFraction.yang");
+        manager.getDataModel("src/test/resources/decimal64/Decimal64TypeInvalidMaxValueFraction.yang");
     }
 
     /**
@@ -202,7 +203,7 @@ public class Decimal64ListenerTest {
         thrown.expect(ParserException.class);
         thrown.expectMessage("YANG file error : fraction-digits value should be between 1 and 18.");
 
-        manager.getDataModel("src/test/resources/Decimal64TypeInvalidMinValueFraction1.yang");
+        manager.getDataModel("src/test/resources/decimal64/Decimal64TypeInvalidMinValueFraction1.yang");
     }
 
     /**
@@ -213,7 +214,7 @@ public class Decimal64ListenerTest {
         thrown.expect(ParserException.class);
         thrown.expectMessage("YANG file error : fraction-digits value should be between 1 and 18.");
 
-        manager.getDataModel("src/test/resources/Decimal64TypeInvalidMinValueFraction2.yang");
+        manager.getDataModel("src/test/resources/decimal64/Decimal64TypeInvalidMinValueFraction2.yang");
     }
 
     /**
@@ -222,7 +223,7 @@ public class Decimal64ListenerTest {
     @Test
     public void processDecimal64TypeWithMultiValueRangeStatement() throws IOException, ParserException {
 
-        YangNode node = manager.getDataModel("src/test/resources/Decimal64TypeWithMultiValueRangeStmnt.yang");
+        YangNode node = manager.getDataModel("src/test/resources/decimal64/Decimal64TypeWithMultiValueRangeStmnt.yang");
 
         // Check whether the data model tree returned is of type module.
         assertThat((node instanceof YangModule), is(true));
@@ -272,7 +273,7 @@ public class Decimal64ListenerTest {
         thrown.expect(ParserException.class);
         thrown.expectMessage("YANG file error : decimal64 validation failed.");
 
-        manager.getDataModel("src/test/resources/Decimal64TypeInvalidRangeStmnt.yang");
+        manager.getDataModel("src/test/resources/decimal64/Decimal64TypeInvalidRangeStmnt.yang");
     }
 
     /**
@@ -283,7 +284,7 @@ public class Decimal64ListenerTest {
         thrown.expect(ParserException.class);
         thrown.expectMessage("YANG file error : a type decimal64 must have fraction-digits statement.");
 
-        manager.getDataModel("src/test/resources/Decimal64TypeWithoutFraction.yang");
+        manager.getDataModel("src/test/resources/decimal64/Decimal64TypeWithoutFraction.yang");
     }
 
     /**
@@ -292,7 +293,7 @@ public class Decimal64ListenerTest {
     @Test
     public void processDecimal64TypedefStatement() throws IOException, ParserException {
 
-        YangNode node = manager.getDataModel("src/test/resources/Decimal64TypedefStatement.yang");
+        YangNode node = manager.getDataModel("src/test/resources/decimal64/Decimal64TypedefStatement.yang");
 
         // Check whether the data model tree returned is of type module.
         assertThat((node instanceof YangModule), is(true));
@@ -329,7 +330,7 @@ public class Decimal64ListenerTest {
     @Test
     public void processDecimal64MultiTypedefStatement() throws IOException, ParserException {
 
-        YangNode node = manager.getDataModel("src/test/resources/Decimal64MultiTypedefStatement.yang");
+        YangNode node = manager.getDataModel("src/test/resources/decimal64/Decimal64MultiTypedefStatement.yang");
 
         // Check whether the data model tree returned is of type module.
         assertThat((node instanceof YangModule), is(true));
@@ -345,15 +346,15 @@ public class Decimal64ListenerTest {
         YangLeaf leafInfo = leafIterator.next();
 
         // check leaf type
-        assertThat(leafInfo.getName(), is("setFourDecimal"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("validDecimal"));
+        assertThat(leafInfo.getName(), is("lowerDecimal"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("midDecimal"));
         YangType<YangDerivedInfo> derivedInfoType = (YangType<YangDerivedInfo>) leafInfo.getDataType();
         assertThat(derivedInfoType.getDataType(), is(YangDataTypes.DERIVED));
         YangDerivedInfo derivedInfo = (YangDerivedInfo) derivedInfoType.getDataTypeExtendedInfo();
 
         // check previous typedef
         YangTypeDef prevTypedef = (YangTypeDef) derivedInfo.getReferredTypeDef();
-        assertThat(prevTypedef.getName(), is("validDecimal"));
+        assertThat(prevTypedef.getName(), is("midDecimal"));
         YangType type = prevTypedef.getTypeList().iterator().next();
         assertThat(type.getDataType(), is(YangDataTypes.DERIVED));
         derivedInfo = (YangDerivedInfo) type.getDataTypeExtendedInfo();
@@ -367,5 +368,261 @@ public class Decimal64ListenerTest {
         YangType<YangDecimal64> decimal64Type = (YangType<YangDecimal64>) type;
         YangDecimal64 decimal64 = decimal64Type.getDataTypeExtendedInfo();
         assertThat(decimal64.getFractionDigit(), is(4));
+    }
+
+    /**
+     * Checks decimal64 with multiple typedef with single range statement.
+     * Range value in typedef statement.
+     */
+    @Test
+    public void processDecimal64MultiTypedefRangeStatement() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/decimal64/Decimal64MultiTypedefRangeStatement.yang");
+
+        // Check whether the data model tree returned is of type module.
+        assertThat((node instanceof YangModule), is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+
+        // Check whether the module name is set correctly.
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        // check leaf type
+        assertThat(leafInfo.getName(), is("lowerDecimal"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("midDecimal"));
+        YangType<YangDerivedInfo> derivedInfoType = (YangType<YangDerivedInfo>) leafInfo.getDataType();
+        assertThat(derivedInfoType.getDataType(), is(YangDataTypes.DERIVED));
+        YangDerivedInfo derivedInfo = (YangDerivedInfo) derivedInfoType.getDataTypeExtendedInfo();
+
+        // Check range restriction
+        YangRangeRestriction rangeRestriction = (YangRangeRestriction) derivedInfo.getResolvedExtendedInfo();
+        ListIterator<YangRangeInterval> rangeListIterator = rangeRestriction.getAscendingRangeIntervals()
+                .listIterator();
+        YangRangeInterval rangeInterval = rangeListIterator.next();
+        assertThat(((YangDecimal64) rangeInterval.getStartValue()).getValue().doubleValue(), is(1.0));
+        assertThat(((YangDecimal64) rangeInterval.getEndValue()).getValue().doubleValue(), is(12.0));
+
+        // check previous typedef
+        YangTypeDef prevTypedef = (YangTypeDef) derivedInfo.getReferredTypeDef();
+        assertThat(prevTypedef.getName(), is("midDecimal"));
+        YangType type = prevTypedef.getTypeList().iterator().next();
+        assertThat(type.getDataType(), is(YangDataTypes.DERIVED));
+        derivedInfo = (YangDerivedInfo) type.getDataTypeExtendedInfo();
+
+        // check top typedef
+        YangTypeDef topTypedef = (YangTypeDef) derivedInfo.getReferredTypeDef();
+        assertThat(topTypedef.getName(), is("topDecimal"));
+        type = topTypedef.getTypeList().iterator().next();
+        assertThat(type.getDataType(), is(YangDataTypes.DECIMAL64));
+        assertThat(type.getDataTypeName(), is("decimal64"));
+        YangType<YangDecimal64> decimal64Type = (YangType<YangDecimal64>) type;
+        YangDecimal64 decimal64 = decimal64Type.getDataTypeExtendedInfo();
+        assertThat(decimal64.getFractionDigit(), is(4));
+
+        // Check range restriction
+        rangeRestriction = (YangRangeRestriction) decimal64.getRangeRestrictedExtendedInfo();
+        rangeListIterator = rangeRestriction.getAscendingRangeIntervals().listIterator();
+        rangeInterval = rangeListIterator.next();
+        assertThat(((YangDecimal64) rangeInterval.getStartValue()).getValue().doubleValue(), is(1.0));
+        assertThat(((YangDecimal64) rangeInterval.getEndValue()).getValue().doubleValue(), is(12.0));
+    }
+
+    /**
+     * Checks decimal64 with multiple typedef with single range statement.
+     * Range value in leaf statement.
+     */
+    @Test
+    public void processDecimal64MultiTypedefRangeInLeafStatement() throws IOException, ParserException {
+
+        YangNode node = manager
+                .getDataModel("src/test/resources/decimal64/Decimal64MultiTypedefRangeInLeafStatement.yang");
+
+        // Check whether the data model tree returned is of type module.
+        assertThat((node instanceof YangModule), is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+
+        // Check whether the module name is set correctly.
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        // check leaf type
+        assertThat(leafInfo.getName(), is("lowerDecimal"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("midDecimal"));
+        YangType<YangDerivedInfo> derivedInfoType = (YangType<YangDerivedInfo>) leafInfo.getDataType();
+        assertThat(derivedInfoType.getDataType(), is(YangDataTypes.DERIVED));
+        YangDerivedInfo derivedInfo = (YangDerivedInfo) derivedInfoType.getDataTypeExtendedInfo();
+
+        // Check range restriction
+        YangRangeRestriction rangeRestriction = (YangRangeRestriction) derivedInfo.getResolvedExtendedInfo();
+        ListIterator<YangRangeInterval> rangeListIterator = rangeRestriction.getAscendingRangeIntervals()
+                .listIterator();
+        YangRangeInterval rangeInterval = rangeListIterator.next();
+        assertThat(((YangDecimal64) rangeInterval.getStartValue()).getValue().doubleValue(), is(1.0));
+        assertThat(((YangDecimal64) rangeInterval.getEndValue()).getValue().doubleValue(), is(12.0));
+
+        // check previous typedef
+        YangTypeDef prevTypedef = (YangTypeDef) derivedInfo.getReferredTypeDef();
+        assertThat(prevTypedef.getName(), is("midDecimal"));
+        YangType type = prevTypedef.getTypeList().iterator().next();
+        assertThat(type.getDataType(), is(YangDataTypes.DERIVED));
+        derivedInfo = (YangDerivedInfo) type.getDataTypeExtendedInfo();
+
+        // check top typedef
+        YangTypeDef topTypedef = (YangTypeDef) derivedInfo.getReferredTypeDef();
+        assertThat(topTypedef.getName(), is("topDecimal"));
+        type = topTypedef.getTypeList().iterator().next();
+        assertThat(type.getDataType(), is(YangDataTypes.DECIMAL64));
+        assertThat(type.getDataTypeName(), is("decimal64"));
+        YangType<YangDecimal64> decimal64Type = (YangType<YangDecimal64>) type;
+        YangDecimal64 decimal64 = decimal64Type.getDataTypeExtendedInfo();
+        assertThat(decimal64.getFractionDigit(), is(4));
+    }
+
+    /**
+     * Checks decimal64 with multiple typedef with multiple range statement.
+     * Having more restricted range at leaf.
+     */
+    @Test
+    public void processDecimal64MultiTypedefMultipleRangeStatement() throws IOException, ParserException {
+
+        YangNode node = manager
+                .getDataModel("src/test/resources/decimal64/Decimal64MultiTypedefMultiRangeStatement.yang");
+
+        // Check whether the data model tree returned is of type module.
+        assertThat((node instanceof YangModule), is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+
+        // Check whether the module name is set correctly.
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        // check leaf type
+        assertThat(leafInfo.getName(), is("lowerDecimal"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("midDecimal"));
+        YangType<YangDerivedInfo> derivedInfoType = (YangType<YangDerivedInfo>) leafInfo.getDataType();
+        assertThat(derivedInfoType.getDataType(), is(YangDataTypes.DERIVED));
+        YangDerivedInfo derivedInfo = (YangDerivedInfo) derivedInfoType.getDataTypeExtendedInfo();
+
+        // Check range restriction
+        YangRangeRestriction rangeRestriction = (YangRangeRestriction) derivedInfo.getResolvedExtendedInfo();
+
+        ListIterator<YangRangeInterval> rangeListIterator = rangeRestriction.getAscendingRangeIntervals()
+                .listIterator();
+        YangRangeInterval rangeInterval = rangeListIterator.next();
+        assertThat(((YangDecimal64) rangeInterval.getStartValue()).getValue().doubleValue(), is(4.0));
+        assertThat(((YangDecimal64) rangeInterval.getEndValue()).getValue().doubleValue(), is(11.0));
+
+        // check previous typedef
+        YangTypeDef prevTypedef = (YangTypeDef) derivedInfo.getReferredTypeDef();
+        assertThat(prevTypedef.getName(), is("midDecimal"));
+        YangType type = prevTypedef.getTypeList().iterator().next();
+        assertThat(type.getDataType(), is(YangDataTypes.DERIVED));
+        derivedInfo = (YangDerivedInfo) type.getDataTypeExtendedInfo();
+
+        // check top typedef
+        YangTypeDef topTypedef = (YangTypeDef) derivedInfo.getReferredTypeDef();
+        assertThat(topTypedef.getName(), is("topDecimal"));
+        type = topTypedef.getTypeList().iterator().next();
+        assertThat(type.getDataType(), is(YangDataTypes.DECIMAL64));
+        assertThat(type.getDataTypeName(), is("decimal64"));
+        YangType<YangDecimal64> decimal64Type = (YangType<YangDecimal64>) type;
+        YangDecimal64 decimal64 = decimal64Type.getDataTypeExtendedInfo();
+        assertThat(decimal64.getFractionDigit(), is(4));
+
+        // Check range restriction
+        rangeRestriction = (YangRangeRestriction) decimal64.getRangeRestrictedExtendedInfo();
+        rangeListIterator = rangeRestriction.getAscendingRangeIntervals().listIterator();
+        rangeInterval = rangeListIterator.next();
+        assertThat(((YangDecimal64) rangeInterval.getStartValue()).getValue().doubleValue(), is(1.0));
+        assertThat(((YangDecimal64) rangeInterval.getEndValue()).getValue().doubleValue(), is(12.0));
+    }
+
+    /**
+     * Checks decimal64 with multiple typedef with multiple range statement.
+     * But having more restricted range at top of typedef.
+     */
+    @Test
+    public void processDecimal64MultiTypedefMultiInvalidRangeStatement() throws IOException, LinkerException {
+        thrown.expect(LinkerException.class);
+        thrown.expectMessage(" Range interval doesn't fall within the referred restriction ranges");
+
+        manager.getDataModel("src/test/resources/decimal64/Decimal64MultiTypedefMultiInvalidRangeStatement.yang");
+    }
+
+    /**
+     * Checks decimal64 with multiple typedef with max range statement.
+     */
+    @Test
+    public void processDecimal64MultiTypedefWithMaxRange() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/decimal64/Decimal64MultiTypedefWithMaxRange.yang");
+
+        // Check whether the data model tree returned is of type module.
+        assertThat((node instanceof YangModule), is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+
+        // Check whether the module name is set correctly.
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        // check leaf type
+        assertThat(leafInfo.getName(), is("lowerDecimal"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("midDecimal"));
+        YangType<YangDerivedInfo> derivedInfoType = (YangType<YangDerivedInfo>) leafInfo.getDataType();
+        assertThat(derivedInfoType.getDataType(), is(YangDataTypes.DERIVED));
+        YangDerivedInfo derivedInfo = (YangDerivedInfo) derivedInfoType.getDataTypeExtendedInfo();
+
+        // Check range restriction
+        YangRangeRestriction rangeRestriction = (YangRangeRestriction) derivedInfo.getResolvedExtendedInfo();
+
+        ListIterator<YangRangeInterval> rangeListIterator = rangeRestriction.getAscendingRangeIntervals()
+                .listIterator();
+        YangRangeInterval rangeInterval = rangeListIterator.next();
+        assertThat(((YangDecimal64) rangeInterval.getStartValue()).getValue().doubleValue(), is(4.0));
+        assertThat(((YangDecimal64) rangeInterval.getEndValue()).getValue().doubleValue(), is(12.0));
+
+        // check previous typedef
+        YangTypeDef prevTypedef = (YangTypeDef) derivedInfo.getReferredTypeDef();
+        assertThat(prevTypedef.getName(), is("midDecimal"));
+        YangType type = prevTypedef.getTypeList().iterator().next();
+        assertThat(type.getDataType(), is(YangDataTypes.DERIVED));
+        derivedInfo = (YangDerivedInfo) type.getDataTypeExtendedInfo();
+
+        // check top typedef
+        YangTypeDef topTypedef = (YangTypeDef) derivedInfo.getReferredTypeDef();
+        assertThat(topTypedef.getName(), is("topDecimal"));
+        type = topTypedef.getTypeList().iterator().next();
+        assertThat(type.getDataType(), is(YangDataTypes.DECIMAL64));
+        assertThat(type.getDataTypeName(), is("decimal64"));
+        YangType<YangDecimal64> decimal64Type = (YangType<YangDecimal64>) type;
+        YangDecimal64 decimal64 = decimal64Type.getDataTypeExtendedInfo();
+        assertThat(decimal64.getFractionDigit(), is(4));
+
+        // Check range restriction
+        rangeRestriction = (YangRangeRestriction) decimal64.getRangeRestrictedExtendedInfo();
+        rangeListIterator = rangeRestriction.getAscendingRangeIntervals().listIterator();
+        rangeInterval = rangeListIterator.next();
+        assertThat(((YangDecimal64) rangeInterval.getStartValue()).getValue().doubleValue(), is(1.0));
+        assertThat(((YangDecimal64) rangeInterval.getEndValue()).getValue().doubleValue(), is(12.0));
     }
 }

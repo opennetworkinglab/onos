@@ -5,15 +5,18 @@ module Test {
 
     typedef topDecimal {
          type decimal64 {
-            fraction-digits 4; 
+            fraction-digits 4;
+            range 1..12;
          }
     }
 
-    typedef validDecimal {
+    typedef midDecimal {
          type topDecimal;
     }
 
-    leaf setFourDecimal {
-         type validDecimal;
+    leaf lowerDecimal {
+         type midDecimal {
+            range 4..max;
+         }
     } 
 }
