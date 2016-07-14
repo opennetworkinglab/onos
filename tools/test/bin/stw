@@ -3,13 +3,40 @@
 # Loops the System Test Coordinator invocations while success/until failure.
 #-------------------------------------------------------------------------------
 
+count=0
+unset doSetup doTeardown
+
+# Scan arguments for user/password or other options...
+while getopts c:st o; do
+    case "$o" in
+        c) count=$OPTARG;;
+        s) doSetup=true;;
+        t) toTeardown=true;;
+    esac
+done
+let OPC=$OPTIND-1
+shift $OPC
+
+if [ -n "$doSetup" ]; then
+    printf "Setting up...\n"
+    stc setup || exit 1
+fi
+
 let run=1
-while true; do
+while [ $count -le 0 -o $run -le $count ]; do
     printf "\033]0;%s\007" "STC Run #$run"
     printf "Starting run %d...\n" $run
-    stc "$@"
+    for scenario in "${@:-smoke}"; do
+        printf "Running scenario %s...\n" $scenario
+        stc $scenario
+    done
     status=$?
     printf "Finished run %d...\n" $run
-    [ $status -ne 0 ] && break
+    [ $status -ne 0 ] && exit $status
     let run=run+1
 done
+
+if [ -n "$doTeardown" ]; then
+    printf "Tearing down...\n"
+    stc teardown || exit 1
+fi

@@ -12,15 +12,16 @@ function _ogroup-opts () {
 complete -F _ogroup-opts onos-group
 
 
-# Tab completion settings for stc
+# Tab completion settings for stc & stw
 function _stc-opts () {
   local cur=${COMP_WORDS[COMP_CWORD]}
-  if [ $COMP_CWORD -eq 1 ]; then
+  if [ $COMP_CWORD -ge 1 ]; then
     COMPREPLY=( $( compgen -W "$(cd $ONOS_ROOT/tools/test/scenarios && ls -1 | sed 's/.xml//g')" -- $cur ) )
   fi
 }
 
 complete -F _stc-opts stc
+complete -F _stc-opts stw
 
 
 # Tab completion settings for stl

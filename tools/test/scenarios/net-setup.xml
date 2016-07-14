@@ -19,6 +19,7 @@
         <step name="Push-Topos" exec="onos-push-topos ${OCN}"/>
 
         <step name="Stop-Mininet-If-Needed" env="~" exec="onos-mininet stop"/>
+        <step name="Clean-Mininet-If-Needed" env="~" exec="onos-mininet cleanup" requires="^"/>
         <step name="Wipe-Out-Data-Before" exec="onos-wipe-out" requires="^"/>
 
         <step name="Initial-Summary-Check" requires="~Wipe-Out-Data-Before"

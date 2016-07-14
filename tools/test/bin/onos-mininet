@@ -66,4 +66,8 @@ stop)
         $mininet -X "stuff \"^C\\n\"" 2>/dev/null && \
         $mininet -X "stuff \"exit\\n\"" 2>/dev/null
     ;;
+cleanup)
+    ssh -t -t $remote sudo mn -c
+    ssh -t -t $remote "ps -ef | grep 'tail -n1 screenlog.0' | grep -v grep | cut -c10-15 | xargs kill -9"
+    ;;
 esac
