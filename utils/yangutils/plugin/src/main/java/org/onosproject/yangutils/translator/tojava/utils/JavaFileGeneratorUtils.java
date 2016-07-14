@@ -42,6 +42,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_IDENTITY_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ATTRIBUTES_MASK;
@@ -68,6 +69,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.ClassDefinitionG
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getJavaPackageFromPackagePath;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getSmallCase;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
+import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.COMPONENT_ANNOTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.EQUAL;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
@@ -294,6 +296,7 @@ public final class JavaFileGeneratorUtils {
             }
 
             file.createNewFile();
+
             appendContents(file, genType, imports, curNode, className);
         } catch (IOException e) {
             throw new IOException("Failed to create " + file.getName() + " class file.");
@@ -347,6 +350,11 @@ public final class JavaFileGeneratorUtils {
             case GENERATE_EVENT_SUBJECT_CLASS:
                 appendHeaderContents(file, pkgString, importsList);
                 write(file, genType, EVENT_SUBJECT_CLASS, curNode, className);
+                break;
+            case GENERATE_IDENTITY_CLASS:
+                appendHeaderContents(file, pkgString, importsList);
+                write(file, genType, EVENT_SUBJECT_CLASS, curNode, className);
+                insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET);
                 break;
             default:
                 break;

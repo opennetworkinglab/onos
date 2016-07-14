@@ -216,6 +216,17 @@ public class YangModule
     private List<YangResolutionInfo> leafrefResolutionList;
 
     /**
+     * base resolution list.
+     */
+    private List<YangResolutionInfo> baseResolutionList;
+
+    /**
+     * identityref resolution list.
+     */
+    private List<YangResolutionInfo> identityrefResolutionList;
+
+
+    /**
      * Creates a YANG node of module type.
      */
     public YangModule() {
@@ -225,6 +236,8 @@ public class YangModule
         usesResolutionList = new LinkedList<>();
         ifFeatureResolutionList = new LinkedList<>();
         leafrefResolutionList = new LinkedList<>();
+        baseResolutionList = new LinkedList<>();
+        identityrefResolutionList = new LinkedList<>();
         importList = new LinkedList<YangImport>();
         includeList = new LinkedList<YangInclude>();
         listOfLeaf = new LinkedList<YangLeaf>();
@@ -597,8 +610,12 @@ public class YangModule
             return usesResolutionList;
         } else if (type == ResolvableType.YANG_IF_FEATURE) {
             return ifFeatureResolutionList;
-        } else {
+        } else if (type == ResolvableType.YANG_LEAFREF) {
             return leafrefResolutionList;
+        } else if (type == ResolvableType.YANG_BASE) {
+            return baseResolutionList;
+        } else {
+            return identityrefResolutionList;
         }
     }
 
@@ -611,8 +628,12 @@ public class YangModule
             usesResolutionList.add(resolutionInfo);
         } else if (type == ResolvableType.YANG_IF_FEATURE) {
             ifFeatureResolutionList.add(resolutionInfo);
-        } else {
+        } else if (type == ResolvableType.YANG_LEAFREF) {
             leafrefResolutionList.add(resolutionInfo);
+        } else if (type == ResolvableType.YANG_BASE) {
+            baseResolutionList.add(resolutionInfo);
+        } else if (type == ResolvableType.YANG_IDENTITYREF) {
+            identityrefResolutionList.add(resolutionInfo);
         }
     }
 
@@ -627,6 +648,10 @@ public class YangModule
             ifFeatureResolutionList.add((YangResolutionInfo) resolutionList);
         } else if (type == ResolvableType.YANG_LEAFREF) {
             leafrefResolutionList = resolutionList;
+        } else if (type == ResolvableType.YANG_BASE) {
+            baseResolutionList = resolutionList;
+        } else if (type == ResolvableType.YANG_IDENTITYREF) {
+            identityrefResolutionList = resolutionList;
         }
 
     }
@@ -650,11 +675,8 @@ public class YangModule
         while (includeInfoIterator.hasNext()) {
             YangInclude yangInclude = includeInfoIterator.next();
             YangSubModule subModule = null;
-            try {
-                subModule = yangInclude.addReferenceToInclude(yangNodeSet);
-            } catch (DataModelException e) {
-                throw e;
-            }
+            subModule = yangInclude.addReferenceToInclude(yangNodeSet);
+
             // Check if the referred sub-modules parent is self
             if (!(subModule.getBelongsTo().getModuleNode() == this)) {
                 yangInclude.reportIncludeError();

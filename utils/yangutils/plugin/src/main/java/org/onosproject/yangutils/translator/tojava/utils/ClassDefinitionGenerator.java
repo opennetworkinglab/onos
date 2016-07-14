@@ -16,10 +16,13 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
+import org.onosproject.yangutils.datamodel.YangIdentity;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNotification;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaIdentity;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
@@ -27,6 +30,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_LISTENER_INTERFACE;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_SUBJECT_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_IDENTITY_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
@@ -57,6 +61,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_ANY_STRING
 import static org.onosproject.yangutils.utils.UtilConstants.SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.UtilConstants.SUBJECT;
+import static org.onosproject.yangutils.utils.UtilConstants.ABSTRACT;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;
 
 /**
@@ -128,6 +134,8 @@ public final class ClassDefinitionGenerator {
                 return getEventListenerDefinition(yangName);
             case GENERATE_EVENT_SUBJECT_CLASS:
                 return getClassDefinition(yangName);
+            case GENERATE_IDENTITY_CLASS:
+                return getIdentityClassDefinition(yangName, curNode);
             default:
                 return null;
         }
@@ -211,6 +219,32 @@ public final class ClassDefinitionGenerator {
      */
     private static String getClassDefinition(String yangName) {
         return PUBLIC + SPACE + CLASS + SPACE + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+    }
+
+    /**
+     * Returns implementation file identity class definition.
+     *
+     * @param yangName file name
+     * @return identity class definition
+     */
+    private static String getIdentityClassDefinition(String yangName, YangNode curNode) {
+        if (!(curNode instanceof YangJavaIdentity)) {
+            throw new TranslatorException("Expected java identity instance node");
+        }
+        YangJavaIdentity identity = (YangJavaIdentity) curNode;
+        if (identity.getBaseNode() != null) {
+            YangIdentity baseIdentity = identity.getBaseNode().getReferredIdentity();
+            if (!(baseIdentity instanceof YangJavaIdentity)) {
+                throw new TranslatorException("Expected java identity instance node");
+            }
+
+            YangJavaIdentity baseJavaIdentity = (YangJavaIdentity) baseIdentity;
+            return PUBLIC + SPACE + ABSTRACT + SPACE + CLASS + SPACE + yangName + SPACE + EXTEND + SPACE
+                    + getCapitalCase(baseJavaIdentity.getJavaFileInfo().getJavaName()) + SPACE +
+                    OPEN_CURLY_BRACKET + NEW_LINE;
+        }
+
+        return PUBLIC + SPACE + ABSTRACT + SPACE + CLASS + SPACE + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
     }
 
     /**

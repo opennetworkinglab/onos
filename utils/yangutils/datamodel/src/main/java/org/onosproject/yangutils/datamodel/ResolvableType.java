@@ -39,5 +39,15 @@ public enum ResolvableType {
     /**
      * Identifies the leafref.
      */
-    YANG_LEAFREF
+    YANG_LEAFREF,
+
+    /**
+     * Identifies the base.
+     */
+    YANG_BASE,
+
+    /**
+     * Identifies the identityref.
+     */
+    YANG_IDENTITYREF
 }

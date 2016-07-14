@@ -1,0 +1,14 @@
+module IdentityInModule{
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix IdentityInModule;
+
+    identity tunnel-type {
+        description
+           "Base identity from which specific tunnel types are derived.";
+    }
+
+    identity ref-address-family {
+        reference "http://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml#address-family-numbers-2";
+    }
+}

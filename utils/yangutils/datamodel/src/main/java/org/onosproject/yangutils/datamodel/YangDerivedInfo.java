@@ -334,7 +334,7 @@ public class YangDerivedInfo<T>
                     return RESOLVED;
                 }
             }
-        } else if (baseType.getDataType() == LEAFREF) {
+        } else if ((baseType.getDataType() == LEAFREF) || (baseType.getDataType() == IDENTITYREF)) {
             setEffectiveBuiltInType(baseType.getDataType());
             return RESOLVED;
         } else {

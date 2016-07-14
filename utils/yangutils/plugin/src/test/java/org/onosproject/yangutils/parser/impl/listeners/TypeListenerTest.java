@@ -122,20 +122,6 @@ public class TypeListenerTest {
     }
 
     /**
-     * Checks for unsupported type identityref.
-     */
-    @Test
-    public void processIdentityrefType() throws IOException, ParserException {
-
-        thrown.expect(ParserException.class);
-        thrown.expectMessage("YANG file error : \"identityref\" is not supported in current version,"
-                + " please check wiki for YANG utils road map.");
-
-        YangNode node = manager
-                .getDataModel("src/test/resources/IdentityrefInvalidIdentifier.yang");
-    }
-
-    /**
      * Checks for type instance-identifier.
      */
     @Test

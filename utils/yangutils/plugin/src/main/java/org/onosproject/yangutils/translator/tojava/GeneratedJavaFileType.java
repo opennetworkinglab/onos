@@ -89,6 +89,11 @@ public final class GeneratedJavaFileType {
     public static final int GENERATE_EVENT_SUBJECT_CLASS = 1024;
 
     /**
+     * Identity listener class.
+     */
+    public static final int GENERATE_IDENTITY_CLASS = 2048;
+
+    /**
      * Creates an instance of generate java file type.
      */
     private GeneratedJavaFileType() {

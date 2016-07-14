@@ -1,0 +1,18 @@
+module syslog2 {
+     yang-version 1;
+     namespace "http://huawei2.com";
+     prefix "sys2";
+
+     import "syslog3" {
+        prefix "sys3";
+     }
+
+     identity tunnel-type {
+         base sys3:final-address-family;
+     }
+
+     identity ref-address-family {
+         base sys3:final-address-family;
+     }
+}
+

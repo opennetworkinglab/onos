@@ -56,7 +56,7 @@
        reference "RFC3209";
      }
 
-     /*identity tunnel-type {
+     identity tunnel-type {
        description
          "Base identity from which specific tunnel types are
          derived.";
@@ -254,7 +254,7 @@
        base lsp-encoding-types;
        description
          "Line (e.g., 8B/10B) LSP encoding";
-     }*/
+     }
 
      /* TE basic features */
      feature p2mp-te {
@@ -452,7 +452,7 @@
        }
      }
 
-     /*identity route-usage-type {
+     identity route-usage-type {
        description
          "Base identity for route usage";
      }
@@ -576,7 +576,7 @@
        description
          "The set of attribute filters associated with a
          tunnel any of which renders a link unacceptable";
-     }*/
+     }
 
      typedef admin-group {
        type binary {
@@ -605,7 +605,7 @@
        description "SRLG type";
      }
 
-     /*identity path-computation-srlg-type {
+     identity path-computation-srlg-type {
        description
          "Base identity for SRLG path computation";
      }
@@ -632,7 +632,7 @@
        base path-computation-srlg-type;
        description
          "Include weighted SRLG check in path computation";
-     }*/
+     }
 
      typedef te-metric {
        type uint32;

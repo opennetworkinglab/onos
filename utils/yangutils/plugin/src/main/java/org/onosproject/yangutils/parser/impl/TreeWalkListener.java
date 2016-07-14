@@ -28,6 +28,7 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangListener;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.impl.listeners.AugmentListener;
 import org.onosproject.yangutils.parser.impl.listeners.BaseFileListener;
+import org.onosproject.yangutils.parser.impl.listeners.BaseListener;
 import org.onosproject.yangutils.parser.impl.listeners.BelongsToListener;
 import org.onosproject.yangutils.parser.impl.listeners.BitListener;
 import org.onosproject.yangutils.parser.impl.listeners.BitsListener;
@@ -42,7 +43,9 @@ import org.onosproject.yangutils.parser.impl.listeners.EnumListener;
 import org.onosproject.yangutils.parser.impl.listeners.EnumerationListener;
 import org.onosproject.yangutils.parser.impl.listeners.FeatureListener;
 import org.onosproject.yangutils.parser.impl.listeners.GroupingListener;
+import org.onosproject.yangutils.parser.impl.listeners.IdentityrefListener;
 import org.onosproject.yangutils.parser.impl.listeners.IfFeatureListener;
+import org.onosproject.yangutils.parser.impl.listeners.IdentityListener;
 import org.onosproject.yangutils.parser.impl.listeners.ImportListener;
 import org.onosproject.yangutils.parser.impl.listeners.IncludeListener;
 import org.onosproject.yangutils.parser.impl.listeners.InputListener;
@@ -450,12 +453,12 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterIdentityStatement(GeneratedYangParser.IdentityStatementContext ctx) {
-        handleUnsupportedYangConstruct(YangConstructType.IDENTITY_DATA, ctx, CURRENTLY_UNSUPPORTED);
+        IdentityListener.processIdentityEntry(this, ctx);
     }
 
     @Override
     public void exitIdentityStatement(GeneratedYangParser.IdentityStatementContext ctx) {
-        // do nothing.
+        IdentityListener.processIdentityExit(this, ctx);
     }
 
     @Override
@@ -470,7 +473,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterBaseStatement(GeneratedYangParser.BaseStatementContext ctx) {
-        handleUnsupportedYangConstruct(YangConstructType.BASE_DATA, ctx, CURRENTLY_UNSUPPORTED);
+        BaseListener.processBaseEntry(this, ctx);
     }
 
     @Override
@@ -710,12 +713,12 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterIdentityrefSpecification(GeneratedYangParser.IdentityrefSpecificationContext ctx) {
-        // do nothing.
+        IdentityrefListener.processIdentityrefEntry(this, ctx);
     }
 
     @Override
     public void exitIdentityrefSpecification(GeneratedYangParser.IdentityrefSpecificationContext ctx) {
-        // do nothing.
+        IdentityrefListener.processIdentityrefExit(this, ctx);
     }
 
     @Override

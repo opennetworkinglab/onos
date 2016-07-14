@@ -1,0 +1,19 @@
+module IdentityTest{
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix IdentityTest;
+
+    identity ref-address-family {
+        description "ref-address-family";
+    }
+
+    identity ipv4-address-family {
+        base ref-address-family;
+    }
+
+    leaf tunnel {
+        type identityref {
+            base ref-address-family;
+        }
+    }
+}

@@ -20,6 +20,7 @@ import org.onosproject.yangutils.datamodel.YangCase;
 import org.onosproject.yangutils.datamodel.YangChoice;
 import org.onosproject.yangutils.datamodel.YangContainer;
 import org.onosproject.yangutils.datamodel.YangGrouping;
+import org.onosproject.yangutils.datamodel.YangIdentity;
 import org.onosproject.yangutils.datamodel.YangInput;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
@@ -41,6 +42,7 @@ import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaChoice;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaContainer;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaEnumeration;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaGrouping;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaIdentity;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaInput;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaLeaf;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaLeafList;
@@ -149,6 +151,24 @@ public final class YangDataModelFactory {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
                 return new YangJavaContainer();
+            }
+            default: {
+                throw new TranslatorException("Only YANG to Java is supported.");
+            }
+        }
+    }
+
+    /**
+     * Returns based on the target language generate the inherited data model node.
+     *
+     * @param targetLanguage target language in which YANG mapping needs to be
+     * generated
+     * @return the corresponding inherited node based on the target language
+     */
+    public static YangIdentity getYangIdentityNode(GeneratedLanguage targetLanguage) {
+        switch (targetLanguage) {
+            case JAVA_GENERATION: {
+                return new YangJavaIdentity();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");

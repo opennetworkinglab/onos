@@ -102,5 +102,15 @@ public enum YangNodeType {
     /**
      * Node contains "YANG's list" information.
      */
-    LIST_NODE
+    LIST_NODE,
+
+    /**
+     * Identity node.
+     */
+    IDENTITY_NODE,
+
+    /**
+     * Identityref node.
+     */
+    IDENTITYREF_NODE
 }

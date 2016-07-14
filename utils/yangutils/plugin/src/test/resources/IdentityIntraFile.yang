@@ -1,0 +1,23 @@
+module IdentityIntraFile {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix IdentityIntraFile;
+
+    import "IdentityInModule" {
+        prefix "IdentityInModule";
+    }
+
+    identity ipv4-address-family {
+        base IdentityInModule:ref-address-family;
+    }
+
+    identity ipv6-address-family {
+        base IdentityInModule:ref-address-family;
+    }
+
+    leaf tunnel {
+        type identityref {
+            base IdentityInModule:ref-address-family;
+        }
+    }
+}

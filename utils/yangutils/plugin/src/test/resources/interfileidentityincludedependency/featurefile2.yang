@@ -1,0 +1,19 @@
+submodule syslog2 {
+     yang-version 1;
+     belongs-to "syslog1" {
+         prefix "sys1";
+     }
+
+     import "syslog3" {
+        prefix "sys3";
+     }
+
+     identity tunnel-type {
+         base sys3:final-address-family;
+     }
+
+     identity ref-address-family {
+         base sys3:final-address-family;
+     }
+}
+

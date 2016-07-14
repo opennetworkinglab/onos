@@ -1,0 +1,31 @@
+module IdentityTypedef {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix IdentityTypedef;
+
+    import "IdentityInModule" {
+        prefix "IdentityInModule";
+    }
+
+    identity ipv4-address-family {
+        base IdentityInModule:ref-address-family;
+    }
+
+    identity ipv6-address-family {
+        base IdentityInModule:ref-address-family;
+    }
+
+    leaf tunnel {
+        type type15;
+    }
+
+    leaf-list network-ref {
+        type type15;
+    }
+
+    typedef type15 {
+        type identityref {
+            base IdentityInModule:ref-address-family;
+        }
+    }
+}

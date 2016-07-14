@@ -214,6 +214,16 @@ public class YangSubModule
     private List<YangResolutionInfo> leafrefResolutionList;
 
     /**
+     * base resolution list.
+     */
+    private List<YangResolutionInfo> baseResolutionList;
+
+    /**
+     * identityref resolution list.
+     */
+    private List<YangResolutionInfo> identityrefResolutionList;
+
+    /**
      * Creates a sub module node.
      */
     public YangSubModule() {
@@ -222,6 +232,8 @@ public class YangSubModule
         usesResolutionList = new LinkedList<>();
         ifFeatureResolutionList = new LinkedList<>();
         leafrefResolutionList = new LinkedList<>();
+        baseResolutionList = new LinkedList<>();
+        identityrefResolutionList = new LinkedList<>();
         importList = new LinkedList<YangImport>();
         includeList = new LinkedList<YangInclude>();
         listOfLeaf = new LinkedList<YangLeaf>();
@@ -559,8 +571,12 @@ public class YangSubModule
             return usesResolutionList;
         } else if (type == ResolvableType.YANG_IF_FEATURE) {
             return ifFeatureResolutionList;
-        } else {
+        } else if (type == ResolvableType.YANG_LEAFREF) {
             return leafrefResolutionList;
+        } else if (type == ResolvableType.YANG_BASE) {
+            return baseResolutionList;
+        } else {
+            return identityrefResolutionList;
         }
     }
 
@@ -573,8 +589,12 @@ public class YangSubModule
             usesResolutionList.add(resolutionInfo);
         } else if (type == ResolvableType.YANG_IF_FEATURE) {
             ifFeatureResolutionList.add(resolutionInfo);
-        } else {
+        } else if (type == ResolvableType.YANG_LEAFREF) {
             leafrefResolutionList.add(resolutionInfo);
+        } else if (type == ResolvableType.YANG_BASE) {
+            baseResolutionList.add(resolutionInfo);
+        } else if (type == ResolvableType.YANG_IDENTITYREF) {
+            identityrefResolutionList.add(resolutionInfo);
         }
     }
 
@@ -589,6 +609,10 @@ public class YangSubModule
             ifFeatureResolutionList.add((YangResolutionInfo) resolutionList);
         } else if (type == ResolvableType.YANG_LEAFREF) {
             leafrefResolutionList = resolutionList;
+        } else if (type == ResolvableType.YANG_BASE) {
+            baseResolutionList = resolutionList;
+        } else if (type == ResolvableType.YANG_IDENTITYREF) {
+            identityrefResolutionList = resolutionList;
         }
 
     }

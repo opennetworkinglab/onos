@@ -1,0 +1,20 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+
+    identity tunnel {
+        description
+           "Base identity from which specific tunnel types are derived.";
+    }
+
+    leaf tunnel-value {
+        type type15;
+    }
+
+    typedef type15 {
+        type identityref {
+             base tunnel;
+         }
+    }
+}

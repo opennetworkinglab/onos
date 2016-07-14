@@ -647,6 +647,11 @@ public final class UtilConstants {
     public static final String PUBLIC = "public";
 
     /**
+     * Static attribute for abstract modifier.
+     */
+    public static final String ABSTRACT = "abstract";
+
+    /**
      * Static attribute for protected modifier.
      */
     public static final String PROTECTED = "protected";
@@ -1194,6 +1199,18 @@ public final class UtilConstants {
      */
     public static final String LEAFREF_LINKER_ERROR = "YANG file error: Unable to find base "
             + "leaf/leaf-list for given leafref";
+
+    /**
+     * Static attribute for base linker error information.
+     */
+    public static final String BASE_LINKER_ERROR = "YANG file error: Unable to find base "
+            + "identity for given base";
+
+    /**
+     * Static attribute for identityref linker error information.
+     */
+    public static final String IDENTITYREF_LINKER_ERROR = "YANG file error: Unable to find base "
+            + "identity for given base";
 
     /**
      * Static attribute for reference.

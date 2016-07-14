@@ -22,6 +22,8 @@ import java.util.Set;
 import org.onosproject.yangutils.datamodel.CollisionDetector;
 import org.onosproject.yangutils.datamodel.ResolvableType;
 import org.onosproject.yangutils.datamodel.YangIfFeature;
+import org.onosproject.yangutils.datamodel.YangBase;
+import org.onosproject.yangutils.datamodel.YangIdentityRef;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangLeafRef;
@@ -176,6 +178,10 @@ public final class DataModelUtils {
                 .getEntityToResolve() instanceof YangLeafRef) {
             resolutionNode.addToResolutionList(resolutionInfo,
                     ResolvableType.YANG_LEAFREF);
+        } else if (resolutionInfo.getEntityToResolveInfo().getEntityToResolve() instanceof YangBase) {
+            resolutionNode.addToResolutionList(resolutionInfo, ResolvableType.YANG_BASE);
+        } else if (resolutionInfo.getEntityToResolveInfo().getEntityToResolve() instanceof YangIdentityRef) {
+            resolutionNode.addToResolutionList(resolutionInfo, ResolvableType.YANG_IDENTITYREF);
         }
     }
 

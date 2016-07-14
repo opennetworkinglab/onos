@@ -1,0 +1,29 @@
+module syslog1 {
+     yang-version 1;
+     namespace "http://huawei1.com";
+     prefix "sys1";
+
+     import "syslog2" {
+        prefix "sys2";
+     }
+
+     identity ipv4-address-family {
+        base sys2:ref-address-family;
+     }
+
+     identity ipv6-address-family {
+        base sys2:ref-address-family;
+     }
+
+    leaf tunnel {
+        type identityref {
+            base sys2:ref-address-family;
+        }
+    }
+
+    leaf-list network-ref {
+        type identityref {
+            base sys2:ref-address-family;
+        }
+    }
+}

@@ -135,6 +135,10 @@ public final class SubModuleListener {
                     .resolveSelfFileLinking(ResolvableType.YANG_DERIVED_DATA_TYPE);
             ((YangReferenceResolver) listener.getParsedDataStack().peek())
                     .resolveSelfFileLinking(ResolvableType.YANG_LEAFREF);
+            ((YangReferenceResolver) listener.getParsedDataStack().peek())
+                    .resolveSelfFileLinking(ResolvableType.YANG_BASE);
+            ((YangReferenceResolver) listener.getParsedDataStack().peek())
+                    .resolveSelfFileLinking(ResolvableType.YANG_IDENTITYREF);
         } catch (DataModelException e) {
             LinkerException linkerException = new LinkerException(e.getMessage());
             linkerException.setLine(e.getLineNumber());

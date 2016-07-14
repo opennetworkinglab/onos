@@ -1,0 +1,10 @@
+module syslog3 {
+     yang-version 1;
+     namespace "http://huawei3.com";
+     prefix "sys3";
+
+     identity final-address-family {
+         description
+            "Base identity from which specific tunnel types are derived.";
+     }
+}
