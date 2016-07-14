@@ -191,7 +191,7 @@ public class InterJarLinkerTest {
         yangPluginConfig.setCodeGenDir(TARGET);
         yangPluginConfig.setManagerCodeGenDir(TARGET);
 
-        utilManager.translateToJava(utilManager.getYangFileInfoSet(), yangPluginConfig);
+        utilManager.translateToJava(yangPluginConfig);
 
         testIfFlowClassifierFilesExists();
         testIfPortPairFileDoesNotExist();
@@ -308,6 +308,7 @@ public class InterJarLinkerTest {
 
             for (YangNode node : interJarResolvedNodes) {
                 YangFileInfo dependentFileInfo = new YangFileInfo();
+                node.setToTranslate(false);
                 dependentFileInfo.setRootNode(node);
                 dependentFileInfo.setForTranslator(false);
                 dependentFileInfo.setYangFileName(node.getName());

@@ -31,14 +31,12 @@ import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_CLASS;
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_LISTENER_INTERFACE;
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_SUBJECT_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ALL_EVENT_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.generateCodeOfRootNode;
-import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.isManagerCodeGenRequired;
 import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.isGenerationOfCodeReq;
+import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.isManagerCodeGenRequired;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 import static org.onosproject.yangutils.utils.UtilConstants.SBI;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.searchAndDeleteTempDir;
@@ -58,8 +56,7 @@ public class YangJavaSubModule
     private JavaFileInfo javaFileInfo;
 
     /**
-     * File handle to maintain temporary java code fragments as per the code
-     * snippet types.
+     * File handle to maintain temporary java code fragments as per the code snippet types.
      */
     private transient TempJavaCodeFragmentFiles tempFileHandle;
 
@@ -76,8 +73,7 @@ public class YangJavaSubModule
         setJavaFileInfo(new JavaFileInfo());
         int gentype = GENERATE_SERVICE_AND_MANAGER | GENERATE_INTERFACE_WITH_BUILDER;
         if (isNotificationChildNodePresent(this)) {
-            gentype = GENERATE_SERVICE_AND_MANAGER | GENERATE_EVENT_SUBJECT_CLASS | GENERATE_EVENT_CLASS
-                    | GENERATE_EVENT_LISTENER_INTERFACE;
+            gentype = GENERATE_SERVICE_AND_MANAGER | GENERATE_ALL_EVENT_CLASS_MASK;
         }
         getJavaFileInfo().setGeneratedFileTypes(gentype);
     }
@@ -145,6 +141,11 @@ public class YangJavaSubModule
     public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
         String subModulePkg = getRootPackage(getVersion(), getNameSpaceFromModule(getBelongsTo()),
                 getRevision().getRevDate(), yangPlugin.getConflictResolver());
+
+        if (isNotificationChildNodePresent(this)) {
+            getJavaFileInfo().setGeneratedFileTypes(getJavaFileInfo().getGeneratedFileTypes()
+                    | GENERATE_ALL_EVENT_CLASS_MASK);
+        }
         try {
             generateCodeOfRootNode(this, yangPlugin, subModulePkg);
         } catch (IOException e) {
@@ -169,13 +170,21 @@ public class YangJavaSubModule
          * The manager class needs to extend the "ListenerRegistry".
          */
         try {
-            if (isManagerCodeGenRequired(this) && isGenerationOfCodeReq(getJavaFileInfo())) {
-                if ((getJavaFileInfo().getPluginConfig().getCodeGenerateForsbi() == null) ||
-                        (!getJavaFileInfo().getPluginConfig().getCodeGenerateForsbi().equals(SBI))) {
-                    getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
-                    getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
+            if ((getJavaFileInfo().getGeneratedFileTypes() & GENERATE_ALL_EVENT_CLASS_MASK) != 0) {
+                getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_ALL_EVENT_CLASS_MASK, this);
+            }
+            getTempJavaCodeFragmentFiles()
+                    .generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
+            if (isManagerCodeGenRequired(this)) {
+                if (isGenerationOfCodeReq(getJavaFileInfo())) {
+                    if ((getJavaFileInfo().getPluginConfig().getCodeGenerateForsbi() == null)
+                        || (!getJavaFileInfo().getPluginConfig().getCodeGenerateForsbi().equals(SBI))) {
+                         getTempJavaCodeFragmentFiles().getServiceTempFiles().setManagerNeedToBeGenerated(true);
+                     }
                 }
             }
+            getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
+
             searchAndDeleteTempDir(getJavaFileInfo().getBaseCodeGenPath() +
                     getJavaFileInfo().getPackageFilePath());
             searchAndDeleteTempDir(getJavaFileInfo().getPluginConfig().getCodeGenDir() +
@@ -184,6 +193,7 @@ public class YangJavaSubModule
             throw new TranslatorException("Failed to generate code for submodule node " + getName());
         }
     }
+
 
     /**
      * Returns notifications node list.

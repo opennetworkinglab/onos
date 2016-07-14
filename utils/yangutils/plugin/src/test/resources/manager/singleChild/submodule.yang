@@ -7,7 +7,7 @@ submodule test6 {
     revision "2016-07-04" {
              description "Initial revision.";
     }
-    grouping abc {
+    grouping grouping1 {
         leaf leaf1 {
            type int32;
         }

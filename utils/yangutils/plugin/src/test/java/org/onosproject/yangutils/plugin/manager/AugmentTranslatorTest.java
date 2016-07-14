@@ -50,7 +50,7 @@ public class AugmentTranslatorTest {
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/augmentTranslator/");
         yangPluginConfig.setManagerCodeGenDir("target/augmentTranslator/");
-        utilManager.translateToJava(utilManager.getYangFileInfoSet(), yangPluginConfig);
+        utilManager.translateToJava(yangPluginConfig);
 
         deleteDirectory("target/augmentTranslator/");
     }

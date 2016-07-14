@@ -88,6 +88,12 @@ public final class GeneratedJavaFileType {
     public static final int GENERATE_EVENT_SUBJECT_CLASS = 1024;
 
     /**
+     * Java classes for events.
+     */
+    public static final int GENERATE_ALL_EVENT_CLASS_MASK = GENERATE_EVENT_CLASS | GENERATE_EVENT_LISTENER_INTERFACE
+            | GENERATE_EVENT_SUBJECT_CLASS;
+
+    /**
      * Identity listener class.
      */
     public static final int GENERATE_IDENTITY_CLASS = 2048;

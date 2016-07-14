@@ -5,7 +5,13 @@ module test5 {
     revision "2016-07-04" {
              description "Initial revision.";
     }
-    typedef abc {
+    typedef typedef1 {
+       type int32;
+    }
+    typedef typedef2 {
+       type int32;
+    }
+    typedef typedef3 {
        type int32;
     }
 

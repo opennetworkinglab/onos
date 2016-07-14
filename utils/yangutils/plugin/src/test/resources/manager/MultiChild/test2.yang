@@ -1,0 +1,22 @@
+module test8 {
+    namespace "test8:test";  
+    prefix test ;  
+
+    revision "2016-07-04" {
+             description "Initial revision.";
+    }
+
+    grouping grouping1 {
+        leaf leaf1 {
+           type int32;
+        }
+    }
+
+    typedef typedef3 {
+       type int32;
+    }
+
+    container container2 {
+    }
+
+}

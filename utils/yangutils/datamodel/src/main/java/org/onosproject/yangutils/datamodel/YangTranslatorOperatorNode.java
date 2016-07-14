@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2016-present Open Networking Laboratory
  *
@@ -14,35 +15,11 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.linker.impl;
+package org.onosproject.yangutils.datamodel;
 
 /**
- * Enum for prefix resolver type when augment has come in path.
+ * Abstraction of an entity which provides info about whether to translate module/submodule in manager and service
+ * classes.
  */
-enum PrefixResolverType {
-
-    /**
-     * When prefix changes from inter file to intra file.
-     */
-    INTER_TO_INTRA,
-
-    /**
-     * When prefix changes from intra file to inter file.
-     */
-    INTRA_TO_INTER,
-
-    /**
-     * When prefix changes from one inter file to other inter file.
-     */
-    INTER_TO_INTER,
-
-    /**
-     * When no prefix change occurs.
-     */
-    NO_PREFIX_CHANGE_FOR_INTRA,
-
-    /**
-     * When no prefix change occurs.
-     */
-    NO_PREFIX_CHANGE_FOR_INTER
+public interface YangTranslatorOperatorNode {
 }

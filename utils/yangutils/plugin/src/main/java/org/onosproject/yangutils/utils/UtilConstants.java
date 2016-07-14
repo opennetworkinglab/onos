@@ -517,11 +517,6 @@ public final class UtilConstants {
     public static final String IF = "if";
 
     /**
-     * Static attribute for "for" syntax.
-     */
-    public static final String FOR = "for";
-
-    /**
      * Static attribute for of.
      */
     public static final String OF = "of";
@@ -1185,7 +1180,7 @@ public final class UtilConstants {
     /**
      * Static attribute for augmentation class.
      */
-    public static final String AUGMENTATION = "Augmentation";
+    public static final String AUGMENTED_INFO = "AugmentedInfo";
 
     /**
      * Static attribute for AugmentedInfo class.
@@ -1381,6 +1376,43 @@ public final class UtilConstants {
      * Static attribute for jar.
      */
     public static final String JAR = "jar";
+
+    /**
+     * Static attribute for for.
+     */
+    public static final String FOR = "for";
+
+    /**
+     * Static attribute for YangAugmentedOpParamInfo.
+     */
+    public static final String YANG_AUGMENTED_OP_PARAM_INFO = "YangAugmentedOpParamInfo";
+
+    /**
+     * Static attribute for YangAugmentedOpParamInfo.
+     */
+    public static final String YANG_AUGMENTED_OP_PARAM_INFO_CLASS = "YangAugmentedOpParamInfo;\n";
+
+    /**
+     * Static attribute for IllegalArgumentException.
+     */
+    public static final String ILLEGAL_ARGUMENT_EXCEPTION = "IllegalArgumentException";
+
+    /**
+     * Static attribute for IllegalArgumentException.
+     */
+    public static final String ILLEGAL_ARGUMENT_EXCEPTION_MSG = "\"provided augmented info is invalid for content " +
+            "match.\"";
+
+    /**
+     * Static attribute for throw.
+     */
+    public static final String THROW = "throw";
+
+    /**
+     * Static attribute for baseClass().
+     */
+    public static final String BASE_CLASS = "BaseClass()";
+
 
     /**
      * Creates an instance of util constants.

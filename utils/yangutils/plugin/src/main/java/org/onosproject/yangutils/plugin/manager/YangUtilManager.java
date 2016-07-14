@@ -18,7 +18,6 @@ package org.onosproject.yangutils.plugin.manager;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import org.apache.maven.artifact.repository.ArtifactRepository;
@@ -43,6 +42,7 @@ import org.sonatype.plexus.build.incremental.BuildContext;
 
 import static org.apache.maven.plugins.annotations.LifecyclePhase.GENERATE_SOURCES;
 import static org.apache.maven.plugins.annotations.ResolutionScope.COMPILE;
+import static org.onosproject.yangutils.linker.impl.YangLinkerUtils.updateFilePriority;
 import static org.onosproject.yangutils.plugin.manager.YangPluginUtils.addToCompilationRoot;
 import static org.onosproject.yangutils.plugin.manager.YangPluginUtils.copyYangFilesToTarget;
 import static org.onosproject.yangutils.plugin.manager.YangPluginUtils.resolveInterJarDependencies;
@@ -67,17 +67,14 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getPackageDirP
 public class YangUtilManager
         extends AbstractMojo {
 
+    private static final String DEFAULT_PKG = SLASH + getPackageDirPathFromJavaJPackage(DEFAULT_BASE_PKG);
     private YangNode rootNode;
     // YANG file information set.
     private Set<YangFileInfo> yangFileInfoSet = new HashSet<>();
     private YangUtilsParser yangUtilsParser = new YangUtilsParserManager();
     private YangLinker yangLinker = new YangLinkerManager();
     private YangFileInfo curYangFileInfo = new YangFileInfo();
-
     private Set<YangNode> yangNodeSet = new HashSet<>();
-
-    private static final String DEFAULT_PKG = SLASH + getPackageDirPathFromJavaJPackage(DEFAULT_BASE_PKG);
-
     /**
      * Source directory for YANG files.
      */
@@ -144,9 +141,15 @@ public class YangUtilManager
     @Component
     private BuildContext context;
 
+    /**
+     * Local maven repository.
+     */
     @Parameter(readonly = true, defaultValue = "${localRepository}")
     private ArtifactRepository localRepository;
 
+    /**
+     * Remote maven repositories.
+     */
     @Parameter(readonly = true, defaultValue = "${project.remoteArtifactRepositories}")
     private List<ArtifactRepository> remoteRepository;
 
@@ -196,7 +199,7 @@ public class YangUtilManager
                 return;
             }
             // Resolve inter jar dependency.
-            resolveInterJardependency();
+            resolveInterJarDependency();
 
             // Carry out the parsing for all the YANG files.
             parseYangFileInfoSet();
@@ -205,7 +208,7 @@ public class YangUtilManager
             resolveDependenciesUsingLinker();
 
             // Perform translation to JAVA.
-            translateToJava(getYangFileInfoSet(), yangPlugin);
+            translateToJava(yangPlugin);
 
             // Serialize data model.
             serializeDataModel(getDirectory(baseDir, outputDirectory), getYangFileInfoSet(), project, true);
@@ -237,7 +240,7 @@ public class YangUtilManager
      *
      * @return YANG node set
      */
-    public Set<YangNode> getYangNodeSet() {
+    Set<YangNode> getYangNodeSet() {
         return yangNodeSet;
     }
 
@@ -246,12 +249,13 @@ public class YangUtilManager
      *
      * @throws IOException when fails to do IO operations
      */
-    public void resolveInterJardependency() throws IOException {
+    private void resolveInterJarDependency() throws IOException {
         try {
             List<YangNode> interJarResolvedNodes = resolveInterJarDependencies(project, localRepository,
                     remoteRepository, getDirectory(baseDir, outputDirectory));
             for (YangNode node : interJarResolvedNodes) {
                 YangFileInfo dependentFileInfo = new YangFileInfo();
+                node.setToTranslate(false);
                 dependentFileInfo.setRootNode(node);
                 dependentFileInfo.setForTranslator(false);
                 dependentFileInfo.setYangFileName(node.getName());
@@ -281,7 +285,7 @@ public class YangUtilManager
     /**
      * Creates YANG nodes set.
      */
-    public void createYangNodeSet() {
+    void createYangNodeSet() {
         for (YangFileInfo yangFileInfo : getYangFileInfoSet()) {
             getYangNodeSet().add(yangFileInfo.getRootNode());
         }
@@ -339,19 +343,15 @@ public class YangUtilManager
     /**
      * Translates to java code corresponding to the YANG schema.
      *
-     * @param yangFileInfoSet YANG file information
-     * @param yangPlugin      YANG plugin config
-     * @throws IOException when fails to generate java code file the current
-     *                     node
+     * @param yangPlugin YANG plugin config
+     * @throws IOException when fails to generate java code file the current node
      */
-    public void translateToJava(Set<YangFileInfo> yangFileInfoSet, YangPluginConfig yangPlugin)
+    public void translateToJava(YangPluginConfig yangPlugin)
             throws IOException {
-        Iterator<YangFileInfo> yangFileIterator = yangFileInfoSet.iterator();
-        while (yangFileIterator.hasNext()) {
-            YangFileInfo yangFileInfo = yangFileIterator.next();
-            setCurYangFileInfo(yangFileInfo);
-            if (yangFileInfo.isForTranslator()) {
-                generateJavaCode(yangFileInfo.getRootNode(), yangPlugin);
+        updateFilePriority(getYangNodeSet());
+        for (YangNode node : getYangNodeSet()) {
+            if (node.isToTranslate()) {
+                generateJavaCode(node, yangPlugin);
             }
         }
     }
@@ -383,7 +383,7 @@ public class YangUtilManager
      *
      * @param yangFileInfoSet the YANG file info set
      */
-    public void setYangFileInfoSet(Set<YangFileInfo> yangFileInfoSet) {
+    void setYangFileInfoSet(Set<YangFileInfo> yangFileInfoSet) {
         this.yangFileInfoSet = yangFileInfoSet;
     }
 
@@ -392,7 +392,7 @@ public class YangUtilManager
      *
      * @return the yangFileInfo
      */
-    public YangFileInfo getCurYangFileInfo() {
+    private YangFileInfo getCurYangFileInfo() {
         return curYangFileInfo;
     }
 
@@ -401,7 +401,7 @@ public class YangUtilManager
      *
      * @param yangFileInfo the yangFileInfo to set
      */
-    public void setCurYangFileInfo(YangFileInfo yangFileInfo) {
+    private void setCurYangFileInfo(YangFileInfo yangFileInfo) {
         curYangFileInfo = yangFileInfo;
     }
 }

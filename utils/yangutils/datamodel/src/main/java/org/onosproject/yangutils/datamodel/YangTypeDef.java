@@ -57,7 +57,8 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
 /**
  * Represents data model node to maintain information defined in YANG typedef.
  */
-public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable, YangTypeHolder, CollisionDetector {
+public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable, YangTypeHolder, CollisionDetector,
+        YangTranslatorOperatorNode {
 
     private static final long serialVersionUID = 806201615L;
 

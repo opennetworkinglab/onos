@@ -44,7 +44,7 @@ public class ManagerCodeGeneratorTest {
     @Test
     public void processManagerTranslator() throws IOException, ParserException, MojoExecutionException {
 
-        String searchDir = "src/test/resources/manager";
+        String searchDir = "src/test/resources/manager/singleChild";
         utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
         utilManager.parseYangFileInfoSet();
         utilManager.createYangNodeSet();
@@ -54,7 +54,7 @@ public class ManagerCodeGeneratorTest {
         yangPluginConfig.setCodeGenDir("target/manager/");
         yangPluginConfig.setManagerCodeGenDir("target/manager/");
 
-        utilManager.translateToJava(utilManager.getYangFileInfoSet(), yangPluginConfig);
+        utilManager.translateToJava(yangPluginConfig);
         String file1 = "target/manager/org/onosproject/yang/gen/v1/test5/test/rev20160704/Test5Manager.java";
         String file2 = "target/manager/org/onosproject/yang/gen/v1/test5/test/rev20160704/Test6Manager.java";
         String file3 = "target/manager/org/onosproject/yang/gen/v1/test5/test/rev20160704/Test7Manager.java";
@@ -79,7 +79,7 @@ public class ManagerCodeGeneratorTest {
     public void processManagerInDifferentPackageTranslator() throws IOException, ParserException,
             MojoExecutionException {
 
-        String searchDir = "src/test/resources/manager";
+        String searchDir = "src/test/resources/manager/singleChild";
         utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
         utilManager.parseYangFileInfoSet();
         utilManager.createYangNodeSet();
@@ -87,13 +87,57 @@ public class ManagerCodeGeneratorTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/manager/");
-        yangPluginConfig.setManagerCodeGenDir("target/manager1/");
+        yangPluginConfig.setManagerCodeGenDir("target/manager/");
 
-        utilManager.translateToJava(utilManager.getYangFileInfoSet(), yangPluginConfig);
-        String file3 = "target/manager1/org/onosproject/yang/gen/v1/test5/test/rev20160704/Test7Manager.java";
+        utilManager.translateToJava(yangPluginConfig);
+        String file3 = "target/manager/org/onosproject/yang/gen/v1/test5/test/rev20160704/Test7Manager.java";
 
         File manager3 = new File(file3);
         assertThat(true, is(manager3.exists()));
+
+        deleteDirectory("target/manager/");
+        deleteDirectory("target/manager1/");
+    }
+
+    /**
+     * Checks manager translation in different package should not result in any exception.
+     *
+     * @throws MojoExecutionException
+     */
+    @Test
+    public void processManagerforMultiChildTranslator() throws IOException, ParserException,
+            MojoExecutionException {
+
+        String searchDir = "src/test/resources/manager/MultiChild";
+        utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
+        utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
+        utilManager.resolveDependenciesUsingLinker();
+
+        YangPluginConfig yangPluginConfig = new YangPluginConfig();
+        yangPluginConfig.setCodeGenDir("target/manager/");
+        yangPluginConfig.setManagerCodeGenDir("target/manager/");
+
+        utilManager.translateToJava(yangPluginConfig);
+        String file1 = "target/manager/org/onosproject/yang/gen/v1/test5/test/rev20160704/Test5Manager.java";
+
+        File manager1 = new File(file1);
+        assertThat(false, is(manager1.exists()));
+
+        String file2 = "target/manager/org/onosproject/yang/gen/v1/test5/test/rev20160704/Test6Manager.java";
+
+        File manager2 = new File(file2);
+        assertThat(false, is(manager2.exists()));
+
+        String file3 = "target/manager/org/onosproject/yang/gen/v1/test5/test/rev20160704/Test7Manager.java";
+
+        File manager3 = new File(file3);
+        assertThat(false, is(manager3.exists()));
+
+        String file4 = "target/manager/org/onosproject/yang/gen/v1/test8/test/rev20160704/Test8Manager.java";
+
+        File manager4 = new File(file4);
+        assertThat(true, is(manager4.exists()));
 
         deleteDirectory("target/manager/");
         deleteDirectory("target/manager1/");

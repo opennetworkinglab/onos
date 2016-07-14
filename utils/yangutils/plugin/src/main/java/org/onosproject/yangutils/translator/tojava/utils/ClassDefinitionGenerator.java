@@ -17,6 +17,7 @@
 package org.onosproject.yangutils.translator.tojava.utils;
 
 import org.onosproject.yangutils.datamodel.YangAugment;
+import org.onosproject.yangutils.datamodel.YangCase;
 import org.onosproject.yangutils.datamodel.YangIdentity;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNotification;
@@ -45,7 +46,6 @@ import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
 import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT;
-import static org.onosproject.yangutils.utils.UtilConstants.OPERATION;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_CLOSE_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_OPEN_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.EIGHT_SPACE_INDENTATION;
@@ -61,12 +61,14 @@ import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.MANAGER;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_CURLY_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.OPERATION;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
 import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_ANY_STRING_ENDING_WITH_SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.UtilConstants.SUBJECT;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_OP_PARAM_INFO;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;
 
@@ -82,8 +84,7 @@ public final class ClassDefinitionGenerator {
     }
 
     /**
-     * Based on the file type and the YANG name of the file, generate the class
-     * / interface definition start.
+     * Based on the file type and the YANG name of the file, generate the class / interface definition start.
      *
      * @param genFileTypes generated file type
      * @param yangName     class name
@@ -107,8 +108,7 @@ public final class ClassDefinitionGenerator {
     }
 
     /**
-     * Based on the file type and the YANG name of the file, generate the class
-     * / interface definition start.
+     * Based on the file type and the YANG name of the file, generate the class / interface definition start.
      *
      * @param genFileTypes generated file type
      * @param yangName     class name
@@ -131,7 +131,7 @@ public final class ClassDefinitionGenerator {
             case IMPL_CLASS_MASK:
                 return getImplClassDefinition(yangName, curNode);
             case OPERATION_CLASS_MASK:
-                return getOperClassDefinition(yangName, curNode);
+                return getOpPramImplClassDefinition(yangName, curNode);
             case BUILDER_INTERFACE_MASK:
                 return getBuilderInterfaceDefinition(yangName, curNode);
             case GENERATE_SERVICE_AND_MANAGER:
@@ -178,14 +178,12 @@ public final class ClassDefinitionGenerator {
     /**
      * Returns builder interface file class definition.
      *
-     * @param yangName java class name, corresponding to which the builder class
-     *                 is being generated
+     * @param yangName java class name, corresponding to which the builder class is being generated
      * @return definition
      */
     private static String getBuilderInterfaceDefinition(String yangName, YangNode curNode) {
-        String clsDef = "";
-        if (curNode instanceof YangAugment) {
-            clsDef = getClassDefinitionForWhenExtended(curNode, yangName, BUILDER_INTERFACE_MASK);
+        if (!(curNode instanceof YangCase)) {
+            String clsDef = getClassDefinitionForWhenExtended(curNode, yangName, BUILDER_INTERFACE_MASK);
             if (clsDef != null) {
                 return clsDef;
             }
@@ -200,9 +198,8 @@ public final class ClassDefinitionGenerator {
      * @return definition
      */
     private static String getBuilderClassDefinition(String yangName, YangNode curNode) {
-        String clsDef = "";
-        if (curNode instanceof YangAugment) {
-            clsDef = getClassDefinitionForWhenExtended(curNode, yangName, BUILDER_CLASS_MASK);
+        if (!(curNode instanceof YangCase)) {
+            String clsDef = getClassDefinitionForWhenExtended(curNode, yangName, BUILDER_CLASS_MASK);
             if (clsDef != null) {
                 return clsDef;
             }
@@ -215,15 +212,14 @@ public final class ClassDefinitionGenerator {
      * Returns operation param builder file class definition.
      *
      * @param yangName class name
-     * @param curNode   YANG node
+     * @param curNode  YANG node
      * @return definition returns operation param builder file class definition
      */
     private static String getOpParamBuilderClassDefinition(String yangName, YangNode curNode) {
-        String clsDef = "";
-        if (curNode instanceof YangAugment) {
-            clsDef = getClassDefinitionForWhenExtended(curNode, yangName, OPERATION_BUILDER_CLASS_MASK);
+        if (!(curNode instanceof YangCase)) {
+            String clsDef = getClassDefinitionForWhenExtended(curNode, yangName, OPERATION_BUILDER_CLASS_MASK);
             if (clsDef != null) {
-                return clsDef;
+                return clsDef + OPEN_CURLY_BRACKET + NEW_LINE;
             }
         }
         return PUBLIC + SPACE + CLASS + SPACE + yangName + OPERATION + BUILDER + SPACE + EXTEND +
@@ -238,9 +234,8 @@ public final class ClassDefinitionGenerator {
      * @return definition
      */
     private static String getImplClassDefinition(String yangName, YangNode curNode) {
-        String clsDef = "";
-        if (curNode instanceof YangAugment) {
-            clsDef = getClassDefinitionForWhenExtended(curNode, yangName, IMPL_CLASS_MASK);
+        if (!(curNode instanceof YangCase)) {
+            String clsDef = getClassDefinitionForWhenExtended(curNode, yangName, IMPL_CLASS_MASK);
             if (clsDef != null) {
                 return clsDef;
             }
@@ -253,20 +248,26 @@ public final class ClassDefinitionGenerator {
      * Returns operation param file class definition.
      *
      * @param yangName class name
-     * @param curNode   YANG node
+     * @param curNode  YANG node
      * @return definition returns operation param file class definition
      */
-    private static String getOperClassDefinition(String yangName, YangNode curNode) {
+    private static String getOpPramImplClassDefinition(String yangName, YangNode curNode) {
         String clsDef = "";
-        if (curNode instanceof YangAugment) {
+        if (!(curNode instanceof YangCase)) {
             clsDef = getClassDefinitionForWhenExtended(curNode, yangName, OPERATION_CLASS_MASK);
-            if (clsDef != null) {
-                return clsDef;
-            }
         }
 
-        return PUBLIC + SPACE + CLASS + SPACE + yangName + OPERATION + SPACE + EXTEND + SPACE
-                + getCapitalCase(DEFAULT) + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+        if (clsDef.equals("")) {
+            clsDef = PUBLIC + SPACE + CLASS + SPACE + yangName + OPERATION + SPACE + EXTEND + SPACE
+                    + getCapitalCase(DEFAULT) + yangName + SPACE;
+        }
+        if (curNode instanceof YangAugment) {
+            clsDef = clsDef + IMPLEMENTS + SPACE + YANG_AUGMENTED_OP_PARAM_INFO + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+        } else {
+            clsDef = clsDef + OPEN_CURLY_BRACKET + NEW_LINE;
+        }
+
+        return clsDef;
     }
 
     /**
@@ -407,72 +408,28 @@ public final class ClassDefinitionGenerator {
             switch (genFileTypes) {
                 case INTERFACE_MASK:
                     def = def + INTERFACE + SPACE + yangName + SPACE + EXTEND + SPACE;
-                    for (JavaQualifiedTypeInfo info : holder.getExtendsList()) {
-                        if (curNode instanceof YangAugment) {
-                            if (!info.getClassInfo().contains(BUILDER) && !info.getClassInfo().contains(
-                                    getCapitalCase(DEFAULT))) {
-                                def = getDefinitionString(def, info, holder);
-                            }
-                        } else {
-                            def = getDefinitionString(def, info, holder);
-                        }
-                    }
-                    def = trimAtLast(def, COMMA);
-
+                    def = getDefinitionString(def, holder);
                     return def + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
                 case BUILDER_INTERFACE_MASK:
                     String builderDef = INTERFACE + SPACE + yangName + BUILDER + SPACE + EXTEND + SPACE;
-                    for (JavaQualifiedTypeInfo info : holder.getExtendsList()) {
-                        if (info.getClassInfo().contains(BUILDER) && !info.getClassInfo().contains(
-                                getCapitalCase(DEFAULT))) {
-                            builderDef = getDefinitionString(builderDef, info, holder);
-                        }
-                    }
-
-                    builderDef = trimAtLast(builderDef, COMMA);
-
+                    builderDef = getDefinitionString(builderDef, holder);
                     return builderDef + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
                 case BUILDER_CLASS_MASK:
                     def = def + CLASS + SPACE + yangName + BUILDER + SPACE + EXTEND + SPACE;
-                    for (JavaQualifiedTypeInfo info : holder.getExtendsList()) {
-                        if (info.getClassInfo().contains(BUILDER)
-                                && info.getClassInfo().contains(getCapitalCase(DEFAULT))) {
-                            def = getDefinitionString(def, info, holder);
-                        }
-                    }
-
-                    def = trimAtLast(def, COMMA);
-
+                    def = getDefinitionString(def, holder);
                     return def + SPACE + IMPLEMENTS + SPACE + yangName + PERIOD
                             + yangName + BUILDER + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
 
                 case IMPL_CLASS_MASK:
                     def = def + SPACE + CLASS + SPACE + getCapitalCase(DEFAULT) + yangName + SPACE + EXTEND + SPACE;
-                    for (JavaQualifiedTypeInfo info : holder.getExtendsList()) {
-                        if (!info.getClassInfo().contains(BUILDER)
-                                && info.getClassInfo().contains(getCapitalCase(DEFAULT))) {
-                            def = getDefinitionString(def, info, holder);
-                        }
-                    }
-
-                    def = trimAtLast(def, COMMA);
-
+                    def = getDefinitionString(def, holder);
                     return def + SPACE + IMPLEMENTS + SPACE
                             + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
 
                 case OPERATION_CLASS_MASK:
-                    def = def + SPACE + CLASS + SPACE + yangName + OPERATION + SPACE;
-                    for (JavaQualifiedTypeInfo info : holder.getExtendsList()) {
-                        if (!info.getClassInfo().contains(BUILDER)
-                                && info.getClassInfo().contains(OPERATION)) {
-                            def = getDefinitionString(def, info, holder);
-                        }
-                    }
-
-                    def = trimAtLast(def, COMMA);
-
-                    return def + SPACE + EXTEND + SPACE
-                            + getCapitalCase(DEFAULT) + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+                    def = def + CLASS + SPACE + yangName + OPERATION + SPACE + EXTEND + SPACE;
+                    def = getDefinitionString(def, holder);
+                    return def + SPACE;
                 default:
                     return null;
             }
@@ -484,17 +441,18 @@ public final class ClassDefinitionGenerator {
      * Returns updated class definition.
      *
      * @param def    current definition
-     * @param info   java qualified info
      * @param holder extend list holder
      * @return updated class definition
      */
-    private static String getDefinitionString(String def, JavaQualifiedTypeInfo info, JavaExtendsListHolder holder) {
-        if (!holder.getExtendedClassStore().get(info)) {
-            def = def + info.getClassInfo() + COMMA + SPACE;
-        } else {
-            def = def + info.getPkgInfo() + PERIOD + info.getClassInfo() + COMMA + SPACE;
+    private static String getDefinitionString(String def, JavaExtendsListHolder holder) {
+        for (JavaQualifiedTypeInfo info : holder.getExtendsList()) {
+            if (!holder.getExtendedClassStore().get(info)) {
+                def = def + info.getClassInfo() + COMMA + SPACE;
+            } else {
+                def = def + info.getPkgInfo() + PERIOD + info.getClassInfo() + COMMA + SPACE;
+            }
         }
-        return def;
+        return trimAtLast(def, COMMA);
     }
 
 }

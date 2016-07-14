@@ -16,23 +16,28 @@
 
 package org.onosproject.yangutils.linker.impl;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
+
 import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangAugmentableNode;
 import org.onosproject.yangutils.datamodel.YangAugmentedInfo;
 import org.onosproject.yangutils.datamodel.YangCase;
 import org.onosproject.yangutils.datamodel.YangChoice;
+import org.onosproject.yangutils.datamodel.YangImport;
+import org.onosproject.yangutils.datamodel.YangInclude;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangLeafRef;
 import org.onosproject.yangutils.datamodel.YangLeavesHolder;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
+import org.onosproject.yangutils.datamodel.YangReferenceResolver;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
 import org.onosproject.yangutils.linker.exceptions.LinkerException;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
 
 import static org.onosproject.yangutils.utils.UtilConstants.COLON;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
@@ -43,12 +48,12 @@ import static org.onosproject.yangutils.utils.UtilConstants.SLASH_FOR_STRING;
  */
 public final class YangLinkerUtils {
 
-    private YangLinkerUtils() {
-    }
-
     private static final int IDENTIFIER_LENGTH = 64;
     private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_.-]*");
     private static final String XML = "xml";
+
+    private YangLinkerUtils() {
+    }
 
     /**
      * Detects collision between target nodes leaf/leaf-list or child node with augmented leaf/leaf-list or child node.
@@ -59,61 +64,75 @@ public final class YangLinkerUtils {
     private static void detectCollision(YangNode targetNode, YangAugment augment) {
         YangNode targetNodesChild = targetNode.getChild();
         YangNode augmentsChild = augment.getChild();
-        YangLeavesHolder augmentsLeavesHolder = augment;
-        if (targetNode instanceof YangChoice) {
-            if (augmentsLeavesHolder.getListOfLeaf() != null
-                    || augmentsLeavesHolder.getListOfLeafList() != null) {
-                throw new LinkerException("target node " + targetNode.getName()
-                        + "is a instance of choice. it can " +
-                        "only be augmented with leaf using a case node.");
-            }
+        YangNode parent = targetNode;
+        if (targetNode instanceof YangAugment) {
+            parent = targetNode.getParent();
         } else {
-            YangLeavesHolder targetNodesLeavesHolder = (YangLeavesHolder) targetNode;
+            while (parent.getParent() != null) {
+                parent = parent.getParent();
+            }
+        }
+        if (targetNode instanceof YangChoice) {
+            // no need to check here.
+        } else {
+            detectCollisionInLeaveHolders(targetNode, augment);
+            while (augmentsChild != null) {
+                detectCollisionInChildNodes(targetNodesChild, augmentsChild, targetNode.getName(), parent.getName());
+                augmentsChild = augmentsChild.getNextSibling();
+            }
+        }
+    }
 
-            YangNode parent = targetNode;
-            if (targetNode instanceof YangAugment) {
-                parent = targetNode.getParent();
-            } else {
-                while (parent.getParent() != null) {
-                    parent = parent.getParent();
+    /*Detects collision between leaves/leaflists*/
+    private static void detectCollisionInLeaveHolders(YangNode targetNode, YangAugment augment) {
+        YangLeavesHolder targetNodesLeavesHolder = (YangLeavesHolder) targetNode;
+        YangNode parent = targetNode;
+        if (targetNode instanceof YangAugment) {
+            parent = targetNode.getParent();
+        } else {
+            while (parent.getParent() != null) {
+                parent = parent.getParent();
+            }
+        }
+        if (augment.getListOfLeaf() != null && augment.getListOfLeaf().size() != 0
+                && targetNodesLeavesHolder.getListOfLeaf() != null) {
+            for (YangLeaf leaf : augment.getListOfLeaf()) {
+                for (YangLeaf targetLeaf : targetNodesLeavesHolder.getListOfLeaf()) {
+                    if (targetLeaf.getName().equals(leaf.getName())) {
+                        throw new LinkerException("target node " + targetNode.getName()
+                                + " contains augmented leaf " + leaf.getName() + " in module "
+                                + parent.getName());
+                    }
                 }
             }
-            if (augmentsLeavesHolder.getListOfLeaf() != null && augmentsLeavesHolder.getListOfLeaf().size() != 0
-                    && targetNodesLeavesHolder.getListOfLeaf() != null) {
-                for (YangLeaf leaf : augmentsLeavesHolder.getListOfLeaf()) {
-                    for (YangLeaf targetLeaf : targetNodesLeavesHolder.getListOfLeaf()) {
-                        if (targetLeaf.getName().equals(leaf.getName())) {
-                            throw new LinkerException("target node " + targetNode.getName()
-                                    + " contains augmented leaf " + leaf.getName() + " in module "
-                                    + parent.getName());
-                        }
+        } else if (augment.getListOfLeafList() != null
+                && augment.getListOfLeafList().size() != 0
+                && augment.getListOfLeafList() != null) {
+            for (YangLeafList leafList : augment.getListOfLeafList()) {
+                for (YangLeafList targetLeafList : targetNodesLeavesHolder.getListOfLeafList()) {
+                    if (targetLeafList.getName().equals(leafList.getName())) {
+                        throw new LinkerException("target node " + targetNode.getName()
+                                + " contains augmented leaf-list" + leafList.getName() + " in module "
+                                + parent.getName());
                     }
-                }
-            } else if (augmentsLeavesHolder.getListOfLeafList() != null
-                    && augmentsLeavesHolder.getListOfLeafList().size() != 0
-                    && targetNodesLeavesHolder.getListOfLeafList() != null) {
-                for (YangLeafList leafList : augmentsLeavesHolder.getListOfLeafList()) {
-                    for (YangLeafList targetLeafList : targetNodesLeavesHolder.getListOfLeafList()) {
-                        if (targetLeafList.getName().equals(leafList.getName())) {
-                            throw new LinkerException("target node " + targetNode.getName()
-                                    + " contains augmented leaf-list" + leafList.getName() + " in module "
-                                    + parent.getName());
-                        }
-                    }
-                }
-            } else {
-                while (augmentsChild != null) {
-                    while (targetNodesChild != null) {
-                        if (targetNodesChild.getName().equals(augmentsChild.getName())) {
-                            throw new LinkerException("target node " + targetNode.getName()
-                                    + " contains augmented child node" + augmentsChild.getName() + " in module "
-                                    + parent.getName());
-                        }
-                        targetNodesChild = targetNodesChild.getNextSibling();
-                    }
-                    augmentsChild = augmentsChild.getNextSibling();
                 }
             }
+        }
+    }
+
+    /*Detects collision for child nodes.*/
+    private static void detectCollisionInChildNodes(YangNode targetNodesChild, YangNode augmentsChild, String
+            targetName, String parentName) {
+        while (augmentsChild != null) {
+            while (targetNodesChild != null) {
+                if (targetNodesChild.getName().equals(augmentsChild.getName())) {
+                    throw new LinkerException("target node " + targetName
+                            + " contains augmented child node" + augmentsChild.getName() + " in module "
+                            + parentName);
+                }
+                targetNodesChild = targetNodesChild.getNextSibling();
+            }
+            augmentsChild = augmentsChild.getNextSibling();
         }
     }
 
@@ -124,7 +143,7 @@ public final class YangLinkerUtils {
      * @param targetNode target node
      * @param augment    augment node
      */
-    public static void detectCollisionForAugmentedNode(YangNode targetNode, YangAugment augment) {
+    static void detectCollisionForAugmentedNode(YangNode targetNode, YangAugment augment) {
         // Detect collision for target node and augment node.
         detectCollision(targetNode, augment);
         List<YangAugmentedInfo> yangAugmentedInfo = ((YangAugmentableNode) targetNode).getAugmentedInfoList();
@@ -226,6 +245,51 @@ public final class YangLinkerUtils {
                     " must not start with (('X'|'x') ('M'|'m') ('L'|'l')).");
         } else {
             return identifier;
+        }
+    }
+
+    /**
+     * Updates the priority for all the input files.
+     *
+     * @param yangNodeSet set of YANG files info
+     */
+    public static void updateFilePriority(Set<YangNode> yangNodeSet) {
+        for (YangNode yangNode : yangNodeSet) {
+            updateFilePriorityOfNode(yangNode);
+        }
+    }
+
+    /**
+     * Updates priority of the node.
+     *
+     * @param yangNode YANG node information
+     */
+    public static void updateFilePriorityOfNode(YangNode yangNode) {
+        int curNodePriority = yangNode.getPriority();
+        if (yangNode instanceof YangReferenceResolver) {
+            List<YangImport> yangImportList = ((YangReferenceResolver) yangNode).getImportList();
+            Iterator<YangImport> importInfoIterator = yangImportList.iterator();
+            // Run through the imported list to update priority.
+            while (importInfoIterator.hasNext()) {
+                YangImport yangImport = importInfoIterator.next();
+                YangNode importedNode = yangImport.getImportedNode();
+                if (curNodePriority >= importedNode.getPriority()) {
+                    importedNode.setPriority(curNodePriority + 1);
+                    updateFilePriorityOfNode(importedNode);
+                }
+            }
+
+            List<YangInclude> yangIncludeList = ((YangReferenceResolver) yangNode).getIncludeList();
+            Iterator<YangInclude> includeInfoIterator = yangIncludeList.iterator();
+            // Run through the imported list to update priority.
+            while (includeInfoIterator.hasNext()) {
+                YangInclude yangInclude = includeInfoIterator.next();
+                YangNode includedNode = yangInclude.getIncludedNode();
+                if (curNodePriority >= includedNode.getPriority()) {
+                    includedNode.setPriority(curNodePriority + 1);
+                    updateFilePriorityOfNode(includedNode);
+                }
+            }
         }
     }
 }

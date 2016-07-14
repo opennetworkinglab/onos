@@ -19,9 +19,7 @@ package org.onosproject.yangutils.translator.tojava.utils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.onosproject.yangutils.datamodel.YangAtomicPath;
 import org.onosproject.yangutils.datamodel.YangAugment;
@@ -36,6 +34,7 @@ import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaBeanFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaEnumerationFragmentFiles;
+import org.onosproject.yangutils.translator.tojava.TempJavaEventFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaServiceFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaTypeFragmentFiles;
@@ -81,9 +80,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getQualifiedTypeInfoOfCurNode;
 import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.getAugmentedNodesPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.ClassDefinitionGenerator.generateClassDefinition;
-import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
-import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
@@ -97,9 +94,9 @@ import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.ENU
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.EVENT;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.EVENT_LISTENER;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.EVENT_SUBJECT_CLASS;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.OPERATION_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.IMPL_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.INTERFACE;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.OPERATION_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.RPC_INTERFACE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.RPC_MANAGER;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
@@ -123,15 +120,15 @@ public final class JavaFileGeneratorUtils {
     /**
      * Returns a file object for generated file.
      *
-     * @param fileName  file name
      * @param filePath  file package path
+     * @param fileName  file name
      * @param extension file extension
-     * @param handle    cached file handle
+     * @param baseCodePath    cached file handle
      * @return file object
      */
-    public static File getFileObject(String filePath, String fileName, String extension, JavaFileInfo handle) {
+    public static File getFileObject(String filePath, String fileName, String extension, String baseCodePath) {
 
-        return new File(handle.getBaseCodeGenPath() + filePath + SLASH + fileName + extension);
+        return new File(baseCodePath + filePath + SLASH + fileName + extension);
     }
 
     /**
@@ -143,8 +140,8 @@ public final class JavaFileGeneratorUtils {
      * @return data stored in temporary files
      * @throws IOException when failed to get the data from temporary file handle
      */
-    public static String getDataFromTempFileHandle(int generatedTempFiles,
-                                                   TempJavaFragmentFiles tempJavaFragmentFiles, String absolutePath)
+    static String getDataFromTempFileHandle(int generatedTempFiles,
+                                            TempJavaFragmentFiles tempJavaFragmentFiles, String absolutePath)
             throws IOException {
 
         TempJavaTypeFragmentFiles typeFragmentFiles = null;
@@ -162,6 +159,11 @@ public final class JavaFileGeneratorUtils {
         TempJavaServiceFragmentFiles serviceFragmentFiles = null;
         if (tempJavaFragmentFiles instanceof TempJavaServiceFragmentFiles) {
             serviceFragmentFiles = (TempJavaServiceFragmentFiles) tempJavaFragmentFiles;
+        }
+
+        TempJavaEventFragmentFiles eventFragmentFiles = null;
+        if (tempJavaFragmentFiles instanceof TempJavaEventFragmentFiles) {
+            eventFragmentFiles = (TempJavaEventFragmentFiles) tempJavaFragmentFiles;
         }
 
         if ((generatedTempFiles & ATTRIBUTES_MASK) != 0) {
@@ -247,39 +249,39 @@ public final class JavaFileGeneratorUtils {
                     .getTemporaryDataFromFileHandle(serviceFragmentFiles.getRpcImplTempFileHandle(),
                             absolutePath);
         } else if ((generatedTempFiles & EVENT_ENUM_MASK) != 0) {
-            if (serviceFragmentFiles == null) {
-                throw new TranslatorException("Required rpc implementation info is missing.");
+            if (eventFragmentFiles == null) {
+                throw new TranslatorException("Required event enum implementation info is missing.");
             }
-            return serviceFragmentFiles
-                    .getTemporaryDataFromFileHandle(serviceFragmentFiles.getEventEnumTempFileHandle(),
+            return eventFragmentFiles
+                    .getTemporaryDataFromFileHandle(eventFragmentFiles.getEventEnumTempFileHandle(),
                             absolutePath);
         } else if ((generatedTempFiles & EVENT_METHOD_MASK) != 0) {
-            if (serviceFragmentFiles == null) {
-                throw new TranslatorException("Required rpc implementation info is missing.");
+            if (eventFragmentFiles == null) {
+                throw new TranslatorException("Required event method implementation info is missing.");
             }
-            return serviceFragmentFiles
-                    .getTemporaryDataFromFileHandle(serviceFragmentFiles.getEventMethodTempFileHandle(),
+            return eventFragmentFiles
+                    .getTemporaryDataFromFileHandle(eventFragmentFiles.getEventMethodTempFileHandle(),
                             absolutePath);
         } else if ((generatedTempFiles & EVENT_SUBJECT_GETTER_MASK) != 0) {
-            if (serviceFragmentFiles == null) {
-                throw new TranslatorException("Required rpc implementation info is missing.");
+            if (eventFragmentFiles == null) {
+                throw new TranslatorException("Required event subject getter implementation info is missing.");
             }
-            return serviceFragmentFiles
-                    .getTemporaryDataFromFileHandle(serviceFragmentFiles.getEventSubjectGetterTempFileHandle(),
+            return eventFragmentFiles
+                    .getTemporaryDataFromFileHandle(eventFragmentFiles.getEventSubjectGetterTempFileHandle(),
                             absolutePath);
         } else if ((generatedTempFiles & EVENT_SUBJECT_SETTER_MASK) != 0) {
-            if (serviceFragmentFiles == null) {
-                throw new TranslatorException("Required rpc implementation info is missing.");
+            if (eventFragmentFiles == null) {
+                throw new TranslatorException("Required event subject setter implementation info is missing.");
             }
-            return serviceFragmentFiles
-                    .getTemporaryDataFromFileHandle(serviceFragmentFiles.getEventSubjectSetterTempFileHandle(),
+            return eventFragmentFiles
+                    .getTemporaryDataFromFileHandle(eventFragmentFiles.getEventSubjectSetterTempFileHandle(),
                             absolutePath);
         } else if ((generatedTempFiles & EVENT_SUBJECT_ATTRIBUTE_MASK) != 0) {
-            if (serviceFragmentFiles == null) {
-                throw new TranslatorException("Required rpc implementation info is missing.");
+            if (eventFragmentFiles == null) {
+                throw new TranslatorException("Required event subject attribute implementation info is missing.");
             }
-            return serviceFragmentFiles
-                    .getTemporaryDataFromFileHandle(serviceFragmentFiles.getEventSubjectAttributeTempFileHandle(),
+            return eventFragmentFiles
+                    .getTemporaryDataFromFileHandle(eventFragmentFiles.getEventSubjectAttributeTempFileHandle(),
                             absolutePath);
         }
         return null;
@@ -300,11 +302,15 @@ public final class JavaFileGeneratorUtils {
                                                   String pkg, YangPluginConfig pluginConfig)
             throws IOException {
 
+        boolean isFileCreated;
         try {
-            file.createNewFile();
+            isFileCreated = file.createNewFile();
+            if (!isFileCreated) {
+                throw new IOException("Failed to create " + file.getName() + " class file.");
+            }
             appendContents(file, className, genType, imports, pkg, pluginConfig);
         } catch (IOException e) {
-            throw new IOException("Failed to create " + file.getName() + " class file.");
+            throw new IOException("Failed to append contents in " + file.getName() + " class file.");
         }
     }
 
@@ -322,11 +328,15 @@ public final class JavaFileGeneratorUtils {
                                                   YangNode curNode, String className)
             throws IOException {
 
+        boolean isFileCreated;
         try {
-            file.createNewFile();
+            isFileCreated = file.createNewFile();
+            if (!isFileCreated) {
+                throw new IOException("Failed to create " + file.getName() + " class file.");
+            }
             appendContents(file, genType, imports, curNode, className);
         } catch (IOException e) {
-            throw new IOException("Failed to create " + file.getName() + " class file.");
+            throw new IOException("Failed to append contents in " + file.getName() + " class file.");
         }
     }
 
@@ -349,11 +359,7 @@ public final class JavaFileGeneratorUtils {
         String name = javaFileInfo.getJavaName();
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
-        YangNode augmentedNode = null;
-        if (curNode instanceof YangAugment) {
-            augmentedNode = ((YangAugment) curNode).getAugmentedNode();
-        }
-        String pkgString = null;
+        String pkgString;
         if (genType == GENERATE_EVENT_CLASS
                 || genType == GENERATE_EVENT_LISTENER_INTERFACE
                 || genType == GENERATE_EVENT_SUBJECT_CLASS) {
@@ -363,11 +369,7 @@ public final class JavaFileGeneratorUtils {
         }
         switch (genType) {
             case INTERFACE_MASK:
-                if (augmentedNode != null) {
-                    appendHeaderContents(file, pkgString, importsList, augmentedNode);
-                } else {
-                    appendHeaderContents(file, pkgString, importsList);
-                }
+                appendHeaderContents(file, pkgString, importsList);
                 write(file, genType, INTERFACE, curNode, className);
                 break;
             case IMPL_CLASS_MASK:
@@ -470,8 +472,8 @@ public final class JavaFileGeneratorUtils {
     }
 
     /**
-     * Appends other contents to interface, impl and typedef classes.
-     * for example : ONOS copyright, imports and package.
+     * Appends other contents to interface, impl and typedef classes. for example : ONOS copyright, imports and
+     * package.
      *
      * @param file        generated file
      * @param pkg         generated package
@@ -485,7 +487,7 @@ public final class JavaFileGeneratorUtils {
         insertDataIntoJavaFile(file, pkg);
 
         /*
-         * TODO: add the file header using
+         * TODO: add the file header using comments for snippet of yang file.
          * JavaCodeSnippetGen.getFileHeaderComment
          */
 
@@ -493,39 +495,6 @@ public final class JavaFileGeneratorUtils {
             insertDataIntoJavaFile(file, NEW_LINE);
             for (String imports : importsList) {
                 insertDataIntoJavaFile(file, imports);
-            }
-        }
-    }
-
-    /**
-     * Appends other contents to interface and impl classes when augmented node is not null.
-     * for example : ONOS copyright, imports and package.
-     *
-     * @param file          generated file
-     * @param pkg           generated package
-     * @param augmentedNode augmented node
-     * @param importsList   list of imports
-     * @throws IOException when fails to append contents
-     */
-    private static void appendHeaderContents(File file, String pkg, List<String> importsList, YangNode augmentedNode)
-            throws IOException {
-
-        insertDataIntoJavaFile(file, CopyrightHeader.getCopyrightHeader());
-        insertDataIntoJavaFile(file, pkg);
-
-        /*
-         * TODO: add the file header using
-         * JavaCodeSnippetGen.getFileHeaderComment
-         */
-
-        if (importsList != null) {
-            insertDataIntoJavaFile(file, NEW_LINE);
-            for (String imports : importsList) {
-                if (!imports.contains(getCapitalCase(DEFAULT) + getCapitalCase(getCamelCase(augmentedNode.getName(),
-                        null)))
-                        && !imports.contains(getCapitalCase(getCamelCase(augmentedNode.getName(), null)) + BUILDER)) {
-                    insertDataIntoJavaFile(file, imports);
-                }
             }
         }
     }
@@ -575,32 +544,12 @@ public final class JavaFileGeneratorUtils {
     }
 
     /**
-     * Returns resolved augments for manager classes.
-     *
-     * @param parent parent node
-     * @return resolved augments for manager classes
-     */
-    public static Map<YangAtomicPath, YangAugment> getResolvedAugmentsForManager(YangNode parent) {
-        Map<YangAtomicPath, YangAugment> resolvedAugmentsForManager = new HashMap<>();
-        YangNodeIdentifier nodeId;
-        List<YangAtomicPath> targets = new ArrayList<>();
-        for (YangAugment augment : getListOfAugments(parent)) {
-            nodeId = augment.getTargetNode().get(0).getNodeIdentifier();
-            if (validateNodeIdentifierInSet(nodeId, targets)) {
-                targets.add(augment.getTargetNode().get(0));
-                resolvedAugmentsForManager.put(augment.getTargetNode().get(0), augment);
-            }
-        }
-        return resolvedAugmentsForManager;
-    }
-
-    /**
      * Returns set of node identifiers.
      *
      * @param parent parent node
      * @return set of node identifiers
      */
-    public static List<YangAtomicPath> getSetOfNodeIdentifiers(YangNode parent) {
+    static List<YangAtomicPath> getSetOfNodeIdentifiers(YangNode parent) {
 
         List<YangAtomicPath> targets = new ArrayList<>();
         YangNodeIdentifier nodeId;
@@ -649,7 +598,6 @@ public final class JavaFileGeneratorUtils {
      * @param parent parent node
      */
     public static void addResolvedAugmentedDataNodeImports(YangNode parent) {
-        Map<YangAtomicPath, YangAugment> resolvedAugmentsForManager = getResolvedAugmentsForManager(parent);
         List<YangAtomicPath> targets = getSetOfNodeIdentifiers(parent);
         TempJavaCodeFragmentFiles tempJavaCodeFragmentFiles = ((JavaCodeGeneratorInfo) parent)
                 .getTempJavaCodeFragmentFiles();
@@ -658,7 +606,7 @@ public final class JavaFileGeneratorUtils {
         String curNodeName;
         JavaFileInfo parentInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo();
         for (YangAtomicPath nodeId : targets) {
-            augmentedNode = resolvedAugmentsForManager.get(nodeId).getResolveNodeInPath().get(nodeId);
+            augmentedNode = nodeId.getResolvedNode().getParent();
             if (((JavaFileInfoContainer) augmentedNode).getJavaFileInfo().getJavaName() != null) {
                 curNodeName = ((JavaFileInfoContainer) augmentedNode).getJavaFileInfo().getJavaName();
             } else {
@@ -682,8 +630,8 @@ public final class JavaFileGeneratorUtils {
      * @param pluginConfig  plugin configurations
      * @return qualified type info of augmented node
      */
-    public static JavaQualifiedTypeInfo getQualifiedTypeInfoOfAugmentedNode(YangNode augmentedNode, String curNodeName,
-                                                                            YangPluginConfig pluginConfig) {
+    private static JavaQualifiedTypeInfo getQualifiedTypeInfoOfAugmentedNode(YangNode augmentedNode, String curNodeName,
+                                                                             YangPluginConfig pluginConfig) {
         JavaQualifiedTypeInfo javaQualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(augmentedNode,
                 getCapitalCase(curNodeName));
         if (javaQualifiedTypeInfo.getPkgInfo() == null) {
@@ -719,7 +667,7 @@ public final class JavaFileGeneratorUtils {
      * @param parent        parent node
      * @return augmented class name for data methods in manager and service
      */
-    public static String getAugmentedClassNameForDataMethods(YangNode augmentedNode, YangNode parent) {
+    static String getAugmentedClassNameForDataMethods(YangNode augmentedNode, YangNode parent) {
         String curNodeName;
         JavaQualifiedTypeInfo javaQualifiedTypeInfo;
         JavaFileInfo parentInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo();
@@ -751,7 +699,7 @@ public final class JavaFileGeneratorUtils {
      * @param pluginConfig plugin configurations
      * @return parent node name for data methods in manager and service
      */
-    public static String getParentNodeNameForDataMethods(YangNode parent, YangPluginConfig pluginConfig) {
+    static String getParentNodeNameForDataMethods(YangNode parent, YangPluginConfig pluginConfig) {
         JavaFileInfo parentInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo();
         if (parentInfo.getJavaName() != null) {
             return getCapitalCase(parentInfo.getJavaName());

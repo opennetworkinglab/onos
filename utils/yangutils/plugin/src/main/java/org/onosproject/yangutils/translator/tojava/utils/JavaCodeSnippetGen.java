@@ -95,8 +95,7 @@ public final class JavaCodeSnippetGen {
      * Returns the textual java code information corresponding to the import list.
      *
      * @param importInfo import info
-     * @return the textual java code information corresponding to the import
-     * list
+     * @return the textual java code information corresponding to the import list
      */
     public static String getImportText(JavaQualifiedTypeInfo importInfo) {
         return IMPORT + importInfo.getPkgInfo() + PERIOD + importInfo.getClassInfo() + SEMI_COLAN + NEW_LINE;
@@ -147,8 +146,7 @@ public final class JavaCodeSnippetGen {
     }
 
     /**
-     * Returns based on the file type and the YANG name of the file, generate the class
-     * / interface definition close.
+     * Returns based on the file type and the YANG name of the file, generate the class / interface definition close.
      *
      * @return corresponding textual java code information
      */

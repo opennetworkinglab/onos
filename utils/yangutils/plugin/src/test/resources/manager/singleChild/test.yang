@@ -1,0 +1,12 @@
+module test7 {
+    namespace "test5:test";  
+    prefix test ;  
+
+    revision "2016-07-04" {
+             description "Initial revision.";
+    }
+
+    container cont1 {
+    }
+
+}

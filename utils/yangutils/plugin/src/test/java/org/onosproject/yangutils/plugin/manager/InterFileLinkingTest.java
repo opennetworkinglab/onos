@@ -638,7 +638,7 @@ public class InterFileLinkingTest {
         yangPluginConfig.setCodeGenDir("target/interfilewithusesreferringtype/");
         yangPluginConfig.setManagerCodeGenDir("target/interfilewithusesreferringtype/");
 
-        utilManager.translateToJava(utilManager.getYangFileInfoSet(), yangPluginConfig);
+        utilManager.translateToJava(yangPluginConfig);
 
         deleteDirectory("target/interfilewithusesreferringtype/");
 
@@ -660,7 +660,7 @@ public class InterFileLinkingTest {
         yangPluginConfig.setCodeGenDir("target/file1UsesFile2TypeDefFile3Type/");
         yangPluginConfig.setManagerCodeGenDir("target/file1UsesFile2TypeDefFile3Type/");
 
-        utilManager.translateToJava(utilManager.getYangFileInfoSet(), yangPluginConfig);
+        utilManager.translateToJava(yangPluginConfig);
 
         deleteDirectory("target/file1UsesFile2TypeDefFile3Type/");
 
@@ -682,7 +682,7 @@ public class InterFileLinkingTest {
         yangPluginConfig.setCodeGenDir("target/interfileietf/");
         yangPluginConfig.setManagerCodeGenDir("target/interfileietf/");
 
-        utilManager.translateToJava(utilManager.getYangFileInfoSet(), yangPluginConfig);
+        utilManager.translateToJava(yangPluginConfig);
 
         deleteDirectory("target/interfileietf/");
 
@@ -704,7 +704,7 @@ public class InterFileLinkingTest {
         yangPluginConfig.setCodeGenDir("target/usesInContainer/");
         yangPluginConfig.setManagerCodeGenDir("target/usesInContainer/");
 
-        utilManager.translateToJava(utilManager.getYangFileInfoSet(), yangPluginConfig);
+        utilManager.translateToJava(yangPluginConfig);
 
         deleteDirectory("target/usesInContainer/");
 
@@ -726,7 +726,7 @@ public class InterFileLinkingTest {
         yangPluginConfig.setCodeGenDir("target/groupingNodeSameAsModule/");
         yangPluginConfig.setManagerCodeGenDir("target/groupingNodeSameAsModule/");
 
-        utilManager.translateToJava(utilManager.getYangFileInfoSet(), yangPluginConfig);
+        utilManager.translateToJava(yangPluginConfig);
 
         deleteDirectory("target/groupingNodeSameAsModule/");
 

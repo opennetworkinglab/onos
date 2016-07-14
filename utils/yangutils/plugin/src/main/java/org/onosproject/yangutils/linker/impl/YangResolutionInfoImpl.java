@@ -1209,7 +1209,6 @@ public class YangResolutionInfoImpl<T>
                     detectCollisionForAugmentedNode(targetNode, augment);
                     ((YangAugmentableNode) targetNode).addAugmentation(augment);
                     augment.setAugmentedNode(targetNode);
-                    augment.setResolveNodeInPath(xPathLinker.getResolvedNodes());
                     Resolvable resolvable = (Resolvable) entityToResolve;
                     resolvable.setResolvableStatus(RESOLVED);
                 } else {

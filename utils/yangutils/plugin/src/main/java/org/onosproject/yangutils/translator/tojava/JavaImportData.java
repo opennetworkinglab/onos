@@ -42,6 +42,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.ONOS_EVENT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_OP_PARAM_INFO_CLASS;
 import static java.util.Collections.sort;
 
 /**
@@ -288,5 +289,15 @@ public class JavaImportData {
      */
     public String getYangAugmentedInfoImport() {
         return IMPORT + YANG_AUGMENTED_INFO_CLASS_IMPORT_PKG + PERIOD + YANG_AUGMENTED_INFO_CLASS_IMPORT_CLASS;
+    }
+
+    /**
+     * Returns import string for YangAugmentedOpParamInfo class.
+     *
+     * @return import string for YangAugmentedOpParamInfo class
+     */
+    public String getYangAugmentedOpParamInfoImport() {
+        return IMPORT + YANG_AUGMENTED_INFO_CLASS_IMPORT_PKG + PERIOD +
+                YANG_AUGMENTED_OP_PARAM_INFO_CLASS;
     }
 }

@@ -32,6 +32,11 @@ public class YangAtomicPath implements Serializable {
     private List<YangPathPredicate> pathPredicatesList;
 
     /**
+     * Resolved node for the absolute path.
+     */
+    private YangNode resolvedNode;
+
+    /**
      * Returns the node identifier.
      *
      * @return the node identifier
@@ -74,5 +79,24 @@ public class YangAtomicPath implements Serializable {
      */
     public void addLeavesPredicate(YangPathPredicate predicatesExp) {
         getPathPredicatesList().add(predicatesExp);
+    }
+
+
+    /**
+     * Returns resolved node.
+     *
+     * @return resolved node
+     */
+    public YangNode getResolvedNode() {
+        return resolvedNode;
+    }
+
+    /**
+     * Sets resolved node.
+     *
+     * @param resolvedNode resolved node
+     */
+    public void setResolvedNode(YangNode resolvedNode) {
+        this.resolvedNode = resolvedNode;
     }
 }

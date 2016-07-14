@@ -18,13 +18,11 @@ package org.onosproject.yangutils.linker.impl;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
 import org.onosproject.yangutils.datamodel.ResolvableType;
-import org.onosproject.yangutils.datamodel.YangImport;
-import org.onosproject.yangutils.datamodel.YangInclude;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangReferenceResolver;
 import org.onosproject.yangutils.datamodel.YangSubModule;
@@ -32,6 +30,7 @@ import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.linker.YangLinker;
 import org.onosproject.yangutils.linker.exceptions.LinkerException;
 
+import static org.onosproject.yangutils.linker.impl.YangLinkerUtils.updateFilePriority;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 
 /**
@@ -191,52 +190,4 @@ public class YangLinkerManager
         }
     }
 
-    /**
-     * Updates the priority for all the input files.
-     *
-     * @param yangNodeSet set of YANG files info
-     */
-    public void updateFilePriority(Set<YangNode> yangNodeSet) {
-        for (YangNode yangNode : yangNodeSet) {
-            updateFilePriorityOfNode(yangNode);
-        }
-    }
-
-    /**
-     * Updates priority of the node.
-     *
-     * @param yangNode YANG node information
-     */
-    public void updateFilePriorityOfNode(YangNode yangNode) {
-        int curNodePriority = yangNode.getPriority();
-        if (yangNode instanceof YangReferenceResolver) {
-            List<YangImport> yangImportList = ((YangReferenceResolver) yangNode).getImportList();
-            if (yangImportList != null && !yangImportList.isEmpty()) {
-                Iterator<YangImport> importInfoIterator = yangImportList.iterator();
-                // Run through the imported list to update priority.
-                while (importInfoIterator.hasNext()) {
-                    YangImport yangImport = importInfoIterator.next();
-                    YangNode importedNode = yangImport.getImportedNode();
-                    if (curNodePriority >= importedNode.getPriority()) {
-                        importedNode.setPriority(curNodePriority + 1);
-                        updateFilePriorityOfNode(importedNode);
-                    }
-                }
-            }
-
-            List<YangInclude> yangIncludeList = ((YangReferenceResolver) yangNode).getIncludeList();
-            if (yangIncludeList != null && !yangIncludeList.isEmpty()) {
-                Iterator<YangInclude> includeInfoIterator = yangIncludeList.iterator();
-                // Run through the imported list to update priority.
-                while (includeInfoIterator.hasNext()) {
-                    YangInclude yangInclude = includeInfoIterator.next();
-                    YangNode includedNode = yangInclude.getIncludedNode();
-                    if (curNodePriority >= includedNode.getPriority()) {
-                        includedNode.setPriority(curNodePriority + 1);
-                        updateFilePriorityOfNode(includedNode);
-                    }
-                }
-            }
-        }
-    }
 }

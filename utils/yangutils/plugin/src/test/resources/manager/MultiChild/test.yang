@@ -6,7 +6,13 @@ module test7 {
              description "Initial revision.";
     }
 
-    leaf abc {
+    grouping grouping1 {
+        leaf leaf1 {
+           type int32;
+        }
+    }
+
+    typedef typedef3 {
        type int32;
     }
 

@@ -64,6 +64,11 @@ public abstract class YangNode
     private int priority;
 
     /**
+     * Flag if the node is for translation.
+     */
+    private boolean isToTranslate = true;
+
+    /**
      * Returns the priority of the node.
      *
      * @return priority of the node
@@ -268,6 +273,7 @@ public abstract class YangNode
     /**
      * Clones the current node contents and create a new node.
      *
+     * @param yangUses YANG uses
      * @return cloned node
      * @throws CloneNotSupportedException clone is not supported by the referred
      *                                    node
@@ -297,6 +303,7 @@ public abstract class YangNode
      *
      * @param srcRootNode source node for sub tree cloning
      * @param dstRootNode destination node where the sub tree needs to be cloned
+     * @param yangUses    YANG uses
      * @throws DataModelException data model error
      */
     public static void cloneSubTree(YangNode srcRootNode, YangNode dstRootNode, YangUses yangUses)
@@ -408,6 +415,24 @@ public abstract class YangNode
             throw new DataModelException("Errored tree cloning");
         }
 
+    }
+
+    /**
+     * /** Returns true if translation required.
+     *
+     * @return true if translation required
+     */
+    public boolean isToTranslate() {
+        return isToTranslate;
+    }
+
+    /**
+     * Sest true if translation required.
+     *
+     * @param toTranslate true if translation required.
+     */
+    public void setToTranslate(boolean toTranslate) {
+        isToTranslate = toTranslate;
     }
 
     /**

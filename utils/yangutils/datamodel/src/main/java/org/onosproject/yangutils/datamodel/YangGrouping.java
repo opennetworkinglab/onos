@@ -79,7 +79,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  */
 public class YangGrouping
         extends YangNode
-        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector {
+        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector, YangTranslatorOperatorNode {
 
     private static final long serialVersionUID = 806201607L;
 

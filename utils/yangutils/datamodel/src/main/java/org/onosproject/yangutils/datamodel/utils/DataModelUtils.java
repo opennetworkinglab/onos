@@ -370,6 +370,7 @@ public final class DataModelUtils {
      *
      * @param clonedLeaf       cloned leaf in uses from grouping
      * @param leafParentHolder holder of the leaf from uses
+     * @param yangUses         YANG uses
      * @return entity of leafref which has to be resolved
      * @throws DataModelException data model error
      */

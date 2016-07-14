@@ -31,8 +31,8 @@ import org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 
 /**
- * Represent the extends list for generated java classes. It holds the class details which needs
- * to be extended by the generated java code.
+ * Represent the extends list for generated java classes. It holds the class details which needs to be extended by the
+ * generated java code.
  */
 public class JavaExtendsListHolder {
 

@@ -15,10 +15,8 @@
  */
 package org.onosproject.yangutils.datamodel;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
@@ -130,11 +128,6 @@ public class YangAugment
     private YangNode augmentedNode;
 
     /**
-     * All resolved nodes in given xPath.
-     */
-    private Map<YangAtomicPath, YangNode> resolveNodeInPath;
-
-    /**
      * Status of resolution. If completely resolved enum value is "RESOLVED", if not enum value is "UNRESOLVED", in case
      * reference of grouping/typedef is added to uses/type but it's not resolved value of enum should be
      * "INTRA_FILE_RESOLVED".
@@ -156,7 +149,6 @@ public class YangAugment
      */
     public YangAugment() {
         super(YangNodeType.AUGMENT_NODE);
-        resolveNodeInPath = new HashMap<>();
         resolvableStatus = ResolvableStatus.UNRESOLVED;
     }
 
@@ -447,21 +439,4 @@ public class YangAugment
         return null;
     }
 
-    /**
-     * Returns all resolved node in path.
-     *
-     * @return all resolved node in path
-     */
-    public Map<YangAtomicPath, YangNode> getResolveNodeInPath() {
-        return resolveNodeInPath;
-    }
-
-    /**
-     * Sets all resolved node in path.
-     *
-     * @param resolveNodeInPath all resolved node in path
-     */
-    public void setResolveNodeInPath(Map<YangAtomicPath, YangNode> resolveNodeInPath) {
-        this.resolveNodeInPath = resolveNodeInPath;
-    }
 }

@@ -1,0 +1,12 @@
+module test5 {
+    namespace "test5:test";
+    prefix test ;
+
+    revision "2016-07-04" {
+             description "Initial revision.";
+    }
+    typedef typedef1 {
+       type int32;
+    }
+
+}

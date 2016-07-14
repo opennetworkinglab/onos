@@ -23,6 +23,7 @@ import org.onosproject.yangutils.datamodel.YangTypeHolder;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ALL_EVENT_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
@@ -56,6 +57,11 @@ public class TempJavaCodeFragmentFiles {
     private TempJavaEnumerationFragmentFiles enumerationTempFiles;
 
     /**
+     * Has the temporary files required for enumeration generated classes.
+     */
+    private TempJavaEventFragmentFiles tempJavaEventFragmentFiles;
+
+    /**
      * Creates an instance of temporary java code fragment.
      *
      * @param javaFileInfo generated java file info
@@ -78,6 +84,10 @@ public class TempJavaCodeFragmentFiles {
 
         if ((javaFileInfo.getGeneratedFileTypes() & GENERATE_SERVICE_AND_MANAGER) != 0) {
             setServiceTempFiles(new TempJavaServiceFragmentFiles(javaFileInfo));
+        }
+
+        if ((javaFileInfo.getGeneratedFileTypes() & GENERATE_ALL_EVENT_CLASS_MASK) != 0) {
+            setEventFragmentFiles(new TempJavaEventFragmentFiles(javaFileInfo));
         }
 
     }
@@ -156,10 +166,29 @@ public class TempJavaCodeFragmentFiles {
     }
 
     /**
+     * Retrieves the temp file handle for event file generation.
+     *
+     * @return temp file handle for enumeration file generation
+     */
+    public TempJavaEventFragmentFiles getEventFragmentFiles() {
+        return tempJavaEventFragmentFiles;
+    }
+
+    /**
+     * Sets temp file handle for event file generation.
+     *
+     * @param tempJavaEventFragmentFiles temp file handle for event file generation
+     */
+    public void setEventFragmentFiles(TempJavaEventFragmentFiles tempJavaEventFragmentFiles) {
+        this.tempJavaEventFragmentFiles = tempJavaEventFragmentFiles;
+    }
+
+
+    /**
      * Constructs java code exit.
      *
      * @param fileType generated file type
-     * @param curNode current YANG node
+     * @param curNode  current YANG node
      * @throws IOException when fails to generate java files
      */
     public void generateJavaFile(int fileType, YangNode curNode)
@@ -181,6 +210,13 @@ public class TempJavaCodeFragmentFiles {
          */
         if (fileType == GENERATE_SERVICE_AND_MANAGER) {
             getServiceTempFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, curNode);
+        }
+
+        /**
+         * Creates event, event listener and event subject files.
+         */
+        if (fileType == GENERATE_ALL_EVENT_CLASS_MASK) {
+            getEventFragmentFiles().generateJavaFile(GENERATE_ALL_EVENT_CLASS_MASK, curNode);
         }
 
         /*

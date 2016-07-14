@@ -15,6 +15,10 @@
  */
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
 import org.onosproject.yangutils.datamodel.YangIdentity;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
@@ -25,12 +29,8 @@ import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_IDENTITY_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
 import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.updatePackageInfo;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getFileObject;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.initiateJavaFileGeneration;
@@ -145,7 +145,7 @@ public class YangJavaIdentity extends YangIdentity
                 }
             }
 
-            File file = getFileObject(path, className, JAVA_FILE_EXTENSION, getJavaFileInfo());
+            File file = getFileObject(path, className, JAVA_FILE_EXTENSION, getJavaFileInfo().getBaseCodeGenPath());
 
             initiateJavaFileGeneration(file, GENERATE_IDENTITY_CLASS, imports, this, className);
             closeFile(file, false);
