@@ -13,12 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp.msg;
+package org.onosproject.lisp.msg.types;
+
+import org.onlab.packet.IpAddress;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
- * Remove me.
+ * IPv4 address that is used by LISP Locator.
  */
-@Deprecated
-public abstract class PlaceHolder {
+public class LispIpv4Address extends LispIpAddress {
 
+    /**
+     * Initializes LISP locator's IPv4 address.
+     *
+     * @param address IP address
+     */
+    public LispIpv4Address(IpAddress address) {
+        super(address, AddressFamilyIdentifierEnum.IP);
+        checkArgument(address.isIp4());
+    }
 }
