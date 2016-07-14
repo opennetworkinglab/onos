@@ -19,7 +19,7 @@ import org.onosproject.event.AbstractEvent;
 import com.google.protobuf.GeneratedMessage;
 
 /**
- * Represents the converted Onos Event data into GPB format.
+ * Represents the converted Onos Event data into protobuf format.
  *
  */
 public class OnosEvent extends AbstractEvent<OnosEvent.Type, GeneratedMessage> {
@@ -38,6 +38,19 @@ public class OnosEvent extends AbstractEvent<OnosEvent.Type, GeneratedMessage> {
      * List of Event Types supported.
      */
     public enum Type {
-        DEVICE, LINK;
+        /**
+         * Signifies Device events.
+         */
+        DEVICE("DEVICE"),
+
+        /**
+         * Signifies Link events.
+         */
+        LINK("LINK");
+        public String typeName;
+
+        Type(String name) {
+            typeName = name;
+        }
     }
 }
