@@ -16,7 +16,6 @@
 
 package org.onosproject.yangutils.datamodel.utils.builtindatatype;
 
-import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.DECIMAL64;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.INT16;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.INT32;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.INT64;
@@ -51,7 +50,6 @@ public final class YangDataTypeUtils {
                 || dataType == UINT8
                 || dataType == UINT16
                 || dataType == UINT32
-                || dataType == UINT64
-                || dataType == DECIMAL64;
+                || dataType == UINT64;
     }
 }

@@ -197,6 +197,11 @@ public final class UtilConstants {
     public static final String PARSE_BYTE = "parseByte";
 
     /**
+     * Static attribute for get bytes.
+     */
+    public static final String GET_BYTES = "getBytes";
+
+    /**
      * Static attribute for parse boolean.
      */
     public static final String PARSE_BOOLEAN = "parseBoolean";
@@ -567,6 +572,11 @@ public final class UtilConstants {
     public static final String CLOSE_CURLY_BRACKET = "}";
 
     /**
+     * Static attribute for square brackets syntax.
+     */
+    public static final String SQUARE_BRACKETS = "[]";
+
+    /**
      * Static attribute for getter method prefix.
      */
     public static final String GET_METHOD_PREFIX = "get";
@@ -687,6 +697,16 @@ public final class UtilConstants {
     public static final String BIG_INTEGER = "BigInteger";
 
     /**
+     * BigDecimal built in java type.
+     */
+    public static final String BIG_DECIMAL = "BigDecimal";
+
+    /**
+     * BitSet built in java type.
+     */
+    public static final String BIT_SET = "BitSet";
+
+    /**
      * Byte java built in type.
      */
     public static final String BYTE = "byte";
@@ -745,6 +765,11 @@ public final class UtilConstants {
      * YangUint64 java built in wrapper type.
      */
     public static final String YANG_UINT64 = "YangUint64";
+
+    /**
+     * Double java built in wrapper type.
+     */
+    public static final String DOUBLE_WRAPPER = "Double";
 
     /**
      * List of keywords in java, this is used for checking if the input does not contain these keywords.
@@ -1136,16 +1161,6 @@ public final class UtilConstants {
     public static final String EVENT_LISTENER = "EventListener";
 
     /**
-     * Static attribute for YangBinary class.
-     */
-    public static final String YANG_BINARY_CLASS = "YangBinary";
-
-    /**
-     * Static attribute for YangBinary class.
-     */
-    public static final String YANG_BITS_CLASS = "YangBits";
-
-    /**
      * Static attribute for YANG types package.
      */
     public static final String YANG_TYPES_PKG = "org.onosproject.yangutils.datamodel.utils.builtindatatype";
@@ -1154,11 +1169,6 @@ public final class UtilConstants {
      * Static attribute for MathContext class.
      */
     public static final String MATH_CONTEXT = "MathContext";
-
-    /**
-     * Static attribute for DECIMAL64 class.
-     */
-    public static final String YANG_DECIMAL64_CLASS = "YangDecimal64";
 
     /**
      * Static attribute for YANG file error.

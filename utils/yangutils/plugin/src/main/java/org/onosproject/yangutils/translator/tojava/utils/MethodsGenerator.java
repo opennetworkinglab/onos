@@ -35,6 +35,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.AND;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.UtilConstants.BIG_INTEGER;
+import static org.onosproject.yangutils.utils.UtilConstants.BIG_DECIMAL;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_DATA_TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILD;
@@ -54,6 +55,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.DEACTIVATE_ANNOTATIO
 import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_CLOSE_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_OPEN_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.DOUBLE;
 import static org.onosproject.yangutils.utils.UtilConstants.EIGHT_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.EQUAL;
@@ -64,6 +66,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.FALSE;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_METHOD_NAME;
 import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_PARAM_NAME;
+import static org.onosproject.yangutils.utils.UtilConstants.GET_BYTES;
 import static org.onosproject.yangutils.utils.UtilConstants.GET_METHOD_PREFIX;
 import static org.onosproject.yangutils.utils.UtilConstants.GOOGLE_MORE_OBJECT_METHOD_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.HASH;
@@ -133,6 +136,7 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCamelCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getSmallCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BINARY;
 
 /**
  * Represents generator for methods of generated files based on the file type.
@@ -296,6 +300,7 @@ public final class MethodsGenerator {
             case INT:
             case SHORT:
             case LONG:
+            case DOUBLE:
                 return "0";
             case BOOLEAN_DATA_TYPE:
                 return FALSE;
@@ -748,10 +753,15 @@ public final class MethodsGenerator {
                                              JavaAttributeInfo fromStringAttributeInfo) {
 
         String targetDataType = getReturnType(attr);
-        String parseFromStringMethod = getParseFromStringMethod(targetDataType,
-                fromStringAttributeInfo.getAttributeType());
-        return targetDataType + SPACE + TMP_VAL + SPACE + EQUAL + SPACE + parseFromStringMethod
-                + OPEN_PARENTHESIS + FROM_STRING_PARAM_NAME + CLOSE_PARENTHESIS;
+        if (fromStringAttributeInfo.getAttributeType().getDataType() == BINARY) {
+            return targetDataType + SPACE + TMP_VAL + SPACE + EQUAL + SPACE + FROM_STRING_PARAM_NAME
+                    + PERIOD + GET_BYTES + OPEN_PARENTHESIS + CLOSE_PARENTHESIS;
+        } else {
+            String parseFromStringMethod = getParseFromStringMethod(targetDataType,
+                                                                    fromStringAttributeInfo.getAttributeType());
+            return targetDataType + SPACE + TMP_VAL + SPACE + EQUAL + SPACE + parseFromStringMethod
+                    + OPEN_PARENTHESIS + FROM_STRING_PARAM_NAME + CLOSE_PARENTHESIS;
+        }
     }
 
     /**
@@ -1092,14 +1102,14 @@ public final class MethodsGenerator {
                 return LONG_WRAPPER + PERIOD + PARSE_LONG;
             case UINT64:
                 return NEW + SPACE + BIG_INTEGER;
+            case DECIMAL64:
+                return NEW + SPACE + BIG_DECIMAL;
             case STRING:
                 return EMPTY_STRING;
             case EMPTY:
             case BOOLEAN:
                 return BOOLEAN_WRAPPER + PERIOD + PARSE_BOOLEAN;
-            case DECIMAL64:
             case BITS:
-            case BINARY:
             case UNION:
             case ENUMERATION:
             case DERIVED:

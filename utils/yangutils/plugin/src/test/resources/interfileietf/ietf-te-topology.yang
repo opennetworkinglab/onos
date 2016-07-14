@@ -430,8 +430,8 @@
        }
        leaf unidirectional-packet-loss {
          type decimal64 {
-           /*fraction-digits 6;
-           range "0 .. 50.331642";*/
+           fraction-digits 6;
+           range "0 .. 50.331642";
          }
          description
            "Packet loss as a percentage of the total traffic sent
@@ -440,7 +440,7 @@
        }
        leaf unidirectional-residual-bandwidth {
          type decimal64 {
-           /*fraction-digits 2;*/
+           fraction-digits 2;
          }
          description
            "Residual bandwidth that subtracts tunnel
@@ -450,7 +450,7 @@
        }
        leaf unidirectional-available-bandwidth {
          type decimal64 {
-           /*fraction-digits 2;*/
+           fraction-digits 2;
          }
          description
            "Available bandwidth that is defined to be residual
@@ -461,7 +461,7 @@
        }
        leaf unidirectional-utilized-bandwidth {
          type decimal64 {
-           /*fraction-digits 2;*/
+           fraction-digits 2;
          }
          description
            "Bandwidth utilization that represents the actual
@@ -753,7 +753,7 @@
        }
        leaf max-link-bandwidth {
          type decimal64 {
-           /*fraction-digits 2;*/
+           fraction-digits 2;
          }
          description
            "Maximum bandwidth that can be seen on this link in this
@@ -765,7 +765,7 @@
        }
        leaf max-resv-link-bandwidth {
          type decimal64 {
-           /*fraction-digits 2;*/
+           fraction-digits 2;
          }
          description
            "Maximum amount of bandwidth that can be reserved in this
@@ -793,7 +793,7 @@
          }
          leaf bandwidth {
            type decimal64 {
-             /*fraction-digits 2;*/
+             fraction-digits 2;
            }
            description
              "Unreserved bandwidth for this level.";
@@ -884,7 +884,7 @@
            }
            leaf bandwidth {
              type decimal64 {
-               /*fraction-digits 2;*/
+               fraction-digits 2;
              }
              description
                "Max LSP Bandwidth for this level";
@@ -899,7 +899,7 @@
 
            leaf minimum-lsp-bandwidth {
              type decimal64 {
-               /*fraction-digits 2;*/
+               fraction-digits 2;
              }
              description
                "Minimum LSP Bandwidth. Units in bytes per second.";
@@ -951,7 +951,7 @@
              }
              leaf bandwidth {
                type decimal64 {
-                 /*fraction-digits 2;*/
+                 fraction-digits 2;
                }
                description
                  "Max LSP Bandwidth for this level.";

@@ -1,0 +1,15 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+
+    typedef validDecimal {
+         type decimal64 {
+            fraction-digits 4; 
+         }
+    }
+
+    leaf setFourDecimal {
+         type validDecimal;
+    } 
+}

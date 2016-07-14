@@ -32,6 +32,7 @@ import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangData
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BINARY;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BITS;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BOOLEAN;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.DECIMAL64;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.EMPTY;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.ENUMERATION;
@@ -242,97 +243,9 @@ public class YangDerivedInfo<T>
          * otherwise take from the base type of type itself.
          */
         if (baseType.getDataType() == DERIVED) {
-            /*
-             * Check whether the referred typedef is resolved.
-             */
-            if (baseType.getResolvableStatus() != INTRA_FILE_RESOLVED && baseType.getResolvableStatus() != RESOLVED) {
-                throw new DataModelException("Linker Error: Referred typedef is not resolved for type.");
-            }
-
-            /*
-             * Check if the referred typedef is intra file resolved, if yes sets
-             * current status also to intra file resolved .
-             */
-            if (getReferredTypeDef().getTypeDefBaseType().getResolvableStatus() == INTRA_FILE_RESOLVED) {
-                return INTRA_FILE_RESOLVED;
-            }
-            setEffectiveBuiltInType(((YangDerivedInfo<?>) baseType.getDataTypeExtendedInfo())
-                    .getEffectiveBuiltInType());
-            YangDerivedInfo refDerivedInfo = (YangDerivedInfo<?>) baseType.getDataTypeExtendedInfo();
-            /*
-             * Check whether the effective built-in type can have range
-             * restrictions, if yes call resolution of range.
-             */
-            if (isOfRangeRestrictedType(getEffectiveBuiltInType())) {
-                if (refDerivedInfo.getResolvedExtendedInfo() == null) {
-                    resolveRangeRestriction(null);
-                    /*
-                     * Return the resolution status as resolved, if it's not
-                     * resolve range/string restriction will throw exception in
-                     * previous function.
-                     */
-                    return RESOLVED;
-                } else {
-                    if (!(refDerivedInfo.getResolvedExtendedInfo() instanceof YangRangeRestriction)) {
-                        throw new DataModelException("Linker error: Referred typedef restriction info is of invalid " +
-                                "type.");
-                    }
-                    resolveRangeRestriction((YangRangeRestriction) refDerivedInfo.getResolvedExtendedInfo());
-                    /*
-                     * Return the resolution status as resolved, if it's not
-                     * resolve range/string restriction will throw exception in
-                     * previous function.
-                     */
-                    return RESOLVED;
-                }
-                /*
-                 * If the effective built-in type is of type string calls for
-                 * string resolution.
-                 */
-            } else if (getEffectiveBuiltInType() == STRING) {
-                if (refDerivedInfo.getResolvedExtendedInfo() == null) {
-                    resolveStringRestriction(null);
-                    /*
-                     * Return the resolution status as resolved, if it's not
-                     * resolve range/string restriction will throw exception in
-                     * previous function.
-                     */
-                    return RESOLVED;
-                } else {
-                    if (!(refDerivedInfo.getResolvedExtendedInfo() instanceof YangStringRestriction)) {
-                        throw new DataModelException("Linker error: Referred typedef restriction info is of invalid " +
-                                "type.");
-                    }
-                    resolveStringRestriction((YangStringRestriction) refDerivedInfo.getResolvedExtendedInfo());
-                    /*
-                     * Return the resolution status as resolved, if it's not
-                     * resolve range/string restriction will throw exception in
-                     * previous function.
-                     */
-                    return RESOLVED;
-                }
-            } else if (getEffectiveBuiltInType() == BINARY) {
-                if (refDerivedInfo.getResolvedExtendedInfo() == null) {
-                    resolveLengthRestriction(null);
-                    /*
-                     * Return the resolution status as resolved, if it's not
-                     * resolve length restriction will throw exception in
-                     * previous function.
-                     */
-                    return RESOLVED;
-                } else {
-                    if (!(refDerivedInfo.getResolvedExtendedInfo() instanceof YangRangeRestriction)) {
-                        throw new DataModelException("Linker error: Referred typedef restriction info is of invalid " +
-                                "type.");
-                    }
-                    resolveLengthRestriction((YangRangeRestriction) refDerivedInfo.getResolvedExtendedInfo());
-                    /*
-                     * Return the resolution status as resolved, if it's not
-                     * resolve length restriction will throw exception in
-                     * previous function.
-                     */
-                    return RESOLVED;
-                }
+            ResolvableStatus resolvableStatus = resolveTypeDerivedInfo(baseType);
+            if (resolvableStatus != null) {
+                return resolvableStatus;
             }
         } else if ((baseType.getDataType() == LEAFREF) || (baseType.getDataType() == IDENTITYREF)) {
             setEffectiveBuiltInType(baseType.getDataType());
@@ -393,7 +306,7 @@ public class YangDerivedInfo<T>
                 }
             } else if (getEffectiveBuiltInType() == BINARY) {
                 if (baseType.getDataTypeExtendedInfo() == null) {
-                    resolveLengthRestriction(null);
+                    resolveBinaryRestriction(null);
                     /*
                      * Return the resolution status as resolved, if it's not
                      * resolve length restriction will throw exception in
@@ -405,7 +318,7 @@ public class YangDerivedInfo<T>
                         throw new DataModelException("Linker error: Referred typedef restriction info is of invalid " +
                                 "type.");
                     }
-                    resolveLengthRestriction((YangRangeRestriction) baseType.getDataTypeExtendedInfo());
+                    resolveBinaryRestriction((YangRangeRestriction) baseType.getDataTypeExtendedInfo());
                     /*
                      * Return the resolution status as resolved, if it's not
                      * resolve length restriction will throw exception in
@@ -413,8 +326,38 @@ public class YangDerivedInfo<T>
                      */
                     return RESOLVED;
                 }
+            }  else if (getEffectiveBuiltInType() == DECIMAL64) {
+                if (baseType.getDataTypeExtendedInfo() != null) {
+                    if (((YangDecimal64) baseType.getDataTypeExtendedInfo()).getRangeRestrictedExtendedInfo() == null) {
+                        resolveRangeRestriction(null);
+                        /*
+                         * Return the resolution status as resolved, if it's not;
+                         * resolve range restriction will throw exception in
+                         * previous function.
+                         */
+                        return RESOLVED;
+                    } else {
+                        if (!(((YangDecimal64) baseType.getDataTypeExtendedInfo())
+                                .getRangeRestrictedExtendedInfo() instanceof YangRangeRestriction)) {
+                            throw new DataModelException("Linker error: Referred typedef restriction info is" +
+                                                                 " of invalid type.");
+                        }
+                        resolveRangeRestriction((YangRangeRestriction) ((YangDecimal64) baseType
+                                .getDataTypeExtendedInfo()).getRangeRestrictedExtendedInfo());
+                        /*
+                         * Return the resolution status as resolved, if it's not
+                         * resolve range/string restriction will throw exception in
+                         * previous function.
+                         */
+                        return RESOLVED;
+                    }
+
+                } else {
+                    throw new DataModelException("Linker error: Unable to find type extended info for decimal64.");
+                }
             }
         }
+
         /*
          * Check if the data type is the one which can't be restricted, in this
          * case check whether no self restrictions should be present.
@@ -428,8 +371,141 @@ public class YangDerivedInfo<T>
                 throw new DataModelException("YANG file error: Restrictions can't be applied to a given type");
             }
         }
+
         // Throw exception for unsupported types
         throw new DataModelException("Linker error: Unable to process the derived type.");
+    }
+
+    /**
+     * Resolves the type derived info, by obtaining the effective built-in type
+     * and resolving the restrictions.
+     *
+     * @param baseType base type of typedef
+     * @return resolution status
+     * @throws DataModelException a violation in data mode rule
+     */
+    public ResolvableStatus resolveTypeDerivedInfo(YangType<?> baseType)
+            throws DataModelException {
+        /*
+         * Check whether the referred typedef is resolved.
+         */
+        if (baseType.getResolvableStatus() != INTRA_FILE_RESOLVED && baseType.getResolvableStatus() != RESOLVED) {
+            throw new DataModelException("Linker Error: Referred typedef is not resolved for type.");
+        }
+
+        /*
+         * Check if the referred typedef is intra file resolved, if yes sets
+         * current status also to intra file resolved .
+         */
+        if (getReferredTypeDef().getTypeDefBaseType().getResolvableStatus() == INTRA_FILE_RESOLVED) {
+            return INTRA_FILE_RESOLVED;
+        }
+        setEffectiveBuiltInType(((YangDerivedInfo<?>) baseType.getDataTypeExtendedInfo())
+                                        .getEffectiveBuiltInType());
+        YangDerivedInfo refDerivedInfo = (YangDerivedInfo<?>) baseType.getDataTypeExtendedInfo();
+        /*
+         * Check whether the effective built-in type can have range
+         * restrictions, if yes call resolution of range.
+         */
+        if (isOfRangeRestrictedType(getEffectiveBuiltInType())) {
+            if (refDerivedInfo.getResolvedExtendedInfo() == null) {
+                resolveRangeRestriction(null);
+                /*
+                 * Return the resolution status as resolved, if it's not
+                 * resolve range/string restriction will throw exception in
+                 * previous function.
+                 */
+                return RESOLVED;
+            } else {
+                if (!(refDerivedInfo.getResolvedExtendedInfo() instanceof YangRangeRestriction)) {
+                    throw new DataModelException("Linker error: Referred typedef restriction info is of invalid " +
+                                                         "type.");
+                }
+                resolveRangeRestriction((YangRangeRestriction) refDerivedInfo.getResolvedExtendedInfo());
+                /*
+                 * Return the resolution status as resolved, if it's not
+                 * resolve range/string restriction will throw exception in
+                 * previous function.
+                 */
+                return RESOLVED;
+            }
+            /*
+             * If the effective built-in type is of type string calls for
+             * string resolution.
+             */
+        } else if (getEffectiveBuiltInType() == STRING) {
+            if (refDerivedInfo.getResolvedExtendedInfo() == null) {
+                resolveStringRestriction(null);
+                /*
+                 * Return the resolution status as resolved, if it's not
+                 * resolve range/string restriction will throw exception in
+                 * previous function.
+                 */
+                return RESOLVED;
+            } else {
+                if (!(refDerivedInfo.getResolvedExtendedInfo() instanceof YangStringRestriction)) {
+                    throw new DataModelException("Linker error: Referred typedef restriction info is of invalid " +
+                                                         "type.");
+                }
+                resolveStringRestriction((YangStringRestriction) refDerivedInfo.getResolvedExtendedInfo());
+                /*
+                 * Return the resolution status as resolved, if it's not
+                 * resolve range/string restriction will throw exception in
+                 * previous function.
+                 */
+                return RESOLVED;
+            }
+        } else if (getEffectiveBuiltInType() == BINARY) {
+            if (refDerivedInfo.getResolvedExtendedInfo() == null) {
+                resolveBinaryRestriction(null);
+                /*
+                 * Return the resolution status as resolved, if it's not
+                 * resolve length restriction will throw exception in
+                 * previous function.
+                 */
+                return RESOLVED;
+            } else {
+                if (!(refDerivedInfo.getResolvedExtendedInfo() instanceof YangRangeRestriction)) {
+                    throw new DataModelException("Linker error: Referred typedef restriction info is of invalid " +
+                                                         "type.");
+                }
+                resolveBinaryRestriction((YangRangeRestriction) refDerivedInfo.getResolvedExtendedInfo());
+                /*
+                 * Return the resolution status as resolved, if it's not
+                 * resolve length restriction will throw exception in
+                 * previous function.
+                 */
+                return RESOLVED;
+            }
+        } else if (getEffectiveBuiltInType() == DECIMAL64) {
+            if ((refDerivedInfo.getResolvedExtendedInfo() == null) ||
+                    (((YangDecimal64) refDerivedInfo.getResolvedExtendedInfo())
+                            .getRangeRestrictedExtendedInfo() == null)) {
+                resolveRangeRestriction(null);
+                 /*
+                  * Return the resolution status as resolved, if it's not;
+                  * resolve range restriction will throw exception in
+                  * previous function.
+                  */
+                return RESOLVED;
+            } else {
+                if (!(((YangDecimal64) refDerivedInfo.getResolvedExtendedInfo())
+                        .getRangeRestrictedExtendedInfo() instanceof YangRangeRestriction)) {
+                    throw new DataModelException("Linker error: Referred typedef restriction info is of invalid " +
+                                                         "type.");
+                }
+                resolveRangeRestriction((YangRangeRestriction) ((YangDecimal64) refDerivedInfo
+                        .getResolvedExtendedInfo()).getRangeRestrictedExtendedInfo());
+                /*
+                 * Return the resolution status as resolved, if it's not
+                 * resolve range/string restriction will throw exception in
+                 * previous function.
+                 */
+                return RESOLVED;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -487,6 +563,30 @@ public class YangDerivedInfo<T>
             curStringRestriction.setPatternRestriction(patternRestriction);
         }
         setResolvedExtendedInfo((T) curStringRestriction);
+    }
+
+    /**
+     * Resolves the binary restrictions.
+     *
+     * @param refLengthRestriction referred length restriction of typedef
+     * @throws DataModelException a violation in data model rule
+     */
+    private void resolveBinaryRestriction(YangRangeRestriction refLengthRestriction)
+            throws DataModelException {
+
+        if (rangeRestrictionString != null || patternRestriction != null) {
+            DataModelException dataModelException =
+                    new DataModelException("YANG file error: for binary " +
+                                                   "range restriction or pattern restriction is not allowed.");
+            dataModelException.setLine(lineNumber);
+            dataModelException.setCharPosition(charPositionInLine);
+            throw dataModelException;
+        }
+
+        // Get the final resolved length restriction
+        YangRangeRestriction lengthRestriction = resolveLengthRestriction(refLengthRestriction);
+        // Set the lenght restriction.
+        setResolvedExtendedInfo((T) lengthRestriction);
     }
 
     /**

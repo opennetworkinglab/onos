@@ -16,6 +16,7 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangDecimal64;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangRangeRestriction;
 import org.onosproject.yangutils.datamodel.YangType;
@@ -25,6 +26,7 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.DECIMAL64;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypeUtils.isOfRangeRestrictedType;
 import static org.onosproject.yangutils.datamodel.utils.RestrictionResolver.processRangeRestriction;
@@ -112,7 +114,7 @@ public final class RangeRestrictionListener {
             return;
         }
 
-        if (!(isOfRangeRestrictedType(type.getDataType()))) {
+        if (!(isOfRangeRestrictedType(type.getDataType())) && (type.getDataType() != DECIMAL64)) {
             ParserException parserException = new ParserException("YANG file error: Range restriction can't be " +
                     "applied to a given type");
             parserException.setLine(ctx.getStart().getLine());
@@ -122,8 +124,17 @@ public final class RangeRestrictionListener {
 
         YangRangeRestriction rangeRestriction = null;
         try {
-            rangeRestriction = processRangeRestriction(null, ctx.getStart().getLine(),
-                    ctx.getStart().getCharPositionInLine(), false, ctx.range().getText(), type.getDataType());
+            if (type.getDataType() == DECIMAL64) {
+                YangDecimal64 yangDecimal64 = (YangDecimal64) type.getDataTypeExtendedInfo();
+                rangeRestriction = processRangeRestriction(yangDecimal64.getDefaultRangeRestriction(),
+                                                           ctx.getStart().getLine(),
+                                                           ctx.getStart().getCharPositionInLine(),
+                                                           true, ctx.range().getText(), type.getDataType());
+            } else {
+                rangeRestriction = processRangeRestriction(null, ctx.getStart().getLine(),
+                                                           ctx.getStart().getCharPositionInLine(),
+                                                           false, ctx.range().getText(), type.getDataType());
+            }
         } catch (DataModelException e) {
             ParserException parserException = new ParserException(e.getMessage());
             parserException.setCharPosition(e.getCharPositionInLine());
@@ -132,7 +143,12 @@ public final class RangeRestrictionListener {
         }
 
         if (rangeRestriction != null) {
-            type.setDataTypeExtendedInfo(rangeRestriction);
+            if (type.getDataType() == DECIMAL64) {
+                ((YangDecimal64<YangRangeRestriction>) type.getDataTypeExtendedInfo())
+                        .setRangeRestrictedExtendedInfo(rangeRestriction);
+            } else {
+                type.setDataTypeExtendedInfo(rangeRestriction);
+            }
         }
         listener.getParsedDataStack().push(rangeRestriction);
     }

@@ -37,11 +37,13 @@ import org.onosproject.yangutils.parser.impl.listeners.ChoiceListener;
 import org.onosproject.yangutils.parser.impl.listeners.ConfigListener;
 import org.onosproject.yangutils.parser.impl.listeners.ContactListener;
 import org.onosproject.yangutils.parser.impl.listeners.ContainerListener;
+import org.onosproject.yangutils.parser.impl.listeners.Decimal64Listener;
 import org.onosproject.yangutils.parser.impl.listeners.DefaultListener;
 import org.onosproject.yangutils.parser.impl.listeners.DescriptionListener;
 import org.onosproject.yangutils.parser.impl.listeners.EnumListener;
 import org.onosproject.yangutils.parser.impl.listeners.EnumerationListener;
 import org.onosproject.yangutils.parser.impl.listeners.FeatureListener;
+import org.onosproject.yangutils.parser.impl.listeners.FractionDigitsListener;
 import org.onosproject.yangutils.parser.impl.listeners.GroupingListener;
 import org.onosproject.yangutils.parser.impl.listeners.IdentityrefListener;
 import org.onosproject.yangutils.parser.impl.listeners.IfFeatureListener;
@@ -563,12 +565,22 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterDecimal64Specification(GeneratedYangParser.Decimal64SpecificationContext ctx) {
-        // TODO: implement the method.
+        Decimal64Listener.processDecimal64Entry(this, ctx);
     }
 
     @Override
     public void exitDecimal64Specification(GeneratedYangParser.Decimal64SpecificationContext ctx) {
-        // TODO: implement the method.
+        Decimal64Listener.processDecimal64Exit(this, ctx);
+    }
+
+    @Override
+    public void enterFractionDigitStatement(GeneratedYangParser.FractionDigitStatementContext ctx) {
+        FractionDigitsListener.processFractionDigitsEntry(this, ctx);
+    }
+
+    @Override
+    public void exitFractionDigitStatement(GeneratedYangParser.FractionDigitStatementContext currentContext) {
+        // do nothing
     }
 
     @Override

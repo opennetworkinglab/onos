@@ -1,0 +1,11 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+    leaf validDecimal {
+         type decimal64 {
+            fraction-digits 18; 
+            range "1 .. 20.14";
+         }
+    }
+}

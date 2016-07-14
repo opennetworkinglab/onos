@@ -95,6 +95,16 @@ public enum YangConstructType {
     BITS_DATA,
 
     /**
+     * Identifies the YANG decimal64 parsed data.
+     */
+    DECIMAL64_DATA,
+
+    /**
+     * Identifies the YANG fraction-digits parsed data.
+     */
+    FRACTION_DIGITS_DATA,
+
+    /**
      * Identifies the YANG enum parsed data.
      */
     ENUM_DATA,
@@ -413,6 +423,10 @@ public enum YangConstructType {
                 return "bit";
             case BITS_DATA:
                 return "bits";
+            case DECIMAL64_DATA:
+                return "decimal64";
+            case FRACTION_DIGITS_DATA:
+                return "fraction-digits";
             case ENUM_DATA:
                 return "enum";
             case IMPORT_DATA:

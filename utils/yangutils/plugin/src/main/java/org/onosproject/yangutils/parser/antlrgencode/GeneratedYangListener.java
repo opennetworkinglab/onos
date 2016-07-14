@@ -632,6 +632,22 @@ public interface GeneratedYangListener extends ParseTreeListener {
      *
      * @param currentContext current context in the parsed tree
      */
+    void enterFractionDigitStatement(GeneratedYangParser.FractionDigitStatementContext currentContext);
+
+    /**
+     * Exits a parse tree produced by GeneratedYangParser for grammar rule
+     * numericalRestrictions.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitFractionDigitStatement(GeneratedYangParser.FractionDigitStatementContext currentContext);
+
+    /**
+     * Enters a parse tree produced by GeneratedYangParser for grammar rule
+     * numericalRestrictions.
+     *
+     * @param currentContext current context in the parsed tree
+     */
     void enterNumericalRestrictions(GeneratedYangParser.NumericalRestrictionsContext currentContext);
 
     /**

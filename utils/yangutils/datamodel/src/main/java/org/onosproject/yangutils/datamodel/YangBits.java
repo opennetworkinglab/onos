@@ -17,8 +17,10 @@
 package org.onosproject.yangutils.datamodel;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
@@ -38,36 +40,142 @@ import org.onosproject.yangutils.datamodel.utils.YangConstructType;
 public class YangBits implements Parsable, Serializable {
 
     private static final long serialVersionUID = 806201641L;
+    private static final String SPACE = " ";
 
-    // Bits information set.
-    private Set<YangBit> bitSet;
-
-    // BITS name.
+    // Bits name
     private String bitsName;
+    // Bits data contains bit-positions will be used to send to ONOS application
+    private BitSet bitDataSet;
+    /**
+     * Mapping bit name to YangBit. In data input (jason), only bit name will be received.
+     * By using the bit name corresponding (yang) bit-position will be retrieved from bitNameMap map.
+     */
+    private Map<String, YangBit> bitNameMap;
+    /**
+     * Mapping bit position to YangBit. The bit-position received from ONOS application
+     * will be converted into bit-name by using bitPositionMap map to send (jason) output data as response.
+     */
+    private Map<Integer, YangBit> bitPositionMap;
 
     /**
      * Creates a YANG bits type object.
      */
     public YangBits() {
-        setBitSet(new HashSet<YangBit>());
+        bitDataSet = new BitSet();
+        setBitNameMap(new HashMap<>());
+        setBitPositionMap(new HashMap<>());
     }
 
     /**
-     * Returns the bit set.
+     * Creates an instance of YANG bits.
      *
-     * @return the bit set
+     * @param bits set of bit names
+     * @throws DataModelException due to violation in data model rules
      */
-    public Set<YangBit> getBitSet() {
-        return bitSet;
+    public YangBits(String bits) throws DataModelException {
+        String[] bitNames = bits.trim().split(Pattern.quote(SPACE));
+        setBitDataSet(bitNames);
     }
 
     /**
-     * Sets the bit set.
+     * Returns the bits name.
      *
-     * @param bitSet the bit set
+     * @return the bits name
      */
-    private void setBitSet(Set<YangBit> bitSet) {
-        this.bitSet = bitSet;
+    public String getBitsName() {
+        return bitsName;
+    }
+
+    /**
+     * Sets the bits name.
+     *
+     * @param bitsName the bits name
+     */
+    public void setBitsName(String bitsName) {
+        this.bitsName = bitsName;
+    }
+
+    /**
+     * Returns the bit data set.
+     *
+     * @return the bit data set
+     */
+    public BitSet getBitDataSet() {
+        return bitDataSet;
+    }
+
+    /**
+     * Sets the bit data set.
+     *
+     * @param bitNames the set of bit names
+     * @throws DataModelException due to violation in data model rules
+     */
+    public void setBitDataSet(String[] bitNames) throws DataModelException {
+        YangBit bit;
+        for (String bitName : bitNames) {
+            bit = bitNameMap.get(bitName);
+            if (bit == null) {
+                throw new DataModelException("YANG file error: Unable to find " +
+                                                     "corresponding bit position for bit name: " + bitName);
+            }
+            bitDataSet.set(bit.getPosition());
+        }
+    }
+
+    /**
+     * Returns the bit name map.
+     *
+     * @return the bit name map
+     */
+    public Map<String, YangBit> getBitNameMap() {
+        return bitNameMap;
+    }
+
+    /**
+     * Sets the bit name map.
+     *
+     * @param bitNameMap the bit name map
+     */
+    public void setBitNameMap(Map<String, YangBit> bitNameMap) {
+        this.bitNameMap = bitNameMap;
+    }
+
+    /**
+     * Checks whether bit name already available.
+     *
+     * @param bitName bit name
+     * @return true if bit name already available otherwise returns false
+     */
+    public boolean isBitNameExists(String bitName) {
+        return bitNameMap.containsKey(bitName);
+    }
+
+    /**
+     * Returns the bit position map.
+     *
+     * @return the bit position map
+     */
+    public Map<Integer, YangBit> getBitPositionMap() {
+        return bitPositionMap;
+    }
+
+    /**
+     * Sets the bit position map.
+     *
+     * @param bitPositionMap the bit position map
+     */
+    public void setBitPositionMap(Map<Integer, YangBit> bitPositionMap) {
+        this.bitPositionMap = bitPositionMap;
+    }
+
+    /**
+     * Checks whether bit position already available.
+     *
+     * @param bitPosition bit position
+     * @return true if bit position already available otherwise returns false
+     */
+    public boolean isBitPositionExists(Integer bitPosition) {
+        return bitPositionMap.containsKey(bitPosition);
     }
 
     /**
@@ -77,9 +185,13 @@ public class YangBits implements Parsable, Serializable {
      * @throws DataModelException due to violation in data model rules
      */
     public void addBitInfo(YangBit bitInfo) throws DataModelException {
-        if (!getBitSet().add(bitInfo)) {
-            throw new DataModelException("YANG file error: Duplicate identifier detected, same as bit \""
-                    + bitInfo.getBitName() + "\"");
+        if (bitNameMap.put(bitInfo.getBitName(), bitInfo) != null) {
+            throw new DataModelException("YANG file error: Duplicate bit name detected, same as bit name \""
+                                                 + bitInfo.getBitName() + "\"");
+        }
+        if (bitPositionMap.put(bitInfo.getPosition(), bitInfo) != null) {
+            throw new DataModelException("YANG file error: Duplicate bit position detected, same as bit position \""
+                    + bitInfo.getPosition() + "\"");
         }
     }
 
@@ -93,22 +205,36 @@ public class YangBits implements Parsable, Serializable {
         return YangConstructType.BITS_DATA;
     }
 
-    /**
-     * Returns the bits name.
-     *
-     * @return name of the bits
-     */
-    public String getBitsName() {
-        return bitsName;
+    @Override
+    public String toString() {
+        YangBit bit;
+        String bits = new String();
+        for (int i = bitDataSet.nextSetBit(0); i >= 0; i = bitDataSet.nextSetBit(i + 1)) {
+            bit = bitPositionMap.get(i);
+            if (bit == null) {
+                return null;
+            }
+            if (bits.isEmpty()) {
+                bits =  bit.getBitName();
+            } else {
+                bits += " " + bit.getBitName();
+            }
+        }
+        return bits.trim();
     }
 
     /**
-     * Sets bits name.
+     * Returns the object of YANG bits based on specific set of bit names.
      *
-     * @param bitsName bit name to be set
+     * @param bits set of bit names
+     * @return Object of YANG bits
      */
-    public void setBitsName(String bitsName) {
-        this.bitsName = bitsName;
+    public static YangBits fromString(String bits) {
+        try {
+            return new YangBits(bits);
+        } catch (Exception e) {
+        }
+        return null;
     }
 
     /**

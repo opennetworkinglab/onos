@@ -37,10 +37,13 @@ import org.onosproject.yangutils.utils.io.impl.YangToJavaNamingConflictUtil;
 import static org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModelUtils.getCurNodePackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 import static org.onosproject.yangutils.utils.UtilConstants.BIG_INTEGER;
+import static org.onosproject.yangutils.utils.UtilConstants.BIG_DECIMAL;
+import static org.onosproject.yangutils.utils.UtilConstants.BIT_SET;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_DATA_TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.BYTE;
 import static org.onosproject.yangutils.utils.UtilConstants.BYTE_WRAPPER;
+import static org.onosproject.yangutils.utils.UtilConstants.COLLECTION_IMPORTS;
 import static org.onosproject.yangutils.utils.UtilConstants.INT;
 import static org.onosproject.yangutils.utils.UtilConstants.INTEGER_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_LANG;
@@ -50,11 +53,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.LONG_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.SHORT;
 import static org.onosproject.yangutils.utils.UtilConstants.SHORT_WRAPPER;
+import static org.onosproject.yangutils.utils.UtilConstants.SQUARE_BRACKETS;
 import static org.onosproject.yangutils.utils.UtilConstants.STRING_DATA_TYPE;
-import static org.onosproject.yangutils.utils.UtilConstants.YANG_BINARY_CLASS;
-import static org.onosproject.yangutils.utils.UtilConstants.YANG_BITS_CLASS;
-import static org.onosproject.yangutils.utils.UtilConstants.YANG_DECIMAL64_CLASS;
-import static org.onosproject.yangutils.utils.UtilConstants.YANG_TYPES_PKG;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCamelCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getPackageDirPathFromJavaJPackage;
@@ -97,10 +97,12 @@ public final class AttributesJavaDataType {
                 return LONG;
             case UINT64:
                 return BIG_INTEGER;
+            case BITS:
+                return BIT_SET;
             case BINARY:
-                return YANG_BINARY_CLASS;
+                return BYTE + SQUARE_BRACKETS;
             case DECIMAL64:
-                return YANG_DECIMAL64_CLASS;
+                return BIG_DECIMAL;
             case STRING:
                 return STRING_DATA_TYPE;
             case BOOLEAN:
@@ -146,7 +148,7 @@ public final class AttributesJavaDataType {
                 case UINT64:
                     return BIG_INTEGER;
                 case DECIMAL64:
-                    return YANG_DECIMAL64_CLASS;
+                    return BIG_DECIMAL;
                 case STRING:
                     return STRING_DATA_TYPE;
                 case BOOLEAN:
@@ -156,9 +158,9 @@ public final class AttributesJavaDataType {
                             getCamelCase(((YangJavaEnumeration) yangType.getDataTypeExtendedInfo()).getName(),
                                     pluginConfig));
                 case BITS:
-                    return YANG_BITS_CLASS;
+                    return BIT_SET;
                 case BINARY:
-                    return YANG_BINARY_CLASS;
+                    return BYTE + SQUARE_BRACKETS;
                 case LEAFREF:
                     YangType<?> referredType = getReferredTypeFromLeafref(yangType);
                     return getJavaImportClass(referredType, isListAttr, pluginConfig);
@@ -184,8 +186,6 @@ public final class AttributesJavaDataType {
             switch (type) {
                 case UINT64:
                     return BIG_INTEGER;
-                case DECIMAL64:
-                    return YANG_DECIMAL64_CLASS;
                 case STRING:
                     return STRING_DATA_TYPE;
                 case ENUMERATION:
@@ -193,9 +193,9 @@ public final class AttributesJavaDataType {
                             getCamelCase(((YangJavaEnumeration) yangType.getDataTypeExtendedInfo()).getName(),
                                     pluginConfig));
                 case BITS:
-                    return YANG_BITS_CLASS;
-                case BINARY:
-                    return YANG_BINARY_CLASS;
+                    return BIT_SET;
+                case DECIMAL64:
+                    return BIG_DECIMAL;
                 case LEAFREF:
                     YangType<?> referredType = getReferredTypeFromLeafref(yangType);
                     return getJavaImportClass(referredType, isListAttr, pluginConfig);
@@ -241,18 +241,18 @@ public final class AttributesJavaDataType {
                 case UINT8:
                 case UINT16:
                 case UINT32:
+                case BINARY:
                 case STRING:
                 case BOOLEAN:
                 case EMPTY:
                     return JAVA_LANG;
                 case UINT64:
+                case DECIMAL64:
                     return JAVA_MATH;
                 case ENUMERATION:
                     return getEnumsPackage(yangType, conflictResolver);
-                case DECIMAL64:
                 case BITS:
-                case BINARY:
-                    return YANG_TYPES_PKG;
+                    return COLLECTION_IMPORTS;
                 case LEAFREF:
                     YangType<?> referredType = getReferredTypeFromLeafref(yangType);
                     return getJavaImportPackage(referredType, isListAttr, conflictResolver);
@@ -270,22 +270,20 @@ public final class AttributesJavaDataType {
         } else {
             switch (type) {
                 case UINT64:
+                case DECIMAL64:
                     return JAVA_MATH;
+                case EMPTY:
                 case STRING:
                     return JAVA_LANG;
                 case ENUMERATION:
                     return getEnumsPackage(yangType, conflictResolver);
-                case DECIMAL64:
                 case BITS:
-                case BINARY:
-                    return YANG_TYPES_PKG;
+                    return COLLECTION_IMPORTS;
                 case LEAFREF:
                     YangType<?> referredType = getReferredTypeFromLeafref(yangType);
                     return getJavaImportPackage(referredType, isListAttr, conflictResolver);
                 case IDENTITYREF:
                     return getIdentityRefPackage(yangType, conflictResolver);
-                case EMPTY:
-                    return JAVA_LANG;
                 case UNION:
                     return getUnionPackage(yangType, conflictResolver);
                 case INSTANCE_IDENTIFIER:

@@ -138,6 +138,37 @@ public class LengthRestrictionListenerTest {
     }
 
     /**
+     * Checks valid length statement as sub-statement of binary statement.
+     */
+    @Test
+    public void processValidBinaryLengthStatement() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/ValidBinaryLengthStatement.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        assertThat(leafInfo.getName(), is("message"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("binary"));
+        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.BINARY));
+        YangRangeRestriction lengthRestriction = (YangRangeRestriction) leafInfo
+                                                  .getDataType().getDataTypeExtendedInfo();
+
+        ListIterator<YangRangeInterval> lengthListIterator = lengthRestriction.getAscendingRangeIntervals()
+                .listIterator();
+
+        YangRangeInterval rangeInterval = lengthListIterator.next();
+
+        assertThat(((YangUint64) rangeInterval.getStartValue()).getValue(), is(BigInteger.valueOf(4)));
+        assertThat(((YangUint64) rangeInterval.getEndValue()).getValue(), is(BigInteger.valueOf(4)));
+    }
+
+    /**
      * Checks length statement with invalid type.
      */
     @Test

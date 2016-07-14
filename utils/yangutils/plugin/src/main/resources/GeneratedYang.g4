@@ -375,6 +375,13 @@ package org.onosproject.yangutils.parser.antlrgencode;
                     | bitsSpecification | unionSpecification;
 
     /**
+     *    decimal64-specification = ;; these stmts can appear in any order
+     *                               fraction-digits-stmt
+     *                               [range-stmt]
+     */
+     decimal64Specification : fractionDigitStatement rangeStatement?;
+
+    /**
      *  fraction-digits-stmt = fraction-digits-keyword sep
      *                         fraction-digits-arg-str stmtend
      *
@@ -385,7 +392,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                              "5" / "6" / "7" / "8"])
      *                        / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9"
      */
-    decimal64Specification : FRACTION_DIGITS_KEYWORD fraction STMTEND;
+    fractionDigitStatement : FRACTION_DIGITS_KEYWORD fraction STMTEND;
 
     /**
      *  numerical-restrictions = range-stmt stmtsep

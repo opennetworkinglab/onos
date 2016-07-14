@@ -61,6 +61,8 @@ package org.onosproject.yangutils.parser.impl.listeners;
  *               ;
  */
 
+import java.util.Map;
+
 import org.onosproject.yangutils.datamodel.YangBit;
 import org.onosproject.yangutils.datamodel.YangBits;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
@@ -141,12 +143,13 @@ public final class BitListener {
                         int maxPosition = 0;
                         boolean isPositionPresent = false;
 
-                        for (YangBit curBit : yangBits.getBitSet()) {
-                            if (maxPosition <= curBit.getPosition()) {
-                                maxPosition = curBit.getPosition();
+                        for (Map.Entry<Integer, YangBit> element : yangBits.getBitPositionMap().entrySet()) {
+                            if (maxPosition <= element.getKey()) {
+                                maxPosition = element.getKey();
                                 isPositionPresent = true;
                             }
                         }
+
                         if (isPositionPresent) {
                             maxPosition++;
                         }

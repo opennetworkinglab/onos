@@ -109,17 +109,14 @@ public final class PositionListener {
         switch (tmpNode.getYangConstructType()) {
             case BITS_DATA: {
                 YangBits yangBits = (YangBits) tmpNode;
-                for (YangBit curBit : yangBits.getBitSet()) {
-                    if (positionValue == curBit.getPosition()) {
-                        listener.getParsedDataStack().push(bitNode);
-                        ParserException parserException = new ParserException("YANG file error: Duplicate value of " +
-                                "position is invalid.");
-                        parserException.setLine(ctx.getStart().getLine());
-                        parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
-                        throw parserException;
-                    }
-                }
                 listener.getParsedDataStack().push(bitNode);
+                if (yangBits.isBitPositionExists(positionValue)) {
+                    ParserException parserException = new ParserException("YANG file error: Duplicate value of " +
+                                                                                  "position is invalid.");
+                    parserException.setLine(ctx.getStart().getLine());
+                    parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+                    throw parserException;
+                }
                 return positionValue;
             }
             default:

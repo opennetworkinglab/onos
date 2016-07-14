@@ -31,7 +31,7 @@ import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 
 import java.io.IOException;
 import java.util.ListIterator;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * Test cases for position listener.
@@ -67,14 +67,38 @@ public class PositionListenerTest {
         assertThat(((YangBits) leafInfo.getDataType().getDataTypeExtendedInfo()).getBitsName(),
                 is("mybits"));
 
-        Set<YangBit> bitSet = ((YangBits) leafInfo.getDataType().getDataTypeExtendedInfo()).getBitSet();
-        for (YangBit tmp : bitSet) {
-            if (tmp.getBitName().equals("disable-nagle")) {
-                assertThat(tmp.getPosition(), is(0));
-            } else if (tmp.getBitName().equals("auto-sense-speed")) {
-                assertThat(tmp.getPosition(), is(1));
-            } else if (tmp.getBitName().equals("Ten-Mb-only")) {
-                assertThat(tmp.getPosition(), is(2));
+        // Check bit name map
+        Map<String, YangBit> bitNameMap = ((YangBits) leafInfo.getDataType().getDataTypeExtendedInfo()).getBitNameMap();
+        assertThat(bitNameMap.size(), is(3));
+        for (Map.Entry<String, YangBit> element : bitNameMap.entrySet()) {
+            String bitName = element.getKey();
+            YangBit yangBit = element.getValue();
+            if (bitName.equals("disable-nagle")) {
+                assertThat(yangBit.getPosition(), is(0));
+            } else if (bitName.equals("auto-sense-speed")) {
+                assertThat(yangBit.getPosition(), is(1));
+            } else if (bitName.equals("Ten-Mb-only")) {
+                assertThat(yangBit.getPosition(), is(2));
+            } else {
+                throw new IOException("Invalid bit name: " + bitName);
+            }
+        }
+
+        // Check bit position map
+        Map<Integer, YangBit> bitPositionMap = ((YangBits) leafInfo.getDataType().getDataTypeExtendedInfo())
+                                                                                 .getBitPositionMap();
+        assertThat(bitPositionMap.size(), is(3));
+        for (Map.Entry<Integer, YangBit> element : bitPositionMap.entrySet()) {
+            int position = element.getKey();
+            YangBit yangBit = element.getValue();
+            if (position == 0) {
+                assertThat(yangBit.getBitName(), is("disable-nagle"));
+            } else if (position == 1) {
+                assertThat(yangBit.getBitName(), is("auto-sense-speed"));
+            } else if (position == 2) {
+                assertThat(yangBit.getBitName(), is("Ten-Mb-only"));
+            } else {
+                throw new IOException("Invalid bit position: " + position);
             }
         }
     }
@@ -106,14 +130,38 @@ public class PositionListenerTest {
         assertThat(((YangBits) leafInfo.getDataType().getDataTypeExtendedInfo()).getBitsName(),
                 is("mybits"));
 
-        Set<YangBit> bitSet = ((YangBits) leafInfo.getDataType().getDataTypeExtendedInfo()).getBitSet();
-        for (YangBit tmp : bitSet) {
-            if (tmp.getBitName().equals("disable-nagle")) {
-                assertThat(tmp.getPosition(), is(0));
-            } else if (tmp.getBitName().equals("auto-sense-speed")) {
-                assertThat(tmp.getPosition(), is(1));
-            } else if (tmp.getBitName().equals("Ten-Mb-only")) {
-                assertThat(tmp.getPosition(), is(2));
+        // Check bit name map
+        Map<String, YangBit> bitNameMap = ((YangBits) leafInfo.getDataType().getDataTypeExtendedInfo()).getBitNameMap();
+        assertThat(bitNameMap.size(), is(3));
+        for (Map.Entry<String, YangBit> element : bitNameMap.entrySet()) {
+            String bitName = element.getKey();
+            YangBit yangBit = element.getValue();
+            if (bitName.equals("disable-nagle")) {
+                assertThat(yangBit.getPosition(), is(0));
+            } else if (bitName.equals("auto-sense-speed")) {
+                assertThat(yangBit.getPosition(), is(1));
+            } else if (bitName.equals("Ten-Mb-only")) {
+                assertThat(yangBit.getPosition(), is(2));
+            } else {
+                throw new IOException("Invalid bit name: " + bitName);
+            }
+        }
+
+        // Check bit position map
+        Map<Integer, YangBit> bitPositionMap = ((YangBits) leafInfo.getDataType().getDataTypeExtendedInfo())
+                                                                                 .getBitPositionMap();
+        assertThat(bitPositionMap.size(), is(3));
+        for (Map.Entry<Integer, YangBit> element : bitPositionMap.entrySet()) {
+            int position = element.getKey();
+            YangBit yangBit = element.getValue();
+            if (position == 0) {
+                assertThat(yangBit.getBitName(), is("disable-nagle"));
+            } else if (position == 1) {
+                assertThat(yangBit.getBitName(), is("auto-sense-speed"));
+            } else if (position == 2) {
+                assertThat(yangBit.getBitName(), is("Ten-Mb-only"));
+            } else {
+                throw new IOException("Invalid bit position: " + position);
             }
         }
     }
@@ -145,14 +193,38 @@ public class PositionListenerTest {
         assertThat(((YangBits) leafInfo.getDataType().getDataTypeExtendedInfo()).getBitsName(),
                 is("mybits"));
 
-        Set<YangBit> bitSet = ((YangBits) leafInfo.getDataType().getDataTypeExtendedInfo()).getBitSet();
-        for (YangBit tmp : bitSet) {
-            if (tmp.getBitName().equals("disable-nagle")) {
-                assertThat(tmp.getPosition(), is(0));
-            } else if (tmp.getBitName().equals("auto-sense-speed")) {
-                assertThat(tmp.getPosition(), is(1));
-            } else if (tmp.getBitName().equals("Ten-Mb-only")) {
-                assertThat(tmp.getPosition(), is(2));
+        // Check bit name map
+        Map<String, YangBit> bitNameMap = ((YangBits) leafInfo.getDataType().getDataTypeExtendedInfo()).getBitNameMap();
+        assertThat(bitNameMap.size(), is(3));
+        for (Map.Entry<String, YangBit> element : bitNameMap.entrySet()) {
+            String bitName = element.getKey();
+            YangBit yangBit = element.getValue();
+            if (bitName.equals("disable-nagle")) {
+                assertThat(yangBit.getPosition(), is(0));
+            } else if (bitName.equals("auto-sense-speed")) {
+                assertThat(yangBit.getPosition(), is(1));
+            } else if (bitName.equals("Ten-Mb-only")) {
+                assertThat(yangBit.getPosition(), is(2));
+            } else {
+                throw new IOException("Invalid bit name: " + bitName);
+            }
+        }
+
+        // Check bit position map
+        Map<Integer, YangBit> bitPositionMap = ((YangBits) leafInfo.getDataType().getDataTypeExtendedInfo())
+                                                                                 .getBitPositionMap();
+        assertThat(bitPositionMap.size(), is(3));
+        for (Map.Entry<Integer, YangBit> element : bitPositionMap.entrySet()) {
+            int position = element.getKey();
+            YangBit yangBit = element.getValue();
+            if (position == 0) {
+                assertThat(yangBit.getBitName(), is("disable-nagle"));
+            } else if (position == 1) {
+                assertThat(yangBit.getBitName(), is("auto-sense-speed"));
+            } else if (position == 2) {
+                assertThat(yangBit.getBitName(), is("Ten-Mb-only"));
+            } else {
+                throw new IOException("Invalid bit position: " + position);
             }
         }
     }

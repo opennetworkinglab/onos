@@ -580,7 +580,7 @@
 
      typedef admin-group {
        type binary {
-//         length 32;
+          length 32;
        }
        description
          "Administrative group/Resource class/Color.";

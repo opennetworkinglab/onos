@@ -1,5 +1,5 @@
 /*-
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.onosproject.yangutils.datamodel;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.DataTypeException;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangBuiltInDataTypeInfo;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
@@ -78,11 +79,12 @@ public final class BuiltInTypeObjectFactory implements Serializable {
             case UINT64: {
                 return (T) new YangUint64(valueInStr);
             }
+            case DECIMAL64: {
+                return (T) new YangDecimal64(new BigDecimal(valueInStr));
+            }
             default: {
                 throw new DataTypeException("YANG file error : Unsupported data type");
             }
         }
-
     }
-
 }

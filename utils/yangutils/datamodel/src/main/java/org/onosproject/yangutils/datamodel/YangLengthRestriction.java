@@ -102,6 +102,7 @@ public class YangLengthRestriction implements YangDesc, YangReference, YangAppEr
      * Creates a YANG length restriction object.
      */
     public YangLengthRestriction() {
+        setLengthRestriction(new YangRangeRestriction<YangUint64>());
     }
 
     /**

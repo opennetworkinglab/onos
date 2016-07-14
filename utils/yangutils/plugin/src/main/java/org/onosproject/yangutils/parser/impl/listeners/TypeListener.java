@@ -94,6 +94,7 @@ public final class TypeListener {
         // Obtain the YANG data type.
         YangDataTypes yangDataTypes = YangDataTypes.getType(ctx.string().getText());
 
+        // validate type sub-statement cardinality
         validateTypeSubStatementCardinality(ctx, yangDataTypes);
 
         // Create YANG type object and fill the values.
@@ -306,6 +307,10 @@ public final class TypeListener {
                     parserException = new ParserException("YANG file error : a type bits" +
                             " must have atleast one bit statement.");
                     break;
+                case DECIMAL64:
+                    parserException = new ParserException("YANG file error : a type decimal64" +
+                            " must have fraction-digits statement.");
+                    break;
                 case LEAFREF:
                     parserException = new ParserException("YANG file error : a type leafref" +
                             " must have one path statement.");
@@ -314,7 +319,6 @@ public final class TypeListener {
                     parserException = new ParserException("YANG file error : a type identityref" +
                                                                   " must have base statement.");
                     break;
-                // TODO : decimal64,
                 default:
                     return;
             }
