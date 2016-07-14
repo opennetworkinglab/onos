@@ -15,19 +15,6 @@
  */
 package org.onosproject.net.device.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static org.onlab.util.Tools.groupedThreads;
-import static org.onlab.util.Tools.nullIsNotFound;
-import static org.onosproject.net.MastershipRole.MASTER;
-import static org.onosproject.net.MastershipRole.NONE;
-import static org.onosproject.net.MastershipRole.STANDBY;
-import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
-import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
-import static org.onosproject.security.AppGuard.checkPermission;
-import static org.onosproject.security.AppPermission.Type.DEVICE_READ;
-import static org.slf4j.LoggerFactory.getLogger;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -89,6 +76,18 @@ import org.onosproject.net.provider.Provider;
 import org.slf4j.Logger;
 
 import com.google.common.util.concurrent.Futures;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.MastershipRole.MASTER;
+import static org.onosproject.net.MastershipRole.NONE;
+import static org.onosproject.net.MastershipRole.STANDBY;
+import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
+import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.DEVICE_READ;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the device SB &amp; NB APIs.
@@ -539,7 +538,10 @@ public class DeviceManager
                           portDescription);
                 return;
             }
-            Device device = nullIsNotFound(getDevice(deviceId), "Device not found");
+            Device device = getDevice(deviceId);
+            if (device == null) {
+                log.trace("Device not found: {}", deviceId);
+            }
             if ((Device.Type.ROADM.equals(device.type())) ||
                 (Device.Type.OTN.equals(device.type()))) {
                 // FIXME This is ignoring all other info in portDescription given as input??
