@@ -96,7 +96,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     private static final String COST_TYPE_IGP = "igp";
     private static final String COST_TYPE_TE = "te";
     private static final String BANDWIDTH_TYPE_KBPS = "kbps";
-    private static final String BANDWIDTH_TYPE_MBPS = "kbps";
+    private static final String BANDWIDTH_TYPE_MBPS = "mbps";
     private static final String BUFFER_ARRAY = "a";
     private static final String BANDWIDTH_BPS = "BPS";
     private static final String LSP_TYPE_CR = "cr";
