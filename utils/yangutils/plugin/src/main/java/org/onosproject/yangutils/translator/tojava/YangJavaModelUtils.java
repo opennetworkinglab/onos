@@ -147,7 +147,8 @@ public final class YangJavaModelUtils {
                 }
             }
 
-        } else if (javaCodeGeneratorInfo instanceof YangLeavesHolder) {
+        }
+        if (javaCodeGeneratorInfo instanceof YangLeavesHolder) {
             /*
              * Container
              * Case
@@ -189,7 +190,7 @@ public final class YangJavaModelUtils {
      * @throws IOException IO operations fails
      */
     private static void generateTempFiles(JavaCodeGeneratorInfo javaCodeGeneratorInfo,
-                                         YangPluginConfig yangPluginConfig)
+                                          YangPluginConfig yangPluginConfig)
             throws IOException {
         if (!(javaCodeGeneratorInfo instanceof YangNode)) {
             throw new TranslatorException("translation is not supported for the node");
@@ -456,7 +457,7 @@ public final class YangJavaModelUtils {
     /**
      * Returns augment class name.
      *
-     * @param augment YANG augment
+     * @param augment          YANG augment
      * @param yangPluginConfig plugin configurations
      * @return augment class name
      */

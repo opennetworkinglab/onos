@@ -47,7 +47,6 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.OPERATION_BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ATTRIBUTES_MASK;
-import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.AUGMENTE_CLASS_CONSTRUCTOR_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EQUALS_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.FROM_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_CLASS_MASK;
@@ -72,7 +71,6 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerato
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.addResolvedAugmentedDataNodeImports;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getFileObject;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.createPackage;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAugmentedConstructor;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getBuildString;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getDefaultConstructorString;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getEqualsMethod;
@@ -92,7 +90,6 @@ import static org.onosproject.yangutils.utils.UtilConstants.DEACTIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
-import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.INTERFACE;
 import static org.onosproject.yangutils.utils.UtilConstants.MANAGER;
@@ -106,7 +103,6 @@ import static org.onosproject.yangutils.utils.UtilConstants.REFERENCE_CARDINALIT
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
-import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.closeFile;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.readAppendFile;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.GETTER_METHOD;
@@ -138,7 +134,7 @@ public class TempJavaFragmentFiles {
     /**
      * Folder suffix for temporary files folder.
      */
-    private static final String TEMP_FOLDER_NAME_SUFIX = "-Temp";
+    private static final String TEMP_FOLDER_NAME_SUFFIX = "-Temp";
 
     /**
      * File name for getter method.
@@ -201,16 +197,6 @@ public class TempJavaFragmentFiles {
     private static final String BUILDER_CLASS_FILE_NAME_SUFFIX = BUILDER;
 
     /**
-     * File name for impl class file name suffix.
-     */
-    private static final String IMPL_CLASS_FILE_NAME_SUFFIX = IMPL;
-
-    /**
-     * File name for augment copy constructor method.
-     */
-    private static final String AUGMENT_CONSTRUCTOR_FILE_NAME = "AugmentConstructor";
-
-    /**
      * Information about the java files being generated.
      */
     private JavaFileInfo javaFileInfo;
@@ -249,24 +235,6 @@ public class TempJavaFragmentFiles {
      * Java file handle for builder class file.
      */
     private File builderClassJavaFileHandle;
-
-    /**
-     * Retrieves the temporary file handle of op param builder class.
-     *
-     * @return op param builder temporary file handle
-     */
-    public File getBuilderOpParmClassJavaFileHandle() {
-        return builderOpParmClassJavaFileHandle;
-    }
-
-    /**
-     * Sets the java file handle for op param builder class.
-     *
-     * @param builderOpParmClassJavaFileHandle java file handle
-     */
-    public void setBuilderOpParmClassJavaFileHandle(File builderOpParmClassJavaFileHandle) {
-        this.builderOpParmClassJavaFileHandle = builderOpParmClassJavaFileHandle;
-    }
 
     /**
      * Java file handle for builder op param class file.
@@ -343,11 +311,6 @@ public class TempJavaFragmentFiles {
      */
     private String baseCodePath;
 
-    /**
-     * Temporary file handle for augments copy constructor method of class.
-     */
-    private File augmentConstructorImplTempFileHandle;
-
     TempJavaFragmentFiles() {
     }
 
@@ -396,7 +359,6 @@ public class TempJavaFragmentFiles {
             addGeneratedTempFile(ATTRIBUTES_MASK);
             addGeneratedTempFile(GETTER_FOR_CLASS_MASK);
             addGeneratedTempFile(SETTER_FOR_CLASS_MASK);
-            addGeneratedTempFile(AUGMENTE_CLASS_CONSTRUCTOR_MASK);
         }
 
         /*
@@ -465,10 +427,6 @@ public class TempJavaFragmentFiles {
         if ((getGeneratedTempFiles() & FROM_STRING_IMPL_MASK) != 0) {
             setFromStringImplTempFileHandle(getTemporaryFileHandle(FROM_STRING_METHOD_FILE_NAME));
         }
-        if ((getGeneratedTempFiles() & AUGMENTE_CLASS_CONSTRUCTOR_MASK) != 0) {
-            setAugmentConstructorImplTempFileHandle(getTemporaryFileHandle(AUGMENT_CONSTRUCTOR_FILE_NAME));
-        }
-
     }
 
     /**
@@ -479,8 +437,8 @@ public class TempJavaFragmentFiles {
      * @param pluginConfig plugin configurations
      * @throws IOException IO operation exception
      */
-    public static void addCurNodeInfoInParentTempFile(YangNode curNode,
-                                                      boolean isList, YangPluginConfig pluginConfig)
+    static void addCurNodeInfoInParentTempFile(YangNode curNode,
+                                               boolean isList, YangPluginConfig pluginConfig)
             throws IOException {
         YangNode parent = getParentNodeInGenCode(curNode);
         if (!(parent instanceof JavaCodeGenerator)) {
@@ -499,9 +457,7 @@ public class TempJavaFragmentFiles {
 
         JavaAttributeInfo javaAttributeInfo = getCurNodeAsAttributeInTarget(curNode,
                 parent, isList, tempJavaBeanFragmentFiles);
-        if (!(parent instanceof TempJavaCodeFragmentFilesContainer)) {
-            throw new TranslatorException("missing parent temp file handle");
-        }
+
         getNodesInterfaceFragmentFiles(parent, javaAttributeInfo, pluginConfig);
     }
 
@@ -574,8 +530,8 @@ public class TempJavaFragmentFiles {
      * @param config plugin configurations
      * @throws IOException when fails to do IO operations
      */
-    public static void getNodesInterfaceFragmentFiles(YangNode node, JavaAttributeInfo attr,
-                                                      YangPluginConfig config) throws IOException {
+    private static void getNodesInterfaceFragmentFiles(YangNode node, JavaAttributeInfo attr,
+                                                       YangPluginConfig config) throws IOException {
         TempJavaFragmentFiles tempJavaFragmentFiles;
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) node).getJavaFileInfo();
         if ((javaFileInfo.getGeneratedFileTypes() & GENERATE_SERVICE_AND_MANAGER) != 0) {
@@ -594,11 +550,73 @@ public class TempJavaFragmentFiles {
     }
 
     /**
+     * Returns java attribute for leaf.
+     *
+     * @param tempJavaFragmentFiles temporary generated file
+     * @param leaf                  YANG leaf
+     * @param yangPluginConfig      plugin configurations
+     * @return java attribute for leaf
+     */
+    public static JavaAttributeInfo getJavaAttributeOfLeaf(TempJavaFragmentFiles tempJavaFragmentFiles, YangLeaf leaf,
+                                                           YangPluginConfig yangPluginConfig) {
+        JavaLeafInfoContainer javaLeaf = (JavaLeafInfoContainer) leaf;
+        javaLeaf.setConflictResolveConfig(yangPluginConfig.getConflictResolver());
+        javaLeaf.updateJavaQualifiedInfo();
+        return getAttributeInfoForTheData(
+                javaLeaf.getJavaQualifiedInfo(),
+                javaLeaf.getJavaName(yangPluginConfig.getConflictResolver()),
+                javaLeaf.getDataType(),
+                tempJavaFragmentFiles.getIsQualifiedAccessOrAddToImportList(javaLeaf.getJavaQualifiedInfo()),
+                false);
+    }
+
+    /**
+     * Returns java attribute for leaf-list.
+     *
+     * @param tempJavaFragmentFiles temporary generated file
+     * @param leafList              YANG leaf-list
+     * @param yangPluginConfig      plugin configurations
+     * @return java attribute for leaf-list
+     */
+    public static JavaAttributeInfo getJavaAttributeOfLeafList(TempJavaFragmentFiles tempJavaFragmentFiles,
+                                                               YangLeafList leafList,
+                                                               YangPluginConfig yangPluginConfig) {
+        JavaLeafInfoContainer javaLeaf = (JavaLeafInfoContainer) leafList;
+        javaLeaf.setConflictResolveConfig(yangPluginConfig.getConflictResolver());
+        javaLeaf.updateJavaQualifiedInfo();
+        tempJavaFragmentFiles.getJavaImportData().setIfListImported(true);
+        return getAttributeInfoForTheData(
+                javaLeaf.getJavaQualifiedInfo(),
+                javaLeaf.getJavaName(yangPluginConfig.getConflictResolver()),
+                javaLeaf.getDataType(),
+                tempJavaFragmentFiles.getIsQualifiedAccessOrAddToImportList(javaLeaf.getJavaQualifiedInfo()),
+                true);
+    }
+
+    /**
+     * Retrieves the temporary file handle of op param builder class.
+     *
+     * @return op param builder temporary file handle
+     */
+    private File getBuilderOpParmClassJavaFileHandle() {
+        return builderOpParmClassJavaFileHandle;
+    }
+
+    /**
+     * Sets the java file handle for op param builder class.
+     *
+     * @param builderOpParmClassJavaFileHandle java file handle
+     */
+    private void setBuilderOpParmClassJavaFileHandle(File builderOpParmClassJavaFileHandle) {
+        this.builderOpParmClassJavaFileHandle = builderOpParmClassJavaFileHandle;
+    }
+
+    /**
      * Returns base code path.
      *
      * @return base code path
      */
-    public String getBaseCodePath() {
+    private String getBaseCodePath() {
         return baseCodePath;
     }
 
@@ -607,7 +625,7 @@ public class TempJavaFragmentFiles {
      *
      * @param baseCodePath base code path
      */
-    public void setBaseCodePath(String baseCodePath) {
+    void setBaseCodePath(String baseCodePath) {
         this.baseCodePath = baseCodePath;
     }
 
@@ -661,15 +679,8 @@ public class TempJavaFragmentFiles {
      *
      * @param fileType generated file type
      */
-    void setGeneratedTempFiles(int fileType) {
+    private void setGeneratedTempFiles(int fileType) {
         generatedTempFiles = fileType;
-    }
-
-    /**
-     * Clears the generated file mask.
-     */
-    void clearGeneratedTempFileMask() {
-        generatedTempFiles = 0;
     }
 
     /**
@@ -723,7 +734,7 @@ public class TempJavaFragmentFiles {
      *
      * @return status of any attributes added
      */
-    public boolean isAttributePresent() {
+    boolean isAttributePresent() {
         return isAttributePresent;
     }
 
@@ -732,7 +743,7 @@ public class TempJavaFragmentFiles {
      *
      * @param attributePresent status of any attributes added
      */
-    public void setAttributePresent(boolean attributePresent) {
+    private void setAttributePresent(boolean attributePresent) {
         isAttributePresent = attributePresent;
     }
 
@@ -894,7 +905,7 @@ public class TempJavaFragmentFiles {
      *
      * @param attributeForClass file handle for attribute
      */
-    void setAttributesTempFileHandle(File attributeForClass) {
+    private void setAttributesTempFileHandle(File attributeForClass) {
         attributesTempFileHandle = attributeForClass;
     }
 
@@ -912,7 +923,7 @@ public class TempJavaFragmentFiles {
      *
      * @param getterImpl file handle for to getter method's impl
      */
-    void setGetterImplTempFileHandle(File getterImpl) {
+    private void setGetterImplTempFileHandle(File getterImpl) {
         getterImplTempFileHandle = getterImpl;
     }
 
@@ -930,12 +941,12 @@ public class TempJavaFragmentFiles {
      *
      * @param hashCodeMethod file handle for hash code method
      */
-    void setHashCodeImplTempFileHandle(File hashCodeMethod) {
+    private void setHashCodeImplTempFileHandle(File hashCodeMethod) {
         hashCodeImplTempFileHandle = hashCodeMethod;
     }
 
     /**
-     * Returns equals mehtod's temporary file handle.
+     * Returns equals method's temporary file handle.
      *
      * @return temporary file handle
      */
@@ -948,7 +959,7 @@ public class TempJavaFragmentFiles {
      *
      * @param equalsMethod file handle for to equals method
      */
-    void setEqualsImplTempFileHandle(File equalsMethod) {
+    private void setEqualsImplTempFileHandle(File equalsMethod) {
         equalsImplTempFileHandle = equalsMethod;
     }
 
@@ -966,7 +977,7 @@ public class TempJavaFragmentFiles {
      *
      * @param toStringMethod file handle for to string method
      */
-    void setToStringImplTempFileHandle(File toStringMethod) {
+    private void setToStringImplTempFileHandle(File toStringMethod) {
         toStringImplTempFileHandle = toStringMethod;
     }
 
@@ -984,26 +995,8 @@ public class TempJavaFragmentFiles {
      *
      * @param javaExtendsListHolder java extends list holder
      */
-    public void setJavaExtendsListHolder(JavaExtendsListHolder javaExtendsListHolder) {
+    void setJavaExtendsListHolder(JavaExtendsListHolder javaExtendsListHolder) {
         this.javaExtendsListHolder = javaExtendsListHolder;
-    }
-
-    /**
-     * Returns augments copy constructor method impl class file.
-     *
-     * @return augments copy constructor method impl class file
-     */
-    public File getAugmentConstructorImplTempFileHandle() {
-        return augmentConstructorImplTempFileHandle;
-    }
-
-    /**
-     * Sets augments copy constructor method impl class.
-     *
-     * @param augmentConstructorImplTempFileHandle augments copy constructor method impl class file
-     */
-    public void setAugmentConstructorImplTempFileHandle(File augmentConstructorImplTempFileHandle) {
-        this.augmentConstructorImplTempFileHandle = augmentConstructorImplTempFileHandle;
     }
 
     /**
@@ -1056,8 +1049,7 @@ public class TempJavaFragmentFiles {
             throws IOException {
         appendToFile(getSetterImplTempFileHandle(),
                 getOverRideString() + getSetterForClass(attr, getGeneratedJavaClassName(), getGeneratedJavaFiles())
-                        +
-                        NEW_LINE);
+                        + NEW_LINE);
     }
 
     /**
@@ -1067,7 +1059,7 @@ public class TempJavaFragmentFiles {
      * @param pluginConfig plugin configurations
      * @throws IOException when fails to append to temporary file
      */
-    private void addGetterImpl(JavaAttributeInfo attr, YangPluginConfig pluginConfig)
+    void addGetterImpl(JavaAttributeInfo attr, YangPluginConfig pluginConfig)
             throws IOException {
         if ((getGeneratedJavaFiles() & BUILDER_CLASS_MASK) != 0
                 || (getGeneratedJavaFiles() & GENERATE_SERVICE_AND_MANAGER) != 0) {
@@ -1158,22 +1150,11 @@ public class TempJavaFragmentFiles {
      * @param fromStringAttributeInfo from string attribute info
      * @throws IOException when fails to append to temporary file
      */
-    private void addFromStringMethod(JavaAttributeInfo javaAttributeInfo,
-                                     JavaAttributeInfo fromStringAttributeInfo)
+    void addFromStringMethod(JavaAttributeInfo javaAttributeInfo,
+                             JavaAttributeInfo fromStringAttributeInfo)
             throws IOException {
         appendToFile(getFromStringImplTempFileHandle(), getFromStringMethod(javaAttributeInfo,
                 fromStringAttributeInfo) + NEW_LINE);
-    }
-
-    /**
-     * Adds constructor for augment class.
-     *
-     * @param attr attribute info
-     * @throws IOException when fails to append to temporary file
-     */
-    private void addAugmentConstructor(JavaAttributeInfo attr, YangPluginConfig pluginConfig)
-            throws IOException {
-        appendToFile(getAugmentConstructorImplTempFileHandle(), getAugmentedConstructor(attr, pluginConfig));
     }
 
     /**
@@ -1237,9 +1218,9 @@ public class TempJavaFragmentFiles {
      * @param absolutePath absolute path
      * @return directory path
      */
-    String getTempDirPath(String absolutePath) {
+    private String getTempDirPath(String absolutePath) {
         return getPackageDirPathFromJavaJPackage(absolutePath) + SLASH + getGeneratedJavaClassName()
-                + TEMP_FOLDER_NAME_SUFIX + SLASH;
+                + TEMP_FOLDER_NAME_SUFFIX + SLASH;
     }
 
     /**
@@ -1249,7 +1230,7 @@ public class TempJavaFragmentFiles {
      * @param pluginConfig plugin configurations
      * @return attribute string
      */
-    public String parseAttribute(JavaAttributeInfo attr, YangPluginConfig pluginConfig) {
+    String parseAttribute(JavaAttributeInfo attr, YangPluginConfig pluginConfig) {
         /*
          * TODO: check if this utility needs to be called or move to the caller
          */
@@ -1290,7 +1271,7 @@ public class TempJavaFragmentFiles {
      * @param curNode      current node for which import list needs to be updated
      * @param pluginConfig plugin configurations
      */
-    public void addParentInfoInCurNodeTempFile(YangNode curNode, YangPluginConfig pluginConfig) {
+    void addParentInfoInCurNodeTempFile(YangNode curNode, YangPluginConfig pluginConfig) {
         caseImportInfo = new JavaQualifiedTypeInfo();
         YangNode parent = getParentNodeInGenCode(curNode);
         if (!(parent instanceof JavaCodeGenerator)) {
@@ -1316,41 +1297,28 @@ public class TempJavaFragmentFiles {
      *
      * @param listOfLeaves     list of YANG leaf
      * @param yangPluginConfig plugin config
+     * @param curNode          current node
      * @throws IOException IO operation fail
      */
-    public void addLeavesInfoToTempFiles(List<YangLeaf> listOfLeaves,
-                                         YangPluginConfig yangPluginConfig)
+    private void addLeavesInfoToTempFiles(List<YangLeaf> listOfLeaves,
+                                          YangPluginConfig yangPluginConfig, YangNode curNode)
             throws IOException {
         if (listOfLeaves != null) {
             for (YangLeaf leaf : listOfLeaves) {
                 if (!(leaf instanceof JavaLeafInfoContainer)) {
                     throw new TranslatorException("Leaf does not have java information");
                 }
-                addJavaSnippetInfoToApplicableTempFiles(getJavaAttributeOfLeaf(this, leaf, yangPluginConfig),
-                        yangPluginConfig);
+                if (curNode instanceof YangModule || curNode instanceof YangSubModule) {
+                    TempJavaBeanFragmentFiles tempJavaBeanFragmentFiles = ((JavaCodeGeneratorInfo) curNode)
+                            .getTempJavaCodeFragmentFiles().getBeanTempFiles();
+                    addJavaSnippetInfoToApplicableTempFiles(getJavaAttributeOfLeaf(tempJavaBeanFragmentFiles, leaf,
+                            yangPluginConfig), yangPluginConfig);
+                } else {
+                    addJavaSnippetInfoToApplicableTempFiles(getJavaAttributeOfLeaf(this, leaf, yangPluginConfig),
+                            yangPluginConfig);
+                }
             }
         }
-    }
-
-    /**
-     * Returns java attribute for leaf.
-     *
-     * @param tempJavaFragmentFiles temporary generated file
-     * @param leaf             YANG leaf
-     * @param yangPluginConfig plugin configurations
-     * @return java attribute for leaf
-     */
-    public static JavaAttributeInfo getJavaAttributeOfLeaf(TempJavaFragmentFiles tempJavaFragmentFiles, YangLeaf leaf,
-                                                            YangPluginConfig yangPluginConfig) {
-        JavaLeafInfoContainer javaLeaf = (JavaLeafInfoContainer) leaf;
-        javaLeaf.setConflictResolveConfig(yangPluginConfig.getConflictResolver());
-        javaLeaf.updateJavaQualifiedInfo();
-        return getAttributeInfoForTheData(
-                javaLeaf.getJavaQualifiedInfo(),
-                javaLeaf.getJavaName(yangPluginConfig.getConflictResolver()),
-                javaLeaf.getDataType(),
-                tempJavaFragmentFiles.getIsQualifiedAccessOrAddToImportList(javaLeaf.getJavaQualifiedInfo()),
-                false);
     }
 
     /**
@@ -1358,60 +1326,45 @@ public class TempJavaFragmentFiles {
      *
      * @param listOfLeafList   list of YANG leaves
      * @param yangPluginConfig plugin config
+     * @param curNode          current node
      * @throws IOException IO operation fail
      */
-    public void addLeafListInfoToTempFiles(List<YangLeafList> listOfLeafList, YangPluginConfig yangPluginConfig)
-            throws IOException {
+    private void addLeafListInfoToTempFiles(List<YangLeafList> listOfLeafList, YangPluginConfig yangPluginConfig,
+                                            YangNode curNode) throws IOException {
         if (listOfLeafList != null) {
             for (YangLeafList leafList : listOfLeafList) {
                 if (!(leafList instanceof JavaLeafInfoContainer)) {
                     throw new TranslatorException("Leaf-list does not have java information");
                 }
-                addJavaSnippetInfoToApplicableTempFiles(getJavaAttributeOfLeafList(this, leafList, yangPluginConfig),
-                        yangPluginConfig);
+                if (curNode instanceof YangModule || curNode instanceof YangSubModule) {
+                    TempJavaBeanFragmentFiles tempJavaBeanFragmentFiles = ((JavaCodeGeneratorInfo) curNode)
+                            .getTempJavaCodeFragmentFiles().getBeanTempFiles();
+                    addJavaSnippetInfoToApplicableTempFiles(getJavaAttributeOfLeafList(tempJavaBeanFragmentFiles,
+                            leafList, yangPluginConfig), yangPluginConfig);
+                } else {
+                    addJavaSnippetInfoToApplicableTempFiles(getJavaAttributeOfLeafList(this,
+                            leafList, yangPluginConfig), yangPluginConfig);
+                }
             }
         }
     }
 
     /**
-     * Returns java attribute for leaf-list.
+     * Adds all the leaves in the current data model node as part of the generated temporary file.
      *
-     * @param tempJavaFragmentFiles temporary generated file
-     * @param leafList         YANG leaf-list
-     * @param yangPluginConfig plugin configurations
-     * @return java attribute for leaf-list
-     */
-    public static JavaAttributeInfo getJavaAttributeOfLeafList(TempJavaFragmentFiles tempJavaFragmentFiles,
-                                                           YangLeafList leafList, YangPluginConfig yangPluginConfig) {
-        JavaLeafInfoContainer javaLeaf = (JavaLeafInfoContainer) leafList;
-        javaLeaf.setConflictResolveConfig(yangPluginConfig.getConflictResolver());
-        javaLeaf.updateJavaQualifiedInfo();
-        tempJavaFragmentFiles.getJavaImportData().setIfListImported(true);
-        return getAttributeInfoForTheData(
-                javaLeaf.getJavaQualifiedInfo(),
-                javaLeaf.getJavaName(yangPluginConfig.getConflictResolver()),
-                javaLeaf.getDataType(),
-                tempJavaFragmentFiles.getIsQualifiedAccessOrAddToImportList(javaLeaf.getJavaQualifiedInfo()),
-                true);
-    }
-
-    /**
-     * Adds all the leaves in the current data model node as part of the
-     * generated temporary file.
-     *
-     * @param curNode          java file info of the generated file
+     * @param curNode          current node
      * @param yangPluginConfig plugin config
      * @throws IOException IO operation fail
      */
-    public void addCurNodeLeavesInfoToTempFiles(YangNode curNode,
+    void addCurNodeLeavesInfoToTempFiles(YangNode curNode,
                                                 YangPluginConfig yangPluginConfig)
             throws IOException {
         if (!(curNode instanceof YangLeavesHolder)) {
             throw new TranslatorException("Data model node does not have any leaves");
         }
         YangLeavesHolder leavesHolder = (YangLeavesHolder) curNode;
-        addLeavesInfoToTempFiles(leavesHolder.getListOfLeaf(), yangPluginConfig);
-        addLeafListInfoToTempFiles(leavesHolder.getListOfLeafList(), yangPluginConfig);
+        addLeavesInfoToTempFiles(leavesHolder.getListOfLeaf(), yangPluginConfig, curNode);
+        addLeafListInfoToTempFiles(leavesHolder.getListOfLeafList(), yangPluginConfig, curNode);
     }
 
     /**
@@ -1440,9 +1393,6 @@ public class TempJavaFragmentFiles {
             addSetterImpl(newAttrInfo);
         }
 
-        if ((getGeneratedTempFiles() & GETTER_FOR_CLASS_MASK) != 0) {
-            addGetterImpl(newAttrInfo, pluginConfig);
-        }
         if ((getGeneratedTempFiles() & HASH_CODE_IMPL_MASK) != 0) {
             addHashCodeMethod(newAttrInfo);
         }
@@ -1453,19 +1403,26 @@ public class TempJavaFragmentFiles {
             addToStringMethod(newAttrInfo);
         }
 
-        if ((getGeneratedTempFiles() & FROM_STRING_IMPL_MASK) != 0) {
-            JavaQualifiedTypeInfo qualifiedInfoOfFromString = getQualifiedInfoOfFromString(newAttrInfo,
-                    pluginConfig.getConflictResolver());
+        if (!newAttrInfo.isIntConflict() &&
+                !newAttrInfo.isLongConflict()) {
+            if ((getGeneratedTempFiles() & GETTER_FOR_CLASS_MASK) != 0) {
+                addGetterImpl(newAttrInfo, pluginConfig);
+            }
+
+            if ((getGeneratedTempFiles() & FROM_STRING_IMPL_MASK) != 0) {
+                JavaQualifiedTypeInfo qualifiedInfoOfFromString = getQualifiedInfoOfFromString(newAttrInfo,
+                        pluginConfig.getConflictResolver());
             /*
              * Create a new java attribute info with qualified information of
              * wrapper classes.
              */
-            JavaAttributeInfo fromStringAttributeInfo = getAttributeInfoForTheData(qualifiedInfoOfFromString,
-                    newAttrInfo.getAttributeName(),
-                    newAttrInfo.getAttributeType(),
-                    getIsQualifiedAccessOrAddToImportList(qualifiedInfoOfFromString), false);
+                JavaAttributeInfo fromStringAttributeInfo = getAttributeInfoForTheData(qualifiedInfoOfFromString,
+                        newAttrInfo.getAttributeName(),
+                        newAttrInfo.getAttributeType(),
+                        getIsQualifiedAccessOrAddToImportList(qualifiedInfoOfFromString), false);
 
-            addFromStringMethod(newAttrInfo, fromStringAttributeInfo);
+                addFromStringMethod(newAttrInfo, fromStringAttributeInfo);
+            }
         }
     }
 
@@ -1484,7 +1441,7 @@ public class TempJavaFragmentFiles {
      *
      * @return java class name
      */
-    String getImplClassName() {
+    private String getImplClassName() {
         return getCapitalCase(DEFAULT) + getCapitalCase(getJavaFileInfo().getJavaName());
     }
 
@@ -1493,7 +1450,7 @@ public class TempJavaFragmentFiles {
      *
      * @return op param java class name
      */
-    String getOpParamImplClassName() {
+    private String getOpParamImplClassName() {
         return getCapitalCase(getJavaFileInfo().getJavaName()) + OPERATION;
     }
 
@@ -1502,7 +1459,7 @@ public class TempJavaFragmentFiles {
      *
      * @return op param builder java class name
      */
-    String getOpParamBuilderImplClassName() {
+    private String getOpParamBuilderImplClassName() {
         return getCapitalCase(getJavaFileInfo().getJavaName()) + OPERATION + BUILDER;
     }
 
@@ -1532,8 +1489,6 @@ public class TempJavaFragmentFiles {
                 .getTempJavaCodeFragmentFiles().getBeanTempFiles();
         List<String> imports = ((JavaCodeGeneratorInfo) curNode).getTempJavaCodeFragmentFiles().getBeanTempFiles()
                 .getJavaImportData().getImports();
-
-        JavaFileInfo curInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
         createPackage(curNode);
 
@@ -1620,7 +1575,7 @@ public class TempJavaFragmentFiles {
                 qualifiedTypeInfo.setPkgInfo(getJavaFileInfo().getPackage());
                 getJavaExtendsListHolder().addToExtendsList(qualifiedTypeInfo, curNode,
                         tempJavaBeanFragmentFiles);
-                addBitsetImport(imports, true);
+                addBitSetImport(imports, true);
                 if (curNode instanceof YangAugment) {
                     addYangAugmentedOpParamInfoImport(imports);
                 }
@@ -1646,7 +1601,7 @@ public class TempJavaFragmentFiles {
                     mergeJavaFiles(getBuilderOpParmClassJavaFileHandle(), getOpParamClassJavaFileHandle());
                     validateLineLength(getOpParamClassJavaFileHandle());
 
-                    addBitsetImport(imports, false);
+                    addBitSetImport(imports, false);
                 }
                 insertDataIntoJavaFile(getOpParamClassJavaFileHandle(), getJavaClassDefClose());
 
@@ -1669,7 +1624,7 @@ public class TempJavaFragmentFiles {
      * @param imports   import list
      * @param operation add or remove
      */
-    public void addImportsToStringAndHasCodeMethods(List<String> imports, boolean operation) {
+    void addImportsToStringAndHasCodeMethods(List<String> imports, boolean operation) {
         if (operation) {
             imports.add(getJavaImportData().getImportForHashAndEquals());
             imports.add(getJavaImportData().getImportForToString());
@@ -1680,12 +1635,12 @@ public class TempJavaFragmentFiles {
     }
 
     /**
-     * Adds imports for bitset method.
+     * Adds imports for bitSet method.
      *
      * @param imports   import list
      * @param operation add or remove
      */
-    public void addBitsetImport(List<String> imports, boolean operation) {
+    private void addBitSetImport(List<String> imports, boolean operation) {
         if (operation) {
             imports.add(getJavaImportData().getImportForToBitSet());
         } else {
@@ -1700,7 +1655,7 @@ public class TempJavaFragmentFiles {
      * @param imports    import list
      * @param operations true for adding and false for deletion
      */
-    public void addImportsForAugmentableClass(List<String> imports, boolean operations) {
+    private void addImportsForAugmentableClass(List<String> imports, boolean operations) {
         if (operations) {
             imports.add(getJavaImportData().getHashMapImport());
             imports.add(getJavaImportData().getMapImport());
@@ -1730,34 +1685,24 @@ public class TempJavaFragmentFiles {
      * Removes case import info from import list.
      *
      * @param imports list of imports
-     * @return import for class
      */
     private void removeAugmentedInfoImport(List<String> imports) {
         imports.remove(getJavaImportData().getYangAugmentedInfoImport());
-
-        for (JavaQualifiedTypeInfo type : getJavaImportData().getImportSet()) {
-            if (type.getClassInfo().equals(YANG_AUGMENTED_INFO)) {
-                getJavaImportData().getImportSet().remove(type);
-                getJavaExtendsListHolder().getExtendsList().remove(type);
-            }
-        }
     }
 
     /**
      * Removes all temporary file handles.
      *
-     * @param isErrorOccurred when translator fails to generate java files we need to close all open file handles
-     *                        include temporary files and java files.
+     * @param isErrorOccurred flag to tell translator that error has occurred while file generation
      * @throws IOException when failed to delete the temporary files
      */
     public void freeTemporaryResources(boolean isErrorOccurred)
             throws IOException {
-        boolean isError = isErrorOccurred;
         /*
          * Close all java file handles and when error occurs delete the files.
          */
         if ((getGeneratedJavaFiles() & INTERFACE_MASK) != 0) {
-            closeFile(getInterfaceJavaFileHandle(), isError);
+            closeFile(getInterfaceJavaFileHandle(), isErrorOccurred);
         }
         if ((getGeneratedJavaFiles() & BUILDER_CLASS_MASK) != 0) {
             closeFile(getBuilderClassJavaFileHandle(), true);
@@ -1769,7 +1714,7 @@ public class TempJavaFragmentFiles {
             closeFile(getBuilderInterfaceJavaFileHandle(), true);
         }
         if ((getGeneratedJavaFiles() & IMPL_CLASS_MASK) != 0) {
-            closeFile(getImplClassJavaFileHandle(), isError);
+            closeFile(getImplClassJavaFileHandle(), isErrorOccurred);
         }
 
         /*
@@ -1793,9 +1738,6 @@ public class TempJavaFragmentFiles {
         if ((getGeneratedTempFiles() & FROM_STRING_IMPL_MASK) != 0) {
             closeFile(getFromStringImplTempFileHandle(), true);
         }
-        if ((getGeneratedTempFiles() & AUGMENTE_CLASS_CONSTRUCTOR_MASK) != 0) {
-            closeFile(getAugmentConstructorImplTempFileHandle(), true);
-        }
     }
 
     /**
@@ -1805,7 +1747,7 @@ public class TempJavaFragmentFiles {
      * @param importInfo import info for the current attribute being added
      * @return status of the qualified access to the attribute
      */
-    public boolean getIsQualifiedAccessOrAddToImportList(
+    boolean getIsQualifiedAccessOrAddToImportList(
             JavaQualifiedTypeInfo importInfo) {
 
         return getJavaImportData().addImportInfo(importInfo, getGeneratedJavaClassName(),
@@ -1817,7 +1759,7 @@ public class TempJavaFragmentFiles {
      *
      * @return java file handle for op param class file
      */
-    public File getOpParamClassJavaFileHandle() {
+    private File getOpParamClassJavaFileHandle() {
         return opParamClassJavaFileHandle;
     }
 
@@ -1826,7 +1768,7 @@ public class TempJavaFragmentFiles {
      *
      * @param opParamClassJavaFileHandle java file handle
      */
-    public void setOpParamClassJavaFileHandle(File opParamClassJavaFileHandle) {
+    private void setOpParamClassJavaFileHandle(File opParamClassJavaFileHandle) {
         this.opParamClassJavaFileHandle = opParamClassJavaFileHandle;
     }
 }

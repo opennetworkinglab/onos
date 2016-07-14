@@ -78,7 +78,7 @@ public class TempJavaServiceFragmentFiles
     /**
      * Flag to set the manager files generation.
      */
-    boolean isManagerNeedToBeGenerated = false;
+    private boolean isManagerNeedToBeGenerated = false;
 
     /**
      * Temporary file handle for rpc interface.
@@ -96,7 +96,7 @@ public class TempJavaServiceFragmentFiles
     private File serviceInterfaceJavaFileHandle;
 
     /**
-     * Path for serive file to be generated.
+     * Path for service file to be generated.
      */
     private String serviceGenPath;
 
@@ -111,7 +111,7 @@ public class TempJavaServiceFragmentFiles
      * @param javaFileInfo generated file information
      * @throws IOException when fails to create new file handle
      */
-    public TempJavaServiceFragmentFiles(JavaFileInfo javaFileInfo)
+    TempJavaServiceFragmentFiles(JavaFileInfo javaFileInfo)
             throws IOException {
         setJavaExtendsListHolder(new JavaExtendsListHolder());
         setJavaImportData(new JavaImportData());
@@ -150,7 +150,7 @@ public class TempJavaServiceFragmentFiles
      *
      * @return java file handle
      */
-    public File getManagerJavaFileHandle() {
+    private File getManagerJavaFileHandle() {
         return managerJavaFileHandle;
     }
 
@@ -159,7 +159,7 @@ public class TempJavaServiceFragmentFiles
      *
      * @param managerJavaFileHandle file handle for to manager
      */
-    public void setManagerJavaFileHandle(File managerJavaFileHandle) {
+    private void setManagerJavaFileHandle(File managerJavaFileHandle) {
         this.managerJavaFileHandle = managerJavaFileHandle;
     }
 
@@ -195,7 +195,7 @@ public class TempJavaServiceFragmentFiles
      *
      * @param rpcImplTempFileHandle the manager impl temp file
      */
-    public void setRpcImplTempFileHandle(File rpcImplTempFileHandle) {
+    private void setRpcImplTempFileHandle(File rpcImplTempFileHandle) {
         this.rpcImplTempFileHandle = rpcImplTempFileHandle;
     }
 
@@ -226,9 +226,8 @@ public class TempJavaServiceFragmentFiles
         if (isNotification) {
             addListenersImport(curNode, imports, true, LISTENER_SERVICE);
         }
-        /**
-         * Creates rpc interface file.
-         */
+
+        // Creates rpc interface file.
         setBaseCodePath(getServiceGenPath());
         setServiceInterfaceJavaFileHandle(getJavaFileHandle(getJavaClassName(SERVICE_FILE_NAME_SUFFIX)));
         generateServiceInterfaceFile(getServiceInterfaceJavaFileHandle(), curNode, imports);
@@ -238,9 +237,8 @@ public class TempJavaServiceFragmentFiles
             addListenersImport(curNode, imports, true, LISTENER_REG);
         }
         addAnnotationsImports(imports, true);
-        /**
-         * Create builder class file.
-         */
+
+        // Create builder class file.
         if (isManagerNeedToBeGenerated()) {
             setManagerJavaFileHandle(getJavaFileHandle(getJavaClassName(MANAGER_FILE_NAME_SUFFIX)));
             generateManagerClassFile(getManagerJavaFileHandle(), imports, curNode);
@@ -251,17 +249,16 @@ public class TempJavaServiceFragmentFiles
         }
         addAnnotationsImports(imports, false);
 
-        /**
-         * Close all the file handles.
-         */
+
+        // Close all the file handles.
         freeTemporaryResources(false);
     }
 
     /**
      * Adds rpc string information to applicable temp file.
      *
-     * @param javaAttributeInfoOfInput  rpc's input node attribute info
-     * @param javaAttributeInfoOfOutput rpc's output node attribute info
+     * @param javaAttributeInfoOfInput  RPCs input node attribute info
+     * @param javaAttributeInfoOfOutput RPCs output node attribute info
      * @param rpcName                   name of the rpc function
      * @param pluginConfig              plugin configurations
      * @throws IOException IO operation fail
@@ -292,8 +289,8 @@ public class TempJavaServiceFragmentFiles
     /**
      * Adds the JAVA rpc snippet information.
      *
-     * @param javaAttributeInfoOfInput  rpc's input node attribute info
-     * @param javaAttributeInfoOfOutput rpc's output node attribute info
+     * @param javaAttributeInfoOfInput  RPCs input node attribute info
+     * @param javaAttributeInfoOfOutput RPCs output node attribute info
      * @param pluginConfig              plugin configurations
      * @param rpcName                   name of the rpc function
      * @throws IOException IO operation fail
@@ -308,17 +305,15 @@ public class TempJavaServiceFragmentFiles
     /**
      * Removes all temporary file handles.
      *
-     * @param isErrorOccurred when translator fails to generate java files we need to close all open file handles
-     *                        include temporary files and java files.
+     * @param isErrorOccurred flag to tell translator that error has occurred while file generation
      * @throws IOException when failed to delete the temporary files
      */
     @Override
     public void freeTemporaryResources(boolean isErrorOccurred)
             throws IOException {
-        boolean isError = isErrorOccurred;
 
-        closeFile(getServiceInterfaceJavaFileHandle(), isError);
-        closeFile(getManagerJavaFileHandle(), isError);
+        closeFile(getServiceInterfaceJavaFileHandle(), isErrorOccurred);
+        closeFile(getManagerJavaFileHandle(), isErrorOccurred);
 
         closeFile(getRpcInterfaceTempFileHandle(), true);
         closeFile(getRpcImplTempFileHandle(), true);
@@ -335,7 +330,7 @@ public class TempJavaServiceFragmentFiles
      *
      * @return path where service file should be generated
      */
-    public String getServiceGenPath() {
+    private String getServiceGenPath() {
         return serviceGenPath;
     }
 
@@ -344,7 +339,7 @@ public class TempJavaServiceFragmentFiles
      *
      * @param serviceGenPath path where service file should be generated
      */
-    public void setServiceGenPath(String serviceGenPath) {
+    private void setServiceGenPath(String serviceGenPath) {
         this.serviceGenPath = serviceGenPath;
     }
 
@@ -353,7 +348,7 @@ public class TempJavaServiceFragmentFiles
      *
      * @return true if manager needs to be generated
      */
-    public boolean isManagerNeedToBeGenerated() {
+    private boolean isManagerNeedToBeGenerated() {
         return isManagerNeedToBeGenerated;
     }
 

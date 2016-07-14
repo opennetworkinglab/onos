@@ -43,8 +43,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUTO_PREFIX;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.createPackage;
 
 /**
- * Represents implementation of java code fragments temporary implementations.
- * Maintains the temp files required specific for enumeration java snippet generation.
+ * Represents implementation of java code fragments temporary implementations. Maintains the temp files required
+ * specific for enumeration java snippet generation.
  */
 public class TempJavaEnumerationFragmentFiles extends TempJavaFragmentFiles {
 
@@ -89,7 +89,7 @@ public class TempJavaEnumerationFragmentFiles extends TempJavaFragmentFiles {
      * @param javaFileInfo generated java file info
      * @throws IOException when fails to create new file handle
      */
-    public TempJavaEnumerationFragmentFiles(JavaFileInfo javaFileInfo)
+    TempJavaEnumerationFragmentFiles(JavaFileInfo javaFileInfo)
             throws IOException {
 
         super(javaFileInfo);
@@ -107,7 +107,7 @@ public class TempJavaEnumerationFragmentFiles extends TempJavaFragmentFiles {
      *
      * @return enum class java file handle
      */
-    public File getEnumClassJavaFileHandle() {
+    private File getEnumClassJavaFileHandle() {
         return enumClassJavaFileHandle;
     }
 
@@ -188,18 +188,18 @@ public class TempJavaEnumerationFragmentFiles extends TempJavaFragmentFiles {
     /**
      * Adds enum attributes to temporary files.
      *
-     * @param curNode current YANG node
+     * @param curNode      current YANG node
      * @param pluginConfig plugin configurations
      * @throws IOException when fails to do IO operations
      */
-    public void addEnumAttributeToTempFiles(YangNode curNode, YangPluginConfig pluginConfig) throws IOException {
+    void addEnumAttributeToTempFiles(YangNode curNode, YangPluginConfig pluginConfig) throws IOException {
 
         super.addJavaSnippetInfoToApplicableTempFiles(getJavaAttributeForEnum(pluginConfig), pluginConfig);
         if (curNode instanceof YangEnumeration) {
             YangEnumeration enumeration = (YangEnumeration) curNode;
             for (YangEnum curEnum : enumeration.getEnumSet()) {
                 String enumName = curEnum.getNamedValue();
-                String prefixForIdentifier = null;
+                String prefixForIdentifier;
                 if (enumName.matches(REGEX_FOR_FIRST_DIGIT)) {
                     prefixForIdentifier = getPrefixForIdentifier(pluginConfig.getConflictResolver());
                     if (prefixForIdentifier != null) {
@@ -219,11 +219,11 @@ public class TempJavaEnumerationFragmentFiles extends TempJavaFragmentFiles {
     }
 
     /**
-    * Returns java attribute for enum class.
-    *
-    * @param pluginConfig plugin configurations
-    * @return java attribute
-    */
+     * Returns java attribute for enum class.
+     *
+     * @param pluginConfig plugin configurations
+     * @return java attribute
+     */
     public JavaAttributeInfo getJavaAttributeForEnum(YangPluginConfig pluginConfig) {
         YangJavaType<?> javaType = new YangJavaType<>();
         javaType.setDataType(YangDataTypes.INT32);
@@ -248,11 +248,10 @@ public class TempJavaEnumerationFragmentFiles extends TempJavaFragmentFiles {
     /**
      * Adds the new attribute info to the target generated temporary files.
      *
-     * @param curEnumName the attribute name that needs to be added to temporary
-     * files
+     * @param curEnumName the attribute name that needs to be added to temporary files
      * @throws IOException IO operation fail
      */
-    void addJavaSnippetInfoToApplicableTempFiles(String curEnumName, YangPluginConfig pluginConfig)
+    private void addJavaSnippetInfoToApplicableTempFiles(String curEnumName, YangPluginConfig pluginConfig)
             throws IOException {
         addAttributesForEnumClass(getEnumJavaAttribute(curEnumName), pluginConfig);
     }
@@ -261,7 +260,7 @@ public class TempJavaEnumerationFragmentFiles extends TempJavaFragmentFiles {
      * Constructs java code exit.
      *
      * @param fileType generated file type
-     * @param curNode current YANG node
+     * @param curNode  current YANG node
      * @throws IOException when fails to generate java files
      */
     @Override
@@ -275,9 +274,7 @@ public class TempJavaEnumerationFragmentFiles extends TempJavaFragmentFiles {
     /**
      * Removes all temporary file handles.
      *
-     * @param isErrorOccurred when translator fails to generate java files we
-     * need to close all open file handles include temporary files
-     * and java files.
+     * @param isErrorOccurred flag to tell translator that error has occurred while file generation
      * @throws IOException when failed to delete the temporary files
      */
     @Override
@@ -310,7 +307,7 @@ public class TempJavaEnumerationFragmentFiles extends TempJavaFragmentFiles {
      *
      * @param enumStringList the enumStringList to set
      */
-    public void setEnumStringList(List<String> enumStringList) {
+    private void setEnumStringList(List<String> enumStringList) {
         this.enumStringList = enumStringList;
     }
 }

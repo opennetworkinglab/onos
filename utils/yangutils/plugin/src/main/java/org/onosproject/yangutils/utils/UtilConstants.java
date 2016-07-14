@@ -127,6 +127,16 @@ public final class UtilConstants {
     public static final String JAVA_DOC_GETTERS = " * Returns the attribute ";
 
     /**
+     * JavaDocs's description for getter method.
+     */
+    public static final String JAVA_DOC_FOR_VALIDATOR = " * Validates if value is in given range.";
+
+    /**
+     * JavaDocs's description for getter method.
+     */
+    public static final String JAVA_DOC_FOR_VALIDATOR_RETURN = " * @return true if value is in range";
+
+    /**
      * JavaDocs's description for constructor.
      */
     public static final String JAVA_DOC_CONSTRUCTOR = " * Creates an instance of ";
@@ -292,6 +302,108 @@ public final class UtilConstants {
     public static final String SPACE = " ";
 
     /**
+     * Static attribute for validateRange.
+     */
+    public static final String VALIDATE_RANGE = "validateRange";
+
+    /**
+     * Static attribute for minRange.
+     */
+    public static final String MIN_RANGE = "minRange";
+
+    /**
+     * Static attribute for maxRange.
+     */
+    public static final String MAX_RANGE = "maxRange";
+
+    /**
+     * Static attribute for minRange.
+     */
+    public static final String INT_MIN_RANGE_ATTR = "static final int INT32_MIN_RANGE = -2147483648;\n";
+
+    /**
+     * Static attribute for minRange.
+     */
+    public static final String INT_MIN_RANGE = "INT32_MIN_RANGE";
+
+    /**
+     * Static attribute for minRange.
+     */
+    public static final String INT_MAX_RANGE = "INT32_MAX_RANGE";
+
+    /**
+     * Static attribute for maxRange.
+     */
+    public static final String INT_MAX_RANGE_ATTR = "static final int INT32_MAX_RANGE = 2147483647;";
+
+
+    /**
+     * Static attribute for minRange.
+     */
+    public static final String UINT_MIN_RANGE_ATTR = "static final int UINT16_MIN_RANGE = 0;\n";
+
+    /**
+     * Static attribute for maxRange.
+     */
+    public static final String UINT_MAX_RANGE_ATTR = "static final int UINT16_MAX_RANGE = 2147483647;";
+
+
+    /**
+     * Static attribute for minRange.
+     */
+    public static final String UINT_MIN_RANGE = "UINT16_MIN_RANGE";
+
+    /**
+     * Static attribute for maxRange.
+     */
+    public static final String UINT_MAX_RANGE = "UINT16_MAX_RANGE";
+
+    /**
+     * Static attribute for minRange.
+     */
+    public static final String LONG_MIN_RANGE_ATTR = "static final BigInteger INT64_MIN_RANGE =" +
+            " new BigInteger(\"-9223372036854775808\");\n";
+
+    /**
+     * Static attribute for maxRange.
+     */
+    public static final String LONG_MAX_RANGE_ATTR = "static final BigInteger INT64_MAX_RANGE =" +
+            " new BigInteger(\"9223372036854775807\");";
+
+    /**
+     * Static attribute for minRange.
+     */
+    public static final String LONG_MIN_RANGE = "INT64_MIN_RANGE";
+
+    /**
+     * Static attribute for maxRange.
+     */
+    public static final String LONG_MAX_RANGE = "INT64_MAX_RANGE";
+
+    /**
+     * Static attribute for minRange.
+     */
+    public static final String ULONG_MIN_RANGE_ATTR = "static final BigInteger UINT32_MIN_RANGE =" +
+            " new BigInteger(\"0\");\n";
+
+    /**
+     * Static attribute for maxRange.
+     */
+    public static final String ULONG_MAX_RANGE_ATTR = "static final BigInteger UINT32_MAX_RANGE =" +
+            " new BigInteger(\"9223372036854775807\");";
+
+
+    /**
+     * Static attribute for minRange.
+     */
+    public static final String ULONG_MIN_RANGE = "UINT32_MIN_RANGE";
+
+    /**
+     * Static attribute for maxRange.
+     */
+    public static final String ULONG_MAX_RANGE = "UINT32_MAX_RANGE";
+
+    /**
      * Static attribute for subject.
      */
     public static final String SUBJECT = "Subject";
@@ -345,16 +457,6 @@ public final class UtilConstants {
      * Static attribute for identityref string.
      */
     public static final String IDENTITYREF = "identityref";
-
-    /**
-     * Static attribute for binary string.
-     */
-    public static final String BINARY_STRING = "binary";
-
-    /**
-     * Static attribute for bits string.
-     */
-    public static final String BITS_STRING = "bits";
 
     /**
      * Static attribute for output variable of rpc.
@@ -610,6 +712,11 @@ public final class UtilConstants {
      * Static attribute for temp val syntax.
      */
     public static final String TMP_VAL = "tmpVal";
+
+    /**
+     * Static attribute for close curly bracket syntax.
+     */
+    public static final String ELSE = "else";
 
     /**
      * From string parameter name.

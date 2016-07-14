@@ -46,6 +46,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.EVENT_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
+import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.closeFile;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.ENUM_ATTRIBUTE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.GETTER_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.MANAGER_SETTER_METHOD;
@@ -63,12 +64,11 @@ public class TempJavaEventFragmentFiles
     /**
      * File name for generated class file for special type like union, typedef suffix.
      */
-    public static final String EVENT_SUBJECT_NAME_SUFFIX = "EventSubject";
+    private static final String EVENT_SUBJECT_NAME_SUFFIX = "EventSubject";
 
     /**
      * File name for event enum temp file.
      */
-
     private static final String EVENT_ENUM_FILE_NAME = "EventEnum";
 
     /**
@@ -149,7 +149,7 @@ public class TempJavaEventFragmentFiles
      * @param javaFileInfo generated file information
      * @throws IOException when fails to create new file handle
      */
-    public TempJavaEventFragmentFiles(JavaFileInfo javaFileInfo)
+    TempJavaEventFragmentFiles(JavaFileInfo javaFileInfo)
             throws IOException {
         setJavaExtendsListHolder(new JavaExtendsListHolder());
         setJavaImportData(new JavaImportData());
@@ -255,6 +255,9 @@ public class TempJavaEventFragmentFiles
         generateEventJavaFile(curNode);
         generateEventListenerJavaFile(curNode);
         generateEventSubjectJavaFile(curNode);
+
+        // Close all the file handles.
+        freeTemporaryResources(false);
     }
 
     /**
@@ -263,7 +266,7 @@ public class TempJavaEventFragmentFiles
      * @param curNode current YANG node
      * @throws IOException when fails to generate java files
      */
-    public void generateEventJavaFile(YangNode curNode)
+    private void generateEventJavaFile(YangNode curNode)
             throws IOException {
 
         List<String> imports = new ArrayList<>();
@@ -274,43 +277,10 @@ public class TempJavaEventFragmentFiles
 
         addEnumMethod(nodeName, curNodeInfo + EVENT_SUBJECT_NAME_SUFFIX);
 
-        /**
-         * Creates event interface file.
-         */
+        //Creates event interface file.
         setEventJavaFileHandle(getJavaFileHandle(curNode, curNodeInfo + EVENT_FILE_NAME_SUFFIX));
         generateEventFile(getEventJavaFileHandle(), curNode, imports);
 
-        /**
-         * Close all the file handles.
-         */
-        freeTemporaryResources(false);
-    }
-
-    /**
-     * Constructs java code exit.
-     *
-     * @param curNode  current YANG node
-     * @throws IOException when fails to generate java files
-     */
-    public void generateEventListenerJavaFile(YangNode curNode)
-            throws IOException {
-
-        List<String> imports = new ArrayList<>();
-
-        imports.add(getJavaImportData().getEventListenerImport());
-        String curNodeInfo = getCapitalCase(((JavaFileInfoContainer) curNode)
-                .getJavaFileInfo().getJavaName());
-        /**
-         * Creates event listener interface file.
-         */
-        setEventListenerJavaFileHandle(
-                getJavaFileHandle(curNode, curNodeInfo + EVENT_LISTENER_FILE_NAME_SUFFIX));
-        generateEventListenerFile(getEventListenerJavaFileHandle(), curNode, imports);
-
-        /**
-         * Close all the file handles.
-         */
-        freeTemporaryResources(false);
     }
 
     /**
@@ -319,22 +289,39 @@ public class TempJavaEventFragmentFiles
      * @param curNode current YANG node
      * @throws IOException when fails to generate java files
      */
-    public void generateEventSubjectJavaFile(YangNode curNode)
+    private void generateEventListenerJavaFile(YangNode curNode)
+            throws IOException {
+
+        List<String> imports = new ArrayList<>();
+
+        imports.add(getJavaImportData().getEventListenerImport());
+        String curNodeInfo = getCapitalCase(((JavaFileInfoContainer) curNode)
+                .getJavaFileInfo().getJavaName());
+
+        // Creates event listener interface file.
+        setEventListenerJavaFileHandle(
+                getJavaFileHandle(curNode, curNodeInfo + EVENT_LISTENER_FILE_NAME_SUFFIX));
+        generateEventListenerFile(getEventListenerJavaFileHandle(), curNode, imports);
+
+    }
+
+    /**
+     * Constructs java code exit.
+     *
+     * @param curNode current YANG node
+     * @throws IOException when fails to generate java files
+     */
+    private void generateEventSubjectJavaFile(YangNode curNode)
             throws IOException {
 
         String curNodeInfo = getCapitalCase(((JavaFileInfoContainer) curNode)
                 .getJavaFileInfo().getJavaName());
-        /**
-         * Creates event interface file.
-         */
+
+        //Creates event interface file.
         setEventSubjectJavaFileHandle(getJavaFileHandle(curNode, curNodeInfo +
                 TempJavaEventFragmentFiles.EVENT_SUBJECT_NAME_SUFFIX));
         generateEventSubjectFile(getEventSubjectJavaFileHandle(), curNode);
 
-        /**
-         * Close all the file handles.
-         */
-        freeTemporaryResources(false);
     }
 
     /**
@@ -351,7 +338,7 @@ public class TempJavaEventFragmentFiles
      *
      * @param eventEnumTempFileHandle event enum temp file
      */
-    public void setEventEnumTempFileHandle(File eventEnumTempFileHandle) {
+    private void setEventEnumTempFileHandle(File eventEnumTempFileHandle) {
         this.eventEnumTempFileHandle = eventEnumTempFileHandle;
     }
 
@@ -369,7 +356,7 @@ public class TempJavaEventFragmentFiles
      *
      * @param eventMethodTempFileHandle event method temp file
      */
-    public void setEventMethodTempFileHandle(File eventMethodTempFileHandle) {
+    private void setEventMethodTempFileHandle(File eventMethodTempFileHandle) {
         this.eventMethodTempFileHandle = eventMethodTempFileHandle;
     }
 
@@ -387,7 +374,7 @@ public class TempJavaEventFragmentFiles
      *
      * @param eventSubjectAttributeTempFileHandle event subject attribute temp file
      */
-    public void setEventSubjectAttributeTempFileHandle(File eventSubjectAttributeTempFileHandle) {
+    private void setEventSubjectAttributeTempFileHandle(File eventSubjectAttributeTempFileHandle) {
         this.eventSubjectAttributeTempFileHandle = eventSubjectAttributeTempFileHandle;
     }
 
@@ -405,7 +392,7 @@ public class TempJavaEventFragmentFiles
      *
      * @param eventSubjectGetterTempFileHandle event subject getter temp file
      */
-    public void setEventSubjectGetterTempFileHandle(File eventSubjectGetterTempFileHandle) {
+    private void setEventSubjectGetterTempFileHandle(File eventSubjectGetterTempFileHandle) {
         this.eventSubjectGetterTempFileHandle = eventSubjectGetterTempFileHandle;
     }
 
@@ -423,7 +410,7 @@ public class TempJavaEventFragmentFiles
      *
      * @param eventSubjectSetterTempFileHandle event subject setter temp file
      */
-    public void setEventSubjectSetterTempFileHandle(File eventSubjectSetterTempFileHandle) {
+    private void setEventSubjectSetterTempFileHandle(File eventSubjectSetterTempFileHandle) {
         this.eventSubjectSetterTempFileHandle = eventSubjectSetterTempFileHandle;
     }
 
@@ -434,7 +421,7 @@ public class TempJavaEventFragmentFiles
      * @param pluginConfig plugin configurations
      * @throws IOException when fails to do IO operations
      */
-    public void addJavaSnippetOfEvent(YangNode curNode, YangPluginConfig pluginConfig)
+    void addJavaSnippetOfEvent(YangNode curNode, YangPluginConfig pluginConfig)
             throws IOException {
 
         String currentInfo = getCapitalCase(getCamelCase(curNode.getName(),
@@ -520,5 +507,29 @@ public class TempJavaEventFragmentFiles
      */
     private String getDirPath(JavaFileInfo parentInfo) {
         return (parentInfo.getPackageFilePath() + SLASH + parentInfo.getJavaName()).toLowerCase();
+    }
+
+    /**
+     * Removes all temporary file handles.
+     *
+     * @param isErrorOccurred flag to tell translator that error has occurred while file generation
+     * @throws IOException when failed to delete the temporary files
+     */
+    @Override
+    public void freeTemporaryResources(boolean isErrorOccurred)
+            throws IOException {
+
+        closeFile(getEventJavaFileHandle(), isErrorOccurred);
+        closeFile(getEventListenerJavaFileHandle(), isErrorOccurred);
+        closeFile(getEventSubjectJavaFileHandle(), isErrorOccurred);
+
+        closeFile(getEventEnumTempFileHandle(), true);
+        closeFile(getEventSubjectAttributeTempFileHandle(), true);
+        closeFile(getEventMethodTempFileHandle(), true);
+        closeFile(getEventSubjectGetterTempFileHandle(), true);
+        closeFile(getEventSubjectSetterTempFileHandle(), true);
+
+        super.freeTemporaryResources(isErrorOccurred);
+
     }
 }

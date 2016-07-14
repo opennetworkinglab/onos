@@ -75,7 +75,7 @@ public class YangXpathLinker<T> {
      *
      * @return prefix resolver list
      */
-    public Map<YangAtomicPath, PrefixResolverType> getPrefixResolverTypes() {
+    private Map<YangAtomicPath, PrefixResolverType> getPrefixResolverTypes() {
         return prefixResolverTypes;
     }
 
@@ -84,7 +84,7 @@ public class YangXpathLinker<T> {
      *
      * @param prefixResolverTypes prefix resolver list.
      */
-    public void setPrefixResolverTypes(Map<YangAtomicPath, PrefixResolverType> prefixResolverTypes) {
+    private void setPrefixResolverTypes(Map<YangAtomicPath, PrefixResolverType> prefixResolverTypes) {
         this.prefixResolverTypes = prefixResolverTypes;
     }
 
@@ -188,7 +188,7 @@ public class YangXpathLinker<T> {
      * @param leafref  instance of YANG leafref
      * @return linked target node
      */
-    public T processLeafRefXpathLinking(List<YangAtomicPath> atomicPaths, YangNode root, YangLeafRef leafref) {
+    T processLeafRefXpathLinking(List<YangAtomicPath> atomicPaths, YangNode root, YangLeafRef leafref) {
 
         YangNode targetNode;
         setRootNode(root);

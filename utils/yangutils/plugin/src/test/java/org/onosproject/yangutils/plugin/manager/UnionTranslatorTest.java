@@ -18,10 +18,12 @@ package org.onosproject.yangutils.plugin.manager;
 
 import java.io.IOException;
 
+import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
+import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorUtil.generateJavaCode;
@@ -50,6 +52,169 @@ public final class UnionTranslatorTest {
         generateJavaCode(node, yangPluginConfig);
 
         deleteDirectory("target/UnionTestGenFile/");
+    }
+
+    /**
+     * Unit test case to test conflicting types.
+     *
+     * @throws IOException when fails to do IO operations
+     * @throws MojoExecutionException when fails to do mojo operations
+     */
+    @Test
+    public void processUnionIntUintConflictingTypes() throws IOException, MojoExecutionException {
+        String searchDir = "src/test/resources/unionTranslator/intuint";
+        YangUtilManager utilManager = new YangUtilManager();
+        utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
+        utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
+        utilManager.resolveDependenciesUsingLinker();
+
+        YangPluginConfig yangPluginConfig = new YangPluginConfig();
+        yangPluginConfig.setCodeGenDir("target/unionTranslator/");
+        yangPluginConfig.setManagerCodeGenDir("target/unionTranslator/");
+
+        utilManager.translateToJava(yangPluginConfig);
+        deleteDirectory("target/unionTranslator/");
+    }
+
+    /**
+     * Unit test case to test conflicting types.
+     *
+     * @throws IOException when fails to do IO operations
+     * @throws MojoExecutionException when fails to do mojo operations
+     */
+    @Test
+    public void processUnionUintIntConflictingTypes() throws IOException, MojoExecutionException {
+        String searchDir = "src/test/resources/unionTranslator/uintint";
+        YangUtilManager utilManager = new YangUtilManager();
+        utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
+        utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
+        utilManager.resolveDependenciesUsingLinker();
+
+        YangPluginConfig yangPluginConfig = new YangPluginConfig();
+        yangPluginConfig.setCodeGenDir("target/unionTranslator/");
+        yangPluginConfig.setManagerCodeGenDir("target/unionTranslator/");
+
+        utilManager.translateToJava(yangPluginConfig);
+        deleteDirectory("target/unionTranslator/");
+    }
+
+    /**
+     * Unit test case to test conflicting types.
+     *
+     * @throws IOException when fails to do IO operations
+     * @throws MojoExecutionException when fails to do mojo operations
+     */
+    @Test
+    public void processUnionLongUlongConflictingTypes() throws IOException, MojoExecutionException {
+        String searchDir = "src/test/resources/unionTranslator/longulong";
+        YangUtilManager utilManager = new YangUtilManager();
+        utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
+        utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
+        utilManager.resolveDependenciesUsingLinker();
+
+        YangPluginConfig yangPluginConfig = new YangPluginConfig();
+        yangPluginConfig.setCodeGenDir("target/unionTranslator/");
+        yangPluginConfig.setManagerCodeGenDir("target/unionTranslator/");
+
+        utilManager.translateToJava(yangPluginConfig);
+        deleteDirectory("target/unionTranslator/");
+    }
+
+    /**
+     * Unit test case to test conflicting types.
+     *
+     * @throws IOException when fails to do IO operations
+     * @throws MojoExecutionException when fails to do mojo operations
+     */
+    @Test
+    public void processUnionUlongLongConflictingTypes() throws IOException, MojoExecutionException {
+        String searchDir = "src/test/resources/unionTranslator/ulonglong";
+        YangUtilManager utilManager = new YangUtilManager();
+        utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
+        utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
+        utilManager.resolveDependenciesUsingLinker();
+
+        YangPluginConfig yangPluginConfig = new YangPluginConfig();
+        yangPluginConfig.setCodeGenDir("target/unionTranslator/");
+        yangPluginConfig.setManagerCodeGenDir("target/unionTranslator/");
+
+        utilManager.translateToJava(yangPluginConfig);
+        deleteDirectory("target/unionTranslator/");
+    }
+
+    /**
+     * Unit test case to test conflicting types.
+     *
+     * @throws IOException when fails to do IO operations
+     * @throws MojoExecutionException when fails to do mojo operations
+     */
+    @Test
+    public void processUnionIntUintUlongLongConflictingTypes() throws IOException, MojoExecutionException {
+        String searchDir = "src/test/resources/unionTranslator/intuintulonglong";
+        YangUtilManager utilManager = new YangUtilManager();
+        utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
+        utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
+        utilManager.resolveDependenciesUsingLinker();
+
+        YangPluginConfig yangPluginConfig = new YangPluginConfig();
+        yangPluginConfig.setCodeGenDir("target/unionTranslator/");
+        yangPluginConfig.setManagerCodeGenDir("target/unionTranslator/");
+
+        utilManager.translateToJava(yangPluginConfig);
+        deleteDirectory("target/unionTranslator/");
+    }
+
+    /**
+     * Unit test case to test conflicting types.
+     *
+     * @throws IOException when fails to do IO operations
+     * @throws MojoExecutionException when fails to do mojo operations
+     */
+    @Test
+    public void processUnionIntUintUlongLongStringConflictingTypes() throws IOException,
+            MojoExecutionException {
+        String searchDir = "src/test/resources/unionTranslator/intuintulonglongstring";
+        YangUtilManager utilManager = new YangUtilManager();
+        utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
+        utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
+        utilManager.resolveDependenciesUsingLinker();
+
+        YangPluginConfig yangPluginConfig = new YangPluginConfig();
+        yangPluginConfig.setCodeGenDir("target/unionTranslator/");
+        yangPluginConfig.setManagerCodeGenDir("target/unionTranslator/");
+
+        utilManager.translateToJava(yangPluginConfig);
+        deleteDirectory("target/unionTranslator/");
+    }
+
+    /**
+     * Unit test case to test conflicting types.
+     *
+     * @throws IOException when fails to do IO operations
+     * @throws MojoExecutionException when fails to do mojo operations
+     */
+    @Test
+    public void processUnionIntUintStringConflictingTypes() throws IOException,
+            MojoExecutionException {
+        String searchDir = "src/test/resources/unionTranslator/intuintstring";
+        YangUtilManager utilManager = new YangUtilManager();
+        utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
+        utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
+        utilManager.resolveDependenciesUsingLinker();
+
+        YangPluginConfig yangPluginConfig = new YangPluginConfig();
+        yangPluginConfig.setCodeGenDir("target/unionTranslator/");
+        yangPluginConfig.setManagerCodeGenDir("target/unionTranslator/");
+
+        utilManager.translateToJava(yangPluginConfig);
+        deleteDirectory("target/unionTranslator/");
     }
 
     // TODO enhance the test cases, after having a framework of translator test.

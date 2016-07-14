@@ -122,11 +122,6 @@ public final class GeneratedTempFileType {
     public static final int EVENT_SUBJECT_SETTER_MASK = 524288;
 
     /**
-     * Event subject setter implementation of class.
-     */
-    public static final int AUGMENTE_CLASS_CONSTRUCTOR_MASK = 1048576;
-
-    /**
      * Creates an instance of generated temp file type.
      */
     private GeneratedTempFileType() {

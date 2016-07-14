@@ -21,6 +21,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import static org.onosproject.yangutils.utils.UtilConstants.ABSTRACT_EVENT;
+import static org.onosproject.yangutils.utils.UtilConstants.BIG_INTEGER;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_INFO_CLASS_IMPORT_CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_INFO_CLASS_IMPORT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.COLLECTION_IMPORTS;
@@ -31,6 +32,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.GOOGLE_MORE_OBJECT_I
 import static org.onosproject.yangutils.utils.UtilConstants.HASH_MAP;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_LANG;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_MATH;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_UTIL_OBJECTS_IMPORT_CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.BITSET;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_UTIL_OBJECTS_IMPORT_PKG;
@@ -299,5 +301,15 @@ public class JavaImportData {
     public String getYangAugmentedOpParamInfoImport() {
         return IMPORT + YANG_AUGMENTED_INFO_CLASS_IMPORT_PKG + PERIOD +
                 YANG_AUGMENTED_OP_PARAM_INFO_CLASS;
+    }
+
+    /**
+     * Returns import for big integer.
+     *
+     * @return import for big integer
+     */
+    public String getBigIntegerImport() {
+        return IMPORT + JAVA_MATH + PERIOD +
+                BIG_INTEGER + SEMI_COLAN + NEW_LINE;
     }
 }

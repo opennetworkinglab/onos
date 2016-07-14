@@ -48,7 +48,7 @@ public class TempJavaBeanFragmentFiles
      * @param javaFileInfo generated java file info
      * @throws IOException when fails to create new file handle
      */
-    public TempJavaBeanFragmentFiles(JavaFileInfo javaFileInfo)
+    TempJavaBeanFragmentFiles(JavaFileInfo javaFileInfo)
             throws IOException {
 
         super(javaFileInfo);
@@ -109,9 +109,7 @@ public class TempJavaBeanFragmentFiles
     /**
      * Removes all temporary file handles.
      *
-     * @param isErrorOccurred when translator fails to generate java files we
-     * need to close all open file handles include temporary files
-     * and java files.
+     * @param isErrorOccurred flag to tell translator that error has occurred while code generation
      * @throws IOException when failed to delete the temporary files
      */
     @Override

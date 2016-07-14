@@ -42,10 +42,14 @@ import static org.onosproject.yangutils.utils.UtilConstants.HASH_MAP;
 import static org.onosproject.yangutils.utils.UtilConstants.IMMEDIATE;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.INT;
+import static org.onosproject.yangutils.utils.UtilConstants.INT_MAX_RANGE_ATTR;
+import static org.onosproject.yangutils.utils.UtilConstants.INT_MIN_RANGE_ATTR;
 import static org.onosproject.yangutils.utils.UtilConstants.LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.LOGGER_FACTORY_IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.LOGGER_IMPORT;
+import static org.onosproject.yangutils.utils.UtilConstants.LONG_MAX_RANGE_ATTR;
+import static org.onosproject.yangutils.utils.UtilConstants.LONG_MIN_RANGE_ATTR;
 import static org.onosproject.yangutils.utils.UtilConstants.MAP;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
@@ -61,6 +65,10 @@ import static org.onosproject.yangutils.utils.UtilConstants.SERVICE_ANNOTATION_I
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.UtilConstants.TRUE;
 import static org.onosproject.yangutils.utils.UtilConstants.TYPE;
+import static org.onosproject.yangutils.utils.UtilConstants.UINT_MAX_RANGE_ATTR;
+import static org.onosproject.yangutils.utils.UtilConstants.UINT_MIN_RANGE_ATTR;
+import static org.onosproject.yangutils.utils.UtilConstants.ULONG_MAX_RANGE_ATTR;
+import static org.onosproject.yangutils.utils.UtilConstants.ULONG_MIN_RANGE_ATTR;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.ENUM_ATTRIBUTE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
@@ -97,22 +105,23 @@ public final class JavaCodeSnippetGen {
      * @param importInfo import info
      * @return the textual java code information corresponding to the import list
      */
-    public static String getImportText(JavaQualifiedTypeInfo importInfo) {
+    static String getImportText(JavaQualifiedTypeInfo importInfo) {
         return IMPORT + importInfo.getPkgInfo() + PERIOD + importInfo.getClassInfo() + SEMI_COLAN + NEW_LINE;
     }
 
     /**
      * Returns the textual java code for attribute definition in class.
      *
-     * @param javaAttributeTypePkg  Package of the attribute type
-     * @param javaAttributeType     java attribute type
-     * @param javaAttributeName     name of the attribute
-     * @param isList                is list attribute
-     * @param attributeAccessType   attribute access type
-     * @return  the textual java code for attribute definition in class
+     * @param javaAttributeTypePkg Package of the attribute type
+     * @param javaAttributeType    java attribute type
+     * @param javaAttributeName    name of the attribute
+     * @param isList               is list attribute
+     * @param attributeAccessType  attribute access type
+     * @return the textual java code for attribute definition in class
      */
     public static String getJavaAttributeDefination(String javaAttributeTypePkg, String javaAttributeType,
-            String javaAttributeName, boolean isList, String attributeAccessType) {
+                                                    String javaAttributeName, boolean isList,
+                                                    String attributeAccessType) {
 
         String attributeDefination = attributeAccessType + SPACE;
 
@@ -209,7 +218,7 @@ public final class JavaCodeSnippetGen {
      *
      * @return event enum start
      */
-    public static String getEventEnumTypeStart() {
+    static String getEventEnumTypeStart() {
         return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + ENUM + SPACE + TYPE + SPACE + OPEN_CURLY_BRACKET
                 + NEW_LINE;
     }
@@ -261,7 +270,7 @@ public final class JavaCodeSnippetGen {
      * @param className enum's class name
      * @return enum's attribute
      */
-    public static String getEnumsValueAttribute(String className) {
+    static String getEnumsValueAttribute(String className) {
         return NEW_LINE + FOUR_SPACE_INDENTATION + PRIVATE + SPACE + INT + SPACE + getSmallCase(className)
                 + SEMI_COLAN + NEW_LINE;
     }
@@ -271,7 +280,7 @@ public final class JavaCodeSnippetGen {
      *
      * @return component string
      */
-    public static String addComponentString() {
+    static String addComponentString() {
         return NEW_LINE + COMPONENT_ANNOTATION + OPEN_PARENTHESIS + IMMEDIATE + SPACE
                 + EQUAL + SPACE + TRUE + CLOSE_PARENTHESIS + NEW_LINE + SERVICE_ANNOTATION;
     }
@@ -281,11 +290,46 @@ public final class JavaCodeSnippetGen {
      *
      * @return attribute for augmentation
      */
-    public static String addAugmentationAttribute() {
+    static String addAugmentationAttribute() {
         return NEW_LINE + FOUR_SPACE_INDENTATION + PRIVATE + SPACE + MAP + DIAMOND_OPEN_BRACKET + CLASS_STRING
                 + DIAMOND_OPEN_BRACKET + QUESTION_MARK + DIAMOND_CLOSE_BRACKET + COMMA + SPACE + YANG_AUGMENTED_INFO
                 + DIAMOND_CLOSE_BRACKET + SPACE + getSmallCase(YANG_AUGMENTED_INFO) + MAP + SPACE + EQUAL + SPACE +
                 NEW + SPACE + HASH_MAP + DIAMOND_OPEN_BRACKET + DIAMOND_CLOSE_BRACKET + OPEN_PARENTHESIS
                 + CLOSE_PARENTHESIS + SEMI_COLAN;
+    }
+
+    /**
+     * Adds attribute for int ranges.
+     *
+     * @param modifier modifier for attribute
+     * @param addFirst true if int need to be added fist.
+     * @return attribute for int ranges
+     */
+    static String addStaticAttributeIntRange(String modifier, boolean addFirst) {
+        if (addFirst) {
+            return NEW_LINE + FOUR_SPACE_INDENTATION + modifier + SPACE + INT_MIN_RANGE_ATTR + FOUR_SPACE_INDENTATION +
+                    modifier +
+                    SPACE + INT_MAX_RANGE_ATTR;
+        } else {
+            return NEW_LINE + FOUR_SPACE_INDENTATION + modifier + SPACE + UINT_MIN_RANGE_ATTR + FOUR_SPACE_INDENTATION +
+                    modifier + SPACE + UINT_MAX_RANGE_ATTR;
+        }
+    }
+
+    /**
+     * Adds attribute for long ranges.
+     *
+     * @param modifier modifier for attribute
+     * @param addFirst if need to be added first
+     * @return attribute for long ranges
+     */
+    static String addStaticAttributeLongRange(String modifier, boolean addFirst) {
+        if (addFirst) {
+            return NEW_LINE + FOUR_SPACE_INDENTATION + modifier + SPACE + LONG_MIN_RANGE_ATTR + FOUR_SPACE_INDENTATION +
+                    modifier + SPACE + LONG_MAX_RANGE_ATTR;
+        } else {
+            return NEW_LINE + FOUR_SPACE_INDENTATION + modifier + SPACE + ULONG_MIN_RANGE_ATTR +
+                    FOUR_SPACE_INDENTATION + modifier + SPACE + ULONG_MAX_RANGE_ATTR;
+        }
     }
 }

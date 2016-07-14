@@ -182,7 +182,7 @@ public final class ClassDefinitionGenerator {
      * @return definition
      */
     private static String getBuilderInterfaceDefinition(String yangName, YangNode curNode) {
-        if (!(curNode instanceof YangCase)) {
+        if (!(curNode instanceof YangCase) && !(curNode instanceof YangAugment)) {
             String clsDef = getClassDefinitionForWhenExtended(curNode, yangName, BUILDER_INTERFACE_MASK);
             if (clsDef != null) {
                 return clsDef;

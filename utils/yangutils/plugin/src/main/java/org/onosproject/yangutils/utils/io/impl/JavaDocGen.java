@@ -17,6 +17,10 @@
 package org.onosproject.yangutils.utils.io.impl;
 
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_FOR_VALIDATOR;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_FOR_VALIDATOR_RETURN;
+import static org.onosproject.yangutils.utils.UtilConstants.MAX_RANGE;
+import static org.onosproject.yangutils.utils.UtilConstants.MIN_RANGE;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_CLASS_JAVA_DOC;
@@ -519,6 +523,11 @@ public final class JavaDocGen {
                 VALUE + SPACE + OF + SPACE + AUGMENTED + CLASS + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
     }
 
+    /**
+     * Returns javadoc for get augmentation method.
+     *
+     * @return javadoc for get augmentation method
+     */
     public static String generateForGetAugmentation() {
         return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION
                 + JAVA_DOC_GETTERS + getSmallCase(YANG_AUGMENTED_INFO) + PERIOD + NEW_LINE +
@@ -526,6 +535,23 @@ public final class JavaDocGen {
                 OBJECT_STRING + SPACE + VALUE + SPACE + OF + SPACE + AUGMENTED + CLASS + NEW_LINE +
                 FOUR_SPACE_INDENTATION + JAVA_DOC_RETURN + VALUE + SPACE +
                 OF + SPACE + YANG_AUGMENTED_INFO + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
+    }
+
+    /**
+     * Returns javadoc for validator method.
+     *
+     * @return javadoc for validator method
+     */
+    public static String generateForValidatorMethod() {
+        return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION +
+                JAVA_DOC_FOR_VALIDATOR + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK +
+                FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM + MIN_RANGE + SPACE + MIN_RANGE + SPACE + OF + SPACE +
+                VALUE + NEW_LINE +
+                FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM + MAX_RANGE + SPACE + MAX_RANGE + SPACE + OF + SPACE + VALUE +
+                NEW_LINE +
+                FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM + VALUE + SPACE + VALUE + NEW_LINE +
+                FOUR_SPACE_INDENTATION + JAVA_DOC_FOR_VALIDATOR_RETURN + NEW_LINE + FOUR_SPACE_INDENTATION +
+                JAVA_DOC_END_LINE;
     }
 
     /**

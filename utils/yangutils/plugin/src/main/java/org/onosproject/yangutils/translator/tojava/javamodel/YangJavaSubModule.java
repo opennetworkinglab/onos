@@ -194,7 +194,6 @@ public class YangJavaSubModule
         }
     }
 
-
     /**
      * Returns notifications node list.
      *
@@ -219,7 +218,7 @@ public class YangJavaSubModule
      * @param rootNode root node of the data model
      * @return status of rpc's existence
      */
-    public boolean isNotificationChildNodePresent(YangNode rootNode) {
+    private boolean isNotificationChildNodePresent(YangNode rootNode) {
         YangNode childNode = rootNode.getChild();
 
         while (childNode != null) {
@@ -229,9 +228,6 @@ public class YangJavaSubModule
             childNode = childNode.getNextSibling();
         }
 
-        if (!getNotificationNodes().isEmpty()) {
-            return true;
-        }
-        return false;
+        return !getNotificationNodes().isEmpty();
     }
 }

@@ -36,8 +36,8 @@ import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.gen
 import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.isGenerationOfCodeReq;
 import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.isManagerCodeGenRequired;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.searchAndDeleteTempDir;
 import static org.onosproject.yangutils.utils.UtilConstants.SBI;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.searchAndDeleteTempDir;
 
 /**
  * Represents module information extended to support java code generation.
@@ -212,7 +212,7 @@ public class YangJavaModule
      * @param rootNode root node of the data model
      * @return status of rpc's existence
      */
-    public boolean isNotificationChildNodePresent(YangNode rootNode) {
+    private boolean isNotificationChildNodePresent(YangNode rootNode) {
         YangNode childNode = rootNode.getChild();
 
         while (childNode != null) {
@@ -222,9 +222,6 @@ public class YangJavaModule
             childNode = childNode.getNextSibling();
         }
 
-        if (!getNotificationNodes().isEmpty()) {
-            return true;
-        }
-        return false;
+        return !getNotificationNodes().isEmpty();
     }
 }

@@ -17,9 +17,12 @@
 package org.onosproject.yangutils.plugin.manager;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -42,7 +45,6 @@ import org.sonatype.plexus.build.incremental.BuildContext;
 
 import static org.apache.maven.plugins.annotations.LifecyclePhase.GENERATE_SOURCES;
 import static org.apache.maven.plugins.annotations.ResolutionScope.COMPILE;
-import static org.onosproject.yangutils.linker.impl.YangLinkerUtils.updateFilePriority;
 import static org.onosproject.yangutils.plugin.manager.YangPluginUtils.addToCompilationRoot;
 import static org.onosproject.yangutils.plugin.manager.YangPluginUtils.copyYangFilesToTarget;
 import static org.onosproject.yangutils.plugin.manager.YangPluginUtils.resolveInterJarDependencies;
@@ -68,6 +70,7 @@ public class YangUtilManager
         extends AbstractMojo {
 
     private static final String DEFAULT_PKG = SLASH + getPackageDirPathFromJavaJPackage(DEFAULT_BASE_PKG);
+    YangPluginConfig yangPlugin = new YangPluginConfig();
     private YangNode rootNode;
     // YANG file information set.
     private Set<YangFileInfo> yangFileInfoSet = new HashSet<>();
@@ -181,7 +184,6 @@ public class YangUtilManager
             conflictResolver.setReplacementForHyphen(replacementForHyphen);
             conflictResolver.setReplacementForUnderscore(replacementForUnderscore);
             conflictResolver.setPrefixForIdentifier(prefixForIdentifier);
-            YangPluginConfig yangPlugin = new YangPluginConfig();
             yangPlugin.setCodeGenDir(codeGenDir);
             yangPlugin.setManagerCodeGenDir(managerCodeGenDir);
             yangPlugin.setConflictResolver(conflictResolver);
@@ -223,7 +225,7 @@ public class YangUtilManager
                 fileName = getCurYangFileInfo().getYangFileName();
             }
             try {
-                translatorErrorHandler(getRootNode());
+                translatorErrorHandler(getRootNode(), yangPlugin);
                 deleteDirectory(getDirectory(baseDir, classFileDir) + DEFAULT_PKG);
             } catch (IOException ex) {
                 throw new MojoExecutionException(
@@ -348,8 +350,10 @@ public class YangUtilManager
      */
     public void translateToJava(YangPluginConfig yangPlugin)
             throws IOException {
-        updateFilePriority(getYangNodeSet());
-        for (YangNode node : getYangNodeSet()) {
+        List<YangNode> yangNodeSortedList = new LinkedList<>();
+        yangNodeSortedList.addAll(getYangNodeSet());
+        Collections.sort(yangNodeSortedList);
+        for (YangNode node : yangNodeSortedList) {
             if (node.isToTranslate()) {
                 generateJavaCode(node, yangPlugin);
             }

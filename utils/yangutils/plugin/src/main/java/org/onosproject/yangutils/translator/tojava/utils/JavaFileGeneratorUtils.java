@@ -57,7 +57,6 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.OPERATION_BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.OPERATION_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ATTRIBUTES_MASK;
-import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.AUGMENTE_CLASS_CONSTRUCTOR_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_FOR_TYPE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ENUM_IMPL_MASK;
@@ -120,10 +119,10 @@ public final class JavaFileGeneratorUtils {
     /**
      * Returns a file object for generated file.
      *
-     * @param filePath  file package path
-     * @param fileName  file name
-     * @param extension file extension
-     * @param baseCodePath    cached file handle
+     * @param filePath     file package path
+     * @param fileName     file name
+     * @param extension    file extension
+     * @param baseCodePath cached file handle
      * @return file object
      */
     public static File getFileObject(String filePath, String fileName, String extension, String baseCodePath) {
@@ -204,10 +203,6 @@ public final class JavaFileGeneratorUtils {
         } else if ((generatedTempFiles & TO_STRING_IMPL_MASK) != 0) {
             return tempJavaFragmentFiles
                     .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getToStringImplTempFileHandle(),
-                            absolutePath);
-        } else if ((generatedTempFiles & AUGMENTE_CLASS_CONSTRUCTOR_MASK) != 0) {
-            return tempJavaFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getAugmentConstructorImplTempFileHandle(),
                             absolutePath);
         } else if ((generatedTempFiles & OF_STRING_IMPL_MASK) != 0) {
             if (typeFragmentFiles == null) {

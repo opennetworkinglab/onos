@@ -51,6 +51,16 @@ public final class JavaAttributeInfo {
     private JavaQualifiedTypeInfo importInfo;
 
     /**
+     * If conflict occurs.
+     */
+    private boolean isIntConflict;
+
+    /**
+     * If conflict occurs.
+     */
+    private boolean isLongConflict;
+
+    /**
      * Creates a java attribute info object.
      */
     private JavaAttributeInfo() {
@@ -172,6 +182,42 @@ public final class JavaAttributeInfo {
      */
     public void setImportInfo(JavaQualifiedTypeInfo importInfo) {
         this.importInfo = importInfo;
+    }
+
+    /**
+     * Returns true if conflict between int and uint.
+     *
+     * @return true if conflict between int and uint
+     */
+    public boolean isIntConflict() {
+        return isIntConflict;
+    }
+
+    /**
+     * Sets true if conflict between int and uint.
+     *
+     * @param intConflict true if conflict between int and uint
+     */
+    public void setIntConflict(boolean intConflict) {
+        isIntConflict = intConflict;
+    }
+
+    /**
+     * Returns true if conflict between long and ulong.
+     *
+     * @return true if conflict between long and ulong
+     */
+    public boolean isLongConflict() {
+        return isLongConflict;
+    }
+
+    /**
+     * Sets true if conflict between long and ulong.
+     *
+     * @param longConflict true if conflict between long and ulong
+     */
+    public void setLongConflict(boolean longConflict) {
+        isLongConflict = longConflict;
     }
 
     /**

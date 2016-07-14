@@ -346,6 +346,10 @@ public class TempJavaCodeFragmentFiles {
             getServiceTempFiles().freeTemporaryResources(isErrorOccurred);
         }
 
+        if (getEventFragmentFiles() != null) {
+            getEventFragmentFiles().freeTemporaryResources(isErrorOccurred);
+        }
+
     }
 
 }
