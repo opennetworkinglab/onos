@@ -1,0 +1,37 @@
+module test {  
+    namespace "xpath:intra:multi";  
+    prefix test ;  
+      
+    organization "";  
+    contact "";  
+       
+    description   
+        "Defines basic service types for L3VPN service.";  
+       
+    revision "2015-12-16" {  
+        reference "";  
+    }  
+
+    container cont1 {
+       leaf leaf1 {
+          type int32;
+       }
+       container cont2 {
+          leaf leaf2 {
+             type int32;
+          }
+          container cont3 {
+              leaf leaf3 {
+                type int32;
+             }
+          }
+       }
+    }
+
+    augment /cont1/cont2/cont3 {
+       leaf a {
+          type int32;
+       }
+    }
+}
+    

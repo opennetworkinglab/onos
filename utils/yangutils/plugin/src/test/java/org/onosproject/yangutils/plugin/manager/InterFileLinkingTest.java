@@ -19,6 +19,7 @@ package org.onosproject.yangutils.plugin.manager;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.ListIterator;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -171,7 +172,7 @@ public class InterFileLinkingTest {
         }
 
         // Check whether the data model tree returned is of type module.
-        assertThat((selfNode instanceof YangModule), is(true));
+        assertThat(selfNode instanceof YangModule, is(true));
 
         // Check whether the node type is set properly to module.
         assertThat(selfNode.getNodeType(), is(YangNodeType.MODULE_NODE));
@@ -184,7 +185,7 @@ public class InterFileLinkingTest {
         YangLeaf leafInfo;
 
         // Check whether grouping is the sibling of module's child.
-        assertThat((refNode.getChild() instanceof YangGrouping), is(true));
+        assertThat(refNode.getChild() instanceof YangGrouping, is(true));
 
         YangGrouping grouping = (YangGrouping) refNode.getChild();
         leafIterator = grouping.getListOfLeaf().listIterator();
@@ -196,7 +197,7 @@ public class InterFileLinkingTest {
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
 
         // Check whether uses is module's child.
-        assertThat((yangNode.getChild() instanceof YangUses), is(true));
+        assertThat(yangNode.getChild() instanceof YangUses, is(true));
         YangUses uses = (YangUses) yangNode.getChild();
 
         // Check whether uses get resolved.
@@ -317,7 +318,7 @@ public class InterFileLinkingTest {
         }
 
         // Check whether the data model tree returned is of type module.
-        assertThat((selfNode instanceof YangModule), is(true));
+        assertThat(selfNode instanceof YangModule, is(true));
 
         // Check whether the node type is set properly to module.
         assertThat(selfNode.getNodeType(), is(YangNodeType.MODULE_NODE));
@@ -330,7 +331,7 @@ public class InterFileLinkingTest {
         YangLeaf leafInfo;
 
         // Check whether grouping is the sibling of module's child.
-        assertThat((refNode.getChild() instanceof YangGrouping), is(true));
+        assertThat(refNode.getChild() instanceof YangGrouping, is(true));
 
         YangGrouping grouping = (YangGrouping) refNode.getChild();
         leafIterator = grouping.getListOfLeaf().listIterator();
@@ -342,7 +343,7 @@ public class InterFileLinkingTest {
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
 
         // Check whether uses is module's child.
-        assertThat((yangNode.getChild() instanceof YangUses), is(true));
+        assertThat(yangNode.getChild() instanceof YangUses, is(true));
         YangUses uses = (YangUses) yangNode.getChild();
 
         // Check whether uses get resolved.
@@ -637,13 +638,13 @@ public class InterFileLinkingTest {
         utilManager.parseYangFileInfoSet();
         utilManager.resolveDependenciesUsingLinker();
 
-        String userDir = System.getProperty("user.dir");
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/interfilewithusesreferringtype/");
+        yangPluginConfig.setManagerCodeGenDir("target/interfilewithusesreferringtype/");
 
         utilManager.translateToJava(utilManager.getYangFileInfoSet(), yangPluginConfig);
 
-        deleteDirectory(userDir + "/target/interfilewithusesreferringtype/");
+        deleteDirectory("target/interfilewithusesreferringtype/");
 
     }
 
@@ -659,16 +660,15 @@ public class InterFileLinkingTest {
         utilManager.parseYangFileInfoSet();
         utilManager.resolveDependenciesUsingLinker();
 
-        String userDir = System.getProperty("user.dir");
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/file1UsesFile2TypeDefFile3Type/");
+        yangPluginConfig.setManagerCodeGenDir("target/file1UsesFile2TypeDefFile3Type/");
 
         utilManager.translateToJava(utilManager.getYangFileInfoSet(), yangPluginConfig);
 
-        deleteDirectory(userDir + "/target/file1UsesFile2TypeDefFile3Type/");
+        deleteDirectory("target/file1UsesFile2TypeDefFile3Type/");
 
     }
-
 
     /**
      * Checks hierarchical intra with inter file type linking.
@@ -682,16 +682,15 @@ public class InterFileLinkingTest {
         utilManager.parseYangFileInfoSet();
         utilManager.resolveDependenciesUsingLinker();
 
-        String userDir = System.getProperty("user.dir");
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/interfileietf/");
+        yangPluginConfig.setManagerCodeGenDir("target/interfileietf/");
 
         utilManager.translateToJava(utilManager.getYangFileInfoSet(), yangPluginConfig);
 
-        deleteDirectory(userDir + "/target/interfileietf/");
+        deleteDirectory("target/interfileietf/");
 
     }
-
 
     /**
      * Checks hierarchical intra with inter file type linking.
@@ -705,16 +704,15 @@ public class InterFileLinkingTest {
         utilManager.parseYangFileInfoSet();
         utilManager.resolveDependenciesUsingLinker();
 
-        String userDir = System.getProperty("user.dir");
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/usesInContainer/");
+        yangPluginConfig.setManagerCodeGenDir("target/usesInContainer/");
 
         utilManager.translateToJava(utilManager.getYangFileInfoSet(), yangPluginConfig);
 
-        deleteDirectory(userDir + "/target/usesInContainer/");
+        deleteDirectory("target/usesInContainer/");
 
     }
-
 
     /**
      * Checks hierarchical intra with inter file type linking.
@@ -728,13 +726,13 @@ public class InterFileLinkingTest {
         utilManager.parseYangFileInfoSet();
         utilManager.resolveDependenciesUsingLinker();
 
-        String userDir = System.getProperty("user.dir");
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/groupingNodeSameAsModule/");
+        yangPluginConfig.setManagerCodeGenDir("target/groupingNodeSameAsModule/");
 
         utilManager.translateToJava(utilManager.getYangFileInfoSet(), yangPluginConfig);
 
-        deleteDirectory(userDir + "/target/groupingNodeSameAsModule/");
+        deleteDirectory("target/groupingNodeSameAsModule/");
 
     }
 
@@ -846,7 +844,7 @@ public class InterFileLinkingTest {
 
         thrown.expect(LinkerException.class);
         thrown.expectMessage(
-                "YANG file error: Unable to find base leaf/leaf-list for given leafref");
+                "YANG file error: Unable to find base leaf/leaf-list for given leafref networks");
         String searchDir = "src/test/resources/interfileleafrefwithinvaliddestinationnode";
         utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
         utilManager.parseYangFileInfoSet();

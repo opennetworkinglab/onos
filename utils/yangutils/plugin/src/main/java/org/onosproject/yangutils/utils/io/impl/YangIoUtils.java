@@ -28,11 +28,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 import java.util.regex.Pattern;
+
 import org.apache.commons.io.FileUtils;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 
 import static org.onosproject.yangutils.utils.UtilConstants.COLAN;
-import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.HASH;
 import static org.onosproject.yangutils.utils.UtilConstants.HYPHEN;
@@ -212,35 +212,17 @@ public final class YangIoUtils {
     /**
      * Removes extra char from the string.
      *
-     * @param valueString    string to be trimmed
-     * @param removealStirng extra chars
+     * @param valueString   string to be trimmed
+     * @param removalStirng extra chars
      * @return new string
      */
-    public static String trimAtLast(String valueString, String removealStirng) {
+    public static String trimAtLast(String valueString, String removalStirng) {
         StringBuilder stringBuilder = new StringBuilder(valueString);
-        int index = valueString.lastIndexOf(removealStirng);
-        stringBuilder.deleteCharAt(index);
-        return stringBuilder.toString();
-    }
-
-    /**
-     * Returns new parted string.
-     *
-     * @param partString string to be parted
-     * @return parted string
-     */
-    public static String partString(String partString) {
-        String[] strArray = partString.split(COMMA);
-        String newString = EMPTY_STRING;
-        for (int i = 0; i < strArray.length; i++) {
-            if (i % 4 != 0 || i == 0) {
-                newString = newString + strArray[i] + COMMA;
-            } else {
-                newString = newString + NEW_LINE + TWELVE_SPACE_INDENTATION
-                        + strArray[i] + COMMA;
-            }
+        int index = valueString.lastIndexOf(removalStirng);
+        if (index != -1) {
+            stringBuilder.deleteCharAt(index);
         }
-        return trimAtLast(newString, COMMA);
+        return stringBuilder.toString();
     }
 
     /**

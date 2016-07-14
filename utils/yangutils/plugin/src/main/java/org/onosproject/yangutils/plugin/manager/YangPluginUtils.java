@@ -17,11 +17,9 @@
 package org.onosproject.yangutils.plugin.manager;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -41,6 +39,7 @@ import org.onosproject.yangutils.datamodel.YangNode;
 import org.slf4j.Logger;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.deSerializeDataModel;
 import static org.onosproject.yangutils.utils.UtilConstants.HYPHEN;
 import static org.onosproject.yangutils.utils.UtilConstants.JAR;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
@@ -155,32 +154,6 @@ public final class YangPluginUtils {
     }
 
     /**
-     * Returns de-serializes YANG data-model nodes.
-     *
-     * @param serailizedfileInfoSet YANG file info set
-     * @return de-serializes YANG data-model nodes
-     * @throws IOException when fails do IO operations
-     */
-    public static List<YangNode> deSerializeDataModel(List<String> serailizedfileInfoSet) throws IOException {
-
-        List<YangNode> nodes = new ArrayList<>();
-        for (String fileInfo : serailizedfileInfoSet) {
-            YangNode node = null;
-            try {
-                FileInputStream fileInputStream = new FileInputStream(fileInfo);
-                ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-                node = (YangNode) objectInputStream.readObject();
-                nodes.add(node);
-                objectInputStream.close();
-                fileInputStream.close();
-            } catch (IOException | ClassNotFoundException e) {
-                throw new IOException(fileInfo + " not found.");
-            }
-        }
-        return nodes;
-    }
-
-    /**
      * Returns list of jar path.
      *
      * @param project         maven project
@@ -188,8 +161,8 @@ public final class YangPluginUtils {
      * @param remoteRepos     remote repository
      * @return list of jar paths
      */
-    private static List<String> resolveDependecyJarPath(MavenProject project, ArtifactRepository localRepository,
-                                                        List<ArtifactRepository> remoteRepos) {
+    private static List<String> resolveDependencyJarPath(MavenProject project, ArtifactRepository localRepository,
+                                                         List<ArtifactRepository> remoteRepos) {
 
         StringBuilder path = new StringBuilder();
         List<String> jarPaths = new ArrayList<>();
@@ -232,7 +205,7 @@ public final class YangPluginUtils {
                                                              List<ArtifactRepository> remoteRepos, String directory)
             throws IOException {
 
-        List<String> dependeciesJarPaths = resolveDependecyJarPath(project, localRepository, remoteRepos);
+        List<String> dependeciesJarPaths = resolveDependencyJarPath(project, localRepository, remoteRepos);
         List<YangNode> resolvedDataModelNodes = new ArrayList<>();
         for (String dependecy : dependeciesJarPaths) {
             resolvedDataModelNodes.addAll(deSerializeDataModel(parseJarFile(dependecy, directory)));

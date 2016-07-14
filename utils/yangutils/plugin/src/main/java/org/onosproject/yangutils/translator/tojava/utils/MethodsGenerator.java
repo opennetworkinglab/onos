@@ -32,10 +32,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.ACTIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.ACTIVATE_ANNOTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.ADD_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.AND;
-import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTATION;
-import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO;
-import static org.onosproject.yangutils.utils.UtilConstants.BIG_INTEGER;
 import static org.onosproject.yangutils.utils.UtilConstants.BIG_DECIMAL;
+import static org.onosproject.yangutils.utils.UtilConstants.BIG_INTEGER;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_DATA_TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILD;
@@ -45,7 +43,6 @@ import static org.onosproject.yangutils.utils.UtilConstants.BYTE_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.CASE;
 import static org.onosproject.yangutils.utils.UtilConstants.CATCH;
 import static org.onosproject.yangutils.utils.UtilConstants.CHECK_NOT_NULL_STRING;
-import static org.onosproject.yangutils.utils.UtilConstants.CLEAR;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.COLAN;
@@ -72,7 +69,6 @@ import static org.onosproject.yangutils.utils.UtilConstants.GOOGLE_MORE_OBJECT_M
 import static org.onosproject.yangutils.utils.UtilConstants.HASH;
 import static org.onosproject.yangutils.utils.UtilConstants.HASH_CODE_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.IF;
-import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
 import static org.onosproject.yangutils.utils.UtilConstants.INSTANCE_OF;
 import static org.onosproject.yangutils.utils.UtilConstants.INT;
 import static org.onosproject.yangutils.utils.UtilConstants.INTEGER_WRAPPER;
@@ -122,7 +118,6 @@ import static org.onosproject.yangutils.utils.UtilConstants.TWELVE_SPACE_INDENTA
 import static org.onosproject.yangutils.utils.UtilConstants.VALUE;
 import static org.onosproject.yangutils.utils.UtilConstants.VOID;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_UTILS_TODO;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILD_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.CONSTRUCTOR;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.DEFAULT_CONSTRUCTOR;
@@ -132,6 +127,8 @@ import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.MAN
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.OF_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.SETTER_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.TYPE_CONSTRUCTOR;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.generateForTypeConstructor;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCamelCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getSmallCase;
@@ -515,43 +512,38 @@ public final class MethodsGenerator {
     public static String getConstructorStart(String yangName, YangPluginConfig pluginConfig) {
 
         String javadoc = getConstructorString(yangName, pluginConfig);
-        String constructor =
-                FOUR_SPACE_INDENTATION + PUBLIC + SPACE + yangName + IMPL + OPEN_PARENTHESIS + yangName
-                        + BUILDER + SPACE + BUILDER.toLowerCase() + OBJECT + CLOSE_PARENTHESIS + SPACE
-                        + OPEN_CURLY_BRACKET
-                        + NEW_LINE;
+        String constructor = FOUR_SPACE_INDENTATION + PUBLIC + SPACE + getCapitalCase(DEFAULT) + yangName +
+                OPEN_PARENTHESIS + yangName + BUILDER + SPACE + BUILDER.toLowerCase() + OBJECT
+                + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
         return javadoc + constructor;
     }
 
     /**
      * Returns the constructor strings for class file.
      *
-     * @param yangName           name of the class
      * @param attr               attribute info
      * @param generatedJavaFiles generated java files
      * @param pluginConfig       plugin configurations
      * @return constructor for class
      */
-    public static String getConstructor(String yangName, JavaAttributeInfo attr, int generatedJavaFiles,
+    public static String getConstructor(JavaAttributeInfo attr, int generatedJavaFiles,
                                         YangPluginConfig pluginConfig) {
 
         String attributeName = attr.getAttributeName();
         String constructor;
 
         if ((generatedJavaFiles & GENERATE_SERVICE_AND_MANAGER) != 0) {
-            constructor =
-                    EIGHT_SPACE_INDENTATION + THIS + PERIOD
-                            + getCamelCase(attributeName, pluginConfig.getConflictResolver()) + SPACE + EQUAL
-                            + SPACE + BUILDER.toLowerCase() + OBJECT + PERIOD + GET_METHOD_PREFIX
-                            + getCapitalCase(getCamelCase(attributeName, pluginConfig.getConflictResolver()))
-                            + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
+            constructor = EIGHT_SPACE_INDENTATION + THIS + PERIOD
+                    + getCamelCase(attributeName, pluginConfig.getConflictResolver()) + SPACE + EQUAL
+                    + SPACE + BUILDER.toLowerCase() + OBJECT + PERIOD + GET_METHOD_PREFIX
+                    + getCapitalCase(getCamelCase(attributeName, pluginConfig.getConflictResolver()))
+                    + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
         } else {
-            constructor =
-                    EIGHT_SPACE_INDENTATION + THIS + PERIOD
-                            + getCamelCase(attributeName, pluginConfig.getConflictResolver()) + SPACE + EQUAL
-                            + SPACE + BUILDER.toLowerCase() + OBJECT + PERIOD
-                            + getCamelCase(attributeName, pluginConfig.getConflictResolver()) +
-                            OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
+            constructor = EIGHT_SPACE_INDENTATION + THIS + PERIOD
+                    + getCamelCase(attributeName, pluginConfig.getConflictResolver()) + SPACE + EQUAL
+                    + SPACE + BUILDER.toLowerCase() + OBJECT + PERIOD
+                    + getCamelCase(attributeName, pluginConfig.getConflictResolver()) +
+                    OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
         }
         return constructor;
     }
@@ -593,10 +585,9 @@ public final class MethodsGenerator {
             inputName = inputName + SPACE + RPC_INPUT_VAR_NAME;
         }
 
-        String method =
-                getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + outputName + SPACE + rpcName
-                        + OPEN_PARENTHESIS + inputName + CLOSE_PARENTHESIS + SPACE
-                        + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + YANG_UTILS_TODO + NEW_LINE;
+        String method = getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + outputName + SPACE + rpcName
+                + OPEN_PARENTHESIS + inputName + CLOSE_PARENTHESIS + SPACE
+                + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + YANG_UTILS_TODO + NEW_LINE;
         if (!outputName.contentEquals(VOID)) {
             method += EIGHT_SPACE_INDENTATION + RETURN + SPACE + parseTypeForReturnValue(outputName) + SEMI_COLAN
                     + NEW_LINE;
@@ -614,9 +605,9 @@ public final class MethodsGenerator {
      */
     public static String getBuild(String yangName) {
         return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + yangName + SPACE + BUILD + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
-                + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + RETURN + SPACE + NEW + SPACE
-                + yangName + IMPL + OPEN_PARENTHESIS + THIS + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE
-                + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+                + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + RETURN + SPACE + NEW + SPACE +
+                getCapitalCase(DEFAULT) + yangName + OPEN_PARENTHESIS + THIS + CLOSE_PARENTHESIS + SEMI_COLAN
+                + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
     }
 
     /**
@@ -950,59 +941,12 @@ public final class MethodsGenerator {
     }
 
     /**
-     * Returns implementation of add augmentation method of AugmentationHolder class.
-     *
-     * @return implementation of add augmentation method of AugmentationHolder class
-     */
-    public static String getAddAugmentInfoMethodImpl() {
-        String method = FOUR_SPACE_INDENTATION;
-        method = method + getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + VOID + SPACE + ADD_STRING
-                + AUGMENTATION + OPEN_PARENTHESIS + AUGMENTED_INFO + SPACE + VALUE + CLOSE_PARENTHESIS + SPACE
-                + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + GET_METHOD_PREFIX + AUGMENTED_INFO + LIST
-                + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + PERIOD + ADD_STRING + OPEN_PARENTHESIS + VALUE
-                + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
-
-        return method;
-    }
-
-    /**
-     * Returns implementation of get augment info list method of AugmentationHolder class.
-     *
-     * @return implementation of get augment info list method of AugmentationHolder class
-     */
-    public static String getAugmentInfoListImpl() {
-
-        String method = FOUR_SPACE_INDENTATION;
-        method = method + getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + LIST + DIAMOND_OPEN_BRACKET
-                + AUGMENTED_INFO + DIAMOND_CLOSE_BRACKET + SPACE + GET_METHOD_PREFIX + AUGMENTED_INFO + LIST
-                + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION
-                + RETURN + SPACE + getSmallCase(AUGMENTED_INFO) + LIST + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION
-                + CLOSE_CURLY_BRACKET;
-        return method;
-    }
-
-    /**
-     * Returns implementation of remove augmentation method of AugmentationHolder class.
-     *
-     * @return implementation of remove augmentation method of AugmentationHolder class
-     */
-    public static String getRemoveAugmentationImpl() {
-        String method = FOUR_SPACE_INDENTATION;
-        method = method + getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + VOID + SPACE + "remove"
-                + AUGMENTATION + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
-                + EIGHT_SPACE_INDENTATION + GET_METHOD_PREFIX + AUGMENTED_INFO + LIST + OPEN_PARENTHESIS
-                + CLOSE_PARENTHESIS + PERIOD + CLEAR + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE
-                + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
-        return method;
-    }
-
-    /**
      * Returns enum's constructor.
      *
      * @param className enum's class name
      * @return enum's constructor
      */
-    public static String getEnumsConstrcutor(String className) {
+    public static String getEnumsConstructor(String className) {
         return FOUR_SPACE_INDENTATION + className + OPEN_PARENTHESIS + INT + SPACE + VALUE + CLOSE_PARENTHESIS + SPACE
                 + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + getSmallCase(className) + SPACE + EQUAL
                 + SPACE + VALUE + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
@@ -1117,5 +1061,39 @@ public final class MethodsGenerator {
             default:
                 throw new TranslatorException("given data type is not supported.");
         }
+    }
+
+    /**
+     * Returns copy constructor for augmented class.
+     *
+     * @param yangName    augmente class name
+     * @param augmentName augmented class name
+     * @return copy constructor for augmented class
+     */
+    public static String getAugmentedNodesConstructorStart(String yangName,
+                                                           String augmentName) {
+
+        String javadoc = generateForTypeConstructor(yangName);
+        String constructor = FOUR_SPACE_INDENTATION + PUBLIC + SPACE + yangName + BUILDER + OPEN_PARENTHESIS
+                + augmentName + PERIOD + augmentName + BUILDER + SPACE + VALUE + CLOSE_PARENTHESIS + SPACE
+                + OPEN_CURLY_BRACKET + NEW_LINE;
+        return javadoc + constructor;
+
+    }
+
+    /**
+     * Returns the constructor strings for class file.
+     *
+     * @param attr         attribute info
+     * @param pluginConfig plugin configurations
+     * @return constructor for class
+     */
+    public static String getAugmentedConstructor(JavaAttributeInfo attr, YangPluginConfig pluginConfig) {
+
+        String attributeName = getCamelCase(attr.getAttributeName(), pluginConfig.getConflictResolver());
+
+        return EIGHT_SPACE_INDENTATION + THIS + PERIOD + attributeName + OPEN_PARENTHESIS
+                + VALUE + PERIOD + attributeName + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
+                + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
     }
 }

@@ -24,6 +24,8 @@ import java.util.Stack;
 import org.onosproject.yangutils.datamodel.Resolvable;
 import org.onosproject.yangutils.datamodel.ResolvableType;
 import org.onosproject.yangutils.datamodel.YangAtomicPath;
+import org.onosproject.yangutils.datamodel.YangAugment;
+import org.onosproject.yangutils.datamodel.YangAugmentableNode;
 import org.onosproject.yangutils.datamodel.YangBase;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangEntityToResolveInfo;
@@ -55,10 +57,12 @@ import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.YangUses;
+import org.onosproject.yangutils.datamodel.YangXPathResolver;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.ResolvableStatus;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.linker.YangLinkingPhase;
+import org.onosproject.yangutils.linker.exceptions.LinkerException;
 
 import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.INTER_FILE_LINKED;
 import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.INTRA_FILE_RESOLVED;
@@ -68,6 +72,7 @@ import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.UNDEFIN
 import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.UNRESOLVED;
 import static org.onosproject.yangutils.linker.YangLinkingPhase.INTER_FILE;
 import static org.onosproject.yangutils.linker.YangLinkingPhase.INTRA_FILE;
+import static org.onosproject.yangutils.linker.impl.YangLinkerUtils.detectCollisionForAugmentedNode;
 import static org.onosproject.yangutils.utils.UtilConstants.FEATURE_LINKER_ERROR;
 import static org.onosproject.yangutils.utils.UtilConstants.GROUPING_LINKER_ERROR;
 import static org.onosproject.yangutils.utils.UtilConstants.INPUT;
@@ -1438,14 +1443,73 @@ public class YangResolutionInfoImpl<T>
             throw new DataModelException("Data Model Exception: Entity to resolved is not Resolvable");
         }
 
-        // Push the initial entity to resolve in stack.
-        addInPartialResolvedStack(getEntityToResolveInfo());
+        if (entityToResolve instanceof YangXPathResolver) {
+            //Process x-path linking.
+            processXPathLinking(getEntityToResolveInfo(), dataModelRootNode);
 
-        // Inter file linking and resolution.
-        linkInterFileAndResolve();
+        } else {
 
-        // Resolve the derived types having leafref.
-        addDerivedRefTypeToRefTypeResolutionList();
+            // Push the initial entity to resolve in stack.
+            addInPartialResolvedStack(getEntityToResolveInfo());
+
+            // Inter file linking and resolution.
+            linkInterFileAndResolve();
+
+            addDerivedRefTypeToRefTypeResolutionList();
+        }
+    }
+
+    /**
+     * Process x-path linking for augment and leaf-ref.
+     *
+     * @param entityToResolveInfo entity to resolve
+     * @param root root node
+     */
+    private void processXPathLinking(YangEntityToResolveInfoImpl<T> entityToResolveInfo,
+                                     YangReferenceResolver root) {
+        YangXpathLinker<T> xPathLinker = new YangXpathLinker<T>();
+        T entityToResolve = entityToResolveInfo.getEntityToResolve();
+        if (entityToResolve instanceof YangAugment) {
+            YangNode targetNode = null;
+            YangAugment augment = (YangAugment) entityToResolve;
+            targetNode = xPathLinker.processAugmentXpathLinking(augment.getTargetNode(),
+                    (YangNode) root);
+            if (targetNode != null) {
+                if (targetNode instanceof YangAugmentableNode) {
+                    detectCollisionForAugmentedNode(targetNode, augment);
+                    ((YangAugmentableNode) targetNode).addAugmentation(augment);
+                    augment.setAugmentedNode(targetNode);
+                    Resolvable resolvable = (Resolvable) entityToResolve;
+                    resolvable.setResolvableStatus(RESOLVED);
+                } else {
+                    throw new LinkerException("Invalid target node type " + targetNode.getNodeType() + " for "
+                            + augment.getName());
+                }
+            } else {
+                throw new LinkerException("Failed to link " + augment.getName());
+            }
+        } else if (entityToResolve instanceof YangLeafRef) {
+            YangLeafRef leafRef = (YangLeafRef) entityToResolve;
+            Object target = xPathLinker.processLeafRefXpathLinking(leafRef.getAtomicPath(),
+                    (YangNode) root);
+            if (target != null) {
+                YangLeaf leaf = null;
+                YangLeafList leafList = null;
+                leafRef.setReferredLeafOrLeafList(target);
+                if (target instanceof YangLeaf) {
+                    leaf = (YangLeaf) target;
+                    leafRef.setEffectiveDataType(leaf.getDataType());
+                } else {
+                    leafList = (YangLeafList) target;
+                    leafRef.setEffectiveDataType(leafList.getDataType());
+                }
+                leafRef.setResolvableStatus(RESOLVED);
+                //TODO: add logic for leaf-ref for path predicates.
+            } else {
+                throw new LinkerException("YANG file error: Unable to find base leaf/leaf-list for given leafref "
+                        + leafRef.getPath());
+            }
+        }
     }
 
     /**

@@ -1,0 +1,15 @@
+submodule test6 {
+      
+     belongs-to "test5" {
+         prefix "test";
+    }    
+
+    revision "2016-07-04" {
+             description "Initial revision.";
+    }
+    grouping abc {
+        leaf leaf1 {
+           type int32;
+        }
+    }
+}

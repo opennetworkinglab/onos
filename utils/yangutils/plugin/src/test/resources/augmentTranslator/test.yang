@@ -1,0 +1,68 @@
+module test {  
+    namespace "test:test";  
+    prefix test ;  
+       
+           
+    import test1{  
+       prefix test1;
+    }  
+
+    import test2{  
+       prefix test2;
+    } 
+
+    include acme-types;
+      
+    organization "";  
+    contact "";  
+       
+    description   
+       "Defines basic service types for L3VPN service.";  
+       
+    revision "2015-12-16" {  
+       reference "";  
+    }  
+
+    container cont1 {
+        container cont2 {
+           leaf leaf {
+              type int32;
+           }
+        }
+     }
+
+
+    augment /cont3 {
+        leaf leaf1 {
+           type int32;
+         }
+    }
+
+    augment /cont1/cont2 {
+        leaf leaf2 {
+           type int32;
+        }
+    }
+
+    augment /test1:cont1/test1:cont2 {
+       leaf a {
+          type int32;
+        }
+     }
+
+     augment /test1:cont1/test1:cont2/test1:cont1s/test1:cont1s {
+         leaf a {
+            type int32;
+          }
+      }
+
+     augment /test1:cont1/test1:cont2/test1:cont1s/test1:cont1s/test2:aa {
+        leaf a {
+           type int32;
+        }
+        container aa {
+        }
+     }
+
+}
+    

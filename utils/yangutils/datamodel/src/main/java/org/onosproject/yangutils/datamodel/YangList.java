@@ -16,6 +16,7 @@
 
 package org.onosproject.yangutils.datamodel;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -70,8 +71,8 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  */
 public class YangList
         extends YangNode
-        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector, YangAugmentationHolder,
-        YangMustHolder, YangIfFeatureHolder, YangDataNode {
+        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector,
+        YangAugmentableNode, YangMustHolder, YangIfFeatureHolder, YangDataNode {
 
     private static final long serialVersionUID = 806201609L;
 
@@ -126,6 +127,8 @@ public class YangList
      * List of leaf-lists.
      */
     private List<YangLeafList> listOfLeafList;
+
+    private List<YangAugmentedInfo> yangAugmentedInfo = new ArrayList<>();
 
     /**
      * Reference RFC 6020.
@@ -570,8 +573,7 @@ public class YangList
      * @throws DataModelException a violation of data model rules
      */
     private void validateKey(List<YangLeaf> leaves, List<YangLeafList> leafLists, List<String> keys)
-            throws
-            DataModelException {
+            throws DataModelException {
         boolean leafFound = false;
         List<YangLeaf> keyLeaves = new LinkedList<>();
         List<YangLeafList> keyLeafLists = new LinkedList<>();
@@ -712,5 +714,20 @@ public class YangList
             setListOfMust(new LinkedList<>());
         }
         getListOfMust().add(must);
+    }
+
+    @Override
+    public void addAugmentation(YangAugmentedInfo augmentInfo) {
+        yangAugmentedInfo.add(augmentInfo);
+    }
+
+    @Override
+    public void removeAugmentation(YangAugmentedInfo augmentInfo) {
+        yangAugmentedInfo.remove(augmentInfo);
+    }
+
+    @Override
+    public List<YangAugmentedInfo> getAugmentedInfoList() {
+        return yangAugmentedInfo;
     }
 }

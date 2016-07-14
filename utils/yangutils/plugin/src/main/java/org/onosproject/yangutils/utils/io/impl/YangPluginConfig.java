@@ -27,6 +27,11 @@ public final class YangPluginConfig {
     private String codeGenDir;
 
     /**
+     * Contains the code generation directory.
+     */
+    private String managerCodeGenDir;
+
+    /**
      * Contains information of naming conflicts that can be resolved.
      */
     private YangToJavaNamingConflictUtil conflictResolver;
@@ -71,5 +76,23 @@ public final class YangPluginConfig {
      */
     public YangToJavaNamingConflictUtil getConflictResolver() {
         return conflictResolver;
+    }
+
+    /**
+     * Returns manager's code generation directory.
+     *
+     * @return manager's code generation directory
+     */
+    public String getManagerCodeGenDir() {
+        return managerCodeGenDir;
+    }
+
+    /**
+     * Sets manager's code generation directory.
+     *
+     * @param moduleCodeGenDir manager's code generation directory
+     */
+    public void setManagerCodeGenDir(String moduleCodeGenDir) {
+        this.managerCodeGenDir = moduleCodeGenDir;
     }
 }

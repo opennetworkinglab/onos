@@ -590,7 +590,7 @@ public final class JavaDocGen {
      * @param attribute attribute string
      * @return javaDocs for type constructor
      */
-    private static String generateForTypeConstructor(String attribute) {
+    public static String generateForTypeConstructor(String attribute) {
         return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_CONSTRUCTOR
                 + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION
                 + JAVA_DOC_PARAM + VALUE + SPACE + VALUE + SPACE + OF + SPACE + attribute + NEW_LINE

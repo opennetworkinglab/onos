@@ -123,4 +123,22 @@ public final class FileSystemUtil {
             }
         }
     }
+
+    /**
+     * Closes the file handle for temporary file.
+     *
+     * @param file        file to be closed
+     * @param toBeDeleted flag to indicate if file needs to be deleted
+     * @throws IOException when failed to close the file handle
+     */
+    public static void closeFile(File file, boolean toBeDeleted)
+            throws IOException {
+
+        if (file != null) {
+            updateFileHandle(file, null, true);
+            if (toBeDeleted) {
+                file.delete();
+            }
+        }
+    }
 }

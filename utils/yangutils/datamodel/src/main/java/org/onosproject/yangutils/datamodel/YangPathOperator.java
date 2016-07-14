@@ -20,6 +20,8 @@ package org.onosproject.yangutils.datamodel;
  */
 public enum YangPathOperator {
 
-    // Path expression contains equal to.
+    /**
+     *  Path expression contains equal-to.
+     */
     EQUALTO
 }

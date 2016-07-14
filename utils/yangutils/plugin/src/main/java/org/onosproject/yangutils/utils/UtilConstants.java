@@ -607,6 +607,11 @@ public final class UtilConstants {
     public static final String CATCH = "catch";
 
     /**
+     * Static attribute for super syntax.
+     */
+    public static final String SUPER = "super";
+
+    /**
      * Static attribute for eight space indentation.
      */
     public static final String EIGHT_SPACE_INDENTATION = FOUR_SPACE_INDENTATION + FOUR_SPACE_INDENTATION;

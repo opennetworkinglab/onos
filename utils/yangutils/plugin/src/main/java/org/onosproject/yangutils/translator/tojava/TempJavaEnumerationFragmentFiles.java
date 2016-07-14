@@ -36,7 +36,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetG
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateEnumClassFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getEnumJavaAttribute;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getPrefixForIdentifier;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.closeFile;
+import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.closeFile;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_FIRST_DIGIT;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUTO_PREFIX;

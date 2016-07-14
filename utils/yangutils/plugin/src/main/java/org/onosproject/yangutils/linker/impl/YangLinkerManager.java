@@ -161,6 +161,8 @@ public class YangLinkerManager
                 ((YangReferenceResolver) yangNode)
                         .resolveInterFileLinking(ResolvableType.YANG_USES);
                 ((YangReferenceResolver) yangNode)
+                .resolveInterFileLinking(ResolvableType.YANG_AUGMENT);
+                ((YangReferenceResolver) yangNode)
                         .resolveInterFileLinking(ResolvableType.YANG_DERIVED_DATA_TYPE);
                 ((YangReferenceResolver) yangNode)
                         .resolveInterFileLinking(ResolvableType.YANG_LEAFREF);

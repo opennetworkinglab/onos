@@ -16,6 +16,7 @@
 
 package org.onosproject.yangutils.datamodel;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -69,7 +70,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  */
 public class YangOutput
         extends YangNode
-        implements YangLeavesHolder, Parsable, CollisionDetector, YangAugmentationHolder {
+        implements YangLeavesHolder, Parsable, CollisionDetector, YangAugmentableNode {
 
     private static final long serialVersionUID = 806201612L;
 
@@ -87,6 +88,8 @@ public class YangOutput
      * List of leaf-lists contained.
      */
     private List<YangLeafList> listOfLeafList;
+
+    private List<YangAugmentedInfo> yangAugmentedInfo = new ArrayList<>();
 
     /**
      * Create a rpc output node.
@@ -169,5 +172,20 @@ public class YangOutput
     @Override
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public void addAugmentation(YangAugmentedInfo augmentInfo) {
+        yangAugmentedInfo.add(augmentInfo);
+    }
+
+    @Override
+    public void removeAugmentation(YangAugmentedInfo augmentInfo) {
+        yangAugmentedInfo.remove(augmentInfo);
+    }
+
+    @Override
+    public List<YangAugmentedInfo> getAugmentedInfoList() {
+        return yangAugmentedInfo;
     }
 }

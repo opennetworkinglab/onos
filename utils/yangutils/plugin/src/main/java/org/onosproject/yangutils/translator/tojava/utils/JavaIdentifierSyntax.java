@@ -54,11 +54,8 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getPackageDirP
  */
 public final class JavaIdentifierSyntax {
 
-    private static final int MAX_MONTHS = 12;
-    private static final int MAX_DAYS = 31;
     private static final int INDEX_ZERO = 0;
     private static final int INDEX_ONE = 1;
-    private static final int INDEX_TWO = 2;
     private static final int VALUE_CHECK = 10;
     private static final String ZERO = "0";
     private static final String DATE_FORMAT = "yyyy-MM-dd";

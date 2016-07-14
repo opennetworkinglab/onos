@@ -20,10 +20,13 @@ package org.onosproject.yangutils.datamodel;
  */
 public enum YangPathArgType {
 
-    // Absolute path.
+    /**
+     * Absolute path.
+     */
     ABSOLUTE_PATH,
 
-    // Relative path.
+    /**
+     * Relative path.
+     */
     RELATIVE_PATH
-
 }

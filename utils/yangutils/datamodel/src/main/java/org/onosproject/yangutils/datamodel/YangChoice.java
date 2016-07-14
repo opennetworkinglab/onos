@@ -15,6 +15,7 @@
  */
 package org.onosproject.yangutils.datamodel;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
@@ -63,8 +64,8 @@ import static org.onosproject.yangutils.datamodel.utils.YangConstructType.CHOICE
  * Represents data model node to maintain information defined in YANG choice.
  */
 public class YangChoice extends YangNode
-        implements YangCommonInfo, Parsable, CollisionDetector, YangAugmentationHolder, YangWhenHolder,
-        YangIfFeatureHolder {
+        implements YangCommonInfo, Parsable, CollisionDetector, YangAugmentableNode,
+        YangWhenHolder, YangIfFeatureHolder {
 
     private static final long serialVersionUID = 806201604L;
 
@@ -155,6 +156,8 @@ public class YangChoice extends YangNode
      * List of if-feature.
      */
     private List<YangIfFeature> ifFeatureList;
+
+    private List<YangAugmentedInfo> yangAugmentedInfo = new ArrayList<>();
 
     /**
      * Create a choice node.
@@ -418,4 +421,18 @@ public class YangChoice extends YangNode
         this.ifFeatureList = ifFeatureList;
     }
 
+    @Override
+    public void addAugmentation(YangAugmentedInfo augmentInfo) {
+        yangAugmentedInfo.add(augmentInfo);
+    }
+
+    @Override
+    public void removeAugmentation(YangAugmentedInfo augmentInfo) {
+        yangAugmentedInfo.remove(augmentInfo);
+    }
+
+    @Override
+    public List<YangAugmentedInfo> getAugmentedInfoList() {
+        return yangAugmentedInfo;
+    }
 }

@@ -15,6 +15,7 @@
  */
 package org.onosproject.yangutils.datamodel;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -94,7 +95,7 @@ import static org.onosproject.yangutils.datamodel.utils.YangConstructType.CASE_D
  */
 public class YangCase
         extends YangNode
-        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector, YangAugmentationHolder,
+        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector, YangAugmentableNode,
         YangWhenHolder, YangIfFeatureHolder {
 
     private static final long serialVersionUID = 806201603L;
@@ -140,6 +141,8 @@ public class YangCase
      * List of if-feature.
      */
     private List<YangIfFeature> ifFeatureList;
+
+    private List<YangAugmentedInfo> yangAugmentedInfo = new ArrayList<>();
 
     /**
      * Creates a choice node.
@@ -391,5 +394,20 @@ public class YangCase
     @Override
     public void setIfFeatureList(List<YangIfFeature> ifFeatureList) {
         this.ifFeatureList = ifFeatureList;
+    }
+
+    @Override
+    public void addAugmentation(YangAugmentedInfo augmentInfo) {
+        yangAugmentedInfo.add(augmentInfo);
+    }
+
+    @Override
+    public void removeAugmentation(YangAugmentedInfo augmentInfo) {
+        yangAugmentedInfo.remove(augmentInfo);
+    }
+
+    @Override
+    public List<YangAugmentedInfo> getAugmentedInfoList() {
+        return yangAugmentedInfo;
     }
 }

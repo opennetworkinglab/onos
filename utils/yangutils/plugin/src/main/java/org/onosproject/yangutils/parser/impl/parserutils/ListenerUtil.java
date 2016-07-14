@@ -709,10 +709,10 @@ public final class ListenerUtil {
      * @param ctx yang construct's context to get the line number and character position
      * @return target nodes list of absolute schema node id
      */
-    public static List<YangNodeIdentifier> getValidAbsoluteSchemaNodeId(String argumentString,
+    public static List<YangAtomicPath> getValidAbsoluteSchemaNodeId(String argumentString,
             YangConstructType yangConstructType, ParserRuleContext ctx) {
 
-        List<YangNodeIdentifier> targetNodes = new LinkedList<>();
+        List<YangAtomicPath> targetNodes = new ArrayList<>();
         YangNodeIdentifier yangNodeIdentifier;
         String tmpSchemaNodeId = removeQuotesAndHandleConcat(argumentString);
 
@@ -728,7 +728,9 @@ public final class ListenerUtil {
         String[] tmpData = tmpSchemaNodeId.replaceFirst(CARET + SLASH, EMPTY_STRING).split(SLASH);
         for (String nodeIdentifiers : tmpData) {
             yangNodeIdentifier = getValidNodeIdentifier(nodeIdentifiers, yangConstructType, ctx);
-            targetNodes.add(yangNodeIdentifier);
+            YangAtomicPath yangAbsPath = new YangAtomicPath();
+            yangAbsPath.setNodeIdentifier(yangNodeIdentifier);
+            targetNodes.add(yangAbsPath);
         }
         return targetNodes;
     }

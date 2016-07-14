@@ -23,7 +23,7 @@ import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getConstructor;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.closeFile;
+import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.closeFile;
 
 /**
  * Represents implementation of java bean code fragments temporary implementations.
@@ -88,7 +88,7 @@ public class TempJavaBeanFragmentFiles
      */
     private void addConstructor(JavaAttributeInfo attr, YangPluginConfig pluginConfig)
             throws IOException {
-        appendToFile(getConstructorImplTempFileHandle(), getConstructor(getGeneratedJavaClassName(), attr,
+        appendToFile(getConstructorImplTempFileHandle(), getConstructor(attr,
                 getGeneratedJavaFiles(), pluginConfig));
     }
 

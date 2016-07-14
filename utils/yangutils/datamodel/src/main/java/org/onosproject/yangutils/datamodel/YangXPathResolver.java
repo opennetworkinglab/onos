@@ -17,7 +17,7 @@
 package org.onosproject.yangutils.datamodel;
 
 /**
- * Represents YANG constructs which can be augmented.
+ * Abstraction of an entity which can be resolved with x-path linker.
  */
-public interface YangAugmentationHolder {
+public interface YangXPathResolver {
 }

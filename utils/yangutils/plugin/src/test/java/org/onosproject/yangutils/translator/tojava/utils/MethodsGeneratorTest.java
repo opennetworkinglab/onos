@@ -30,7 +30,6 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.STRING;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getBuild;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getBuildForInterface;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getCheckNotNull;
@@ -58,7 +57,6 @@ import static org.onosproject.yangutils.utils.UtilConstants.EQUAL;
 import static org.onosproject.yangutils.utils.UtilConstants.EQUALS_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.GET_METHOD_PREFIX;
-import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_LANG;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
@@ -83,6 +81,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.THIS;
 import static org.onosproject.yangutils.utils.UtilConstants.TWELVE_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.VALUE;
 import static org.onosproject.yangutils.utils.UtilConstants.VOID;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 
 /**
  * Unit tests for generated methods from the file type.
@@ -107,7 +106,7 @@ public final class MethodsGeneratorTest {
             throws SecurityException, NoSuchMethodException, IllegalArgumentException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
 
-        Class<?>[] classesToConstruct = {MethodsGenerator.class };
+        Class<?>[] classesToConstruct = {MethodsGenerator.class};
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
@@ -135,7 +134,7 @@ public final class MethodsGeneratorTest {
         String method = getBuild(CLASS_NAME);
         assertThat(true, is(method.equals(FOUR_SPACE_INDENTATION + PUBLIC + SPACE + CLASS_NAME + SPACE + BUILD
                 + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION
-                + RETURN + SPACE + NEW + SPACE + CLASS_NAME + IMPL + OPEN_PARENTHESIS + THIS + CLOSE_PARENTHESIS
+                + RETURN + SPACE + NEW + SPACE + "Default" + CLASS_NAME + OPEN_PARENTHESIS + THIS + CLOSE_PARENTHESIS
                 + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET)));
 
     }
@@ -167,7 +166,7 @@ public final class MethodsGeneratorTest {
     public void getConstructorTest() {
         JavaAttributeInfo testAttr = getTestAttribute();
         YangPluginConfig pluginConfig = new YangPluginConfig();
-        String method = getConstructor(CLASS_NAME, testAttr, GENERATE_SERVICE_AND_MANAGER, pluginConfig);
+        String method = getConstructor(testAttr, GENERATE_SERVICE_AND_MANAGER, pluginConfig);
         assertThat(true, is(method.contains(THIS + PERIOD + CLASS_NAME + SPACE + EQUAL + SPACE + "builder" + OBJECT
                 + PERIOD + GET_METHOD_PREFIX + "Testname" + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN)));
     }
@@ -179,7 +178,7 @@ public final class MethodsGeneratorTest {
     public void getConstructorStartTest() {
         YangPluginConfig pluginConfig = new YangPluginConfig();
         String method = getConstructorStart(CLASS_NAME, pluginConfig);
-        assertThat(true, is(method.contains(PUBLIC + SPACE + CLASS_NAME + IMPL + OPEN_PARENTHESIS + CLASS_NAME
+        assertThat(true, is(method.contains(PUBLIC + SPACE + "Default" + CLASS_NAME + OPEN_PARENTHESIS + CLASS_NAME
                 + BUILDER + SPACE + BUILDER.toLowerCase() + OBJECT + CLOSE_PARENTHESIS + SPACE
                 + OPEN_CURLY_BRACKET + NEW_LINE)));
     }

@@ -16,31 +16,51 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
+import java.util.List;
+
+import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
+import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
+import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
+import org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getEnumJavaAttribute;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getSmallCase;
-import static org.onosproject.yangutils.utils.UtilConstants.ARRAY_LIST;
-import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO;
+import static org.onosproject.yangutils.utils.UtilConstants.ACTIVATE_ANNOTATION_IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
+import static org.onosproject.yangutils.utils.UtilConstants.COMPONENT_ANNOTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.COMPONENT_ANNOTATION_IMPORT;
+import static org.onosproject.yangutils.utils.UtilConstants.DEACTIVATE_ANNOTATION_IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_CLOSE_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_OPEN_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.ENUM;
 import static org.onosproject.yangutils.utils.UtilConstants.EQUAL;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.IMMEDIATE;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
+import static org.onosproject.yangutils.utils.UtilConstants.INT;
 import static org.onosproject.yangutils.utils.UtilConstants.LIST;
-import static org.onosproject.yangutils.utils.UtilConstants.NEW;
+import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_SERVICE;
+import static org.onosproject.yangutils.utils.UtilConstants.LOGGER_FACTORY_IMPORT;
+import static org.onosproject.yangutils.utils.UtilConstants.LOGGER_IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.OPEN_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.PRIVATE;
+import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
+import static org.onosproject.yangutils.utils.UtilConstants.SERVICE_ANNOTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.SERVICE_ANNOTATION_IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
+import static org.onosproject.yangutils.utils.UtilConstants.TRUE;
+import static org.onosproject.yangutils.utils.UtilConstants.TYPE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.ENUM_ATTRIBUTE;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getSmallCase;
+import static java.util.Collections.sort;
 
 /**
  * Represents utility class to generate the java snippet.
@@ -71,7 +91,7 @@ public final class JavaCodeSnippetGen {
      *
      * @param importInfo import info
      * @return the textual java code information corresponding to the import
-     *         list
+     * list
      */
     public static String getImportText(JavaQualifiedTypeInfo importInfo) {
         return IMPORT + importInfo.getPkgInfo() + PERIOD + importInfo.getClassInfo() + SEMI_COLAN + NEW_LINE;
@@ -81,13 +101,13 @@ public final class JavaCodeSnippetGen {
      * Returns the textual java code for attribute definition in class.
      *
      * @param javaAttributeTypePkg Package of the attribute type
-     * @param javaAttributeType java attribute type
-     * @param javaAttributeName name of the attribute
-     * @param isList is list attribute
+     * @param javaAttributeType    java attribute type
+     * @param javaAttributeName    name of the attribute
+     * @param isList               is list attribute
      * @return the textual java code for attribute definition in class
      */
     public static String getJavaAttributeDefination(String javaAttributeTypePkg, String javaAttributeType,
-            String javaAttributeName, boolean isList) {
+                                                    String javaAttributeName, boolean isList) {
 
         String attributeDefination = PRIVATE + SPACE;
 
@@ -121,17 +141,6 @@ public final class JavaCodeSnippetGen {
     }
 
     /**
-     * Returns attribute of augmented info for generated impl file.
-     *
-     * @return attribute of augmented info for generated impl file
-     */
-    public static String getAugmentedInfoAttribute() {
-        return NEW_LINE + FOUR_SPACE_INDENTATION + PRIVATE + SPACE + getListAttribute(AUGMENTED_INFO) + SPACE
-                + getSmallCase(AUGMENTED_INFO) + LIST + SPACE + EQUAL + SPACE + NEW + SPACE + ARRAY_LIST
-                + DIAMOND_OPEN_BRACKET + DIAMOND_CLOSE_BRACKET + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN;
-    }
-
-    /**
      * Returns based on the file type and the YANG name of the file, generate the class
      * / interface definition close.
      *
@@ -144,8 +153,8 @@ public final class JavaCodeSnippetGen {
     /**
      * Returns string for enum's attribute.
      *
-     * @param name name of attribute
-     * @param value value of the enum
+     * @param name         name of attribute
+     * @param value        value of the enum
      * @param pluginConfig plugin configurations
      * @return string for enum's attribute
      */
@@ -155,4 +164,128 @@ public final class JavaCodeSnippetGen {
                 + value + CLOSE_PARENTHESIS + COMMA + NEW_LINE;
     }
 
+    /**
+     * Adds annotations imports.
+     *
+     * @param imports   list if imports
+     * @param operation to add or to delete
+     */
+    public static void addAnnotationsImports(List<String> imports, boolean operation) {
+        if (operation) {
+            imports.add(ACTIVATE_ANNOTATION_IMPORT);
+            imports.add(DEACTIVATE_ANNOTATION_IMPORT);
+            imports.add(COMPONENT_ANNOTATION_IMPORT);
+            imports.add(SERVICE_ANNOTATION_IMPORT);
+            imports.add(LOGGER_FACTORY_IMPORT);
+            imports.add(LOGGER_IMPORT);
+        } else {
+            imports.remove(ACTIVATE_ANNOTATION_IMPORT);
+            imports.remove(DEACTIVATE_ANNOTATION_IMPORT);
+            imports.remove(COMPONENT_ANNOTATION_IMPORT);
+            imports.remove(SERVICE_ANNOTATION_IMPORT);
+            imports.remove(LOGGER_FACTORY_IMPORT);
+            imports.remove(LOGGER_IMPORT);
+        }
+        sortImports(imports);
+    }
+
+    /**
+     * Returns sorted import list.
+     *
+     * @param imports import list
+     * @return sorted import list
+     */
+    public static List<String> sortImports(List<String> imports) {
+        sort(imports);
+        return imports;
+    }
+
+    /**
+     * Returns event enum start.
+     *
+     * @return event enum start
+     */
+    public static String getEventEnumTypeStart() {
+        return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + ENUM + SPACE + TYPE + SPACE + OPEN_CURLY_BRACKET
+                + NEW_LINE;
+    }
+
+    /**
+     * Adds listener's imports.
+     *
+     * @param curNode   currentYangNode.
+     * @param imports   import list
+     * @param operation add or remove
+     * @param classInfo class info to be added to import list
+     */
+    public static void addListenersImport(YangNode curNode, List<String> imports, boolean operation,
+                                          String classInfo) {
+        String thisImport = "";
+        if (classInfo.equals(LISTENER_SERVICE)) {
+            thisImport = getTempJavaFragment(curNode).getJavaImportData().getListenerServiceImport();
+            performOperationOnImports(imports, thisImport, operation);
+        } else {
+            thisImport = getTempJavaFragment(curNode).getJavaImportData().getListenerRegistryImport();
+            performOperationOnImports(imports, thisImport, operation);
+        }
+    }
+
+    /**
+     * Performs given operations on import list.
+     *
+     * @param imports   list of imports
+     * @param curImport current import
+     * @param operation add or remove
+     * @return import list
+     */
+    private static List<String> performOperationOnImports(List<String> imports, String curImport,
+                                                          boolean operation) {
+        if (operation) {
+            imports.add(curImport);
+        } else {
+            imports.remove(curImport);
+        }
+        sortImports(imports);
+        return imports;
+    }
+
+    /**
+     * Returns temp java fragment.
+     *
+     * @param curNode current YANG node
+     * @return temp java fragments
+     */
+    public static TempJavaFragmentFiles getTempJavaFragment(YangNode curNode) {
+        TempJavaCodeFragmentFiles container = ((TempJavaCodeFragmentFilesContainer) curNode)
+                .getTempJavaCodeFragmentFiles();
+        if (container.getBeanTempFiles() != null) {
+            return container.getBeanTempFiles();
+        }
+        if (container.getServiceTempFiles() != null) {
+            return container.getServiceTempFiles();
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns integer attribute for enum's class to get the values.
+     *
+     * @param className enum's class name
+     * @return enum's attribute
+     */
+    public static String getEnumsValueAttribute(String className) {
+        return NEW_LINE + FOUR_SPACE_INDENTATION + PRIVATE + SPACE + INT + SPACE + getSmallCase(className)
+                + SEMI_COLAN + NEW_LINE;
+    }
+
+    /**
+     * Returns component string.
+     *
+     * @return component string
+     */
+    public static String addComponentString() {
+        return NEW_LINE + COMPONENT_ANNOTATION + SPACE + OPEN_PARENTHESIS + IMMEDIATE + SPACE
+                + EQUAL + SPACE + TRUE + CLOSE_PARENTHESIS + NEW_LINE + SERVICE_ANNOTATION;
+    }
 }

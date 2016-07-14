@@ -27,7 +27,6 @@ import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModule;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_LISTENER_INTERFACE;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_SUBJECT_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EVENT_ENUM_MASK;
@@ -54,9 +53,9 @@ import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getRpcManagerMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getRpcServiceMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getSetterForClass;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addAnnotationsImports;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addListnersImport;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.closeFile;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.addAnnotationsImports;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.addListenersImport;
+import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.closeFile;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.EVENT_STRING;
@@ -390,7 +389,7 @@ public class TempJavaServiceFragmentFiles
         }
 
         if (isNotification) {
-            addListnersImport(curNode, imports, true, LISTENER_SERVICE);
+            addListenersImport(curNode, imports, true, LISTENER_SERVICE);
         }
         /**
          * Creates rpc interface file.
@@ -399,8 +398,8 @@ public class TempJavaServiceFragmentFiles
         generateServiceInterfaceFile(getServiceInterfaceJavaFileHandle(), curNode, imports, isAttributePresent());
 
         if (isNotification) {
-            addListnersImport(curNode, imports, false, LISTENER_SERVICE);
-            addListnersImport(curNode, imports, true, LISTENER_REG);
+            addListenersImport(curNode, imports, false, LISTENER_SERVICE);
+            addListenersImport(curNode, imports, true, LISTENER_REG);
         }
         addAnnotationsImports(imports, true);
         /**
@@ -411,14 +410,14 @@ public class TempJavaServiceFragmentFiles
 
         insertDataIntoJavaFile(getManagerJavaFileHandle(), getJavaClassDefClose());
         if (isNotification) {
-            addListnersImport(curNode, imports, false, LISTENER_REG);
+            addListenersImport(curNode, imports, false, LISTENER_REG);
         }
         addAnnotationsImports(imports, false);
 
         if (isNotification) {
-            generateEventJavaFile(GENERATE_EVENT_CLASS, curNode);
+            generateEventJavaFile(curNode);
             generateEventListenerJavaFile(GENERATE_EVENT_LISTENER_INTERFACE, curNode);
-            generateEventSubjectJavaFile(GENERATE_EVENT_SUBJECT_CLASS, curNode);
+            generateEventSubjectJavaFile(curNode);
         }
 
         /**
@@ -478,11 +477,10 @@ public class TempJavaServiceFragmentFiles
     /**
      * Constructs java code exit.
      *
-     * @param fileType generated file type
      * @param curNode  current YANG node
      * @throws IOException when fails to generate java files
      */
-    public void generateEventJavaFile(int fileType, YangNode curNode)
+    public void generateEventJavaFile(YangNode curNode)
             throws IOException {
 
         List<String> imports = new ArrayList<>();
@@ -536,11 +534,10 @@ public class TempJavaServiceFragmentFiles
     /**
      * Constructs java code exit.
      *
-     * @param fileType generated file type
      * @param curNode  current YANG node
      * @throws IOException when fails to generate java files
      */
-    public void generateEventSubjectJavaFile(int fileType, YangNode curNode)
+    public void generateEventSubjectJavaFile(YangNode curNode)
             throws IOException {
 
         String curNodeInfo = getCapitalCase(((JavaFileInfoContainer) curNode)
@@ -778,7 +775,7 @@ public class TempJavaServiceFragmentFiles
     /**
      * Returns a temporary file handle for the event's file type.
      *
-     * @param fileName file name
+     * @param name file name
      * @return temporary file handle
      * @throws IOException when fails to create new file handle
      */
@@ -786,9 +783,10 @@ public class TempJavaServiceFragmentFiles
             throws IOException {
 
         JavaFileInfo parentInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
+        JavaFileInfo childInfo = ((JavaFileInfoContainer) curNode.getChild()).getJavaFileInfo();
 
         return getFileObject(getDirPath(parentInfo), name, JAVA_FILE_EXTENSION,
-                parentInfo);
+                childInfo);
     }
 
     /**

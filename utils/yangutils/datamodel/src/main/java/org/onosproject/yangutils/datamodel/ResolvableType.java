@@ -49,5 +49,10 @@ public enum ResolvableType {
     /**
      * Identifies the identityref.
      */
-    YANG_IDENTITYREF
+    YANG_IDENTITYREF,
+
+    /**
+     * Identifies the augment.
+     */
+    YANG_AUGMENT
 }

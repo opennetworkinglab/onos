@@ -20,12 +20,12 @@ import java.io.IOException;
 import java.util.ListIterator;
 
 import org.junit.Test;
-import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.datamodel.YangModule;
+import org.onosproject.yangutils.datamodel.YangAtomicPath;
 import org.onosproject.yangutils.datamodel.YangAugment;
-import org.onosproject.yangutils.datamodel.YangLeaf;
-import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
+import org.onosproject.yangutils.datamodel.YangLeaf;
+import org.onosproject.yangutils.datamodel.YangModule;
+import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeType;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
@@ -48,16 +48,16 @@ public class AugmentListenerTest {
 
         YangNode node = manager.getDataModel("src/test/resources/ValidAugmentStatement.yang");
 
-        assertThat((node instanceof YangModule), is(true));
+        assertThat(node instanceof YangModule, is(true));
         assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
         YangAugment yangAugment = (YangAugment) yangNode.getChild();
-        ListIterator<YangNodeIdentifier> nodeIdentifierIterator = yangAugment.getTargetNode().listIterator();
-        YangNodeIdentifier yangNodeIdentifier = nodeIdentifierIterator.next();
-        assertThat(yangNodeIdentifier.getPrefix(), is("if"));
-        assertThat(yangNodeIdentifier.getName(), is("interfaces"));
+        ListIterator<YangAtomicPath> absPathIterator = yangAugment.getTargetNode().listIterator();
+        YangAtomicPath absPathIdentifier = absPathIterator.next();
+        assertThat(absPathIdentifier.getNodeIdentifier().getPrefix(), is("if"));
+        assertThat(absPathIdentifier.getNodeIdentifier().getName(), is("interfaces"));
 
         ListIterator<YangLeaf> leafIterator = yangAugment.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();

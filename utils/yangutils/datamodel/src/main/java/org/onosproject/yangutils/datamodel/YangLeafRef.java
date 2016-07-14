@@ -43,7 +43,8 @@ import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.RESOLVE
  *
  * @param <T> YANG leafref info
  */
-public class YangLeafRef<T> implements Parsable, Resolvable, Serializable, YangIfFeatureHolder {
+public class YangLeafRef<T> implements Parsable, Resolvable, Serializable, YangIfFeatureHolder,
+        YangXPathResolver {
 
     private static final long serialVersionUID = 286201644L;
 

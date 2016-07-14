@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.utils;
+package org.onosproject.yangutils.datamodel;
 
 /**
- * Abstraction of an entity which represents augmented info.
+ * Abstraction of an entity which represents YANG augmented info.
  */
-public interface AugmentedInfo {
+public interface YangAugmentedInfo {
 }

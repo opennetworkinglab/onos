@@ -21,10 +21,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import static org.onosproject.yangutils.utils.UtilConstants.ABSTRACT_EVENT;
-import static org.onosproject.yangutils.utils.UtilConstants.ARRAY_LIST;
-import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTATION_HOLDER_CLASS_IMPORT_CLASS;
-import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO_CLASS_IMPORT_CLASS;
-import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO_CLASS_IMPORT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.COLLECTION_IMPORTS;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.EVENT_LISTENER;
@@ -40,9 +36,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.ONOS_EVENT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
-import static org.onosproject.yangutils.utils.UtilConstants.PROVIDED_AUGMENTATION_CLASS_IMPORT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
-
 import static java.util.Collections.sort;
 
 /**
@@ -217,33 +211,6 @@ public class JavaImportData {
      */
     public String getImportForList() {
         return IMPORT + COLLECTION_IMPORTS + PERIOD + LIST + SEMI_COLAN + NEW_LINE;
-    }
-
-    /**
-     * Returns import for array list attribute.
-     *
-     * @return import for array list attribute
-     */
-    public String getImportForArrayList() {
-        return IMPORT + COLLECTION_IMPORTS + PERIOD + ARRAY_LIST + SEMI_COLAN + NEW_LINE;
-    }
-
-    /**
-     * Returns import string for AugmentationHolder class.
-     *
-     * @return import string for AugmentationHolder class
-     */
-    public String getAugmentationHolderImport() {
-        return IMPORT + PROVIDED_AUGMENTATION_CLASS_IMPORT_PKG + PERIOD + AUGMENTATION_HOLDER_CLASS_IMPORT_CLASS;
-    }
-
-    /**
-     * Returns import string for AugmentedInfo class.
-     *
-     * @return import string for AugmentedInfo class
-     */
-    public String getAugmentedInfoImport() {
-        return IMPORT + AUGMENTED_INFO_CLASS_IMPORT_PKG + PERIOD + AUGMENTED_INFO_CLASS_IMPORT_CLASS;
     }
 
     /**

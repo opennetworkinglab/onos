@@ -28,7 +28,7 @@ import org.onosproject.yangutils.translator.tojava.JavaImportData;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.getTempJavaFragement;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getTempJavaFragment;
 
 /**
  * Represent the extends list for generated java classes. It holds the class details which needs
@@ -62,7 +62,7 @@ public class JavaExtendsListHolder {
      * @param extendedClass map of classes need to be extended
      */
     private void setExtendedClassStore(Map<JavaQualifiedTypeInfo, Boolean> extendedClass) {
-        this.extendedClassStore = extendedClass;
+        extendedClassStore = extendedClass;
     }
 
     /**
@@ -74,7 +74,7 @@ public class JavaExtendsListHolder {
     public void addToExtendsList(JavaQualifiedTypeInfo info, YangNode node) {
         JavaFileInfo fileInfo = ((JavaFileInfoContainer) node).getJavaFileInfo();
 
-        JavaImportData importData = getTempJavaFragement(node).getJavaImportData();
+        JavaImportData importData = getTempJavaFragment(node).getJavaImportData();
         boolean qualified = importData.addImportInfo(info,
                 getCapitalCase(fileInfo.getJavaName()), fileInfo.getPackage());
 
@@ -99,7 +99,7 @@ public class JavaExtendsListHolder {
      * @param classInfoList the extends List to set
      */
     private void setExtendsList(List<JavaQualifiedTypeInfo> classInfoList) {
-        this.extendsList = classInfoList;
+        extendsList = classInfoList;
     }
 
     /**

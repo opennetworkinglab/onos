@@ -16,11 +16,17 @@
 
 package org.onosproject.yangutils.plugin.manager;
 
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.onosproject.yangutils.datamodel.YangAtomicPath;
 import org.onosproject.yangutils.datamodel.YangContainer;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangInput;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
@@ -34,15 +40,9 @@ import org.onosproject.yangutils.datamodel.YangPathOperator;
 import org.onosproject.yangutils.datamodel.YangPathPredicate;
 import org.onosproject.yangutils.datamodel.YangRelativePath;
 import org.onosproject.yangutils.datamodel.utils.ResolvableStatus;
-import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.linker.exceptions.LinkerException;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;

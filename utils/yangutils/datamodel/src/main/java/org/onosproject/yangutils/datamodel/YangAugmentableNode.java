@@ -14,31 +14,33 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.utils;
+package org.onosproject.yangutils.datamodel;
 
 import java.util.List;
 
 /**
- * Abstraction of an entity which represents augmentation of a YANG node.
+ * Represents YANG constructs which can be augmented.
  */
-public interface AugmentationHolder {
+public interface YangAugmentableNode {
 
     /**
      * Adds augment info to the augment info list.
      *
      * @param augmentInfo augment info of node
      */
-    void addAugmentation(AugmentedInfo augmentInfo);
+    void addAugmentation(YangAugmentedInfo augmentInfo);
 
     /**
      * Removes augment info from the node.
+     *
+     * @param augmentInfo augment info of node
      */
-    void removeAugmentation();
+    void removeAugmentation(YangAugmentedInfo augmentInfo);
 
     /**
      * Returns list of augment info.
      *
      * @return list of augment info
      */
-    List<AugmentedInfo> getAugmentedInfoList();
+    List<YangAugmentedInfo> getAugmentedInfoList();
 }

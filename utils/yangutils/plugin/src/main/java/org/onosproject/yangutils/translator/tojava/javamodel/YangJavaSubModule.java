@@ -35,8 +35,10 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_LISTENER_INTERFACE;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_SUBJECT_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 import static org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModelUtils.generateCodeOfRootNode;
+import static org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModelUtils.isManagerCodeGenRequired;
+import static org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModelUtils.isGenerationOfCodeReq;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.searchAndDeleteTempDir;
 
 /**
@@ -62,7 +64,7 @@ public class YangJavaSubModule
     /**
      * List of notifications nodes.
      */
-    private List<YangNode> notificationNodes = new ArrayList<>();
+    private transient List<YangNode> notificationNodes = new ArrayList<>();
 
     /**
      * Creates YANG java sub module object.
@@ -167,8 +169,12 @@ public class YangJavaSubModule
          * The manager class needs to extend the "ListenerRegistry".
          */
         try {
-            getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
+            if (isManagerCodeGenRequired(this) && isGenerationOfCodeReq(getJavaFileInfo())) {
+                getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
+            }
             searchAndDeleteTempDir(getJavaFileInfo().getBaseCodeGenPath() +
+                    getJavaFileInfo().getPackageFilePath());
+            searchAndDeleteTempDir(getJavaFileInfo().getPluginConfig().getCodeGenDir() +
                     getJavaFileInfo().getPackageFilePath());
         } catch (IOException e) {
             throw new TranslatorException("Failed to generate code for submodule node " + getName());

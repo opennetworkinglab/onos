@@ -44,7 +44,7 @@ import static org.hamcrest.core.Is.is;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.STRING;
 import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.RESOLVED;
-import static org.onosproject.yangutils.plugin.manager.YangPluginUtils.deSerializeDataModel;
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.deSerializeDataModel;
 import static org.onosproject.yangutils.plugin.manager.YangPluginUtils.parseJarFile;
 import static org.onosproject.yangutils.plugin.manager.YangPluginUtils.serializeDataModel;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
@@ -189,6 +189,7 @@ public class InterJarLinkerTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir(TARGET);
+        yangPluginConfig.setManagerCodeGenDir(TARGET);
 
         utilManager.translateToJava(utilManager.getYangFileInfoSet(), yangPluginConfig);
 
@@ -205,7 +206,7 @@ public class InterJarLinkerTest {
         File folder = new File(System.getProperty("user.dir") + SLASH + FLOW_CLASSIFIER_FOLDER);
         File file = new File(System.getProperty("user.dir") + SLASH + FLOW_CLASSIFIER_MANAGER);
         assertThat(true, is(folder.exists()));
-        assertThat(true, is(file.exists()));
+        assertThat(false, is(file.exists()));
     }
 
     /**

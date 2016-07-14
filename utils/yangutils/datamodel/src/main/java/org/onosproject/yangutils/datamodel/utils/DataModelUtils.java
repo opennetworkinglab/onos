@@ -16,12 +16,17 @@
 
 package org.onosproject.yangutils.datamodel.utils;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import org.onosproject.yangutils.datamodel.CollisionDetector;
 import org.onosproject.yangutils.datamodel.ResolvableType;
 import org.onosproject.yangutils.datamodel.YangIfFeature;
+import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangBase;
 import org.onosproject.yangutils.datamodel.YangIdentityRef;
 import org.onosproject.yangutils.datamodel.YangLeaf;
@@ -171,6 +176,10 @@ public final class DataModelUtils {
             resolutionNode.addToResolutionList(resolutionInfo,
                     ResolvableType.YANG_USES);
         } else if (resolutionInfo.getEntityToResolveInfo()
+                .getEntityToResolve() instanceof YangAugment) {
+            resolutionNode.addToResolutionList(resolutionInfo,
+                    ResolvableType.YANG_AUGMENT);
+        } else if (resolutionInfo.getEntityToResolveInfo()
                 .getEntityToResolve() instanceof YangIfFeature) {
             resolutionNode.addToResolutionList(resolutionInfo,
                     ResolvableType.YANG_IF_FEATURE);
@@ -271,5 +280,31 @@ public final class DataModelUtils {
          * choice/case/augment/grouping
          */
         return currentNode.getParent();
+    }
+
+    /**
+     * Returns de-serializes YANG data-model nodes.
+     *
+     * @param serializableInfoSet YANG file info set
+     * @return de-serializes YANG data-model nodes
+     * @throws IOException when fails do IO operations
+     */
+    public static List<YangNode> deSerializeDataModel(List<String> serializableInfoSet) throws IOException {
+
+        List<YangNode> nodes = new ArrayList<>();
+        for (String fileInfo : serializableInfoSet) {
+            YangNode node = null;
+            try {
+                FileInputStream fileInputStream = new FileInputStream(fileInfo);
+                ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+                node = (YangNode) objectInputStream.readObject();
+                nodes.add(node);
+                objectInputStream.close();
+                fileInputStream.close();
+            } catch (IOException | ClassNotFoundException e) {
+                throw new IOException(fileInfo + " not found.");
+            }
+        }
+        return nodes;
     }
 }

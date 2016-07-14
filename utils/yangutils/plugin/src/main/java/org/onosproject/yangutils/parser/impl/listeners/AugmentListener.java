@@ -18,18 +18,20 @@ package org.onosproject.yangutils.parser.impl.listeners;
 
 import java.util.List;
 
+import org.onosproject.yangutils.datamodel.YangAtomicPath;
 import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.YangUses;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
+import org.onosproject.yangutils.linker.impl.YangResolutionInfoImpl;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.addResolutionInfo;
 import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_GENERATION;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.AUGMENT_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.CASE_DATA;
@@ -38,22 +40,17 @@ import static org.onosproject.yangutils.datamodel.utils.YangConstructType.DESCRI
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.REFERENCE_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.STATUS_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.WHEN_DATA;
-import static org.onosproject.yangutils.parser.impl.parserutils.AugmentListenerUtil.generateNameForAugmentNode;
-import static org.onosproject.yangutils.parser.impl.parserutils.AugmentListenerUtil.getParentsPrefix;
-import static org.onosproject.yangutils.parser.impl.parserutils.AugmentListenerUtil.parserException;
-import static org.onosproject.yangutils.parser.impl.parserutils.AugmentListenerUtil.validateNodeInTargetPath;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerCollisionDetector.detectCollidingChildUtil;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction
-        .constructExtendedListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction
-        .constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidAbsoluteSchemaNodeId;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.removeQuotesAndHandleConcat;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityMaxOne;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateMutuallyExclusiveChilds;
@@ -106,7 +103,7 @@ public final class AugmentListener {
         checkStackIsNotEmpty(listener, MISSING_HOLDER, AUGMENT_DATA, ctx.augment().getText(), ENTRY);
 
         // Validate augment argument string
-        List<YangNodeIdentifier> targetNodes = getValidAbsoluteSchemaNodeId(ctx.augment().getText(),
+        List<YangAtomicPath> targetNodes = getValidAbsoluteSchemaNodeId(ctx.augment().getText(),
                 AUGMENT_DATA, ctx);
 
         // Validate sub statement cardinality.
@@ -126,7 +123,7 @@ public final class AugmentListener {
             // TODO: handle in linker.
 
             yangAugment.setTargetNode(targetNodes);
-            yangAugment.setName(generateNameForAugmentNode(curData, targetNodes, listener));
+            yangAugment.setName(removeQuotesAndHandleConcat(ctx.augment().getText()));
 
             try {
                 curNode.addChild(yangAugment);
@@ -135,6 +132,13 @@ public final class AugmentListener {
                         AUGMENT_DATA, ctx.augment().getText(), ENTRY, e.getMessage()));
             }
             listener.getParsedDataStack().push(yangAugment);
+
+            // Add resolution information to the list
+            YangResolutionInfoImpl resolutionInfo = new YangResolutionInfoImpl<YangAugment>(yangAugment,
+                    curNode, line,
+                    charPositionInLine);
+            addToResolutionList(resolutionInfo, ctx);
+
         } else {
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, AUGMENT_DATA,
                     ctx.augment().getText(), ENTRY));
@@ -177,35 +181,19 @@ public final class AugmentListener {
     }
 
     /**
-     * Validates whether the current target node path is correct or not.
+     * Add to resolution list.
      *
-     * @param targetNodes list of target nodes
-     * @param curNode current Node
-     * @param ctx augment context
-     * @param curNode current YANG node
+     * @param resolutionInfo resolution information.
+     * @param ctx            context object of the grammar rule
      */
-    private static void validateTargetNodePath(List<YangNodeIdentifier> targetNodes, YangNode curNode,
-            GeneratedYangParser.AugmentStatementContext ctx) {
+    private static void addToResolutionList(YangResolutionInfoImpl<YangAugment> resolutionInfo,
+                                            GeneratedYangParser.AugmentStatementContext ctx) {
 
-        YangNodeIdentifier moduleId = targetNodes.get(0);
-        if (moduleId.getPrefix() == null) {
-            if (!moduleId.getName().equals(curNode.getName())) {
-                throw parserException(ctx);
-            } else {
-                //validateNodeInTargetPath(curNode, targetNodes, ctx);
-                // TODO: handle in linker.
-            }
-        } else {
-            String parentPrefix = getParentsPrefix(curNode);
-            if (parentPrefix != null) {
-                if (!parentPrefix.equals(moduleId.getPrefix())) {
-                    // TODO: handle in linker.
-                } else {
-                    validateNodeInTargetPath(curNode, targetNodes, ctx);
-                }
-            } else {
-                // TODO: handle in linker.
-            }
+        try {
+            addResolutionInfo(resolutionInfo);
+        } catch (DataModelException e) {
+            throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA,
+                    AUGMENT_DATA, ctx.augment().getText(), EXIT, e.getMessage()));
         }
     }
 }

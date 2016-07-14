@@ -29,6 +29,7 @@ import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.javamodel.JavaLeafInfoContainer;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaAugment;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaGrouping;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModule;
@@ -44,6 +45,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ATTRIBUTES_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.AUGMENTE_CLASS_CONSTRUCTOR_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EQUALS_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.FROM_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_CLASS_MASK;
@@ -63,10 +65,8 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerato
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateImplClassFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateInterfaceFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getFileObject;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCamelCase;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getPackageDirPathFromJavaJPackage;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.createPackage;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAugmentedConstructor;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getBuildString;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getDefaultConstructorString;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getEqualsMethod;
@@ -80,17 +80,13 @@ import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getSetterString;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.parseBuilderInterfaceBuildMethodString;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addArrayListImport;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addAugmentationHoldersImport;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addAugmentedInfoImport;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.closeFile;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.isAugmentationHolderExtended;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.isAugmentedInfoExtended;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.sortImports;
+import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.closeFile;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.sortImports;
 import static org.onosproject.yangutils.utils.UtilConstants.ACTIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.COMPONENT;
 import static org.onosproject.yangutils.utils.UtilConstants.DEACTIVATE;
+import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
@@ -104,12 +100,14 @@ import static org.onosproject.yangutils.utils.UtilConstants.REFERENCE_CARDINALIT
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.createPackage;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.readAppendFile;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.GETTER_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.OF_METHOD;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCamelCase;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.insertDataIntoJavaFile;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.mergeJavaFiles;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.validateLineLength;
@@ -227,6 +225,10 @@ public class TempJavaFragmentFiles {
     private static final String IMPL_CLASS_FILE_NAME_SUFFIX = IMPL;
 
     /**
+     * File name for augment copy constructor method.
+     */
+    private static final String AUGMENT_CONSTRUCTOR_FILE_NAME = "AugmentConstructor";
+    /**
      * Java file handle for interface file.
      */
     private File interfaceJavaFileHandle;
@@ -300,6 +302,11 @@ public class TempJavaFragmentFiles {
      * Is attribute added.
      */
     private boolean isAttributePresent;
+
+    /**
+     * Temporary file handle for augments copy constructor method of class.
+     */
+    private File augmentConstructorImplTempFileHandle;
 
     /**
      * Retrieves the absolute path where the file needs to be generated.
@@ -539,6 +546,7 @@ public class TempJavaFragmentFiles {
             addGeneratedTempFile(ATTRIBUTES_MASK);
             addGeneratedTempFile(GETTER_FOR_CLASS_MASK);
             addGeneratedTempFile(SETTER_FOR_CLASS_MASK);
+            addGeneratedTempFile(AUGMENTE_CLASS_CONSTRUCTOR_MASK);
         }
 
         /*
@@ -616,6 +624,9 @@ public class TempJavaFragmentFiles {
         }
         if ((getGeneratedTempFiles() & FROM_STRING_IMPL_MASK) != 0) {
             setFromStringImplTempFileHandle(getTemporaryFileHandle(FROM_STRING_METHOD_FILE_NAME));
+        }
+        if ((getGeneratedTempFiles() & AUGMENTE_CLASS_CONSTRUCTOR_MASK) != 0) {
+            setAugmentConstructorImplTempFileHandle(getTemporaryFileHandle(AUGMENT_CONSTRUCTOR_FILE_NAME));
         }
 
     }
@@ -801,6 +812,24 @@ public class TempJavaFragmentFiles {
     }
 
     /**
+     * Returns augments copy constructor method impl class file.
+     *
+     * @return augments copy constructor method impl class file
+     */
+    public File getAugmentConstructorImplTempFileHandle() {
+        return augmentConstructorImplTempFileHandle;
+    }
+
+    /**
+     * Sets augments copy constructor method impl class.
+     *
+     * @param augmentConstructorImplTempFileHandle augments copy constructor method impl class file
+     */
+    public void setAugmentConstructorImplTempFileHandle(File augmentConstructorImplTempFileHandle) {
+        this.augmentConstructorImplTempFileHandle = augmentConstructorImplTempFileHandle;
+    }
+
+    /**
      * Adds attribute for class.
      *
      * @param attr             attribute info
@@ -966,10 +995,21 @@ public class TempJavaFragmentFiles {
      * @throws IOException when fails to append to temporary file
      */
     private void addFromStringMethod(JavaAttributeInfo javaAttributeInfo,
-            JavaAttributeInfo fromStringAttributeInfo)
+                                     JavaAttributeInfo fromStringAttributeInfo)
             throws IOException {
         appendToFile(getFromStringImplTempFileHandle(), getFromStringMethod(javaAttributeInfo,
                 fromStringAttributeInfo) + NEW_LINE);
+    }
+
+    /**
+     * Adds constructor for augment class.
+     *
+     * @param attr attribute info
+     * @throws IOException when fails to append to temporary file
+     */
+    private void addAugmentConstructor(JavaAttributeInfo attr, YangPluginConfig pluginConfig)
+            throws IOException {
+        appendToFile(getAugmentConstructorImplTempFileHandle(), getAugmentedConstructor(attr, pluginConfig));
     }
 
     /**
@@ -981,7 +1021,7 @@ public class TempJavaFragmentFiles {
      */
     File getTemporaryFileHandle(String fileName)
             throws IOException {
-        String path = getTempDirPath();
+        String path = getTempDirPath(getAbsoluteDirPath());
         File dir = new File(path);
         if (!dir.exists()) {
             dir.mkdirs();
@@ -1011,13 +1051,14 @@ public class TempJavaFragmentFiles {
      * Returns data from the temporary files.
      *
      * @param file temporary file handle
+     * @param absolutePath absolute path
      * @return stored data from temporary files
      * @throws IOException when failed to get data from the given file
      */
-    public String getTemporaryDataFromFileHandle(File file)
+    public String getTemporaryDataFromFileHandle(File file, String absolutePath)
             throws IOException {
 
-        String path = getTempDirPath();
+        String path = getTempDirPath(absolutePath);
         if (new File(path + file.getName()).exists()) {
             return readAppendFile(path + file.getName(), EMPTY_STRING);
         } else {
@@ -1029,10 +1070,11 @@ public class TempJavaFragmentFiles {
     /**
      * Returns temporary directory path.
      *
+     * @param absolutePath absolute path
      * @return directory path
      */
-    String getTempDirPath() {
-        return getPackageDirPathFromJavaJPackage(getAbsoluteDirPath()) + SLASH + getGeneratedJavaClassName()
+    String getTempDirPath(String absolutePath) {
+        return getPackageDirPathFromJavaJPackage(absolutePath) + SLASH + getGeneratedJavaClassName()
                 + TEMP_FOLDER_NAME_SUFIX + SLASH;
     }
 
@@ -1084,7 +1126,7 @@ public class TempJavaFragmentFiles {
      * @throws IOException IO operation exception
      */
     public static void addCurNodeInfoInParentTempFile(YangNode curNode,
-            boolean isList, YangPluginConfig pluginConfig)
+                                                      boolean isList, YangPluginConfig pluginConfig)
             throws IOException {
         YangNode parent = getParentNodeInGenCode(curNode);
         if (!(parent instanceof JavaCodeGenerator)) {
@@ -1118,7 +1160,7 @@ public class TempJavaFragmentFiles {
      * @throws IOException IO operation exception
      */
     public static void addCurNodeAsAttributeInTargetTempFile(YangNode curNode,
-            YangPluginConfig pluginConfig, YangNode targetNode)
+                                                             YangPluginConfig pluginConfig, YangNode targetNode)
             throws IOException {
 
         if (!(targetNode instanceof JavaCodeGenerator)) {
@@ -1156,7 +1198,7 @@ public class TempJavaFragmentFiles {
      * files
      */
     public static JavaAttributeInfo getCurNodeAsAttributeInTarget(YangNode curNode,
-            YangNode targetNode, boolean isListNode) {
+                                                                  YangNode targetNode, boolean isListNode) {
         String curNodeName = ((JavaFileInfoContainer) curNode).getJavaFileInfo().getJavaName();
         if (curNodeName == null) {
             updateJavaFileInfo(curNode, null);
@@ -1179,11 +1221,11 @@ public class TempJavaFragmentFiles {
         boolean isQualified;
         if ((targetNode instanceof YangJavaModule || targetNode instanceof YangJavaSubModule)
                 && (qualifiedTypeInfo.getClassInfo().contentEquals(SERVICE)
-                        || qualifiedTypeInfo.getClassInfo().contentEquals(COMPONENT)
-                        || qualifiedTypeInfo.getClassInfo().contentEquals(getCapitalCase(ACTIVATE))
-                        || qualifiedTypeInfo.getClassInfo().contentEquals(getCapitalCase(DEACTIVATE))
-                        || qualifiedTypeInfo.getClassInfo().contentEquals(REFERENCE_CARDINALITY)
-                        || qualifiedTypeInfo.getClassInfo().contentEquals(REFERENCE))
+                || qualifiedTypeInfo.getClassInfo().contentEquals(COMPONENT)
+                || qualifiedTypeInfo.getClassInfo().contentEquals(getCapitalCase(ACTIVATE))
+                || qualifiedTypeInfo.getClassInfo().contentEquals(getCapitalCase(DEACTIVATE))
+                || qualifiedTypeInfo.getClassInfo().contentEquals(REFERENCE_CARDINALITY)
+                || qualifiedTypeInfo.getClassInfo().contentEquals(REFERENCE))
                 || qualifiedTypeInfo.getClassInfo().contentEquals(getCapitalCase(fileInfo.getJavaName() + SERVICE))
                 || qualifiedTypeInfo.getClassInfo().contentEquals(getCapitalCase(fileInfo.getJavaName() + MANAGER))) {
 
@@ -1205,63 +1247,6 @@ public class TempJavaFragmentFiles {
         }
 
         return getAttributeInfoForTheData(qualifiedTypeInfo, curNodeName, null, isQualified, isListNode);
-    }
-
-    /**
-     * Resolves groupings java qualified info.
-     *
-     * @param curNode      grouping node
-     * @param pluginConfig plugin configurations
-     * @return groupings java qualified info
-     */
-    public static JavaQualifiedTypeInfo resolveGroupingsQuailifiedInfo(YangNode curNode,
-            YangPluginConfig pluginConfig) {
-
-        JavaFileInfo groupingFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
-        JavaQualifiedTypeInfo qualifiedTypeInfo = new JavaQualifiedTypeInfo();
-        if (groupingFileInfo.getPackage() == null) {
-            List<String> parentNames = new ArrayList<>();
-
-            YangNode tempNode = curNode.getParent();
-            YangNode groupingSuperParent = null;
-            while (tempNode != null) {
-                parentNames.add(tempNode.getName());
-                groupingSuperParent = tempNode;
-                tempNode = tempNode.getParent();
-            }
-
-            String pkg = null;
-            JavaFileInfo parentInfo = ((JavaFileInfoContainer) groupingSuperParent).getJavaFileInfo();
-            if (parentInfo.getPackage() == null) {
-                if (groupingSuperParent instanceof YangJavaModule) {
-                    YangJavaModule module = (YangJavaModule) groupingSuperParent;
-                    String modulePkg = getRootPackage(module.getVersion(), module.getNameSpace().getUri(), module
-                            .getRevision().getRevDate(), pluginConfig.getConflictResolver());
-                    pkg = modulePkg;
-                } else if (groupingSuperParent instanceof YangJavaSubModule) {
-                    YangJavaSubModule submodule = (YangJavaSubModule) groupingSuperParent;
-                    String subModulePkg = getRootPackage(submodule.getVersion(),
-                            submodule.getNameSpaceFromModule(submodule.getBelongsTo()),
-                            submodule.getRevision().getRevDate(), pluginConfig.getConflictResolver());
-                    pkg = subModulePkg;
-                }
-            } else {
-                pkg = parentInfo.getPackage();
-            }
-            for (String name : parentNames) {
-                pkg = pkg + PERIOD + getCamelCase(name, pluginConfig.getConflictResolver());
-            }
-
-            qualifiedTypeInfo.setPkgInfo(pkg.toLowerCase());
-            qualifiedTypeInfo.setClassInfo(
-                    getCapitalCase(getCamelCase(curNode.getName(), pluginConfig.getConflictResolver())));
-            return qualifiedTypeInfo;
-
-        } else {
-            qualifiedTypeInfo.setPkgInfo(groupingFileInfo.getPackage().toLowerCase());
-            qualifiedTypeInfo.setClassInfo(getCapitalCase(groupingFileInfo.getJavaName()));
-            return qualifiedTypeInfo;
-        }
     }
 
     /**
@@ -1308,7 +1293,7 @@ public class TempJavaFragmentFiles {
 
         ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                 .getBeanTempFiles().getJavaImportData().addImportInfo(caseImportInfo,
-                        getCapitalCase(fileInfo.getJavaName()), fileInfo.getPackage());
+                getCapitalCase(fileInfo.getJavaName()), fileInfo.getPackage());
     }
 
     /**
@@ -1319,25 +1304,37 @@ public class TempJavaFragmentFiles {
      * @throws IOException IO operation fail
      */
     public void addLeavesInfoToTempFiles(List<YangLeaf> listOfLeaves,
-            YangPluginConfig yangPluginConfig)
+                                         YangPluginConfig yangPluginConfig)
             throws IOException {
         if (listOfLeaves != null) {
             for (YangLeaf leaf : listOfLeaves) {
                 if (!(leaf instanceof JavaLeafInfoContainer)) {
                     throw new TranslatorException("Leaf does not have java information");
                 }
-                JavaLeafInfoContainer javaLeaf = (JavaLeafInfoContainer) leaf;
-                javaLeaf.setConflictResolveConfig(yangPluginConfig.getConflictResolver());
-                javaLeaf.updateJavaQualifiedInfo();
-                JavaAttributeInfo javaAttributeInfo = getAttributeInfoForTheData(
-                        javaLeaf.getJavaQualifiedInfo(),
-                        javaLeaf.getJavaName(yangPluginConfig.getConflictResolver()),
-                        javaLeaf.getDataType(),
-                        getIsQualifiedAccessOrAddToImportList(javaLeaf.getJavaQualifiedInfo()),
-                        false);
-                addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfo, yangPluginConfig);
+                addJavaSnippetInfoToApplicableTempFiles(getJavaAttributeOfLeaf(leaf, yangPluginConfig),
+                        yangPluginConfig);
             }
         }
+    }
+
+    /**
+     * Returns java attribute for leaf.
+     *
+     * @param leaf             YANG leaf
+     * @param yangPluginConfig plugin configurations
+     * @return java attribute for leaf
+     */
+    private JavaAttributeInfo getJavaAttributeOfLeaf(YangLeaf leaf,
+                                                     YangPluginConfig yangPluginConfig) {
+        JavaLeafInfoContainer javaLeaf = (JavaLeafInfoContainer) leaf;
+        javaLeaf.setConflictResolveConfig(yangPluginConfig.getConflictResolver());
+        javaLeaf.updateJavaQualifiedInfo();
+        return getAttributeInfoForTheData(
+                javaLeaf.getJavaQualifiedInfo(),
+                javaLeaf.getJavaName(yangPluginConfig.getConflictResolver()),
+                javaLeaf.getDataType(),
+                getIsQualifiedAccessOrAddToImportList(javaLeaf.getJavaQualifiedInfo()),
+                false);
     }
 
     /**
@@ -1354,19 +1351,30 @@ public class TempJavaFragmentFiles {
                 if (!(leafList instanceof JavaLeafInfoContainer)) {
                     throw new TranslatorException("Leaf-list does not have java information");
                 }
-                JavaLeafInfoContainer javaLeaf = (JavaLeafInfoContainer) leafList;
-                javaLeaf.setConflictResolveConfig(yangPluginConfig.getConflictResolver());
-                javaLeaf.updateJavaQualifiedInfo();
-                getJavaImportData().setIfListImported(true);
-                JavaAttributeInfo javaAttributeInfo = getAttributeInfoForTheData(
-                        javaLeaf.getJavaQualifiedInfo(),
-                        javaLeaf.getJavaName(yangPluginConfig.getConflictResolver()),
-                        javaLeaf.getDataType(),
-                        getIsQualifiedAccessOrAddToImportList(javaLeaf.getJavaQualifiedInfo()),
-                        true);
-                addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfo, yangPluginConfig);
+                addJavaSnippetInfoToApplicableTempFiles(getJavaAttributeOfLeafList(leafList, yangPluginConfig),
+                        yangPluginConfig);
             }
         }
+    }
+
+    /**
+     * Returns java attribute for leaf-list.
+     *
+     * @param leafList         YANG leaf-list
+     * @param yangPluginConfig plugin configurations
+     * @return java attribute for leaf-list
+     */
+    private JavaAttributeInfo getJavaAttributeOfLeafList(YangLeafList leafList, YangPluginConfig yangPluginConfig) {
+        JavaLeafInfoContainer javaLeaf = (JavaLeafInfoContainer) leafList;
+        javaLeaf.setConflictResolveConfig(yangPluginConfig.getConflictResolver());
+        javaLeaf.updateJavaQualifiedInfo();
+        getJavaImportData().setIfListImported(true);
+        return getAttributeInfoForTheData(
+                javaLeaf.getJavaQualifiedInfo(),
+                javaLeaf.getJavaName(yangPluginConfig.getConflictResolver()),
+                javaLeaf.getDataType(),
+                getIsQualifiedAccessOrAddToImportList(javaLeaf.getJavaQualifiedInfo()),
+                true);
     }
 
     /**
@@ -1378,7 +1386,7 @@ public class TempJavaFragmentFiles {
      * @throws IOException IO operation fail
      */
     public void addCurNodeLeavesInfoToTempFiles(YangNode curNode,
-            YangPluginConfig yangPluginConfig)
+                                                YangPluginConfig yangPluginConfig)
             throws IOException {
         if (!(curNode instanceof YangLeavesHolder)) {
             throw new TranslatorException("Data model node does not have any leaves");
@@ -1455,6 +1463,15 @@ public class TempJavaFragmentFiles {
     }
 
     /**
+     * Returns java class name.
+     *
+     * @return java class name
+     */
+    String getImplClassName() {
+        return getCapitalCase(DEFAULT) + getCapitalCase(getJavaFileInfo().getJavaName());
+    }
+
+    /**
      * Returns the directory path.
      *
      * @return directory path
@@ -1474,6 +1491,8 @@ public class TempJavaFragmentFiles {
             throws IOException {
         List<String> imports = new ArrayList<>();
         imports = getJavaImportData().getImports();
+
+        JavaFileInfo curInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
         createPackage(curNode);
 
@@ -1505,55 +1524,96 @@ public class TempJavaFragmentFiles {
                 validateLineLength(getInterfaceJavaFileHandle());
             }
             insertDataIntoJavaFile(getInterfaceJavaFileHandle(), getJavaClassDefClose());
-            if (isAugmentationHolderExtended(getJavaExtendsListHolder().getExtendsList())) {
-                addAugmentationHoldersImport(curNode, imports, false);
-            }
-            if (isAugmentedInfoExtended(getJavaExtendsListHolder().getExtendsList())) {
-                addAugmentedInfoImport(curNode, imports, false);
-            }
+
             if (curNode instanceof YangCase) {
                 removeCaseImport(imports);
+            }
+            if (curNode instanceof YangJavaAugment) {
+                updateAugmentConstructorTempFile(curNode, curInfo.getPluginConfig());
+                YangJavaAugment augment = (YangJavaAugment) curNode;
+                List<JavaQualifiedTypeInfo> infoList = augment.getExtendedClassInfo();
+                for (JavaQualifiedTypeInfo info : infoList) {
+                    if (info.getClassInfo()
+                            .equals(getCapitalCase(getCamelCase(augment.getAugmentedNode().getName(), null)))) {
+                        removeAugmentedImport(imports, info);
+                    }
+
+                }
             }
         }
         if ((fileType & BUILDER_CLASS_MASK) != 0 || (fileType & IMPL_CLASS_MASK) != 0) {
             if (isAttributePresent()) {
                 addImportsToStringAndHasCodeMethods(curNode, imports);
             }
-            if (isAugmentationHolderExtended(getJavaExtendsListHolder().getExtendsList())) {
-                addAugmentedInfoImport(curNode, imports, true);
-                addArrayListImport(curNode, imports, true);
-            }
             sortImports(imports);
-            /*
-             * Create builder class file.
-             */
-            setBuilderClassJavaFileHandle(getJavaFileHandle(getJavaClassName(BUILDER_CLASS_FILE_NAME_SUFFIX)));
-            setBuilderClassJavaFileHandle(
-                    generateBuilderClassFile(getBuilderClassJavaFileHandle(), imports, curNode,
-                            isAttributePresent()));
             /*
              * Create impl class file.
              */
-            if ((fileType & IMPL_CLASS_MASK) != 0) {
-                setImplClassJavaFileHandle(getJavaFileHandle(getJavaClassName(IMPL_CLASS_FILE_NAME_SUFFIX)));
-                setImplClassJavaFileHandle(
-                        generateImplClassFile(getImplClassJavaFileHandle(), curNode, isAttributePresent()));
+            setImplClassJavaFileHandle(getJavaFileHandle(getImplClassName()));
+            setImplClassJavaFileHandle(
+                    generateImplClassFile(getImplClassJavaFileHandle(), curNode, isAttributePresent(), imports));
+
+            /*
+             * Create builder class file.
+             */
+            if ((fileType & BUILDER_CLASS_MASK) != 0) {
+                setBuilderClassJavaFileHandle(getJavaFileHandle(getJavaClassName(BUILDER_CLASS_FILE_NAME_SUFFIX)));
+                setBuilderClassJavaFileHandle(
+                        generateBuilderClassFile(getBuilderClassJavaFileHandle(), curNode,
+                                isAttributePresent()));
                 /*
                  * Append impl class to builder class and close it.
                  */
-                mergeJavaFiles(getImplClassJavaFileHandle(), getBuilderClassJavaFileHandle());
-                validateLineLength(getBuilderClassJavaFileHandle());
+                mergeJavaFiles(getBuilderClassJavaFileHandle(), getImplClassJavaFileHandle());
+                validateLineLength(getImplClassJavaFileHandle());
             }
-            insertDataIntoJavaFile(getBuilderClassJavaFileHandle(), getJavaClassDefClose());
-            if (isAugmentationHolderExtended(getJavaExtendsListHolder().getExtendsList())) {
-                addAugmentedInfoImport(curNode, imports, false);
-                addArrayListImport(curNode, imports, false);
-            }
+            insertDataIntoJavaFile(getImplClassJavaFileHandle(), getJavaClassDefClose());
         }
         /*
          * Close all the file handles.
          */
         freeTemporaryResources(false);
+    }
+
+    /**
+     * Updates augment constructor temp file.
+     *
+     * @param curNode      current augment node
+     * @param pluginConfig plugin configurations
+     * @throws IOException when fails to do IO operations
+     */
+    private void updateAugmentConstructorTempFile(YangNode curNode, YangPluginConfig pluginConfig)
+            throws IOException {
+        YangJavaAugment augment = (YangJavaAugment) curNode;
+
+        YangNode augmentedNode = augment.getAugmentedNode();
+        if (augmentedNode instanceof YangLeavesHolder) {
+            YangLeavesHolder holder = (YangLeavesHolder) augmentedNode;
+            if (holder.getListOfLeaf() != null) {
+                for (YangLeaf leaf : holder.getListOfLeaf()) {
+                    addAugmentConstructor(getJavaAttributeOfLeaf(leaf,
+                            pluginConfig), pluginConfig);
+                }
+
+            }
+            if (holder.getListOfLeafList() != null) {
+                for (YangLeafList leafList : holder.getListOfLeafList()) {
+                    addAugmentConstructor(getJavaAttributeOfLeafList(leafList,
+                            pluginConfig), pluginConfig);
+                }
+
+            }
+        }
+        augmentedNode = augmentedNode.getChild();
+        boolean isList = false;
+        while (augmentedNode != null) {
+            if (augmentedNode instanceof YangList) {
+                isList = true;
+            }
+            addAugmentConstructor(getCurNodeAsAttributeInTarget(augmentedNode, augment, isList), pluginConfig);
+            augmentedNode = augmentedNode.getNextSibling();
+        }
+
     }
 
     /**
@@ -1566,6 +1626,27 @@ public class TempJavaFragmentFiles {
     public List<String> addImportsToStringAndHasCodeMethods(YangNode curNode, List<String> imports) {
         imports.add(getJavaImportData().getImportForHashAndEquals());
         imports.add(getJavaImportData().getImportForToString());
+        return imports;
+    }
+
+    /**
+     * Removes augmented node import info from import list.
+     *
+     * @param imports list of imports
+     * @return import for class
+     */
+    private List<String> removeAugmentedImport(List<String> imports, JavaQualifiedTypeInfo augmentedInfo) {
+        String augmentedNodeImport = null;
+        if (imports != null && augmentedInfo != null) {
+            augmentedNodeImport = IMPORT + augmentedInfo.getPkgInfo() + PERIOD + getCapitalCase(DEFAULT)
+                    + augmentedInfo.getClassInfo() + PERIOD + augmentedInfo.getClassInfo()
+                    + BUILDER + SEMI_COLAN + NEW_LINE;
+            imports.remove(augmentedNodeImport);
+            augmentedNodeImport = IMPORT + augmentedInfo.getPkgInfo() + PERIOD
+                    + augmentedInfo.getClassInfo() + PERIOD + augmentedInfo.getClassInfo()
+                    + BUILDER + SEMI_COLAN + NEW_LINE;
+            imports.remove(augmentedNodeImport);
+        }
         return imports;
     }
 
@@ -1602,13 +1683,13 @@ public class TempJavaFragmentFiles {
             closeFile(getInterfaceJavaFileHandle(), isError);
         }
         if ((getGeneratedJavaFiles() & BUILDER_CLASS_MASK) != 0) {
-            closeFile(getBuilderClassJavaFileHandle(), isError);
+            closeFile(getBuilderClassJavaFileHandle(), true);
         }
         if ((getGeneratedJavaFiles() & BUILDER_INTERFACE_MASK) != 0) {
             closeFile(getBuilderInterfaceJavaFileHandle(), true);
         }
         if ((getGeneratedJavaFiles() & IMPL_CLASS_MASK) != 0) {
-            closeFile(getImplClassJavaFileHandle(), true);
+            closeFile(getImplClassJavaFileHandle(), isError);
         }
 
         /*
@@ -1631,6 +1712,9 @@ public class TempJavaFragmentFiles {
         }
         if ((getGeneratedTempFiles() & FROM_STRING_IMPL_MASK) != 0) {
             closeFile(getFromStringImplTempFileHandle(), true);
+        }
+        if ((getGeneratedTempFiles() & AUGMENTE_CLASS_CONSTRUCTOR_MASK) != 0) {
+            closeFile(getAugmentConstructorImplTempFileHandle(), true);
         }
     }
 
