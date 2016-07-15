@@ -1,0 +1,36 @@
+module ietf-yang-compiler-annotation {
+
+   namespace "urn:ietf:params:xml:ns:yang:ietf-yang-compiler-annotation";
+
+   prefix "ca";
+
+   organization
+     "IETF NETMOD (NETCONF Data Modeling Language) Working Group";
+
+   contact
+     "WG Web:   <http://tools.ietf.org/wg/netmod/>
+      WG List:  <mailto:netmod@ietf.org>";
+
+   description
+     "This YANG module defines an extension statement that allows for
+      defining compiler annotations.
+
+      The key words 'MUST', 'MUST NOT', 'REQUIRED', 'SHALL', 'SHALL
+      NOT', 'SHOULD', 'SHOULD NOT', 'RECOMMENDED', 'MAY', and
+      'OPTIONAL' in the module text are to be interpreted as described
+      in RFC 2119 (http://tools.ietf.org/html/rfc2119).";
+
+     revision 2016-07-08 {
+     description
+       "Initial revision.";
+     reference
+       "draft-agv-netmod-yang-compiler-metadata:
+        Defining and Using compiler annotations with YANG";
+     }
+
+     extension compiler-annotation {
+        argument target;
+        description "This extension allows for defining compiler annotations";
+      } // compiler-annotation
+   } //module agv-yang-compiler-annotation
+

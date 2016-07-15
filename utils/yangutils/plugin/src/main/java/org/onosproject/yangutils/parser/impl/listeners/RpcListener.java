@@ -16,9 +16,9 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangRpc;
-import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
@@ -28,23 +28,23 @@ import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
 import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_GENERATION;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.DESCRIPTION_DATA;
-import static org.onosproject.yangutils.datamodel.utils.YangConstructType.GROUPING_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.INPUT_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.OUTPUT_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.REFERENCE_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.RPC_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.STATUS_DATA;
-import static org.onosproject.yangutils.datamodel.utils.YangConstructType.TYPEDEF_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerCollisionDetector.detectCollidingChildUtil;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.*;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityMaxOne;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateMutuallyExclusiveChilds;
 import static org.onosproject.yangutils.translator.tojava.YangDataModelFactory.getYangRpcNode;
 
 /*
@@ -157,8 +157,6 @@ public final class RpcListener {
         validateCardinalityMaxOne(ctx.referenceStatement(), REFERENCE_DATA, RPC_DATA, ctx.identifier().getText());
         validateCardinalityMaxOne(ctx.inputStatement(), INPUT_DATA, RPC_DATA, ctx.identifier().getText());
         validateCardinalityMaxOne(ctx.outputStatement(), OUTPUT_DATA, RPC_DATA, ctx.identifier().getText());
-        validateMutuallyExclusiveChilds(ctx.typedefStatement(), TYPEDEF_DATA, ctx.groupingStatement(), GROUPING_DATA,
-                RPC_DATA, ctx.identifier().getText());
     }
 
 }

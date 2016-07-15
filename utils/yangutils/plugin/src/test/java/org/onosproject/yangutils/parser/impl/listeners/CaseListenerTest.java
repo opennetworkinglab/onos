@@ -16,9 +16,10 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import java.io.IOException;
+import java.util.ListIterator;
 import org.junit.Test;
+import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangCase;
 import org.onosproject.yangutils.datamodel.YangChoice;
 import org.onosproject.yangutils.datamodel.YangContainer;
@@ -29,8 +30,8 @@ import org.onosproject.yangutils.datamodel.YangNodeType;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 
-import java.io.IOException;
-import java.util.ListIterator;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 
 /**
  * Test cases for case listener.
@@ -201,5 +202,37 @@ public class CaseListenerTest {
         ListIterator<YangLeaf> leafIterator2 = yangCase3.getListOfLeaf().listIterator();
         YangLeaf leafInfo2 = leafIterator2.next();
         assertThat(leafInfo2.getName(), is("beer"));
+    }
+
+    /**
+     * Checks case substatement of augment.
+     */
+    @Test
+    public void processCaseSubStatementOfAugment() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/CaseSubStatementOfAugment.yang");
+
+        // Check whether the data model tree returned is of type module.
+        assertThat((node instanceof YangModule), is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+
+        // Check whether the module name is set correctly.
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("event"));
+
+        YangAugment augment = ((YangAugment) yangNode.getChild());
+        assertThat(augment.getName(), is("/snmp:snmp/snmp:engine/snmp:listen/snmp:transport"));
+
+        YangCase yangCase = ((YangCase) augment.getChild());
+        assertThat(yangCase.getName(), is("tls"));
+
+        YangCase yangCase1 = ((YangCase) yangCase.getNextSibling());
+        assertThat(yangCase1.getName(), is("dtls"));
+
+        YangContainer container = ((YangContainer) yangCase.getChild());
+        assertThat(container.getName(), is("tls"));
+        assertThat(container.getListOfLeaf().iterator().next().getName(), is("ip"));
     }
 }

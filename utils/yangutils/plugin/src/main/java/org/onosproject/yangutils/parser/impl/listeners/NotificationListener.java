@@ -28,11 +28,9 @@ import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
 import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_GENERATION;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.DESCRIPTION_DATA;
-import static org.onosproject.yangutils.datamodel.utils.YangConstructType.GROUPING_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.NOTIFICATION_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.REFERENCE_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.STATUS_DATA;
-import static org.onosproject.yangutils.datamodel.utils.YangConstructType.TYPEDEF_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerCollisionDetector.detectCollidingChildUtil;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
@@ -45,7 +43,6 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityMaxOne;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateMutuallyExclusiveChilds;
 import static org.onosproject.yangutils.translator.tojava.YangDataModelFactory.getYangNotificationNode;
 
 /*
@@ -159,7 +156,5 @@ public final class NotificationListener {
                 ctx.identifier().getText());
         validateCardinalityMaxOne(ctx.referenceStatement(), REFERENCE_DATA, NOTIFICATION_DATA,
                 ctx.identifier().getText());
-        validateMutuallyExclusiveChilds(ctx.typedefStatement(), TYPEDEF_DATA, ctx.groupingStatement(), GROUPING_DATA,
-                NOTIFICATION_DATA, ctx.identifier().getText());
     }
 }

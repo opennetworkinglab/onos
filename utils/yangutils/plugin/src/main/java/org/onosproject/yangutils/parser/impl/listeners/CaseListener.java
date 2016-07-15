@@ -16,6 +16,7 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangCase;
 import org.onosproject.yangutils.datamodel.YangChoice;
 import org.onosproject.yangutils.datamodel.YangNode;
@@ -104,7 +105,7 @@ public final class CaseListener {
         int charPositionInLine = ctx.getStart().getCharPositionInLine();
         detectCollidingChildUtil(listener, line, charPositionInLine, identifier, CASE_DATA);
 
-        if (curData instanceof YangChoice) {
+        if (curData instanceof YangChoice || curData instanceof YangAugment) {
             YangCase caseNode = getYangCaseNode(JAVA_GENERATION);
             caseNode.setName(identifier);
             YangNode curNode = (YangNode) curData;

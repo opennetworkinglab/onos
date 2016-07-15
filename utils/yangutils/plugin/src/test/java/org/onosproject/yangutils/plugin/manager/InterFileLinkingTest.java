@@ -16,13 +16,19 @@
 
 package org.onosproject.yangutils.plugin.manager;
 
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.ListIterator;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.onosproject.yangutils.datamodel.YangAugment;
+import org.onosproject.yangutils.datamodel.YangContainer;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangGrouping;
 import org.onosproject.yangutils.datamodel.YangLeaf;
+import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeType;
@@ -35,10 +41,6 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
 import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
-
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.ListIterator;
 
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -778,5 +780,61 @@ public class InterFileLinkingTest {
         YangModule referredNode1 = (YangModule) refNode1;
         assertThat(referredNode1.getName(), is("module2"));
         assertThat(referredNode1.getPriority(), is(3));
+    }
+
+    /**
+     * Checks contents of uses are copied as child of grouping.
+     */
+    @Test
+    public void usesInsideChildOfGrouping()
+            throws IOException, ParserException, MojoExecutionException {
+
+        String searchDir = "src/test/resources/usesInsideChildOfGrouping";
+        utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
+        utilManager.parseYangFileInfoSet();
+        utilManager.resolveDependenciesUsingLinker();
+
+        YangNode selfNode = null;
+        YangNode refNode1 = null;
+
+        for (YangNode rootNode : utilManager.getYangNodeSet()) {
+            if (rootNode.getName().equals("ietf-network")) {
+                selfNode = rootNode;
+            } else if (rootNode.getName().equals("ietf-te-topology")) {
+                refNode1 = rootNode;
+            }
+        }
+
+        // Check whether the data model tree returned is of type module.
+        assertThat(selfNode instanceof YangModule, is(true));
+        assertThat(selfNode.getNodeType(), is(MODULE_NODE));
+        YangModule yangNode = (YangModule) selfNode;
+        assertThat(yangNode.getName(), is("ietf-network"));
+
+        YangModule refNode = (YangModule) refNode1;
+        assertThat(refNode.getName(), is("ietf-te-topology"));
+
+        YangAugment augment = ((YangAugment) refNode.getChild().getNextSibling().
+                getNextSibling().getNextSibling().getNextSibling());
+        assertThat(augment.getName(), is("/nw:networks/nw:network/nw:node"));
+
+        YangUses uses = ((YangUses) augment.getChild());
+        YangContainer container = ((YangContainer) uses.getNextSibling());
+        assertThat(container.getName(), is("te"));
+
+        container = ((YangContainer) container.getChild());
+        assertThat(container.getName(), is("config"));
+
+        uses = ((YangUses) container.getChild().getNextSibling());
+        assertThat(uses.getName(), is("te-node-config-attributes"));
+
+        YangContainer container1 = ((YangContainer) uses.getNextSibling());
+        assertThat(container1.getName(), is("te-node-attributes"));
+
+        uses = ((YangUses) container1.getChild());
+        assertThat(uses.getName(), is("te-node-connectivity-matrix"));
+
+        YangList list = ((YangList) uses.getNextSibling());
+        assertThat(list.getName(), is("connectivity-matrix"));
     }
 }

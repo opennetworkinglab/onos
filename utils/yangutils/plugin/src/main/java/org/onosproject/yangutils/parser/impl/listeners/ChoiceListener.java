@@ -35,14 +35,12 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
 import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_GENERATION;
-import static org.onosproject.yangutils.datamodel.utils.YangConstructType.CASE_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.CHOICE_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.CONFIG_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.DEFAULT_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.DESCRIPTION_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.MANDATORY_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.REFERENCE_DATA;
-import static org.onosproject.yangutils.datamodel.utils.YangConstructType.SHORT_CASE_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.STATUS_DATA;
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.WHEN_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerCollisionDetector.detectCollidingChildUtil;
@@ -57,7 +55,6 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityMaxOne;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateMutuallyExclusiveChilds;
 import static org.onosproject.yangutils.translator.tojava.YangDataModelFactory.getYangChoiceNode;
 
 /*
@@ -181,7 +178,5 @@ public final class ChoiceListener {
         validateCardinalityMaxOne(ctx.descriptionStatement(), DESCRIPTION_DATA, CHOICE_DATA,
                 ctx.identifier().getText());
         validateCardinalityMaxOne(ctx.referenceStatement(), REFERENCE_DATA, CHOICE_DATA, ctx.identifier().getText());
-        validateMutuallyExclusiveChilds(ctx.shortCaseStatement(), SHORT_CASE_DATA, ctx.caseStatement(), CASE_DATA,
-                CHOICE_DATA, ctx.identifier().getText());
     }
 }

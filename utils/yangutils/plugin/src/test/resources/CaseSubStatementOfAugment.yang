@@ -1,0 +1,58 @@
+module event {
+
+    namespace "http://example.com/event";
+    prefix "ev";
+
+    augment /snmp:snmp/snmp:engine/snmp:listen/snmp:transport {
+    if-feature tlstm;
+    case tls {
+      container tls {
+        description
+          "A list of IPv4 and IPv6 addresses and ports to which the
+           engine listens for SNMP messages over TLS.";
+        leaf ip {
+          type inet:ip-address;
+          mandatory true;
+          description
+            "The IPv4 or IPv6 address on which the engine listens
+             for SNMP messages over TLS.";
+        }
+        leaf port {
+          type inet:port-number;
+          description
+            "The TCP port on which the engine listens for SNMP
+             messages over TLS.
+             If the port is not configured, an engine that
+             acts as a Command Responder uses port 10161, and
+             an engine that acts as a Notification Receiver
+             uses port 10162.";
+        }
+      }
+    }
+    case dtls {
+      container dtls1 {
+        description
+          "A list of IPv4 and IPv6 addresses and ports to which the
+           engine listens for SNMP messages over DTLS.";
+        leaf ip {
+          type inet:ip-address;
+          mandatory true;
+          description
+            "The IPv4 or IPv6 address on which the engine listens
+             for SNMP messages over DTLS.";
+        }
+        leaf port {
+          type inet:port-number;
+          description
+            "The UDP port on which the engine listens for SNMP
+             messages over DTLS.
+             If the port is not configured, an engine that
+             acts as a Command Responder uses port 10161, and
+             an engine that acts as a Notification Receiver
+             uses port 10162.";
+        }
+      }
+    }
+  }
+}
+

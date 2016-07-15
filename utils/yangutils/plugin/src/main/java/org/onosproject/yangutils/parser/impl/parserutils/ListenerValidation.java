@@ -208,29 +208,30 @@ public final class ListenerValidation {
     /**
      * Checks if a either of one construct occurrence.
      *
-     * @param child1Context first optional child's context
+     * @param child1Context       first optional child's context
      * @param yangChild1Construct first child construct for whom cardinality is
      *                            to be validated
-     * @param child2Context second optional child's context
+     * @param child2Context       second optional child's context
      * @param yangChild2Construct second child construct for whom cardinality is
      *                            to be validated
      * @param yangParentConstruct parent construct
-     * @param parentName parent name
+     * @param parentName          parent name
+     * @param parentContext       parents's context
      * @throws ParserException exception if cardinality check fails
      */
-    public static void validateMutuallyExclusiveChilds(List<?> child1Context, YangConstructType yangChild1Construct,
-            List<?> child2Context, YangConstructType yangChild2Construct,
-            YangConstructType yangParentConstruct, String parentName)
+    public static void validateCardinalityEitherOne(List<?> child1Context, YangConstructType yangChild1Construct,
+                                                    List<?> child2Context, YangConstructType yangChild2Construct,
+                                                    YangConstructType yangParentConstruct, String parentName,
+                                                    ParserRuleContext parentContext)
             throws ParserException {
 
-        if (!child1Context.isEmpty() && !child2Context.isEmpty()) {
-            ParserException parserException = new ParserException("YANG file error: \""
-                    + getYangConstructType(yangChild1Construct) + "\" & \"" + getYangConstructType(yangChild2Construct)
-                    + "\" should be mutually exclusive in \"" + getYangConstructType(yangParentConstruct) + " "
+        if (child1Context.isEmpty() && child2Context.isEmpty()) {
+            ParserException parserException = new ParserException("YANG file error: Either \""
+                    + getYangConstructType(yangChild1Construct) + "\" or \"" + getYangConstructType(yangChild2Construct)
+                    + "\" should be present in \"" + getYangConstructType(yangParentConstruct) + " "
                     + parentName + "\".");
-
-            parserException.setLine(((ParserRuleContext) child2Context).getStart().getLine());
-            parserException.setCharPosition(((ParserRuleContext) child2Context).getStart().getCharPositionInLine());
+            parserException.setLine(parentContext.getStart().getLine());
+            parserException.setCharPosition(parentContext.getStart().getCharPositionInLine());
             throw parserException;
         }
     }

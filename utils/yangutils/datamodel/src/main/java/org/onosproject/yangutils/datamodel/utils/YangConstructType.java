@@ -382,7 +382,12 @@ public enum YangConstructType {
     /**
      * Identifies the YANG anyxml element parsed data.
      */
-    ANYXML_DATA;
+    ANYXML_DATA,
+
+    /**
+     * Identifies the YANG argument element parsed data.
+     */
+    ARGUMENT_DATA;
 
     /**
      * Returns the YANG construct keyword corresponding to enum values.
@@ -539,6 +544,8 @@ public enum YangConstructType {
                 return "deviation";
             case ANYXML_DATA:
                 return "anyxml";
+            case ARGUMENT_DATA:
+                return "argument";
             default:
                 return "yang";
         }

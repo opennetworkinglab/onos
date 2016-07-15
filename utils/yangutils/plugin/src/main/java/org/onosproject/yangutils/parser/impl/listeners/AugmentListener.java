@@ -52,8 +52,8 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidAbsoluteSchemaNodeId;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.removeQuotesAndHandleConcat;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityEitherOne;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityMaxOne;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateMutuallyExclusiveChilds;
 import static org.onosproject.yangutils.translator.tojava.YangDataModelFactory.getYangAugmentNode;
 
 /*
@@ -176,8 +176,8 @@ public final class AugmentListener {
         validateCardinalityMaxOne(ctx.descriptionStatement(), DESCRIPTION_DATA, AUGMENT_DATA, ctx.augment().getText());
         validateCardinalityMaxOne(ctx.referenceStatement(), REFERENCE_DATA, AUGMENT_DATA, ctx.augment().getText());
         validateCardinalityMaxOne(ctx.whenStatement(), WHEN_DATA, AUGMENT_DATA, ctx.augment().getText());
-        validateMutuallyExclusiveChilds(ctx.dataDefStatement(), DATA_DEF_DATA, ctx.caseStatement(),
-                CASE_DATA, AUGMENT_DATA, ctx.augment().getText());
+        validateCardinalityEitherOne(ctx.dataDefStatement(), DATA_DEF_DATA, ctx.caseStatement(),
+                CASE_DATA, AUGMENT_DATA, ctx.augment().getText(), ctx);
     }
 
     /**

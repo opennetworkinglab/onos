@@ -24,6 +24,7 @@ import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangListener;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.impl.listeners.ArgumentListener;
 import org.onosproject.yangutils.parser.impl.listeners.AugmentListener;
 import org.onosproject.yangutils.parser.impl.listeners.BaseFileListener;
 import org.onosproject.yangutils.parser.impl.listeners.BaseListener;
@@ -42,6 +43,7 @@ import org.onosproject.yangutils.parser.impl.listeners.EnumListener;
 import org.onosproject.yangutils.parser.impl.listeners.EnumerationListener;
 import org.onosproject.yangutils.parser.impl.listeners.ErrorAppTagListener;
 import org.onosproject.yangutils.parser.impl.listeners.ErrorMessageListener;
+import org.onosproject.yangutils.parser.impl.listeners.ExtensionListener;
 import org.onosproject.yangutils.parser.impl.listeners.FeatureListener;
 import org.onosproject.yangutils.parser.impl.listeners.FractionDigitsListener;
 import org.onosproject.yangutils.parser.impl.listeners.GroupingListener;
@@ -436,12 +438,12 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterExtensionStatement(GeneratedYangParser.ExtensionStatementContext ctx) {
-        handleUnsupportedYangConstruct(YangConstructType.EXTENSION_DATA, ctx, UNSUPPORTED_YANG_CONSTRUCT);
+        ExtensionListener.processExtensionEntry(this, ctx);
     }
 
     @Override
     public void exitExtensionStatement(GeneratedYangParser.ExtensionStatementContext ctx) {
-        // do nothing
+        ExtensionListener.processExtensionExit(this, ctx);
     }
 
     @Override
@@ -456,7 +458,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterArgumentStatement(GeneratedYangParser.ArgumentStatementContext ctx) {
-        // do nothing.
+        ArgumentListener.processArgumentEntry(this, ctx);
     }
 
     @Override

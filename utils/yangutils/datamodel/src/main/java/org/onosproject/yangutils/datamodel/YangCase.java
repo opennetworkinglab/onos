@@ -354,7 +354,7 @@ public class YangCase
     @Override
     public void detectCollidingChild(String identifierName, YangConstructType dataType)
             throws DataModelException {
-        if (!(getParent() instanceof YangChoice)) {
+        if (!(getParent() instanceof YangChoice || getParent() instanceof YangAugment)) {
             throw new DataModelException("Internal Data Model Tree Error: Invalid/Missing holder in case " +
                     getName());
         }

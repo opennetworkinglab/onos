@@ -1,0 +1,60 @@
+module ietf-te-topology {
+    yang-version 1;
+    namespace "urn:ietf:params:xml:ns:yang:ietf-te-topology";
+
+    prefix "tet";
+
+    import ietf-network {
+        prefix "nw";
+    }
+
+    revision "2016-03-17" {
+        description "Initial revision";
+    }
+
+    grouping te-node-augment {
+        container te {
+            presence "TE support.";
+
+            leaf te-node-id {
+                type string;
+                mandatory true;
+            }
+
+            container config {
+                uses te-node-config;
+            } // config
+        } // te
+    } // te-node-augment
+
+    grouping te-node-config {
+        leaf-list te-node-template {
+            if-feature template;
+            type string;
+        }
+        uses te-node-config-attributes;
+    } // te-node-config
+
+    grouping te-node-config-attributes {
+        container te-node-attributes {
+            leaf admin-status {
+               type string;
+            }
+            uses te-node-connectivity-matrix;
+        } // te-node-attributes
+    } // te-node-config-attributes
+
+    grouping te-node-connectivity-matrix {
+        list connectivity-matrix {
+            key "id";
+            leaf id {
+                type uint32;
+                description "Identifies the connectivity-matrix entry.";
+            }
+        }
+    } // te-node-connectivity-matrix
+
+    augment "/nw:networks/nw:network/nw:node" {
+        uses te-node-augment;
+    }
+}

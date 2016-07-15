@@ -103,6 +103,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.REFERENCE_CARDINALIT
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.closeFile;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.readAppendFile;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.GETTER_METHOD;
@@ -1688,6 +1689,12 @@ public class TempJavaFragmentFiles {
      */
     private void removeAugmentedInfoImport(List<String> imports) {
         imports.remove(getJavaImportData().getYangAugmentedInfoImport());
+        for (JavaQualifiedTypeInfo type : getJavaImportData().getImportSet()) {
+            if (type.getClassInfo().equals(YANG_AUGMENTED_INFO)) {
+                getJavaImportData().getImportSet().remove(type);
+                getJavaExtendsListHolder().getExtendsList().remove(type);
+            }
+        }
     }
 
     /**

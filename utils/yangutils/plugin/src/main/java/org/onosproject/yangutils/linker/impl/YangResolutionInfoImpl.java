@@ -16,8 +16,14 @@
 
 package org.onosproject.yangutils.linker.impl;
 
+import java.io.Serializable;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Stack;
 import org.onosproject.yangutils.datamodel.Resolvable;
 import org.onosproject.yangutils.datamodel.ResolvableType;
+import org.onosproject.yangutils.datamodel.TraversalType;
 import org.onosproject.yangutils.datamodel.YangAtomicPath;
 import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangAugmentableNode;
@@ -58,12 +64,10 @@ import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.linker.YangLinkingPhase;
 import org.onosproject.yangutils.linker.exceptions.LinkerException;
 
-import java.io.Serializable;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Stack;
-
+import static org.onosproject.yangutils.datamodel.TraversalType.CHILD;
+import static org.onosproject.yangutils.datamodel.TraversalType.PARENT;
+import static org.onosproject.yangutils.datamodel.TraversalType.ROOT;
+import static org.onosproject.yangutils.datamodel.TraversalType.SIBILING;
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.addResolutionInfo;
 import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.INTER_FILE_LINKED;
 import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.INTRA_FILE_RESOLVED;
@@ -1007,16 +1011,33 @@ public class YangResolutionInfoImpl<T>
         /**
          * Search the grouping node's children for presence of uses node.
          */
+        TraversalType curTraversal = ROOT;
         YangNode curNode = node.getChild();
         while (curNode != null) {
+            if (curNode.getName().equals(node.getName())) {
+                // if we have traversed all the child nodes, then exit from loop
+                return;
+            }
+
+            // if child nodes has uses, then add it to resolution stack
             if (curNode instanceof YangUses) {
                 YangEntityToResolveInfoImpl<YangUses> unResolvedEntityInfo = new YangEntityToResolveInfoImpl<>();
                 unResolvedEntityInfo.setEntityToResolve((YangUses) curNode);
                 unResolvedEntityInfo.setHolderOfEntityToResolve(node);
                 addInPartialResolvedStack((YangEntityToResolveInfoImpl<T>) unResolvedEntityInfo);
-
             }
-            curNode = curNode.getNextSibling();
+
+            // Traversing all the child nodes of grouping
+            if (curTraversal != PARENT && curNode.getChild() != null) {
+                curTraversal = CHILD;
+                curNode = curNode.getChild();
+            } else if (curNode.getNextSibling() != null) {
+                curTraversal = SIBILING;
+                curNode = curNode.getNextSibling();
+            } else {
+                curTraversal = PARENT;
+                curNode = curNode.getParent();
+            }
         }
     }
 
@@ -1421,7 +1442,7 @@ public class YangResolutionInfoImpl<T>
      * @param resolutionInfo information about the YANG construct which has to be resolved
      * @throws DataModelException a violation of data model rules
      */
-    public void setAbsolutePathFromRelativePathInLeafref(T resolutionInfo) throws  DataModelException {
+    public void setAbsolutePathFromRelativePathInLeafref(T resolutionInfo) throws DataModelException {
         if (resolutionInfo instanceof YangLeafRef) {
 
             YangNode parentOfLeafref = ((YangLeafRef) resolutionInfo).getParentNodeOfLeafref();

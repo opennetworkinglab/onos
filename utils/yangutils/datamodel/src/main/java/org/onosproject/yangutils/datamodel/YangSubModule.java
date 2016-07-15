@@ -224,6 +224,11 @@ public class YangSubModule
     private List<YangResolutionInfo> identityrefResolutionList;
 
     /**
+     * extension list.
+     */
+    private List<YangExtension> extensionList;
+
+    /**
      * Augment resolution list.
      */
     private List<YangResolutionInfo> augmentResolutionList;
@@ -244,6 +249,7 @@ public class YangSubModule
         includeList = new LinkedList<YangInclude>();
         listOfLeaf = new LinkedList<YangLeaf>();
         listOfLeafList = new LinkedList<YangLeafList>();
+        extensionList = new LinkedList<YangExtension>();
     }
 
     /**
@@ -601,7 +607,7 @@ public class YangSubModule
             leafrefResolutionList.add(resolutionInfo);
         } else if (type == ResolvableType.YANG_BASE) {
             baseResolutionList.add(resolutionInfo);
-        } else if (type ==  ResolvableType.YANG_AUGMENT) {
+        } else if (type == ResolvableType.YANG_AUGMENT) {
             augmentResolutionList.add(resolutionInfo);
         } else if (type == ResolvableType.YANG_IDENTITYREF) {
             identityrefResolutionList.add(resolutionInfo);
@@ -621,7 +627,7 @@ public class YangSubModule
             leafrefResolutionList = resolutionList;
         } else if (type == ResolvableType.YANG_BASE) {
             baseResolutionList = resolutionList;
-        } else if (type ==  ResolvableType.YANG_AUGMENT) {
+        } else if (type == ResolvableType.YANG_AUGMENT) {
             augmentResolutionList = resolutionList;
         } else if (type == ResolvableType.YANG_IDENTITYREF) {
             identityrefResolutionList = resolutionList;
@@ -683,5 +689,32 @@ public class YangSubModule
     @Override
     public void setListOfFeature(List<YangFeature> listOfFeature) {
         this.listOfFeature = listOfFeature;
+    }
+
+    /**
+     * Adds extension in extension list.
+     *
+     * @param extension the extension to be added
+     */
+    public void addExtension(YangExtension extension) {
+        getExtensionList().add(extension);
+    }
+
+    /**
+     * Returns the extension list.
+     *
+     * @return the extension list
+     */
+    public List<YangExtension> getExtensionList() {
+        return extensionList;
+    }
+
+    /**
+     * Sets the extension list.
+     *
+     * @param extensionList the list of extension
+     */
+    public void setExtensionList(List<YangExtension> extensionList) {
+        this.extensionList = extensionList;
     }
 }

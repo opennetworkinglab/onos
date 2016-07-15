@@ -171,8 +171,11 @@ public final class ContainerListener {
             try {
                 yangContainer.validateDataOnExit();
             } catch (DataModelException e) {
-                throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA,
-                        CONTAINER_DATA, ctx.identifier().getText(), EXIT, e.getMessage()));
+                ParserException parserException = new ParserException(constructExtendedListenerErrorMessage(
+                        UNHANDLED_PARSED_DATA, CONTAINER_DATA, ctx.identifier().getText(), EXIT, e.getMessage()));
+                parserException.setLine(ctx.getStart().getLine());
+                parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+                throw parserException;
             }
             listener.getParsedDataStack().pop();
         } else {
