@@ -18,6 +18,7 @@ package org.onosproject.vtnrsc.virtualport;
 import java.util.Collection;
 
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.vtnrsc.FixedIp;
@@ -53,6 +54,14 @@ public interface VirtualPortService extends ListenerService<VirtualPortEvent, Vi
      * @return virtualPort.
      */
     VirtualPort getPort(FixedIp fixedIP);
+
+    /**
+     * Returns the virtualPort associated with the mac address.
+     *
+     * @param mac the mac address
+     * @return virtualPort.
+     */
+    VirtualPort getPort(MacAddress mac);
 
     /**
      * Returns the virtualPort associated with the networkId and ip.

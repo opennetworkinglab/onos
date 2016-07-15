@@ -31,6 +31,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -79,6 +80,7 @@ implements VirtualPortService {
     private static final String NETWORKID_NOT_NULL = "NetworkId  cannot be null";
     private static final String DEVICEID_NOT_NULL = "DeviceId  cannot be null";
     private static final String FIXEDIP_NOT_NULL = "FixedIp  cannot be null";
+    private static final String MAC_NOT_NULL = "Mac address  cannot be null";
     private static final String IP_NOT_NULL = "Ip  cannot be null";
     private static final String EVENT_NOT_NULL = "event cannot be null";
 
@@ -155,6 +157,21 @@ implements VirtualPortService {
                     vPorts.add(p);
                     break;
                 }
+            }
+        });
+        if (vPorts.size() == 0) {
+            return null;
+        }
+        return vPorts.get(0);
+    }
+
+    @Override
+    public VirtualPort getPort(MacAddress mac) {
+        checkNotNull(mac, MAC_NOT_NULL);
+        List<VirtualPort> vPorts = new ArrayList<>();
+        vPortStore.values().stream().forEach(p -> {
+            if (p.macAddress().equals(mac)) {
+                vPorts.add(p);
             }
         });
         if (vPorts.size() == 0) {
