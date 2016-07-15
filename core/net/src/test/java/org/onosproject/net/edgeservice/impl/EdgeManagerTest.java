@@ -15,13 +15,16 @@
  */
 package org.onosproject.net.edgeservice.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.common.event.impl.TestEventDispatcher;
+import org.onosproject.event.Event;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
@@ -36,11 +39,11 @@ import org.onosproject.net.edge.EdgePortEvent;
 import org.onosproject.net.edge.EdgePortListener;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.link.LinkEvent;
-import org.onosproject.net.link.LinkListener;
-import org.onosproject.net.link.LinkServiceAdapter;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketServiceAdapter;
 import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyEvent;
+import org.onosproject.net.topology.TopologyEvent.Type;
 import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyServiceAdapter;
 
@@ -52,6 +55,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 import static org.onosproject.net.device.DeviceEvent.Type.*;
@@ -74,7 +78,6 @@ public class EdgeManagerTest {
     private final Map<DeviceId, Device> devices = Maps.newConcurrentMap();
     private Set<OutboundPacket> packets = Sets.newConcurrentHashSet();
     private final EdgePortListener testListener = new TestListener(events);
-    private TestLinkManager testLinkManager;
     private TestDeviceManager testDeviceManager;
     private TestTopologyManager testTopologyManager;
 
@@ -87,8 +90,6 @@ public class EdgeManagerTest {
         testDeviceManager = new TestDeviceManager(devices);
         mgr.deviceService = testDeviceManager;
         mgr.packetService = new TestPacketManager();
-        testLinkManager = new TestLinkManager();
-        mgr.linkService = testLinkManager;
         mgr.activate();
         mgr.addListener(testListener);
 
@@ -126,7 +127,7 @@ public class EdgeManagerTest {
         ConnectPoint testPoint, referencePoint;
 
         //Testing link removal
-        testLinkManager.listener.event(new LinkEvent(LINK_REMOVED, NetTestTools.link("a", 1, "b", 2)));
+        postTopologyEvent(new LinkEvent(LINK_REMOVED, NetTestTools.link("a", 1, "b", 2)));
 
         assertTrue("The list contained an unexpected number of events", events.size() == 2);
         assertTrue("The first element is of the wrong type.",
@@ -147,12 +148,12 @@ public class EdgeManagerTest {
                    testPoint.deviceId().equals(referencePoint.deviceId()));
 
         //Rebroadcast event to ensure it results in no additional events
-        testLinkManager.listener.event(new LinkEvent(LINK_REMOVED, NetTestTools.link("a", 1, "b", 2)));
+        postTopologyEvent(new LinkEvent(LINK_REMOVED, NetTestTools.link("a", 1, "b", 2)));
         assertTrue("The list contained an unexpected number of events", events.size() == 2);
 
         //Testing link adding when links to remove exist
         events.clear();
-        testLinkManager.listener.event(new LinkEvent(LINK_ADDED, NetTestTools.link("a", 1, "b", 2)));
+        postTopologyEvent(new LinkEvent(LINK_ADDED, NetTestTools.link("a", 1, "b", 2)));
 
         assertTrue("The list contained an unexpected number of events", events.size() == 2);
         assertTrue("The first element is of the wrong type.",
@@ -176,9 +177,10 @@ public class EdgeManagerTest {
 
         //Apparent duplicate of previous method tests removal when the elements have already been removed
         events.clear();
-        testLinkManager.listener.event(new LinkEvent(LINK_ADDED, NetTestTools.link("a", 1, "b", 2)));
+        postTopologyEvent(new LinkEvent(LINK_ADDED, NetTestTools.link("a", 1, "b", 2)));
         assertTrue("The list should contain no events, the removed elements don't exist.", events.size() == 0);
     }
+
 
     @Test
     public void testDeviceUpdates() {
@@ -195,7 +197,7 @@ public class EdgeManagerTest {
         referenceDevice = NetTestTools.device("1");
         event = new DeviceEvent(DEVICE_ADDED, referenceDevice,
                                 new DefaultPort(referenceDevice, PortNumber.portNumber(1), true));
-        testDeviceManager.listener.event(event);
+        postTopologyEvent(event);
 
         //Check that ports were populated correctly
         assertTrue("Unexpected number of new ports added",
@@ -216,7 +218,7 @@ public class EdgeManagerTest {
         events.clear();
 
         //Repost the event to test repeated posts
-        testDeviceManager.listener.event(event);
+        postTopologyEvent(event);
         assertEquals("The redundant notification should not have created additional notifications.",
                      0, events.size());
         //Calculate the size of the returned iterable of edge points.
@@ -231,21 +233,21 @@ public class EdgeManagerTest {
         events.clear();
         event = (new DeviceEvent(DEVICE_REMOVED, referenceDevice,
                                  new DefaultPort(referenceDevice, PortNumber.portNumber(1), true)));
-        testDeviceManager.listener.event(event);
+        postTopologyEvent(event);
 
         assertEquals("There should be five new events from removal of edge points",
                      totalPorts - numInfraPorts, events.size());
         for (int index = 0; index < events.size(); index++) {
             //Assert that the correct port numbers were removed in the correct order
-            assertEquals("Port removed had unexpected port number.",
-                         events.get(index).subject().port(),
-                         (NetTestTools.connectPoint("a", index + numInfraPorts + 1).port()));
+            assertThat("Port removed had unexpected port number.",
+                       events.get(index).subject().port().toLong(),
+                       is(greaterThanOrEqualTo((long) numInfraPorts)));
             //Assert that the events are of the correct type
             assertEquals("Unexpected type of event", events.get(index).type(), EDGE_PORT_REMOVED);
         }
         events.clear();
         //Rebroadcast event to check that it triggers no new behavior
-        testDeviceManager.listener.event(event);
+        postTopologyEvent(event);
         assertEquals("Rebroadcast of removal event should not produce additional events",
                      0, events.size());
 
@@ -256,14 +258,14 @@ public class EdgeManagerTest {
         devices.put(referenceDevice.id(), referenceDevice);
 
         event = new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, referenceDevice);
-        testDeviceManager.listener.event(event);
+        postTopologyEvent(event);
         //An earlier setup set half of the reference device ports to infrastructure
         assertEquals("An unexpected number of events were generated.", totalPorts - numInfraPorts, events.size());
         for (int i = 0; i < 5; i++) {
             assertEquals("The event was not of the right type", events.get(i).type(), EDGE_PORT_ADDED);
         }
         events.clear();
-        testDeviceManager.listener.event(event);
+        postTopologyEvent(event);
         assertEquals("No events should have been generated for a set of existing ports.", 0, events.size());
 
         //Test removal when state changes when the device becomes unavailable
@@ -275,17 +277,19 @@ public class EdgeManagerTest {
         no events will be generated since no ports will be provided in getPorts() to EdgeManager.
         */
         alwaysReturnPorts = true;
-        testDeviceManager.listener.event(event);
+        postTopologyEvent(event);
         alwaysReturnPorts = false;
         assertEquals("An unexpected number of events were created.", totalPorts - numInfraPorts, events.size());
         for (int i = 0; i < 5; i++) {
             EdgePortEvent edgeEvent = events.get(i);
             assertEquals("The event is of an unexpected type.",
                          EdgePortEvent.Type.EDGE_PORT_REMOVED, edgeEvent.type());
-            assertEquals("The event pertains to an unexpected port", PortNumber.portNumber(i + numInfraPorts + 1),
-                         edgeEvent.subject().port());
+            assertThat("The event pertains to an unexpected port",
+                       edgeEvent.subject().port().toLong(),
+                       is(greaterThanOrEqualTo((long) numInfraPorts)));
         }
     }
+
 
     @Test
     public void testInternalCache() {
@@ -298,7 +302,7 @@ public class EdgeManagerTest {
         for (int i = 0; i < numDevices; i++) {
             Device newDevice = NetTestTools.device(Integer.toString(i));
             devices.put(newDevice.id(), newDevice);
-            testDeviceManager.listener.event(new DeviceEvent(DEVICE_ADDED, newDevice));
+            postTopologyEvent(new DeviceEvent(DEVICE_ADDED, newDevice));
         }
         //Check all ports have correct designations
         ConnectPoint testPoint;
@@ -342,7 +346,7 @@ public class EdgeManagerTest {
         }
         for (int i = 0; i < numDevices; i++) {
             referenceDevice = NetTestTools.device(Integer.toString(i));
-            testDeviceManager.listener.event(new DeviceEvent(DEVICE_ADDED, referenceDevice,
+            postTopologyEvent(new DeviceEvent(DEVICE_ADDED, referenceDevice,
                                                              new DefaultPort(referenceDevice,
                                                                              PortNumber.portNumber(1),
                                                                              true)));
@@ -369,6 +373,27 @@ public class EdgeManagerTest {
             packet = packetIter.next();
             assertEquals("The packet had an incorrect payload", arr, packet.data().array());
         }
+    }
+
+
+    /**
+     * Creates TopologyEvent triggered by {@code event}.
+     *
+     * @param event reason of the TopologyEvent
+     * @return TopologyEvent
+     */
+    private TopologyEvent topologyEventOf(Event event) {
+        return new TopologyEvent(Type.TOPOLOGY_CHANGED, null, ImmutableList.of(event));
+    }
+
+
+    /**
+     * Post Event dispatched from TopologyManager.
+     *
+     * @param event Event
+     */
+    private void postTopologyEvent(Event event) {
+        testTopologyManager.listener.event(topologyEventOf(event));
     }
 
 
@@ -490,15 +515,6 @@ public class EdgeManagerTest {
         @Override
         public void emit(OutboundPacket packet) {
             packets.add(packet);
-        }
-    }
-
-    private class TestLinkManager extends LinkServiceAdapter {
-        private LinkListener listener;
-
-        @Override
-        public void addListener(LinkListener listener) {
-            this.listener = listener;
         }
     }
 
