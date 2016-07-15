@@ -14,7 +14,7 @@ export_file (
 )
 
 export_file (
-  name = 'start-checkstyle',
+  name = 'start-buck-daemon',
   visibility = [ 'PUBLIC' ],
 )
 
@@ -38,9 +38,9 @@ java_library (
 )
 
 java_binary (
-  name = 'checkstyle-jar',
+  name = 'buck-daemon-jar',
   deps = [ ':checkstyle' ] + RUN,
-  main_class = 'org.onosproject.checkstyle.Main',
+  main_class = 'org.onosproject.buckdaemon.BuckDaemon',
   blacklist = [ 'META-INF/.*' ],
   visibility = [ 'PUBLIC' ],
 )

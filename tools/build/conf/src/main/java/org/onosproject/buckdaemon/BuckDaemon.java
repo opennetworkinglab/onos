@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,54 +14,80 @@
  * limitations under the License.
  */
 
-package org.onosproject.checkstyle;
+package org.onosproject.buckdaemon;
 
+import com.google.common.io.ByteStreams;
 import com.puppycrawl.tools.checkstyle.api.CheckstyleException;
+import org.onosproject.checkstyle.CheckstyleRunner;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static java.nio.file.StandardOpenOption.*;
 
 /**
- * Main program for executing scenario test warden.
+ * Buck daemon process.
  */
-public final class Main {
+public final class BuckDaemon {
 
     private static long POLLING_INTERVAL = 1000; //ms
 
+    private final Map<String, BuckTask> tasks = new HashMap<>();
+    private final String portLock;
+    private final String buckPid;
+
     // Public construction forbidden
-    private Main(String[] args) {
+    private BuckDaemon(String[] args) {
+        portLock = args[0];
+        buckPid = args[1];
     }
 
     /**
-     * Main entry point for the cell warden.
+     * Main entry point for the daemon.
      *
      * @param args command-line arguments
      */
     public static void main(String[] args)
             throws CheckstyleException, IOException {
-        startServer(args);
+        BuckDaemon daemon = new BuckDaemon(args);
+        daemon.registerTasks();
+        daemon.startServer();
     }
 
-    // Monitors another PID and exit when that process exits
-    private static void watchProcess(String pid) {
+    /**
+     * Registers re-entrant tasks by their task name.
+     */
+    private void registerTasks() {
+        tasks.put("checkstyle", new CheckstyleRunner(System.getProperty("checkstyle.config"),
+                                                     System.getProperty("checkstyle.suppressions")));
+        // tasks.put("swagger", new SwaggerGenerator());
+    }
+
+    /**
+     * Monitors another PID and exit when that process exits.
+     */
+    private void watchProcess(String pid) {
         if (pid == null || pid.equals("0")) {
             return;
         }
         Timer timer = new Timer(true); // start as a daemon, so we don't hang shutdown
         timer.scheduleAtFixedRate(new TimerTask() {
             private String cmd = "kill -s 0 " + pid;
+
             @Override
             public void run() {
                 try {
@@ -79,13 +105,10 @@ public final class Main {
         }, POLLING_INTERVAL, POLLING_INTERVAL);
     }
 
-    // Initiates a server.
-    private static void startServer(String[] args) throws IOException, CheckstyleException {
-        String portLock = args[0];
-        String buckPid = args[1];
-        String checkstyleFile = args[2];
-        String suppressionsFile = args[3];
-
+    /**
+     * Initiates a server.
+     */
+    private void startServer() throws IOException, CheckstyleException {
         // Use a file lock to ensure only one copy of the daemon runs
         Path portLockPath = Paths.get(portLock);
         FileChannel channel = FileChannel.open(portLockPath, WRITE, CREATE);
@@ -104,10 +127,8 @@ public final class Main {
         // Set up hook to clean up after ourselves
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
-                if (channel != null) {
-                    channel.truncate(0);
-                    channel.close();
-                }
+                channel.truncate(0);
+                channel.close();
                 System.err.println("tear down...");
                 Files.delete(portLockPath);
             } catch (IOException e) {
@@ -122,15 +143,58 @@ public final class Main {
         channel.write(ByteBuffer.wrap(Integer.toString(port).getBytes()));
 
         // Instantiate a Checkstyle runner and executor; serve until exit...
-        CheckstyleRunner runner = new CheckstyleRunner(checkstyleFile, suppressionsFile);
         ExecutorService executor = Executors.newCachedThreadPool();
         while (true) {
             try {
-                executor.submit(runner.checkClass(server.accept()));
+                executor.submit(new BuckTaskRunner(server.accept()));
             } catch (Exception e) {
                 e.printStackTrace();
                 //no-op
             }
+        }
+    }
+
+    /**
+     * Runnable capable of invoking the appropriate Buck task with input
+     * consumed form the specified socket and output produced back to that
+     * socket.
+     */
+    private class BuckTaskRunner implements Runnable {
+
+        private final Socket socket;
+
+        public BuckTaskRunner(Socket socket) {
+            this.socket = socket;
+        }
+
+        @Override
+        public void run() {
+            try {
+                BuckTaskContext context = new BuckTaskContext(socket.getInputStream());
+                String taskName = context.taskName();
+                if (!taskName.isEmpty()) {
+                    BuckTask task = tasks.get(taskName);
+                    if (task != null) {
+                        System.out.println(String.format("Executing task '%s'", taskName));
+                        task.execute(context);
+                        for (String line : context.output()) {
+                            output(socket, line);
+                        }
+                    } else {
+                        String message = String.format("No task named '%s'", taskName);
+                        System.out.print(message);
+                        output(socket, message);
+                    }
+                }
+                socket.getOutputStream().flush();
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void output(Socket socket, String line) throws IOException {
+            socket.getOutputStream().write((line + "\n").getBytes());
         }
     }
 }

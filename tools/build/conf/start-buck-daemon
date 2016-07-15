@@ -1,8 +1,14 @@
 #!/bin/bash
-CHECKSTYLE=$1
-FILES=$2
-CONFIG=$3
-SUPPRESSIONS=$4
+# -----------------------------------------------------------------------------
+# Launches Buck daemon if not already running and requests Buck task execution.
+# -----------------------------------------------------------------------------
+
+BUCK_DAEMON=$1
+TASK=${2:-unspecified}
+DATA=${3}
+
+# TODO: Figure out how to parametrize better
+BUCK_PROPS="-Dcheckstyle.config=$4 -Dcheckstyle.suppressions=$5"
 
 PORT_FILE="$1.port"
 
@@ -39,15 +45,15 @@ function check_socket() {
     return $?
 }
 
-# check to see if checkstyle daemon is running; if not, start it
+# check to see if buck daemon is running; if not, start it
 if ! check_socket; then
-    # Starting checkstyle server...
+    # Starting buck daemon...
     #FIXME change to /dev/null if/when we are confident
-    nohup java -jar $CHECKSTYLE $PORT_FILE $(buck_pid) $3 $4 >>/tmp/checkstyle.daemon 2>&1 &
+    nohup java $BUCK_PROPS -jar $BUCK_DAEMON $PORT_FILE $(buck_pid) >>/tmp/buck.daemon 2>&1 &
 
     TRIES=20
     i=0
-    # Wait for checkstyle server to start for 2 seconds
+    # Wait for buck daemon to start for 2 seconds
     while [ $i -lt $TRIES ]; do
         if check_socket; then
             CONNECTED=true
@@ -57,15 +63,15 @@ if ! check_socket; then
         sleep 0.1
     done
     if [ -z "$CONNECTED" ]; then
-        echo "Failed to start checkstyle server"
+        echo "Failed to start buck daemon"
         exit 3
     fi
 fi
 
-# run the actual checkstyle client
-OUT=$(cat $FILES | nc localhost $(port))
+# run the actual buck daemon client
+OUT=$((printf "%s\n" $TASK; cat $DATA) | nc localhost $(port))
 if [ $? -ne 0 ]; then
-    echo "Error connecting to checkstyle server"
+    echo "Error connecting to buck daemon server"
     exit 2
 fi
 if [ -n "$OUT" ]; then

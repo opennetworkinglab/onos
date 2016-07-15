@@ -37,10 +37,11 @@ def checkstyle(
 
         sh_test(
                 name = name + '-checkstyle',
-                test = '//tools/build/conf:start-checkstyle',
+                test = '//tools/build/conf:start-buck-daemon',
                 deps = [ jar_target ],
                 args = [
-                    '$(location //tools/build/conf:checkstyle-jar)',
+                    '$(location //tools/build/conf:buck-daemon-jar)',
+                    'checkstyle',
                     '$(location :' + name + '-checkstyle-files)',
                     '$(location //tools/build/conf:checkstyle-xml)',
                     '$(location //tools/build/conf:suppressions-xml)',
