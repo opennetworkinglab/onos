@@ -29,8 +29,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link.Type;
 import org.onosproject.net.device.DeviceEvent;
-import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.edge.EdgePortEvent;
 import org.onosproject.net.edge.EdgePortListener;
@@ -38,12 +38,12 @@ import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.link.LinkEvent;
-import org.onosproject.net.link.LinkListener;
-import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyEvent;
+import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 
@@ -72,11 +72,12 @@ public class EdgeManager
 
     private Topology topology;
 
+    /**
+     * Set of edge ConnectPoints per Device.
+     */
     private final Map<DeviceId, Set<ConnectPoint>> connectionPoints = Maps.newConcurrentMap();
 
-    private final LinkListener linkListener = new InnerLinkListener();
-
-    private final DeviceListener deviceListener = new InnerDeviceListener();
+    private final TopologyListener topologyListener = new InnerTopologyListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
@@ -87,23 +88,18 @@ public class EdgeManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyService topologyService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LinkService linkService;
-
     @Activate
     public void activate() {
         eventDispatcher.addSink(EdgePortEvent.class, listenerRegistry);
-        deviceService.addListener(deviceListener);
-        linkService.addListener(linkListener);
+        topologyService.addListener(topologyListener);
         loadAllEdgePorts();
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        topologyService.removeListener(topologyListener);
         eventDispatcher.removeSink(EdgePortEvent.class);
-        deviceService.removeListener(deviceListener);
-        linkService.removeListener(linkListener);
         log.info("Stopped");
     }
 
@@ -153,21 +149,18 @@ public class EdgeManager
         return new DefaultOutboundPacket(point.deviceId(), builder.build(), data);
     }
 
-    private class InnerLinkListener implements LinkListener {
+    private class InnerTopologyListener implements TopologyListener {
 
         @Override
-        public void event(LinkEvent event) {
-            topology = topologyService.currentTopology();
-            processLinkEvent(event);
-        }
-    }
-
-    private class InnerDeviceListener implements DeviceListener {
-
-        @Override
-        public void event(DeviceEvent event) {
-            topology = topologyService.currentTopology();
-            processDeviceEvent(event);
+        public void event(TopologyEvent event) {
+            topology = event.subject();
+            event.reasons().forEach(reason -> {
+                if (reason instanceof DeviceEvent) {
+                    processDeviceEvent((DeviceEvent) reason);
+                } else if (reason instanceof LinkEvent) {
+                    processLinkEvent((LinkEvent) reason);
+                }
+            });
         }
     }
 
@@ -180,12 +173,21 @@ public class EdgeManager
 
     // Processes a link event by adding or removing its end-points in our cache.
     private void processLinkEvent(LinkEvent event) {
-        if (event.type() == LinkEvent.Type.LINK_ADDED) {
-            removeEdgePort(event.subject().src());
-            removeEdgePort(event.subject().dst());
-        } else if (event.type() == LinkEvent.Type.LINK_REMOVED) {
+        // negative Link event can result in increase of edge ports
+        boolean addEdgePort = event.type() == LinkEvent.Type.LINK_REMOVED;
+
+        // but if the Link is an Edge type,
+        // it will be the opposite
+        if (event.subject().type() == Type.EDGE) {
+            addEdgePort = !addEdgePort;
+        }
+
+        if (addEdgePort) {
             addEdgePort(event.subject().src());
             addEdgePort(event.subject().dst());
+        } else {
+            removeEdgePort(event.subject().src());
+            removeEdgePort(event.subject().dst());
         }
     }
 
@@ -195,6 +197,8 @@ public class EdgeManager
         DeviceEvent.Type type = event.type();
         DeviceId id = event.subject().id();
 
+        // FIXME there's still chance that Topology and Device Service
+        // view is out-of-sync
         if (type == DEVICE_ADDED ||
                 type == DEVICE_AVAILABILITY_CHANGED && deviceService.isAvailable(id)) {
             // When device is added or becomes available, add all its ports
@@ -202,10 +206,11 @@ public class EdgeManager
                     .forEach(p -> addEdgePort(new ConnectPoint(id, p.number())));
         } else if (type == DEVICE_REMOVED ||
                 type == DEVICE_AVAILABILITY_CHANGED && !deviceService.isAvailable(id)) {
-            // When device is removed or becomes unavailable, remove all its ports
-            deviceService.getPorts(event.subject().id())
-                    .forEach(p -> removeEdgePort(new ConnectPoint(id, p.number())));
-            connectionPoints.remove(id);
+            // When device is removed or becomes unavailable, remove all its ports.
+            // Note: cannot rely on Device subsystem, ports may be gone.
+            Optional.ofNullable(connectionPoints.remove(id))
+                .orElse(ImmutableSet.of())
+                .forEach(point -> post(new EdgePortEvent(EDGE_PORT_REMOVED, point)));
 
         } else if (type == DeviceEvent.Type.PORT_ADDED ||
                 type == PORT_UPDATED && event.port().isEnabled()) {
@@ -216,14 +221,16 @@ public class EdgeManager
         }
     }
 
+    private boolean isEdgePort(ConnectPoint point) {
+        return !topologyService.isInfrastructure(topology, point) &&
+               !point.port().isLogical();
+    }
+
     // Adds the specified connection point to the edge points if needed.
     private void addEdgePort(ConnectPoint point) {
-        if (!topologyService.isInfrastructure(topology, point) && !point.port().isLogical()) {
-            Set<ConnectPoint> set = connectionPoints.get(point.deviceId());
-            if (set == null) {
-                set = Sets.newConcurrentHashSet();
-                connectionPoints.put(point.deviceId(), set);
-            }
+        if (isEdgePort(point)) {
+            Set<ConnectPoint> set = connectionPoints.computeIfAbsent(point.deviceId(),
+                                                                     (k) -> Sets.newConcurrentHashSet());
             if (set.add(point)) {
                 post(new EdgePortEvent(EDGE_PORT_ADDED, point));
             }
@@ -232,7 +239,7 @@ public class EdgeManager
 
     // Removes the specified connection point from the edge points.
     private void removeEdgePort(ConnectPoint point) {
-        if (!point.port().isLogical()) {
+        if (isEdgePort(point)) {
             Set<ConnectPoint> set = connectionPoints.get(point.deviceId());
             if (set == null) {
                 return;
@@ -241,7 +248,13 @@ public class EdgeManager
                 post(new EdgePortEvent(EDGE_PORT_REMOVED, point));
             }
             if (set.isEmpty()) {
-                connectionPoints.remove(point.deviceId());
+                connectionPoints.computeIfPresent(point.deviceId(), (k, v) -> {
+                    if (v.isEmpty()) {
+                        return v;
+                    } else {
+                        return v;
+                    }
+                });
             }
         }
     }

@@ -37,6 +37,7 @@ import org.onosproject.net.DefaultPath;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.DisjointPath;
 import org.onosproject.net.Link;
+import org.onosproject.net.Link.Type;
 import org.onosproject.net.Path;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.ClusterId;
@@ -442,14 +443,17 @@ public class DefaultTopology extends AbstractModel implements Topology {
             riskProfile2.put(new TopologyEdge() {
                 Link cur = l;
 
+                @Override
                 public Link link() {
                     return cur;
                 }
 
+                @Override
                 public TopologyVertex src() {
                     return () -> src;
                 }
 
+                @Override
                 public TopologyVertex dst() {
                     return () -> dst;
                 }
@@ -568,6 +572,12 @@ public class DefaultTopology extends AbstractModel implements Topology {
     private ImmutableSet<ConnectPoint> findInfrastructurePoints() {
         ImmutableSet.Builder<ConnectPoint> builder = ImmutableSet.builder();
         for (TopologyEdge edge : graph.getEdges()) {
+            if (edge.link().type() == Type.EDGE) {
+                // exclude EDGE link from infrastructure link
+                // - Device <-> Host
+                // - Device <-> remote domain Device
+                continue;
+            }
             builder.add(edge.link().src());
             builder.add(edge.link().dst());
         }
