@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open tworking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,24 +19,24 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
-import org.onosproject.drivers.fujitsu.behaviour.VoltPonLinkConfig;
+import org.onosproject.drivers.fujitsu.behaviour.VoltAlertConfig;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 
 /**
- * Gets PON links in vOLT.
+ * Sets alert filter severity level in vOLT.
  */
-@Command(scope = "onos", name = "volt-ponlinks",
-        description = "Gets PON links in vOLT")
-public class VoltGetPonLinksCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "volt-notification-setalertfilter",
+        description = "Sets alert filter severity level in vOLT")
+public class VoltSetAlertFilterCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = true, multiValued = false)
     String uri = null;
 
-    @Argument(index = 1, name = "target", description = "PON link ID",
-            required = false, multiValued = false)
-    String target = null;
+    @Argument(index = 1, name = "target", description = "Severity level",
+            required = true, multiValued = false)
+    String severity = null;
 
     private DeviceId deviceId;
 
@@ -45,13 +45,7 @@ public class VoltGetPonLinksCommand extends AbstractShellCommand {
         DriverService service = get(DriverService.class);
         deviceId = DeviceId.deviceId(uri);
         DriverHandler h = service.createHandler(deviceId);
-        VoltPonLinkConfig volt = h.behaviour(VoltPonLinkConfig.class);
-        String reply = volt.getPonLinks(target);
-        if (reply != null) {
-            print("%s", reply);
-        } else {
-            print("No reply from %s", deviceId.toString());
-        }
+        VoltAlertConfig volt = h.behaviour(VoltAlertConfig.class);
+        volt.setAlertFilter(severity);
     }
-
 }

@@ -59,8 +59,25 @@
                 <ref component-id="deviceIdCompleter"/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.drivers.fujitsu.cli.VoltGetAlertFilterCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.drivers.fujitsu.cli.VoltSetAlertFilterCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.drivers.fujitsu.cli.VoltSubscribeCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
     </command-bundle>
 
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
-
 </blueprint>

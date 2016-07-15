@@ -16,6 +16,7 @@
 
 package org.onosproject.netconf;
 
+import com.google.common.annotations.Beta;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -60,7 +61,7 @@ public interface NetconfSession {
             throws NetconfException;
 
     /**
-     * Executes an RPC to the server and wrap the request in RPC header.
+     * Executes an synchronous RPC to the server and wrap the request in RPC header.
      *
      * @param request the XML containing the request to the server.
      * @return Server response or ERROR
@@ -156,6 +157,15 @@ public interface NetconfSession {
      * @throws NetconfException when there is a problem starting the subscription
      */
     void startSubscription() throws NetconfException;
+
+    /**
+     * Starts subscription to the device's notifications.
+     *
+     * @param filterSchema XML subtrees to indicate specific notification
+     * @throws NetconfException when there is a problem starting the subscription
+     */
+    @Beta
+    void startSubscription(String filterSchema) throws NetconfException;
 
     /**
      * Ends subscription to the device's notifications.

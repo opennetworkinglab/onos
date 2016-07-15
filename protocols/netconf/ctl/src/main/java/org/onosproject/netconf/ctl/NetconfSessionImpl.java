@@ -16,6 +16,7 @@
 
 package org.onosproject.netconf.ctl;
 
+import com.google.common.annotations.Beta;
 import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.Session;
 import com.google.common.base.Preconditions;
@@ -66,8 +67,8 @@ public class NetconfSessionImpl implements NetconfSession {
     private static final String WITH_DEFAULT_CLOSE = "</with-defaults>";
     private static final String DEFAULT_OPERATION_OPEN = "<default-operation>";
     private static final String DEFAULT_OPERATION_CLOSE = "</default-operation>";
-    private static final String FILTER_OPEN = "<filter type=\"subtree\">";
-    private static final String FILTER_CLOSE = "</filter>";
+    private static final String SUBTREE_FILTER_OPEN = "<filter type=\"subtree\">";
+    private static final String SUBTREE_FILTER_CLOSE = "</filter>";
     private static final String EDIT_CONFIG_OPEN = "<edit-config>";
     private static final String EDIT_CONFIG_CLOSE = "</edit-config>";
     private static final String TARGET_OPEN = "<target>";
@@ -80,6 +81,8 @@ public class NetconfSessionImpl implements NetconfSession {
             "xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\"";
     private static final String NETCONF_WITH_DEFAULTS_NAMESPACE =
             "xmlns=\"urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults\"";
+    private static final String SUBSCRIPTION_SUBTREE_FILTER_OPEN =
+            "<filter xmlns:base10=\"urn:ietf:params:xml:ns:netconf:base:1.0\" base10:type=\"subtree\">";
 
     private final AtomicInteger messageIdInteger = new AtomicInteger(0);
     private Connection netconfConnection;
@@ -157,11 +160,13 @@ public class NetconfSessionImpl implements NetconfSession {
         }
     }
 
-    private void startSubscriptionConnection() throws NetconfException {
+
+    @Beta
+    private void startSubscriptionConnection(String filterSchema) throws NetconfException {
         if (!serverCapabilities.contains("interleave")) {
             throw new NetconfException("Device" + deviceInfo + "does not support interleave");
         }
-        String reply = sendRequest(createSubscriptionString());
+        String reply = sendRequest(createSubscriptionString(filterSchema));
         if (!checkReply(reply)) {
             throw new NetconfException("Subscription not successful with device "
                                                + deviceInfo + " with reply " + reply);
@@ -169,18 +174,37 @@ public class NetconfSessionImpl implements NetconfSession {
         subscriptionConnected = true;
     }
 
+    @Override
     public void startSubscription() throws NetconfException {
         if (!subscriptionConnected) {
-            startSubscriptionConnection();
+            startSubscriptionConnection(null);
         }
         streamHandler.setEnableNotifications(true);
     }
 
-    private String createSubscriptionString() {
+    @Beta
+    @Override
+    public void startSubscription(String filterSchema) throws NetconfException {
+        if (!subscriptionConnected) {
+            startSubscriptionConnection(filterSchema);
+        }
+        streamHandler.setEnableNotifications(true);
+    }
+
+    @Beta
+    private String createSubscriptionString(String filterSchema) {
         StringBuilder subscriptionbuffer = new StringBuilder();
         subscriptionbuffer.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
         subscriptionbuffer.append("  <create-subscription\n");
         subscriptionbuffer.append("xmlns=\"urn:ietf:params:xml:ns:netconf:notification:1.0\">\n");
+        // FIXME Only subtree filtering supported at the moment.
+        if (filterSchema != null) {
+            subscriptionbuffer.append("    ");
+            subscriptionbuffer.append(SUBSCRIPTION_SUBTREE_FILTER_OPEN).append(NEW_LINE);
+            subscriptionbuffer.append(filterSchema).append(NEW_LINE);
+            subscriptionbuffer.append("    ");
+            subscriptionbuffer.append(SUBTREE_FILTER_CLOSE).append(NEW_LINE);
+        }
         subscriptionbuffer.append("  </create-subscription>\n");
         subscriptionbuffer.append("</rpc>\n");
         subscriptionbuffer.append(ENDPATTERN);
@@ -323,9 +347,9 @@ public class NetconfSessionImpl implements NetconfSession {
         rpc.append(NETCONF_BASE_NAMESPACE).append(">\n");
         rpc.append(GET_OPEN).append(NEW_LINE);
         if (filterSchema != null) {
-            rpc.append(FILTER_OPEN).append(NEW_LINE);
+            rpc.append(SUBTREE_FILTER_OPEN).append(NEW_LINE);
             rpc.append(filterSchema).append(NEW_LINE);
-            rpc.append(FILTER_CLOSE).append(NEW_LINE);
+            rpc.append(SUBTREE_FILTER_CLOSE).append(NEW_LINE);
         }
         if (withDefaultsMode != null) {
             rpc.append(WITH_DEFAULT_OPEN).append(NETCONF_WITH_DEFAULTS_NAMESPACE).append(">");
@@ -577,7 +601,9 @@ public class NetconfSessionImpl implements NetconfSession {
             }
             CompletableFuture<String> completedReply =
                     replies.get(messageId.get());
-            completedReply.complete(event.getMessagePayload());
+            if (completedReply != null) {
+                completedReply.complete(event.getMessagePayload());
+            }
         }
     }
 }
