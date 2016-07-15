@@ -26,6 +26,7 @@ import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProvider;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderService;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderRegistry;
+import org.onosproject.incubator.net.faultmanagement.alarm.AlarmTranslator;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
@@ -55,6 +56,7 @@ public class NetconfAlarmProvider extends AbstractProvider implements AlarmProvi
 
     public static final String ACTIVE = "active";
     private final Logger log = getLogger(getClass());
+    private final AlarmTranslator translator = new NetconfAlarmTranslator();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected AlarmProviderRegistry providerRegistry;
@@ -120,7 +122,6 @@ public class NetconfAlarmProvider extends AbstractProvider implements AlarmProvi
         public void event(NetconfDeviceOutputEvent event) {
             if (event.type() == NetconfDeviceOutputEvent.Type.DEVICE_NOTIFICATION) {
                 DeviceId deviceId = event.getDeviceInfo().getDeviceId();
-                NetconfAlarmTranslator translator = new NetconfAlarmTranslator();
                 String message = event.getMessagePayload();
                 InputStream in = new ByteArrayInputStream(message.getBytes(StandardCharsets.UTF_8));
                 Collection<Alarm> newAlarms = translator.translateToAlarm(deviceId, in);
