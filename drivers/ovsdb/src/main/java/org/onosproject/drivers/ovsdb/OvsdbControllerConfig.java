@@ -28,6 +28,7 @@ import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.ovsdb.controller.OvsdbBridge;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
+import org.onosproject.ovsdb.controller.OvsdbConstant;
 import org.onosproject.ovsdb.controller.OvsdbController;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
 
@@ -83,7 +84,7 @@ public class OvsdbControllerConfig extends AbstractHandlerBehaviour implements C
         if (nodeIds.size() == 0) {
             //TODO decide what port?
             ovsController.connect(IpAddress.valueOf(targetIp),
-                                  targetPort == null ? TpPort.tpPort(6640) : targetPort);
+                                  targetPort == null ? TpPort.tpPort(OvsdbConstant.OVSDBPORT) : targetPort);
             delay(1000); //FIXME... connect is async
         }
         List<OvsdbClientService> clientServices = ovsController.getNodeIds().stream()

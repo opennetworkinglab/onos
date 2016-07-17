@@ -41,6 +41,7 @@ public final class OvsdbConstant {
     /** Bridge table. */
     public static final String BRIDGE = "Bridge";
     public static final String PORTS = "ports";
+    public static final String MIRRORS = "mirrors";
     // other configs
     public static final String DATAPATH_ID = "datapath-id";
     public static final String DISABLE_INBAND = "disable-in-band";
@@ -65,6 +66,9 @@ public final class OvsdbConstant {
 
     /** Controller table. */
     public static final String CONTROLLER = "Controller";
+
+    /** Mirror table. */
+    public static final String MIRROR = "Mirror";
 
     /** Ovsdb bridge name. */
     // TODO remove this particular bridge name from OVSDB provider

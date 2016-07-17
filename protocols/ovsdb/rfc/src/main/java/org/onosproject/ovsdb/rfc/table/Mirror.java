@@ -203,7 +203,7 @@ public class Mirror extends AbstractOvsdbTableService {
      * of attributes.
      * @param outputVlan the column data which column name is "output_vlan"
      */
-    public void setOutputVlan(Set<Short> outputVlan) {
+    public void setOutputVlan(Short outputVlan) {
         ColumnDescription columndesc = new ColumnDescription(MirrorColumn.OUTPUTVLAN.columnName(),
                                                              "setOutputVlan", VersionNum.VERSION100);
         super.setDataHandler(columndesc, outputVlan);

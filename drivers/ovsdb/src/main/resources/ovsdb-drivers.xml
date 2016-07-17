@@ -28,6 +28,8 @@
             manufacturer="Nicira, Inc\." hwVersion="Open vSwitch" swVersion="2\..*">
         <behaviour api="org.onosproject.net.behaviour.ControllerConfig"
                    impl="org.onosproject.drivers.ovsdb.OvsdbControllerConfig"/>
+        <behaviour api="org.onosproject.net.behaviour.MirroringConfig"
+                   impl="org.onosproject.drivers.ovsdb.OvsdbMirroringConfig"/>
     </driver>
 </drivers>
 

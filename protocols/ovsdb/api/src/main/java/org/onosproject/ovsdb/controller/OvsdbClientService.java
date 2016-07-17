@@ -19,6 +19,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ControllerInfo;
+import org.onosproject.net.behaviour.MirroringStatistics;
+import org.onosproject.net.behaviour.MirroringName;
 import org.onosproject.ovsdb.rfc.jsonrpc.OvsdbRpc;
 import org.onosproject.ovsdb.rfc.message.TableUpdates;
 import org.onosproject.ovsdb.rfc.notation.Row;
@@ -38,6 +40,41 @@ public interface OvsdbClientService extends OvsdbRpc {
      * @return node identifier
      */
     OvsdbNodeId nodeId();
+
+    /**
+     * Creates a mirror port. Mirrors the traffic
+     * that goes to selectDstPort or comes from
+     * selectSrcPort or packets containing selectVlan
+     * to mirrorPort or to all ports that trunk mirrorVlan.
+     *
+     * @param  bridgeName the name of the bridge
+     * @param mirror the OVSDB mirror description
+     * @return true if mirror creation is successful, false otherwise
+     */
+    boolean createMirror(String bridgeName, OvsdbMirror mirror);
+
+    /**
+     * Gets the Mirror uuid.
+     *
+     * @param mirrorName mirror name
+     * @return mirror uuid, empty if no uuid is found
+     */
+    String getMirrorUuid(String mirrorName);
+
+    /**
+     * Gets mirroring statistics of the device.
+     *
+     * @param deviceId target device id
+     * @return set of mirroring statistics; empty if no mirror is found
+     */
+    Set<MirroringStatistics> getMirroringStatistics(DeviceId deviceId);
+
+    /**
+     * Drops the configuration for mirror.
+     *
+     * @param mirroringName
+     */
+    void dropMirror(MirroringName mirroringName);
 
     /**
      * Creates a tunnel port with given options.
