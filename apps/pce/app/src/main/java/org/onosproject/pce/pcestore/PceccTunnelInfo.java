@@ -115,8 +115,8 @@ public final class PceccTunnelInfo {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .omitNullValues()
-                .add("DeviceLabelInfoList", lspLocalLabelInfoList.toString())
-                .add("TunnelConsumerId", tunnelConsumerId.toString())
+                .add("DeviceLabelInfoList", lspLocalLabelInfoList)
+                .add("TunnelConsumerId", tunnelConsumerId)
                 .toString();
     }
 }

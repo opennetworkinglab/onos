@@ -508,7 +508,7 @@ public class PceManager implements PceService {
             }
 
             if (existingBwValue != null) {
-                if (bwConstraintValue == 0) {
+                if (bwConstraintValue == 0 && bwConstraint != null) {
                     bwConstraintValue = existingBwValue.bps();
                 }
                 //If bandwidth constraints not specified , take existing bandwidth for shared bandwidth calculation
@@ -862,7 +862,12 @@ public class PceManager implements PceService {
         // 1. Release old tunnel's bandwidth.
         resourceService.release(pceStore.getTunnelInfo(oldTunnel.tunnelId()).tunnelConsumerId());
 
-        // 2. Release new tunnel's bandwidth
+        // 2. Release new tunnel's bandwidth, if new tunnel bandwidth is allocated
+        if (pceStore.getTunnelInfo(newTunnel.tunnelId()) == null) {
+            //If bandwidth for new tunnel is not allocated i,e 0 then no need to allocate
+            return;
+        }
+
         ResourceConsumer consumer = pceStore.getTunnelInfo(newTunnel.tunnelId()).tunnelConsumerId();
         resourceService.release(consumer);
 
@@ -1205,7 +1210,7 @@ public class PceManager implements PceService {
                     localLspIdFreeList.add(Short.valueOf(tunnel.annotations().value(LOCAL_LSP_ID)));
                 }
                 // If not zero bandwidth, and delegated (initiated LSPs will also be delegated).
-                if (Double.parseDouble(tunnel.annotations().value(BANDWIDTH)) != 0.0
+                if (Float.parseFloat(tunnel.annotations().value(BANDWIDTH)) != 0
                         && mastershipService.getLocalRole(tunnel.path().src().deviceId()) == MastershipRole.MASTER) {
                     releaseBandwidth(tunnel);
                 }
