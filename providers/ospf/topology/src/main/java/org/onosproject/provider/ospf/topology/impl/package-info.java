@@ -13,36 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.ospf.protocol.util;
 
 /**
- * Representation of different OSPF packet types.
+ * Provider that uses OSPF as a means of topology discovery.
  */
-public enum OspfPacketType {
-
-    HELLO(1),
-    DD(2),
-    LSREQUEST(3),
-    LSUPDATE(4),
-    LSAACK(5);
-
-    private int value;
-
-    /**
-     * Creates instance of OSPF packet types.
-     *
-     * @param value
-     */
-    OspfPacketType(int value) {
-        this.value = value;
-    }
-
-    /**
-     * Gets the value.
-     *
-     * @return value
-     */
-    public int value() {
-        return value;
-    }
-}
+package org.onosproject.provider.ospf.topology.impl;

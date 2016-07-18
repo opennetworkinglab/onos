@@ -48,6 +48,7 @@
         <module>bmv2</module>
         <module>isis</module>
         <module>lisp</module>
+        <module>ospf</module>
     </modules>
 
     <dependencies>

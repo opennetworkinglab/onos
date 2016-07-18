@@ -29,7 +29,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public class OspfRouterId {
 
-    private static final String SCHEME = "ospf";
+    private static final String SCHEME = "l3";
     private static final long UNKNOWN = 0;
     private final IpAddress ipAddress;
 

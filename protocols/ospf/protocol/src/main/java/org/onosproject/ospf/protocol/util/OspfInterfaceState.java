@@ -31,20 +31,55 @@ public enum OspfInterfaceState {
     private int value;
 
     /**
-     * Creates an instance of Interface State.
+     * Creates an instance of interface state.
      *
-     * @param value Interface State value
+     * @param value Interface state value
      */
     OspfInterfaceState(int value) {
         this.value = value;
     }
 
     /**
-     * Gets value for Interface State.
+     * Gets value for Interface state.
      *
-     * @return value Interface State
+     * @return value Interface state
      */
     public int value() {
         return value;
+    }
+
+    /**
+     * Gets interface state.
+     *
+     * @return interface state
+     */
+    public String interfaceState() {
+        String state = null;
+        switch (value) {
+            case 1:
+                state = "DOWN";
+                break;
+            case 2:
+                state = "LOOPBACK";
+                break;
+            case 3:
+                state = "WAITING";
+                break;
+            case 4:
+                state = "POINT2POINT";
+                break;
+            case 5:
+                state = "DROTHER";
+                break;
+            case 6:
+                state = "BDR";
+                break;
+            case 7:
+                state = "DR";
+                break;
+            default:
+                break;
+        }
+        return state;
     }
 }

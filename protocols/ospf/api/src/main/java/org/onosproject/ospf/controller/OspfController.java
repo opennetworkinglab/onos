@@ -15,6 +15,8 @@
  */
 package org.onosproject.ospf.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.util.List;
 import java.util.Set;
 
@@ -55,9 +57,9 @@ public interface OspfController {
     /**
      * Updates configuration of processes.
      *
-     * @param processes process info to update
+     * @param processesNode process info to update
      */
-    public void updateConfig(List<OspfProcess> processes);
+    void updateConfig(JsonNode processesNode);
 
     /**
      * Deletes configuration parameters.
@@ -65,7 +67,7 @@ public interface OspfController {
      * @param processes list of process instance
      * @param attribute attribute to delete
      */
-    public void deleteConfig(List<OspfProcess> processes, String attribute);
+    void deleteConfig(List<OspfProcess> processes, String attribute);
 
     /**
      * Gets the list of listeners registered for router events.

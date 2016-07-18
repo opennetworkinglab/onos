@@ -229,7 +229,7 @@ public class OspfUtilTest {
      */
     @Test
     public void testAddMetadata() throws Exception {
-        result1 = OspfUtil.addMetadata(packet, 123, Ip4Address.valueOf("1.1.1.1"));
+        result1 = OspfUtil.addMetadata(2, packet, 1, Ip4Address.valueOf("1.1.1.1"));
         assertThat(result1, is(notNullValue()));
     }
 
@@ -251,7 +251,7 @@ public class OspfUtilTest {
      */
     @Test
     public void testAddMetaData() throws Exception {
-        result1 = OspfUtil.addMetadata(packet, 1, Ip4Address.valueOf("2.2.2.2"));
+        result1 = OspfUtil.addMetadata(2, packet, 1, Ip4Address.valueOf("2.2.2.2"));
         assertThat(result1, is(notNullValue()));
     }
 

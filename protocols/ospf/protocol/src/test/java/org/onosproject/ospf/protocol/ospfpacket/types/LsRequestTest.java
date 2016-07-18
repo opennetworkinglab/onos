@@ -21,9 +21,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.Ip4Address;
+import org.onosproject.ospf.controller.OspfPacketType;
 import org.onosproject.ospf.protocol.ospfpacket.OspfPacketHeader;
 import org.onosproject.ospf.protocol.ospfpacket.subtype.LsRequestPacket;
-import org.onosproject.ospf.protocol.util.OspfPacketType;
 
 import java.net.UnknownHostException;
 import java.util.List;

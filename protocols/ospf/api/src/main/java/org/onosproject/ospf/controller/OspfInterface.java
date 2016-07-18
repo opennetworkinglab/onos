@@ -15,9 +15,10 @@
  */
 package org.onosproject.ospf.controller;
 
+import org.jboss.netty.channel.ChannelHandlerContext;
 import org.onlab.packet.Ip4Address;
 
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Represents an OSPF Interface.
@@ -25,34 +26,39 @@ import java.util.HashMap;
 public interface OspfInterface {
 
     /**
+     * Returns interface index.
+     *
+     * @return interface index
+     */
+    public int interfaceIndex();
+
+    /**
+     * Sets interface index.
+     *
+     * @param interfaceIndex interface index
+     */
+    public void setInterfaceIndex(int interfaceIndex);
+
+    /**
+     * Returns OSPF area instance.
+     *
+     * @return OSPF area instance
+     */
+    public OspfArea ospfArea();
+
+    /**
+     * Sets OSPF area instance.
+     *
+     * @param ospfArea OSPF area instance
+     */
+    public void setOspfArea(OspfArea ospfArea);
+
+    /**
      * Gets network mask of the interface.
      *
      * @return network mask
      */
     Ip4Address ipNetworkMask();
-
-    /**
-     * Sets area id, to which the interface belongs.
-     *
-     * @param areaId area identifier
-     */
-    void setAreaId(int areaId);
-
-    /**
-     * Sets the authentication key.
-     * Interface uses this to authenticate while establishing communication with other routers.
-     *
-     * @param authKey represents authentication key
-     */
-    void setAuthKey(String authKey);
-
-    /**
-     * Sets the authentication type,
-     * Interface uses this to authenticate while establishing communication with other routers.
-     *
-     * @param authType authType represents authentication type
-     */
-    void setAuthType(String authType);
 
     /**
      * Sets the value of BDR.
@@ -87,13 +93,6 @@ public interface OspfInterface {
     void setRouterDeadIntervalTime(int routerDeadIntervalTime);
 
     /**
-     * Sets the interface cost which is the cost of sending a data packet onto the network.
-     *
-     * @param interfaceCost an integer represents interface cost
-     */
-    void setInterfaceCost(int interfaceCost);
-
-    /**
      * Sets interface type.
      * This indicates whether the interface is on point to point mode or broadcast mode.
      *
@@ -114,22 +113,6 @@ public interface OspfInterface {
      * @param ipNetworkMask network mask
      */
     void setIpNetworkMask(Ip4Address ipNetworkMask);
-
-    /**
-     * Sets the polling interval.
-     * Polling interval indicates the interval until when the Hello Packets are
-     * sent to a dead neighbor.
-     *
-     * @param pollInterval an integer represents poll interval
-     */
-    void setPollInterval(int pollInterval);
-
-    /**
-     * Sets transmission delay.
-     *
-     * @param transmitDelay an integer represents delay
-     */
-    void setTransmitDelay(int transmitDelay);
 
     /**
      * Sets retransmit interval which indicates the number of seconds between LSA retransmissions.
@@ -153,13 +136,6 @@ public interface OspfInterface {
     void setRouterPriority(int routerPriority);
 
     /**
-     * Gets the area id to which router belongs.
-     *
-     * @return areaId an integer value
-     */
-    int areaId();
-
-    /**
      * Gets the IP address.
      *
      * @return an string represents IP address
@@ -181,32 +157,11 @@ public interface OspfInterface {
     int mtu();
 
     /**
-     * Gets interface cost.
-     *
-     * @return an integer representing interface cost
-     */
-    int interfaceCost();
-
-    /**
      * Gets the list of neighbors associated with the interface.
      *
      * @return listOfNeighbors as key value pair
      */
-    HashMap<String, OspfNbr> listOfNeighbors();
-
-    /**
-     * Gets poll interval.
-     *
-     * @return pollInterval an integer representing poll interval
-     */
-    int pollInterval();
-
-    /**
-     * Gets transmission delay.
-     *
-     * @return transmitDelay an integer representing delay
-     */
-    int transmitDelay();
+    Map<String, OspfNbr> listOfNeighbors();
 
     /**
      * Gets the IP address of the BDR.
@@ -221,20 +176,6 @@ public interface OspfInterface {
      * @return dr DR's IP address
      */
     Ip4Address dr();
-
-    /**
-     * Gets authentication key.
-     *
-     * @return authKey represents authentication key
-     */
-    String authKey();
-
-    /**
-     * Gets authentication type.
-     *
-     * @return authType represents authentication type
-     */
-    String authType();
 
     /**
      * Gets hello interval time in seconds, this defines how often we send the hello packet.
@@ -294,4 +235,54 @@ public interface OspfInterface {
      * @param lsaKey key used to store lsa in map
      */
     void removeLsaFromNeighborMap(String lsaKey);
+
+    /**
+     * When an OSPF message received it is handed over to this method.
+     * Based on the type of the OSPF message received it will be handed over
+     * to corresponding message handler methods.
+     *
+     * @param ospfMessage received OSPF message
+     * @param ctx         channel handler context instance.
+     * @throws Exception might throws exception
+     */
+    void processOspfMessage(OspfMessage ospfMessage, ChannelHandlerContext ctx) throws Exception;
+
+    /**
+     * Represents an interface is up and connected.
+     *
+     * @throws Exception might throws exception
+     */
+    void interfaceUp() throws Exception;
+
+    /**
+     * Starts the timer which waits for configured seconds and sends Delayed Ack Packet.
+     */
+    void startDelayedAckTimer();
+
+    /**
+     * Stops the delayed acknowledge timer.
+     */
+    void stopDelayedAckTimer();
+
+    /**
+     * Starts the hello timer which sends hello packet every configured seconds.
+     */
+    void startHelloTimer();
+
+    /**
+     * Stops the hello timer.
+     */
+    void stopHelloTimer();
+
+    /**
+     * Gets called when an interface is down.
+     * All interface variables are reset, and interface timers disabled.
+     * Also all neighbor connections associated with the interface are destroyed.
+     */
+    void interfaceDown();
+
+    /**
+     * Removes all the neighbors.
+     */
+    void removeNeighbors();
 }

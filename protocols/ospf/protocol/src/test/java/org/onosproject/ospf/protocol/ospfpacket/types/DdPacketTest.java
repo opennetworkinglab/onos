@@ -22,10 +22,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.Ip4Address;
+import org.onosproject.ospf.controller.OspfPacketType;
 import org.onosproject.ospf.protocol.lsa.LsaHeader;
 import org.onosproject.ospf.protocol.lsa.OpaqueLsaHeader;
 import org.onosproject.ospf.protocol.ospfpacket.OspfPacketHeader;
-import org.onosproject.ospf.protocol.util.OspfPacketType;
 
 import java.util.List;
 import java.util.Vector;

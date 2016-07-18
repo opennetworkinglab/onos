@@ -36,10 +36,11 @@ import java.util.StringTokenizer;
  * Representation of an OSPF constants and utility methods.
  */
 public final class OspfUtil {
-
     public static final int OSPF_VERSION_2 = 2;
     public static final int OSPF_VERSION = OSPF_VERSION_2;
     public static final int PACKET_MINIMUM_LENGTH = 24;
+    public static final int METADATA_LEN = 5;
+    public static final int MINIMUM_FRAME_LEN = 1487;
     public static final int OSPF_HEADER_LENGTH = 24;
     public static final int LSA_HEADER_LENGTH = 20;
     public static final int DD_HEADER_LENGTH = OSPF_HEADER_LENGTH + 8;
@@ -52,6 +53,8 @@ public final class OspfUtil {
     public static final int LSAPACKET_CHECKSUM_POS2 = 17;
     public static final Ip4Address ALL_SPF_ROUTERS = Ip4Address.valueOf("224.0.0.5");
     public static final Ip4Address ALL_DROUTERS = Ip4Address.valueOf("224.0.0.6");
+    public static final Ip4Address DEFAULTIP = Ip4Address.valueOf("0.0.0.0");
+    public static final int RETRANSMITINTERVAL = 5;
     public static final int ONLY_ALL_SPF_ROUTERS = 1;
     public static final int JOIN_ALL_DROUTERS = 2;
     public static final int INITIALIZE_SET = 1;
@@ -62,9 +65,16 @@ public final class OspfUtil {
     public static final int NOT_MASTER = 0;
     public static final int NOT_ASSIGNED = 0;
     public static final int FOUR_BYTES = 4;
+    public static final int FIVE_BYTES = 5;
     public static final int EIGHT_BYTES = 8;
     public static final int TWELVE_BYTES = 12;
     public static final int EXTERNAL_DESTINATION_LENGTH = 12;
+    public static final String SHOST = "127.0.0.1";
+    public static final int SPORT = 7000;
+    public static final int MTU = 1500;
+    public static final char CONFIG_LENGTH = 1498;
+    public static final char ROUTER_PRIORITY = 0;
+    public static final int HELLO_PACKET_OPTIONS = 2;
     private static final Logger log =
             LoggerFactory.getLogger(OspfUtil.class);
 
@@ -398,18 +408,21 @@ public final class OspfUtil {
     /**
      * Adds metadata to ospf packet like whether to join multi cast group and destination IP.
      *
+     * @param interfaceIndex   interface index
      * @param ospfPacket       OSPF packet
      * @param allDroutersValue whether to join multi cast or not
      * @param destinationIp    destination ip address
      * @return byte array
      */
-    public static byte[] addMetadata(byte[] ospfPacket, int allDroutersValue, Ip4Address destinationIp) {
+    public static byte[] addMetadata(int interfaceIndex, byte[] ospfPacket, int allDroutersValue,
+                                     Ip4Address destinationIp) {
         byte[] packet;
+        byte[] interfaceIndexByteVal = {(byte) interfaceIndex};
         byte[] allDroutersByteVal = {(byte) allDroutersValue};
         byte[] destIpAsBytes = destinationIp.toOctets();
-        byte[] metadata = Bytes.concat(allDroutersByteVal, destIpAsBytes);
-
-        packet = Bytes.concat(metadata, ospfPacket);
+        byte[] metadata = Bytes.concat(interfaceIndexByteVal, allDroutersByteVal);
+        metadata = Bytes.concat(metadata, destIpAsBytes);
+        packet = Bytes.concat(ospfPacket, metadata);
 
         return packet;
     }
