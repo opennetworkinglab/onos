@@ -83,12 +83,22 @@
 
         function addAttribute(name, id, nameField, type) {
             if (type == 'radio') {
-                p.append('input').attr({
-                    type: type,
-                    name: name,
-                    id: id,
-                    class: 'radioButtonSpace'
-                });
+                if (id == 'pce-lsp-type-cr') {
+                    p.append('input').attr({
+                        type: type,
+                        name: name,
+                        id: id,
+                        checked: 'checked',
+                        class: 'radioButtonSpace'
+                    });
+                } else {
+                    p.append('input').attr({
+                        type: type,
+                        name: name,
+                        id: id,
+                        class: 'radioButtonSpace'
+                    });
+                }
             } else {
                 p.append('input').attr({
                     type: type,
@@ -112,7 +122,8 @@
         addAttribute('pce-cost-type-valname', 'pce-cost-type-igp', 'IGP', 'radio');
         addAttribute('pce-cost-type-valname', 'pce-cost-type-te', 'TE', 'radio');
         //Add the LSP type related inputs.
-        addAttribute('pce-lsp-type-name', 'pce-lsp-type', 'Lsp Type *', 'checkbox');
+        p.append('span').text("Lsp Type *");
+        p.append('br');
         addAttribute('pce-lsp-type-valname', 'pce-lsp-type-cr', 'With signalling', 'radio');
         addAttribute('pce-lsp-type-valname', 'pce-lsp-type-srbe', 'Without SR without signalling', 'radio');
         addAttribute('pce-lsp-type-valname', 'pce-lsp-type-srte', 'With SR without signalling', 'radio');
@@ -453,17 +464,14 @@
                 }
             }
 
-            var lspType = isChecked('pce-lsp-type'),
-                lspTypeVal = null;
+            var lspTypeVal = null;
 
-            if (lspType) {
-                if (isChecked('pce-lsp-type-cr')) {
-                   lspTypeVal = 'cr';
-                } else if (isChecked('pce-lsp-type-srbe')) {
+            if (isChecked('pce-lsp-type-cr')) {
+                lspTypeVal = 'cr';
+            } else if (isChecked('pce-lsp-type-srbe')) {
                    lspTypeVal = 'srbe';
-                } else if (isChecked('pce-lsp-type-srte')) {
+            } else if (isChecked('pce-lsp-type-srte')) {
                    lspTypeVal = 'srte';
-                }
             }
 
             wss.sendEvent(setPathmsg, {
@@ -528,7 +536,7 @@
             idx++;
         }
 
-        flash.flash('remove path message');
+        flash.flash('query path message');
     }
 
     function remPath(node) {

@@ -198,7 +198,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
             String tunnelName = string(payload, TUNNEL_NAME);
 
             if (tunnelName.equals(STRING_NULL)) {
-                log.error("tunnel name should not be empty");
+                log.error("PCE setup path is failed as tunnel name should not be empty");
                 return;
             }
 
@@ -207,8 +207,8 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
                 return;
             }
 
-            if (lspType == null) {
-                log.error("PCE setup path is failed.");
+            if (lspType == null || lspType.equals(STRING_NULL)) {
+                log.error("PCE setup path is failed as LSP type is mandatory");
             }
 
             if ((src != null) && (dst != null)) {
