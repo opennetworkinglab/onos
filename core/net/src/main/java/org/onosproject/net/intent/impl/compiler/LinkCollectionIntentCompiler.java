@@ -111,51 +111,75 @@ public class LinkCollectionIntentCompiler implements IntentCompiler<LinkCollecti
 
     private List<FlowRule> createRules(LinkCollectionIntent intent, DeviceId deviceId,
                                        Set<PortNumber> inPorts, Set<PortNumber> outPorts) {
-        Set<PortNumber> ingressPorts = intent.ingressPoints().stream()
-                .filter(point -> point.deviceId().equals(deviceId))
-                .map(ConnectPoint::port)
-                .collect(Collectors.toSet());
-
         TrafficTreatment.Builder defaultTreatmentBuilder = DefaultTrafficTreatment.builder();
         outPorts.stream()
                 .forEach(defaultTreatmentBuilder::setOutput);
-        TrafficTreatment defaultTreatment = defaultTreatmentBuilder.build();
+        TrafficTreatment outputOnlyTreatment = defaultTreatmentBuilder.build();
+        Set<PortNumber> ingressPorts = Collections.emptySet();
+        Set<PortNumber> egressPorts = Collections.emptySet();
 
-        TrafficTreatment.Builder ingressTreatmentBuilder = DefaultTrafficTreatment.builder(intent.treatment());
-        outPorts.stream()
-                .forEach(ingressTreatmentBuilder::setOutput);
-        TrafficTreatment ingressTreatment = ingressTreatmentBuilder.build();
-
-        TrafficSelector defaultTrafficSelector = applyTreatmentToSelector(intent.selector(), ingressTreatment);
+        if (!intent.applyTreatmentOnEgress()) {
+            ingressPorts = intent.ingressPoints().stream()
+                    .filter(point -> point.deviceId().equals(deviceId))
+                    .map(ConnectPoint::port)
+                    .collect(Collectors.toSet());
+        } else {
+            egressPorts = intent.egressPoints().stream()
+                    .filter(point -> point.deviceId().equals(deviceId))
+                    .map(ConnectPoint::port)
+                    .collect(Collectors.toSet());
+        }
 
         List<FlowRule> rules = new ArrayList<>(inPorts.size());
         for (PortNumber inPort: inPorts) {
             TrafficSelector.Builder selectorBuilder;
             TrafficTreatment treatment;
-            if (ingressPorts.contains(inPort)) {
-                selectorBuilder = DefaultTrafficSelector.builder(intent.selector());
-                treatment = ingressTreatment;
+            TrafficTreatment intentTreatment;
+
+            if (!intent.applyTreatmentOnEgress()) {
+                TrafficTreatment.Builder ingressTreatmentBuilder = DefaultTrafficTreatment.builder(intent.treatment());
+                outPorts.stream()
+                        .forEach(ingressTreatmentBuilder::setOutput);
+                intentTreatment = ingressTreatmentBuilder.build();
+
+                if (ingressPorts.contains(inPort)) {
+                    selectorBuilder = DefaultTrafficSelector.builder(intent.selector());
+                    treatment = intentTreatment;
+                } else {
+                    selectorBuilder = applyTreatmentToSelector(intent.selector(), intentTreatment);
+                    treatment = outputOnlyTreatment;
+                }
             } else {
-                selectorBuilder = DefaultTrafficSelector.builder(defaultTrafficSelector);
-                treatment = defaultTreatment;
+                if (outPorts.stream().allMatch(egressPorts::contains)) {
+                    TrafficTreatment.Builder egressTreatmentBuilder =
+                            DefaultTrafficTreatment.builder(intent.treatment());
+                    outPorts.stream()
+                            .forEach(egressTreatmentBuilder::setOutput);
+
+                    selectorBuilder = DefaultTrafficSelector.builder(intent.selector());
+                    treatment = egressTreatmentBuilder.build();
+                } else {
+                    selectorBuilder = DefaultTrafficSelector.builder(intent.selector());
+                    treatment = outputOnlyTreatment;
+                }
             }
             TrafficSelector selector = selectorBuilder.matchInPort(inPort).build();
 
             FlowRule rule = DefaultFlowRule.builder()
-                                .forDevice(deviceId)
-                                .withSelector(selector)
-                                .withTreatment(treatment)
-                                .withPriority(intent.priority())
-                                .fromApp(appId)
-                                .makePermanent()
-                                .build();
+                    .forDevice(deviceId)
+                    .withSelector(selector)
+                    .withTreatment(treatment)
+                    .withPriority(intent.priority())
+                    .fromApp(appId)
+                    .makePermanent()
+                    .build();
             rules.add(rule);
         }
 
         return rules;
     }
 
-    private TrafficSelector applyTreatmentToSelector(TrafficSelector selector, TrafficTreatment treatment) {
+    private TrafficSelector.Builder applyTreatmentToSelector(TrafficSelector selector, TrafficTreatment treatment) {
         TrafficSelector.Builder defaultSelectorBuilder = DefaultTrafficSelector.builder(selector);
         treatment.allInstructions().forEach(instruction -> {
             switch (instruction.type()) {
@@ -317,6 +341,6 @@ public class LinkCollectionIntentCompiler implements IntentCompiler<LinkCollecti
                     throw new IntentCompilationException("Unknown instruction type");
             }
         });
-        return defaultSelectorBuilder.build();
+        return defaultSelectorBuilder;
     }
 }
