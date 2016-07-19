@@ -50,6 +50,11 @@
             <groupId>org.onosproject</groupId>
             <artifactId>openflowj</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-drivers</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>
