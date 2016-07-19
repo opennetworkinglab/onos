@@ -48,10 +48,10 @@ public class AtomixLongTest extends AtomixTestBase {
 
     @Test
     public void testBasicOperations() throws Throwable {
-        basicOperationsTest(3);
+        basicOperationsTest();
     }
 
-    protected void basicOperationsTest(int clusterSize) throws Throwable {
+    protected void basicOperationsTest() throws Throwable {
         Atomix atomix = createAtomixClient();
         AtomixCounter along = new AtomixCounter("test-long-basic-operations",
                                                 atomix.getLong("test-long").join());

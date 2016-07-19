@@ -60,10 +60,10 @@ public class AtomixLeaderElectorTest extends AtomixTestBase {
 
     @Test
     public void testRun() throws Throwable {
-        leaderElectorRunTests(3);
+        leaderElectorRunTests();
     }
 
-    private void leaderElectorRunTests(int numServers) throws Throwable {
+    private void leaderElectorRunTests() throws Throwable {
         Atomix client1 = createAtomixClient();
         AtomixLeaderElector elector1 = client1.getResource("test-elector-run",
                                                            AtomixLeaderElector.class).join();
@@ -87,10 +87,10 @@ public class AtomixLeaderElectorTest extends AtomixTestBase {
 
     @Test
     public void testWithdraw() throws Throwable {
-        leaderElectorWithdrawTests(3);
+        leaderElectorWithdrawTests();
     }
 
-    private void leaderElectorWithdrawTests(int numServers) throws Throwable {
+    private void leaderElectorWithdrawTests() throws Throwable {
         Atomix client1 = createAtomixClient();
         AtomixLeaderElector elector1 = client1.getResource("test-elector-withdraw",
                                                            AtomixLeaderElector.class).join();
@@ -125,10 +125,10 @@ public class AtomixLeaderElectorTest extends AtomixTestBase {
 
     @Test
     public void testAnoint() throws Throwable {
-        leaderElectorAnointTests(3);
+        leaderElectorAnointTests();
     }
 
-    private void leaderElectorAnointTests(int numServers) throws Throwable {
+    private void leaderElectorAnointTests() throws Throwable {
         Atomix client1 = createAtomixClient();
         AtomixLeaderElector elector1 = client1.getResource("test-elector-anoint",
                                                            AtomixLeaderElector.class).join();
@@ -181,10 +181,10 @@ public class AtomixLeaderElectorTest extends AtomixTestBase {
 
     @Test
     public void testPromote() throws Throwable {
-        leaderElectorPromoteTests(3);
+        leaderElectorPromoteTests();
     }
 
-    private void leaderElectorPromoteTests(int numServers) throws Throwable {
+    private void leaderElectorPromoteTests() throws Throwable {
         AtomixClient client1 = createAtomixClient();
         AtomixLeaderElector elector1 = client1.getResource("test-elector-promote",
                                                            AtomixLeaderElector.class).join();
@@ -241,10 +241,10 @@ public class AtomixLeaderElectorTest extends AtomixTestBase {
 
     @Test
     public void testLeaderSessionClose() throws Throwable {
-        leaderElectorLeaderSessionCloseTests(3);
+        leaderElectorLeaderSessionCloseTests();
     }
 
-    private void leaderElectorLeaderSessionCloseTests(int numServers) throws Throwable {
+    private void leaderElectorLeaderSessionCloseTests() throws Throwable {
         AtomixClient client1 = createAtomixClient();
         AtomixLeaderElector elector1 = client1.getResource("test-elector-leader-session-close",
                                                            AtomixLeaderElector.class).join();
@@ -265,10 +265,10 @@ public class AtomixLeaderElectorTest extends AtomixTestBase {
 
     @Test
     public void testNonLeaderSessionClose() throws Throwable {
-        leaderElectorNonLeaderSessionCloseTests(3);
+        leaderElectorNonLeaderSessionCloseTests();
     }
 
-    private void leaderElectorNonLeaderSessionCloseTests(int numServers) throws Throwable {
+    private void leaderElectorNonLeaderSessionCloseTests() throws Throwable {
         Atomix client1 = createAtomixClient();
         AtomixLeaderElector elector1 = client1.getResource("test-elector-non-leader-session-close",
                                                            AtomixLeaderElector.class).join();
@@ -289,10 +289,10 @@ public class AtomixLeaderElectorTest extends AtomixTestBase {
 
     @Test
     public void testQueries() throws Throwable {
-        leaderElectorQueryTests(3);
+        leaderElectorQueryTests();
     }
 
-    private void leaderElectorQueryTests(int numServers) throws Throwable {
+    private void leaderElectorQueryTests() throws Throwable {
         Atomix client1 = createAtomixClient();
         Atomix client2 = createAtomixClient();
         AtomixLeaderElector elector1 = client1.getResource("test-elector-query",

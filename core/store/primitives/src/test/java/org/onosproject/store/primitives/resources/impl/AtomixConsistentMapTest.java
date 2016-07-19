@@ -71,7 +71,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
      */
     @Test
     public void testBasicMapOperations() throws Throwable {
-        basicMapOperationTests(3);
+        basicMapOperationTests();
     }
 
     /**
@@ -79,7 +79,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
      */
     @Test
     public void testMapComputeOperations() throws Throwable {
-        mapComputeOperationTests(3);
+        mapComputeOperationTests();
     }
 
     /**
@@ -87,7 +87,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
      */
     @Test
     public void testMapListeners() throws Throwable {
-        mapListenerTests(3);
+        mapListenerTests();
     }
 
     /**
@@ -95,7 +95,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
      */
     @Test
     public void testTransactionCommit() throws Throwable {
-        transactionCommitTests(3);
+        transactionCommitTests();
     }
 
     /**
@@ -103,10 +103,10 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
      */
     @Test
     public void testTransactionRollback() throws Throwable {
-        transactionRollbackTests(3);
+        transactionRollbackTests();
     }
 
-    protected void basicMapOperationTests(int clusterSize) throws Throwable {
+    protected void basicMapOperationTests() throws Throwable {
         final byte[] rawFooValue = Tools.getBytesUtf8("Hello foo!");
         final byte[] rawBarValue = Tools.getBytesUtf8("Hello bar!");
 
@@ -235,7 +235,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
         }).join();
     }
 
-    public void mapComputeOperationTests(int clusterSize) throws Throwable {
+    public void mapComputeOperationTests() throws Throwable {
         final byte[] value1 = Tools.getBytesUtf8("value1");
         final byte[] value2 = Tools.getBytesUtf8("value2");
         final byte[] value3 = Tools.getBytesUtf8("value3");
@@ -273,7 +273,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
     }
 
 
-    protected void mapListenerTests(int clusterSize) throws Throwable {
+    protected void mapListenerTests() throws Throwable {
         final byte[] value1 = Tools.getBytesUtf8("value1");
         final byte[] value2 = Tools.getBytesUtf8("value2");
         final byte[] value3 = Tools.getBytesUtf8("value3");
@@ -333,7 +333,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
         map.removeListener(listener).join();
     }
 
-    protected void transactionCommitTests(int clusterSize) throws Throwable {
+    protected void transactionCommitTests() throws Throwable {
         final byte[] value1 = Tools.getBytesUtf8("value1");
         final byte[] value2 = Tools.getBytesUtf8("value2");
 
@@ -428,7 +428,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
 
     }
 
-    protected void transactionRollbackTests(int clusterSize) throws Throwable {
+    protected void transactionRollbackTests() throws Throwable {
         final byte[] value1 = Tools.getBytesUtf8("value1");
         final byte[] value2 = Tools.getBytesUtf8("value2");
 
