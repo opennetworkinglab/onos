@@ -184,6 +184,7 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
         configRegistry.addListener(configListener);
         componentConfigService.registerProperties(getClass());
 
+        readConfiguration();
         log.info("Started");
     }
 
