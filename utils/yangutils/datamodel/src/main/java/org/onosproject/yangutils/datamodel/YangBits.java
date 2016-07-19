@@ -67,17 +67,6 @@ public class YangBits implements Parsable, Serializable {
     }
 
     /**
-     * Creates an instance of YANG bits.
-     *
-     * @param bits set of bit names
-     * @throws DataModelException due to violation in data model rules
-     */
-    public YangBits(String bits) throws DataModelException {
-        String[] bitNames = bits.trim().split(Pattern.quote(SPACE));
-        setBitDataSet(bitNames);
-    }
-
-    /**
      * Returns the bits name.
      *
      * @return the bits name
@@ -229,9 +218,11 @@ public class YangBits implements Parsable, Serializable {
      * @param bits set of bit names
      * @return Object of YANG bits
      */
-    public static YangBits fromString(String bits) {
+    public YangBits fromString(String bits) {
         try {
-            return new YangBits(bits);
+            String[] bitNames = bits.trim().split(Pattern.quote(SPACE));
+            setBitDataSet(bitNames);
+            return this;
         } catch (Exception e) {
         }
         return null;

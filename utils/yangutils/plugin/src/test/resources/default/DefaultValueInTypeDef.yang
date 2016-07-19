@@ -1,0 +1,14 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+
+    typedef topInt {
+       type int64;
+       default "10";
+    }
+
+    leaf myValue {
+        type topInt;
+    }
+}

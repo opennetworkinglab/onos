@@ -17,12 +17,18 @@
 package org.onosproject.yangutils.datamodel;
 
 import java.io.Serializable;
+import java.math.BigInteger;
+import java.util.Iterator;
+import java.util.ListIterator;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.datamodel.utils.DataModelUtils;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.ResolvableStatus;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.DataTypeException;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangUint64;
 
 import static org.onosproject.yangutils.datamodel.BuiltInTypeObjectFactory.getDataObjectFromString;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypeUtils.isOfRangeRestrictedType;
@@ -268,9 +274,9 @@ public class YangType<T>
      * type as per the YANG file.
      *
      * @param value input data value
-     * @return status of validation
+     * @throws DataModelException a violation of data model rules
      */
-    public boolean isValidValue(String value) {
+    public void isValidValue(String value) throws DataModelException {
         switch (getDataType()) {
             case INT8:
             case INT16:
@@ -280,83 +286,210 @@ public class YangType<T>
             case UINT16:
             case UINT32:
             case UINT64: {
-                isValidValueForRangeRestrictedType(value);
+                if (getDataTypeExtendedInfo() == null) {
+                    getDataObjectFromString(value, getDataType());
+                } else {
+                    ((YangRangeRestriction) getDataTypeExtendedInfo()).isValidValueString(value);
+                }
+                break;
             }
             case DECIMAL64: {
-                // TODO
+                // Fraction-Digits and range needs to get it from yang
+                YangDecimal64<YangRangeRestriction> decimal64 =
+                        (YangDecimal64<YangRangeRestriction>) getDataTypeExtendedInfo();
+                validateDecimal64(value, decimal64.getFractionDigit(),
+                                        decimal64.getRangeRestrictedExtendedInfo());
+                break;
             }
             case STRING: {
-                // TODO implement in string restriction similar to range restriction
+                if (!(((YangStringRestriction) getDataTypeExtendedInfo()).isValidStringOnLengthRestriction(value) &&
+                        ((YangStringRestriction) getDataTypeExtendedInfo()).isValidStringOnPatternRestriction(value))) {
+                    throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
+                                                        "string");
+                }
+                break;
             }
+            case BOOLEAN:
+                if (!(value.equals(DataModelUtils.TRUE) || value.equals(DataModelUtils.FALSE))) {
+                    throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
+                                                        "boolean");
+                }
+                break;
             case ENUMERATION: {
-                // TODO validate using list of YANG enum of enumeration class in extended info.
-            }
-            case BINARY: {
-                // TODO validate based on extended info
+                Iterator<YangEnum> iterator = ((YangEnumeration) getDataTypeExtendedInfo()).getEnumSet().iterator();
+                boolean isValidated = false;
+                while (iterator.hasNext()) {
+                    YangEnum enumTemp = (YangEnum) iterator.next();
+                    if (enumTemp.getNamedValue().equals(value)) {
+                        isValidated = true;
+                        break;
+                    }
+                }
+
+                if (!isValidated) {
+                    throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
+                                                        "union");
+                }
+                break;
             }
             case BITS: {
-                // TODO validate based on extended info
+                YangBits bits = (YangBits) getDataTypeExtendedInfo();
+                if (bits.fromString(value) == null) {
+                    throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
+                                                        "bits");
+                }
+                break;
             }
-            case BOOLEAN: {
-                // TODO true or false
+            case BINARY: {
+                if (!isValidBinary(value, (YangRangeRestriction) getDataTypeExtendedInfo())) {
+                    throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
+                                                        "binary");
+                }
+                break;
             }
             case LEAFREF: {
-                // TODO validate based on extended info
+                YangLeafRef<?> leafRef = (YangLeafRef<?>) getDataTypeExtendedInfo();
+                leafRef.validateDataOnExit();
+                break;
             }
             case IDENTITYREF: {
                 // TODO TBD
+                break;
             }
             case EMPTY: {
-                // TODO true or false
+                throw new DataTypeException("YANG file error : Input value \"" + value
+                                                    + "\" is not a allowed for a data type " + "empty");
             }
             case UNION: {
-                // TODO validate based on extended info
+                ListIterator<YangType<?>> listIterator = ((YangUnion) getDataTypeExtendedInfo()).getTypeList()
+                                                                                                .listIterator();
+                boolean isValidated = false;
+                while (listIterator.hasNext()) {
+                    YangType<?> type = (YangType<?>) listIterator.next();
+                    try {
+                        type.isValidValue(value);
+                        // If it is not thrown exception then validation is success
+                        isValidated = true;
+                        break;
+                    } catch (Exception e) {
+                    }
+                }
+
+                if (!isValidated) {
+                    throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
+                                                        "union");
+                }
+                break;
             }
             case INSTANCE_IDENTIFIER: {
                 // TODO TBD
+                break;
             }
             case DERIVED: {
-                if (isOfRangeRestrictedType(((YangDerivedInfo) getDataTypeExtendedInfo()).getEffectiveBuiltInType())) {
-                    try {
-                        if (((YangDerivedInfo) getDataTypeExtendedInfo()).getResolvedExtendedInfo() == null) {
-                            getDataObjectFromString(value,
-                                    ((YangDerivedInfo) getDataTypeExtendedInfo()).getEffectiveBuiltInType());
-                            return true;
-                        } else {
-                            return ((YangRangeRestriction) ((YangDerivedInfo) getDataTypeExtendedInfo())
-                                    .getResolvedExtendedInfo()).isValidValueString(value);
+                YangDataTypes dataType = ((YangDerivedInfo) getDataTypeExtendedInfo()).getEffectiveBuiltInType();
+                if (isOfRangeRestrictedType(dataType)) {
+                    if (((YangDerivedInfo) getDataTypeExtendedInfo()).getResolvedExtendedInfo() == null) {
+                        getDataObjectFromString(value,
+                                                ((YangDerivedInfo) getDataTypeExtendedInfo())
+                                                        .getEffectiveBuiltInType());
+                    } else {
+                        if (!((YangRangeRestriction) ((YangDerivedInfo) getDataTypeExtendedInfo())
+                                .getResolvedExtendedInfo()).isValidValueString(value)) {
+                            throw new DataTypeException("YANG file error : Input value \"" + value
+                                                                + "\" is not a valid " + dataType.toString());
                         }
-                    } catch (Exception e) {
-                        return false;
                     }
-                } else {
-                    // TODO
+                } else if (dataType == YangDataTypes.STRING) {
+                    if (((YangDerivedInfo) getDataTypeExtendedInfo()).getResolvedExtendedInfo() != null) {
+                        YangStringRestriction stringRestriction =
+                                ((YangStringRestriction) ((YangDerivedInfo) getDataTypeExtendedInfo())
+                                        .getResolvedExtendedInfo());
+                        if (!(stringRestriction.isValidStringOnLengthRestriction(value) &&
+                                stringRestriction.isValidStringOnPatternRestriction(value))) {
+                            throw new DataTypeException("YANG file error : Input value \"" + value
+                                                                + "\" is not a valid " + dataType.toString());
+                        }
+                    }
+                } else if (dataType == YangDataTypes.BITS) {
+                    YangBits bits = (YangBits) getDataTypeExtendedInfo();
+                    if (bits.fromString(value) == null) {
+                        throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
+                                                            "bits");
+                    }
+                } else if (dataType == YangDataTypes.BINARY) {
+                    if (!isValidBinary(value, (YangRangeRestriction) ((YangDerivedInfo)
+                            getDataTypeExtendedInfo()).getResolvedExtendedInfo())) {
+                        throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
+                                                            dataType.toString());
+                    }
+                } else if (dataType == YangDataTypes.DECIMAL64) {
+                    YangDerivedInfo derivedInfo = (YangDerivedInfo) getDataTypeExtendedInfo();
+                    YangTypeDef typedef = (YangTypeDef) derivedInfo.getReferredTypeDef();
+                    YangType<YangDecimal64> decimal64Type =
+                            (YangType<YangDecimal64>) typedef.getTypeList().iterator().next();
+                    YangDecimal64<YangRangeRestriction> decimal64 = decimal64Type.getDataTypeExtendedInfo();
+                    // Fraction-Digits and range needs to get it from yang
+                    validateDecimal64(value, decimal64.getFractionDigit(),
+                                            decimal64.getRangeRestrictedExtendedInfo());
                 }
+                break;
             }
             default: {
-                // TODO
+                throw new DataTypeException("YANG file error : Input value \"" + value + "\" is for unsupported " +
+                                                    "data type.");
             }
         }
-        return true;
+    }
+
+
+    /**
+     * Checks whether specific string is valid decimal64 value.
+     *
+     * @param value decimal64 value
+     */
+    private  void validateDecimal64(String value, int fractionDigit, YangRangeRestriction rangeRestriction)
+            throws DataModelException {
+        YangDecimal64<YangRangeRestriction> decimal64 = YangDecimal64.fromString(value);
+        decimal64.setFractionDigit(fractionDigit);
+        decimal64.setRangeRestrictedExtendedInfo(rangeRestriction);
+        decimal64.validateDecimal64();
     }
 
     /**
-     * Validates the input data value for range restricted types against the
-     * permissible value for the type as per the YANG file.
+     * Checks whether specific string is valid binary.
      *
-     * @param value input data value
-     * @return status of validation
+     * @param value binary value
+     * @return true if validation success otherwise false
      */
-    private boolean isValidValueForRangeRestrictedType(String value) {
-        try {
-            if (getDataTypeExtendedInfo() == null) {
-                getDataObjectFromString(value, getDataType());
-                return true;
-            } else {
-                return ((YangRangeRestriction) getDataTypeExtendedInfo()).isValidValueString(value);
-            }
-        } catch (Exception e) {
+    private boolean isValidBinary(String value, YangRangeRestriction lengthRestriction) {
+        YangBinary binary = new YangBinary(value);
+
+        // After decoding binary, its length should not be zero
+        if (binary.getBinaryData().length == 0) {
             return false;
         }
+
+        if (lengthRestriction == null || lengthRestriction.getAscendingRangeIntervals() == null
+                || lengthRestriction.getAscendingRangeIntervals().isEmpty()) {
+            // Length restriction is optional
+            return true;
+        }
+
+        ListIterator<YangRangeInterval<YangUint64>> rangeListIterator = lengthRestriction.getAscendingRangeIntervals()
+                .listIterator();
+        boolean isMatched = false;
+        while (rangeListIterator.hasNext()) {
+            YangRangeInterval rangeInterval = rangeListIterator.next();
+            BigInteger startValue = ((YangUint64) rangeInterval.getStartValue()).getValue();
+            BigInteger endValue = ((YangUint64) rangeInterval.getEndValue()).getValue();
+            // convert (encode) back and check length
+            if ((binary.toString().length() >= startValue.intValue()) &&
+                    (binary.toString().length() <= endValue.intValue())) {
+                isMatched = true;
+                break;
+            }
+        }
+
+        return isMatched;
     }
 }

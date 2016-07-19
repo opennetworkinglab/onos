@@ -17,6 +17,8 @@
 package org.onosproject.yangutils.datamodel;
 
 import java.io.Serializable;
+import java.math.BigInteger;
+import java.util.ListIterator;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
@@ -191,6 +193,61 @@ public class YangStringRestriction implements YangDesc, YangReference, Parsable,
     @Override
     public YangConstructType getYangConstructType() {
         return YangConstructType.PATTERN_DATA;
+    }
+
+    /**
+     * Validates if the given value is correct as per the length restriction.
+     *
+     * @param valueInString value
+     * @return true, if the value is confirming to length restriction, false otherwise
+     */
+    public boolean isValidStringOnLengthRestriction(String valueInString) {
+        if (lengthRestriction == null || lengthRestriction.getAscendingRangeIntervals() == null
+                || lengthRestriction.getAscendingRangeIntervals().isEmpty()) {
+            // Length restriction is optional
+            return true;
+        }
+
+        ListIterator<YangRangeInterval<YangUint64>> rangeListIterator = lengthRestriction.getAscendingRangeIntervals()
+                .listIterator();
+        boolean isMatched = false;
+        while (rangeListIterator.hasNext()) {
+            YangRangeInterval rangeInterval = rangeListIterator.next();
+            BigInteger startValue = ((YangUint64) rangeInterval.getStartValue()).getValue();
+            BigInteger endValue = ((YangUint64) rangeInterval.getEndValue()).getValue();
+            if ((valueInString.length() >= startValue.intValue()) &&
+                    (valueInString.length() <= endValue.intValue())) {
+                isMatched = true;
+                break;
+            }
+        }
+
+        return isMatched;
+    }
+
+    /**
+     * Validates if the given value is correct as per the pattern restriction.
+     *
+     * @param valueInString value
+     * @return true, if the value is confirming to pattern restriction, false otherwise
+     */
+    public boolean isValidStringOnPatternRestriction(String valueInString) {
+        if (patternRestriction == null
+                || patternRestriction.getPatternList().isEmpty()) {
+            // Pattern restriction is optional
+            return true;
+        }
+
+        ListIterator<String> patternListIterator = patternRestriction.getPatternList().listIterator();
+        boolean isMatched = false;
+        while (patternListIterator.hasNext()) {
+            if (valueInString.matches(patternListIterator.next())) {
+                isMatched = true;
+                break;
+            }
+        }
+
+        return isMatched;
     }
 
     @Override

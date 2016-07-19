@@ -105,7 +105,7 @@ public final class FractionDigits {
      *
      * @return decimal64 value range by fraction-digits as index
      */
-    private static ArrayList<Range> getDecimal64ValueRange() {
+    public static ArrayList<Range> getDecimal64ValueRange() {
         if (decimal64ValueRange == null) {
             decimal64ValueRange = new ArrayList<>();
             decimal64ValueRange.add(new Range(-922337203685477580.8, 922337203685477580.7)); // fraction-digit: 1
@@ -131,26 +131,6 @@ public final class FractionDigits {
     }
 
     /**
-     * Checks given decimal64 value is in the specific range based on given fraction-digit.
-     *
-     * @param value decimal64 value
-     * @param fractionDigit fraction-digits
-     * @return success when it is in specific range otherwise false
-     */
-    public static boolean isValidDecimal64(BigDecimal value, int fractionDigit) {
-        if (!((fractionDigit >= 1) && (fractionDigit <= 18))) {
-            return false;
-        }
-
-        // ArrayList index starts from 0.
-        Range range = getDecimal64ValueRange().get(fractionDigit - 1);
-        if ((value.doubleValue() >= range.min) && (value.doubleValue() <= range.max)) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * Retrieve range based on fraction-digits.
      *
      * @param fractionDigit fraction-digits
@@ -163,5 +143,26 @@ public final class FractionDigits {
         }
 
         return getDecimal64ValueRange().get(fractionDigit - 1);
+    }
+
+    /**
+     * Checks whether specific decimal64 value is in correct range based fraction-digit.
+     *
+     * @param value decimal64 value
+     * @param fractionDigit fraction-digits
+     * @return true when it is in correct range otherwise false
+     */
+    public static boolean isValueInDecimal64Range(BigDecimal value, int fractionDigit) {
+        // Fraction-digits should be in correct its own range.
+        if (!((fractionDigit >= 1) && (fractionDigit <= 18))) {
+            return false;
+        }
+
+        // ArrayList index starts from 0.
+        FractionDigits.Range range = FractionDigits.getDecimal64ValueRange().get(fractionDigit - 1);
+        if ((value.doubleValue() >= range.getMin()) && (value.doubleValue() <= range.getMax())) {
+            return true;
+        }
+        return false;
     }
 }

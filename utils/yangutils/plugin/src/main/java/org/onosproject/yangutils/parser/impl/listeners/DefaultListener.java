@@ -46,6 +46,7 @@ import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil;
 
 import static org.onosproject.yangutils.datamodel.utils.YangConstructType.DEFAULT_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
@@ -82,17 +83,17 @@ public final class DefaultListener {
         switch (tmpNode.getYangConstructType()) {
             case TYPEDEF_DATA: {
                 YangTypeDef typeDef = (YangTypeDef) tmpNode;
-                typeDef.setDefaultValueInString(ctx.string().getText());
+                typeDef.setDefaultValueInString(ListenerUtil.removeQuotesAndHandleConcat(ctx.string().getText()));
                 break;
             }
             case LEAF_DATA: {
                 YangLeaf leaf = (YangLeaf) tmpNode;
-                leaf.setDefaultValueInString(ctx.string().getText());
+                leaf.setDefaultValueInString(ListenerUtil.removeQuotesAndHandleConcat(ctx.string().getText()));
                 break;
             }
             case CHOICE_DATA: {
                 YangChoice choice = (YangChoice) tmpNode;
-                choice.setDefaultValueInString(ctx.string().getText());
+                choice.setDefaultValueInString(ListenerUtil.removeQuotesAndHandleConcat(ctx.string().getText()));
                 break;
             }
             default:

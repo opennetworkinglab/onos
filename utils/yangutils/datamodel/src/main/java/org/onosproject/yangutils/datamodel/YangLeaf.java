@@ -380,8 +380,9 @@ public class YangLeaf
     @Override
     public void validateDataOnExit()
             throws DataModelException {
-        // TODO auto-generated method stub, to be implemented by parser
-
+        if (defaultValueInString != null && !defaultValueInString.isEmpty() && dataType != null) {
+            dataType.isValidValue(defaultValueInString);
+        }
     }
 
     @Override

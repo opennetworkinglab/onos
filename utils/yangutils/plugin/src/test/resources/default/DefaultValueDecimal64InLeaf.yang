@@ -1,0 +1,13 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+
+    leaf mydecimal {
+        type decimal64 {
+           fraction-digits 4;
+           range 4..6;
+        } 
+        default "5";
+    }
+}

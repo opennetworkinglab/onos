@@ -84,32 +84,6 @@ public class YangChoice extends YangNode
     private boolean isConfig;
 
     /**
-     * Reference RFC 6020.
-     *
-     * The "default" statement indicates if a case should be considered as the
-     * default if no child nodes from any of the choice's cases exist. The
-     * argument is the identifier of the "case" statement. If the "default"
-     * statement is missing, there is no default case.
-     *
-     * The "default" statement MUST NOT be present on choices where "mandatory"
-     * is true.
-     *
-     * The default case is only important when considering the default values of
-     * nodes under the cases. The default values for nodes under the default
-     * case are used if none of the nodes under any of the cases are present.
-     *
-     * There MUST NOT be any mandatory nodes directly under the default case.
-     *
-     * Default values for child nodes under a case are only used if one of the
-     * nodes under that case is present, or if that case is the default case. If
-     * none of the nodes under a case are present and the case is not the
-     * default case, the default values of the cases' child nodes are ignored.
-     *
-     * the default case to be used if no case members is present.
-     */
-    private String defaultCase;
-
-    /**
      * Description of choice.
      */
     private String description;
@@ -146,8 +120,28 @@ public class YangChoice extends YangNode
     private YangStatusType status;
 
     /**
-     * Default value in string, needs to be converted to the target object,
-     * based on the type.
+     * Reference RFC 6020.
+     * <p>
+     * The "default" statement indicates if a case should be considered as the
+     * default if no child nodes from any of the choice's cases exist. The
+     * argument is the identifier of the "case" statement. If the "default"
+     * statement is missing, there is no default case.
+     * <p>
+     * The "default" statement MUST NOT be present on choices where "mandatory"
+     * is true.
+     * <p>
+     * The default case is only important when considering the default values of
+     * nodes under the cases. The default values for nodes under the default
+     * case are used if none of the nodes under any of the cases are present.
+     * <p>
+     * There MUST NOT be any mandatory nodes directly under the default case.
+     * <p>
+     * Default values for child nodes under a case are only used if one of the
+     * nodes under that case is present, or if that case is the default case. If
+     * none of the nodes under a case are present and the case is not the
+     * default case, the default values of the cases' child nodes are ignored.
+     * <p>
+     * the default case to be used if no case members is present.
      */
     private String defaultValueInString;
 
@@ -235,24 +229,6 @@ public class YangChoice extends YangNode
      */
     public void setConfig(boolean isCfg) {
         isConfig = isCfg;
-    }
-
-    /**
-     * Returns the default case.
-     *
-     * @return the default case
-     */
-    public String getDefaultCase() {
-        return defaultCase;
-    }
-
-    /**
-     * Sets the default case.
-     *
-     * @param defaultCase the default case to set
-     */
-    public void setDefaultCase(String defaultCase) {
-        this.defaultCase = defaultCase;
     }
 
     /**
@@ -378,7 +354,25 @@ public class YangChoice extends YangNode
      */
     @Override
     public void validateDataOnExit() throws DataModelException {
-        // TODO auto-generated method stub, to be implemented by parser
+        if (defaultValueInString != null && !defaultValueInString.isEmpty()) {
+            YangNode node = getChild();
+            boolean matched = false;
+            // Check whether default string matches the case
+            while (node != null) {
+                if (node instanceof YangCase) {
+                    if (defaultValueInString.equals(((YangCase) node).getName())) {
+                        matched = true;
+                        break;
+                    }
+                }
+                node = node.getNextSibling();
+            }
+
+            if (!matched) {
+                throw new DataModelException("YANG file error: default string \"" + defaultValueInString
+                                                     + "\" not matching choice \"" + getName() + "\" case.");
+            }
+        }
     }
 
     @Override

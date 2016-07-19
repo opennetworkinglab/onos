@@ -55,6 +55,8 @@ import java.util.Set;
  * Represents utilities for data model tree.
  */
 public final class DataModelUtils {
+    public static final String TRUE = "true";
+    public static final String FALSE = "false";
 
     /**
      * Creates a new data model tree utility.

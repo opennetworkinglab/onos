@@ -20,6 +20,7 @@ import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.FractionDigits;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.DataTypeException;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangBuiltInDataTypeInfo;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 
@@ -55,6 +56,16 @@ public class YangDecimal64<T>
      */
     public static final int MAX_FRACTION_DIGITS_VALUE = 18;
 
+    /**
+     * Valid minimum value of YANG's decimal64.
+     */
+    public static final BigDecimal MIN_VALUE = BigDecimal.valueOf(-922337203685477580.8);
+
+    /**
+     * Valid maximum value of YANG's decimal64.
+     */
+    public static final BigDecimal MAX_VALUE = BigDecimal.valueOf(922337203685477580.7);
+
     // Decimal64 value
     private BigDecimal value;
 
@@ -84,11 +95,29 @@ public class YangDecimal64<T>
     /**
      * Creates an instance of YANG decimal64.
      *
-     * @param value of decimal64 in string
-     * @throws DataModelException a violation of data model rules
+     * @param valueInString of decimal64 in string
      */
-    public YangDecimal64(String value) throws DataModelException {
-        fromString(value);
+    public YangDecimal64(String valueInString) {
+        if (valueInString.matches(MIN_KEYWORD)) {
+            value = MIN_VALUE;
+        } else if (valueInString.matches(MAX_KEYWORD)) {
+            value = MAX_VALUE;
+        } else {
+            try {
+                value = new BigDecimal(valueInString);
+            } catch (Exception e) {
+                throw new DataTypeException("YANG file error : Input value \"" + valueInString + "\" is not a valid " +
+                                                    "decimal64.");
+            }
+        }
+
+        if (value.doubleValue() < MIN_VALUE.doubleValue()) {
+            throw new DataTypeException("YANG file error : " + valueInString + " is lesser than minimum value "
+                                                + MIN_VALUE + ".");
+        } else if (value.doubleValue() > MAX_VALUE.doubleValue()) {
+            throw new DataTypeException("YANG file error : " + valueInString + " is greater than maximum value "
+                                                + MAX_VALUE + ".");
+        }
     }
 
     /**
@@ -178,20 +207,53 @@ public class YangDecimal64<T>
      * @throws DataModelException a violation of data model rules
      */
     public static YangDecimal64 fromString(String valInString) throws DataModelException {
-        YangDecimal64 decimal64;
-        decimal64 = of(new BigDecimal(valInString));
-        decimal64.validateValue();
-        return decimal64;
+        return new YangDecimal64(valInString);
     }
 
     /**
-     * Validate decimal64 value.
+     * Checks whether specific fraction-digit in its range.
+     *
+     * @return true if fraction-digit is in its range otherwise false
+     */
+    public boolean isValidFractionDigit() {
+        if ((fractionDigit >= 1) && (fractionDigit <= 18)) {
+            return true;
+        }
+        return false;
+    }
+
+
+    /**
+     * Checks whether value is in correct decimal64 value range.
      *
      * @throws DataModelException a violation of data model rules
      */
-    public void validateValue() throws DataModelException {
-        if (!(FractionDigits.isValidDecimal64(this.value, this.fractionDigit))) {
-            throw new DataModelException("YANG file error : decimal64 validation failed.");
+    public void validateDecimal64() throws DataModelException {
+        YangRangeRestriction rangeRestriction = (YangRangeRestriction) getRangeRestrictedExtendedInfo();
+        if (rangeRestriction != null) {
+            // Check whether value is within provided range value
+            ListIterator<YangRangeInterval> rangeListIterator = rangeRestriction.getAscendingRangeIntervals()
+                    .listIterator();
+            boolean isMatched = false;
+            while (rangeListIterator.hasNext()) {
+                YangRangeInterval rangeInterval = rangeListIterator.next();
+                BigDecimal startValue = ((YangDecimal64) rangeInterval.getStartValue()).getValue();
+                BigDecimal endValue = ((YangDecimal64) rangeInterval.getEndValue()).getValue();
+                if ((this.value.doubleValue() >= startValue.doubleValue()) &&
+                        (this.value.doubleValue() <= endValue.doubleValue())) {
+                    isMatched = true;
+                    break;
+                }
+            }
+            // If range is not matched then throw error
+            if (!isMatched) {
+                throw new DataModelException("YANG file error : decimal64 validation failed.");
+            }
+        } else {
+            // Check value is in fraction-digits decimal64 value range
+            if (!FractionDigits.isValueInDecimal64Range(this.value, getFractionDigit())) {
+                throw new DataModelException("YANG file error : decimal64 validation failed.");
+            }
         }
     }
 
@@ -203,6 +265,7 @@ public class YangDecimal64<T>
     public void validateRange() throws DataModelException {
         YangRangeRestriction rangeRestriction = (YangRangeRestriction) getRangeRestrictedExtendedInfo();
         if (rangeRestriction == null) {
+            // No need to validate. Range is optional.
             return;
         }
 
@@ -210,14 +273,14 @@ public class YangDecimal64<T>
                 .listIterator();
         while (rangeListIterator.hasNext()) {
             YangRangeInterval rangeInterval = rangeListIterator.next();
-            if (!(FractionDigits.isValidDecimal64(((YangDecimal64) rangeInterval.getStartValue()).getValue(),
-                                                  getFractionDigit()))) {
-                throw new DataModelException("YANG file error : decimal64 validation failed.");
+            if (!(FractionDigits.isValueInDecimal64Range(((YangDecimal64) rangeInterval.getStartValue()).getValue(),
+                                                         getFractionDigit()))) {
+                throw new DataModelException("YANG file error : range validation failed.");
             }
 
-            if (!(FractionDigits.isValidDecimal64(((YangDecimal64) rangeInterval.getEndValue()).getValue(),
-                                                  getFractionDigit()))) {
-                throw new DataModelException("YANG file error : decimal64 validation failed.");
+            if (!(FractionDigits.isValueInDecimal64Range(((YangDecimal64) rangeInterval.getEndValue()).getValue(),
+                                                         getFractionDigit()))) {
+                throw new DataModelException("YANG file error : range validation failed.");
             }
         }
     }

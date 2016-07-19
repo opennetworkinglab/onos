@@ -1,0 +1,15 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+
+    leaf message {
+        type union {
+            type int32;
+            type enumeration {
+                enum "unbounded";
+            }
+        }
+        default "xyz";
+    }
+}

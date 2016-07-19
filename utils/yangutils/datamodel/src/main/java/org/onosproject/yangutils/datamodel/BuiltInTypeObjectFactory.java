@@ -16,7 +16,6 @@
 package org.onosproject.yangutils.datamodel;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.DataTypeException;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangBuiltInDataTypeInfo;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
@@ -80,7 +79,7 @@ public final class BuiltInTypeObjectFactory implements Serializable {
                 return (T) new YangUint64(valueInStr);
             }
             case DECIMAL64: {
-                return (T) new YangDecimal64(new BigDecimal(valueInStr));
+                return (T) new YangDecimal64(valueInStr);
             }
             default: {
                 throw new DataTypeException("YANG file error : Unsupported data type");

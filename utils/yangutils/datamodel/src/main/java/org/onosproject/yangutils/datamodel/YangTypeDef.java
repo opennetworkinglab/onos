@@ -251,7 +251,9 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable, Y
      */
     @Override
     public void validateDataOnExit() throws DataModelException {
-        // TODO auto-generated method stub, to be implemented by parser
+        if (defaultValueInString != null && !defaultValueInString.isEmpty() && getTypeDefBaseType() != null) {
+            getTypeDefBaseType().isValidValue(defaultValueInString);
+        }
     }
 
     /**

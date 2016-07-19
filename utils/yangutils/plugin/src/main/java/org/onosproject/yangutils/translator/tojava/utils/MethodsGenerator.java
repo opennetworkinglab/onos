@@ -1143,7 +1143,7 @@ public final class MethodsGenerator {
                                              JavaAttributeInfo fromStringAttributeInfo) {
 
         return EIGHT_SPACE_INDENTATION + getTrySubString() + NEW_LINE + TWELVE_SPACE_INDENTATION
-                + getParsedSubString(attr, fromStringAttributeInfo) + SEMI_COLAN + NEW_LINE + TWELVE_SPACE_INDENTATION
+                + getParsedSubString(attr, fromStringAttributeInfo) + NEW_LINE + TWELVE_SPACE_INDENTATION
                 + getReturnOfSubString() + NEW_LINE + EIGHT_SPACE_INDENTATION + getCatchSubString()
                 + NEW_LINE + EIGHT_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
     }

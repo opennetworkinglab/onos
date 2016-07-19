@@ -1,0 +1,13 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+
+    leaf MyString {
+       type string {
+          length "0..4";
+          pattern "[0-9a-fA-F]*";
+       }
+       default "2bB2bB";
+    }
+}

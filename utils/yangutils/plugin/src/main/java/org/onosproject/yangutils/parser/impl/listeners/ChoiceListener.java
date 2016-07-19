@@ -49,6 +49,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLoc
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_CONTENT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
@@ -156,6 +157,13 @@ public final class ChoiceListener {
         checkStackIsNotEmpty(listener, MISSING_HOLDER, CHOICE_DATA, ctx.identifier().getText(), EXIT);
 
         if (listener.getParsedDataStack().peek() instanceof YangChoice) {
+            YangChoice choiceNode = (YangChoice) listener.getParsedDataStack().peek();
+            try {
+                choiceNode.validateDataOnExit();
+            } catch (DataModelException e) {
+                throw new ParserException(constructListenerErrorMessage(INVALID_CONTENT, CHOICE_DATA,
+                                                                        ctx.identifier().getText(), EXIT));
+            }
             listener.getParsedDataStack().pop();
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, CHOICE_DATA,

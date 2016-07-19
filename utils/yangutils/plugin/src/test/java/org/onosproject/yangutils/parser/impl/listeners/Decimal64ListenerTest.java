@@ -145,9 +145,9 @@ public class Decimal64ListenerTest {
         assertThat(decimal64.getFractionDigit(), is(18));
 
         decimal64.setValue(new BigDecimal(-9.223372036854775808));
-        decimal64.validateValue();
+        decimal64.validateDecimal64();
         decimal64.setValue(new BigDecimal(9.223372036854775807));
-        decimal64.validateValue();
+        decimal64.validateDecimal64();
     }
 
     /**
@@ -181,7 +181,7 @@ public class Decimal64ListenerTest {
 
         decimal64.setValue(new BigDecimal(-92233720368547758.08));
         // validation should fail
-        decimal64.validateValue();
+        decimal64.validateDecimal64();
     }
 
     /**
@@ -271,7 +271,7 @@ public class Decimal64ListenerTest {
     @Test
     public void processDecimal64InvalidRange() throws IOException, ParserException, DataModelException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("YANG file error : decimal64 validation failed.");
+        thrown.expectMessage("YANG file error : range validation failed.");
 
         manager.getDataModel("src/test/resources/decimal64/Decimal64TypeInvalidRangeStmnt.yang");
     }
