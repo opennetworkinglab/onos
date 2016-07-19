@@ -15,6 +15,8 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import java.util.Objects;
+
 /**
  * LISP Locator address typed by Address Family Identifier (AFI).
  */
@@ -42,10 +44,7 @@ public abstract class LispAfiAddress {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((afi == null) ? 0 : afi.hashCode());
-        return result;
+        return Objects.hash(afi);
     }
 
     @Override

@@ -15,6 +15,8 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import java.util.Objects;
+
 /**
  * The identifier of Autonomous System (AS).
  */
@@ -43,10 +45,7 @@ public class LispAsAddress extends LispAfiAddress {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + asNum;
-        return result;
+        return Objects.hash(asNum);
     }
 
     @Override

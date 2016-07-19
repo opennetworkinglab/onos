@@ -168,14 +168,7 @@ public class LispLcafAddress extends LispAfiAddress {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + ((lcafType == null) ? 0 : lcafType.hashCode());
-        result = prime * result + reserved1;
-        result = prime * result + reserved2;
-        result = prime * result + flag;
-        result = prime * result + length;
-        return result;
+        return Objects.hash(lcafType, reserved1, reserved2, flag, length);
     }
 
     @Override

@@ -126,14 +126,7 @@ public class LispAppDataLcafAddress extends LispLcafAddress {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + ((address == null) ? 0 : address.hashCode());
-        result = prime * result + protocol;
-        result = prime * result + ipTos;
-        result = prime * result + localPort;
-        result = prime * result + remotePort;
-        return result;
+        return Objects.hash(address, protocol, ipTos, localPort, remotePort);
     }
 
     @Override

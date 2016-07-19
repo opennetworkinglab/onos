@@ -83,12 +83,7 @@ public class LispSegmentLcafAddress extends LispLcafAddress {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + ((address == null) ? 0 : address.hashCode());
-        result = prime * result + instanceId;
-        result = prime * result + reserved2;
-        return result;
+        return Objects.hash(address, instanceId, reserved2);
     }
 
     @Override

@@ -25,10 +25,18 @@ package org.onosproject.lisp.msg.types;
  */
 public enum AddressFamilyIdentifierEnum {
 
-    NO_ADDRESS(0), IP(1), IP6(2), DNS(16), DISTINGUISHED_NAME(17), AS(18), LCAF(16387),
-    MAC(16389), OUI(16391), UNKNOWN(-1);
+    NO_ADDRESS(0),              // Reserved
+    IP(1),                      // IP (IP version 4)
+    IP6(2),                     // IP6 (IP version 6)
+    DNS(16),                    // Domain Name System
+    DISTINGUISHED_NAME(17),     // Distinguished Name
+    AS(18),                     // AS Number
+    LCAF(16387),                // LISP Canonical Address Format (LCAF)
+    MAC(16389),                 // 48-bit MAC
+    OUI(16391),                 // 24-bit Organizationally Unique Identifier
+    UNKNOWN(-1);                // Other Enums for internal use
 
-    private short ianaCode;
+    private final short ianaCode;
 
     AddressFamilyIdentifierEnum(int ianaCode) {
         this.ianaCode = (short) ianaCode;

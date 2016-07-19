@@ -124,14 +124,7 @@ public class LispSourceDestLcafAddress extends LispLcafAddress {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + ((srcPrefix == null) ? 0 : srcPrefix.hashCode());
-        result = prime * result + ((dstPrefix == null) ? 0 : dstPrefix.hashCode());
-        result = prime * result + srcMaskLength;
-        result = prime * result + dstMaskLength;
-        result = prime * result + reserved;
-        return result;
+        return Objects.hash(srcPrefix, dstPrefix, srcMaskLength, dstMaskLength, reserved);
     }
 
     @Override
