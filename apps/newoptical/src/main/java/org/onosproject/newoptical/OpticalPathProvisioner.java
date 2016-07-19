@@ -165,6 +165,7 @@ public class OpticalPathProvisioner
 
     private static final KryoNamespace.Builder CONNECTIVITY_SERIALIZER = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
+            .register(PacketLinkRealizedByOptical.class)
             .register(OpticalConnectivityId.class)
             .register(OpticalConnectivity.class);
 
