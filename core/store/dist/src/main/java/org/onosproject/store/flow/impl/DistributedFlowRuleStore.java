@@ -555,7 +555,7 @@ public class DistributedFlowRuleStore
         if (stored != null) {
             //FIXME modification of "stored" flow entry outside of flow table
             stored.setBytes(rule.bytes());
-            stored.setLife(rule.life());
+            stored.setLife(rule.life(TimeUnit.NANOSECONDS), TimeUnit.NANOSECONDS);
             stored.setPackets(rule.packets());
             stored.setLastSeen();
             if (stored.state() == FlowEntryState.PENDING_ADD) {

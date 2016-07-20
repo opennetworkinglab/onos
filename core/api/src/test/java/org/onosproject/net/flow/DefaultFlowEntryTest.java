@@ -75,6 +75,9 @@ public class DefaultFlowEntryTest {
         assertThat(defaultFlowEntry1.treatment(), is(TREATMENT));
         assertThat(defaultFlowEntry1.timeout(), is(1));
         assertThat(defaultFlowEntry1.life(), is(1L));
+        assertThat(defaultFlowEntry1.life(TimeUnit.SECONDS), is(1L));
+        assertThat(defaultFlowEntry1.life(TimeUnit.MILLISECONDS), is(1000L));
+        assertThat(defaultFlowEntry1.life(TimeUnit.MINUTES), is(0L));
         assertThat(defaultFlowEntry1.packets(), is(1L));
         assertThat(defaultFlowEntry1.bytes(), is(1L));
         assertThat(defaultFlowEntry1.state(), is(FlowEntry.FlowEntryState.ADDED));
@@ -94,13 +97,14 @@ public class DefaultFlowEntryTest {
         entry.setState(FlowEntry.FlowEntryState.PENDING_REMOVE);
         entry.setPackets(11);
         entry.setBytes(22);
-        entry.setLife(33);
+        entry.setLife(33333, TimeUnit.MILLISECONDS);
 
         assertThat(entry.deviceId(), is(did("id1")));
         assertThat(entry.selector(), is(SELECTOR));
         assertThat(entry.treatment(), is(TREATMENT));
         assertThat(entry.timeout(), is(1));
         assertThat(entry.life(), is(33L));
+        assertThat(entry.life(TimeUnit.MILLISECONDS), is(33333L));
         assertThat(entry.packets(), is(11L));
         assertThat(entry.bytes(), is(22L));
         assertThat(entry.state(), is(FlowEntry.FlowEntryState.PENDING_REMOVE));

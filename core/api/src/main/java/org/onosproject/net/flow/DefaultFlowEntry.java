@@ -20,12 +20,16 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import org.slf4j.Logger;
 
+import java.util.concurrent.TimeUnit;
+
 public class DefaultFlowEntry extends DefaultFlowRule
     implements StoredFlowEntry {
 
     private static final Logger log = getLogger(DefaultFlowEntry.class);
 
+    /* Stored in nanoseconds (allows for 292 years) */
     private long life;
+
     private long packets;
     private long bytes;
     private FlowEntryState state;
@@ -37,10 +41,10 @@ public class DefaultFlowEntry extends DefaultFlowRule
     private final int errCode;
 
     public DefaultFlowEntry(FlowRule rule, FlowEntryState state,
-            long life, long packets, long bytes) {
+                            long life, TimeUnit lifeTimeUnit, long packets, long bytes) {
         super(rule);
         this.state = state;
-        this.life = life;
+        this.life = lifeTimeUnit.toNanos(life);
         this.packets = packets;
         this.bytes = bytes;
         this.errCode = -1;
@@ -48,15 +52,13 @@ public class DefaultFlowEntry extends DefaultFlowRule
         this.lastSeen = System.currentTimeMillis();
     }
 
+    public DefaultFlowEntry(FlowRule rule, FlowEntryState state,
+                            long lifeSecs, long packets, long bytes) {
+        this(rule, state, lifeSecs, TimeUnit.SECONDS, packets, bytes);
+    }
+
     public DefaultFlowEntry(FlowRule rule) {
-        super(rule);
-        this.state = FlowEntryState.PENDING_ADD;
-        this.life = 0;
-        this.packets = 0;
-        this.bytes = 0;
-        this.errCode = -1;
-        this.errType = -1;
-        this.lastSeen = System.currentTimeMillis();
+        this(rule, FlowEntryState.PENDING_ADD, 0, 0, 0);
     }
 
     public DefaultFlowEntry(FlowRule rule, int errType, int errCode) {
@@ -69,7 +71,12 @@ public class DefaultFlowEntry extends DefaultFlowRule
 
     @Override
     public long life() {
-        return life;
+        return life(TimeUnit.SECONDS);
+    }
+
+    @Override
+    public long life(TimeUnit timeUnit) {
+        return timeUnit.convert(life, TimeUnit.NANOSECONDS);
     }
 
     @Override
@@ -104,7 +111,12 @@ public class DefaultFlowEntry extends DefaultFlowRule
 
     @Override
     public void setLife(long life) {
-        this.life = life;
+        setLife(life, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void setLife(long life, TimeUnit timeUnit) {
+        this.life = timeUnit.toNanos(life);
     }
 
     @Override
