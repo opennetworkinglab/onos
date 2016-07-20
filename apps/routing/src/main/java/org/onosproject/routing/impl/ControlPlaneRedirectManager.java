@@ -609,12 +609,15 @@ public class ControlPlaneRedirectManager {
     }
 
     private class InternalInterfaceListener implements InterfaceListener {
-
         @Override
         public void event(InterfaceEvent event) {
-             Interface intf = event.subject();
-             Interface prevIntf = event.prevSubject();
-                switch (event.type()) {
+            if (controlPlaneConnectPoint == null) {
+                log.info("Control plane connect point is not configured. Abort InterfaceEvent.");
+                return;
+            }
+            Interface intf = event.subject();
+            Interface prevIntf = event.prevSubject();
+            switch (event.type()) {
                 case INTERFACE_ADDED:
                     if (intf != null && !intf.connectPoint().equals(controlPlaneConnectPoint)) {
                         provisionInterface(intf, true);
@@ -632,7 +635,7 @@ public class ControlPlaneRedirectManager {
                     break;
                 default:
                     break;
-                }
+            }
         }
     }
 }
