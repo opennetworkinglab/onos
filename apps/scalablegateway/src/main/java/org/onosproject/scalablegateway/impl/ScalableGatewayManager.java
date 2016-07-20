@@ -203,9 +203,15 @@ public class ScalableGatewayManager implements ScalableGatewayService {
 
     @Override
     public boolean addGatewayNode(GatewayNode gatewayNode) {
-        gatewayNodeMap.putIfAbsent(gatewayNode.getGatewayDeviceId(), gatewayNode);
-        updateGatewayLoadBalance(gatewayNode, true);
-        return true;
+        Versioned<GatewayNode> existingNode = gatewayNodeMap.putIfAbsent(
+                gatewayNode.getGatewayDeviceId(), gatewayNode);
+        if (existingNode == null) {
+            updateGatewayLoadBalance(gatewayNode, true);
+            log.info("Added {} to gateway pool", gatewayNode);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override

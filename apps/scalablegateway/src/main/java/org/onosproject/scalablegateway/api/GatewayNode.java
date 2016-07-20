@@ -15,8 +15,11 @@
  */
 package org.onosproject.scalablegateway.api;
 
+import com.google.common.base.MoreObjects;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.net.DeviceId;
+
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -60,6 +63,40 @@ public final class GatewayNode {
      */
     public Ip4Address getDataIpAddress() {
         return dataIpAddress;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof GatewayNode) {
+            GatewayNode that = (GatewayNode) obj;
+            if (Objects.equals(gatewayDeviceId, that.gatewayDeviceId) &&
+                    Objects.equals(gatewayExternalInterfaceName,
+                                   that.gatewayExternalInterfaceName) &&
+                    Objects.equals(dataIpAddress, that.dataIpAddress)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(gatewayDeviceId,
+                            gatewayExternalInterfaceName,
+                            dataIpAddress);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("deviceId", gatewayDeviceId)
+                .add("externalPort", gatewayExternalInterfaceName)
+                .add("dataIp", dataIpAddress)
+                .toString();
     }
 
     /**
