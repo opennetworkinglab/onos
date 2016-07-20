@@ -16,7 +16,10 @@
 
 package org.onosproject.net.flow;
 
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 /**
  * Default flow entry class with FlowLiveType value, IMMEDIATE_FLOW, SHORT_FLOW, MID_FLOW, LONG_FLOW.
@@ -24,6 +27,23 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 public class DefaultTypedFlowEntry extends DefaultFlowEntry
     implements TypedStoredFlowEntry {
     private FlowLiveType liveType;
+
+
+    /**
+     * Creates a typed flow entry from flow rule and its statistics, with default flow live type(IMMEDIATE_FLOW).
+     *
+     * @param rule the flow rule
+     * @param state the flow state
+     * @param life the flow duration since creation
+     * @param lifeTimeUnit the time unit of life
+     * @param packets the flow packets count
+     * @param bytes the flow bytes count
+     */
+    public DefaultTypedFlowEntry(FlowRule rule, FlowEntryState state,
+                                 long life, TimeUnit lifeTimeUnit, long packets, long bytes) {
+        super(rule, state, life, lifeTimeUnit, packets, bytes);
+        this.liveType = FlowLiveType.IMMEDIATE_FLOW;
+    }
 
     /**
      * Creates a typed flow entry from flow rule and its statistics, with default flow live type(IMMEDIATE_FLOW).
@@ -59,7 +79,7 @@ public class DefaultTypedFlowEntry extends DefaultFlowEntry
      *
      */
     public DefaultTypedFlowEntry(FlowEntry fe) {
-        super(fe, fe.state(), fe.life(), fe.packets(), fe.bytes());
+        super(fe, fe.state(), fe.life(NANOSECONDS), NANOSECONDS, fe.packets(), fe.bytes());
         this.liveType = FlowLiveType.IMMEDIATE_FLOW;
     }
 
@@ -83,7 +103,7 @@ public class DefaultTypedFlowEntry extends DefaultFlowEntry
      *
      */
     public DefaultTypedFlowEntry(FlowEntry fe,  FlowLiveType liveType) {
-        super(fe, fe.state(), fe.life(), fe.packets(), fe.bytes());
+        super(fe, fe.state(), fe.life(NANOSECONDS), NANOSECONDS, fe.packets(), fe.bytes());
         this.liveType = liveType;
     }
 

@@ -64,7 +64,9 @@ import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyShort;
 import static org.easymock.EasyMock.anyString;
@@ -141,7 +143,12 @@ public class FlowsResourceTest extends ResourceTest {
 
         @Override
         public long life() {
-            return baseValue + 11;
+            return life(SECONDS);
+        }
+
+        @Override
+        public long life(TimeUnit timeUnit) {
+            return SECONDS.convert(baseValue + 11, timeUnit);
         }
 
         @Override
