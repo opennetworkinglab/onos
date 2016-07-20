@@ -30,9 +30,12 @@ import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
+import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.NextObjective;
+import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.DefaultBand;
 import org.onosproject.net.meter.DefaultMeterRequest;
@@ -69,8 +72,10 @@ public class CorsaPipelineV3 extends AbstractCorsaPipeline {
     protected MeterId defaultMeterId = null;
 
     @Override
-    protected TrafficTreatment processNextTreatment(TrafficTreatment treatment) {
+    protected CorsaTrafficTreatment processNextTreatment(TrafficTreatment treatment) {
         TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder();
+
+
 
         treatment.immediate().stream()
                 .filter(i -> {
@@ -87,7 +92,48 @@ public class CorsaPipelineV3 extends AbstractCorsaPipeline {
                             return false;
                     }
                 }).forEach(i -> tb.add(i));
-        return tb.build();
+
+        TrafficTreatment t = tb.build();
+
+
+        boolean isPresentModVlanId = false;
+        boolean isPresentModEthSrc = false;
+        boolean isPresentModEthDst = false;
+        boolean isPresentOutpuPort = false;
+
+        for (Instruction instruction : t.immediate()) {
+            switch (instruction.type()) {
+                case L2MODIFICATION:
+                    L2ModificationInstruction l2i = (L2ModificationInstruction) instruction;
+                    if (l2i instanceof L2ModificationInstruction.ModVlanIdInstruction) {
+                        isPresentModVlanId = true;
+                    }
+
+                    if (l2i instanceof L2ModificationInstruction.ModEtherInstruction) {
+                        L2ModificationInstruction.L2SubType subType = l2i.subtype();
+                        if (subType.equals(L2ModificationInstruction.L2SubType.ETH_SRC)) {
+                            isPresentModEthSrc = true;
+                        } else if (subType.equals(L2ModificationInstruction.L2SubType.ETH_DST)) {
+                            isPresentModEthDst = true;
+                        }
+                    }
+                case OUTPUT:
+                    isPresentOutpuPort = true;
+                default:
+            }
+        }
+        CorsaTrafficTreatmentType type = CorsaTrafficTreatmentType.ACTIONS;
+        /**
+         * This represents the allowed group for CorsaPipelinev3
+         */
+        if (isPresentModVlanId &&
+                isPresentModEthSrc &&
+                isPresentModEthDst &&
+                isPresentOutpuPort) {
+            type = CorsaTrafficTreatmentType.GROUP;
+        }
+        CorsaTrafficTreatment corsaTreatment = new CorsaTrafficTreatment(type, t);
+        return corsaTreatment;
     }
 
     @Override
@@ -115,8 +161,36 @@ public class CorsaPipelineV3 extends AbstractCorsaPipeline {
                 .withPriority(fwd.priority())
                 .forDevice(deviceId)
                 .withSelector(filteredSelector)
-                .withTreatment(fwd.treatment())
                 .forTable(VLAN_CIRCUIT_TABLE);
+
+        if (fwd.treatment() != null) {
+            ruleBuilder.withTreatment(fwd.treatment());
+        } else {
+            if (fwd.nextId() != null) {
+                NextObjective nextObjective = pendingNext.getIfPresent(fwd.nextId());
+                if (nextObjective != null) {
+                    pendingNext.invalidate(fwd.nextId());
+                    TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
+                            .setVlanPcp((byte) 0)
+                            .setQueue(0)
+                            .meter(defaultMeterId);
+                    nextObjective.next().forEach(trafficTreatment -> {
+                        trafficTreatment.allInstructions().forEach(instruction -> {
+                           treatment.add(instruction);
+                        });
+                    });
+                    ruleBuilder.withTreatment(treatment.build());
+                } else {
+                    log.warn("The group left!");
+                    fwd.context().ifPresent(c -> c.onError(fwd, ObjectiveError.GROUPMISSING));
+                    return ImmutableSet.of();
+                }
+            } else {
+                log.warn("Missing NextObjective ID for ForwardingObjective {}", fwd.id());
+                fail(fwd, ObjectiveError.BADPARAMS);
+                return ImmutableSet.of();
+            }
+        }
 
         if (fwd.permanent()) {
             ruleBuilder.makePermanent();
