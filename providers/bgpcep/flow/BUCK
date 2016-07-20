@@ -1,18 +1,12 @@
-# FIXME - BGCEP got moved
+COMPILE_DEPS = [
+  '//lib:CORE_DEPS',
+  '//lib:org.osgi.compendium',
+  '//protocols/bgp/api:onos-protocols-bgp-api',
+  '//incubator/api:onos-incubator-api',
+  '//protocols/pcep/api:onos-protocols-pcep-api',
+  '//protocols/pcep/pcepio:onos-protocols-pcep-pcepio',
+]
 
-#SRC = 'src/main/java/org/onosproject/**/'
-
-#CURRENT_NAME = 'onos-bgpcep-provider-flow'
-#CURRENT_TARGET = ':' + CURRENT_NAME
-
-#COMPILE_DEPS = [
-#    '//lib:CORE_DEPS',
-#    '//protocols/bgp/api:onos-bgp-api',
-#]
-
-#osgi_jar(
-#    name = CURRENT_NAME,
-#    srcs = glob([SRC + '/*.java']),
-#    deps = COMPILE_DEPS,
-#    visibility = ['PUBLIC'],
-#)
+osgi_jar_with_tests(
+    deps = COMPILE_DEPS,
+)

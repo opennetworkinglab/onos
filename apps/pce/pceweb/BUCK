@@ -1,0 +1,19 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//apps/pce/app:onos-apps-pce-app',
+    '//cli:onos-cli',
+    '//lib:org.apache.karaf.shell.console',
+    '//core/api:onos-api',
+    '//incubator/api:onos-incubator-api',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'PCE web application',
+    category = 'Utility',
+    url = 'http://onosproject.org',
+    description = 'Allows the user to visualize different types of paths between network entities',
+)

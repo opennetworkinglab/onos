@@ -1,5 +1,10 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:jackson-databind',
+    '//lib:jackson-annotations',
+    '//lib:osgi-core',
+    '//lib:org.apache.karaf.shell.console',
+    '//lib:org.apache.felix.scr.annotations',
 ]
 
 osgi_jar_with_tests (

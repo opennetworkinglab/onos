@@ -84,6 +84,7 @@ ONOS_DRIVERS = [
 ONOS_PROVIDERS = [
     # Providers
     '//providers/bgp:onos-providers-bgp-oar',
+    '//providers/bgpcep:onos-providers-bgpcep-oar',
     '//providers/host:onos-providers-host-oar',
     '//providers/lldp:onos-providers-lldp-oar',
     '//providers/netcfghost:onos-providers-netcfghost-oar',
