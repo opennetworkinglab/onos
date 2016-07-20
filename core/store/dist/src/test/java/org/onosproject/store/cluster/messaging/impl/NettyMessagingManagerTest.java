@@ -16,6 +16,7 @@
 package org.onosproject.store.cluster.messaging.impl;
 
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -89,6 +90,14 @@ public class NettyMessagingManagerTest {
         netty2.activate();
     }
 
+    /**
+     * Returns a random String to be used as a test subject.
+     * @return string
+     */
+    private String nextSubject() {
+        return UUID.randomUUID().toString();
+    }
+
     @After
     public void tearDown() throws Exception {
         if (netty1 != null) {
@@ -102,8 +111,9 @@ public class NettyMessagingManagerTest {
 
     @Test
     public void testSendAsync() {
+        String subject = nextSubject();
         CountDownLatch latch1 = new CountDownLatch(1);
-        CompletableFuture<Void> response = netty1.sendAsync(ep2, "test-subject", "hello world".getBytes());
+        CompletableFuture<Void> response = netty1.sendAsync(ep2, subject, "hello world".getBytes());
         response.whenComplete((r, e) -> {
             assertNull(e);
             latch1.countDown();
@@ -111,7 +121,7 @@ public class NettyMessagingManagerTest {
         Uninterruptibles.awaitUninterruptibly(latch1);
 
         CountDownLatch latch2 = new CountDownLatch(1);
-        response = netty1.sendAsync(invalidEndPoint, "test-subject", "hello world".getBytes());
+        response = netty1.sendAsync(invalidEndPoint, subject, "hello world".getBytes());
         response.whenComplete((r, e) -> {
             assertNotNull(e);
             latch2.countDown();
@@ -121,6 +131,7 @@ public class NettyMessagingManagerTest {
 
     @Test
     public void testSendAndReceive() {
+        String subject = nextSubject();
         AtomicBoolean handlerInvoked = new AtomicBoolean(false);
         AtomicReference<byte[]> request = new AtomicReference<>();
         AtomicReference<Endpoint> sender = new AtomicReference<>();
@@ -131,9 +142,9 @@ public class NettyMessagingManagerTest {
             request.set(data);
             return "hello there".getBytes();
         };
-        netty2.registerHandler("test-subject", handler, MoreExecutors.directExecutor());
+        netty2.registerHandler(subject, handler, MoreExecutors.directExecutor());
 
-        CompletableFuture<byte[]> response = netty1.sendAndReceive(ep2, "test-subject", "hello world".getBytes());
+        CompletableFuture<byte[]> response = netty1.sendAndReceive(ep2, subject, "hello world".getBytes());
         assertTrue(Arrays.equals("hello there".getBytes(), response.join()));
         assertTrue(handlerInvoked.get());
         assertTrue(Arrays.equals(request.get(), "hello world".getBytes()));
@@ -146,6 +157,7 @@ public class NettyMessagingManagerTest {
      */
     @Test
     public void testSendAndReceiveWithExecutor() {
+        String subject = nextSubject();
         ExecutorService completionExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "completion-thread"));
         ExecutorService handlerExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "handler-thread"));
         AtomicReference<String> handlerThreadName = new AtomicReference<>();
@@ -163,10 +175,10 @@ public class NettyMessagingManagerTest {
             }
             return "hello there".getBytes();
         };
-        netty2.registerHandler("test-subject", handler, handlerExecutor);
+        netty2.registerHandler(subject, handler, handlerExecutor);
 
         CompletableFuture<byte[]> response = netty1.sendAndReceive(ep2,
-                                                                   "test-subject",
+                                                                   subject,
                                                                    "hello world".getBytes(),
                                                                    completionExecutor);
         response.whenComplete((r, e) -> {
