@@ -19,6 +19,8 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalNotification;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
@@ -267,6 +269,9 @@ public class OpenFlowRuleProvider extends AbstractProvider
     private void applyRule(FlowRule flowRule) {
         Dpid dpid = Dpid.dpid(flowRule.deviceId().uri());
         OpenFlowSwitch sw = controller.getSwitch(dpid);
+        if (sw == null) {
+            return;
+        }
 
         FlowRuleExtPayLoad flowRuleExtPayLoad = flowRule.payLoad();
         if (hasPayload(flowRuleExtPayLoad)) {
@@ -296,6 +301,9 @@ public class OpenFlowRuleProvider extends AbstractProvider
     private void removeRule(FlowRule flowRule) {
         Dpid dpid = Dpid.dpid(flowRule.deviceId().uri());
         OpenFlowSwitch sw = controller.getSwitch(dpid);
+        if (sw == null) {
+            return;
+        }
 
         FlowRuleExtPayLoad flowRuleExtPayLoad = flowRule.payLoad();
         if (hasPayload(flowRuleExtPayLoad)) {
@@ -329,6 +337,13 @@ public class OpenFlowRuleProvider extends AbstractProvider
 
         Dpid dpid = Dpid.dpid(batch.deviceId().uri());
         OpenFlowSwitch sw = controller.getSwitch(dpid);
+        if (sw == null) {
+            Set<FlowRule> failures = ImmutableSet.copyOf(Lists.transform(batch.getOperations(), e -> e.target()));
+            providerService.batchOperationCompleted(batch.id(),
+                    new CompletedBatchOperation(false, failures, batch.deviceId()));
+            return;
+        }
+
         OFFlowMod mod;
         for (FlowRuleBatchEntry fbe : batch.getOperations()) {
             // flow is the third party privacy flow
