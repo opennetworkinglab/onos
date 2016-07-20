@@ -82,7 +82,7 @@ public class PathIntentCompiler
         compile(this, intent, rules, devices);
 
 
-        return ImmutableList.of(new FlowRuleIntent(appId, null, rules, intent.resources()));
+        return ImmutableList.of(new FlowRuleIntent(appId, null, rules, intent.resources(), intent.type()));
     }
 
     @Override

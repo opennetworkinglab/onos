@@ -28,8 +28,11 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.event.AbstractListenerManager;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.group.GroupKey;
+import org.onosproject.net.group.GroupService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentBatchDelegate;
 import org.onosproject.net.intent.IntentCompiler;
@@ -42,6 +45,8 @@ import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.intent.impl.compiler.PointToPointIntentCompiler;
 import org.onosproject.net.intent.impl.phase.FinalIntentProcessPhase;
 import org.onosproject.net.intent.impl.phase.IntentProcessPhase;
 import org.osgi.service.component.ComponentContext;
@@ -122,6 +127,9 @@ public class IntentManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService configService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected GroupService groupService;
 
     private ExecutorService batchExecutor;
     private ExecutorService workerExecutor;
@@ -234,6 +242,15 @@ public class IntentManager
         checkNotNull(intent, INTENT_NULL);
         IntentData data = new IntentData(intent, IntentState.PURGE_REQ, null);
         store.addPending(data);
+
+        // remove associated group if there is one
+        if (intent instanceof PointToPointIntent) {
+            PointToPointIntent pointIntent = (PointToPointIntent) intent;
+            DeviceId deviceId = pointIntent.ingressPoint().deviceId();
+            GroupKey groupKey = PointToPointIntentCompiler.makeGroupKey(intent.id());
+            groupService.removeGroup(deviceId, groupKey,
+                                     intent.appId());
+        }
     }
 
     @Override

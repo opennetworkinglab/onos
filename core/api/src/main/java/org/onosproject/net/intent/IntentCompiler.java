@@ -31,7 +31,7 @@ public interface IntentCompiler<T extends Intent> {
      * Compiles the specified intent into other intents.
      *
      * @param intent      intent to be compiled
-     * @param installable previously compilation result; optional
+     * @param installable previous compilation result; optional
      * @return list of resulting intents
      * @throws IntentException if issues are encountered while compiling the intent
      */

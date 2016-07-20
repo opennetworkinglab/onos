@@ -17,6 +17,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -24,6 +25,7 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.intent.constraint.ProtectionConstraint;
 
 import java.util.List;
 
@@ -44,6 +46,11 @@ public class AddPointToPointIntentCommand extends ConnectivityIntentCommand {
               required = true, multiValued = false)
     String egressDeviceString = null;
 
+    @Option(name = "-p", aliases = "--protect",
+            description = "Utilize path protection",
+            required = false, multiValued = false)
+    private boolean backup = false;
+
     @Override
     protected void execute() {
         IntentService service = get(IntentService.class);
@@ -56,6 +63,9 @@ public class AddPointToPointIntentCommand extends ConnectivityIntentCommand {
         TrafficTreatment treatment = buildTrafficTreatment();
 
         List<Constraint> constraints = buildConstraints();
+        if (backup) {
+            constraints.add(new ProtectionConstraint());
+        }
 
         Intent intent = PointToPointIntent.builder()
                 .appId(appId())
