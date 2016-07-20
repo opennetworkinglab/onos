@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,12 +65,12 @@ public class TopologyManager
         TopologyProvider, TopologyProviderService>
         implements TopologyService, TopologyProviderRegistry {
 
-    public static final String TOPOLOGY_NULL = "Topology cannot be null";
+    private static final String TOPOLOGY_NULL = "Topology cannot be null";
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
     private static final String CLUSTER_ID_NULL = "Cluster ID cannot be null";
     private static final String CLUSTER_NULL = "Topology cluster cannot be null";
-    public static final String CONNECTION_POINT_NULL = "Connection point cannot be null";
-    public static final String LINK_WEIGHT_NULL = "Link weight cannot be null";
+    private static final String CONNECTION_POINT_NULL = "Connection point cannot be null";
+    private static final String LINK_WEIGHT_NULL = "Link weight cannot be null";
 
     private final Logger log = getLogger(getClass());
 

@@ -1,0 +1,19 @@
+BUNDLES = [
+    '//lib:openflowj',
+    '//protocols/openflow/api:onos-protocols-openflow-api',
+    '//protocols/openflow/ctl:onos-protocols-openflow-ctl',
+    '//providers/openflow/device:onos-providers-openflow-device',
+    '//providers/openflow/packet:onos-providers-openflow-packet',
+    '//providers/openflow/flow:onos-providers-openflow-flow',
+    '//providers/openflow/group:onos-providers-openflow-group',
+    '//providers/openflow/meter:onos-providers-openflow-meter',
+]
+
+onos_app (
+    app_name = 'org.onosproject.openflow-base',
+    title = 'OpenFlow Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    description = 'OpenFlow protocol southbound providers.',
+    included_bundles = BUNDLES,
+)

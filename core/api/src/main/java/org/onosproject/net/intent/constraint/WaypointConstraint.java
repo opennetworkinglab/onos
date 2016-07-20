@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.intent.Constraint;
-import org.onosproject.net.resource.link.LinkResourceService;
+import org.onosproject.net.intent.ResourceContext;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -60,14 +60,21 @@ public class WaypointConstraint implements Constraint {
         return waypoints;
     }
 
+    // doesn't use LinkResourceService
     @Override
-    public double cost(Link link, LinkResourceService resourceService) {
+    public double cost(Link link, ResourceContext context) {
         // Always consider the number of hops
         return 1;
     }
 
+    // doesn't use LinkResourceService
     @Override
-    public boolean validate(Path path, LinkResourceService resourceService) {
+    public boolean validate(Path path, ResourceContext context) {
+        // explicitly call a method not depending on LinkResourceService
+        return validate(path);
+    }
+
+    private boolean validate(Path path) {
         LinkedList<DeviceId> waypoints = new LinkedList<>(this.waypoints);
         DeviceId current = waypoints.poll();
         // This is safe because Path class ensures the number of links are more than 0

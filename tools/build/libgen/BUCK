@@ -1,0 +1,17 @@
+#FIXME build this dynamically
+
+URL = 'https://oss.sonatype.org/content/repositories/snapshots/org/onosproject/libgen/1.0-SNAPSHOT/libgen-1.0-20160505.022015-2.jar'
+SHA = 'fa29f6f5432587df65e55a7d0c99d1454577dcfd'
+
+prebuilt_jar(
+  name = 'libgen',
+  binary_jar = ':libgen-jar',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_file (
+  name = 'libgen-jar',
+  out = 'libgen.jar',
+  url = URL,
+  sha1 = SHA,
+)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Implementation of port pair group.
@@ -94,8 +95,20 @@ public final class DefaultPortPairGroup implements PortPairGroup {
     }
 
     @Override
+    public void resetLoad() {
+        for (PortPairId portPairId : portPairList) {
+            portPairLoadMap.put(portPairId, new Integer(0));
+        }
+    }
+
+    @Override
     public int getLoad(PortPairId portPairId) {
         return portPairLoadMap.get(portPairId);
+    }
+
+    @Override
+    public Map<PortPairId, Integer> portPairLoadMap() {
+        return ImmutableMap.copyOf(portPairLoadMap);
     }
 
     @Override

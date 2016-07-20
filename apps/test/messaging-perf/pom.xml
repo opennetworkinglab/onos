@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-apps-test</artifactId>
-        <version>1.5.2-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.6.0</version>
     </parent>
 
     <artifactId>onos-app-messaging-perf</artifactId>

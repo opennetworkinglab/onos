@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.onosproject.openstacknetworking.routing;
 import org.onlab.packet.ARP;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -34,6 +33,7 @@ import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackPort;
+import org.onosproject.openstacknetworking.OpenstackNetworkingConfig;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
@@ -50,7 +50,7 @@ public class OpenstackRoutingArpHandler {
 
     private final PacketService packetService;
     private final OpenstackInterfaceService openstackService;
-    private final OpenstackRoutingConfig config;
+    private final OpenstackNetworkingConfig config;
     private static final String NETWORK_ROUTER_GATEWAY = "network:router_gateway";
 
     /**
@@ -61,7 +61,7 @@ public class OpenstackRoutingArpHandler {
      * @param config openstackRoutingConfig
      */
     OpenstackRoutingArpHandler(PacketService packetService, OpenstackInterfaceService openstackService,
-                               OpenstackRoutingConfig config) {
+                               OpenstackNetworkingConfig config) {
         this.packetService = packetService;
         this.openstackService = checkNotNull(openstackService);
         this.config = checkNotNull(config);
@@ -94,10 +94,12 @@ public class OpenstackRoutingArpHandler {
         checkNotNull(context, "context can not be null");
         checkNotNull(ethernet, "ethernet can not be null");
 
-        log.info("arpEvent called from {} to {}",
-                Ip4Address.valueOf(((IPv4) ethernet.getPayload()).getSourceAddress()).toString(),
-                Ip4Address.valueOf(((IPv4) ethernet.getPayload()).getDestinationAddress()).toString());
+
         ARP arp = (ARP) ethernet.getPayload();
+
+        log.debug("arpEvent called from {} to {}",
+                Ip4Address.valueOf(arp.getSenderProtocolAddress()).toString(),
+                Ip4Address.valueOf(arp.getTargetProtocolAddress()).toString());
 
         if (arp.getOpCode() != ARP.OP_REQUEST) {
             return;

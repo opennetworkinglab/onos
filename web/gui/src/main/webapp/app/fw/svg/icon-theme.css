@@ -1,0 +1,64 @@
+/*
+ * Copyright 2016-present Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ ONOS GUI -- Icon Service (theme) -- CSS file
+ */
+
+.light div.close-btn svg.embeddedIcon g.icon .glyph {
+    fill: #333333;
+}
+.dark div.close-btn svg.embeddedIcon g.icon .glyph {
+    /* TODO: dark theme */
+    fill: #333333;
+}
+
+
+/* Sortable table headers */
+.light div.tableColSort svg.embeddedIcon .icon .glyph {
+    fill: #353333;
+}
+.dark div.tableColSort svg.embeddedIcon .icon .glyph {
+    /* TODO: dark theme */
+    fill: #353333;
+}
+
+/* active / inactive (check/xmark) icons */
+.light svg.embeddedIcon .icon.active .glyph {
+    fill: #04bf34;
+}
+.dark svg.embeddedIcon .icon.active .glyph {
+    /* TODO: dark theme */
+    fill: #04bf34;
+}
+
+.light svg.embeddedIcon .icon.inactive .glyph {
+    fill: #c0242b;
+}
+.dark svg.embeddedIcon .icon.inactive .glyph {
+    /* TODO: dark theme */
+    fill: #c0242b;
+}
+
+.light table svg.embeddedIcon .icon .glyph {
+    fill: #3c3a3a;
+}
+.dark table svg.embeddedIcon .glyph {
+    /* TODO: dark theme */
+    fill: #3c3a3a;
+}
+
+

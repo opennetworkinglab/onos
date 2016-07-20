@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright 2016 Open Networking Laboratory
+  ~ Copyright 2016-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@
         <feature>onos-api</feature>
         <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
 
-        <bundle>mvn:${project.groupId}/onos-restsb-api/${project.version}</bundle>
-
         <bundle>mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.snmp4j/2.3.4_1</bundle>
+
+        <bundle>mvn:${project.groupId}/onos-snmp-api/${project.version}</bundle>
 
     </feature>
 </features>

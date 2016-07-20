@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.onosproject.net.region;
 
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
 
 import java.util.Set;
@@ -23,7 +24,7 @@ import java.util.Set;
 /**
  * Service for interacting with inventory of network control regions.
  */
-public interface RegionService {
+public interface RegionService extends ListenerService<RegionEvent, RegionListener> {
 
     /**
      * Returns set of all regions.

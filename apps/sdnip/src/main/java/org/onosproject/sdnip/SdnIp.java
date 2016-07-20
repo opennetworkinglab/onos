@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,6 @@ public class SdnIp {
     private static List<String> components = new ArrayList<>();
     static {
         components.add("org.onosproject.routing.bgp.BgpSessionManager");
-        components.add("org.onosproject.routing.impl.Router");
         components.add(org.onosproject.sdnip.SdnIpFib.class.getName());
     }
 
@@ -90,9 +89,9 @@ public class SdnIp {
                                                        interfaceService);
         peerConnectivity.start();
 
-        // TODO fix removing intents
-        applicationService.registerDeactivateHook(appId,
-                intentSynchronizerAdmin::removeIntents);
+        applicationService.registerDeactivateHook(appId, () -> {
+            intentSynchronizer.removeIntentsByAppId(appId);
+        });
 
         log.info("SDN-IP started");
     }

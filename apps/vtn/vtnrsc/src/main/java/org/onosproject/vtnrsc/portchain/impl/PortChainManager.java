@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collections;
+import java.util.UUID;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -28,6 +29,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.event.AbstractListenerManager;
+import org.onosproject.net.DeviceId;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
@@ -35,8 +37,15 @@ import org.onosproject.store.service.EventuallyConsistentMapListener;
 import org.onosproject.store.service.MultiValuedTimestamp;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
+import org.onosproject.vtnrsc.DefaultPortChain;
+import org.onosproject.vtnrsc.FiveTuple;
+import org.onosproject.vtnrsc.FlowClassifierId;
+import org.onosproject.vtnrsc.LoadBalanceId;
 import org.onosproject.vtnrsc.PortChain;
 import org.onosproject.vtnrsc.PortChainId;
+import org.onosproject.vtnrsc.PortPairGroupId;
+import org.onosproject.vtnrsc.PortPairId;
+import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.portchain.PortChainEvent;
 import org.onosproject.vtnrsc.portchain.PortChainListener;
 import org.onosproject.vtnrsc.portchain.PortChainService;
@@ -71,7 +80,9 @@ public class PortChainManager extends AbstractListenerManager<PortChainEvent, Po
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
                 .register(MultiValuedTimestamp.class)
-                .register(PortChain.class);
+                .register(PortChain.class, PortChainId.class, UUID.class, PortPairGroupId.class,
+                          FlowClassifierId.class, FiveTuple.class, LoadBalanceId.class, DeviceId.class,
+                          DefaultPortChain.class, PortPairId.class, TenantId.class);
 
         portChainStore = storageService
                 .<PortChainId, PortChain>eventuallyConsistentMapBuilder()
@@ -86,6 +97,7 @@ public class PortChainManager extends AbstractListenerManager<PortChainEvent, Po
     @Deactivate
     public void deactivate() {
         eventDispatcher.removeSink(PortChainEvent.class);
+        portChainStore.removeListener(portChainListener);
         portChainStore.destroy();
         log.info("Stopped");
     }
@@ -118,7 +130,7 @@ public class PortChainManager extends AbstractListenerManager<PortChainEvent, Po
 
         portChainStore.put(portChain.portChainId(), portChain);
         if (!portChainStore.containsKey(portChain.portChainId())) {
-            log.debug("The portChain is created failed which identifier was {}", portChain.portChainId()
+            log.error("The portChain created is failed which identifier was {}", portChain.portChainId()
                       .toString());
             return false;
         }
@@ -128,18 +140,20 @@ public class PortChainManager extends AbstractListenerManager<PortChainEvent, Po
     @Override
     public boolean updatePortChain(PortChain portChain) {
         checkNotNull(portChain, PORT_CHAIN_NULL);
-
+        PortChain oldPortChain = null;
         if (!portChainStore.containsKey(portChain.portChainId())) {
-            log.debug("The portChain is not exist whose identifier was {} ",
-                      portChain.portChainId().toString());
+            log.warn("The portChain is not exist whose identifier was {} ",
+                     portChain.portChainId().toString());
             return false;
+        } else {
+            oldPortChain = portChainStore.get(portChain.portChainId());
         }
+        PortChain newPortChain = DefaultPortChain.create(portChain, oldPortChain);
+        portChainStore.put(newPortChain.portChainId(), newPortChain);
 
-        portChainStore.put(portChain.portChainId(), portChain);
-
-        if (!portChain.equals(portChainStore.get(portChain.portChainId()))) {
+        if (!newPortChain.equals(portChainStore.get(newPortChain.portChainId()))) {
             log.debug("The portChain is updated failed whose identifier was {} ",
-                      portChain.portChainId().toString());
+                      newPortChain.portChainId().toString());
             return false;
         }
         return true;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,7 @@
  */
 package org.onosproject.rest.resources;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.intent.HostToHostIntent;
@@ -47,7 +29,23 @@ import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.onlab.util.Tools.nullIsNotFound;
 import static org.onosproject.net.intent.IntentState.FAILED;
@@ -60,18 +58,19 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Path("intents")
 public class IntentsWebResource extends AbstractWebResource {
     @Context
-    UriInfo uriInfo;
+    private UriInfo uriInfo;
 
     private static final Logger log = getLogger(IntentsWebResource.class);
     private static final int WITHDRAW_EVENT_TIMEOUT_SECONDS = 5;
 
-    public static final String INTENT_NOT_FOUND = "Intent is not found";
+    private static final String INTENT_NOT_FOUND = "Intent is not found";
 
     /**
-     * Get all intents.
+     * Gets all intents.
      * Returns array containing all the intents in the system.
+     *
+     * @return 200 OK with array of all the intents in the system
      * @onos.rsModel Intents
-     * @return array of all the intents in the system
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -82,12 +81,13 @@ public class IntentsWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get intent by application and key.
+     * Gets intent by application and key.
      * Returns details of the specified intent.
-     * @onos.rsModel Intents
+     *
      * @param appId application identifier
      * @param key   intent key
-     * @return intent data
+     * @return 200 OK with intent data
+     * @onos.rsModel Intents
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -114,10 +114,19 @@ public class IntentsWebResource extends AbstractWebResource {
         return ok(root).build();
     }
 
-    class DeleteListener implements IntentListener {
+    /**
+     * Internal listener for tracking the intent deletion events.
+     */
+    private class DeleteListener implements IntentListener {
         final Key key;
         final CountDownLatch latch;
 
+        /**
+         * Default constructor.
+         *
+         * @param key   key
+         * @param latch count down latch
+         */
         DeleteListener(Key key, CountDownLatch latch) {
             this.key = key;
             this.latch = latch;
@@ -134,12 +143,13 @@ public class IntentsWebResource extends AbstractWebResource {
     }
 
     /**
-     * Submit a new intent.
+     * Submits a new intent.
      * Creates and submits intent from the JSON request.
-     * @onos.rsModel IntentHost
+     *
      * @param stream input JSON
      * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid
+     * @onos.rsModel IntentHost
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -163,16 +173,17 @@ public class IntentsWebResource extends AbstractWebResource {
     }
 
     /**
-     * Withdraw intent.
+     * Withdraws intent.
      * Withdraws the specified intent from the system.
      *
      * @param appId application identifier
      * @param key   intent key
+     * @return 204 NO CONTENT
      */
     @DELETE
     @Path("{appId}/{key}")
-    public void deleteIntentById(@PathParam("appId") String appId,
-                                 @PathParam("key") String key) {
+    public Response deleteIntentById(@PathParam("appId") String appId,
+                                     @PathParam("key") String key) {
         final ApplicationId app = get(CoreService.class).getAppId(appId);
 
         Intent intent = get(IntentService.class).getIntent(Key.of(key, app));
@@ -185,9 +196,8 @@ public class IntentsWebResource extends AbstractWebResource {
         if (intent == null) {
             // No such intent.  REST standards recommend a positive status code
             // in this case.
-            return;
+            return Response.noContent().build();
         }
-
 
         Key k = intent.key();
 
@@ -216,6 +226,6 @@ public class IntentsWebResource extends AbstractWebResource {
             // clean up the listener
             service.removeListener(listener);
         }
+        return Response.noContent().build();
     }
-
 }

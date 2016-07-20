@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Flash Service -- CSS file
+ ONOS GUI -- Flash Service (layout) -- CSS file
  */
 
 #flash {
@@ -28,22 +28,20 @@
     opacity: 0.8;
 }
 
-.light #flash svg g.flashItem rect {
-    fill: #ccc;
-}
-.dark #flash svg g.flashItem rect {
-    fill: #555;
-}
-
 #flash svg g.flashItem text {
     stroke: none;
     text-anchor: middle;
     alignment-baseline: middle;
     font-size: 16pt;
 }
-.light #flash svg g.flashItem text {
-    fill: #333;
-}
-.dark #flash svg g.flashItem text {
-    fill: #999;
+
+/* Used for temp div */
+.centered {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    margin: 0;
+    padding: 10px;
 }

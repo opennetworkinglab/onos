@@ -1,0 +1,19 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:javax.ws.rs-api',
+    '//lib:org.apache.karaf.shell.console',
+    '//apps/dhcp/api:onos-apps-dhcp-api',
+    '//utils/rest:onlab-rest',
+    '//core/store/serializers:onos-core-serializers',
+    '//cli:onos-cli',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    web_context = '/onos/dhcp',
+)

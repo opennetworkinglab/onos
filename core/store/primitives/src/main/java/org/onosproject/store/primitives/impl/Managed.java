@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,10 +41,4 @@ public interface Managed<T> {
      * @return {@code true} if open
      */
     boolean isOpen();
-
-    /**
-     * Return {@code true} if the managed object is closed.
-     * @return {@code true} if closed
-     */
-    boolean isClosed();
 }

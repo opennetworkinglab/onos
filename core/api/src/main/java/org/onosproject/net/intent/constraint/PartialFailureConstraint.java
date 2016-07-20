@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.onosproject.net.Path;
 import org.onosproject.net.intent.ConnectivityIntent;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.resource.link.LinkResourceService;
+import org.onosproject.net.intent.ResourceContext;
 
 /**
  * A constraint that allows intents that can only be partially compiled
@@ -28,13 +28,15 @@ import org.onosproject.net.resource.link.LinkResourceService;
  * to be installed when some endpoints or paths are not found.
  */
 public class PartialFailureConstraint implements Constraint {
+    // doesn't use LinkResourceService
     @Override
-    public double cost(Link link, LinkResourceService resourceService) {
+    public double cost(Link link, ResourceContext context) {
         return 1;
     }
 
+    // doesn't use LinkResourceService
     @Override
-    public boolean validate(Path path, LinkResourceService resourceService) {
+    public boolean validate(Path path, ResourceContext context) {
         return true;
     }
 

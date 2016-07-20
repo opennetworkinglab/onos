@@ -1,0 +1,19 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:concurrent-trees',
+    '//incubator/api:onos-incubator-api',
+    '//core/store/dist:onos-core-dist',
+    '//core/store/serializers:onos-core-serializers'
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//core/api:onos-api-tests',
+    '//core/common:onos-core-common-tests',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    visibility = ['PUBLIC'],
+)

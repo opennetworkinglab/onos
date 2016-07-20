@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,9 @@ public interface VirtualNetworkService {
     Set<VirtualLink> getVirtualLinks(NetworkId networkId);
 
     /**
-     * Returns list of all virtual ports of the specified device.
+     * Returns list of all virtual ports of the specified device. If the
+     * device identifier is null then all of the virtual ports in the specified
+     * network will be returned.
      *
      * @param networkId network identifier
      * @param deviceId  device identifier

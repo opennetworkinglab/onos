@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Device View -- CSS file
+ ONOS GUI -- Device View (layout) -- CSS file
  */
 
 #ov-device h2 {
@@ -25,50 +25,23 @@
 #ov-device div.ctrl-btns {
 }
 
-.light #ov-device .current-view use {
-    fill: white;
-}
-.dark #ov-device .current-view use {
-    fill: #304860;
-}
-
-.light #ov-device .current-view rect {
-    fill: deepskyblue;
-}
-.dark #ov-device .current-view rect {
-    fill: #eee;
-}
 
 /* More in generic panel.css */
 
 #device-details-panel.floatpanel {
-    -moz-border-radius: 0;
-    border-radius: 0;
     z-index: 0;
 }
 
-.light #device-details-panel.floatpanel {
-    background-color: rgb(229, 234, 237);
-}
-.dark #device-details-panel.floatpanel {
-    background-color: #3A4042;
-}
 
 #device-details-panel .container {
-    padding: 0 12px;
+    padding: 8px 12px;
 }
 
 #device-details-panel .close-btn {
     position: absolute;
-    right: 10px;
-    top: 0;
+    right: 12px;
+    top: 12px;
     cursor: pointer;
-}
-.light .close-btn svg.embeddedIcon .icon.plus .glyph {
-    fill: #aaa;
-}
-.dark .close-btn svg.embeddedIcon .icon.plus .glyph {
-    fill: #ccc;
 }
 
 #device-details-panel .dev-icon {
@@ -76,25 +49,20 @@
     padding: 0 6px 0 0;
     vertical-align: middle;
 }
-.light .dev-icon svg.embeddedIcon .glyph {
-    fill: rgb(0, 172, 229);
-}
-.dark .dev-icon svg.embeddedIcon .glyph {
-    fill: #486D91;
-}
 
 #device-details-panel h2 {
     display: inline-block;
     margin: 8px 0;
 }
 
-#device-details-panel .editable {
-    cursor: pointer;
-    border-bottom: 1px dashed darkgreen;
-}
 
 #device-details-panel h2 input {
-    font-size: 1.0em;
+    font-size: 0.90em;
+    width: 106%;
+}
+
+#device-details-panel .top-tables {
+    font-size: 12pt;
 }
 
 #device-details-panel .top div.left {
@@ -106,27 +74,18 @@
 }
 
 #device-details-panel td.label {
-    font-style: italic;
-    padding-right: 12px;
-    /* works for both light and dark themes ... */
-    color: #777;
+    font-weight: bold;
+    text-align: right;
+    padding-right: 6px;
 }
 
 #device-details-panel .actionBtns div {
     padding: 12px 6px;
 }
 
-#device-details-panel .top hr {
-    width: 95%;
-    margin: 0 auto;
-}
-
-.light #device-details-panel hr {
-    opacity: .5;
-    border-color: #FFF;
-}
-.dark #device-details-panel hr {
-    border-color: #666;
+#device-details-panel hr {
+    width: 100%;
+    margin: 2px auto;
 }
 
 #device-details-panel .bottom table {
@@ -137,30 +96,9 @@
     letter-spacing: 0.02em;
 }
 
-.light #device-details-panel .bottom th {
-    background-color: #CCC;
-    /* default text color */
-}
-.dark #device-details-panel .bottom th {
-    background-color: #131313;
-    color: #ccc;
-}
-
 #device-details-panel .bottom th,
 #device-details-panel .bottom td {
     padding: 6px 12px;
     text-align: center;
 }
 
-.light #device-details-panel .bottom tr:nth-child(odd) {
-    background-color: #f9f9f9;
-}
-.light #device-details-panel .bottom tr:nth-child(even) {
-    background-color: #EBEDF2;
-}
-.dark #device-details-panel .bottom tr:nth-child(odd) {
-    background-color: #333;
-}
-.dark #device-details-panel .bottom tr:nth-child(even) {
-    background-color: #555;
-}

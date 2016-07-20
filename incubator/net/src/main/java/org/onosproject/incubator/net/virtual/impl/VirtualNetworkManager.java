@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkStoreDelegate;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
@@ -66,6 +67,7 @@ public class VirtualNetworkManager
     private static final String NETWORK_NULL = "Network ID cannot be null";
     private static final String DEVICE_NULL = "Device ID cannot be null";
     private static final String LINK_POINT_NULL = "Link end-point cannot be null";
+    private static final String VIRTUAL_LINK_NULL = "Virtual Link cannot be null";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected VirtualNetworkStore store;
@@ -135,13 +137,60 @@ public class VirtualNetworkManager
 
     @Override
     public VirtualLink createVirtualLink(NetworkId networkId,
-                                         ConnectPoint src, ConnectPoint dst,
-                                         TunnelId realizedBy) {
+                                         ConnectPoint src, ConnectPoint dst) {
         checkNotNull(networkId, NETWORK_NULL);
         checkNotNull(src, LINK_POINT_NULL);
         checkNotNull(dst, LINK_POINT_NULL);
-        checkNotNull(realizedBy, "Tunnel ID cannot be null");
-        return store.addLink(networkId, src, dst, realizedBy);
+        VirtualLink virtualLink = store.addLink(networkId, src, dst, Link.State.INACTIVE, null);
+        checkNotNull(virtualLink, VIRTUAL_LINK_NULL);
+
+        if (virtualLink.providerId() != null) {
+            VirtualNetworkProvider provider = getProvider(virtualLink.providerId());
+            if (provider != null) {
+                TunnelId tunnelId = provider.createTunnel(networkId, mapVirtualToPhysicalPort(networkId, src),
+                                                          mapVirtualToPhysicalPort(networkId, dst));
+                store.updateLink(virtualLink, tunnelId, Link.State.INACTIVE);
+            }
+        }
+        return virtualLink;
+    }
+
+    /**
+     * Maps the virtual connect point to a physical connect point.
+     *
+     * @param networkId network identifier
+     * @param virtualCp virtual connect point
+     * @return physical connect point
+     */
+    private ConnectPoint mapVirtualToPhysicalPort(NetworkId networkId,
+                                                  ConnectPoint virtualCp) {
+        Set<VirtualPort> ports = store.getPorts(networkId, virtualCp.deviceId());
+        for (VirtualPort port : ports) {
+            if (port.element().id().equals(virtualCp.elementId()) &&
+                    port.number().equals(virtualCp.port())) {
+                return new ConnectPoint(port.realizedBy().element().id(), port.realizedBy().number());
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Maps the physical connect point to a virtual connect point.
+     *
+     * @param networkId network identifier
+     * @param physicalCp physical connect point
+     * @return virtual connect point
+     */
+    private ConnectPoint mapPhysicalToVirtualToPort(NetworkId networkId,
+                                                  ConnectPoint physicalCp) {
+        Set<VirtualPort> ports = store.getPorts(networkId, null);
+        for (VirtualPort port : ports) {
+            if (port.realizedBy().element().id().equals(physicalCp.elementId()) &&
+                    port.realizedBy().number().equals(physicalCp.port())) {
+                return new ConnectPoint(port.element().id(), port.number());
+            }
+        }
+        return null;
     }
 
     @Override
@@ -149,7 +198,14 @@ public class VirtualNetworkManager
         checkNotNull(networkId, NETWORK_NULL);
         checkNotNull(src, LINK_POINT_NULL);
         checkNotNull(dst, LINK_POINT_NULL);
-        store.removeLink(networkId, src, dst);
+        VirtualLink virtualLink = store.removeLink(networkId, src, dst);
+
+        if (virtualLink != null && virtualLink.providerId() != null) {
+            VirtualNetworkProvider provider = getProvider(virtualLink.providerId());
+            if (provider != null) {
+                provider.destroyTunnel(networkId, virtualLink.tunnelId());
+            }
+        }
     }
 
     @Override
@@ -190,7 +246,6 @@ public class VirtualNetworkManager
     @Override
     public Set<VirtualPort> getVirtualPorts(NetworkId networkId, DeviceId deviceId) {
         checkNotNull(networkId, NETWORK_NULL);
-        checkNotNull(deviceId, DEVICE_NULL);
         return store.getPorts(networkId, deviceId);
     }
 
@@ -212,6 +267,35 @@ public class VirtualNetworkManager
             implements VirtualNetworkProviderService {
         InternalVirtualNetworkProviderService(VirtualNetworkProvider provider) {
             super(provider);
+        }
+
+        @Override
+        public void tunnelUp(NetworkId networkId, ConnectPoint src, ConnectPoint dst, TunnelId tunnelId) {
+
+            ConnectPoint srcVirtualCp = mapPhysicalToVirtualToPort(networkId, src);
+            ConnectPoint dstVirtualCp = mapPhysicalToVirtualToPort(networkId, dst);
+            if ((srcVirtualCp == null) || (dstVirtualCp == null)) {
+                log.error("Src or dst virtual connection point was not found.");
+            }
+
+            VirtualLink virtualLink = store.getLink(networkId, srcVirtualCp, dstVirtualCp);
+            if (virtualLink != null) {
+                store.updateLink(virtualLink, tunnelId, Link.State.ACTIVE);
+            }
+        }
+
+        @Override
+        public void tunnelDown(NetworkId networkId, ConnectPoint src, ConnectPoint dst, TunnelId tunnelId) {
+            ConnectPoint srcVirtualCp = mapPhysicalToVirtualToPort(networkId, src);
+            ConnectPoint dstVirtualCp = mapPhysicalToVirtualToPort(networkId, dst);
+            if ((srcVirtualCp == null) || (dstVirtualCp == null)) {
+                log.error("Src or dst virtual connection point was not found.");
+            }
+
+            VirtualLink virtualLink = store.getLink(networkId, srcVirtualCp, dstVirtualCp);
+            if (virtualLink != null) {
+                store.updateLink(virtualLink, tunnelId, Link.State.INACTIVE);
+            }
         }
     }
 

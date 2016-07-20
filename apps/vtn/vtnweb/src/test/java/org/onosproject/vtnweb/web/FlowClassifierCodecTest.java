@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,6 +89,7 @@ public class FlowClassifierCodecTest {
         assertThat(flowClassifier.tenantId().toString(), is(tenantId.toString()));
         assertThat(flowClassifier.description(), is("flow classifier"));
         assertThat(flowClassifier.protocol(), is("tcp"));
+        assertThat(flowClassifier.priority(), is(65535));
         assertThat(flowClassifier.minSrcPortRange(), is(22));
         assertThat(flowClassifier.maxSrcPortRange(), is(4000));
         assertThat(flowClassifier.minDstPortRange(), is(80));

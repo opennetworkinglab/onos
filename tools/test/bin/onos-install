@@ -55,7 +55,7 @@ $(dirname $0)/onos-push-bits $node
 
 [ ! -z "$mvn_settings" ] && scp -q $mvn_settings $remote:/tmp/settings.xml
 
-ssh $remote "
+ssh -tt $remote "
     [ -d $ONOS_INSTALL_DIR/bin ] && echo \"ONOS is already installed\" && exit 1
 
     # Prepare a landing zone and unroll the bits
@@ -67,10 +67,6 @@ ssh $remote "
     ln -s $ONOS_INSTALL_DIR/$KARAF_DIST /opt/onos/karaf
     mkdir $ONOS_INSTALL_DIR/var
     mkdir $ONOS_INSTALL_DIR/config
-
-    # create dir for Raft log
-    # TODO: use $KARAF_DATA
-    mkdir -p -- $ONOS_INSTALL_DIR/$KARAF_DIST/data/raft
 
     # Install the configuration file(s) and set up options for debugging
     [ -n $noupstart ] && sudo cp $ONOS_INSTALL_DIR/init/onos.conf /etc/init/onos.conf
@@ -88,6 +84,9 @@ ssh $remote "
     # Drop log level for the console
     echo 'log4j.logger.org.apache.sshd = WARN' \
         >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/org.ops4j.pax.logging.cfg
+
+    # Set up the ONOS service on systemd-based systems
+    sudo systemctl daemon-reload || true
 
 "
 

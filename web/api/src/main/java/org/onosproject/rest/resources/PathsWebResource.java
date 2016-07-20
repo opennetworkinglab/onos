@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,12 +58,12 @@ public class PathsWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get all shortest paths between any two hosts or devices.
+     * Gets all shortest paths between any two hosts or devices.
      * Returns array of all shortest paths between any two elements.
      * @onos.rsModel Paths
      * @param src source identifier
      * @param dst destination identifier
-     * @return path data
+     * @return 200 OK with array of all shortest paths between any two elements
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -77,12 +77,12 @@ public class PathsWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get all shortest disjoint paths between any two hosts or devices.
+     * Gets all shortest disjoint paths between any two hosts or devices.
      * Returns array of all shortest disjoint paths between any two elements.
      * @onos.rsModel Paths
      * @param src source identifier
      * @param dst destination identifier
-     * @return path data
+     * @return 200 OK with array of all shortest disjoint paths between any two elements
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)

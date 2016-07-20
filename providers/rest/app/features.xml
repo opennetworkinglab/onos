@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright 2016 Open Networking Laboratory
+  ~ Copyright 2016-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 
         <bundle>mvn:${project.groupId}/onos-restsb-provider-device/${project.version}</bundle>
 
-        <bundle>mvn:com.sun.jersey/jersey-client/1.19</bundle>
+        <bundle>mvn:org.glassfish.jersey.core/jersey-client/2.22.2</bundle>
         <bundle>mvn:commons-io/commons-io/2.4</bundle>
         <bundle>mvn:org.apache.httpcomponents/httpclient-osgi/4.5.1</bundle>
         <bundle>mvn:org.apache.httpcomponents/httpcore-osgi/4.4.4</bundle>

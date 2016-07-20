@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -54,6 +54,10 @@
         <step name="Net-Create-Flows.Host-to-4" requires="^"
               exec="create-flow.py ${OC1} f10 of:0000000000000004 3 1"/>
 
+        <!-- Make sure all flows are added -->
+        <step name="Net-Create-Flows.Check-Flows-Added" requires="^"
+              exec="onos-check-flows ${OC1}"/>
+
         <!-- Check that connectivity was established -->
         <step name="Net-Create-Flows.Ping-XY" requires="^"
               exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"/>
@@ -81,6 +85,10 @@
               exec="curl -f -X DELETE -uonos:rocks ${f9Location}"/>
         <step name="Net-Create-Flows.Delete-f10" requires="^"
               exec="curl -f -X DELETE -uonos:rocks ${f10Location}"/>
+
+        <!-- Make sure all flows are removed -->
+        <step name="Net-Create-Flows.Check-Flows-Removed" requires="^"
+              exec="onos-check-flows ${OC1}"/>
 
         <!-- Ping again to be sure the path was removed. -->
         <step name="Net-Create-Flows.Fail-Ping-XY" requires="^"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,10 @@ import static org.onosproject.net.Link.Type.OPTICAL;
 /**
  * Ancillary provider to activate/deactivate optical links as their respective
  * devices go online or offline.
+ *
+ * @deprecated in Goldeneye (1.6.0)
  */
+@Deprecated
 @Component(immediate = true)
 public class OpticalLinkProvider extends AbstractProvider implements LinkProvider {
 

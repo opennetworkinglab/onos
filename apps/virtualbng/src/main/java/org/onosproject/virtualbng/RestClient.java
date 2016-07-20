@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,22 @@
  */
 package org.onosproject.virtualbng;
 
-import static com.google.common.net.MediaType.JSON_UTF_8;
-import static java.net.HttpURLConnection.HTTP_OK;
-import static org.slf4j.LoggerFactory.getLogger;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-
-import java.io.IOException;
-
 import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+
+import static com.google.common.net.MediaType.JSON_UTF_8;
+import static java.net.HttpURLConnection.HTTP_OK;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class RestClient {
     private final Logger log = getLogger(getClass());
@@ -51,14 +52,14 @@ public class RestClient {
     /**
      * Gets a client web resource builder.
      *
-     * @param url the URL to access remote resource
+     * @param localUrl the URL to access remote resource
      * @return web resource builder
      */
-    public WebResource.Builder getClientBuilder(String url) {
-        log.info("URL: {}", url);
-        Client client = Client.create();
-        WebResource resource = client.resource(url);
-        return resource.accept(UTF_8).type(UTF_8);
+    public Invocation.Builder getClientBuilder(String localUrl) {
+        log.info("URL: {}", localUrl);
+        Client client = ClientBuilder.newClient();
+        WebTarget wt = client.target(localUrl);
+        return wt.request(UTF_8);
     }
 
     /**
@@ -67,8 +68,8 @@ public class RestClient {
      * @return the vBNG map if REST GET succeeds, otherwise return null
      */
     public ObjectNode getRest() {
-        WebResource.Builder builder = getClientBuilder(url);
-        ClientResponse response = builder.get(ClientResponse.class);
+        Invocation.Builder builder = getClientBuilder(url);
+        Response response = builder.get();
 
         if (response.getStatus() != HTTP_OK) {
             log.info("REST GET request returned error code {}",
@@ -76,7 +77,7 @@ public class RestClient {
             return null;
         }
 
-        String jsonString = response.getEntity(String.class);
+        String jsonString = builder.get(String.class);
         log.info("Fetched JSON string: {}", jsonString);
 
         JsonNode node;

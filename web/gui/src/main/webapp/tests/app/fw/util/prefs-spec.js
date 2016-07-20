@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 describe('factory: fw/util/prefs.js', function() {
     var $cookies, ps, fs;
 
-    beforeEach(module('onosUtil'));
+    beforeEach(module('onosUtil', 'onosRemote'));
 
     var mockCookies = {
         foo: 'bar'
@@ -44,7 +44,8 @@ describe('factory: fw/util/prefs.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(ps, [
-            'getPrefs', 'asNumbers', 'setPrefs'
+            'getPrefs', 'asNumbers', 'setPrefs',
+            'addListener', 'removeListener'
         ])).toBe(true);
     });
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.Set;
 import org.junit.Test;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
 import com.google.common.collect.Lists;
@@ -157,5 +158,41 @@ public class DefaultPortChainTest {
         assertThat(portChain.getLoadBalanceId(fiveTuple1), is(id1));
         assertThat(keys.contains(fiveTuple1), is(true));
         assertThat(path.contains(portPairId), is(true));
+    }
+
+    /**
+     * Verifies sfc classifiers.
+     */
+    @Test
+    public void testSfcClassifier() {
+        final PortChain portChain = getPortChain();
+
+        final LoadBalanceId id1 = LoadBalanceId.of((byte) 1);
+        List<DeviceId> classifierList = Lists.newArrayList();
+        DeviceId deviceId1 = DeviceId.deviceId("of:000000001");
+        classifierList.add(deviceId1);
+        DeviceId deviceId2 = DeviceId.deviceId("of:000000002");
+        classifierList.add(deviceId2);
+        portChain.addSfcClassifiers(id1, classifierList);
+
+        assertThat(portChain.getSfcClassifiers(id1).contains(deviceId1), is(true));
+    }
+
+    /**
+     * Verifies sfc forwarders.
+     */
+    @Test
+    public void testSfcForwarder() {
+        final PortChain portChain = getPortChain();
+
+        final LoadBalanceId id1 = LoadBalanceId.of((byte) 1);
+        List<DeviceId> forwarderList = Lists.newArrayList();
+        DeviceId deviceId1 = DeviceId.deviceId("of:000000001");
+        forwarderList.add(deviceId1);
+        DeviceId deviceId2 = DeviceId.deviceId("of:000000002");
+        forwarderList.add(deviceId2);
+        portChain.addSfcForwarders(id1, forwarderList);
+
+        assertThat(portChain.getSfcForwarders(id1).contains(deviceId1), is(true));
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.onosproject.store.service;
+
+import java.util.concurrent.CompletableFuture;
 
 import org.onosproject.store.primitives.TransactionId;
 
@@ -63,9 +65,9 @@ public interface TransactionContext extends DistributedPrimitive {
      * Commits a transaction that was previously started thereby making its changes permanent
      * and externally visible.
      *
-     * @return true if this transaction succeeded, otherwise false.
+     * @return A future that will be completed when the operation completes
      */
-    boolean commit();
+    CompletableFuture<CommitStatus> commit();
 
     /**
      * Aborts any changes made in this transaction context and discarding all locally cached updates.

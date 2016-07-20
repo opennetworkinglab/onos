@@ -1,0 +1,17 @@
+BUNDLES = [
+    '//providers/ovsdb/device:onos-providers-ovsdb-device',
+    '//providers/ovsdb/tunnel:onos-providers-ovsdb-tunnel',
+]
+
+APPS = [
+    'org.onosproject.ovsdb-base',
+    'org.onosproject.ovsdbhostprovider',
+]
+
+onos_app (
+  title = 'OVSDB Southbound Meta App',
+  description = 'ONOS OVSDB southbound meta application',
+  category = 'Provider',
+  included_bundles = BUNDLES,
+  required_apps = APPS,
+)

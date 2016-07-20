@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,13 +22,9 @@
 
     <servlet>
         <servlet-name>JAX-RS Service</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
-            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig</param-value>
-        </init-param>
-        <init-param>
-            <param-name>com.sun.jersey.config.property.classnames</param-name>
+            <param-name>jersey.config.server.provider.classnames</param-name>
             <param-value>
                 org.onosproject.segmentrouting.web.TunnelWebResource,
                 org.onosproject.segmentrouting.web.PolicyWebResource

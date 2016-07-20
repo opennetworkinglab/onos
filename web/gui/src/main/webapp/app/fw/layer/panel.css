@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Panel Service -- CSS file
+ ONOS GUI -- Panel Service (layout) -- CSS file
  */
 
 .floatpanel {
@@ -27,11 +27,8 @@
     right: -220px;
     opacity: 0;
 
-    padding: 10px;
+    padding: 2px;
     font-size: 10pt;
-
-    -moz-border-radius: 6px;
-    border-radius: 6px;
 }
 
 .floatpanel.dialog {
@@ -40,15 +37,4 @@
 
 html[data-platform='iPad'] .floatpanel {
     top: 80px;
-}
-
-.light .floatpanel {
-    background-color: rgba(255,255,255,0.8);
-    color: black;
-    box-shadow: 0 2px 12px #777;
-}
-.dark .floatpanel {
-    background-color: rgba(50,50,50,0.8);
-    color: #ccc;
-    box-shadow: 0 2px 12px #000;
 }

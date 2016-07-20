@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ public final class FlowClassifierCodec extends JsonCodec<FlowClassifier> {
     private static final String DESCRIPTION = "description";
     private static final String ETHER_TYPE = "ethertype";
     private static final String PROTOCOL = "protocol";
+    private static final String PRIORITY = "priority";
     private static final String MIN_SRC_PORT_RANGE = "source_port_range_min";
     private static final String MAX_SRC_PORT_RANGE = "source_port_range_max";
     private static final String MIN_DST_PORT_RANGE = "destination_port_range_min";
@@ -77,6 +78,11 @@ public final class FlowClassifierCodec extends JsonCodec<FlowClassifier> {
         if (json.get(PROTOCOL) != null && !(json.get(PROTOCOL)).asText().equals("null")) {
             String protocol = (json.get(PROTOCOL)).asText();
             resultBuilder.setProtocol(protocol);
+        }
+
+        if (json.get(PRIORITY) != null && !(json.get(PRIORITY)).asText().equals("null")) {
+            int priority = (json.get(PRIORITY)).asInt();
+            resultBuilder.setPriority(priority);
         }
 
         int minSrcPortRange = (json.get(MIN_SRC_PORT_RANGE)).asInt();
@@ -123,6 +129,7 @@ public final class FlowClassifierCodec extends JsonCodec<FlowClassifier> {
                 .put(DESCRIPTION, flowClassifier.description())
                 .put(ETHER_TYPE, flowClassifier.etherType())
                 .put(PROTOCOL, flowClassifier.protocol())
+                .put(PRIORITY, flowClassifier.priority())
                 .put(MIN_SRC_PORT_RANGE, flowClassifier.minSrcPortRange())
                 .put(MAX_SRC_PORT_RANGE, flowClassifier.maxSrcPortRange())
                 .put(MIN_DST_PORT_RANGE, flowClassifier.minDstPortRange())

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ONOSLLDP;
+import org.onosproject.cluster.ClusterMetadataServiceAdapter;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.ConnectPoint;
@@ -232,6 +233,7 @@ public class NetworkConfigLinksProviderTest {
         provider.deviceService = new TestDeviceManager();
         provider.masterService = new TestMastershipService();
         provider.packetService = new TestPacketService();
+        provider.metadataService = new ClusterMetadataServiceAdapter();
         provider.netCfgService = configRegistry;
 
         provider.activate();

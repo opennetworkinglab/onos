@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.event.Change;
 import org.onosproject.store.service.AsyncLeaderElector;
-
 import com.google.common.collect.Maps;
 
 /**
@@ -125,5 +124,20 @@ public class PartitionedAsyncLeaderElector implements AsyncLeaderElector {
      */
     private Collection<AsyncLeaderElector> getLeaderElectors() {
         return partitions.values();
+    }
+
+    @Override
+    public void addStatusChangeListener(Consumer<Status> listener) {
+        partitions.values().forEach(elector -> elector.addStatusChangeListener(listener));
+    }
+
+    @Override
+    public void removeStatusChangeListener(Consumer<Status> listener) {
+        partitions.values().forEach(elector -> elector.removeStatusChangeListener(listener));
+    }
+
+    @Override
+    public Collection<Consumer<Status>> statusChangeListeners() {
+        throw new UnsupportedOperationException();
     }
 }

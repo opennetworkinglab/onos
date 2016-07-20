@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.service.DistributedQueue;
 import org.onosproject.store.service.DistributedQueueBuilder;
 import org.onosproject.store.service.Serializer;
@@ -29,14 +30,12 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class DefaultDistributedQueueBuilder<E> implements DistributedQueueBuilder<E> {
 
-    private Serializer serializer;
+    private final DistributedPrimitiveCreator primitiveCreator;
     private String name;
-    private boolean persistenceEnabled = true;
-    private final DatabaseManager databaseManager;
-    private boolean metering = true;
+    private Serializer serializer;
 
-    public DefaultDistributedQueueBuilder(DatabaseManager databaseManager) {
-        this.databaseManager = databaseManager;
+    public DefaultDistributedQueueBuilder(DistributedPrimitiveCreator primitiveCreator) {
+        this.primitiveCreator = primitiveCreator;
     }
 
     @Override
@@ -53,18 +52,6 @@ public class DefaultDistributedQueueBuilder<E> implements DistributedQueueBuilde
         return this;
     }
 
-    @Override
-    public DistributedQueueBuilder<E> withMeteringDisabled() {
-        metering = false;
-        return this;
-    }
-
-    @Override
-    public DistributedQueueBuilder<E> withPersistenceDisabled() {
-        persistenceEnabled = false;
-        return this;
-    }
-
     private boolean validInputs() {
         return name != null && serializer != null;
     }
@@ -72,10 +59,6 @@ public class DefaultDistributedQueueBuilder<E> implements DistributedQueueBuilde
     @Override
     public DistributedQueue<E> build() {
         checkState(validInputs());
-        return new DefaultDistributedQueue<>(
-                name,
-                persistenceEnabled ? databaseManager.partitionedDatabase : databaseManager.inMemoryDatabase,
-                serializer,
-                metering);
+        return primitiveCreator.newDistributedQueue(name, serializer);
     }
 }

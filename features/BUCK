@@ -1,0 +1,144 @@
+osgi_feature (
+  name="onos-thirdparty-base",
+  title="ONOS 3rd party dependencies",
+  required_features = [],
+  included_bundles = [
+    '//lib:atomix',
+    '//lib:commons-lang',
+    '//lib:commons-lang3',
+    '//lib:commons-configuration',
+    '//lib:guava',
+    '//lib:netty',
+    '//lib:netty-common',
+    '//lib:netty-buffer',
+    '//lib:netty-transport',
+    '//lib:netty-handler',
+    '//lib:netty-codec',
+    '//lib:netty-transport-native-epoll',
+    '//lib:commons-pool',
+    '//lib:commons-math3',
+    '//lib:joda-time',
+    '//lib:metrics-core',
+    '//lib:metrics-json',
+    '//lib:minimal-json',
+    '//lib:kryo',
+    '//lib:reflectasm',
+    '//lib:asm',
+    '//lib:minlog',
+    '//lib:objenesis',
+    '//lib:jackson-core',
+    '//lib:jackson-annotations',
+    '//lib:jackson-databind',
+    '//lib:commons-collections',
+    '//lib:typesafe-config',
+    '//lib:concurrent-trees',
+    '//lib:commons-io',
+    '//lib:jersey-client',
+    '//lib:mapdb',
+  ]
+)
+
+osgi_feature (
+  name="onos-thirdparty-web",
+  title="ONOS 3rd party dependencies for web apps",
+  required_features = [ 'war', 'onos-thirdparty-base' ],
+  included_bundles = [
+    '//lib:jersey-common',
+    '//lib:javax.annotation-api',
+    '//lib:javax.ws.rs-api',
+    '//lib:hk2-api',
+    '//lib:hk2-locator',
+    '//lib:hk2-osgi-resource-locator',
+    '//lib:javax.inject',
+    '//lib:jersey-guava',
+    '//lib:jersey-server',
+    '//lib:aopalliance-repackaged',
+    '//lib:hk2-utils',
+    '//lib:validation-api',
+    '//lib:javassist',
+    '//lib:jersey-container-servlet',
+    '//lib:jersey-container-servlet-core',
+    '//lib:jersey-media-multipart',
+    '//lib:mimepull',
+  ]
+)
+
+osgi_feature (
+  name = 'onos-api',
+  title = 'ONOS services and model API',
+  required_features = ['scr', 'onos-thirdparty-base'],
+  included_bundles =[
+    '//utils/misc:onlab-misc',
+    '//utils/osgi:onlab-osgi',
+    '//core/api:onos-api',
+    '//incubator/api:onos-incubator-api',
+  ]
+)
+
+osgi_feature (
+  name='onos-core',
+  title='ONOS core components',
+  required_features = ['onos-api'],
+  included_bundles = [
+    '//core/net:onos-core-net',
+    '//core/common:onos-core-common',
+    '//core/store/dist:onos-core-dist',
+    '//core/store/primitives:onos-core-primitives',
+    '//core/store/persistence:onos-core-persistence',
+    '//core/store/serializers:onos-core-serializers',
+  ]
+)
+
+osgi_feature (
+  name='onos-incubator',
+  title='ONOS core incubator components',
+  required_features = ['onos-core'],
+  included_bundles = [
+    '//incubator/net:onos-incubator-net',
+    '//incubator/core:onos-incubator-core',
+    '//incubator/store:onos-incubator-store',
+    '//incubator/rpc:onos-incubator-rpc',
+  ]
+)
+
+osgi_feature (
+  name="onos-rest",
+  title="ONOS REST API components",
+  required_features = ['onos-api', 'onos-thirdparty-web'],
+  included_bundles = [
+    '//utils/rest:onlab-rest',
+    '//web/api:onos-rest',
+  ]
+)
+
+osgi_feature (
+  name = 'onos-gui',
+  title = 'ONOS GUI console components',
+  required_features = ['onos-api', 'onos-thirdparty-web'],
+  included_bundles = [
+    '//lib:jetty-websocket',
+    '//utils/rest:onlab-rest',
+    '//web/gui:onos-gui',
+  ]
+)
+
+osgi_feature (
+  name = 'onos-cli',
+  title="ONOS admin command console components",
+  required_features = ['onos-api'],
+  included_bundles = [
+    '//cli:onos-cli',
+  ]
+)
+
+#FIXME
+# osgi_feature (
+#   name = 'onos-security',
+#   title="Security-Mode ONOS",
+#   required_features = ['onos-api'],
+#   included_bundles = [
+#     'org.onosproject/org.apache.felix.framework.security/2.2.0.onos',
+#     'org.onosproject/onos-security/@ONOS-VERSION',
+#   ]
+# )
+

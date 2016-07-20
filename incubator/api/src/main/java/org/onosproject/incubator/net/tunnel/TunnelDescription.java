@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.onosproject.core.DefaultGroupId;
 import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 import org.onosproject.net.Annotated;
 import org.onosproject.net.Description;
+import org.onosproject.net.NetworkResource;
 import org.onosproject.net.Path;
 import org.onosproject.net.provider.ProviderId;
 
@@ -84,4 +85,11 @@ public interface TunnelDescription extends Description, Annotated {
      * @return the path of the tunnel
      */
     Path path();
+
+    /**
+     * Returns the network resource backing the tunnel, e.g. lambda, VLAN id, MPLS tag, label stack.
+     *
+     * @return backing resource
+     */
+    NetworkResource resource();
 }

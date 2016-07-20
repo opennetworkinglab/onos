@@ -1,0 +1,37 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//lib:javax.ws.rs-api',
+    '//lib:rrd4j',
+    '//apps/cpman/api:onos-apps-cpman-api',
+    '//utils/rest:onlab-rest',
+    '//cli:onos-cli',
+    '//core/store/serializers:onos-core-serializers',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_REST',
+    '//web/api:onos-rest-tests',
+]
+
+BUNDLES = [
+    '//apps/cpman/api:onos-apps-cpman-api',
+]
+
+EXCLUDED_BUNDLES = [
+    '//lib:rrd4j',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
+
+onos_app (
+    title = 'Control Plane Manager REST API',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    description = 'APIs for interacting with the Control Plane Management application.',
+    included_bundles = BUNDLES,
+    excluded_bundles = EXCLUDED_BUNDLES,
+)

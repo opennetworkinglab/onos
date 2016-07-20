@@ -1,0 +1,22 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api',
+]
+
+BUNDLES = [
+    '//apps/routing-api:onos-apps-routing-api',
+    '//apps/routing:onos-apps-routing',
+    '//apps/vrouter:onos-apps-vrouter',
+]
+
+osgi_jar (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'Virtual Router App',
+    category = 'Traffic Steering',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    description = 'Virtual router (vRouter) application.',
+)

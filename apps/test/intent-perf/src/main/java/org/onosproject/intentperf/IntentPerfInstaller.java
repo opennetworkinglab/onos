@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -178,7 +178,7 @@ public class IntentPerfInstaller {
         workers = Executors.newFixedThreadPool(DEFAULT_NUM_WORKERS, groupedThreads("onos/intent-perf", "worker-%d"));
 
         // disable flow backups for testing
-        configService.setProperty("org.onosproject.store.flow.impl.NewDistributedFlowRuleStore",
+        configService.setProperty("org.onosproject.store.flow.impl.DistributedFlowRuleStore",
                                   "backupEnabled", "true");
 
         // TODO: replace with shared executor

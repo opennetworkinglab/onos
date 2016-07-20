@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,14 +29,14 @@ public interface PcepBandwidthObject {
      *
      * @return bandwidth value
      */
-    int getBandwidth();
+    float getBandwidth();
 
     /**
      * Sets bandwidth with specified value.
      *
      * @param iBandwidth Bandwidth's value
      */
-    void setBandwidth(int iBandwidth);
+    void setBandwidth(float iBandwidth);
 
     /**
      * Writes the BandwidthObject into channel buffer.
@@ -80,7 +80,7 @@ public interface PcepBandwidthObject {
          *
          * @return bandwidth
          */
-        int getBandwidth();
+        float getBandwidth();
 
         /**
          * Sets bandwidth value and return its builder.
@@ -88,7 +88,7 @@ public interface PcepBandwidthObject {
          * @param iBandwidth bandwidth value
          * @return Builder by setting bandwidth
          */
-        Builder setBandwidth(int iBandwidth);
+        Builder setBandwidth(float iBandwidth);
 
         /**
          * Sets P flag in Bandwidth object header and returns its builder.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,19 +56,13 @@ public interface DeviceProvider extends Provider {
      */
     boolean isReachable(DeviceId deviceId);
 
-    /**
-     * Enables the given port.
+    /*
+     * Administratively enables or disables a port.
      *
      * @param deviceId device identifier
-     * @param portNumber port number
+     * @param portNumber device identifier
+     * @param enable true if port is to be enabled, false to disable
      */
-    void enablePort(DeviceId deviceId, PortNumber portNumber);
-
-    /**
-     * Disables the given port.
-     *
-     * @param deviceId device identifier
-     * @param portNumber port number
-     */
-    void disablePort(DeviceId deviceId, PortNumber portNumber);
+    void changePortState(DeviceId deviceId, PortNumber portNumber,
+                         boolean enable);
 }

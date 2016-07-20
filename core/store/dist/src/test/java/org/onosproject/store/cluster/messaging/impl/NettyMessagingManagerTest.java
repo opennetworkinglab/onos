@@ -1,3 +1,18 @@
+/*
+ * Copyright 2016-present Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onosproject.store.cluster.messaging.impl;
 
 import java.util.Arrays;
@@ -118,8 +133,16 @@ public class NettyMessagingManagerTest {
         AtomicReference<String> handlerThreadName = new AtomicReference<>();
         AtomicReference<String> completionThreadName = new AtomicReference<>();
 
+        final CountDownLatch latch = new CountDownLatch(1);
+
         BiFunction<Endpoint, byte[], byte[]> handler = (ep, data) -> {
             handlerThreadName.set(Thread.currentThread().getName());
+            try {
+                latch.await();
+            } catch (InterruptedException e1) {
+                Thread.currentThread().interrupt();
+                fail("InterruptedException");
+            }
             return "hello there".getBytes();
         };
         netty2.registerHandler("test-subject", handler, handlerExecutor);
@@ -131,6 +154,7 @@ public class NettyMessagingManagerTest {
         response.whenComplete((r, e) -> {
             completionThreadName.set(Thread.currentThread().getName());
         });
+        latch.countDown();
 
         // Verify that the message was request handling and response completion happens on the correct thread.
         assertTrue(Arrays.equals("hello there".getBytes(), response.join()));

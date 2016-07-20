@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,23 @@
 
 package org.onosproject.ui.chart;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * A simple model of chart data.
- *
+ * A simple model of time series chart data.
  * <p>
  * Note that this is not a full MVC type model; the expected usage pattern
  * is to create an empty chart, add data points (by consulting the business model),
@@ -35,32 +41,45 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class ChartModel {
 
-    // key is series name, value is series index
-    private final Map<String, Integer> seriesMap;
-    private final DataPoint[] dataPoints;
+    private final Set<String> seriesSet;
+    private final String[] seriesArray;
+    private final List<Object> labels = Lists.newArrayList();
+    private final List<DataPoint> dataPoints = Lists.newArrayList();
+    private final Map<String, Annot> annotations = new HashMap<>();
 
     /**
      * Constructs a chart model with initialized series set.
      *
-     * @param size datapoints size
      * @param series a set of series
      */
-    public ChartModel(int size, String... series) {
+    public ChartModel(String... series) {
         checkNotNull(series, "series cannot be null");
         checkArgument(series.length > 0, "must be at least one series");
-        seriesMap = Maps.newConcurrentMap();
 
-        for (int index = 0; index < series.length; index++) {
-            seriesMap.put(series[index], index);
+        seriesSet = Sets.newHashSet(series);
+
+        if (seriesSet.size() != series.length) {
+            throw new IllegalArgumentException("duplicate series detected");
         }
 
-        checkArgument(size > 0, "must have at least one data point");
-        dataPoints = new DataPoint[size];
+        this.seriesArray = Arrays.copyOf(series, series.length);
     }
 
     private void checkDataPoint(DataPoint dataPoint) {
-        checkArgument(dataPoint.getSize() == seriesCount(),
+        checkArgument(dataPoint.size() == seriesCount(),
                 "data size should be equal to number of series");
+    }
+
+    /**
+     * Checks the validity of the given series.
+     *
+     * @param series series name
+     */
+    private void checkSeries(String series) {
+        checkNotNull(series, "must provide a series name");
+        if (!seriesSet.contains(series)) {
+            throw new IllegalArgumentException("unknown series: " + series);
+        }
     }
 
     /**
@@ -69,24 +88,20 @@ public class ChartModel {
      * @return number of series
      */
     public int seriesCount() {
-        return seriesMap.size();
+        return seriesSet.size();
     }
 
     /**
-     * Shifts all of the data points to the left,
-     * and adds a new data point to the tail of the array.
+     * Adds a data point to the chart model.
      *
-     * @param label label name
-     * @param values a set of data values
+     * @param label label instance
+     * @return the data point, for chaining
      */
-    public void addDataPoint(String label, Double[] values) {
-        DataPoint dp = new DataPoint(label, values);
-        checkDataPoint(dp);
-
-        for (int index = 1; index < dataPoints.length; index++) {
-            dataPoints[index - 1] = dataPoints[index];
-        }
-        dataPoints[dataPoints.length - 1] = dp;
+    public DataPoint addDataPoint(Object label) {
+        DataPoint dp = new DataPoint();
+        labels.add(label);
+        dataPoints.add(dp);
+        return dp;
     }
 
     /**
@@ -95,16 +110,34 @@ public class ChartModel {
      * @return an array of series
      */
     public String[] getSeries() {
-        return seriesMap.keySet().toArray(new String[seriesMap.size()]);
+        return seriesArray;
     }
 
     /**
-     * Returns all of data points.
+     * Returns all of data points in order.
      *
      * @return an array of data points
      */
     public DataPoint[] getDataPoints() {
-        return Arrays.copyOf(dataPoints, dataPoints.length);
+        return dataPoints.toArray(new DataPoint[dataPoints.size()]);
+    }
+
+    /**
+     * Returns all of labels in order.
+     *
+     * @return an array of labels
+     */
+    public Object[] getLabels() {
+        return labels.toArray(new Object[labels.size()]);
+    }
+
+    /**
+     * Returns the number of data points in this chart model.
+     *
+     * @return number of data points
+     */
+    public int dataPointCount() {
+        return dataPoints.size();
     }
 
     /**
@@ -113,7 +146,73 @@ public class ChartModel {
      * @return data point
      */
     public DataPoint getLastDataPoint() {
-        return dataPoints[dataPoints.length - 1];
+        return dataPoints.get(dataPoints.size() - 1);
+    }
+
+    /**
+     * Inserts a new annotation.
+     *
+     * @param key key of annotation
+     * @param value value of annotation
+     */
+    public void addAnnotation(String key, Object value) {
+        annotations.put(key, new Annot(key, value));
+    }
+
+    /**
+     * Returns the annotations in this chart.
+     *
+     * @return annotations
+     */
+    public Collection<Annot> getAnnotations() {
+        return new ArrayList<>(annotations.values());
+    }
+
+    /**
+     * Model of an annotation.
+     */
+    public class Annot {
+        private final String key;
+        private final Object value;
+
+        /**
+         * Constructs an annotation with the given key and value.
+         *
+         * @param key the key
+         * @param value the value
+         */
+        public Annot(String key, Object value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        /**
+         * Returns the annotation's key.
+         *
+         * @return key
+         */
+        public String key() {
+            return key;
+        }
+
+        /**
+         * Returns the annotation's value.
+         *
+         * @return value
+         */
+        public Object value() {
+            return value;
+        }
+
+        /**
+         * Returns the value as a string.
+         * This default implementation uses the value's toString() method.
+         *
+         * @return the value as a string
+         */
+        public String valueAsString() {
+            return value.toString();
+        }
     }
 
     /**
@@ -121,47 +220,77 @@ public class ChartModel {
      */
     public class DataPoint {
         // values for all series
-        private final Double[] values;
-        private final String label;
+        private final Map<String, Object> data = Maps.newHashMap();
 
         /**
-         * Constructs a data point.
+         * Sets the data value for the given series of this data point.
          *
-         * @param label label name
-         * @param values a set of data values for all series
+         * @param series series name
+         * @param value  value to set
+         * @return self, for chaining
          */
-        public DataPoint(String label, Double[] values) {
-            this.label = label;
-            this.values = values;
+        public DataPoint data(String series, Object value) {
+            checkSeries(series);
+            data.put(series, value);
+            return this;
         }
 
         /**
-         * Returns the label name of this data point.
+         * Returns the data value with the given series for this data point.
          *
-         * @return label name
+         * @param series  series name
+         * @return data value
          */
-        public String getLabel() {
-            return label;
+        public Object get(String series) {
+            return data.get(series);
+        }
+
+        /**
+         * Return the data value with the same order of series.
+         *
+         * @return an array of ordered data values
+         */
+        public Object[] getAll() {
+            Object[] value = new Object[getSeries().length];
+            int idx = 0;
+            for (String s : getSeries()) {
+                value[idx] = get(s);
+                idx++;
+            }
+            return value;
         }
 
         /**
          * Returns the size of data point.
-         * This should be identical to the size of series.
          *
-         * @return size of data point
+         * @return the size of data point
          */
-        public int getSize() {
-            return values.length;
+        public int size() {
+            return data.size();
         }
 
         /**
-         * Returns the value of the data point of the given series.
+         * Returns the value of the data point as a string, using the
+         * formatter appropriate for the series.
          *
-         * @param series series name
-         * @return data value of a specific series
+         * @param series series
+         * @return formatted data point value
          */
-        public Double getValue(String series) {
-            return values[seriesMap.get(series)];
+        public String getAsString(String series) {
+            return get(series).toString();
+        }
+
+        /**
+         * Returns the row as an array of formatted strings.
+         *
+         * @return the string format of data points
+         */
+        public String[] getAsStrings() {
+            List<String> formatted = new ArrayList<>(size());
+            for (String c : seriesArray) {
+                formatted.add(getAsString(c));
+            }
+            return formatted.toArray(new String[formatted.size()]);
         }
     }
 }

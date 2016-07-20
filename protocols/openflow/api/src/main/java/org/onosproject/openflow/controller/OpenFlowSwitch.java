@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -157,18 +157,4 @@ public interface OpenFlowSwitch {
      * @return string representation of the connection to the device
      */
     String channelId();
-
-    /**
-     * Registers a listener for OF msg events.
-     *
-     * @param listener the listener to notify
-     */
-    void addEventListener(OpenFlowEventListener listener);
-
-    /**
-     * Unregisters a listener.
-     *
-     * @param listener the listener to unregister
-     */
-    void removeEventListener(OpenFlowEventListener listener);
 }

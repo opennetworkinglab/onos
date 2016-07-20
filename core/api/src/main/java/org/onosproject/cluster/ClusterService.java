@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,9 @@ public interface ClusterService
     ControllerNode getNode(NodeId nodeId);
 
     /**
-     * Returns the availability state of the specified controller node.
+     * Returns the availability state of the specified controller node. Note
+     * that this does not imply that all the core and application components
+     * have been fully activated; only that the node has joined the cluster.
      *
      * @param nodeId controller node identifier
      * @return availability state

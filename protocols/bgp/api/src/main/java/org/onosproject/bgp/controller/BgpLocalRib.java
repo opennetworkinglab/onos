@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,6 +13,7 @@
 
 package org.onosproject.bgp.controller;
 
+import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpLSNlri;
 import org.onosproject.bgpio.protocol.linkstate.PathAttrNlriDetails;
 import org.onosproject.bgpio.types.RouteDistinguisher;
@@ -27,16 +28,18 @@ public interface BgpLocalRib {
      *
      * @param sessionInfo session info
      * @param nlri network layer reach info
-     * @param details nlri details
+     * @param details path attributes and NLRI information
+     * @throws BgpParseException while adding NLRI to local rib
      */
-    void add(BgpSessionInfo sessionInfo, BgpLSNlri nlri, PathAttrNlriDetails details);
+    void add(BgpSessionInfo sessionInfo, BgpLSNlri nlri, PathAttrNlriDetails details) throws BgpParseException;
 
     /**
      * Removes NLRI identifier if it exists.
      *
      * @param nlri info
+     * @throws BgpParseException while deleting NLRI from local rib
      */
-    void delete(BgpLSNlri nlri);
+    void delete(BgpLSNlri nlri) throws BgpParseException;
 
     /**
      * Update NLRI identifier mapped with route distinguisher if it exists in tree otherwise add NLRI infomation mapped
@@ -46,15 +49,17 @@ public interface BgpLocalRib {
      * @param nlri info
      * @param details has pathattribute, protocol id and identifier
      * @param routeDistinguisher unique for each VPN
+     * @throws BgpParseException while adding NLRI updation
      */
     void add(BgpSessionInfo sessionInfo, BgpLSNlri nlri, PathAttrNlriDetails details,
-                    RouteDistinguisher routeDistinguisher);
+                    RouteDistinguisher routeDistinguisher) throws BgpParseException;
 
     /**
      * Removes VPN NLRI identifier mapped to route distinguisher if it exists.
      *
      * @param nlri info
      * @param routeDistinguisher unique for each VPN
+     * @throws BgpParseException while deleting NLRI from local rib
      */
-    void delete(BgpLSNlri nlri, RouteDistinguisher routeDistinguisher);
+    void delete(BgpLSNlri nlri, RouteDistinguisher routeDistinguisher) throws BgpParseException;
 }

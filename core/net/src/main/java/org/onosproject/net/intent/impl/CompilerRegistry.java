@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ class CompilerRegistry {
         registerSubclassCompilerIfNeeded(intent);
         // FIXME: get previous resources
         List<Intent> installable = new ArrayList<>();
-        for (Intent compiled : getCompiler(intent).compile(intent, previousInstallables, null)) {
+        for (Intent compiled : getCompiler(intent).compile(intent, previousInstallables)) {
             installable.addAll(compile(compiled, previousInstallables));
         }
         return installable;

@@ -1,0 +1,202 @@
+# Copyright (C) 2013 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+GERRIT = 'GERRIT:'
+GERRIT_API = 'GERRIT_API:'
+MAVEN_CENTRAL = 'MAVEN_CENTRAL:'
+MAVEN_LOCAL = 'MAVEN_LOCAL:'
+
+def define_license(name):
+  n = 'LICENSE-' + name
+  genrule(
+    name = n,
+    cmd = 'ln -s $SRCS $OUT',
+    srcs = [n],
+    out = n,
+    visibility = ['PUBLIC'],
+  )
+
+def maven_jar(
+    name,
+    id,
+    license,
+    exclude = [],
+    exclude_java_sources = False,
+    unsign = False,
+    deps = [],
+    exported_deps = [],
+    sha1 = '', bin_sha1 = '', src_sha1 = '',
+    repository = MAVEN_CENTRAL,
+    attach_source = True,
+    visibility = ['PUBLIC'],
+    local_license = False,
+    full_url = ''):
+
+  if not full_url:
+    groupId, artifactId, version = id.split(':')
+
+    prebuilt_jar(
+            name = name,
+            binary_jar = ':%s-jar' % name,
+            maven_coords = id,
+            visibility = [ 'PUBLIC' ]
+    )
+
+    remote_file(
+            name = name + '-jar',
+            out = '%s-%s.jar' % (artifactId, version),
+            url = 'mvn:%s:%s:%s:%s' % (groupId, artifactId, 'jar', version),
+            sha1 = sha1
+    )
+    return
+
+  from os import path
+
+  parts = id.split(':')
+  if len(parts) not in [3, 4]:
+    raise NameError('%s:\nexpected id="groupId:artifactId:version[:classifier]"'
+                    % id)
+  if len(parts) == 4:
+    group, artifact, version, classifier = parts
+  else:
+    group, artifact, version = parts
+    classifier = None
+
+  # SNAPSHOT artifacts are handled differently on Google storage bucket:
+  # 'SNAPSHOT' is discarded from the directory name. However on other
+  # Maven repositories, most notable local repository located in
+  # ~/.m2/repository (and is supported through MAVEN_LOCAL repository)
+  # it must be preserved, otherwise the artifact wouldn't be found.
+  # Atm the SNAPSHOT part is only discarded for Google storage bucket.
+  if 'SNAPSHOT' in version and repository.startswith(GERRIT):
+    file_version = version.replace('-SNAPSHOT', '')
+    version = version.split('-SNAPSHOT')[0] + '-SNAPSHOT'
+  else:
+    file_version = version
+
+  if classifier is not None:
+    file_version += '-' + classifier
+
+  jar = path.join(name, artifact.lower() + '-' + file_version)
+
+  url = '/'.join([
+    repository,
+    group.replace('.', '/'), artifact, version,
+    artifact + '-' + file_version])
+
+  if full_url != '':
+    url = full_url
+
+  binjar = jar + '.jar'
+  binurl = url + '.jar'
+
+  srcjar = jar + '-src.jar'
+  srcurl = url + '-sources.jar'
+
+  cmd = ['$(exe //buck-tools:download_file)', '-o', '$OUT', '-u', binurl]
+  if sha1:
+    cmd.extend(['-v', sha1])
+  elif bin_sha1:
+    cmd.extend(['-v', bin_sha1])
+  for x in exclude:
+    cmd.extend(['-x', x])
+  if exclude_java_sources:
+    cmd.append('--exclude_java_sources')
+  if unsign:
+    cmd.append('--unsign')
+
+  genrule(
+    name = '%s__download_bin' % name,
+    cmd = ' '.join(cmd),
+    out = binjar,
+  )
+  license = ':LICENSE-' + license
+  if not local_license:
+    license = '//lib' + license
+  license = [license]
+
+  if src_sha1 or attach_source:
+    cmd = ['$(exe //buck-tools:download_file)', '-o', '$OUT', '-u', srcurl]
+    if src_sha1:
+      cmd.extend(['-v', src_sha1])
+    genrule(
+      name = '%s__download_src' % name,
+      cmd = ' '.join(cmd),
+      out = srcjar,
+    )
+    prebuilt_jar(
+      name = '%s_src' % name,
+      binary_jar = ':%s__download_src' % name,
+      maven_coords = id,
+      deps = license,
+      visibility = visibility,
+    )
+  else:
+    srcjar = None
+    genrule(
+      name = '%s_src' % name,
+      cmd = ':>$OUT',
+      out = '__%s__no_src' % name,
+    )
+
+  if exported_deps:
+    prebuilt_jar(
+      name = '%s__jar' % name,
+      deps = deps + license,
+      binary_jar = ':%s__download_bin' % name,
+      source_jar = ':%s__download_src' % name if srcjar else None,
+      maven_coords = id,
+    )
+    java_library(
+      name = name,
+      exported_deps = exported_deps + [':' + name + '__jar'],
+      visibility = visibility,
+    )
+  else:
+    prebuilt_jar(
+      name = name,
+      deps = deps + license,
+      binary_jar = ':%s__download_bin' % name,
+      source_jar = ':%s__download_src' % name if srcjar else None,
+      visibility = visibility,
+      maven_coords = id,
+    )
+
+
+def merge_maven_jars(
+    name,
+    srcs,
+    visibility = []):
+
+  def cmd(jars):
+    return ('$(location //buck-tools:merge_jars) $OUT '
+            + ' '.join(['$(location %s)' % j for j in jars]))
+
+  genrule(
+    name = '%s__merged_bin' % name,
+    cmd = cmd(['%s__download_bin' % s for s in srcs]),
+    out = '%s__merged.jar' % name,
+  )
+  genrule(
+    name = '%s__merged_src' % name,
+    cmd = cmd(['%s__download_src' % s for s in srcs]),
+    # buck-tools/eclipse/project.py requires -src.jar suffix.
+    out = '%s__merged-src.jar' % name,
+  )
+  prebuilt_jar(
+    name = name,
+    binary_jar = ':%s__merged_bin' % name,
+    source_jar = ':%s__merged_src' % name,
+    visibility = visibility,
+  )

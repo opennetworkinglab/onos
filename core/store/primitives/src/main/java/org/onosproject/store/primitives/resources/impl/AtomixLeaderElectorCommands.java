@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,11 +50,6 @@ public final class AtomixLeaderElectorCommands {
     public abstract static class ElectionQuery<V> implements Query<V>, CatalystSerializable {
 
         @Override
-        public ConsistencyLevel consistency() {
-            return ConsistencyLevel.BOUNDED_LINEARIZABLE;
-        }
-
-        @Override
         public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
         }
 
@@ -101,11 +96,6 @@ public final class AtomixLeaderElectorCommands {
      */
     @SuppressWarnings("serial")
     public abstract static class ElectionCommand<V> implements Command<V>, CatalystSerializable {
-
-        @Override
-        public ConsistencyLevel consistency() {
-            return ConsistencyLevel.LINEARIZABLE;
-        }
 
         @Override
         public void writeObject(BufferOutput<?> buffer, Serializer serializer) {

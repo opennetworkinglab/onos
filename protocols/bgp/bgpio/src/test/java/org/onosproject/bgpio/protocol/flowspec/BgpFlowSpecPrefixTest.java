@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,18 @@
 package org.onosproject.bgpio.protocol.flowspec;
 
 import org.junit.Test;
-
-import org.onlab.packet.IpPrefix;
-
 import com.google.common.testing.EqualsTester;
 
 /**
  * Test for BgpFsDestinationPrefix flow specification component.
  */
 public class BgpFlowSpecPrefixTest {
-    private IpPrefix destinationPrefix1 = IpPrefix.valueOf("21.21.21.21/16");
-    private IpPrefix sourcePrefix1 = IpPrefix.valueOf("11.11.11.11/16");
-    private IpPrefix destinationPrefix2 = IpPrefix.valueOf("42.42.42.42/16");
-    private IpPrefix sourcePrefix2 = IpPrefix.valueOf("32.32.32.32/16");
+    private String routeKey1 = "flowRoute1";
+    private String routeKey2 = "flowRoute2";
 
-    private final BgpFlowSpecPrefix tlv1 = new BgpFlowSpecPrefix(destinationPrefix1, sourcePrefix1);
-    private final BgpFlowSpecPrefix sameAsTlv1 = new BgpFlowSpecPrefix(destinationPrefix1, sourcePrefix1);
-    private final BgpFlowSpecPrefix tlv2 = new BgpFlowSpecPrefix(destinationPrefix2, sourcePrefix2);
+    private final BgpFlowSpecRouteKey tlv1 = new BgpFlowSpecRouteKey(routeKey1);
+    private final BgpFlowSpecRouteKey sameAsTlv1 = new BgpFlowSpecRouteKey(routeKey1);
+    private final BgpFlowSpecRouteKey tlv2 = new BgpFlowSpecRouteKey(routeKey2);
 
     @Test
     public void testEquality() {

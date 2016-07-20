@@ -1,0 +1,101 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Packages ONOS distributable into onos.tar.gz, onos.zip or a deb file
+# -----------------------------------------------------------------------------
+
+set -e
+
+OUT=$1
+KARAF_TAR=$2
+ONOS_VERSION=$3
+BRANDING=$4
+#FIXME karaf version
+KARAF_VERSION="3.0.5"
+
+PREFIX="onos-${ONOS_VERSION/-*/}"
+
+# Unroll the Apache Karaf bits, prune them and make ONOS top-level directories.
+tar xf $KARAF_TAR
+
+# Unroll the Apache Karaf bits, prune them and make ONOS top-level directories.
+KARAF_DIR=$(ls -d apache*)
+rm -rf $KARAF_DIR/demos
+
+# Patch the log-file size in place to increase it to 10 MB
+perl -pi.old -e "s/maxFileSize=1MB/maxFileSize=10MB/g" \
+    $KARAF_DIR/etc/org.ops4j.pax.logging.cfg
+
+# Patch-in proper Karaf version into the startup script
+sed -i.bk "s/apache-karaf-\$KARAF_VERSION/$KARAF_DIR/g" bin/onos-service
+sed -i.bk "s/apache-karaf-\$KARAF_VERSION/$KARAF_DIR/g" bin/onos-client
+rm -f bin/*.bk
+mv bin/onos-client bin/onos
+chmod a+x bin/onos-service bin/onos
+
+export BOOT_FEATURES="standard,ssh,scr,war,webconsole,onos-api,onos-core,onos-incubator,onos-cli,onos-rest,onos-gui"
+#FIXME
+#[ "$ONOS_SECURITY_MODE" = true ] && enable_security_mode
+
+# Patch the Apache Karaf distribution file to add ONOS features repository
+perl -pi.old -e "s|^(featuresRepositories=).*|\1mvn:org.apache.karaf.features/standard/$KARAF_VERSION/xml/features,mvn:org.onosproject/onos-features/$ONOS_VERSION/xml/features|" \
+    $KARAF_DIR/etc/org.apache.karaf.features.cfg
+
+# Patch the Apache Karaf distribution file to load default ONOS boot features
+perl -pi.old -e "s|^(featuresBoot=).*|\1$BOOT_FEATURES|" \
+    $KARAF_DIR/etc/org.apache.karaf.features.cfg
+
+
+# Patch the Apache Karaf distribution with ONOS branding bundle
+cp $BRANDING $KARAF_DIR/lib
+
+# **** Moving karaf to subdirectory ****
+mkdir $PREFIX
+mv $KARAF_DIR $PREFIX
+
+# Stage the ONOS admin scripts and patch in Karaf service wrapper extras
+cp -r bin $PREFIX
+cp -r init $PREFIX
+cp -r etc/* $PREFIX/$KARAF_DIR/etc/
+
+zip -q -0 -r $OUT $PREFIX
+
+#FIXME
+# Stage all builtin ONOS apps for factory install
+#onos-stage-apps $ONOS_STAGE/apps $ONOS_STAGE/$KARAF_DIST/system
+# Mark the org.onosproject.drivers app active by default
+#touch $ONOS_STAGE/apps/org.onosproject.drivers/active
+
+# copy in features and repos
+# Patch in the ONOS version file
+#echo $ONOS_VERSION > $ONOS_STAGE/VERSION
+
+
+#function enable_security_mode() {
+#    echo "Enabling security mode ONOS..."
+#
+#    # SM-ONOS step 1: downgrade felix config admin
+#    FELIX_CFG_ADMIN=${FELIX_CFG_ADMIN:-~/Downloads/org.apache.felix.configadmin-1.6.0.jar}
+#    if [ ! -f $FELIX_CFG_ADMIN ]; then
+#        echo "Downloading $FELIX_CFG_ADMIN..."
+#        curl -sL http://archive.apache.org/dist/felix/org.apache.felix.configadmin-1.6.0.jar > $FELIX_CFG_ADMIN
+#    fi
+#    [ ! -f $FELIX_CFG_ADMIN ] && \
+#        echo "Felix config admin not found: $FELIX_CFG_ADMIN" && exit 1
+#
+#    mkdir -p $ONOS_STAGE/$KARAF_DIST/system/org/apache/felix/org.apache.felix.configadmin/1.6.0
+#    cp $FELIX_CFG_ADMIN $ONOS_STAGE/$KARAF_DIST/system/org/apache/felix/org.apache.felix.configadmin/1.6.0
+#    perl -pi.old -e "s|org.apache.felix.configadmin/1.8.0|org.apache.felix.configadmin/1.6.0|g" \
+#        $ONOS_STAGE/$KARAF_DIST/etc/startup.properties
+#
+#    # SM-ONOS step 2: stage ONOS Felix framework security (this is already done by karaf assembly); end
+#
+#    # SM-ONOS step 3.1: configure karaf
+#    perl -pi.old -e "s|#java.security.policy|java.security.policy|" \
+#        $ONOS_STAGE/$KARAF_DIST/etc/system.properties
+#    perl -pi.old -e "s|#org.osgi.framework.security|org.osgi.framework.security|" \
+#        $ONOS_STAGE/$KARAF_DIST/etc/system.properties
+#
+#    # SM-ONOS step 3.2: update featuresBoot
+#    export BOOT_FEATURES="onos-security,$BOOT_FEATURES"
+#}
+

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,7 +160,6 @@ public final class DefaultFilteringObjective implements FilteringObjective {
                 .add("appId", appId())
                 .add("permanent", permanent())
                 .add("timeout", timeout())
-                .add("context", context())
                 .toString();
     }
 
@@ -272,6 +271,8 @@ public final class DefaultFilteringObjective implements FilteringObjective {
             checkNotNull(type, "Must have a type.");
             checkArgument(!conditions.isEmpty(), "Must have at least one condition.");
             checkNotNull(appId, "Must supply an application id");
+            checkArgument(priority <= MAX_PRIORITY && priority >= MIN_PRIORITY, "Priority " +
+                    "out of range");
 
             return new DefaultFilteringObjective(this);
         }

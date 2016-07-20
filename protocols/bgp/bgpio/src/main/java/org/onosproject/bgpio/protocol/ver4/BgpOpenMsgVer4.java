@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.onosproject.bgpio.types.FourOctetAsNumCapabilityTlv;
 import org.onosproject.bgpio.types.MultiProtocolExtnCapabilityTlv;
 import org.onosproject.bgpio.util.Validation;
 import org.onosproject.bgpio.util.Constants;
+import org.onosproject.bgpio.types.RpdCapabilityTlv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +84,7 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
         (short) OPEN_MSG_MINIMUM_LENGTH, (byte) 0X01);
     private BgpHeader bgpMsgHeader;
     private byte version;
-    private short asNumber;
+    private long asNumber;
     private short holdTime;
     private int bgpId;
     private boolean isLargeAsCapabilitySet;
@@ -113,7 +114,7 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
      * @param bgpId BGP identifier in open message
      * @param capabilityTlv capabilities in open message
      */
-    public BgpOpenMsgVer4(BgpHeader bgpMsgHeader, byte version, short asNumber, short holdTime,
+    public BgpOpenMsgVer4(BgpHeader bgpMsgHeader, byte version, long asNumber, short holdTime,
              int bgpId, LinkedList<BgpValueType> capabilityTlv) {
         this.bgpMsgHeader = bgpMsgHeader;
         this.version = version;
@@ -144,7 +145,7 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
     }
 
     @Override
-    public short getAsNumber() {
+    public long getAsNumber() {
         return this.asNumber;
     }
 
@@ -168,7 +169,7 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
 
             byte version;
             short holdTime;
-            short asNumber;
+            long asNumber;
             int bgpId;
             byte optParaLen = 0;
             byte optParaType;
@@ -190,8 +191,8 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
             }
 
             // Read AS number
-            asNumber = cb.readShort();
-
+            asNumber = cb.getUnsignedShort(cb.readerIndex());
+            cb.readShort();
             // Read Hold timer
             holdTime = cb.readShort();
 
@@ -256,11 +257,28 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
                 int as4Num = cb.readInt();
                 tlv = new FourOctetAsNumCapabilityTlv(as4Num);
                 break;
+            case RpdCapabilityTlv.TYPE:
+                log.debug("RpdCapability");
+                if (RpdCapabilityTlv.LENGTH != length) {
+                    throw new BgpParseException("Invalid length received for RpdCapability.");
+                }
+                if (length > cb.readableBytes()) {
+                    throw new BgpParseException("Four octet as num tlv length"
+                            + " is more than readableBytes.");
+                }
+                short rpdAfi = cb.readShort();
+                byte rpdAsafi = cb.readByte();
+                byte sendReceive = cb.readByte();
+                tlv = new RpdCapabilityTlv(sendReceive);
+                break;
+
             case MultiProtocolExtnCapabilityTlv.TYPE:
                 log.debug("MultiProtocolExtnCapabilityTlv");
+
                 if (MultiProtocolExtnCapabilityTlv.LENGTH != length) {
                     throw new BgpParseException("Invalid length received for MultiProtocolExtnCapabilityTlv.");
                 }
+
                 if (length > cb.readableBytes()) {
                     throw new BgpParseException("BGP LS tlv length is more than readableBytes.");
                 }
@@ -268,6 +286,7 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
                 byte res = cb.readByte();
                 byte safi = cb.readByte();
                 tlv = new MultiProtocolExtnCapabilityTlv(afi, res, safi);
+
                 break;
             default:
                 log.debug("Warning: Unsupported TLV: " + type);
@@ -297,6 +316,7 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
         private boolean isLsCapabilityTlvSet = false;
         private boolean isFlowSpecCapabilityTlvSet = false;
         private boolean isVpnFlowSpecCapabilityTlvSet = false;
+        private boolean isFlowSpecRpdCapabilityTlvSet = false;
 
         LinkedList<BgpValueType> capabilityTlv = new LinkedList<>();
 
@@ -346,6 +366,13 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
                                                          RES, Constants.VPN_SAFI_FLOWSPEC_VALUE);
                 this.capabilityTlv.add(tlv);
             }
+
+            if (this.isFlowSpecRpdCapabilityTlvSet) {
+                BgpValueType tlv;
+                tlv = new RpdCapabilityTlv(Constants.RPD_CAPABILITY_SEND_VALUE);
+                this.capabilityTlv.add(tlv);
+            }
+
 
             return new BgpOpenMsgVer4(bgpMsgHeader, PACKET_VERSION, this.asNumber, holdTime, this.bgpId,
                        this.capabilityTlv);
@@ -407,6 +434,12 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
             this.isVpnFlowSpecCapabilityTlvSet = isVpnFlowSpecCapabilitySet;
             return this;
         }
+
+        @Override
+        public Builder setFlowSpecRpdCapabilityTlv(boolean isFlowSpecRpdCapabilityTlvSet) {
+            this.isFlowSpecRpdCapabilityTlvSet = isFlowSpecRpdCapabilityTlvSet;
+            return this;
+        }
     }
 
     @Override
@@ -464,7 +497,7 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
                 cb.writeShort(AS_TRANS);
             } else {
                 // write AS number in next 2-octet
-                cb.writeShort(message.asNumber);
+                cb.writeShort((short) message.asNumber);
             }
 
             // write HoldTime in next 2-octet

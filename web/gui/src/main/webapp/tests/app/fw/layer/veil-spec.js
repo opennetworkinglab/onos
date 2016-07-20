@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 describe('factory: fw/layer/veil.js', function () {
     var $log, $route, vs, fs, ks, gs;
 
-    beforeEach(module('onosLayer', 'onosNav', 'onosSvg', 'ngRoute'));
+    beforeEach(module('onosLayer', 'onosNav', 'onosSvg', 'ngRoute', 'onosRemote'));
 
     beforeEach(inject(function (_$log_, _$route_, VeilService, FnService,
                                 KeyService, GlyphService) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.onosproject.routing;
 
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.intent.Intent;
 
 /**
@@ -48,4 +49,12 @@ public interface IntentSynchronizationService {
      * @param intent intent to withdraw
      */
     void withdraw(Intent intent);
+
+    /**
+     * Withdraws intents by app Id.
+     *
+     * @param applicationId the Id of the application that created the intents
+     *                      to be removed
+     */
+    void removeIntentsByAppId(ApplicationId applicationId);
 }

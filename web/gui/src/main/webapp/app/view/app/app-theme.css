@@ -1,0 +1,88 @@
+/*
+ * Copyright 2016-present Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ ONOS GUI -- Applications View (theme) -- CSS file
+ */
+
+/* -- Drag-n-Drop OAR files -- */
+.light div.dropping {
+    border: solid 3px #0095d6;
+}
+
+.dark div.dropping {
+    /* TODO: dark theme */
+    border: solid 3px #0095d6;
+}
+
+/* -- confirmation dialog -- */
+.light #app-dialog p.strong {
+    color: white;
+    background-color: #ce5b58;
+}
+
+.dark #app-dialog p.strong {
+    /* TODO: dark theme */
+    color: white;
+    background-color: #ce5b58;
+}
+
+.light #app-dialog.floatpanel.dialog {
+    background-color: #fff;
+}
+
+.dark #app-dialog.floatpanel.dialog {
+    /* TODO: dark theme */
+    background-color: #fff;
+}
+
+/* -- details panel -- */
+.light #application-details-panel.floatpanel {
+    background-color: white;
+}
+
+.dark #application-details-panel.floatpanel {
+    /* TODO: dark theme */
+    background-color: white;
+}
+
+.light #application-details-panel hr {
+    border: 1px solid #c7c7c0;
+}
+
+.dark #application-details-panel hr {
+    /* TODO: dark theme */
+    border: 1px solid #c7c7c0;
+}
+
+.light #application-details-panel .bottom tr:nth-child(odd) {
+    background-color: #f4f4f4;
+}
+
+.light #application-details-panel .bottom tr:nth-child(even) {
+    background-color: #fbfbfb;
+}
+
+.dark #application-details-panel .bottom tr:nth-child(odd) {
+    /* TODO: dark theme */
+    background-color: #f4f4f4;
+}
+
+.dark #application-details-panel .bottom tr:nth-child(even) {
+    /* TODO: dark theme */
+    background-color: #fbfbfb;
+}
+

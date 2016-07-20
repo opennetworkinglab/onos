@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,27 +15,23 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AtomicCounterBuilder;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Default implementation of AtomicCounterBuilder.
  */
 public class DefaultAtomicCounterBuilder extends AtomicCounterBuilder {
 
-    private final Database partitionedDatabase;
-    private final Database inMemoryDatabase;
+    private final DistributedPrimitiveCreator primitiveCreator;
 
-    public DefaultAtomicCounterBuilder(Database inMemoryDatabase, Database partitionedDatabase) {
-        this.inMemoryDatabase = inMemoryDatabase;
-        this.partitionedDatabase = partitionedDatabase;
+    public DefaultAtomicCounterBuilder(DistributedPrimitiveCreator primitiveCreator) {
+        this.primitiveCreator = primitiveCreator;
     }
 
     @Override
     public AsyncAtomicCounter build() {
-        Database database = partitionsDisabled() ? inMemoryDatabase : partitionedDatabase;
-        return new DefaultAsyncAtomicCounter(checkNotNull(name()), database, meteringEnabled());
+        return primitiveCreator.newAsyncCounter(name());
     }
 }

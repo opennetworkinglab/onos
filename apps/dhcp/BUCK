@@ -1,0 +1,11 @@
+BUNDLES = [
+    '//apps/dhcp/api:onos-apps-dhcp-api',
+    '//apps/dhcp/app:onos-apps-dhcp-app',
+]
+
+onos_app (
+  title = 'DHCP Server App',
+  category = 'Utility',
+  url = 'http://onosproject.org',
+  included_bundles = BUNDLES,
+)

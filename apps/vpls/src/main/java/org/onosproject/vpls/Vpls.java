@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package org.onosproject.vpls;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -28,6 +28,8 @@ import org.onlab.packet.VlanId;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.incubator.net.intf.InterfaceEvent;
+import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
@@ -75,6 +77,9 @@ public class Vpls {
 
     private final HostListener hostListener = new InternalHostListener();
 
+    private final InternalInterfaceListener interfaceListener
+            = new InternalInterfaceListener();
+
     private IntentInstaller intentInstaller;
 
     private ApplicationId appId;
@@ -87,10 +92,12 @@ public class Vpls {
                                               intentService,
                                               intentSynchronizer);
 
-        applicationService.registerDeactivateHook(appId,
-                                                  intentSynchronizerAdmin::removeIntents);
+        applicationService.registerDeactivateHook(appId, () -> {
+            intentSynchronizer.removeIntentsByAppId(appId);
+        });
 
         hostService.addListener(hostListener);
+        interfaceService.addListener(interfaceListener);
 
         setupConnectivity();
 
@@ -172,13 +179,13 @@ public class Vpls {
         if (!connectedHosts.isEmpty()) {
             connectedHosts.forEach(host -> {
                 if (host.vlan().equals(vlanId)) {
-                    confHostPresentCPoint.put(vlanId, new Pair<>(cp, host.mac()));
+                    confHostPresentCPoint.put(vlanId, Pair.of(cp, host.mac()));
                 } else {
-                    confHostPresentCPoint.put(vlanId, new Pair<>(cp, null));
+                    confHostPresentCPoint.put(vlanId, Pair.of(cp, null));
                 }
             });
         } else {
-            confHostPresentCPoint.put(vlanId, new Pair<>(cp, null));
+            confHostPresentCPoint.put(vlanId, Pair.of(cp, null));
         }
     }
 
@@ -193,6 +200,25 @@ public class Vpls {
                 case HOST_ADDED:
                 case HOST_UPDATED:
                 case HOST_REMOVED:
+                    setupConnectivity();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Listener for interface configuration events.
+     */
+    private class InternalInterfaceListener implements InterfaceListener {
+        @Override
+        public void event(InterfaceEvent event) {
+            log.debug("Received InterfaceConfigEvent {}", event);
+            switch (event.type()) {
+                case INTERFACE_ADDED:
+                case INTERFACE_UPDATED:
+                case INTERFACE_REMOVED:
                     setupConnectivity();
                     break;
                 default:

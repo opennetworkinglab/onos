@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -744,6 +744,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
          */
         protected void logErrorDisconnect(OFChannelHandler h, OFErrorMsg error) {
             logError(h, error);
+            log.error("Disconnecting switch {}", h.getSwitchInfoString());
             h.channel.disconnect();
         }
 

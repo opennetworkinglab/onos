@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.onosproject.cluster.impl;
 
+import com.google.common.collect.Sets;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -24,6 +26,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.karaf.system.SystemService;
 import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
+import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterAdminService;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterEventListener;
@@ -44,9 +47,6 @@ import org.onosproject.cluster.PartitionId;
 import org.onosproject.event.AbstractListenerManager;
 import org.slf4j.Logger;
 
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Sets;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -58,8 +58,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.CLUSTER_READ;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.security.AppPermission.Type.*;
 
 /**
  * Implementation of the cluster service.
@@ -133,6 +133,10 @@ public class ClusterManager
         return store.getState(nodeId);
     }
 
+    @Override
+    public void markFullyStarted(boolean started) {
+        store.markFullyStarted(started);
+    }
 
     @Override
     public DateTime getLastUpdated(NodeId nodeId) {
@@ -149,6 +153,8 @@ public class ClusterManager
         clusterMetadataAdminService.setClusterMetadata(metadata);
         try {
             log.warn("Shutting down container for cluster reconfiguration!");
+            // Clean up persistent state associated with previous cluster configuration.
+            Tools.removeDirectory(System.getProperty("karaf.data") + "/partitions");
             systemService.reboot("now", SystemService.Swipe.NONE);
         } catch (Exception e) {
             log.error("Unable to reboot container", e);
@@ -181,10 +187,7 @@ public class ClusterManager
         List<ControllerNode> sorted = new ArrayList<>(nodes);
         Collections.sort(sorted, (o1, o2) -> o1.id().toString().compareTo(o2.id().toString()));
         Set<Partition> partitions = Sets.newHashSet();
-        // add p0 partition
-        partitions.add(new DefaultPartition(PartitionId.from(0),
-                                            Sets.newHashSet(Collections2.transform(nodes, ControllerNode::id))));
-        // add extended partitions
+        // add partitions
         int length = nodes.size();
         int count = Math.min(3, length);
         for (int i = 0; i < length; i++) {

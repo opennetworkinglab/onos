@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,7 +105,7 @@ public class OpticalPathIntentCompilerTest {
     public void testCompiler() {
         sut.activate();
 
-        List<Intent> compiled = sut.compile(intent, Collections.emptyList(), Collections.emptySet());
+        List<Intent> compiled = sut.compile(intent, Collections.emptyList());
         assertThat(compiled, hasSize(1));
 
         Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();

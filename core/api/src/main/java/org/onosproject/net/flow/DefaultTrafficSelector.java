@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,11 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.ExtensionCriterion;
 import org.onosproject.net.flow.criteria.ExtensionSelector;
+import org.onosproject.net.flow.criteria.ExtensionSelectorType;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -38,27 +41,38 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static org.onosproject.net.flow.criteria.Criterion.Type.EXTENSION;
+
 /**
  * Default traffic selector implementation.
  */
 public final class DefaultTrafficSelector implements TrafficSelector {
 
     private static final Comparator<? super Criterion> TYPE_COMPARATOR =
-            (c1, c2) -> c1.type().compareTo(c2.type());
+            (c1, c2) -> {
+                if (c1.type() == EXTENSION && c2.type() == EXTENSION) {
+                    return ((ExtensionCriterion) c1).extensionSelector().type().toInt()
+                            - ((ExtensionCriterion) c2).extensionSelector().type().toInt();
+                } else {
+                    return c1.type().compareTo(c2.type());
+                }
+            };
 
     private final Set<Criterion> criteria;
 
     private static final TrafficSelector EMPTY
-            = new DefaultTrafficSelector(Collections.emptySet());
+            = new DefaultTrafficSelector(Collections.emptySet(), Collections.emptySet());
 
     /**
      * Creates a new traffic selector with the specified criteria.
      *
-     * @param criteria criteria
+     * @param criteria    criteria
+     * @param extCriteria extension criteria
      */
-    private DefaultTrafficSelector(Set<Criterion> criteria) {
+    private DefaultTrafficSelector(Collection<Criterion> criteria, Collection<Criterion> extCriteria) {
         TreeSet<Criterion> elements = new TreeSet<>(TYPE_COMPARATOR);
         elements.addAll(criteria);
+        elements.addAll(extCriteria);
         this.criteria = ImmutableSet.copyOf(elements);
     }
 
@@ -137,6 +151,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
     public static final class Builder implements TrafficSelector.Builder {
 
         private final Map<Criterion.Type, Criterion> selector = new HashMap<>();
+        private final Map<ExtensionSelectorType, Criterion> extSelector = new HashMap<>();
 
         private Builder() {
         }
@@ -149,7 +164,11 @@ public final class DefaultTrafficSelector implements TrafficSelector {
 
         @Override
         public Builder add(Criterion criterion) {
-            selector.put(criterion.type(), criterion);
+            if (criterion.type() == EXTENSION) {
+                extSelector.put(((ExtensionCriterion) criterion).extensionSelector().type(), criterion);
+            } else {
+                selector.put(criterion.type(), criterion);
+            }
             return this;
         }
 
@@ -371,7 +390,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
 
         @Override
         public TrafficSelector build() {
-            return new DefaultTrafficSelector(ImmutableSet.copyOf(selector.values()));
+            return new DefaultTrafficSelector(selector.values(), extSelector.values());
         }
     }
 }

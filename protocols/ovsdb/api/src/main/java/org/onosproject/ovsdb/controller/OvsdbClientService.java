@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,16 +42,6 @@ public interface OvsdbClientService extends OvsdbRpc {
      * @return node identifier
      */
     OvsdbNodeId nodeId();
-
-    /**
-     * Creates the configuration for tunnel.
-     *
-     * @param srcIp source IP address
-     * @param dstIp destination IP address
-     * @deprecated 1.4.0 Emu release
-     */
-    @Deprecated
-    void createTunnel(IpAddress srcIp, IpAddress dstIp);
 
     /**
      * Creates a tunnel port with given options.

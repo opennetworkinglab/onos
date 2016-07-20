@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.vtnrsc.SegmentationId;
 import org.onosproject.vtnrsc.TenantId;
+import org.onosproject.vtnrsc.TenantRouter;
 import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.event.VtnRscListener;
 import org.onosproject.vtnrsc.service.VtnRscService;
@@ -78,5 +79,10 @@ public class VtnRscAdapter implements VtnRscService {
     @Override
     public void removeDeviceIdOfOvsMap(Host host, TenantId tenantId,
                                        DeviceId deviceId) {
+    }
+
+    @Override
+    public SegmentationId getL3vni(TenantRouter tenantRouter) {
+        return null;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -138,7 +138,6 @@ public final class DefaultNextObjective implements NextObjective {
                 .add("appId", appId())
                 .add("permanent", permanent())
                 .add("timeout", timeout())
-                .add("context", context())
                 .toString();
     }
 
@@ -178,6 +177,7 @@ public final class DefaultNextObjective implements NextObjective {
             this.type = objective.type();
             this.id = objective.id();
             this.treatments = ImmutableList.copyOf(objective.next());
+            this.listBuilder.addAll(objective.next());
             this.meta = objective.meta();
             this.appId = objective.appId();
             this.op = objective.op();

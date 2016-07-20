@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.DeviceId.deviceId;
 
-import org.onosproject.grpc.Link.LinkDetectedMsg;
-import org.onosproject.grpc.Link.LinkType;
-import org.onosproject.grpc.Link.LinkVanishedMsg;
-import org.onosproject.grpc.Link.Void;
-import org.onosproject.grpc.Link.ConnectPoint.ElementIdCase;
-import org.onosproject.grpc.LinkProviderServiceRpcGrpc.LinkProviderServiceRpc;
+import org.onosproject.grpc.net.Link.ConnectPoint.ElementIdCase;
+import org.onosproject.grpc.net.Link.LinkType;
+import org.onosproject.grpc.net.link.LinkProviderServiceRpcGrpc.LinkProviderServiceRpc;
+import org.onosproject.grpc.net.link.LinkService.LinkDetectedMsg;
+import org.onosproject.grpc.net.link.LinkService.LinkVanishedMsg;
+import org.onosproject.grpc.net.link.LinkService.Void;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -50,6 +50,9 @@ final class LinkProviderServiceServerProxy
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final GrpcRemoteServiceServer server;
+
+    // TODO implement aging mechanism to automatically remove
+    // stale links reported by dead client, etc.
 
     LinkProviderServiceServerProxy(GrpcRemoteServiceServer server) {
         this.server = checkNotNull(server);
@@ -133,7 +136,7 @@ final class LinkProviderServiceServerProxy
      * @param connectPoint gRPC message.
      * @return {@link ConnectPoint}
      */
-    private ConnectPoint translate(org.onosproject.grpc.Link.ConnectPoint connectPoint) {
+    private ConnectPoint translate(org.onosproject.grpc.net.Link.ConnectPoint connectPoint) {
         checkArgument(connectPoint.getElementIdCase() == ElementIdCase.DEVICE_ID,
                       "Only DeviceId supported.");
         return new ConnectPoint(deviceId(connectPoint.getDeviceId()),
@@ -146,7 +149,7 @@ final class LinkProviderServiceServerProxy
      * @param linkDescription gRPC message
      * @return {@link LinkDescription}
      */
-    private LinkDescription translate(org.onosproject.grpc.Link.LinkDescription linkDescription) {
+    private LinkDescription translate(org.onosproject.grpc.net.Link.LinkDescription linkDescription) {
         ConnectPoint src = translate(linkDescription.getSrc());
         ConnectPoint dst = translate(linkDescription.getDst());
         Link.Type type = translate(linkDescription.getType());
@@ -158,7 +161,7 @@ final class LinkProviderServiceServerProxy
      * Translates gRPC message to corresponding ONOS object.
      *
      * @param type gRPC message enum
-     * @return {@link Type}
+     * @return {@link org.onosproject.net.Link.Type Link.Type}
      */
     private Link.Type translate(LinkType type) {
         switch (type) {

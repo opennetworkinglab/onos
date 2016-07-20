@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,6 @@ public class NetconfSessionImpl implements NetconfSession {
     private static final String MESSAGE_ID_STRING = "message-id";
     private static final String HELLO = "<hello";
     private static final String NEW_LINE = "\n";
-    private static final int FUTURE_REPLY_TIMEOUT = 5000;
     private static final String ERROR = "ERROR ";
     private static final String END_OF_RPC_OPEN_TAG = "\">";
     private static final String EQUAL = "=";
@@ -196,9 +195,10 @@ public class NetconfSessionImpl implements NetconfSession {
         request = formatXmlHeader(request);
         CompletableFuture<String> futureReply = request(request);
         messageIdInteger.incrementAndGet();
+        int replyTimeout = NetconfControllerImpl.netconfReplyTimeout;
         String rp;
         try {
-            rp = futureReply.get(FUTURE_REPLY_TIMEOUT, TimeUnit.MILLISECONDS);
+            rp = futureReply.get(replyTimeout, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new NetconfException("No matching reply for request " + request, e);
         }
@@ -375,13 +375,12 @@ public class NetconfSessionImpl implements NetconfSession {
 
     private boolean close(boolean force) throws NetconfException {
         StringBuilder rpc = new StringBuilder();
-        rpc.append("<rpc>");
+        rpc.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">");
         if (force) {
-            rpc.append("<kill-configuration/>");
+            rpc.append("<kill-session/>");
         } else {
-            rpc.append("<close-configuration/>");
+            rpc.append("<close-session/>");
         }
-        rpc.append("<close-configuration/>");
         rpc.append("</rpc>");
         rpc.append(ENDPATTERN);
         return checkReply(sendRequest(rpc.toString())) || close(true);

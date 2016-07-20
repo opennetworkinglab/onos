@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -188,6 +188,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                 .add("immediate", immediate)
                 .add("deferred", deferred)
                 .add("transition", table == null ? "None" : table.toString())
+                .add("meter", meter == null ? "None" : meter.toString())
                 .add("cleared", hasClear)
                 .add("metadata", meta)
                 .toString();
@@ -235,7 +236,6 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         public Builder add(Instruction instruction) {
 
             switch (instruction.type()) {
-                case DROP:
                 case NOACTION:
                 case OUTPUT:
                 case GROUP:

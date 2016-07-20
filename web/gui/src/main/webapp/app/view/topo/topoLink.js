@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, sus, ts, flash, tss, tps;
+    var $log, fs, sus, ts, flash, tss, tps, tov;
 
     // internal state
     var api,
@@ -238,7 +238,7 @@
 
         d.el.classed('selected', true);
 
-        tps.displayLink(d);
+        tps.displayLink(d, tov.hooks.modifyLinkData);
         tps.displaySomething();
     }
 
@@ -300,9 +300,9 @@
     angular.module('ovTopo')
         .factory('TopoLinkService',
         ['$log', 'FnService', 'SvgUtilService', 'ThemeService', 'FlashService',
-            'TopoSelectService', 'TopoPanelService',
+            'TopoSelectService', 'TopoPanelService', 'TopoOverlayService',
 
-        function (_$log_, _fs_, _sus_, _ts_, _flash_, _tss_, _tps_) {
+        function (_$log_, _fs_, _sus_, _ts_, _flash_, _tss_, _tps_, _tov_) {
             $log = _$log_;
             fs = _fs_;
             sus = _sus_;
@@ -310,6 +310,7 @@
             flash = _flash_;
             tss = _tss_;
             tps = _tps_;
+            tov = _tov_;
 
             function initLink(_api_, _td3_) {
                 api = _api_;

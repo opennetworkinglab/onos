@@ -1,0 +1,19 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
+)
+
+onos_app (
+    title = 'Driver Support Matrix',
+    category = 'Utility',
+    url = 'http://onosproject.org',
+    description = 'Driver behaviour support matrix.',
+)
+

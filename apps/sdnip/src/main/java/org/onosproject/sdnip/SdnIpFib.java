@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.onosproject.sdnip;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -30,7 +31,13 @@ import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceEvent;
+import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.incubator.net.routing.ResolvedRoute;
+import org.onosproject.incubator.net.routing.RouteEvent;
+import org.onosproject.incubator.net.routing.RouteListener;
+import org.onosproject.incubator.net.routing.RouteService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -40,20 +47,14 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
-import org.onosproject.routing.FibListener;
-import org.onosproject.routing.FibUpdate;
 import org.onosproject.routing.IntentSynchronizationService;
-import org.onosproject.routing.RoutingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * FIB component of SDN-IP.
@@ -72,9 +73,10 @@ public class SdnIpFib {
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected RoutingService routingService;
+    protected RouteService routeService;
 
-    private final InternalFibListener fibListener = new InternalFibListener();
+    private final InternalRouteListener routeListener = new InternalRouteListener();
+    private final InternalInterfaceListener interfaceListener = new InternalInterfaceListener();
 
     private static final int PRIORITY_OFFSET = 100;
     private static final int PRIORITY_MULTIPLIER = 5;
@@ -90,68 +92,43 @@ public class SdnIpFib {
     public void activate() {
         appId = coreService.getAppId(SdnIp.SDN_IP_APP);
 
-        routingService.addFibListener(fibListener);
-        routingService.start();
+        interfaceService.addListener(interfaceListener);
+
+        routeService.addListener(routeListener);
     }
 
     @Deactivate
     public void deactivate() {
-        // TODO remove listener
-        routingService.stop();
+        interfaceService.removeListener(interfaceListener);
+        routeService.removeListener(routeListener);
     }
 
-    private void update(Collection<FibUpdate> updates, Collection<FibUpdate> withdraws) {
-        int submitCount = 0, withdrawCount = 0;
-        //
-        // NOTE: Semantically, we MUST withdraw existing intents before
-        // submitting new intents.
-        //
+    private void update(ResolvedRoute route) {
         synchronized (this) {
-            MultiPointToSinglePointIntent intent;
+            IpPrefix prefix = route.prefix();
+            MultiPointToSinglePointIntent intent =
+                    generateRouteIntent(prefix, route.nextHop(), route.nextHopMac());
 
-            //
-            // Prepare the Intent batch operations for the intents to withdraw
-            //
-            for (FibUpdate withdraw : withdraws) {
-                checkArgument(withdraw.type() == FibUpdate.Type.DELETE,
-                        "FibUpdate with wrong type in withdraws list");
-
-                IpPrefix prefix = withdraw.entry().prefix();
-                intent = routeIntents.remove(prefix);
-                if (intent == null) {
-                    log.trace("SDN-IP No intent in routeIntents to delete " +
-                            "for prefix: {}", prefix);
-                    continue;
-                }
-                intentSynchronizer.withdraw(intent);
-                withdrawCount++;
+            if (intent == null) {
+                log.debug("SDN-IP no interface found for route {}", route);
+                return;
             }
 
-            //
-            // Prepare the Intent batch operations for the intents to submit
-            //
-            for (FibUpdate update : updates) {
-                checkArgument(update.type() == FibUpdate.Type.UPDATE,
-                        "FibUpdate with wrong type in updates list");
+            routeIntents.put(prefix, intent);
+            intentSynchronizer.submit(intent);
+        }
+    }
 
-                IpPrefix prefix = update.entry().prefix();
-                intent = generateRouteIntent(prefix, update.entry().nextHopIp(),
-                        update.entry().nextHopMac());
-
-                if (intent == null) {
-                    // This preserves the old semantics - if an intent can't be
-                    // generated, we don't do anything with that prefix. But
-                    // perhaps we should withdraw the old intent anyway?
-                    continue;
-                }
-
-                routeIntents.put(prefix, intent);
-                intentSynchronizer.submit(intent);
-                submitCount++;
+    private void withdraw(ResolvedRoute route) {
+        synchronized (this) {
+            IpPrefix prefix = route.prefix();
+            MultiPointToSinglePointIntent intent = routeIntents.remove(prefix);
+            if (intent == null) {
+                log.trace("SDN-IP no intent in routeIntents to delete " +
+                        "for prefix: {}", prefix);
+                return;
             }
-
-            log.debug("SDN-IP submitted {}/{}, withdrew = {}/{}", submitCount,
-                    updates.size(), withdrawCount, withdraws.size());
+            intentSynchronizer.withdraw(intent);
         }
     }
 
@@ -181,23 +158,38 @@ public class SdnIpFib {
                     nextHopIpAddress);
             return null;
         }
-
-        // Generate the intent itself
-        Set<ConnectPoint> ingressPorts = new HashSet<>();
         ConnectPoint egressPort = egressInterface.connectPoint();
+
+        Set<Interface> ingressInterfaces = new HashSet<>();
+        Set<ConnectPoint> ingressPorts = new HashSet<>();
         log.debug("Generating intent for prefix {}, next hop mac {}",
                 prefix, nextHopMacAddress);
 
-        for (Interface intf : interfaceService.getInterfaces()) {
-            // TODO this should be only peering interfaces
-            if (!intf.connectPoint().equals(egressInterface.connectPoint())) {
-                ConnectPoint srcPort = intf.connectPoint();
-                ingressPorts.add(srcPort);
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+
+        // Get ingress interfaces and ports
+        // TODO this should be only peering interfaces
+        interfaceService.getInterfaces().stream()
+                .filter(intf -> !intf.equals(egressInterface))
+                .forEach(intf -> {
+                    ingressInterfaces.add(intf);
+                    ConnectPoint ingressPort = intf.connectPoint();
+                    ingressPorts.add(ingressPort);
+                });
+
+        // By default the ingress traffic is not tagged
+        VlanId ingressVlanId = VlanId.NONE;
+
+        // Match VLAN Id ANY if the source VLAN Id is not null
+        // TODO need to be able to set a different VLAN Id per ingress interface
+        for (Interface intf : ingressInterfaces) {
+            if (!intf.vlan().equals(VlanId.NONE)) {
+                selector.matchVlanId(VlanId.ANY);
+                ingressVlanId = intf.vlan();
             }
         }
 
         // Match the destination IP prefix at the first hop
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         if (prefix.isIp4()) {
             selector.matchEthType(Ethernet.TYPE_IPV4);
             // if it is default route, then we do not need match destination
@@ -212,22 +204,29 @@ public class SdnIpFib {
             if (prefix.prefixLength() != 0) {
                 selector.matchIPv6Dst(prefix);
             }
-
         }
 
         // Rewrite the destination MAC address
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
                 .setEthDst(nextHopMacAddress);
-        if (!egressInterface.vlan().equals(VlanId.NONE)) {
-            treatment.setVlanId(egressInterface.vlan());
-            // If we set VLAN ID, we have to make sure a VLAN tag exists.
-            // TODO support no VLAN -> VLAN routing
-            selector.matchVlanId(VlanId.ANY);
+
+        // Set egress VLAN Id
+        // TODO need to make the comparison with different ingress VLAN Ids
+        if (!ingressVlanId.equals(egressInterface.vlan())) {
+            if (egressInterface.vlan().equals(VlanId.NONE)) {
+                treatment.popVlan();
+            } else {
+                treatment.setVlanId(egressInterface.vlan());
+            }
         }
 
+        // Set priority
         int priority =
                 prefix.prefixLength() * PRIORITY_MULTIPLIER + PRIORITY_OFFSET;
+
+        // Set key
         Key key = Key.of(prefix.toString(), appId);
+
         return MultiPointToSinglePointIntent.builder()
                 .appId(appId)
                 .key(key)
@@ -240,10 +239,84 @@ public class SdnIpFib {
                 .build();
     }
 
-    private class InternalFibListener implements FibListener {
+    private void updateInterface(Interface intf) {
+        synchronized (this) {
+            for (Map.Entry<IpPrefix, MultiPointToSinglePointIntent> entry : routeIntents.entrySet()) {
+                MultiPointToSinglePointIntent intent = entry.getValue();
+                Set<ConnectPoint> ingress = Sets.newHashSet(intent.ingressPoints());
+                ingress.add(intf.connectPoint());
+
+                MultiPointToSinglePointIntent newIntent =
+                        MultiPointToSinglePointIntent.builder(intent)
+                                .ingressPoints(ingress)
+                                .build();
+
+                routeIntents.put(entry.getKey(), newIntent);
+                intentSynchronizer.submit(newIntent);
+            }
+        }
+    }
+
+    private void removeInterface(Interface intf) {
+        synchronized (this) {
+            for (Map.Entry<IpPrefix, MultiPointToSinglePointIntent> entry : routeIntents.entrySet()) {
+                MultiPointToSinglePointIntent intent = entry.getValue();
+                if (intent.egressPoint().equals(intf.connectPoint())) {
+                    // This intent just lost its head. Remove it and let
+                    // higher layer routing reroute.
+                    intentSynchronizer.withdraw(routeIntents.remove(entry.getKey()));
+                } else {
+                    if (intent.ingressPoints().contains(intf.connectPoint())) {
+
+                        Set<ConnectPoint> ingress = Sets.newHashSet(intent.ingressPoints());
+                        ingress.remove(intf.connectPoint());
+
+                        MultiPointToSinglePointIntent newIntent =
+                                MultiPointToSinglePointIntent.builder(intent)
+                                .ingressPoints(ingress)
+                                .build();
+
+                        routeIntents.put(entry.getKey(), newIntent);
+                        intentSynchronizer.submit(newIntent);
+                    }
+                }
+            }
+        }
+    }
+
+    private class InternalRouteListener implements RouteListener {
         @Override
-        public void update(Collection<FibUpdate> updates, Collection<FibUpdate> withdraws) {
-            SdnIpFib.this.update(updates, withdraws);
+        public void event(RouteEvent event) {
+            switch (event.type()) {
+            case ROUTE_ADDED:
+            case ROUTE_UPDATED:
+                update(event.subject());
+                break;
+            case ROUTE_REMOVED:
+                withdraw(event.subject());
+                break;
+            default:
+                break;
+            }
+        }
+    }
+
+    private class InternalInterfaceListener implements InterfaceListener {
+
+        @Override
+        public void event(InterfaceEvent event) {
+            switch (event.type()) {
+            case INTERFACE_ADDED:
+                updateInterface(event.subject());
+                break;
+            case INTERFACE_UPDATED:
+                break;
+            case INTERFACE_REMOVED:
+                removeInterface(event.subject());
+                break;
+            default:
+                break;
+            }
         }
     }
 

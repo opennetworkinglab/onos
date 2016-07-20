@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@
         }
 
         // else if we have [x,y] cached in meta data, use that...
-        if (x && y) {
+        if (x !== undefined && y !== undefined) {
             node.fixed = true;
             node.px = node.x = x;
             node.py = node.y = y;
@@ -230,7 +230,8 @@
                     ws = (s && s.linkWidth) || 0,
                     wt = (t && t.linkWidth) || 0;
                 return lnk.position.multiLink ? 5 : Math.max(ws, wt);
-            }
+            },
+            extra: link.extra
         });
         return lnk;
     }

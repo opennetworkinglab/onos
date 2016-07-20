@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,28 +25,31 @@ import org.onosproject.net.provider.ProviderId;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Default representation of a virtual link.
  */
 public final class DefaultVirtualLink extends DefaultLink implements VirtualLink {
 
-    private static final String VIRTUAL = "virtual";
-    private static final ProviderId PID = new ProviderId(VIRTUAL, VIRTUAL);
+    private static final String VIRTUAL = "virtualLink";
+    public static final ProviderId PID = new ProviderId(VIRTUAL, VIRTUAL);
 
     private final NetworkId networkId;
     private final TunnelId tunnelId;
 
     /**
-     * Constructor for a default virtual link.
+     * Private constructor for a default virtual link.
      *
      * @param networkId network identifier
      * @param src       source connection point
      * @param dst       destination connection point
+     * @param state     link state
      * @param tunnelId  tunnel identifier
      */
-    public DefaultVirtualLink(NetworkId networkId, ConnectPoint src, ConnectPoint dst, TunnelId tunnelId) {
-        super(PID, src, dst, Type.VIRTUAL, DefaultAnnotations.builder().build());
+    private DefaultVirtualLink(NetworkId networkId, ConnectPoint src, ConnectPoint dst,
+                               State state, TunnelId tunnelId) {
+        super(PID, src, dst, Type.VIRTUAL, state, DefaultAnnotations.builder().build());
         this.networkId = networkId;
         this.tunnelId = tunnelId;
     }
@@ -87,5 +90,97 @@ public final class DefaultVirtualLink extends DefaultLink implements VirtualLink
     @Override
     public String toString() {
         return toStringHelper(this).add("networkId", networkId).add("tunnelId", tunnelId).toString();
+    }
+
+    /**
+     * Creates a new default virtual link builder.
+     *
+     * @return default virtual link builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder for DefaultVirtualLink objects.
+     */
+    public static final class Builder extends DefaultLink.Builder {
+        private NetworkId networkId;
+        private ConnectPoint src;
+        private ConnectPoint dst;
+        private TunnelId tunnelId;
+        private State state;
+
+        private Builder() {
+            // Hide constructor
+        }
+
+        /**
+         * Sets the network identifier to be used by the builder.
+         *
+         * @param networkId network identifier
+         * @return self
+         */
+        public Builder networkId(NetworkId networkId) {
+            this.networkId = networkId;
+            return this;
+        }
+
+        /**
+         * Sets the source connect point to be used by the builder.
+         *
+         * @param src source connect point
+         * @return self
+         */
+        public Builder src(ConnectPoint src) {
+            this.src = src;
+            return this;
+        }
+
+        /**
+         * Sets the destination connect point to be used by the builder.
+         *
+         * @param dst new destination connect point
+         * @return self
+         */
+        public Builder dst(ConnectPoint dst) {
+            this.dst = dst;
+            return this;
+        }
+
+        /**
+         * Sets the tunnel identifier to be used by the builder.
+         *
+         * @param tunnelId tunnel identifier
+         * @return self
+         */
+        public Builder tunnelId(TunnelId tunnelId) {
+            this.tunnelId = tunnelId;
+            return this;
+        }
+
+        /**
+         * Sets the link state to be used by the builder.
+         *
+         * @param state link state
+         * @return self
+         */
+        public Builder state(State state) {
+            this.state = state;
+            return this;
+        }
+
+        /**
+         * Builds a default virtual link object from the accumulated parameters.
+         *
+         * @return default virtual link object
+         */
+        public DefaultVirtualLink build() {
+            checkNotNull(src, "Source connect point cannot be null");
+            checkNotNull(dst, "Destination connect point cannot be null");
+            checkNotNull(networkId, "Network Id cannot be null");
+
+            return new DefaultVirtualLink(networkId, src, dst, state, tunnelId);
+        }
     }
 }

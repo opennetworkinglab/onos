@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Path("alarms")
 public class AlarmsWebResource extends AbstractWebResource {
 
-    public static final String ALARM_NOT_FOUND = "Alarm is not found";
+    private static final String ALARM_NOT_FOUND = "Alarm is not found";
 
     private final Logger log = getLogger(getClass());
 
@@ -63,7 +63,7 @@ public class AlarmsWebResource extends AbstractWebResource {
             @DefaultValue("") @QueryParam("devId") String devId
     ) {
 
-        log.info("Requesting all alarms, includeCleared={}", includeCleared);
+        log.debug("Requesting all alarms, includeCleared={}", includeCleared);
         AlarmService service = get(AlarmService.class);
 
         Iterable<Alarm> alarms;
@@ -90,7 +90,7 @@ public class AlarmsWebResource extends AbstractWebResource {
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAlarm(@PathParam("id") String id) {
-        log.info("HTTP GET alarm for id={}", id);
+        log.debug("HTTP GET alarm for id={}", id);
 
         AlarmId alarmId = toAlarmId(id);
         Alarm alarm = get(AlarmService.class).getAlarm(alarmId);
@@ -113,11 +113,11 @@ public class AlarmsWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("alarm_id") String alarmIdPath, InputStream stream) {
-        log.info("PUT NEW ALARM at /{}", alarmIdPath);
+        log.debug("PUT NEW ALARM at /{}", alarmIdPath);
 
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
-            log.info("jsonTree={}", jsonTree);
+            log.debug("jsonTree={}", jsonTree);
 
             Alarm alarm = new AlarmCodec().decode(jsonTree, this);
 
@@ -139,7 +139,7 @@ public class AlarmsWebResource extends AbstractWebResource {
         }
     }
 
-    private static AlarmId toAlarmId(String id) {
+    private AlarmId toAlarmId(String id) {
         try {
             return AlarmId.alarmId(Long.parseLong(id));
         } catch (NumberFormatException ex) {

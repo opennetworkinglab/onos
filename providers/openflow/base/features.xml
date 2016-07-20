@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright 2014-2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
+        <bundle>mvn:org.onosproject/openflowj/0.9.4.onos</bundle>
         <bundle>mvn:${project.groupId}/onos-of-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-of-ctl/${project.version}</bundle>
 

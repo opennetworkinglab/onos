@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Button Service -- CSS file
+ ONOS GUI -- Button Service (layout) -- CSS file
  */
 
 .button,
@@ -38,83 +38,4 @@
 .toggleButton svg.embeddedIcon .icon rect,
 .radioButton svg.embeddedIcon .icon rect{
     stroke: none;
-}
-
-/* Selected button color */
-.light .button svg.embeddedIcon .icon rect,
-.light .toggleButton.selected svg.embeddedIcon .icon rect,
-.light .radioButton.selected svg.embeddedIcon .icon rect {
-    fill: #838383;
-}
-
-.light .button:hover svg.embeddedIcon .icon rect,
-.light .toggleButton.selected:hover svg.embeddedIcon .icon rect
-/* NOTE: selected radio button should NOT have hover highlight */
-{
-    fill: #444444;
-}
-
-.light .button svg.embeddedIcon .glyph,
-.light .toggleButton.selected svg.embeddedIcon .glyph,
-.light .radioButton.selected svg.embeddedIcon .glyph {
-    fill: white;
-}
-
-.dark .button svg.embeddedIcon .icon rect,
-.dark .toggleButton.selected svg.embeddedIcon .icon rect,
-.dark .radioButton.selected svg.embeddedIcon .icon rect {
-    fill: #151515;
-}
-
-.dark .button:hover svg.embeddedIcon .icon rect,
-.dark .toggleButton.selected:hover svg.embeddedIcon .icon rect
-/* NOTE: selected radio button should NOT have hover highlight */
-{
-    fill: #444;
-}
-
-.dark .button svg.embeddedIcon .glyph,
-.dark .toggleButton.selected svg.embeddedIcon .glyph,
-.dark .radioButton.selected svg.embeddedIcon .glyph {
-    fill: #B2B2B2;
-}
-
-/* Unselected button color */
-.light .toggleButton svg.embeddedIcon .icon rect,
-.light .radioButton svg.embeddedIcon .icon rect {
-    fill: #eee;
-}
-
-.light .toggleButton:hover svg.embeddedIcon .icon rect,
-.light .radioButton:hover:not(.selected) svg.embeddedIcon .icon rect {
-    fill: #ccc;
-}
-
-.light .toggleButton svg.embeddedIcon .glyph,
-.light .radioButton svg.embeddedIcon .glyph {
-    fill: #bbb;
-}
-.light .toggleButton:hover:not(.selected) svg.embeddedIcon .glyph,
-.light .radioButton:hover:not(.selected) svg.embeddedIcon .glyph {
-    fill: #999;
-}
-
-.dark .toggleButton svg.embeddedIcon .icon rect,
-.dark .radioButton svg.embeddedIcon .icon rect {
-    fill: #303030;
-}
-
-.dark .toggleButton:hover:not(.selected) svg.embeddedIcon .icon rect,
-.dark .radioButton:hover:not(.selected) svg.embeddedIcon .icon rect {
-    fill: #555;
-}
-
-.dark .toggleButton svg.embeddedIcon .glyph,
-.dark .radioButton svg.embeddedIcon .glyph {
-    fill: #565656;
-}
-
-.dark .toggleButton:hover:not(.selected) svg.embeddedIcon .glyph,
-.dark .radioButton:hover:not(.selected) svg.embeddedIcon .glyph {
-    fill: #777;
 }

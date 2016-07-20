@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,6 @@ import static org.onosproject.openflow.controller.Dpid.uri;
 
 /**
  * The main controller class.  Handles all setup and network listeners
- * - Distributed ownership control of switch through IControllerRegistryService
  */
 public class Controller {
 
@@ -151,13 +150,13 @@ public class Controller {
 
         if (workerThreads == 0) {
             execFactory = new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(groupedThreads("onos/of", "boss-%d")),
-                    Executors.newCachedThreadPool(groupedThreads("onos/of", "worker-%d")));
+                    Executors.newCachedThreadPool(groupedThreads("onos/of", "boss-%d", log)),
+                    Executors.newCachedThreadPool(groupedThreads("onos/of", "worker-%d", log)));
             return new ServerBootstrap(execFactory);
         } else {
             execFactory = new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(groupedThreads("onos/of", "boss-%d")),
-                    Executors.newCachedThreadPool(groupedThreads("onos/of", "worker-%d")), workerThreads);
+                    Executors.newCachedThreadPool(groupedThreads("onos/of", "boss-%d", log)),
+                    Executors.newCachedThreadPool(groupedThreads("onos/of", "worker-%d", log)), workerThreads);
             return new ServerBootstrap(execFactory);
         }
     }

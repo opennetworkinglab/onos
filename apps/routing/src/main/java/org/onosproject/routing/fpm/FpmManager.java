@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.onosproject.routing.fpm;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -38,10 +39,8 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.routing.RouteEntry;
-import org.onosproject.routing.RouteListener;
-import org.onosproject.routing.RouteSourceService;
-import org.onosproject.routing.RouteUpdate;
+import org.onosproject.incubator.net.routing.Route;
+import org.onosproject.incubator.net.routing.RouteAdminService;
 import org.onosproject.routing.fpm.protocol.FpmHeader;
 import org.onosproject.routing.fpm.protocol.Netlink;
 import org.onosproject.routing.fpm.protocol.RouteAttribute;
@@ -55,12 +54,11 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.Collections;
 import java.util.Dictionary;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newCachedThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
@@ -70,7 +68,7 @@ import static org.onlab.util.Tools.groupedThreads;
  */
 @Service
 @Component(immediate = true, enabled = false)
-public class FpmManager implements RouteSourceService, FpmInfoService {
+public class FpmManager implements FpmInfoService {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final int FPM_PORT = 2620;
@@ -78,15 +76,16 @@ public class FpmManager implements RouteSourceService, FpmInfoService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService componentConfigService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected RouteAdminService routeService;
+
     private ServerBootstrap serverBootstrap;
     private Channel serverChannel;
     private ChannelGroup allChannels = new DefaultChannelGroup();
 
     private Map<SocketAddress, Long> peers = new ConcurrentHashMap<>();
 
-    private Map<IpPrefix, RouteEntry> fpmRoutes = new ConcurrentHashMap<>();
-
-    private RouteListener routeListener;
+    private Map<IpPrefix, Route> fpmRoutes = new ConcurrentHashMap<>();
 
     @Property(name = "clearRoutes", boolValue = true,
             label = "Whether to clear routes when the FPM connection goes down")
@@ -96,12 +95,14 @@ public class FpmManager implements RouteSourceService, FpmInfoService {
     protected void activate(ComponentContext context) {
         componentConfigService.registerProperties(getClass());
         modified(context);
+        startServer();
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         stopServer();
+        fpmRoutes.clear();
         componentConfigService.unregisterProperties(getClass(), false);
         log.info("Stopped");
     }
@@ -165,19 +166,6 @@ public class FpmManager implements RouteSourceService, FpmInfoService {
         }
     }
 
-    @Override
-    public void start(RouteListener routeListener) {
-        this.routeListener = routeListener;
-
-        startServer();
-    }
-
-    @Override
-    public void stop() {
-        fpmRoutes.clear();
-        stopServer();
-    }
-
     private void fpmMessage(FpmHeader fpmMessage) {
         Netlink netlink = fpmMessage.netlink();
         RtNetlink rtNetlink = netlink.rtNetlink();
@@ -212,51 +200,46 @@ public class FpmManager implements RouteSourceService, FpmInfoService {
 
         IpPrefix prefix = IpPrefix.valueOf(dstAddress, rtNetlink.dstLength());
 
-        RouteUpdate routeUpdate = null;
-        RouteEntry entry;
+        List<Route> updates = new LinkedList<>();
+        List<Route> withdraws = new LinkedList<>();
+
+        Route route;
         switch (netlink.type()) {
         case RTM_NEWROUTE:
             if (gateway == null) {
                 // We ignore interface routes with no gateway for now.
                 return;
             }
-            entry = new RouteEntry(prefix, gateway);
+            route = new Route(Route.Source.FPM, prefix, gateway);
 
-            fpmRoutes.put(entry.prefix(), entry);
+            fpmRoutes.put(prefix, route);
 
-            routeUpdate = new RouteUpdate(RouteUpdate.Type.UPDATE, entry);
+            updates.add(route);
             break;
         case RTM_DELROUTE:
-            RouteEntry existing = fpmRoutes.remove(prefix);
+            Route existing = fpmRoutes.remove(prefix);
             if (existing == null) {
                 log.warn("Got delete for non-existent prefix");
                 return;
             }
 
-            entry = new RouteEntry(prefix, existing.nextHop());
+            route = new Route(Route.Source.FPM, prefix, existing.nextHop());
 
-            routeUpdate = new RouteUpdate(RouteUpdate.Type.DELETE, entry);
+            withdraws.add(route);
             break;
         case RTM_GETROUTE:
         default:
             break;
         }
 
-        if (routeUpdate == null) {
-            log.warn("Unsupported FPM message: {}", fpmMessage);
-            return;
-        }
-
-        routeListener.update(Collections.singletonList(routeUpdate));
+        routeService.withdraw(withdraws);
+        routeService.update(updates);
     }
 
 
     private void clearRoutes() {
         log.info("Clearing all routes");
-        List<RouteUpdate> routeUpdates = fpmRoutes.values().stream()
-                .map(routeEntry -> new RouteUpdate(RouteUpdate.Type.DELETE, routeEntry))
-                .collect(Collectors.toList());
-        routeListener.update(routeUpdates);
+        routeService.withdraw(ImmutableList.copyOf(fpmRoutes.values()));
     }
 
     @Override

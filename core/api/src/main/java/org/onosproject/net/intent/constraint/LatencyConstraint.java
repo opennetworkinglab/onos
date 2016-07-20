@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.google.common.base.MoreObjects;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.intent.Constraint;
-import org.onosproject.net.resource.link.LinkResourceService;
+import org.onosproject.net.intent.ResourceContext;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -54,14 +54,26 @@ public class LatencyConstraint implements Constraint {
         return latency;
     }
 
+    // doesn't use LinkResourceService
     @Override
-    public double cost(Link link, LinkResourceService resourceService) {
+    public double cost(Link link, ResourceContext context) {
+        // explicitly call a method not depending on LinkResourceService
+        return cost(link);
+    }
+
+    private double cost(Link link) {
         return getAnnotatedValue(link, LATENCY);
     }
 
+    // doesn't use LinkResourceService
     @Override
-    public boolean validate(Path path, LinkResourceService resourceService) {
-        double pathLatency = path.links().stream().mapToDouble(link -> cost(link, resourceService)).sum();
+    public boolean validate(Path path, ResourceContext context) {
+        // explicitly call a method not depending on LinkResourceService
+        return validate(path);
+    }
+
+    private boolean validate(Path path) {
+        double pathLatency = path.links().stream().mapToDouble(this::cost).sum();
         return Duration.of((long) pathLatency, ChronoUnit.MICROS).compareTo(latency) <= 0;
     }
 

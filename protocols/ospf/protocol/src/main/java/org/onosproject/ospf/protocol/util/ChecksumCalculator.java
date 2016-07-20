@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.onosproject.ospf.protocol.lsa.types.OpaqueLsa11;
 import org.onosproject.ospf.protocol.lsa.types.OpaqueLsa9;
 import org.onosproject.ospf.protocol.lsa.types.RouterLsa;
 import org.onosproject.ospf.protocol.lsa.types.SummaryLsa;
-import org.onosproject.ospf.protocol.ospfpacket.OspfMessage;
+import org.onosproject.ospf.controller.OspfMessage;
 import org.onosproject.ospf.protocol.ospfpacket.types.DdPacket;
 import org.onosproject.ospf.protocol.ospfpacket.types.HelloPacket;
 import org.onosproject.ospf.protocol.ospfpacket.types.LsAcknowledge;

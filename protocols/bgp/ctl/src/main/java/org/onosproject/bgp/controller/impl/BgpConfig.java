@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ public class BgpConfig implements BgpCfg {
     private BgpConnectPeer connectPeer;
     private BgpPeerManagerImpl peerManager;
     private BgpController bgpController;
+    private boolean rpdCapability;
 
     /*
      * Constructor to initialize the values.
@@ -129,6 +130,16 @@ public class BgpConfig implements BgpCfg {
     }
 
     @Override
+    public boolean flowSpecRpdCapability() {
+        return this.rpdCapability;
+    }
+
+    @Override
+    public void setFlowSpecRpdCapability(boolean rpdCapability) {
+        this.rpdCapability = rpdCapability;
+    }
+
+    @Override
     public String getRouterId() {
         if (this.routerId != null) {
             return this.routerId.toString();
@@ -194,7 +205,7 @@ public class BgpConfig implements BgpCfg {
             lspeer.setSelfInnitConnection(true);
 
             if (lspeer.connectPeer() == null) {
-                connectPeer = new BgpConnectPeerImpl(bgpController, routerid, Controller.getBgpPortNum());
+                connectPeer = new BgpConnectPeerImpl(bgpController, routerid, Controller.BGP_PORT_NUM);
                 lspeer.setConnectPeer(connectPeer);
                 connectPeer.connectPeer();
             }

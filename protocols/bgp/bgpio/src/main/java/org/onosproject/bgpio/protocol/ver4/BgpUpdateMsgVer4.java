@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -241,12 +241,11 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
                         afi = mpUnReach.afi();
                         safi = mpUnReach.safi();
                     }
+                }
 
-                    if ((afi == Constants.AFI_FLOWSPEC_VALUE) && ((safi == Constants.SAFI_FLOWSPEC_VALUE)
-                            || (safi == Constants.VPN_SAFI_FLOWSPEC_VALUE))) {
-                        //unfeasible route length
-                        cb.writeShort(0);
-                    }
+                if ((afi == Constants.AFI_FLOWSPEC_VALUE) || (afi == Constants.AFI_VALUE)) {
+                    //unfeasible route length
+                    cb.writeShort(0);
                 }
 
             }

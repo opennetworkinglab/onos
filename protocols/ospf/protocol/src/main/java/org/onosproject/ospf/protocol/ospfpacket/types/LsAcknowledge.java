@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.onosproject.ospf.exceptions.OspfParseException;
 import org.onosproject.ospf.protocol.lsa.LsaHeader;
 import org.onosproject.ospf.protocol.lsa.OpaqueLsaHeader;
 import org.onosproject.ospf.protocol.ospfpacket.OspfPacketHeader;
-import org.onosproject.ospf.protocol.util.OspfPacketType;
+import org.onosproject.ospf.controller.OspfPacketType;
 import org.onosproject.ospf.protocol.util.OspfParameters;
 import org.onosproject.ospf.protocol.util.OspfUtil;
 import org.slf4j.Logger;

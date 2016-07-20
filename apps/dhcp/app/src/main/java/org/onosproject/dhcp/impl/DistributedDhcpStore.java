@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,9 +39,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.Map;
-import java.util.List;
 import java.util.HashMap;
-import java.util.Objects;
+
+import static org.onosproject.dhcp.IpAssignment.AssignmentStatus.Option_Assigned;
+import static org.onosproject.dhcp.IpAssignment.AssignmentStatus.Option_RangeNotEnforced;
 
 /**
  * Manages the pool of available IP Addresses in the network and
@@ -58,18 +59,13 @@ public class DistributedDhcpStore implements DhcpStore {
     protected StorageService storageService;
 
     private ConsistentMap<HostId, IpAssignment> allocationMap;
-
     private DistributedSet<Ip4Address> freeIPPool;
 
     private static Ip4Address startIPRange;
-
     private static Ip4Address endIPRange;
 
     // Hardcoded values are default values.
-
     private static int timeoutForPendingAssignments = 60;
-    private static final int MAX_RETRIES = 3;
-    private static final int MAX_BACKOFF = 10;
 
     @Activate
     protected void activate() {
@@ -109,9 +105,9 @@ public class DistributedDhcpStore implements DhcpStore {
             IpAssignment.AssignmentStatus status = assignmentInfo.assignmentStatus();
             Ip4Address ipAddr = assignmentInfo.ipAddress();
 
-            if (assignmentInfo.rangeNotEnforced()) {
+            if (assignmentInfo.assignmentStatus().equals(Option_RangeNotEnforced)) {
                 return assignmentInfo.ipAddress();
-            } else if (status == IpAssignment.AssignmentStatus.Option_Assigned ||
+            } else if (status == Option_Assigned ||
                     status == IpAssignment.AssignmentStatus.Option_Requested) {
                 // Client has a currently Active Binding.
                 if (ipWithinRange(ipAddr)) {
@@ -166,82 +162,65 @@ public class DistributedDhcpStore implements DhcpStore {
     }
 
     @Override
-    public boolean assignIP(HostId hostId, Ip4Address ipAddr, int leaseTime, boolean rangeNotEnforced,
-                            List<Ip4Address> addressList) {
-        log.debug("Assign IP Called w/ Ip4Address: {}, HostId: {}", ipAddr.toString(), hostId.mac().toString());
+    public boolean assignIP(HostId hostId, IpAssignment ipAssignment) {
+        log.trace("Assign IP Called HostId: {}, ipAssignment: {}",
+                  hostId, ipAssignment);
 
-        Versioned<IpAssignment> currentAssignment = allocationMap.get(hostId);
         IpAssignment newAssignment = null;
-        if (currentAssignment == null) {
-            if (rangeNotEnforced) {
-                newAssignment = IpAssignment.builder()
-                        .ipAddress(ipAddr)
-                        .timestamp(new Date())
-                        .leasePeriod(leaseTime)
-                        .rangeNotEnforced(true)
-                        .assignmentStatus(IpAssignment.AssignmentStatus.Option_RangeNotEnforced)
-                        .subnetMask((Ip4Address) addressList.toArray()[0])
-                        .dhcpServer((Ip4Address) addressList.toArray()[1])
-                        .routerAddress((Ip4Address) addressList.toArray()[2])
-                        .domainServer((Ip4Address) addressList.toArray()[3])
-                        .build();
+        Versioned<IpAssignment> versionedAssignment = allocationMap.get(hostId);
+        Ip4Address requestedIp = ipAssignment.ipAddress();
 
-            } else if (freeIPPool.remove(ipAddr)) {
-                newAssignment = IpAssignment.builder()
-                        .ipAddress(ipAddr)
+        if (versionedAssignment == null) {
+            // this is new IP assignment of static mapping
+            // dynamic assignment is done in suggestIP
+            if (ipAssignment.assignmentStatus().equals(Option_RangeNotEnforced)) {
+                newAssignment = ipAssignment;
+            } else if (freeIPPool.remove(requestedIp)) {
+                newAssignment = IpAssignment.builder(ipAssignment)
+                        .assignmentStatus(Option_Assigned)
                         .timestamp(new Date())
-                        .leasePeriod(leaseTime)
-                        .assignmentStatus(IpAssignment.AssignmentStatus.Option_Assigned)
                         .build();
             } else {
+                log.trace("Failed to assign IP for {}", ipAssignment);
                 return false;
             }
+            log.trace("Assigned {}", newAssignment);
             return allocationMap.putIfAbsent(hostId, newAssignment) == null;
             // TODO: handle the case where map changed.
         } else {
-            IpAssignment existingAssignment = currentAssignment.value();
-            if (Objects.equals(existingAssignment.ipAddress(), ipAddr) &&
-                    (existingAssignment.rangeNotEnforced() || ipWithinRange(ipAddr))) {
-                switch (existingAssignment.assignmentStatus()) {
-                    case Option_RangeNotEnforced:
-                        newAssignment = IpAssignment.builder()
-                                .ipAddress(ipAddr)
-                                .timestamp(new Date())
-                                .leasePeriod(existingAssignment.leasePeriod())
-                                .rangeNotEnforced(true)
-                                .assignmentStatus(IpAssignment.AssignmentStatus.Option_RangeNotEnforced)
-                                .subnetMask(existingAssignment.subnetMask())
-                                .dhcpServer(existingAssignment.dhcpServer())
-                                .routerAddress(existingAssignment.routerAddress())
-                                .domainServer(existingAssignment.domainServer())
-                                .build();
-                        break;
-                    case Option_Assigned:
-                    case Option_Requested:
-                        newAssignment = IpAssignment.builder()
-                                .ipAddress(ipAddr)
-                                .timestamp(new Date())
-                                .leasePeriod(leaseTime)
-                                .assignmentStatus(IpAssignment.AssignmentStatus.Option_Assigned)
-                                .build();
-                        break;
-                    case Option_Expired:
-                        if (freeIPPool.remove(ipAddr)) {
-                            newAssignment = IpAssignment.builder()
-                                    .ipAddress(ipAddr)
-                                    .timestamp(new Date())
-                                    .leasePeriod(leaseTime)
-                                    .assignmentStatus(IpAssignment.AssignmentStatus.Option_Assigned)
-                                    .build();
-                        }
-                        break;
-                    default:
-                        break;
-                }
-                return allocationMap.replace(hostId, currentAssignment.version(), newAssignment);
-            } else {
+            // this is lease renew or rebinding
+            // update assignment status and time stamp, and keep the others
+            IpAssignment existingAssignment = versionedAssignment.value();
+            if (!existingAssignment.ipAddress().equals(requestedIp)) {
+                // return false if existing assignment is not for the
+                // requested host
+                log.trace("Failed to assign IP for {}", ipAssignment);
                 return false;
             }
+
+            switch (existingAssignment.assignmentStatus()) {
+                case Option_RangeNotEnforced:
+                    newAssignment = IpAssignment.builder(existingAssignment)
+                            .timestamp(new Date())
+                            .build();
+                    break;
+                case Option_Expired:
+                    if (!freeIPPool.remove(requestedIp)) {
+                        // requested IP is expired for this host and reserved to the other host
+                        return false;
+                    }
+                case Option_Assigned:
+                case Option_Requested:
+                    newAssignment = IpAssignment.builder(existingAssignment)
+                            .timestamp(new Date())
+                            .assignmentStatus(Option_Assigned)
+                            .build();
+                    break;
+                default:
+                    break;
+            }
+            log.trace("Assigned {}", newAssignment);
+            return allocationMap.replace(hostId, versionedAssignment.version(), newAssignment);
         }
     }
 
@@ -249,8 +228,8 @@ public class DistributedDhcpStore implements DhcpStore {
     public Ip4Address releaseIP(HostId hostId) {
         if (allocationMap.containsKey(hostId)) {
             IpAssignment newAssignment = IpAssignment.builder(allocationMap.get(hostId).value())
-                                                    .assignmentStatus(IpAssignment.AssignmentStatus.Option_Expired)
-                                                    .build();
+                    .assignmentStatus(IpAssignment.AssignmentStatus.Option_Expired)
+                    .build();
             Ip4Address freeIP = newAssignment.ipAddress();
             allocationMap.put(hostId, newAssignment);
             if (ipWithinRange(freeIP)) {
@@ -273,8 +252,8 @@ public class DistributedDhcpStore implements DhcpStore {
         IpAssignment assignment;
         for (Map.Entry<HostId, Versioned<IpAssignment>> entry: allocationMap.entrySet()) {
             assignment = entry.getValue().value();
-            if (assignment.assignmentStatus() == IpAssignment.AssignmentStatus.Option_Assigned
-                    || assignment.assignmentStatus() == IpAssignment.AssignmentStatus.Option_RangeNotEnforced) {
+            if (assignment.assignmentStatus() == Option_Assigned
+                    || assignment.assignmentStatus() == Option_RangeNotEnforced) {
                 validMapping.put(entry.getKey(), assignment);
             }
         }
@@ -291,10 +270,9 @@ public class DistributedDhcpStore implements DhcpStore {
     }
 
     @Override
-    public boolean assignStaticIP(MacAddress macID, Ip4Address ipAddr, boolean rangeNotEnforced,
-                                  List<Ip4Address> addressList) {
-        HostId host = HostId.hostId(macID);
-        return assignIP(host, ipAddr, -1, rangeNotEnforced, addressList);
+    public boolean assignStaticIP(MacAddress macAddress, IpAssignment ipAssignment) {
+        HostId host = HostId.hostId(macAddress);
+        return assignIP(host, ipAssignment);
     }
 
     @Override
@@ -303,7 +281,7 @@ public class DistributedDhcpStore implements DhcpStore {
         if (allocationMap.containsKey(host)) {
             IpAssignment assignment = allocationMap.get(host).value();
 
-            if (assignment.rangeNotEnforced()) {
+            if (assignment.assignmentStatus().equals(Option_RangeNotEnforced)) {
                 allocationMap.remove(host);
                 return true;
             }
@@ -339,11 +317,16 @@ public class DistributedDhcpStore implements DhcpStore {
             nextIP = Ip4Address.valueOf(loopCounter);
             freeIPPool.add(nextIP);
         }
+        log.debug("Updated free IP pool {}:{} size:{}", startIP, endIP, freeIPPool.size());
     }
 
     @Override
     public IpAssignment getIpAssignmentFromAllocationMap(HostId hostId) {
-        return allocationMap.get(hostId).value();
+        if (allocationMap.get(hostId) != null) {
+            return allocationMap.get(hostId).value();
+        } else {
+            return null;
+        }
     }
 
     /**

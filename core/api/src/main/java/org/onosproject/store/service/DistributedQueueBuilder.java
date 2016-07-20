@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,24 +49,6 @@ public interface DistributedQueueBuilder<E> {
      * @return this DistributedQueueBuilder for method chaining
      */
     DistributedQueueBuilder<E> withSerializer(Serializer serializer);
-
-    /**
-     *
-     *
-     * @return this DistributedQueueBuilder for method chaining
-     */
-    DistributedQueueBuilder<E> withMeteringDisabled();
-
-
-    /**
-     * Disables persistence of queues entries.
-     * <p>
-     * When persistence is disabled, a full cluster restart will wipe out all
-     * queue entries.
-     * </p>
-     * @return this DistributedQueueBuilder for method chaining
-     */
-    DistributedQueueBuilder<E> withPersistenceDisabled();
 
     /**
      * Builds a queue based on the configuration options

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-~ Copyright 2015 Open Networking Laboratory
+~ Copyright 2015-present Open Networking Laboratory
 ~
 ~ Licensed under the Apache License, Version 2.0 (the "License");
 ~ you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-app-fm</artifactId>
-        <version>1.5.2-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.6.0</version>
     </parent>
 
 
@@ -42,8 +41,8 @@
     <dependencies>
         <dependency>
             <groupId>javax.ws.rs</groupId>
-            <artifactId>jsr311-api</artifactId>
-            <version>1.1.1</version>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
@@ -59,10 +58,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.sun.jersey</groupId>
+            <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
-            <version>1.19</version>
-            <scope>test</scope>
+            <version>2.22.2</version>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -89,9 +87,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.sun.jersey.jersey-test-framework</groupId>
+            <groupId>org.glassfish.jersey.test-framework</groupId>
             <artifactId>jersey-test-framework-core</artifactId>
-            <version>1.19</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
@@ -112,25 +110,7 @@
                             ${project.groupId}.${project.artifactId}
                         </Bundle-SymbolicName>
                         <Import-Package>
-                            org.slf4j,
-                            org.osgi.framework,
-                            javax.ws.rs,
-                            javax.ws.rs.core,
-                            com.sun.jersey.api.core,
-                            com.sun.jersey.spi.container.servlet,
-                            com.sun.jersey.server.impl.container.servlet,
-                            com.fasterxml.jackson.databind,
-                            com.fasterxml.jackson.databind.node,
-                            com.fasterxml.jackson.core,
-                            org.apache.karaf.shell.commands,
-                            org.apache.commons.lang.math.*,
-                            org.apache.commons.lang.*,
-                            com.google.common.*,
-                            org.onlab.packet.*,
-                            org.onlab.rest.*,
-                            org.onosproject.*,
-                            org.onlab.util.*,
-                            org.jboss.netty.util.*
+                            *,org.glassfish.jersey.servlet
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>

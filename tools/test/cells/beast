@@ -15,4 +15,7 @@ export OC5=10.254.1.205
 export OC6=10.254.1.206
 export OC7=10.254.1.207
 
+# IP address of Mininet
+export OCN=10.254.1.200
+
 export ONOS_APPS="drivers,null,intentperf"

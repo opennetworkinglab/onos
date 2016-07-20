@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,18 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import io.atomix.catalyst.concurrent.Listener;
+import io.atomix.catalyst.concurrent.Listeners;
+import io.atomix.catalyst.concurrent.ThreadContext;
+import io.atomix.catalyst.serializer.SerializationException;
+import io.atomix.catalyst.transport.Address;
+import io.atomix.catalyst.transport.Connection;
+import io.atomix.catalyst.transport.MessageHandler;
+import io.atomix.catalyst.transport.TransportException;
+import io.atomix.catalyst.util.Assert;
+import io.atomix.catalyst.util.reference.ReferenceCounted;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -24,28 +36,17 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import org.apache.commons.io.IOUtils;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.PartitionId;
+import org.onosproject.store.cluster.messaging.MessagingException;
 import org.onosproject.store.cluster.messaging.MessagingService;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.Connection;
-import io.atomix.catalyst.transport.MessageHandler;
-import io.atomix.catalyst.transport.TransportException;
-import io.atomix.catalyst.util.Assert;
-import io.atomix.catalyst.util.Listener;
-import io.atomix.catalyst.util.Listeners;
-import io.atomix.catalyst.util.ReferenceCounted;
-import io.atomix.catalyst.util.concurrent.ThreadContext;
 
 /**
  * {@link Connection} implementation for CopycatTransport.
@@ -66,10 +67,6 @@ public class CopycatTransportConnection implements Connection {
     private final String inboundMessageSubject;
     private final ThreadContext context;
     private final Map<Class<?>, InternalHandler> handlers = Maps.newConcurrentMap();
-    private final AtomicInteger messagesSent = new AtomicInteger(0);
-    private final AtomicInteger sendFailures = new AtomicInteger(0);
-    private final AtomicInteger messagesReceived = new AtomicInteger(0);
-    private final AtomicInteger receiveFailures = new AtomicInteger(0);
 
     CopycatTransportConnection(long connectionId,
             CopycatTransport.Mode mode,
@@ -120,15 +117,17 @@ public class CopycatTransportConnection implements Connection {
                                             baos.toByteArray(),
                                             context.executor())
                     .whenComplete((r, e) -> {
-                        if (e == null) {
-                            messagesSent.incrementAndGet();
-                        } else {
-                            sendFailures.incrementAndGet();
+                        Throwable wrappedError = e;
+                        if (e != null) {
+                            Throwable rootCause = Throwables.getRootCause(e);
+                            if (MessagingException.class.isAssignableFrom(rootCause.getClass())) {
+                                wrappedError = new TransportException(e);
+                            }
                         }
-                        handleResponse(r, e, result, context);
+                        handleResponse(r, wrappedError, result, context);
                     });
-        } catch (Exception e) {
-            result.completeExceptionally(new TransportException("Failed to send request", e));
+        } catch (SerializationException | IOException e) {
+            result.completeExceptionally(e);
         }
         return result;
     }
@@ -172,11 +171,6 @@ public class CopycatTransportConnection implements Connection {
                         "No handler registered for " + request.getClass()));
             }
             return handler.handle(request).handle((result, error) -> {
-                if (error == null) {
-                    messagesReceived.incrementAndGet();
-                } else {
-                    receiveFailures.incrementAndGet();
-                }
                 try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
                     baos.write(error != null ? FAILURE : SUCCESS);
                     context.serializer().writeObject(error != null ? error : result, baos);
@@ -220,7 +214,6 @@ public class CopycatTransportConnection implements Connection {
         if (!(other instanceof CopycatTransportConnection)) {
             return false;
         }
-
         return connectionId == ((CopycatTransportConnection) other).connectionId;
     }
 
@@ -228,10 +221,6 @@ public class CopycatTransportConnection implements Connection {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", connectionId)
-                .add("sent", messagesSent.get())
-                .add("received", messagesReceived.get())
-                .add("sendFailures", sendFailures.get())
-                .add("receiveFailures", receiveFailures.get())
                 .toString();
     }
 

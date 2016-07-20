@@ -110,7 +110,7 @@ function enable_security_mode() {
 
     mkdir -p $ONOS_STAGE/$KARAF_DIST/system/org/apache/felix/org.apache.felix.configadmin/1.6.0
     cp $FELIX_CFG_ADMIN $ONOS_STAGE/$KARAF_DIST/system/org/apache/felix/org.apache.felix.configadmin/1.6.0
-    perl -pi.old -e "s|org.apache.felix.configadmin/1.8.0|org.apache.felix.configadmin/1.6.0|g" \
+    perl -pi.old -e "s|^(.*org.apache.felix.configadmin.*)|mvn\\\\:org.apache.felix/org.apache.felix.configadmin/1.6.0 = 10|" \
         $ONOS_STAGE/$KARAF_DIST/etc/startup.properties
 
     # SM-ONOS step 2: stage ONOS Felix framework security (this is already done by karaf assembly); end

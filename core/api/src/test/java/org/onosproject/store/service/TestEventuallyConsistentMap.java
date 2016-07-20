@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -175,6 +175,11 @@ public final class TestEventuallyConsistentMap<K, V> extends EventuallyConsisten
 
         @Override
         public EventuallyConsistentMapBuilder<K, V> withSerializer(KryoNamespace.Builder serializerBuilder) {
+            return this;
+        }
+
+        @Override
+        public EventuallyConsistentMapBuilder<K, V> withSerializer(KryoNamespace serializer) {
             return this;
         }
 

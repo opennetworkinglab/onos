@@ -1,0 +1,25 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//core/common:onos-core-common',
+    '//utils/rest:onlab-rest',
+    '//core/store/serializers:onos-core-serializers',
+    '//lib:netty-transport',
+    '//lib:netty-codec',
+    '//lib:netty-buffer',
+    '//lib:netty-handler',
+    '//lib:netty-transport-native-epoll',
+    '//lib:commons-math3',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+    '//core/api:onos-api-tests',
+    '//core/common:onos-core-common-tests',
+]
+
+osgi_jar_with_tests (
+    name = 'onos-core-dist',
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    visibility = ['PUBLIC'],
+)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,19 @@
     var $log;
 
     // configuration
-    var mastHeight = 36,
+    var mastHeight = 48,
         padMobile = 16;
 
-    angular.module('onosMast', ['onosNav'])
-        .controller('MastCtrl', ['$log', 'NavService', function (_$log_, ns) {
+    var dialogId = 'app-dialog',
+        dialogOpts = {
+            edge: 'left'
+        };
+
+        angular.module('onosMast', ['onosNav'])
+        .controller('MastCtrl', ['$log', '$scope', '$window', 'WebSocketService', 'NavService',
+                                    'DialogService',
+
+        function (_$log_, $scope, $window, wss, ns, ds) {
             var self = this;
 
             $log = _$log_;
@@ -36,10 +44,42 @@
             // initialize mast controller here...
             self.radio = null;
 
+            function triggerRefresh(action) {
+                function createConfirmationText() {
+                    var content = ds.createDiv();
+                    content.append('p').text(action + ' Press OK to update the GUI.');
+                    return content;
+                }
+
+
+                function dOk() {
+                    $log.debug('Refreshing GUI');
+                    $window.location.reload();
+                }
+
+                function dCancel() {
+                    $log.debug('Canceling GUI refresh');
+                }
+
+                ds.openDialog(dialogId, dialogOpts)
+                    .setTitle('Confirm GUI Refresh')
+                    .addContent(createConfirmationText())
+                    .addOk(dOk)
+                    .addCancel(dCancel)
+                    .bindKeys();
+            }
+
+            wss.bindHandlers({
+                'guiAdded': function () { triggerRefresh('New GUI components were added.') },
+                'guiRemoved': function () { triggerRefresh('Some GUI components were removed.') }
+            });
+
             // delegate to NavService
             self.toggleNav = function () {
                 ns.toggleNav();
             };
+
+            $scope.user = onosAuth || '(no one)';
 
             $log.log('MastCtrl has been created');
         }])

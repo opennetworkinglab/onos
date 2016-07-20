@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,8 +51,6 @@ public interface FlowRuleService
      */
     Iterable<FlowEntry> getFlowEntries(DeviceId deviceId);
 
-    // TODO: add createFlowRule factory method and execute operations method
-
     /**
      * Applies the specified flow rules onto their respective devices. These
      * flow rules will be retained by the system and re-applied anytime the
@@ -68,31 +66,35 @@ public interface FlowRuleService
      * be removed once the device reconnects.
      *
      * @param flowRules one or more flow rules
-     * throws SomeKindOfException that indicates which ones were removed and
-     *                  which ones failed
      */
     void removeFlowRules(FlowRule... flowRules);
 
     /**
-     * Removes all rules by id.
+     * Removes all rules submitted by a particular application.
      *
-     * @param appId id to remove
+     * @param appId ID of application whose flows will be removed
      */
     void removeFlowRulesById(ApplicationId appId);
 
     /**
-     * Returns a list of rules with this application id.
+     * Returns a list of rules with this application ID.
      *
-     * @param id the id to look up
+     * @param id the application ID to look up
      * @return collection of flow rules
      */
     Iterable<FlowRule> getFlowRulesById(ApplicationId id);
 
     /**
-     * Returns a list of rules filterd by application and group id.
+     * Returns a list of rules filtered by application and group id.
+     * <p>
+     * Note that the group concept here is simply a logical grouping of flows.
+     * This is not the same as a group in the
+     * {@link org.onosproject.net.group.GroupService}, and this method will not
+     * return flows that are mapped to a particular {@link org.onosproject.net.group.Group}.
+     * </p>
      *
-     * @param appId the application id to lookup
-     * @param groupId the groupid to lookup
+     * @param appId the application ID to look up
+     * @param groupId the group ID to look up
      * @return collection of flow rules
      */
     Iterable<FlowRule> getFlowRulesByGroupId(ApplicationId appId, short groupId);

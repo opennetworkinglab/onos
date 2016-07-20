@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.onosproject.pcepio.protocol.PcepError;
 import org.onosproject.pcepio.protocol.PcepErrorMsg;
 import org.onosproject.pcepio.protocol.PcepErrorObject;
 import org.onosproject.pcepio.protocol.PcepFactory;
+import org.onosproject.pcepio.protocol.PcepFecObjectIPv4.Builder;
 import org.onosproject.pcepio.protocol.PcepFecObjectIPv4Adjacency;
 import org.onosproject.pcepio.protocol.PcepInitiateMsg;
 import org.onosproject.pcepio.protocol.PcepIroObject;
@@ -222,5 +223,10 @@ public class PcepFactoryVer1 implements PcepFactory {
     @Override
     public PcepLabelRangeResvMsg.Builder buildPcepLabelRangeResvMsg() {
         return new PcepLabelRangeResvMsgVer1.Builder();
+    }
+
+    @Override
+    public Builder buildFecObjectIpv4() {
+        return new PcepFecObjectIPv4Ver1.Builder();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,8 +38,8 @@ public class DefaultMoveExtensionTreatment extends AbstractExtension
     private ExtensionTreatmentType type;
 
     private final KryoNamespace appKryo = new KryoNamespace.Builder()
-            .register(byte[].class).register(Integer.class).register(Map.class)
-            .build();
+            .register(Map.class)
+            .build("DefaultMoveExtensionTreatment");
 
     /**
      * Creates a new move Treatment.

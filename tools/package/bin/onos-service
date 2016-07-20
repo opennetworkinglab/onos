@@ -16,7 +16,7 @@ set -u  # exit on undefined variable
 # If ONOS_HOME is set, respect its value.
 # If ONOS_HOME is not set (e.g. in the init or service environment),
 # set it based on this script's path.
-ONOS_HOME=${ONOS_HOME:-$(readlink -e `dirname $0`/..)}
+ONOS_HOME=${ONOS_HOME:-$(cd $(dirname $0)/.. >/dev/null 2>&1 && pwd)}
 KARAF_ARGS=
 SYS_APPS=drivers
 ONOS_APPS=${ONOS_APPS:-}  # Empty means don't activate any new apps

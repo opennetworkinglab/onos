@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 <scenario name="setup" description="ONOS cluster setup">
     <group name="Setup">
         <step name="Push-Bits" exec="onos-push-bits-through-proxy" if="${OCT}"/>
-        <step name="Secure-SSH" exec="onos-secure-ssh -u ${ONOS_WEB_USER} -p ${ONOS_WEB_PASS}" if="${ONOS_USE_SSH}"/>
         <step name="Enable-Flow-Objective-Intents" if="${ONOS_USE_FOI}"
               exec="onos ${OC1} cfg set org.onosproject.net.intent.impl.compiler.IntentConfigurableRegistrator useFlowObjectives true"/>
 
@@ -30,10 +29,12 @@
             <step name="Install-${#}" exec="onos-install ${OC#}"
                   requires="Kill-${#},Push-Bits-${#},Push-Bits"/>
 
-            <dependency name="Secure-SSH" requires="Install-${#}"/>
+            <step name="Secure-SSH-${#}" requires="Install-${#}"
+                  exec="onos-secure-ssh -u ${ONOS_WEB_USER} -p ${ONOS_WEB_PASS} ${OC#}"
+                  if="${ONOS_USE_SSH}"/>
 
             <step name="Wait-for-Start-${#}" exec="onos-wait-for-start ${OC#}"
-                  requires="Install-${#},~Secure-SSH"/>
+                  requires="Install-${#},~Secure-SSH-${#}"/>
 
             <step name="Check-Nodes-${#}" exec="onos-check-nodes ${OC#}" delay="3"
                   requires="~Wait-for-Start-${#}"/>

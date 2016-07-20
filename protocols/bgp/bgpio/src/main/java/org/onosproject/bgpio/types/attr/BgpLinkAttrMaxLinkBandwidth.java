@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ public final class BgpLinkAttrMaxLinkBandwidth implements BgpValueType {
      *
      * @return Maximum link bandwidth
      */
-    float linkAttrMaxLinkBandwidth() {
+    public float linkAttrMaxLinkBandwidth() {
         return maxBandwidth;
     }
 
@@ -107,8 +107,6 @@ public final class BgpLinkAttrMaxLinkBandwidth implements BgpValueType {
      * @return normal float
      */
     static float ieeeToFloatRead(int iVal) {
-        iVal = (((iVal & 0xFF) << 24) | ((iVal & 0xFF00) << 8)
-                | ((iVal & 0xFF0000) >> 8) | ((iVal >> 24) & 0xFF));
 
         return Float.intBitsToFloat(iVal);
     }

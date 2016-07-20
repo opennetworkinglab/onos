@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 package org.onosproject.net.flowobjective;
 
 import com.google.common.annotations.Beta;
+
+import java.util.Map;
+
 import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.store.Store;
 
@@ -51,6 +54,13 @@ public interface FlowObjectiveStore
      *          null if no group mapping existed in the store
      */
     NextGroup removeNextGroup(Integer nextId);
+
+    /**
+     * Fetch all groups from the store and their mapping to nextIds.
+     *
+     * @return a map that represents the current snapshot of Next-ids to NextGroups
+     */
+    Map<Integer, NextGroup> getAllGroups();
 
     /**
      * Allocates a next objective id. This id is globally unique

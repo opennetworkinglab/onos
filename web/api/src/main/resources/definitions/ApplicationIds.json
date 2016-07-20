@@ -1,0 +1,35 @@
+{
+  "type": "object",
+  "title": "applicationIds",
+  "required": [
+    "applicationIds"
+  ],
+  "properties": {
+    "applicationIds": {
+      "type": "array",
+      "xml": {
+        "name": "applicationIds",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "applicationId",
+        "required": [
+          "name",
+          "id"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "org.onosproject.distributedprimitives"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1
+          }
+        }
+      }
+    }
+  }
+}

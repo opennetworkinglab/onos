@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.onosproject.rest.resources;
 
 import org.onlab.rest.AbstractWebApplication;
+import org.onosproject.rest.exceptions.InvalidConfigExceptionMapper;
 
 import java.util.Set;
 
@@ -40,14 +41,17 @@ public class CoreWebApplication extends AbstractWebApplication {
                 GroupsWebResource.class,
                 MetersWebResource.class,
                 TopologyWebResource.class,
-                ConfigWebResource.class,
                 PathsWebResource.class,
                 StatisticsWebResource.class,
                 MetricsWebResource.class,
                 FlowObjectiveWebResource.class,
                 MulticastRouteWebResource.class,
                 DeviceKeyWebResource.class,
-                RegionsWebResource.class
+                RegionsWebResource.class,
+                TenantWebResource.class,
+                VirtualNetworkWebResource.class,
+                MastershipWebResource.class,
+                InvalidConfigExceptionMapper.class
         );
     }
 }

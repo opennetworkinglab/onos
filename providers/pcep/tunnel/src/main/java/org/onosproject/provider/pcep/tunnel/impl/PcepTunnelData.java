@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.Objects;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Path;
-import org.onosproject.pcepio.types.StatefulIPv4LspIdentidiersTlv;
+import org.onosproject.pcepio.types.StatefulIPv4LspIdentifiersTlv;
 
 import com.google.common.base.MoreObjects;
 
@@ -43,7 +43,7 @@ public class PcepTunnelData {
     private short tunnelId;
     private int extTunnelId;
     private short lspId;
-    private StatefulIPv4LspIdentidiersTlv statefulIpv4IndentifierTlv;
+    private StatefulIPv4LspIdentifiersTlv statefulIpv4IndentifierTlv;
 
     /**
      * Default constructor.
@@ -203,7 +203,7 @@ public class PcepTunnelData {
      * Sets statefulIpv4Identifiers tlv.
      * @param value statefulIpv4Identifiers tlv
      */
-    public void setStatefulIpv4IndentifierTlv(StatefulIPv4LspIdentidiersTlv value) {
+    public void setStatefulIpv4IndentifierTlv(StatefulIPv4LspIdentifiersTlv value) {
         this.statefulIpv4IndentifierTlv = value;
     }
 
@@ -329,7 +329,7 @@ public class PcepTunnelData {
      *
      * @return statefulIpv4Indentifier tlv
      */
-    public StatefulIPv4LspIdentidiersTlv statefulIpv4IndentifierTlv() {
+    public StatefulIPv4LspIdentifiersTlv statefulIpv4IndentifierTlv() {
         return this.statefulIpv4IndentifierTlv;
     }
 

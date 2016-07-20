@@ -1,0 +1,2 @@
+onosAuth = '';
+userPrefs = {};

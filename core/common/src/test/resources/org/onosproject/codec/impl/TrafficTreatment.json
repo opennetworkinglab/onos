@@ -1,0 +1,21 @@
+{
+  "instructions": [
+    {
+      "type": "OUTPUT",
+      "port": -3
+    },
+    {
+      "type": "L2MODIFICATION",
+      "subtype": "ETH_SRC",
+      "mac": "00:00:00:00:00:00"
+    },
+    {
+      "type": "METER",
+      "meterId": "0"
+    },
+    {
+      "type": "TABLE",
+      "tableId": "1"
+    }
+  ]
+}

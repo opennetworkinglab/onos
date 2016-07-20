@@ -1,0 +1,23 @@
+def remote_jar (
+        name,
+        out,
+        url,
+        sha1,
+        maven_coords = None,
+        visibility = [ 'PUBLIC' ],
+    ):
+
+    prebuilt_jar(
+        name = name,
+        binary_jar = ':' + out,
+        maven_coords = maven_coords,
+        visibility = visibility,
+    )
+
+    remote_file(
+        name = out,
+        out = out,
+        url = url,
+        sha1 = sha1,
+        visibility = []
+    )

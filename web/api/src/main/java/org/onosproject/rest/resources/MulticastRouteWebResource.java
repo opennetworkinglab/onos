@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public class MulticastRouteWebResource extends AbstractWebResource {
      * Get all multicast routes.
      * Returns array of all known multicast routes.
      *
-     * @return 200 OK
+     * @return 200 OK with array of all known multicast routes
      * @onos.rsModel McastRoutesGet
      */
     @GET
@@ -87,12 +87,12 @@ public class MulticastRouteWebResource extends AbstractWebResource {
      * Removes a route from the multicast RIB.
      *
      * @param stream multicast route JSON
+     * @return 204 NO CONTENT
      * @onos.rsModel McastRoutePost
      */
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public void deleteRoute(InputStream stream) {
+    public Response deleteRoute(InputStream stream) {
         MulticastRouteService service = get(MulticastRouteService.class);
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
@@ -101,5 +101,6 @@ public class MulticastRouteWebResource extends AbstractWebResource {
         } catch (IOException ex) {
             throw new IllegalArgumentException(ex);
         }
+        return Response.noContent().build();
     }
 }

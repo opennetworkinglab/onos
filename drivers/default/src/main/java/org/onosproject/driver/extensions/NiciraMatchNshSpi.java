@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,15 @@ public final class NiciraMatchNshSpi extends AbstractExtension implements Extens
      */
     public NiciraMatchNshSpi() {
         this.nshSpi = null;
+    }
+
+    /**
+     * Creates an instance with initialized Nsh Service Path ID.
+     *
+     * @param nshSpi nsh service path ID
+     */
+    public NiciraMatchNshSpi(NshServicePathId nshSpi) {
+        this.nshSpi = nshSpi;
     }
 
     /**

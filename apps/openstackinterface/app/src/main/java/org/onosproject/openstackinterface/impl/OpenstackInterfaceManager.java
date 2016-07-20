@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.WebResource;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -37,7 +35,7 @@ import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackNetwork;
-import org.onosproject.openstackinterface.OpenstackNetworkingConfig;
+import org.onosproject.openstackinterface.OpenstackInterfaceConfig;
 import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstackinterface.OpenstackRouter;
 import org.onosproject.openstackinterface.OpenstackSecurityGroup;
@@ -48,10 +46,20 @@ import org.onosproject.openstackinterface.web.OpenstackRouterCodec;
 import org.onosproject.openstackinterface.web.OpenstackSecurityGroupCodec;
 import org.onosproject.openstackinterface.web.OpenstackSubnetCodec;
 import org.slf4j.Logger;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -85,13 +93,16 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
     private static final String PATH_ACCESS = "access";
     private static final String PATH_TOKEN = "token";
     private static final String PATH_ID = "id";
+    private static final String PATH_EXPIRES = "expires";
 
     private static final String HEADER_AUTH_TOKEN = "X-Auth-Token";
+    private static final String TOKEN_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
     private final Logger log = getLogger(getClass());
     private String neutronUrl;
     private String keystoneUrl;
     private String tokenId;
+    private String tokenExpires;
     private String userName;
     private String pass;
 
@@ -110,12 +121,12 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
             Executors.newSingleThreadExecutor(groupedThreads("onos/openstackinterface", "config-event"));
 
     private final Set<ConfigFactory> factories = ImmutableSet.of(
-            new ConfigFactory<ApplicationId, OpenstackNetworkingConfig>(APP_SUBJECT_FACTORY,
-                    OpenstackNetworkingConfig.class,
+            new ConfigFactory<ApplicationId, OpenstackInterfaceConfig>(APP_SUBJECT_FACTORY,
+                    OpenstackInterfaceConfig.class,
                     "openstackinterface") {
                 @Override
-                public OpenstackNetworkingConfig createConfig() {
-                    return new OpenstackNetworkingConfig();
+                public OpenstackInterfaceConfig createConfig() {
+                    return new OpenstackInterfaceConfig();
                 }
             }
     );
@@ -146,7 +157,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
      */
     public Collection<OpenstackNetwork> getNetworks() {
 
-        WebResource.Builder builder = getClientBuilder(neutronUrl + URI_NETWORKS);
+        Invocation.Builder builder = getClientBuilder(neutronUrl + URI_NETWORKS);
         String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
                 header(HEADER_AUTH_TOKEN, getToken()).get(String.class);
 
@@ -176,7 +187,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
      */
     public Collection<OpenstackPort> getPorts() {
 
-        WebResource.Builder builder = getClientBuilder(neutronUrl + URI_PORTS);
+        Invocation.Builder builder = getClientBuilder(neutronUrl + URI_PORTS);
         String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
                 header(HEADER_AUTH_TOKEN, getToken()).get(String.class);
 
@@ -198,7 +209,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
     }
 
     public Collection<OpenstackRouter> getRouters() {
-        WebResource.Builder builder = getClientBuilder(neutronUrl + PATH_ROUTERS);
+        Invocation.Builder builder = getClientBuilder(neutronUrl + PATH_ROUTERS);
         String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
                 header(HEADER_AUTH_TOKEN, getToken()).get(String.class);
 
@@ -227,8 +238,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
      * @return List of OpenstackSubnet
      */
     public Collection<OpenstackSubnet> getSubnets() {
-
-        WebResource.Builder builder = getClientBuilder(neutronUrl + URI_SUBNETS);
+        Invocation.Builder builder = getClientBuilder(neutronUrl + URI_SUBNETS);
         String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
                 header(HEADER_AUTH_TOKEN, getToken()).get(String.class);
 
@@ -256,7 +266,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
      * @return OpenstackSecurityGroup object or null if fails
      */
     public OpenstackSecurityGroup getSecurityGroup(String id) {
-        WebResource.Builder builder = getClientBuilder(neutronUrl + URI_SECURITY_GROUPS + "/" + id);
+        Invocation.Builder builder = getClientBuilder(neutronUrl + URI_SECURITY_GROUPS + "/" + id);
         String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
                 header(HEADER_AUTH_TOKEN, getToken()).get(String.class);
 
@@ -273,25 +283,25 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
         return securityGroup;
     }
 
-    private WebResource.Builder getClientBuilder(String uri) {
-        Client client = Client.create();
-        WebResource resource = client.resource(uri);
-        return resource.accept(JSON_UTF_8.toString())
-                .type(JSON_UTF_8.toString());
+    private Invocation.Builder getClientBuilder(String uri) {
+        Client client = ClientBuilder.newClient();
+        WebTarget wt = client.target(uri);
+        return wt.request(JSON_UTF_8.toString());
     }
 
     private String getToken() {
-        if (isTokenInvalid()) {
+        if (!isTokenValid()) {
             String request = "{\"auth\": {\"tenantName\": \"admin\", " +
                     "\"passwordCredentials\":  {\"username\": \"" +
                     userName + "\",\"password\": \"" + pass + "\"}}}";
-            WebResource.Builder builder = getClientBuilder(keystoneUrl + URI_TOKENS);
-            String response = builder.accept(MediaType.APPLICATION_JSON).post(String.class, request);
+            Invocation.Builder builder = getClientBuilder(keystoneUrl + URI_TOKENS);
+            String response = builder.accept(MediaType.APPLICATION_JSON).post(Entity.json(request), String.class);
 
             ObjectMapper mapper = new ObjectMapper();
             try {
                 ObjectNode node = (ObjectNode) mapper.readTree(response);
                 tokenId = node.path(PATH_ACCESS).path(PATH_TOKEN).path(PATH_ID).asText();
+                tokenExpires = node.path(PATH_ACCESS).path(PATH_TOKEN).path(PATH_EXPIRES).asText();
             } catch (IOException e) {
                 log.warn("getToken()", e);
             }
@@ -301,9 +311,27 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
         return tokenId;
     }
 
-    private boolean isTokenInvalid() {
-        //TODO: validation check for the existing token
-        return true;
+    private boolean isTokenValid() {
+
+        if (tokenExpires == null || tokenId == null || tokenExpires.isEmpty()) {
+            return false;
+        }
+
+        try {
+            SimpleDateFormat dateFormat = new SimpleDateFormat(TOKEN_DATE_FORMAT);
+            Date exireDate = dateFormat.parse(tokenExpires);
+
+            Calendar today = Calendar.getInstance();
+            if (exireDate.after(today.getTime())) {
+                return true;
+            }
+        } catch (ParseException e) {
+            log.error("Token parse exception error : {}", e.getMessage());
+            return false;
+        }
+
+        log.debug("token is Invalid");
+        return false;
     }
 
     @Override
@@ -389,8 +417,8 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
     private class InternalConfigListener implements NetworkConfigListener {
 
         public void configureNetwork() {
-            OpenstackNetworkingConfig cfg =
-                    cfgService.getConfig(appId, OpenstackNetworkingConfig.class);
+            OpenstackInterfaceConfig cfg =
+                    cfgService.getConfig(appId, OpenstackInterfaceConfig.class);
             if (cfg == null) {
                 log.error("There is no openstack server information in config.");
                 return;
@@ -406,7 +434,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
         public void event(NetworkConfigEvent event) {
             if (((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
                     event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)) &&
-                    event.configClass().equals(OpenstackNetworkingConfig.class)) {
+                    event.configClass().equals(OpenstackInterfaceConfig.class)) {
 
                 log.info("Network configuration changed");
                 networkEventExcutorService.execute(this::configureNetwork);

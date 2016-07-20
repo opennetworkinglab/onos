@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -330,7 +330,7 @@ public class DistributedTopologyStore
         public void event(EventuallyConsistentMapEvent<DeviceId, Set<ConnectPoint>> event) {
             if (event.type() == EventuallyConsistentMapEvent.Type.PUT) {
                 if (!event.value().isEmpty()) {
-                    log.info("Cluster rooted at {} has {} broadcast-points; #{}",
+                    log.debug("Cluster rooted at {} has {} broadcast-points; #{}",
                              event.key(), event.value().size(), event.value().hashCode());
                 }
             }

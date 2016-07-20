@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -226,7 +226,7 @@
 
     // return the given string with the first character capitalized.
     function cap(s) {
-        return s ? s[0].toUpperCase() + s.slice(1) : s;
+        return s ? s[0].toUpperCase() + s.slice(1).toLowerCase() : s;
     }
 
     // return encoding structure for given parameters

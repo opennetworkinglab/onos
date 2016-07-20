@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,16 @@
 package org.onosproject.codec.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onlab.osgi.DefaultServiceDirectory;
+import org.onlab.osgi.ServiceDirectory;
 import org.onlab.util.HexString;
 import org.onosproject.codec.CodecContext;
+import org.onosproject.codec.ExtensionTreatmentCodec;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalId;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
@@ -28,13 +34,14 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * JSON encoding of Instructions.
  */
 public final class EncodeInstructionCodecHelper {
-    protected static final Logger log = LoggerFactory.getLogger(EncodeInstructionCodecHelper.class);
+    protected static final Logger log = getLogger(EncodeInstructionCodecHelper.class);
     private final Instruction instruction;
     private final CodecContext context;
 
@@ -60,12 +67,6 @@ public final class EncodeInstructionCodecHelper {
         result.put(InstructionCodec.SUBTYPE, l0Instruction.subtype().name());
 
         switch (l0Instruction.subtype()) {
-            case LAMBDA:
-                final L0ModificationInstruction.ModLambdaInstruction modLambdaInstruction =
-                        (L0ModificationInstruction.ModLambdaInstruction) l0Instruction;
-                result.put(InstructionCodec.LAMBDA, modLambdaInstruction.lambda());
-                break;
-
             case OCH:
                 L0ModificationInstruction.ModOchSignalInstruction ochSignalInstruction =
                         (L0ModificationInstruction.ModOchSignalInstruction) l0Instruction;
@@ -125,25 +126,21 @@ public final class EncodeInstructionCodecHelper {
                         (L2ModificationInstruction.ModEtherInstruction) l2Instruction;
                 result.put(InstructionCodec.MAC, modEtherInstruction.mac().toString());
                 break;
-
             case VLAN_ID:
                 final L2ModificationInstruction.ModVlanIdInstruction modVlanIdInstruction =
                         (L2ModificationInstruction.ModVlanIdInstruction) l2Instruction;
                 result.put(InstructionCodec.VLAN_ID, modVlanIdInstruction.vlanId().toShort());
                 break;
-
             case VLAN_PCP:
                 final L2ModificationInstruction.ModVlanPcpInstruction modVlanPcpInstruction =
                         (L2ModificationInstruction.ModVlanPcpInstruction) l2Instruction;
                 result.put(InstructionCodec.VLAN_PCP, modVlanPcpInstruction.vlanPcp());
                 break;
-
             case MPLS_LABEL:
                 final L2ModificationInstruction.ModMplsLabelInstruction modMplsLabelInstruction =
                         (L2ModificationInstruction.ModMplsLabelInstruction) l2Instruction;
                 result.put(InstructionCodec.MPLS_LABEL, modMplsLabelInstruction.label().toInt());
                 break;
-
             case MPLS_PUSH:
                 final L2ModificationInstruction.PushHeaderInstructions pushHeaderInstructions =
                         (L2ModificationInstruction.PushHeaderInstructions) l2Instruction;
@@ -151,13 +148,18 @@ public final class EncodeInstructionCodecHelper {
                 result.put(InstructionCodec.ETHERNET_TYPE,
                         pushHeaderInstructions.ethernetType().toShort());
                 break;
-
             case TUNNEL_ID:
                 final L2ModificationInstruction.ModTunnelIdInstruction modTunnelIdInstruction =
                         (L2ModificationInstruction.ModTunnelIdInstruction) l2Instruction;
                 result.put(InstructionCodec.TUNNEL_ID, modTunnelIdInstruction.tunnelId());
                 break;
-
+            case MPLS_BOS:
+                final L2ModificationInstruction.ModMplsBosInstruction modMplsBosInstruction =
+                        (L2ModificationInstruction.ModMplsBosInstruction) l2Instruction;
+                result.put(InstructionCodec.MPLS_BOS, modMplsBosInstruction.mplsBos());
+            case MPLS_POP:
+            case DEC_MPLS_TTL:
+                break;
             default:
                 log.info("Cannot convert L2 subtype of {}", l2Instruction.subtype());
                 break;
@@ -181,14 +183,16 @@ public final class EncodeInstructionCodecHelper {
                         (L3ModificationInstruction.ModIPInstruction) l3Instruction;
                 result.put(InstructionCodec.IP, modIPInstruction.ip().toString());
                 break;
-
             case IPV6_FLABEL:
                 final L3ModificationInstruction.ModIPv6FlowLabelInstruction
                         modFlowLabelInstruction =
                         (L3ModificationInstruction.ModIPv6FlowLabelInstruction) l3Instruction;
                 result.put(InstructionCodec.FLOW_LABEL, modFlowLabelInstruction.flowLabel());
                 break;
-
+            case TTL_IN:
+            case TTL_OUT:
+            case DEC_TTL:
+                break;
             default:
                 log.info("Cannot convert L3 subtype of {}", l3Instruction.subtype());
                 break;
@@ -210,17 +214,40 @@ public final class EncodeInstructionCodecHelper {
                         (L4ModificationInstruction.ModTransportPortInstruction) l4Instruction;
                 result.put(InstructionCodec.TCP_PORT, modTcpPortInstruction.port().toInt());
                 break;
-
             case UDP_DST:
             case UDP_SRC:
                 final L4ModificationInstruction.ModTransportPortInstruction modUdpPortInstruction =
                         (L4ModificationInstruction.ModTransportPortInstruction) l4Instruction;
                 result.put(InstructionCodec.UDP_PORT, modUdpPortInstruction.port().toInt());
                 break;
-
             default:
                 log.info("Cannot convert L4 subtype of {}", l4Instruction.subtype());
                 break;
+        }
+    }
+
+
+    /**
+     * Encodes a extension instruction.
+     *
+     * @param result json node that the instruction attributes are added to
+     */
+    private void encodeExtension(ObjectNode result) {
+        final Instructions.ExtensionInstructionWrapper extensionInstruction =
+                (Instructions.ExtensionInstructionWrapper) instruction;
+
+        DeviceId deviceId = extensionInstruction.deviceId();
+
+        ServiceDirectory serviceDirectory = new DefaultServiceDirectory();
+        DeviceService deviceService = serviceDirectory.get(DeviceService.class);
+        Device device = deviceService.getDevice(deviceId);
+
+        if (device.is(ExtensionTreatmentCodec.class)) {
+            ExtensionTreatmentCodec treatmentCodec = device.as(ExtensionTreatmentCodec.class);
+            ObjectNode node = treatmentCodec.encode(extensionInstruction.extensionInstruction(), context);
+            result.set(InstructionCodec.EXTENSION, node);
+        } else {
+            log.warn("There is no codec to encode extension for device {}", deviceId.toString());
         }
     }
 
@@ -240,7 +267,6 @@ public final class EncodeInstructionCodecHelper {
                 result.put(InstructionCodec.PORT, outputInstruction.port().toString());
                 break;
 
-            case DROP:
             case NOACTION:
                 break;
 
@@ -254,6 +280,12 @@ public final class EncodeInstructionCodecHelper {
                 final Instructions.MeterInstruction meterInstruction =
                         (Instructions.MeterInstruction) instruction;
                 result.put(InstructionCodec.METER_ID, meterInstruction.meterId().toString());
+                break;
+
+            case TABLE:
+                final Instructions.TableTypeTransition tableTransitionInstruction =
+                        (Instructions.TableTypeTransition) instruction;
+                result.put(InstructionCodec.TABLE_ID, tableTransitionInstruction.tableId().toString());
                 break;
 
             case QUEUE:
@@ -281,6 +313,10 @@ public final class EncodeInstructionCodecHelper {
 
             case L4MODIFICATION:
                 encodeL4(result);
+                break;
+
+            case EXTENSION:
+                encodeExtension(result);
                 break;
 
             default:

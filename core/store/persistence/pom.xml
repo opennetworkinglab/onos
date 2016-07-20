@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,24 +18,11 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <repositories>
-        <repository>
-            <id>repository.springsource.com.release</id>
-            <name>SpringSource OBR - Release</name>
-            <url>http://repository.springsource.com/maven/bundles/release</url>
-        </repository>
-        <repository>
-            <id>repository.springsource.com.external</id>
-            <name>SpringSource OBR - External</name>
-            <url>http://repository.springsource.com/maven/bundles/external</url>
-        </repository>
-    </repositories>
 
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-core-store</artifactId>
-        <version>1.5.2-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.6.0</version>
     </parent>
 
     <artifactId>onos-core-persistence</artifactId>
@@ -46,16 +33,14 @@
 
 
     <dependencies>
-        <!--<dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-api</artifactId>
-        </dependency>-->
+
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
             <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.mapdb</groupId>
             <artifactId>mapdb</artifactId>

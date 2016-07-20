@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,8 +23,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-incubator</artifactId>
-        <version>1.5.2-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.6.0</version>
     </parent>
 
     <artifactId>onos-incubator-net</artifactId>
@@ -38,6 +37,15 @@
             <artifactId>onos-incubator-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-incubator-api</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+
 
         <dependency>
             <groupId>org.onosproject</groupId>
@@ -67,11 +75,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.scr.annotations</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.karaf.features</groupId>
             <artifactId>org.apache.karaf.features.core</artifactId>
         </dependency>
@@ -86,6 +89,11 @@
             <artifactId>onos-incubator-store</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.annotations</artifactId>
         </dependency>
     </dependencies>
 

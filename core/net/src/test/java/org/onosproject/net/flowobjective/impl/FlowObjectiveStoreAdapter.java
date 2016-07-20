@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.onosproject.net.flowobjective.impl;
+
+import java.util.Map;
 
 import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.flowobjective.FlowObjectiveStore;
@@ -56,5 +58,10 @@ public class FlowObjectiveStoreAdapter implements FlowObjectiveStore {
     @Override
     public boolean hasDelegate() {
         return false;
+    }
+
+    @Override
+    public Map<Integer, NextGroup> getAllGroups() {
+        return null;
     }
 }

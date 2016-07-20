@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Representation of a Router gateway.
@@ -28,11 +29,11 @@ public final class RouterGateway {
 
     private final TenantNetworkId networkId;
     private final boolean enableSnat;
-    private final Collection<FixedIp> externalFixedIps;
+    private final Set<FixedIp> externalFixedIps;
 
     // Public construction is prohibited
     private RouterGateway(TenantNetworkId networkId, boolean enableSnat,
-                         Collection<FixedIp> externalFixedIps) {
+                         Set<FixedIp> externalFixedIps) {
         this.networkId = checkNotNull(networkId, "networkId cannot be null");
         this.enableSnat = checkNotNull(enableSnat, "enableSnat cannot be null");
         this.externalFixedIps = checkNotNull(externalFixedIps, "externalFixedIps cannot be null");
@@ -47,7 +48,7 @@ public final class RouterGateway {
      * @return RouterGateway
      */
     public static RouterGateway routerGateway(TenantNetworkId networkId, boolean enableSnat,
-                                              Collection<FixedIp> externalFixedIps) {
+                                              Set<FixedIp> externalFixedIps) {
         return new RouterGateway(networkId, enableSnat, externalFixedIps);
     }
 

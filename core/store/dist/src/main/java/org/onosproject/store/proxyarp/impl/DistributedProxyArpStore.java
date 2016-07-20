@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import org.onosproject.net.proxyarp.ProxyArpStoreDelegate;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.KryoSerializer;
+import org.onosproject.store.serializers.StoreSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,23 +60,20 @@ public class DistributedProxyArpStore implements ProxyArpStore {
     private static final MessageSubject ARP_RESPONSE_MESSAGE =
             new MessageSubject("onos-arp-response");
 
-    protected final KryoSerializer serializer = new KryoSerializer() {
-        @Override
-        protected void setupKryoPool() {
-            serializerPool = KryoNamespace.newBuilder()
+    protected final StoreSerializer serializer = StoreSerializer.using(
+            KryoNamespace.newBuilder()
                     .register(KryoNamespaces.API)
+                    .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
                     .register(ArpResponseMessage.class)
                     .register(ByteBuffer.class)
-                    .build();
-        }
-    };
+                    .build("ProxyArpStore"));
 
     private ProxyArpStoreDelegate delegate;
 
     private Map<HostId, ArpResponseMessage> pendingMessages = Maps.newConcurrentMap();
 
     private ExecutorService executor =
-            newFixedThreadPool(4, groupedThreads("onos/arp", "sender-%d"));
+            newFixedThreadPool(4, groupedThreads("onos/arp", "sender-%d", log));
 
     private NodeId localNodeId;
 

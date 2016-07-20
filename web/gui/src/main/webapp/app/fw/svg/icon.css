@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Icon Service -- CSS file
+ ONOS GUI -- Icon Service (layout) -- CSS file
  */
 
 svg#IconLibDefs {
@@ -37,56 +37,9 @@ svg.embeddedIcon g.icon rect {
 
 svg.embeddedIcon g.icon .glyph {
     stroke: none;
-    fill: white;
     fill-rule: evenodd;
 }
 
-
-/* Sortable table headers */
-.light div.tableColSort svg.embeddedIcon .icon .glyph {
-    fill: black;
-}
-.dark div.tableColSort svg.embeddedIcon .icon .glyph {
-    fill: #ccc;
-}
-
-
-/* color schemes for specific icon classes */
-
 svg.embeddedIcon .icon.appInactive .glyph {
-    fill: none;
-}
-
-.light svg.embeddedIcon .icon.active .glyph {
-    fill: green;
-}
-.dark svg.embeddedIcon .icon.active .glyph {
-    fill: #308C10;
-}
-
-
-.light table svg.embeddedIcon {
-    fill: #ccc;
-}
-.dark table svg.embeddedIcon {
-    fill: #222;
-}
-.light table svg.embeddedIcon .glyph {
-    fill: #333;
-}
-.dark table svg.embeddedIcon .glyph {
-    fill: #ccc;
-}
-
-.light svg.embeddedIcon .icon.active .glyph {
-    fill: green;
-}
-.light svg.embeddedIcon .icon.inactive .glyph {
-    fill: darkred;
-}
-.dark svg.embeddedIcon .icon.active .glyph {
-    fill: #308C10;
-}
-.dark svg.embeddedIcon .icon.inactive .glyph {
-    fill: #AD2D2D;
+    fill: none !important;
 }

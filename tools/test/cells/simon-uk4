@@ -10,7 +10,7 @@
 ###
 
 ## ONOS Cluster VM (has LXC containers for cluster nodes)
-export OCVM=192.168.56.102
+export OCVM=192.168.56.98
 
 #============================================
 # sdn@ocluster:~$ sudo lxc-ls --fancy
@@ -41,7 +41,14 @@ export ONOS_USER=sdn
 export ONOS_APPS="drivers,openflow,proxyarp,drivermatrix,mlb"
 
 ## mininet VM
-export OCN="192.168.56.103"
+export OCN="192.168.56.99"
 
 export ONOS_WEB_USER=onos
 export ONOS_WEB_PASS=rocks
+
+# Verify route to LXC cluster
+netstat -nr | grep 10.0.3 | grep -q $OCVM && echo "Routes to LXC in place" || (
+  echo "Route to LXC not found. Adding...";
+  sudo bash -c "route -n delete 10.0.3.0/24; \
+                route -n add 10.0.3.0/24 192.168.56.98" >/dev/null 2>&1
+)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,21 +31,12 @@ public interface DeviceAdminService extends DeviceService {
     void removeDevice(DeviceId deviceId);
 
     // TODO: add ability to administratively suspend/resume device
-
-    /**
-     * Disables the given port.
-     *
-     * @param deviceId device identifier
-     * @param portNumber port number
-     */
-    void disablePort(DeviceId deviceId, PortNumber portNumber);
-
-    /**
-     * Enables the given port.
-     *
-     * @param deviceId device identifier
-     * @param portNumber port number
-     */
-    void enablePort(DeviceId deviceId, PortNumber portNumber);
-
+  /**
+   * Administratively enables or disables a port on a device.
+   *
+   * @param deviceId  device identifier
+   * @param portNumber port identifier
+   * @param enable true if port is to be enabled, false to disable
+   */
+    void changePortState(DeviceId deviceId, PortNumber portNumber, boolean enable);
 }

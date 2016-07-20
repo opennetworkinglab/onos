@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 /*
  ONOS GUI -- Remote -- General Functions - Unit Tests
  */
+
 describe('factory: fw/remote/urlfn.js', function () {
     var $log, $loc, ufs, fs;
 
@@ -29,7 +30,10 @@ describe('factory: fw/remote/urlfn.js', function () {
         return {
             protocol: function () { return protocol; },
             host: function () { return host; },
-            port: function () { return port; }
+            port: function () { return port; },
+            search: function() {
+                return {debug: 'true'};
+            }
         };
        })
     }));

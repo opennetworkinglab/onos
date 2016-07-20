@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2014-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,8 +19,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos</artifactId>
-        <version>1.5.2-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.6.0</version>
     </parent>
 
     <artifactId>onos-apps</artifactId>
@@ -29,7 +28,6 @@
     <description>ONOS sample applications</description>
 
     <modules>
-        <module>aaa</module>
         <module>acl</module>
         <module>faultmanagement</module>
         <module>fwd</module>
@@ -37,26 +35,26 @@
         <module>proxyarp</module>
         <module>sdnip</module>
         <module>optical</module>
+        <module>newoptical</module>
         <module>metrics</module>
         <module>routing</module>
         <module>routing-api</module>
         <module>reactive-routing</module>
         <module>virtualbng</module>
         <module>bgprouter</module>
+        <module>bgpflowspec</module>
         <module>test</module>
         <module>segmentrouting</module>
-        <module>cordfabric</module>
         <module>xos-integration</module>
+        <module>kafka-integration</module>
         <module>pcep-api</module>
         <module>iptopology-api</module>
-        <module>olt</module>
+        <module>pce</module>
         <module>cip</module>
         <module>flowanalyzer</module>
         <module>vtn</module>
         <module>dhcp</module>
-        <module>cordvtn</module>
         <module>mfwd</module>
-        <module>igmp</module>
         <module>pim</module>
         <module>mlb</module>
         <module>pathpainter</module>
@@ -64,12 +62,18 @@
         <module>cpman</module>
         <module>events</module>
         <module>vrouter</module>
-        <module>cordmcast</module>
         <module>vpls</module>
         <module>openstacknode</module>
         <module>openstacknetworking</module>
         <module>openstackinterface</module>
-  </modules>
+        <module>influxdbmetrics</module>
+        <module>gangliametrics</module>
+        <module>graphitemetrics</module>
+        <module>xosclient</module>
+        <module>scalablegateway</module>
+        <module>bmv2-demo</module>
+    </modules>
+
 
     <properties>
         <web.context>default</web.context>

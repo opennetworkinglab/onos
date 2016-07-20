@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
     private final BlockingQueue<Event> events = new LinkedBlockingQueue<>();
 
     private final ExecutorService executor =
-            newSingleThreadExecutor(groupedThreads("onos/event", "dispatch-%d"));
+            newSingleThreadExecutor(groupedThreads("onos/event", "dispatch-%d", log));
 
     @SuppressWarnings("unchecked")
     private static final Event KILL_PILL = new AbstractEvent(null, 0) {

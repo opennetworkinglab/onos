@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.onosproject.incubator.net.virtual;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.net.Link;
 
 /**
@@ -23,4 +24,10 @@ import org.onosproject.net.Link;
  */
 @Beta
 public interface VirtualLink extends VirtualElement, Link {
+    /**
+     * Returns the tunnel identifier to which this virtual link belongs.
+     *
+     * @return tunnel identifier
+     */
+    TunnelId tunnelId();
 }

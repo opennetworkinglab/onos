@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * A new scheduled executor service that does not eat exception.
  */
-class SharedScheduledExecutorService implements ScheduledExecutorService {
+public class SharedScheduledExecutorService implements ScheduledExecutorService {
 
     private static final String NOT_ALLOWED = "Shutdown of scheduled executor is not allowed";
     private final Logger log = getLogger(getClass());
@@ -62,17 +62,34 @@ class SharedScheduledExecutorService implements ScheduledExecutorService {
     /**
      * Swaps the backing executor with a new one and shuts down the old one.
      *
-     * @param executor new scheduled executor service
+     * @param executorService new scheduled executor service
      */
-    void setBackingExecutor(ScheduledExecutorService executor) {
+    void setBackingExecutor(ScheduledExecutorService executorService) {
         ScheduledExecutorService oldExecutor = this.executor;
-        this.executor = executor;
+        this.executor = executorService;
         oldExecutor.shutdown();
+    }
+
+    /**
+     * Creates and executes a one-shot action that becomes enabled
+     * after the given delay.
+     *
+     * @param command the task to execute
+     * @param delay the time from now to delay execution
+     * @param unit the time unit of the delay parameter
+     * @param repeatFlag the flag to denote whether to restart a failed task
+     * @return a ScheduledFuture representing pending completion of
+     *         the task and whose {@code get()} method will return
+     *         {@code null} upon completion
+     */
+    public ScheduledFuture<?> schedule(Runnable command, long delay,
+                                       TimeUnit unit, boolean repeatFlag) {
+        return executor.schedule(wrap(command, repeatFlag), delay, unit);
     }
 
     @Override
     public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-        return executor.schedule(wrap(command), delay, unit);
+        return schedule(command, delay, unit, false);
     }
 
     @Override
@@ -88,16 +105,76 @@ class SharedScheduledExecutorService implements ScheduledExecutorService {
         }, delay, unit);
     }
 
+    /**
+     * Creates and executes a periodic action that becomes enabled first
+     * after the given initial delay, and subsequently with the given
+     * period; that is executions will commence after
+     * {@code initialDelay} then {@code initialDelay+period}, then
+     * {@code initialDelay + 2 * period}, and so on.
+     * Depends on the repeat flag that the user set, the failed tasks can be
+     * either restarted or terminated. If the repeat flag is set to to true,
+     * ant execution of the task encounters an exception, subsequent executions
+     * are permitted, otherwise, subsequent executions are suppressed.
+     * If any execution of this task takes longer than its period, then
+     * subsequent executions may start late, but will not concurrently execute.
+     *
+     * @param command the task to execute
+     * @param initialDelay the time to delay first execution
+     * @param period the period between successive executions
+     * @param unit the time unit of the initialDelay and period parameters
+     * @param repeatFlag the flag to denote whether to restart a failed task
+     * @return a ScheduledFuture representing pending completion of
+     *         the task, and whose {@code get()} method will throw an
+     *         exception upon cancellation
+     */
+    public ScheduledFuture<?> scheduleAtFixedRate(Runnable command,
+                                                  long initialDelay,
+                                                  long period,
+                                                  TimeUnit unit,
+                                                  boolean repeatFlag) {
+        return executor.scheduleAtFixedRate(wrap(command, repeatFlag),
+                initialDelay, period, unit);
+    }
+
     @Override
     public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay,
                                                   long period, TimeUnit unit) {
-        return executor.scheduleAtFixedRate(wrap(command), initialDelay, period, unit);
+        return scheduleAtFixedRate(command, initialDelay, period, unit, false);
+    }
+
+    /**
+     * Creates and executes a periodic action that becomes enabled first
+     * after the given initial delay, and subsequently with the
+     * given delay between the termination of one execution and the
+     * commencement of the next.
+     * Depends on the repeat flag that the user set, the failed tasks can be
+     * either restarted or terminated. If the repeat flag is set to to true,
+     * ant execution of the task encounters an exception, subsequent executions
+     * are permitted, otherwise, subsequent executions are suppressed.
+     *
+     * @param command the task to execute
+     * @param initialDelay the time to delay first execution
+     * @param delay the delay between the termination of one
+     * execution and the commencement of the next
+     * @param unit the time unit of the initialDelay and delay parameters
+     * @param repeatFlag the flag to denote whether to restart a failed task
+     * @return a ScheduledFuture representing pending completion of
+     *         the task, and whose {@code get()} method will throw an
+     *         exception upon cancellation
+     */
+    public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command,
+                                                     long initialDelay,
+                                                     long delay,
+                                                     TimeUnit unit,
+                                                     boolean repeatFlag) {
+        return executor.scheduleWithFixedDelay(wrap(command, repeatFlag),
+                initialDelay, delay, unit);
     }
 
     @Override
     public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay,
                                                      long delay, TimeUnit unit) {
-        return executor.scheduleWithFixedDelay(wrap(command), initialDelay, delay, unit);
+        return scheduleWithFixedDelay(command, initialDelay, delay, unit, false);
     }
 
     @Override
@@ -171,8 +248,8 @@ class SharedScheduledExecutorService implements ScheduledExecutorService {
         executor.execute(command);
     }
 
-    private Runnable wrap(Runnable command) {
-        return new LoggableRunnable(command);
+    private Runnable wrap(Runnable command, boolean repeatFlag) {
+        return new LoggableRunnable(command, repeatFlag);
     }
 
     /**
@@ -180,19 +257,31 @@ class SharedScheduledExecutorService implements ScheduledExecutorService {
      */
     private class LoggableRunnable implements Runnable {
         private Runnable runnable;
+        private boolean repeatFlag;
 
-        public LoggableRunnable(Runnable runnable) {
+        public LoggableRunnable(Runnable runnable, boolean repeatFlag) {
             super();
             this.runnable = runnable;
+            this.repeatFlag = repeatFlag;
         }
 
         @Override
         public void run() {
+            if (Thread.currentThread().isInterrupted()) {
+                log.info("Task interrupted, quitting");
+                return;
+            }
+
             try {
                 runnable.run();
             } catch (Exception e) {
                 log.error("Uncaught exception on " + runnable.getClass().getSimpleName(), e);
-                throw Throwables.propagate(e);
+
+                // if repeat flag set as false, we simply throw an exception to
+                // terminate this task
+                if (!repeatFlag) {
+                    throw Throwables.propagate(e);
+                }
             }
         }
     }

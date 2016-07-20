@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,42 +15,31 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
+import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.primitives.TransactionId;
-import org.onosproject.store.primitives.resources.impl.CommitResult;
-import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.TransactionContext;
 import org.onosproject.store.service.TransactionContextBuilder;
-
 /**
- * The default implementation of a transaction context builder. This builder
- * generates a {@link DefaultTransactionContext}.
+ * Default Transaction Context Builder.
  */
 public class DefaultTransactionContextBuilder extends TransactionContextBuilder {
 
-    private final Supplier<ConsistentMapBuilder> mapBuilderSupplier;
-    private final Function<Transaction, CompletableFuture<CommitResult>> transactionCommitter;
     private final TransactionId transactionId;
+    private final DistributedPrimitiveCreator primitiveCreator;
+    private final TransactionCoordinator transactionCoordinator;
 
-    public DefaultTransactionContextBuilder(Supplier<ConsistentMapBuilder> mapBuilderSupplier,
-            Function<Transaction, CompletableFuture<CommitResult>> transactionCommiter,
-            TransactionId transactionId) {
-        this.mapBuilderSupplier = mapBuilderSupplier;
-        this.transactionCommitter = transactionCommiter;
+    public DefaultTransactionContextBuilder(TransactionId transactionId,
+            DistributedPrimitiveCreator primitiveCreator,
+            TransactionCoordinator transactionCoordinator) {
         this.transactionId = transactionId;
+        this.primitiveCreator = primitiveCreator;
+        this.transactionCoordinator = transactionCoordinator;
     }
 
     @Override
     public TransactionContext build() {
-        return new DefaultTransactionContext(transactionId, transactionCommitter, () -> {
-            ConsistentMapBuilder mapBuilder = mapBuilderSupplier.get();
-            if (partitionsDisabled()) {
-                mapBuilder = (ConsistentMapBuilder) mapBuilder.withPartitionsDisabled();
-            }
-            return mapBuilder;
-        });
+        return new DefaultTransactionContext(transactionId,
+                primitiveCreator,
+                transactionCoordinator);
     }
 }

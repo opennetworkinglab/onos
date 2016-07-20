@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-app-fm</artifactId>
-        <version>1.5.2-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.6.0</version>
     </parent>
 
     <artifactId>onos-app-fm-mgr</artifactId>
@@ -32,8 +31,8 @@
     <dependencies>
         <dependency>
             <groupId>javax.ws.rs</groupId>
-            <artifactId>jsr311-api</artifactId>
-            <version>1.1.1</version>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
@@ -45,15 +44,36 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-snmp-provider-alarm</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
-            <version>5.0.0</version>
-            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-incubator-api</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onlab-osgi</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-api</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-core-common</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

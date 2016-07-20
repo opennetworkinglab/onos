@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,10 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.cli.Comparators;
+
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
+import org.onosproject.net.ElementId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
@@ -49,6 +50,7 @@ import org.onosproject.net.statistic.TypedFlowEntryWithLoad;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +83,33 @@ public class FlowStatisticManager implements FlowStatisticService {
 
     private final InternalFlowRuleStatsListener frListener = new InternalFlowRuleStatsListener();
 
+    // FIXME: refactor these comparators to be shared with the CLI implmentations
+    public static final Comparator<ElementId> ELEMENT_ID_COMPARATOR = new Comparator<ElementId>() {
+        @Override
+        public int compare(ElementId id1, ElementId id2) {
+            return id1.toString().compareTo(id2.toString());
+        }
+    };
+
+    public static final Comparator<ConnectPoint> CONNECT_POINT_COMPARATOR = new Comparator<ConnectPoint>() {
+        @Override
+        public int compare(ConnectPoint o1, ConnectPoint o2) {
+            int compareId = ELEMENT_ID_COMPARATOR.compare(o1.elementId(), o2.elementId());
+            return (compareId != 0) ?
+                    compareId :
+                    Long.signum(o1.port().toLong() - o2.port().toLong());
+        }
+    };
+
+    public static final Comparator<TypedFlowEntryWithLoad> TYPEFLOWENTRY_WITHLOAD_COMPARATOR =
+            new Comparator<TypedFlowEntryWithLoad>() {
+                @Override
+                public int compare(TypedFlowEntryWithLoad fe1, TypedFlowEntryWithLoad fe2) {
+                    long delta = fe1.load().rate() - fe2.load().rate();
+                    return delta == 0 ? 0 : (delta > 0 ? -1 : +1);
+                }
+            };
+
     @Activate
     public void activate() {
         flowRuleService.addListener(frListener);
@@ -97,7 +126,7 @@ public class FlowStatisticManager implements FlowStatisticService {
     public Map<ConnectPoint, SummaryFlowEntryWithLoad> loadSummary(Device device) {
         checkPermission(STATISTIC_READ);
 
-        Map<ConnectPoint, SummaryFlowEntryWithLoad> summaryLoad = new TreeMap<>(Comparators.CONNECT_POINT_COMPARATOR);
+        Map<ConnectPoint, SummaryFlowEntryWithLoad> summaryLoad = new TreeMap<>(CONNECT_POINT_COMPARATOR);
 
         if (device == null) {
             return summaryLoad;
@@ -128,7 +157,7 @@ public class FlowStatisticManager implements FlowStatisticService {
                                                                   Instruction.Type instType) {
         checkPermission(STATISTIC_READ);
 
-        Map<ConnectPoint, List<TypedFlowEntryWithLoad>> allLoad = new TreeMap<>(Comparators.CONNECT_POINT_COMPARATOR);
+        Map<ConnectPoint, List<TypedFlowEntryWithLoad>> allLoad = new TreeMap<>(CONNECT_POINT_COMPARATOR);
 
         if (device == null) {
             return allLoad;
@@ -162,7 +191,7 @@ public class FlowStatisticManager implements FlowStatisticService {
                                                                    int topn) {
         checkPermission(STATISTIC_READ);
 
-        Map<ConnectPoint, List<TypedFlowEntryWithLoad>> allLoad = new TreeMap<>(Comparators.CONNECT_POINT_COMPARATOR);
+        Map<ConnectPoint, List<TypedFlowEntryWithLoad>> allLoad = new TreeMap<>(CONNECT_POINT_COMPARATOR);
 
         if (device == null) {
             return allLoad;
@@ -373,7 +402,7 @@ public class FlowStatisticManager implements FlowStatisticService {
 
         // Sort with descending order of load
         List<TypedFlowEntryWithLoad> tfel =
-                fel.stream().sorted(Comparators.TYPEFLOWENTRY_WITHLOAD_COMPARATOR).
+                fel.stream().sorted(TYPEFLOWENTRY_WITHLOAD_COMPARATOR).
                         limit(topn).collect(Collectors.toList());
 
         return tfel;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +44,8 @@ import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.impl.phase.FinalIntentProcessPhase;
 import org.onosproject.net.intent.impl.phase.IntentProcessPhase;
-import org.onosproject.net.newresource.ResourceService;
 import org.osgi.service.component.ComponentContext;
+import org.onosproject.net.resource.ResourceService;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -82,8 +82,8 @@ public class IntentManager
 
     private static final Logger log = getLogger(IntentManager.class);
 
-    public static final String INTENT_NULL = "Intent cannot be null";
-    public static final String INTENT_ID_NULL = "Intent key cannot be null";
+    private static final String INTENT_NULL = "Intent cannot be null";
+    private static final String INTENT_ID_NULL = "Intent key cannot be null";
 
     private static final EnumSet<IntentState> RECOMPILE
             = EnumSet.of(INSTALL_REQ, FAILED, WITHDRAW_REQ);
@@ -149,8 +149,8 @@ public class IntentManager
         }
         trackerService.setDelegate(topoDelegate);
         eventDispatcher.addSink(IntentEvent.class, listenerRegistry);
-        batchExecutor = newSingleThreadExecutor(groupedThreads("onos/intent", "batch"));
-        workerExecutor = newFixedThreadPool(numThreads, groupedThreads("onos/intent", "worker-%d"));
+        batchExecutor = newSingleThreadExecutor(groupedThreads("onos/intent", "batch", log));
+        workerExecutor = newFixedThreadPool(numThreads, groupedThreads("onos/intent", "worker-%d", log));
         idGenerator = coreService.getIdGenerator("intent-ids");
         Intent.bindIdGenerator(idGenerator);
         log.info("Started");
@@ -200,7 +200,7 @@ public class IntentManager
         if (newNumThreads != numThreads) {
             numThreads = newNumThreads;
             ExecutorService oldWorkerExecutor = workerExecutor;
-            workerExecutor = newFixedThreadPool(numThreads, groupedThreads("onos/intent", "worker-%d"));
+            workerExecutor = newFixedThreadPool(numThreads, groupedThreads("onos/intent", "worker-%d", log));
             if (oldWorkerExecutor != null) {
                 oldWorkerExecutor.shutdown();
             }

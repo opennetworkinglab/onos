@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,21 @@ public interface TransactionParticipant {
      * Returns if this participant has updates that need to be committed.
      * @return {@code true} if yes; {@code false} otherwise
      */
-    boolean hasPendingUpdates();
+    default boolean hasPendingUpdates() {
+        return totalUpdates() > 0;
+    }
+
+    /**
+     * Returns the number of updates that need to committed for this participant.
+     * @return update count.
+     */
+    int totalUpdates();
+
+    /**
+     * Executes the prepare and commit steps in a single go.
+     * @return {@code true} is successful i.e updates are committed; {@code false} otherwise
+     */
+    CompletableFuture<Boolean> prepareAndCommit();
 
     /**
      * Executes the prepare phase.

@@ -1,0 +1,16 @@
+   module ietf-network {
+     yang-version 1;
+     namespace "urn:ietf:params:xml:ns:yang:ietf-network";
+     prefix nd;
+
+     import ietf-inet-types {
+       prefix inet;
+     }
+
+    typedef node-id {
+       type inet:uri;
+       description
+         "Identifier for a node.";
+     }
+
+   }

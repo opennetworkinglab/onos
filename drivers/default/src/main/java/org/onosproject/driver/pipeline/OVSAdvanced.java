@@ -235,6 +235,12 @@ public class OVSAdvanced extends AbstractHandlerBehaviour
 
     }
 
+    @Override
+    public List<String> getNextMappings(NextGroup nextGroup) {
+        // TODO implement me
+        return null;
+    }
+
     private void removeGroup(NextObjective nextObjective) {
         log.debug("removeGroup in {}: for next objective id {}",
                   deviceId, nextObjective.id());

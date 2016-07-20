@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,10 @@ package org.onosproject.net.behaviour;
 
 import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceInterfaceDescription;
 import org.onosproject.net.driver.HandlerBehaviour;
+
+import java.util.List;
 
 /**
  * Means to configure interfaces on devices.
@@ -25,40 +28,50 @@ import org.onosproject.net.driver.HandlerBehaviour;
 public interface InterfaceConfig extends HandlerBehaviour {
 
     /**
-     * Adds an interface to a VLAN.
+     * Adds an access interface to a VLAN.
+     *
      * @param deviceId the device ID
      * @param intf the name of the interface
      * @param vlanId the VLAN ID
      * @return the result of operation
      */
-    boolean addInterfaceToVlan(DeviceId deviceId, String intf, VlanId vlanId);
+    boolean addAccessInterface(DeviceId deviceId, String intf, VlanId vlanId);
 
     /**
-     * Removes an interface from a VLAN.
+     * Removes an access interface to a VLAN.
+     *
      * @param deviceId the device ID
      * @param intf the name of the interface
-     * @param vlanId the VLAN ID
      * @return the result of operation
      */
-    boolean removeInterfaceFromVlan(DeviceId deviceId, String intf, VlanId vlanId);
+    boolean removeAccessInterface(DeviceId deviceId, String intf);
 
     /**
-     *  Configures an interface as trunk for VLAN.
+     *  Adds a trunk interface for VLANs.
+     *
      * @param deviceId the device ID
      * @param intf the name of the interface
-     * @param vlanId the VLAN ID
+     * @param vlanIds the VLAN IDs
      * @return the result of operation
      */
-    boolean addTrunkInterface(DeviceId deviceId, String intf, VlanId vlanId);
+    boolean addTrunkInterface(DeviceId deviceId, String intf, List<VlanId> vlanIds);
 
     /**
-     *  Removes trunk mode configuration for VLAN from an interface.
+     *  Removes trunk mode configuration from an interface.
+     *
      * @param deviceId the device ID
      * @param intf the name of the interface
-     * @param vlanId the VLAN ID
      * @return the result of operation
      */
-    boolean removeTrunkInterface(DeviceId deviceId, String intf, VlanId vlanId);
+    boolean removeTrunkInterface(DeviceId deviceId, String intf);
+
+    /**
+     * Provides the interfaces configured on a device.
+     *
+     * @param deviceId the device ID
+     * @return the list of the configured interfaces
+     */
+    List<DeviceInterfaceDescription> getInterfaces(DeviceId deviceId);
 
     /**
      *  TODO Addition of more methods to make the behavior symmetrical.

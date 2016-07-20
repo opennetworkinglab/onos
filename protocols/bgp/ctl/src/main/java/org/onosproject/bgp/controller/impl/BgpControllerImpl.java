@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.bgp.controller.BgpCfg;
 import org.onosproject.bgp.controller.BgpController;
 import org.onosproject.bgp.controller.BgpId;
+import org.onosproject.bgp.controller.BgpLinkListener;
 import org.onosproject.bgp.controller.BgpLocalRib;
 import org.onosproject.bgp.controller.BgpNodeListener;
 import org.onosproject.bgp.controller.BgpPeer;
@@ -58,6 +59,7 @@ public class BgpControllerImpl implements BgpController {
     private BgpLocalRib bgplocalRibVpn = new BgpLocalRibImpl(this);
 
     protected Set<BgpNodeListener> bgpNodeListener = new CopyOnWriteArraySet<>();
+    protected Set<BgpLinkListener> bgpLinkListener = new CopyOnWriteArraySet<>();
 
     final Controller ctrl = new Controller(this);
 
@@ -131,29 +133,23 @@ public class BgpControllerImpl implements BgpController {
             }
             Iterator<BgpValueType> listIterator = pathAttr.iterator();
             boolean isLinkstate = false;
-            boolean isFlowSpec = false;
+
             while (listIterator.hasNext()) {
                 BgpValueType attr = listIterator.next();
                 if (attr instanceof MpReachNlri) {
                     MpReachNlri mpReach = (MpReachNlri) attr;
-                    if (mpReach.bgpFlowSpecInfo() == null) {
+                    if (mpReach.bgpFlowSpecNlri() == null) {
                         isLinkstate = true;
-                    } else {
-                        isFlowSpec = true;
                     }
                 } else if (attr instanceof MpUnReachNlri) {
                     MpUnReachNlri mpUnReach = (MpUnReachNlri) attr;
-                    if (mpUnReach.bgpFlowSpecInfo() == null) {
+                    if (mpUnReach.bgpFlowSpecNlri() == null) {
                         isLinkstate = true;
-                    } else {
-                        isFlowSpec = true;
                     }
                 }
             }
             if (isLinkstate) {
                 peer.buildAdjRibIn(pathAttr);
-            } else if (isFlowSpec) {
-                peer.buildFlowSpecRib(pathAttr);
             }
             break;
         default:
@@ -277,5 +273,20 @@ public class BgpControllerImpl implements BgpController {
     @Override
     public BgpLocalRib bgpLocalRibVpn() {
         return bgplocalRibVpn;
+    }
+
+    @Override
+    public void addLinkListener(BgpLinkListener listener) {
+        this.bgpLinkListener.add(listener);
+    }
+
+    @Override
+    public void removeLinkListener(BgpLinkListener listener) {
+        this.bgpLinkListener.remove(listener);
+    }
+
+    @Override
+    public Set<BgpLinkListener> linkListener() {
+        return bgpLinkListener;
     }
 }

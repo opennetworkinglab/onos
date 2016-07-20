@@ -1,0 +1,12 @@
+COMPILE_DEPS = [
+    '//lib:COMPILE',
+    '//utils/osgi:onlab-osgi',
+    '//utils/misc:onlab-misc',
+    '//lib:javax.ws.rs-api',
+    '//lib:jersey-server',
+]
+
+osgi_jar_with_tests (
+    name = 'onlab-rest',
+    deps = COMPILE_DEPS,
+)

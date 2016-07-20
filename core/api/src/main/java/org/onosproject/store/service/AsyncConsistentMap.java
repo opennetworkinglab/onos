@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,15 @@ import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.onosproject.store.primitives.DefaultConsistentMap;
 import org.onosproject.store.primitives.TransactionId;
+
+import com.google.common.util.concurrent.MoreExecutors;
 
 /**
  * A distributed, strongly consistent map whose methods are all executed asynchronously.
@@ -308,7 +311,18 @@ public interface AsyncConsistentMap<K, V> extends DistributedPrimitive {
      * @param listener listener to notify about map events
      * @return future that will be completed when the operation finishes
      */
-    CompletableFuture<Void> addListener(MapEventListener<K, V> listener);
+    default CompletableFuture<Void> addListener(MapEventListener<K, V> listener) {
+        return addListener(listener, MoreExecutors.directExecutor());
+    }
+
+    /**
+     * Registers the specified listener to be notified whenever the map is updated.
+     *
+     * @param listener listener to notify about map events
+     * @param executor executor to use for handling incoming map events
+     * @return future that will be completed when the operation finishes
+     */
+    CompletableFuture<Void> addListener(MapEventListener<K, V> listener, Executor executor);
 
     /**
      * Unregisters the specified listener such that it will no longer
@@ -340,6 +354,14 @@ public interface AsyncConsistentMap<K, V> extends DistributedPrimitive {
      * @return future that will be completed when the operation finishes
      */
     CompletableFuture<Void> rollback(TransactionId transactionId);
+
+    /**
+     * Prepares a transaction and commits it in one go.
+     * @param transaction transaction
+     * @return {@code true} if operation is successful and updates are committed
+     * {@code false} otherwise
+     */
+    CompletableFuture<Boolean> prepareAndCommit(MapTransaction<K, V> transaction);
 
     /**
      * Returns a new {@link ConsistentMap} that is backed by this instance.

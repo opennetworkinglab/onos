@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ public final class DefaultFlowClassifier implements FlowClassifier {
     private final String description;
     private final String etherType;
     private final String protocol;
+    private final int priority;
     private final int minSrcPortRange;
     private final int maxSrcPortRange;
     private final int minDstPortRange;
@@ -47,6 +48,7 @@ public final class DefaultFlowClassifier implements FlowClassifier {
     private static final String TENANT_ID_NOT_NULL = "Tenant id can not be null.";
     private static final String NAME_NOT_NULL = "Name can not be null.";
     private static final String ETHER_TYPE_NOT_NULL = "Ether Type can not be null.";
+    private static final int DEFAULT_CLASSIFIER_PRIORITY = 0xCB20;
 
     /**
      * Constructor to create default flow classifier.
@@ -57,6 +59,7 @@ public final class DefaultFlowClassifier implements FlowClassifier {
      * @param description           flow classifier description
      * @param etherType             etherType
      * @param protocol              IP protocol
+     * @param priority              priority for classification
      * @param minSrcPortRange       Minimum Source port range
      * @param maxSrcPortRange       Maximum Source port range
      * @param minDstPortRange       Minimum destination port range
@@ -67,15 +70,17 @@ public final class DefaultFlowClassifier implements FlowClassifier {
      * @param dstPort               destination VirtualPort
      */
     private DefaultFlowClassifier(FlowClassifierId flowClassifierId, TenantId tenantId, String name,
-            String description, String etherType, String protocol, int minSrcPortRange, int maxSrcPortRange,
-            int minDstPortRange, int maxDstPortRange, IpPrefix srcIpPrefix, IpPrefix dstIpPrefix,
-            VirtualPortId srcPort, VirtualPortId dstPort) {
+                                  String description, String etherType, String protocol, int priority,
+                                  int minSrcPortRange, int maxSrcPortRange, int minDstPortRange, int maxDstPortRange,
+                                  IpPrefix srcIpPrefix, IpPrefix dstIpPrefix, VirtualPortId srcPort,
+                                  VirtualPortId dstPort) {
         this.flowClassifierId = flowClassifierId;
         this.tenantId = tenantId;
         this.name = name;
         this.description = description;
         this.etherType = etherType;
         this.protocol = protocol;
+        this.priority = priority;
         this.minSrcPortRange = minSrcPortRange;
         this.maxSrcPortRange = maxSrcPortRange;
         this.minDstPortRange = minDstPortRange;
@@ -114,6 +119,11 @@ public final class DefaultFlowClassifier implements FlowClassifier {
     @Override
     public String protocol() {
         return protocol;
+    }
+
+    @Override
+    public int priority() {
+        return priority;
     }
 
     @Override
@@ -169,6 +179,8 @@ public final class DefaultFlowClassifier implements FlowClassifier {
         private String etherType;
         private String protocol;
         private boolean isProtocolSet = false;
+        private int priority;
+        private boolean isPrioritySet = false;
         private int minSrcPortRange;
         private boolean isMinSrcPortRangeSet = false;
         private int maxSrcPortRange;
@@ -195,6 +207,7 @@ public final class DefaultFlowClassifier implements FlowClassifier {
             checkNotNull(etherType, ETHER_TYPE_NOT_NULL);
             String description = null;
             String protocol = null;
+            int priority = DEFAULT_CLASSIFIER_PRIORITY;
             int minSrcPortRange = NULL_PORT;
             int maxSrcPortRange = NULL_PORT;
             int minDstPortRange = NULL_PORT;
@@ -209,6 +222,9 @@ public final class DefaultFlowClassifier implements FlowClassifier {
             }
             if (isProtocolSet) {
                 protocol = this.protocol;
+            }
+            if (isPrioritySet) {
+                priority = this.priority;
             }
             if (isMinSrcPortRangeSet) {
                 minSrcPortRange = this.minSrcPortRange;
@@ -236,8 +252,8 @@ public final class DefaultFlowClassifier implements FlowClassifier {
             }
 
             return new DefaultFlowClassifier(flowClassifierId, tenantId, name, description, etherType, protocol,
-                    minSrcPortRange, maxSrcPortRange, minDstPortRange, maxDstPortRange, srcIpPrefix, dstIpPrefix,
-                    srcPort, dstPort);
+                                             priority, minSrcPortRange, maxSrcPortRange, minDstPortRange,
+                                             maxDstPortRange, srcIpPrefix, dstIpPrefix, srcPort, dstPort);
         }
 
         @Override
@@ -275,6 +291,13 @@ public final class DefaultFlowClassifier implements FlowClassifier {
         public Builder setProtocol(String protocol) {
             this.protocol = protocol;
             this.isProtocolSet = true;
+            return this;
+        }
+
+        @Override
+        public Builder setPriority(int priority) {
+            this.priority = priority;
+            this.isPrioritySet = true;
             return this;
         }
 
@@ -354,6 +377,7 @@ public final class DefaultFlowClassifier implements FlowClassifier {
                     && Objects.equals(this.description, other.description)
                     && Objects.equals(this.etherType, other.etherType)
                     && Objects.equals(this.protocol, other.protocol)
+                    && Objects.equals(this.priority, other.priority)
                     && Objects.equals(this.minSrcPortRange, other.minSrcPortRange)
                     && Objects.equals(this.maxSrcPortRange, other.maxSrcPortRange)
                     && Objects.equals(this.minDstPortRange, other.minDstPortRange)
@@ -375,6 +399,7 @@ public final class DefaultFlowClassifier implements FlowClassifier {
                 && Objects.equals(this.description, flowClassifier.description())
                 && Objects.equals(this.etherType, flowClassifier.etherType())
                 && Objects.equals(this.protocol, flowClassifier.protocol())
+                && Objects.equals(this.priority, flowClassifier.priority())
                 && Objects.equals(this.minSrcPortRange, flowClassifier.minSrcPortRange())
                 && Objects.equals(this.maxSrcPortRange, flowClassifier.maxSrcPortRange())
                 && Objects.equals(this.minDstPortRange, flowClassifier.minDstPortRange())
@@ -394,6 +419,7 @@ public final class DefaultFlowClassifier implements FlowClassifier {
                 .add("Description", description)
                 .add("String", etherType)
                 .add("Protocol", protocol)
+                .add("Priority", priority)
                 .add("MinSrcPortRange", minSrcPortRange)
                 .add("MaxSrcPortRange", maxSrcPortRange)
                 .add("MinDstPortRange", minDstPortRange)

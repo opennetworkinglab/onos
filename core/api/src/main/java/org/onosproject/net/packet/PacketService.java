@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,11 +111,9 @@ public interface PacketService {
      * @param priority the priority of the rule
      * @param appId    the application ID of the requester
      * @param deviceId an optional deviceId
-     * @deprecated 1.5.0 Falcon Release
      */
     void cancelPackets(TrafficSelector selector, PacketPriority priority,
                        ApplicationId appId, Optional<DeviceId> deviceId);
-
 
     /**
      * Returns list of all existing requests ordered by priority.

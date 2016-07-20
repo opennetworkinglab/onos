@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,5 +48,11 @@ public class MessagingException extends IOException {
      * Exception indicating handler failure.
      */
     public static class RemoteHandlerFailure extends MessagingException {
+    }
+
+    /**
+     * Exception indicating failure due to invalid message strucuture such as an incorrect preamble.
+     */
+    public static class ProcotolException extends MessagingException {
     }
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2014-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-web</artifactId>
-        <version>1.5.2-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.6.0</version>
     </parent>
 
     <artifactId>onos-gui</artifactId>
@@ -39,7 +38,7 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-websocket</artifactId>
-            <version>8.1.18.v20150929</version>
+            <version>8.1.19.v20160209</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -54,11 +53,16 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
+            <artifactId>onos-core-serializers</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-incubator-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.sun.jersey.contribs</groupId>
-            <artifactId>jersey-multipart</artifactId>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-multipart</artifactId>
         </dependency>
     </dependencies>
 
@@ -86,40 +90,14 @@
                             ${project.groupId}.${project.artifactId}
                         </Bundle-SymbolicName>
                         <Import-Package>
-                            org.slf4j,
-                            org.osgi.framework,
-                            javax.imageio.*,
-                            javax.ws.rs,javax.ws.rs.core,javax.ws.rs.ext,
-                            javax.servlet.*,
-                            com.sun.jersey.api,
-                            com.sun.jersey.spi.container.servlet,
-                            com.sun.jersey.server.impl.container.servlet,
-                            com.sun.jersey.multipart,
-                            com.sun.jersey.core.header,
-                            org.jvnet.mimepull,
-                            com.fasterxml.jackson.databind,
-                            com.fasterxml.jackson.databind.node,
-                            com.google.common.base.*,
-                            com.google.common.collect.*,
-                            com.google.common.io.*,
-                            org.eclipse.jetty.websocket.*,
-                            org.onlab.util.*,
-                            org.onlab.osgi.*,
-                            org.onlab.packet.*,
-                            org.onlab.rest.*,
-                            org.onosproject.*,
-                            org.joda.time.*,
-                            org.apache.commons.*
+                            *,
+                            org.glassfish.jersey.servlet,
+                            org.jvnet.mimepull
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
-    <!--
-
--->
-
 </project>

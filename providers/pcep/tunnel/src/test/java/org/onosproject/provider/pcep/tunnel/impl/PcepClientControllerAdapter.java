@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,23 +18,36 @@ package org.onosproject.provider.pcep.tunnel.impl;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.onlab.packet.IpAddress;
 import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcep.controller.PcepClient;
 import org.onosproject.pcep.controller.PcepClientController;
 import org.onosproject.pcep.controller.PcepClientListener;
 import org.onosproject.pcep.controller.PcepEventListener;
+import org.onosproject.pcep.controller.PcepNodeListener;
+import org.onosproject.pcep.controller.PcepPacketListener;
 import org.onosproject.pcep.controller.driver.PcepAgent;
+import org.onosproject.pcepio.protocol.PcepError;
+import org.onosproject.pcepio.protocol.PcepErrorInfo;
+import org.onosproject.pcepio.protocol.PcepErrorMsg;
+import org.onosproject.pcepio.protocol.PcepErrorObject;
+import org.onosproject.pcepio.protocol.PcepFactory;
 import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.protocol.PcepVersion;
 
 import com.google.common.collect.Sets;
 
+import static org.onosproject.pcepio.types.PcepErrorDetailInfo.ERROR_TYPE_19;
+import static org.onosproject.pcepio.types.PcepErrorDetailInfo.ERROR_VALUE_5;
+
+/**
+ * Representation of PCEP client controller adapter.
+ */
 public class PcepClientControllerAdapter implements PcepClientController {
 
     protected ConcurrentHashMap<PccId, PcepClient> connectedClients =
@@ -44,6 +57,8 @@ public class PcepClientControllerAdapter implements PcepClientController {
     protected Set<PcepClientListener> pcepClientListener = new HashSet<>();
 
     protected Set<PcepEventListener> pcepEventListener = Sets.newHashSet();
+    public Set<PcepNodeListener> pcepNodeListener = Sets.newHashSet();
+    protected Set<PcepPacketListener> pcepPacketListener = Sets.newHashSet();
 
     @Activate
     public void activate() {
@@ -60,9 +75,13 @@ public class PcepClientControllerAdapter implements PcepClientController {
 
     @Override
     public PcepClient getClient(PccId pccId) {
-        //return connectedClients.get(pccIpAddress);
+        if (connectedClients.get(pccId) != null) {
+            return connectedClients.get(pccId);
+        }
         PcepClientAdapter pc = new PcepClientAdapter();
-        pc.init(PccId.pccId(IpAddress.valueOf(0xac000001)), PcepVersion.PCEP_1);
+
+        pc.init(PccId.pccId(pccId.ipAddress()), PcepVersion.PCEP_1);
+        connectedClients.put(pccId, pc);
         return pc;
     }
 
@@ -71,6 +90,16 @@ public class PcepClientControllerAdapter implements PcepClientController {
         if (!pcepClientListener.contains(listener)) {
             this.pcepClientListener.add(listener);
         }
+    }
+
+    @Override
+    public void addNodeListener(PcepNodeListener listener) {
+        pcepNodeListener.add(listener);
+    }
+
+    @Override
+    public void removeNodeListener(PcepNodeListener listener) {
+        pcepNodeListener.remove(listener);
     }
 
     @Override
@@ -86,6 +115,16 @@ public class PcepClientControllerAdapter implements PcepClientController {
     @Override
     public void removeEventListener(PcepEventListener listener) {
         pcepEventListener.remove(listener);
+    }
+
+    @Override
+    public void addPacketListener(PcepPacketListener listener) {
+        pcepPacketListener.add(listener);
+    }
+
+    @Override
+    public void removePacketListener(PcepPacketListener listener) {
+        pcepPacketListener.remove(listener);
     }
 
     @Override
@@ -119,22 +158,35 @@ public class PcepClientControllerAdapter implements PcepClientController {
             //log.debug("Sending Close Message  to { }", pccIpAddress.toString());
             pc.sendMessage(Collections.singletonList(pc.factory().buildCloseMsg().build()));
             break;
+        case INITIATE:
+            if (!pc.capability().pcInstantiationCapability()) {
+                pc.sendMessage(Collections.singletonList(getErrMsg(pc.factory(),
+                        ERROR_TYPE_19, ERROR_VALUE_5)));
+            }
+            break;
         case REPORT:
-            for (PcepEventListener l : pcepEventListener) {
-                l.handleMessage(pccId, msg);
+            //Only update the listener if respective capability is supported else send PCEP-ERR msg
+            if (pc.capability().statefulPceCapability()) {
+                for (PcepEventListener l : pcepEventListener) {
+                    l.handleMessage(pccId, msg);
+                }
+            } else {
+                // Send PCEP-ERROR message.
+                pc.sendMessage(Collections.singletonList(getErrMsg(pc.factory(),
+                        ERROR_TYPE_19, ERROR_VALUE_5)));
             }
             break;
         case UPDATE:
-            for (PcepEventListener l : pcepEventListener) {
-                l.handleMessage(pccId, msg);
-            }
-            break;
-        case INITIATE:
-            for (PcepEventListener l : pcepEventListener) {
-                l.handleMessage(pccId, msg);
+            if (!pc.capability().statefulPceCapability()) {
+                pc.sendMessage(Collections.singletonList(getErrMsg(pc.factory(),
+                       ERROR_TYPE_19, ERROR_VALUE_5)));
             }
             break;
         case LABEL_UPDATE:
+            if (!pc.capability().pceccCapability()) {
+                pc.sendMessage(Collections.singletonList(getErrMsg(pc.factory(),
+                        ERROR_TYPE_19, ERROR_VALUE_5)));
+            }
             break;
         case MAX:
             break;
@@ -152,6 +204,26 @@ public class PcepClientControllerAdapter implements PcepClientController {
             pc = getClient(id);
             pc.disconnectClient();
         }
+    }
+
+    private PcepErrorMsg getErrMsg(PcepFactory factory, byte errorType, byte errorValue) {
+        LinkedList<PcepError> llPcepErr = new LinkedList<>();
+
+        LinkedList<PcepErrorObject> llerrObj = new LinkedList<>();
+        PcepErrorMsg errMsg;
+
+        PcepErrorObject errObj = factory.buildPcepErrorObject().setErrorValue(errorValue).setErrorType(errorType)
+                .build();
+
+        llerrObj.add(errObj);
+        PcepError pcepErr = factory.buildPcepError().setErrorObjList(llerrObj).build();
+
+        llPcepErr.add(pcepErr);
+
+        PcepErrorInfo errInfo = factory.buildPcepErrorInfo().setPcepErrorList(llPcepErr).build();
+
+        errMsg = factory.buildPcepErrorMsg().setPcepErrorInfo(errInfo).build();
+        return errMsg;
     }
 
     /**
@@ -199,6 +271,25 @@ public class PcepClientControllerAdapter implements PcepClientController {
         public void processPcepMessage(PccId pccId, PcepMessage m) {
             processClientMessage(pccId, m);
         }
-    }
 
+        @Override
+        public void addNode(PcepClient pc) {
+            for (PcepNodeListener l : pcepNodeListener) {
+                l.addDevicePcepConfig(pc);
+            }
+        }
+
+        @Override
+        public void deleteNode(PccId pccId) {
+            for (PcepNodeListener l : pcepNodeListener) {
+                l.deleteDevicePcepConfig(pccId);
+            }
+        }
+
+        @Override
+        public boolean analyzeSyncMsgList(PccId pccId) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+    }
 }

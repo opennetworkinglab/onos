@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,25 @@
  */
 package org.onosproject.vtnweb.resources;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkArgument;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.Status.OK;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Maps;
+import org.onlab.util.ItemNotFoundException;
+import org.onosproject.rest.AbstractWebResource;
+import org.onosproject.vtnrsc.DefaultTenantNetwork;
+import org.onosproject.vtnrsc.PhysicalNetwork;
+import org.onosproject.vtnrsc.SegmentationId;
+import org.onosproject.vtnrsc.TenantId;
+import org.onosproject.vtnrsc.TenantNetwork;
+import org.onosproject.vtnrsc.TenantNetwork.State;
+import org.onosproject.vtnrsc.TenantNetwork.Type;
+import org.onosproject.vtnrsc.TenantNetworkId;
+import org.onosproject.vtnrsc.service.VtnRscService;
+import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
+import org.onosproject.vtnweb.web.TenantNetworkCodec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -39,26 +46,18 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 
-import org.onlab.util.ItemNotFoundException;
-import org.onosproject.rest.AbstractWebResource;
-import org.onosproject.vtnrsc.DefaultTenantNetwork;
-import org.onosproject.vtnrsc.PhysicalNetwork;
-import org.onosproject.vtnrsc.SegmentationId;
-import org.onosproject.vtnrsc.TenantId;
-import org.onosproject.vtnrsc.TenantNetwork;
-import org.onosproject.vtnrsc.TenantNetworkId;
-import org.onosproject.vtnrsc.TenantNetwork.State;
-import org.onosproject.vtnrsc.TenantNetwork.Type;
-import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
-import org.onosproject.vtnweb.web.TenantNetworkCodec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Maps;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.OK;
 
 /**
  * REST resource for interacting with the inventory of networks.
@@ -79,7 +78,8 @@ public class TenantNetworkWebResource extends AbstractWebResource {
             .newConcurrentMap();
 
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response getNetworks(@QueryParam("id") String queryId,
                                 @QueryParam("name") String queryName,
                                 @QueryParam("admin_state_up") String queryadminStateUp,
@@ -146,7 +146,8 @@ public class TenantNetworkWebResource extends AbstractWebResource {
 
     @GET
     @Path("{id}")
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response getNetwork(@PathParam("id") String id) {
 
         if (!get(TenantNetworkService.class).exists(TenantNetworkId
@@ -240,6 +241,8 @@ public class TenantNetworkWebResource extends AbstractWebResource {
 
     @DELETE
     @Path("{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response deleteNetworks(@PathParam("id") String id) {
         log.debug("Deletes network by identifier {}.", id);
         Set<TenantNetworkId> networkSet = new HashSet<>();
@@ -251,7 +254,7 @@ public class TenantNetworkWebResource extends AbstractWebResource {
             return Response.status(INTERNAL_SERVER_ERROR)
                     .entity(NETWORK_ID_NOT_EXIST).build();
         }
-        return Response.status(OK).entity(issuccess.toString()).build();
+        return ok(issuccess.toString()).build();
     }
 
     /**
@@ -276,11 +279,16 @@ public class TenantNetworkWebResource extends AbstractWebResource {
         boolean adminStateUp = node.get("admin_state_up").asBoolean();
         String state = node.get("status").asText();
         boolean shared = node.get("shared").asBoolean();
-        String tenantId = node.get("tenant_id").asText();
+        String tenantIdStr = node.get("tenant_id").asText();
         boolean routerExternal = node.get("router:external").asBoolean();
         String type = node.get("provider:network_type").asText();
         String physicalNetwork = node.get("provider:physical_network").asText();
-        String segmentationId = node.get("provider:segmentation_id").asText();
+        String segmentationIdStr = node.get("provider:segmentation_id").asText();
+        SegmentationId segmentationId = SegmentationId.segmentationId(segmentationIdStr);
+        TenantId tenantId = TenantId.tenantId(tenantIdStr);
+        if (segmentationIdStr == null || segmentationIdStr.equals("null")) {
+            segmentationId = get(VtnRscService.class).getL3vni(tenantId);
+        }
         TenantNetworkId id = null;
         if (flag.equals(CREATE_NETWORK)) {
             id = TenantNetworkId.networkId(node.get("id").asText());
@@ -293,13 +301,12 @@ public class TenantNetworkWebResource extends AbstractWebResource {
                                            adminStateUp,
                                            isState(state),
                                            shared,
-                                           TenantId.tenantId(tenantId),
+                                           tenantId,
                                            routerExternal,
                                            isType(type),
                                            PhysicalNetwork
                                                    .physicalNetwork(physicalNetwork),
-                                           SegmentationId
-                                                   .segmentationId(segmentationId));
+                                           segmentationId);
         networksMap.putIfAbsent(id, network);
 
         return Collections.unmodifiableCollection(networksMap.values());
@@ -322,23 +329,28 @@ public class TenantNetworkWebResource extends AbstractWebResource {
             boolean adminStateUp = node.get("admin_state_up").asBoolean();
             String state = node.get("status").asText();
             boolean shared = node.get("shared").asBoolean();
-            String tenantId = node.get("tenant_id").asText();
+            String tenantIdStr = node.get("tenant_id").asText();
             boolean routerExternal = node.get("router:external")
                     .asBoolean();
             String type = node.get("provider:network_type").asText();
             String physicalNetwork = node.get("provider:physical_network").asText();
-            String segmentationId = node.get("provider:segmentation_id").asText();
+            String segmentationIdStr = node.get("provider:segmentation_id").asText();
+            SegmentationId segmentationId = SegmentationId.segmentationId(segmentationIdStr);
+            TenantId tenantId = TenantId.tenantId(tenantIdStr);
+            if (segmentationIdStr == null || segmentationIdStr.equals("null")) {
+                segmentationId = get(VtnRscService.class).getL3vni(tenantId);
+            }
             network = new DefaultTenantNetwork(
                                                TenantNetworkId.networkId(id),
                                                name,
                                                adminStateUp,
                                                isState(state),
                                                shared,
-                                               TenantId.tenantId(tenantId),
+                                               tenantId,
                                                routerExternal,
                                                isType(type),
                                                PhysicalNetwork.physicalNetwork(physicalNetwork),
-                                               SegmentationId.segmentationId(segmentationId));
+                                               segmentationId);
             networksMap.putIfAbsent(TenantNetworkId.networkId(id), network);
         }
 

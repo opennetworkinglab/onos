@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
-// TODO: To be replaced with SerializationService from IOLoop activity
+import org.onlab.util.KryoNamespace;
+import org.onosproject.store.service.Serializer;
+
 /**
  * Service to serialize Objects into byte array.
  */
-public interface StoreSerializer {
+public interface StoreSerializer extends Serializer {
 
     /**
      * Serializes the specified object into bytes.
@@ -31,6 +33,7 @@ public interface StoreSerializer {
      * @param obj object to be serialized
      * @return serialized bytes
      */
+    @Override
     byte[] encode(final Object obj);
 
     /**
@@ -56,6 +59,7 @@ public interface StoreSerializer {
      * @return deserialized object
      * @param <T> decoded type
      */
+    @Override
     <T> T decode(final byte[] bytes);
 
     /**
@@ -75,4 +79,59 @@ public interface StoreSerializer {
      * @param <T> decoded type
      */
     <T> T decode(final InputStream stream);
+
+    /**
+     * Returns a copy of the specfied object.
+     *
+     * @param object object to copy
+     * @return a copy of the object
+     * @param <T> object type
+     */
+    <T> T copy(final T object);
+
+    /**
+     * Creates a new StoreSerializer instance from a KryoNamespace.
+     *
+     * @param ns kryo namespace
+     * @return StoreSerializer instance
+     */
+    static StoreSerializer using(KryoNamespace ns) {
+        return new StoreSerializer() {
+
+            @Override
+            public void encode(Object obj, OutputStream stream) {
+                ns.serialize(obj, stream);
+            }
+
+            @Override
+            public void encode(Object obj, ByteBuffer buffer) {
+                ns.serialize(obj, buffer);
+            }
+
+            @Override
+            public byte[] encode(Object obj) {
+                return ns.serialize(obj);
+            }
+
+            @Override
+            public <T> T decode(InputStream stream) {
+                return ns.deserialize(stream);
+            }
+
+            @Override
+            public <T> T decode(ByteBuffer buffer) {
+                return ns.deserialize(buffer);
+            }
+
+            @Override
+            public <T> T decode(byte[] bytes) {
+                return ns.deserialize(bytes);
+            }
+
+            @Override
+            public <T> T copy(T object) {
+                return ns.run(kryo -> kryo.copy(object));
+            }
+        };
+    }
 }

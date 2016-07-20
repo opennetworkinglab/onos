@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ public class FlowClassifierWebResource extends AbstractWebResource {
      * @return 200 OK
      */
     @GET
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFlowClassifiers() {
         Iterable<FlowClassifier> flowClassifiers = get(FlowClassifierService.class).getFlowClassifiers();
@@ -81,6 +82,7 @@ public class FlowClassifierWebResource extends AbstractWebResource {
      */
     @GET
     @Path("{flow_id}")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFlowClassifier(@PathParam("flow_id") String id) {
         FlowClassifier flowClassifier = nullIsNotFound(get(FlowClassifierService.class)
@@ -149,16 +151,18 @@ public class FlowClassifierWebResource extends AbstractWebResource {
     /**
      * Delete details of a flow classifier.
      *
-     * @param id
-     *            flow classifier id
+     * @param id flow classifier id
+     * @return 204 NO CONTENT
      */
     @Path("{flow_id}")
     @DELETE
-    public void deleteFlowClassifier(@PathParam("flow_id") String id) {
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response deleteFlowClassifier(@PathParam("flow_id") String id) {
         log.debug("Deletes flow classifier by identifier {}.", id);
         FlowClassifierId flowClassifierId = FlowClassifierId.of(id);
         Boolean issuccess = nullIsNotFound(get(FlowClassifierService.class).removeFlowClassifier(flowClassifierId),
                                            FLOW_CLASSIFIER_NOT_FOUND);
-
+        return Response.noContent().build();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -212,9 +212,11 @@ describe('factory: fw/util/fn.js', function() {
     it('should define api functions', function () {
         expect(fs.areFunctions(fs, [
             'isF', 'isA', 'isS', 'isO', 'contains',
-            'areFunctions', 'areFunctionsNonStrict', 'windowSize', 'isMobile',
-            'find', 'inArray', 'removeFromArray', 'isEmptyObject', 'cap',
-            'noPx', 'noPxStyle', 'endsWith', 'parseBitRate'
+            'areFunctions', 'areFunctionsNonStrict', 'windowSize', 
+            'isMobile', 'isChrome', 'isSafari', 'isFirefox',
+            'debugOn', 'debug',
+            'find', 'inArray', 'removeFromArray', 'isEmptyObject', 'sameObjProps', 'containsObj', 'cap',
+            'eecode', 'noPx', 'noPxStyle', 'endsWith', 'parseBitRate', 'addToTrie', 'removeFromTrie', 'trieLookup'
         ])).toBeTruthy();
     });
 

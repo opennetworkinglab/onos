@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmService;
 
 /**
- * Skeletal ONOS UI Topology-Overlay message handler.
+ * FaultManagement UI Topology-Overlay message handler.
  */
 public class AlarmTopovMessageHandler extends UiMessageHandler {
 

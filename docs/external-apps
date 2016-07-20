@@ -1,5 +1,8 @@
 org.onosproject.dhcp
 org.onosproject.cpman
 org.onosproject.olt
-org.onosproject.openstackswitching
+org.onosproject.events
 org.onosproject.routing
+org.onosproject.scalablegateway.api
+org.onosproject.newoptical.api
+org.onosproject.flowapi*

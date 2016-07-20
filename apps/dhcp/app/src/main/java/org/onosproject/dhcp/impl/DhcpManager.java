@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,13 @@
  */
 package org.onosproject.dhcp.impl;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
@@ -38,6 +40,8 @@ import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Timer;
+import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.dhcp.DhcpService;
@@ -66,19 +70,31 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_DHCPServerIp;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_MessageType;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_RequestedIP;
+import static org.onlab.packet.DHCPPacketType.DHCPACK;
+import static org.onlab.packet.DHCPPacketType.DHCPNAK;
+import static org.onlab.packet.DHCPPacketType.DHCPOFFER;
 import static org.onlab.packet.MacAddress.valueOf;
+import static org.onosproject.dhcp.IpAssignment.AssignmentStatus.Option_RangeNotEnforced;
+import static org.onosproject.dhcp.IpAssignment.AssignmentStatus.Option_Requested;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 
 /**
@@ -89,6 +105,9 @@ import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FAC
 public class DhcpManager implements DhcpService {
 
     private static final ProviderId PID = new ProviderId("of", "org.onosproject.dhcp", true);
+    private static final String ALLOW_HOST_DISCOVERY = "allowHostDiscovery";
+    private static final boolean DEFAULT_ALLOW_HOST_DISCOVERY = false;
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final InternalConfigListener cfgListener = new InternalConfigListener();
@@ -120,44 +139,36 @@ public class DhcpManager implements DhcpService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostProviderRegistry hostProviderRegistry;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService componentConfigService;
+
+    @Property(name = ALLOW_HOST_DISCOVERY, boolValue = DEFAULT_ALLOW_HOST_DISCOVERY,
+            label = "Allow host discovery from DHCP request")
+    private boolean allowHostDiscovery = DEFAULT_ALLOW_HOST_DISCOVERY;
+
     protected HostProviderService hostProviderService;
-
     private final HostProvider hostProvider = new InternalHostProvider();
-
     private ApplicationId appId;
 
     // Hardcoded values are default values.
-
-    private static Ip4Address myIP = Ip4Address.valueOf("10.0.0.2");
-
-    private static MacAddress myMAC = valueOf("4f:4f:4f:4f:4f:4f");
-
     /**
      * leaseTime - 10 mins or 600s.
      * renewalTime - 5 mins or 300s.
      * rebindingTime - 6 mins or 360s.
      */
-
     private static int leaseTime = 600;
-
     private static int renewalTime = 300;
-
     private static int rebindingTime = 360;
-
     private static byte packetTTL = (byte) 127;
-
     private static Ip4Address subnetMask = Ip4Address.valueOf("255.0.0.0");
-
     private static Ip4Address broadcastAddress = Ip4Address.valueOf("10.255.255.255");
-
     private static Ip4Address routerAddress = Ip4Address.valueOf("10.0.0.2");
-
     private static Ip4Address domainServer = Ip4Address.valueOf("10.0.0.2");
-
+    private static Ip4Address myIP = Ip4Address.valueOf("10.0.0.2");
+    private static MacAddress myMAC = valueOf("4f:4f:4f:4f:4f:4f");
     private static final Ip4Address IP_BROADCAST = Ip4Address.valueOf("255.255.255.255");
 
     protected Timeout timeout;
-
     protected static int timerDelay = 2;
 
     @Activate
@@ -165,6 +176,7 @@ public class DhcpManager implements DhcpService {
         // start the dhcp server
         appId = coreService.registerApplication("org.onosproject.dhcp");
 
+        componentConfigService.registerProperties(getClass());
         cfgService.addListener(cfgListener);
         factories.forEach(cfgService::registerConfigFactory);
         cfgListener.reconfigureNetwork(cfgService.getConfig(appId, DhcpConfig.class));
@@ -185,6 +197,19 @@ public class DhcpManager implements DhcpService {
         cancelPackets();
         timeout.cancel();
         log.info("Stopped");
+    }
+
+    @Modified
+    protected void modified(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+
+        String updatedConfig = Tools.get(properties, ALLOW_HOST_DISCOVERY);
+        if (!Strings.isNullOrEmpty(updatedConfig)) {
+            allowHostDiscovery = Boolean.valueOf(updatedConfig);
+            log.info("Host discovery is set to {}", updatedConfig);
+        }
+
+        log.info("Modified");
     }
 
     /**
@@ -241,12 +266,10 @@ public class DhcpManager implements DhcpService {
     }
 
     @Override
-    public boolean setStaticMapping(MacAddress macID, Ip4Address ipAddress, boolean rangeNotEnforced,
-                                    List<Ip4Address> addressList) {
-        log.debug("setStaticMapping is called with Mac: {}, Ip: {} addressList: {}",
-                macID.toString(), ipAddress.toString(), addressList.toString());
-
-        return dhcpStore.assignStaticIP(macID, ipAddress, rangeNotEnforced, addressList);
+    public boolean setStaticMapping(MacAddress macAddress, IpAssignment ipAssignment) {
+        log.debug("setStaticMapping is called with Mac: {} IpAssignment: {}",
+                  macAddress, ipAssignment);
+        return dhcpStore.assignStaticIP(macAddress, ipAssignment);
     }
 
     @Override
@@ -271,24 +294,25 @@ public class DhcpManager implements DhcpService {
          */
         private Ethernet buildReply(Ethernet packet, Ip4Address ipOffered, byte outgoingMessageType) {
 
-            Ip4Address subnetMaskReply;
-            Ip4Address dhcpServerReply;
-            Ip4Address routerAddressReply;
-            Ip4Address domainServerReply;
-            IpAssignment ipAssignment;
+            // mandatory options
+            // TODO save and get the information below to/from IP assignment
+            Ip4Address dhcpServerReply = myIP;
+            Ip4Address subnetMaskReply = subnetMask;
+            Ip4Address broadcastReply = broadcastAddress;
 
-            ipAssignment = dhcpStore.getIpAssignmentFromAllocationMap(HostId.hostId(packet.getSourceMAC()));
+            // optional options
+            Optional<Ip4Address> routerAddressReply = Optional.of(routerAddress);
+            Optional<Ip4Address> domainServerReply = Optional.of(domainServer);
 
-            if (ipAssignment != null && ipAssignment.rangeNotEnforced()) {
+            IpAssignment ipAssignment = dhcpStore.getIpAssignmentFromAllocationMap(
+                    HostId.hostId(packet.getSourceMAC()));
+
+            if (ipAssignment != null &&
+                    ipAssignment.assignmentStatus().equals(Option_RangeNotEnforced)) {
                 subnetMaskReply = ipAssignment.subnetMask();
-                dhcpServerReply = ipAssignment.dhcpServer();
-                domainServerReply = ipAssignment.domainServer();
-                routerAddressReply = ipAssignment.routerAddress();
-            } else {
-                subnetMaskReply = subnetMask;
-                dhcpServerReply = myIP;
-                routerAddressReply = routerAddress;
-                domainServerReply = domainServer;
+                broadcastReply = ipAssignment.broadcast();
+                routerAddressReply = Optional.ofNullable(ipAssignment.routerAddress());
+                domainServerReply = Optional.ofNullable(ipAssignment.domainServer());
             }
 
             // Ethernet Frame.
@@ -335,7 +359,7 @@ public class DhcpManager implements DhcpService {
             List<DHCPOption> optionList = new ArrayList<>();
 
             // DHCP Message Type.
-            option.setCode(DHCP.DHCPOptionCode.OptionCode_MessageType.getValue());
+            option.setCode(OptionCode_MessageType.getValue());
             option.setLength((byte) 1);
             byte[] optionData = {outgoingMessageType};
             option.setData(optionData);
@@ -343,13 +367,12 @@ public class DhcpManager implements DhcpService {
 
             // DHCP Server Identifier.
             option = new DHCPOption();
-            option.setCode(DHCP.DHCPOptionCode.OptionCode_DHCPServerIp.getValue());
+            option.setCode(OptionCode_DHCPServerIp.getValue());
             option.setLength((byte) 4);
             option.setData(dhcpServerReply.toOctets());
             optionList.add(option);
 
             if (outgoingMessageType != DHCPPacketType.DHCPNAK.getValue()) {
-
                 // IP Address Lease Time.
                 option = new DHCPOption();
                 option.setCode(DHCP.DHCPOptionCode.OptionCode_LeaseTime.getValue());
@@ -383,22 +406,26 @@ public class DhcpManager implements DhcpService {
                 option = new DHCPOption();
                 option.setCode(DHCP.DHCPOptionCode.OptionCode_BroadcastAddress.getValue());
                 option.setLength((byte) 4);
-                option.setData(broadcastAddress.toOctets());
+                option.setData(broadcastReply.toOctets());
                 optionList.add(option);
 
                 // Router Address.
-                option = new DHCPOption();
-                option.setCode(DHCP.DHCPOptionCode.OptionCode_RouterAddress.getValue());
-                option.setLength((byte) 4);
-                option.setData(routerAddressReply.toOctets());
-                optionList.add(option);
+                if (routerAddressReply.isPresent()) {
+                    option = new DHCPOption();
+                    option.setCode(DHCP.DHCPOptionCode.OptionCode_RouterAddress.getValue());
+                    option.setLength((byte) 4);
+                    option.setData(routerAddressReply.get().toOctets());
+                    optionList.add(option);
+                }
 
                 // DNS Server Address.
-                option = new DHCPOption();
-                option.setCode(DHCP.DHCPOptionCode.OptionCode_DomainServer.getValue());
-                option.setLength((byte) 4);
-                option.setData(domainServerReply.toOctets());
-                optionList.add(option);
+                if (domainServerReply.isPresent()) {
+                    option = new DHCPOption();
+                    option.setCode(DHCP.DHCPOptionCode.OptionCode_DomainServer.getValue());
+                    option.setLength((byte) 4);
+                    option.setData(domainServerReply.get().toOctets());
+                    optionList.add(option);
+                }
             }
 
             // End Option.
@@ -439,104 +466,94 @@ public class DhcpManager implements DhcpService {
          * @param dhcpPayload the extracted DHCP payload
          */
         private void processDhcpPacket(PacketContext context, DHCP dhcpPayload) {
+            if (dhcpPayload == null) {
+                log.debug("DHCP packet without payload, do nothing");
+                return;
+            }
+
             Ethernet packet = context.inPacket().parsed();
+            DHCPPacketType incomingPacketType = null;
             boolean flagIfRequestedIP = false;
             boolean flagIfServerIP = false;
             Ip4Address requestedIP = Ip4Address.valueOf("0.0.0.0");
             Ip4Address serverIP = Ip4Address.valueOf("0.0.0.0");
 
-            if (dhcpPayload != null) {
-
-                DHCPPacketType incomingPacketType = DHCPPacketType.getType(0);
-                for (DHCPOption option : dhcpPayload.getOptions()) {
-                    if (option.getCode() == DHCP.DHCPOptionCode.OptionCode_MessageType.getValue()) {
-                        byte[] data = option.getData();
-                        incomingPacketType = DHCPPacketType.getType(data[0]);
-                    }
-                    if (option.getCode() == DHCP.DHCPOptionCode.OptionCode_RequestedIP.getValue()) {
-                        byte[] data = option.getData();
-                        requestedIP = Ip4Address.valueOf(data);
-                        flagIfRequestedIP = true;
-                    }
-                    if (option.getCode() == DHCP.DHCPOptionCode.OptionCode_DHCPServerIp.getValue()) {
-                        byte[] data = option.getData();
-                        serverIP = Ip4Address.valueOf(data);
-                        flagIfServerIP = true;
-                    }
+            for (DHCPOption option : dhcpPayload.getOptions()) {
+                if (option.getCode() == OptionCode_MessageType.getValue()) {
+                    byte[] data = option.getData();
+                    incomingPacketType = DHCPPacketType.getType(data[0]);
                 }
-                DHCPPacketType outgoingPacketType;
-                MacAddress clientMac = new MacAddress(dhcpPayload.getClientHardwareAddress());
-                VlanId vlanId = VlanId.vlanId(packet.getVlanID());
-                HostId hostId = HostId.hostId(clientMac, vlanId);
+                if (option.getCode() == OptionCode_RequestedIP.getValue()) {
+                    byte[] data = option.getData();
+                    requestedIP = Ip4Address.valueOf(data);
+                    flagIfRequestedIP = true;
+                }
+                if (option.getCode() == OptionCode_DHCPServerIp.getValue()) {
+                    byte[] data = option.getData();
+                    serverIP = Ip4Address.valueOf(data);
+                    flagIfServerIP = true;
+                }
+            }
 
-                if (incomingPacketType.getValue() == DHCPPacketType.DHCPDISCOVER.getValue()) {
+            if (incomingPacketType == null) {
+                log.debug("No incoming packet type specified, ignore it");
+                return;
+            }
 
-                    outgoingPacketType = DHCPPacketType.DHCPOFFER;
-                    Ip4Address ipOffered = null;
-                    ipOffered = dhcpStore.suggestIP(hostId, requestedIP);
+            DHCPPacketType outgoingPacketType;
+            MacAddress clientMac = new MacAddress(dhcpPayload.getClientHardwareAddress());
+            VlanId vlanId = VlanId.vlanId(packet.getVlanID());
+            HostId hostId = HostId.hostId(clientMac, vlanId);
 
+            switch (incomingPacketType) {
+                case DHCPDISCOVER:
+                    log.trace("DHCP DISCOVER received from {}", hostId);
+                    Ip4Address ipOffered = dhcpStore.suggestIP(hostId, requestedIP);
                     if (ipOffered != null) {
-                        Ethernet ethReply = buildReply(packet, ipOffered,
-                                (byte) outgoingPacketType.getValue());
+                        Ethernet ethReply = buildReply(
+                                packet,
+                                ipOffered,
+                                (byte) DHCPOFFER.getValue());
                         sendReply(context, ethReply);
                     }
-                } else if (incomingPacketType.getValue() == DHCPPacketType.DHCPREQUEST.getValue()) {
+                    break;
+                case DHCPREQUEST:
+                    log.trace("DHCP REQUEST received from {}", hostId);
+                    if (flagIfServerIP && !myIP.equals(serverIP)) {
+                        return;
+                    }
 
-                    if (flagIfServerIP && flagIfRequestedIP) {
-                        // SELECTING state
+                    if (!flagIfRequestedIP) {
+                        // this is renew or rebinding request
+                        int clientIp = dhcpPayload.getClientIPAddress();
+                        requestedIP = Ip4Address.valueOf(clientIp);
+                    }
 
+                    IpAssignment ipAssignment = IpAssignment.builder()
+                            .ipAddress(requestedIP)
+                            .leasePeriod(leaseTime)
+                            .timestamp(new Date())
+                            .assignmentStatus(Option_Requested).build();
 
-                        if (dhcpStore.getIpAssignmentFromAllocationMap(HostId.hostId(clientMac))
-                                .rangeNotEnforced()) {
-                            outgoingPacketType = DHCPPacketType.DHCPACK;
-                            Ethernet ethReply = buildReply(packet, requestedIP, (byte) outgoingPacketType.getValue());
-                            sendReply(context, ethReply);
-                        } else {
-                            if (myIP.equals(serverIP)) {
-                                if (dhcpStore.assignIP(hostId, requestedIP, leaseTime, false, Lists.newArrayList())) {
-                                    outgoingPacketType = DHCPPacketType.DHCPACK;
-                                    discoverHost(context, requestedIP);
-                                } else {
-                                    outgoingPacketType = DHCPPacketType.DHCPNAK;
-                                }
-                                Ethernet ethReply = buildReply(packet, requestedIP,
-                                        (byte) outgoingPacketType.getValue());
-                                sendReply(context, ethReply);
-                            }
-                        }
-                    } else if (flagIfRequestedIP) {
-                        // INIT-REBOOT state
-                        if (dhcpStore.assignIP(hostId, requestedIP, leaseTime, false, Lists.newArrayList())) {
-                            outgoingPacketType = DHCPPacketType.DHCPACK;
-                            Ethernet ethReply = buildReply(packet, requestedIP, (byte) outgoingPacketType.getValue());
-                            sendReply(context, ethReply);
-                            discoverHost(context, requestedIP);
-                        }
-
+                    if (dhcpStore.assignIP(hostId, ipAssignment)) {
+                        outgoingPacketType = DHCPACK;
+                        discoverHost(context, requestedIP);
                     } else {
-                        // RENEWING and REBINDING state
-                        int ciaadr = dhcpPayload.getClientIPAddress();
-                        if (ciaadr != 0) {
-                            Ip4Address clientIaddr = Ip4Address.valueOf(ciaadr);
-                            if (dhcpStore.assignIP(hostId, clientIaddr, leaseTime, false, Lists.newArrayList())) {
-                                outgoingPacketType = DHCPPacketType.DHCPACK;
-                                discoverHost(context, clientIaddr);
-                            } else if (packet.getEtherType() == Ethernet.TYPE_IPV4 &&
-                                    ((IPv4) packet.getPayload()).getDestinationAddress() == myIP.toInt()) {
-                                outgoingPacketType = DHCPPacketType.DHCPNAK;
-                            } else {
-                                return;
-                            }
-                            Ethernet ethReply = buildReply(packet, clientIaddr, (byte) outgoingPacketType.getValue());
-                            sendReply(context, ethReply);
-                        }
+                        outgoingPacketType = DHCPNAK;
                     }
-                } else if (incomingPacketType.getValue() == DHCPPacketType.DHCPRELEASE.getValue()) {
-                    Ip4Address ip4Address = dhcpStore.releaseIP(hostId);
-                    if (ip4Address != null) {
-                        hostProviderService.removeIpFromHost(hostId, ip4Address);
+
+                    Ethernet ethReply = buildReply(packet, requestedIP, (byte) outgoingPacketType.getValue());
+                    sendReply(context, ethReply);
+                    break;
+                case DHCPRELEASE:
+                    log.trace("DHCP RELEASE received from {}", hostId);
+                    Ip4Address releaseIp = dhcpStore.releaseIP(hostId);
+                    if (releaseIp != null) {
+                        hostProviderService.removeIpFromHost(hostId, releaseIp);
                     }
-                }
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -575,6 +592,11 @@ public class DhcpManager implements DhcpService {
          * @param ipAssigned IP Address assigned to the host by DHCP Manager
          */
         private void discoverHost(PacketContext context, Ip4Address ipAssigned) {
+            if (!allowHostDiscovery) {
+                // host discovery is not allowed, do nothing
+                return;
+            }
+
             Ethernet packet = context.inPacket().parsed();
             MacAddress mac = packet.getSourceMAC();
             VlanId vlanId = VlanId.vlanId(packet.getVlanID());
@@ -585,6 +607,8 @@ public class DhcpManager implements DhcpService {
 
             HostId hostId = HostId.hostId(mac, vlanId);
             DefaultHostDescription desc = new DefaultHostDescription(mac, vlanId, hostLocation, ips);
+
+            log.info("Discovered host {}", desc);
             hostProviderService.hostDetected(hostId, desc, false);
         }
 

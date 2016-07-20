@@ -1,0 +1,81 @@
+{
+  "event": "showHighlights",
+  "payload": {
+    "devices": [
+      {
+        "id": "of:0000000000000001",
+        "badge": {
+          "status": "i",
+          "gid": "xMark",
+          "msg": "x marks the spot"
+        }
+      },
+      {
+        "id": "of:0000000000000101",
+        "badge": {
+          "status": "w",
+          "gid": "crown",
+          "msg": "it's good to be the King"
+        }
+      },
+      {
+        "id": "of:0000000000000002",
+        "badge": {
+          "status": "e",
+          "gid": "chain",
+          "msg": "the weakest link"
+        }
+      },
+      {
+        "id": "of:0000000000000102",
+        "badge": {
+          "status": "i",
+          "txt": "1",
+          "msg": "singular sensation"
+        }
+      },
+      {
+        "id": "of:0000000000000003",
+        "badge": {
+          "status": "w",
+          "txt": "42",
+          "msg": "life, the universe, and everything!"
+        }
+      },
+      {
+        "id": "of:0000000000000103",
+        "badge": {
+          "status": "e",
+          "txt": "99",
+          "msg": "cadbury's flake"
+        }
+      }
+    ],
+    "hosts": [
+      {
+        "id": "0E:2A:69:30:13:01/-1",
+        "badge": {
+          "status": "w",
+          "gid": "crown"
+        }
+      }
+    ],
+    "links": [
+      {
+        "css": "primary",
+        "id": "of:0000000000000001/2-of:0000000000000002/1",
+        "label": "Foo!"
+      },
+      {
+        "css": "secondary",
+        "id": "of:0000000000000002/3-of:0000000000000003/2",
+        "label": "Bar!"
+      },
+      {
+        "css": "",
+        "id": "of:0000000000000003/4-of:0000000000000004/3",
+        "label": "Baz-a-ma-taz!!"
+      }
+    ]
+  }
+}

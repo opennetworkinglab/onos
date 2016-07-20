@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -277,6 +277,13 @@
         cb && cb();
     }
 
+    // Temporary function to allow overlays to modify link detail data
+    // in the client. (In the near future, this will be done on the server).
+    function modifyLinkDataHook(data, extra) {
+        var cb = _hook('modifylinkdata');
+        return cb && extra ? cb(data, extra) : data;
+    }
+
     // === -----------------------------------------------------
     //  Event (from server) Handlers
 
@@ -427,7 +434,8 @@
                     singleSelect: singleSelectHook,
                     multiSelect: multiSelectHook,
                     mouseOver: mouseOverHook,
-                    mouseOut: mouseOutHook
+                    mouseOut: mouseOutHook,
+                    modifyLinkData: modifyLinkDataHook
                 },
 
                 showHighlights: showHighlights

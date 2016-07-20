@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,16 @@
  */
 package org.onosproject.cli.net;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.osgi.DefaultServiceDirectory.getService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.apache.karaf.shell.console.completer.ArgumentCompleter.ArgumentList;
 import org.onosproject.cli.AbstractChoicesCompleter;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 
@@ -37,13 +38,22 @@ public class PortNumberCompleter extends AbstractChoicesCompleter {
     @Override
     protected List<String> choices() {
         ArgumentList args = getArgumentList();
-        checkArgument(args.getCursorArgumentIndex() >= 1,
-                     "Expects DeviceId as previous argument");
-
-        String deviceIdStr = args.getArguments()[args.getCursorArgumentIndex() - 1];
-        DeviceId deviceId = DeviceId.deviceId(deviceIdStr);
-
+        //parse argument list for deviceId
         DeviceService deviceService = getService(DeviceService.class);
+        Device dev = null;
+        for (String str : args.getArguments()) {
+            if (str.contains(":")) {
+                dev = deviceService.getDevice(DeviceId.deviceId(str));
+                if (dev != null) {
+                    break;
+                }
+            }
+        }
+        if (dev == null) {
+            return Collections.singletonList("Missing device");
+        }
+        DeviceId deviceId = dev.id();
+
         return StreamSupport.stream(deviceService.getPorts(deviceId).spliterator(), false)
             .map(port -> port.number().toString())
             .collect(Collectors.toList());

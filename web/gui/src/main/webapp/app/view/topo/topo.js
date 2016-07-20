@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,9 @@
     ];
 
     // references to injected services
-    var $scope, $log, $cookies, fs, ks, zs, gs, ms, sus, flash, wss, ps, th,
-        tds, tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs, tspr, ttip, tov;
+    var $scope, $log, $cookies, $loc, fs, ks, zs, gs, ms, sus, flash, wss, ps, th,
+        tds, t3s, tes, tfs, tps, tis, tms, tss, tls, tts, tos, fltr, ttbs, tspr,
+        ttip, tov;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, spriteG, forceG, noDevsLayer;
@@ -52,7 +53,8 @@
             M: [toggleOffline, 'Toggle offline visibility'],
             P: [togglePorts, 'Toggle Port Highlighting'],
             dash: [tfs.showBadLinks, 'Show bad links'],
-            B: [toggleMap, 'Toggle background map'],
+            B: [toggleMap, 'Toggle background geo map'],
+            G: [openMapSelection, 'Select background geo map'],
             S: [toggleSprites, 'Toggle sprite layer'],
 
             X: [tfs.resetAllLocations, 'Reset node locations'],
@@ -64,6 +66,9 @@
             dot: [ttbs.toggleToolbar, 'Toggle Toolbar'],
 
             E: [equalizeMasters, 'Equalize mastership roles'],
+
+            //-- instance color palette debug
+            // 9: function () { sus.cat7().testCard(svg); },
 
             // topology overlay selections
             F1: function () { ttbs.fnkey(0); },
@@ -77,7 +82,7 @@
             _keyListener: ttbs.keyListener,
 
             _helpFormat: [
-                ['I', 'O', 'D', 'H', 'M', 'P', 'dash', 'B', 'S' ],
+                ['I', 'O', 'D', 'H', 'M', 'P', 'dash', 'B', 'G', 'S' ],
                 ['X', 'Z', 'N', 'L', 'U', 'R', '-', 'E', '-', 'dot'],
                 []   // this column reserved for overlay actions
             ]
@@ -156,6 +161,10 @@
         _togSvgLayer(x, mapG, 'bg', 'background map');
     }
 
+    function openMapSelection() {
+        tms.openMapSelection();
+    }
+
     function toggleSprites(x) {
         _togSvgLayer(x, spriteG, 'spr', 'sprite layer');
     }
@@ -194,7 +203,7 @@
 
         } else if (tps.summaryVisible()) {
             // else if the Summary Panel is visible, hide it
-            tps.hideSummaryPanel();
+            tps.hideSummary();
         }
     }
 
@@ -301,12 +310,6 @@
 
 
     var countryFilters = {
-        world: function (c) {
-            return c.properties.continent !== 'Antarctica';
-        },
-
-        // NOTE: for "usa" we are using our hand-crafted topojson file
-
         s_america: function (c) {
             return c.properties.continent === 'South America';
         },
@@ -367,18 +370,31 @@
         } : '';
     }
 
-    function setUpMap($loc) {
-        var qp = $loc.search(),
-            pr = ps.getPrefs('topo_mapid'),
-            mi1 = qp.mapid,
-            mi2 = pr && pr.id,
-            mapId = mi1 || mi2 || 'usa',
-            ms1 = qp.mapscale,
-            ms2 = pr && pr.scale,
-            mapScale = ms1 || ms2 || 1,
-            t1 = qp.tint,
-            t2 = pr && pr.tint,
-            tint = t1 || t2 || 'off',
+    function setMap(map) {
+        ps.setPrefs('topo_mapid', map);
+        setUpMap();
+        opacifyMap(true);
+    }
+
+    function currentMap() {
+        return ps.getPrefs(
+            'topo_mapid',
+            {
+                mapid: 'usa',
+                mapscale: 1,
+                mapfilepath: '*continental_us',
+                tint: 'off'
+            },
+            $loc.search()
+        );
+    }
+
+    function setUpMap() {
+        var prefs = currentMap(),
+            mapId = prefs.mapid,
+            mapFilePath = prefs.mapfilepath,
+            mapScale = prefs.mapscale,
+            tint = prefs.tint,
             promise,
             cfilter;
 
@@ -387,37 +403,33 @@
         $log.debug('setUpMap() mapId:', mapId, ', mapScale:', mapScale,
                    ', tint:', tint);
 
-        mapG = zoomLayer.append('g').attr('id', 'topo-map');
-        if (mapId === 'usa') {
-            shadeFlip = 0;
-            promise = ms.loadMapInto(mapG, '*continental_us', {
-                adjustScale: mapScale,
-                shading: shading()
-            });
-        } else if (mapId === 'bayarea') {
-            shadeFlip = 1;
-            promise = ms.loadMapInto(mapG, '*bayarea', {
-                objectTag: 'bayareaGEO',
-                adjustScale: mapScale,
-                shading: shading()
-            });
-        } else if (mapId === 'taiwan') {
-            shadeFlip = 0;
-            promise = ms.loadMapInto(mapG, '*taiwan', {
-                objectTag: 'taiwan',
-                adjustScale: mapScale,
-                shading: shading()
-            })
+        mapG = d3.select('#topo-map');
+        if (mapG.empty()) {
+            mapG = zoomLayer.append('g').attr('id', 'topo-map');
         } else {
-            shadeFlip = 0;
-            cfilter = countryFilters[mapId] || countryFilters.world;
+            mapG.each(function(d,i) {
+                d3.selectAll(this.childNodes).remove();
+            });
+        }
+
+        if (mapFilePath === '*countries') {
+
+            cfilter = countryFilters[mapId] || countryFilters.uk;
+
             promise = ms.loadMapRegionInto(mapG, {
                 countryFilter: cfilter,
                 adjustScale: mapScale,
                 shading: shading()
             });
+        } else {
+
+            promise = ms.loadMapInto(mapG, mapFilePath, mapId, {
+                adjustScale: mapScale,
+                shading: shading()
+            });
         }
-        ps.setPrefs('topo_mapid', { id: mapId, scale: mapScale, tint: tint });
+
+        ps.setPrefs('topo_mapid', prefs);
         return promise;
     }
 
@@ -439,14 +451,13 @@
             .attr('opacity', b ? 1 : 0);
     }
 
-    function setUpSprites($loc, tspr) {
-        var s1 = $loc.search().sprites,
-            s2 = ps.getPrefs('topo_sprites'),
-            sprId = s1 || (s2 && s2.id);
+    function setUpSprites() {
+        var prefs = ps.getPrefs('topo_sprites', { sprites: '' }, $loc.search()),
+            sprId = prefs.sprites;
 
         spriteG = zoomLayer.append ('g').attr('id', 'topo-sprites');
         if (sprId) {
-            ps.setPrefs('topo_sprites', {id:sprId});
+            ps.setPrefs('topo_sprites', prefs);
             tspr.loadSprites(spriteG, defs, sprId);
         }
     }
@@ -463,7 +474,7 @@
 
     function restoreConfigFromPrefs() {
         // NOTE: toolbar will have set this for us..
-        prefsState = ps.asNumbers(ps.getPrefs('topo_prefs'));
+        prefsState = ps.asNumbers(ps.getPrefs('topo_prefs', ttbs.defaultPrefs));
 
         $log.debug('TOPO- Prefs State:', prefsState);
 
@@ -476,6 +487,7 @@
         togglePorts(prefsState.porthl);
         toggleMap(prefsState.bg);
         toggleSprites(prefsState.spr);
+        t3s.setDevLabIndex(prefsState.dlbls);
         flash.enable(true);
     }
 
@@ -484,7 +496,7 @@
     //  have opened the websocket to the server; hence this extra function
     // invoked after tes.start()
     function restoreSummaryFromPrefs() {
-        prefsState = ps.asNumbers(ps.getPrefs('topo_prefs'));
+        prefsState = ps.asNumbers(ps.getPrefs('topo_prefs', ttbs.defaultPrefs));
         $log.debug('TOPO- Prefs SUMMARY State:', prefsState.summary);
 
         flash.enable(false);
@@ -506,19 +518,19 @@
             '$cookies', 'FnService', 'MastService', 'KeyService', 'ZoomService',
             'GlyphService', 'MapService', 'SvgUtilService', 'FlashService',
             'WebSocketService', 'PrefsService', 'ThemeService',
-            'TopoDialogService',
+            'TopoDialogService', 'TopoD3Service',
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
             'TopoInstService', 'TopoSelectService', 'TopoLinkService',
             'TopoTrafficService', 'TopoObliqueService', 'TopoFilterService',
-            'TopoToolbarService', 'TopoSpriteService', 'TooltipService',
-            'TopoOverlayService',
+            'TopoToolbarService', 'TopoMapService', 'TopoSpriteService',
+            'TooltipService', 'TopoOverlayService',
 
-        function (_$scope_, _$log_, $loc, $timeout, _$cookies_, _fs_, mast, _ks_,
+        function (_$scope_, _$log_, _$loc_, $timeout, _$cookies_, _fs_, mast, _ks_,
                   _zs_, _gs_, _ms_, _sus_, _flash_, _wss_, _ps_, _th_,
-                  _tds_, _tes_,
+                  _tds_, _t3s_, _tes_,
                   _tfs_, _tps_, _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_,
-                  _ttbs_, _tspr_, _ttip_, _tov_) {
-            var params = $loc.search(),
+                  _ttbs_, _tms_, _tspr_, _ttip_, _tov_) {
+            var params = _$loc_.search(),
                 projection,
                 dim,
                 uplink = {
@@ -533,6 +545,7 @@
 
             $scope = _$scope_;
             $log = _$log_;
+            $loc = _$loc_;
             $cookies = _$cookies_;
             fs = _fs_;
             ks = _ks_;
@@ -545,6 +558,7 @@
             ps = _ps_;
             th = _th_;
             tds = _tds_;
+            t3s = _t3s_;
             tes = _tes_;
             tfs = _tfs_;
             // TODO: consider funnelling actions through TopoForceService...
@@ -552,6 +566,7 @@
             //  just so we can invoke functions on them.
             tps = _tps_;
             tis = _tis_;
+            tms = _tms_;
             tss = _tss_;
             tls = _tls_;
             tts = _tts_;
@@ -561,6 +576,12 @@
             tspr = _tspr_;
             ttip = _ttip_;
             tov = _tov_;
+
+            tms.start({
+                toggleMap: toggleMap,
+                currentMap: currentMap,
+                setMap: setMap
+            });
 
             if (params.intentKey && params.intentAppId && params.intentAppName) {
                 $scope.intentData = {
@@ -578,6 +599,7 @@
             $scope.$on('$destroy', function () {
                 $log.log('OvTopoCtrl is saying Buh-Bye!');
                 tes.stop();
+                tms.stop();
                 ks.unbindKeys();
                 tps.destroyPanels();
                 tds.closeDialog();
@@ -599,9 +621,9 @@
             setUpDefs();
             setUpZoom();
             setUpNoDevs();
-            setUpMap($loc).then(
+            setUpMap().then(
                 function (proj) {
-                    var z = ps.getPrefs('topo_zoom') || {tx:0, ty:0, sc:1};
+                    var z = ps.getPrefs('topo_zoom', { tx:0, ty:0, sc:1 });
                     zoomer.panZoom([z.tx, z.ty], z.sc);
                     $log.debug('** Zoom restored:', z);
 
@@ -621,7 +643,7 @@
                 }
             );
             tes.bindHandlers();
-            setUpSprites($loc, tspr);
+            setUpSprites();
 
             forceG = zoomLayer.append('g').attr('id', 'topo-force');
             tfs.initForce(svg, forceG, uplink, dim);

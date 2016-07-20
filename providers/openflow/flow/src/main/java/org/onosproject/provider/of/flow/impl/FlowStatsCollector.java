@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.onosproject.provider.of.flow.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import org.onlab.util.SharedExecutors;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.RoleState;
@@ -31,7 +32,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Collects flow statistics for the specified switch.
  */
-class FlowStatsCollector {
+class FlowStatsCollector implements SwitchDataCollector {
 
     private final Logger log = getLogger(getClass());
 
@@ -52,7 +53,7 @@ class FlowStatsCollector {
      */
     FlowStatsCollector(Timer timer, OpenFlowSwitch sw, int pollInterval) {
         this.timer = timer;
-        this.sw = sw;
+        this.sw = checkNotNull(sw, "Null switch");
         this.pollInterval = pollInterval;
     }
 

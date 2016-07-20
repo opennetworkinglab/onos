@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -331,4 +331,18 @@ public interface BgpCfg {
      * @param flowSpec flow specification capability
      */
     void setFlowSpecCapability(FlowSpec flowSpec);
+
+    /**
+     * Returns the flow specification route policy distribution capability.
+     *
+     * @return RDP flow specification capability
+     */
+    boolean flowSpecRpdCapability();
+
+    /**
+     * Sets the flow specification route policy distribution capability.
+     *
+     * @param rpdCapability flow specification RPD capability
+     */
+    void setFlowSpecRpdCapability(boolean rpdCapability);
 }

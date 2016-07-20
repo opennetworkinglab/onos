@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,40 +15,18 @@
  */
 package org.onosproject.vtnweb.resources;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-
-import com.sun.jersey.test.framework.AppDescriptor;
-import com.sun.jersey.test.framework.JerseyTest;
-import com.sun.jersey.test.framework.WebAppDescriptor;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.onosproject.rest.resources.ResourceTest;
 
 /**
  * Base class for VTN REST API tests.  Performs common configuration operations.
  */
-public class VtnResourceTest extends JerseyTest {
+public class VtnResourceTest extends ResourceTest {
 
     /**
-     * Assigns an available port for the test.
-     *
-     * @param defaultPort If a port cannot be determined, this one is used.
-     * @return free port
+     * Creates a new web-resource test.
      */
-    @Override
-    public int getPort(int defaultPort) {
-        try {
-            ServerSocket socket = new ServerSocket(0);
-            socket.setReuseAddress(true);
-            int port = socket.getLocalPort();
-            socket.close();
-            return port;
-        } catch (IOException ioe) {
-            return defaultPort;
-        }
+    public VtnResourceTest() {
+        super(ResourceConfig.forApplicationClass(VtnWebApplication.class));
     }
-
-    @Override
-    public AppDescriptor configure() {
-        return new WebAppDescriptor.Builder("org.onosproject.vtnweb.resources").build();
-    }
-
 }

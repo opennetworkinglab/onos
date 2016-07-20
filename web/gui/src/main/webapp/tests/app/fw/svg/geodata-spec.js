@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ describe('factory: fw/svg/geodata.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(gds, [
-            'clearCache', 'fetchTopoData', 'createPathGenerator'
+            'clearCache', 'fetchTopoData', 'createPathGenerator', 'rescaleProjection'
         ])).toBeTruthy();
     });
 
@@ -51,7 +51,7 @@ describe('factory: fw/svg/geodata.js', function() {
         promise = gds.fetchTopoData(id);
         expect(promise.meta).toBeDefined();
         expect(promise.meta.id).toBe(id);
-        expect(promise.meta.url).toBe('data/map/foo.json');
+        expect(promise.meta.url).toBe('data/map/foo.topojson');
     });
 
     it('should treat an external id as the url itself', function () {
@@ -59,7 +59,7 @@ describe('factory: fw/svg/geodata.js', function() {
         promise = gds.fetchTopoData(id);
         expect(promise.meta).toBeDefined();
         expect(promise.meta.id).toBe(id);
-        expect(promise.meta.url).toBe(id + '.json');
+        expect(promise.meta.url).toBe(id + '.topojson');
     });
 
     it('should cache the returned objects', function () {
@@ -93,14 +93,14 @@ describe('factory: fw/svg/geodata.js', function() {
 
     it('should log a warning if data fails to load', function () {
         var id = 'foo';
-        $httpBackend.expectGET('foo.json').respond(404, 'Not found');
+        $httpBackend.expectGET('foo.topojson').respond(404, 'Not found');
         spyOn($log, 'warn');
 
         promise = gds.fetchTopoData(id);
         $httpBackend.flush();
         expect(promise.topodata).toBeUndefined();
         expect($log.warn)
-            .toHaveBeenCalledWith('Failed to retrieve map TopoJSON data: foo.json',
+            .toHaveBeenCalledWith('Failed to retrieve map TopoJSON data: foo.topojson',
             404, 'Not found');
     });
 
@@ -126,7 +126,7 @@ describe('factory: fw/svg/geodata.js', function() {
     }
 
     it('should use default settings if none are supplied', function () {
-        var gen = gds.createPathGenerator(simpleLineStringTopo());
+        var gen = gds.createPathGenerator(simpleLineStringTopo(), {adjustScale: true});
         expect(gen.settings.objectTag).toBe('states');
         expect(gen.settings.logicalSize).toBe(1000);
         expect(gen.settings.mapFillScale).toBe(.95);
@@ -144,7 +144,7 @@ describe('factory: fw/svg/geodata.js', function() {
     });
 
     it('should create transformed geodata, and a path generator', function () {
-        var gen = gds.createPathGenerator(simpleLineStringTopo());
+        var gen = gds.createPathGenerator(simpleLineStringTopo(), {adjustScale: true});
         expect(fs.isO(gen.settings)).toBeTruthy();
         expect(fs.isO(gen.geodata)).toBeTruthy();
         expect(fs.isF(gen.pathgen)).toBeTruthy();

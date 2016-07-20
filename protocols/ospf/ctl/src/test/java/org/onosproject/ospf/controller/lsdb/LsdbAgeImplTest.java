@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.ospf.controller.LsaBin;
 import org.onosproject.ospf.controller.OspfArea;
+import org.onosproject.ospf.controller.OspfLsaType;
 import org.onosproject.ospf.controller.area.OspfAreaImpl;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -181,14 +182,10 @@ public class LsdbAgeImplTest {
     public void testRefereshLsa() throws Exception {
         lsaWrapper = EasyMock.createMock(LsaWrapperImpl.class);
         lsaWrapper.setBinNumber(0);
+        lsaWrapper.setLsaType(OspfLsaType.NETWORK);
         lsdbAge.addLsaToMaxAgeBin("lsa1", lsaWrapper);
         lsdbAge.ageLsaAndFlood();
-        lsaWrapper.setBinNumber(0);
-        lsaWrapper = EasyMock.createMock(LsaWrapperImpl.class);
-        lsdbAge.addLsaToMaxAgeBin("lsa2", lsaWrapper);
-        lsdbAge.ageLsaAndFlood();
         lsdbAge.startDbAging();
-        lsaBin = new LsaBinImpl(1809);
         lsdbAge.refreshLsa();
         assertThat(lsdbAge, is(notNullValue()));
     }

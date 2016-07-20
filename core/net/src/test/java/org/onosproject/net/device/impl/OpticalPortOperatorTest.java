@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,61 +28,93 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
-import org.onosproject.net.device.OduCltPortDescription;
-
+import org.onosproject.net.device.PortDescription;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
 
 public class OpticalPortOperatorTest {
     private static final DeviceId DID = DeviceId.deviceId("op-test");
-    private static final String TPNAME = "test-port-100";
-    private static final String SPNAME = "out-port-200";
-    private static final String CFGNAME = "cfg-name";
+    private static final long PORT_NUMBER = 100;
+    private static final String CFG_KEY = "optical";
 
-    private static final PortNumber NAMED = PortNumber.portNumber(100, TPNAME);
-    private static final PortNumber UNNAMED = PortNumber.portNumber(101);
-    private static final ConnectPoint NCP = new ConnectPoint(DID, UNNAMED);
+    private static final String CFG_PORT_NAME = "cfg-name";
+    private static final long CFG_STATIC_LAMBDA = 300L;
 
+    private static final String DESC_PORT_NAME = "test-port-100";
+    private static final PortNumber NAMED = PortNumber.portNumber(PORT_NUMBER, DESC_PORT_NAME);
+    private static final PortNumber UNNAMED = PortNumber.portNumber(PORT_NUMBER);
+
+    private static final String DESC_STATIC_PORT = "out-port-200";
     private static final SparseAnnotations SA = DefaultAnnotations.builder()
-                                                    .set(AnnotationKeys.STATIC_PORT, SPNAME)
+                                                    .set(AnnotationKeys.STATIC_PORT, DESC_STATIC_PORT)
                                                     .build();
 
-    private static final OduCltPortDescription N_DESC = new OduCltPortDescription(
+    private static final PortDescription N_DESC = oduCltPortDescription(
             NAMED, true, CltSignalType.CLT_100GBE, SA);
-    private static final OduCltPortDescription FAULTY = new OduCltPortDescription(
-            null, true, CltSignalType.CLT_100GBE);
+    private static final PortDescription U_DESC = oduCltPortDescription(
+            UNNAMED, true, CltSignalType.CLT_100GBE, SA);
 
     private final ConfigApplyDelegate delegate = new MockCfgDelegate();
     private final ObjectMapper mapper = new ObjectMapper();
 
-    private static final OpticalPortConfig N_OPC = new OpticalPortConfig();
-    private static final OpticalPortConfig UNN_OPC = new OpticalPortConfig();
+    private static final ConnectPoint CP = new ConnectPoint(DID, UNNAMED);
+
+    private static final OpticalPortConfig OPC = new OpticalPortConfig();
 
     @Before
     public void setUp() {
-        N_OPC.init(NCP, TPNAME, JsonNodeFactory.instance.objectNode(), mapper, delegate);
-        UNN_OPC.init(NCP, TPNAME, JsonNodeFactory.instance.objectNode(), mapper, delegate);
-
-        N_OPC.portName(CFGNAME).portNumberName(101L).portType(Port.Type.ODUCLT).staticLambda(300L);
-        UNN_OPC.portType(Port.Type.ODUCLT);
+        OPC.init(CP, CFG_KEY, JsonNodeFactory.instance.objectNode(), mapper, delegate);
     }
 
-    @Test(expected = RuntimeException.class)
-    public void testDescOps() {
-        // port-null desc + opc with port number name
-        OduCltPortDescription res = (OduCltPortDescription) OpticalPortOperator.combine(N_OPC, FAULTY);
-        assertEquals(CFGNAME, res.portNumber().name());
+    @Test
+    public void testConfigPortName() {
+        OPC.portType(Port.Type.ODUCLT)
+            .portNumberName(PORT_NUMBER)
+            .portName(CFG_PORT_NAME);
+
+        PortDescription res;
         // full desc + opc with name
-        assertEquals(TPNAME, N_DESC.portNumber().name());
-        res = (OduCltPortDescription) OpticalPortOperator.combine(N_OPC, N_DESC);
-        long sl = Long.valueOf(res.annotations().value(AnnotationKeys.STATIC_LAMBDA));
-        assertEquals(CFGNAME, res.portNumber().name());
-        assertEquals(300L, sl);
-        // port-null desc + opc without port number name - throws RE
-        res = (OduCltPortDescription) OpticalPortOperator.combine(UNN_OPC, FAULTY);
+        res = OpticalPortOperator.combine(OPC, N_DESC);
+        assertEquals("Configured port name expected",
+                     CFG_PORT_NAME, res.portNumber().name());
+        assertEquals(DESC_STATIC_PORT, res.annotations().value(AnnotationKeys.STATIC_PORT));
+
+        res = OpticalPortOperator.combine(OPC, U_DESC);
+        assertEquals("Configured port name expected",
+                     CFG_PORT_NAME, res.portNumber().name());
+        assertEquals(DESC_STATIC_PORT, res.annotations().value(AnnotationKeys.STATIC_PORT));
     }
+
+    @Test
+    public void testConfigAddStaticLambda() {
+        OPC.portType(Port.Type.ODUCLT)
+            .portNumberName(PORT_NUMBER)
+            .staticLambda(CFG_STATIC_LAMBDA);
+
+        PortDescription res;
+        res = OpticalPortOperator.combine(OPC, N_DESC);
+        assertEquals("Original port name expected",
+                     DESC_PORT_NAME, res.portNumber().name());
+        assertEquals(DESC_STATIC_PORT, res.annotations().value(AnnotationKeys.STATIC_PORT));
+        long sl = Long.valueOf(res.annotations().value(AnnotationKeys.STATIC_LAMBDA));
+        assertEquals(CFG_STATIC_LAMBDA, sl);
+    }
+
+    @Test
+    public void testEmptyConfig() {
+        OPC.portType(Port.Type.ODUCLT)
+            .portNumberName(PORT_NUMBER);
+
+        PortDescription res;
+        res = OpticalPortOperator.combine(OPC, N_DESC);
+        assertEquals("Configured port name expected",
+                     DESC_PORT_NAME, res.portNumber().name());
+        assertEquals(DESC_STATIC_PORT, res.annotations().value(AnnotationKeys.STATIC_PORT));
+    }
+
 
     private class MockCfgDelegate implements ConfigApplyDelegate {
 

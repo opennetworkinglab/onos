@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,7 +120,7 @@ public class PacketManager
     @Activate
     public void activate() {
         eventHandlingExecutor = Executors.newSingleThreadExecutor(
-                groupedThreads("onos/net/packet", "event-handler"));
+                groupedThreads("onos/net/packet", "event-handler", log));
         localNodeId = clusterService.getLocalNode().id();
         appId = coreService.getAppId(CoreService.CORE_APP_NAME);
         store.setDelegate(delegate);

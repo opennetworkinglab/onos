@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014-2016 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,8 +21,7 @@
     <parent>
         <artifactId>onos-dhcp</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.5.2-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.6.0</version>
     </parent>
 
     <artifactId>onos-app-dhcp</artifactId>
@@ -101,12 +100,12 @@
         </dependency>
         <dependency>
             <groupId>javax.ws.rs</groupId>
-            <artifactId>jsr311-api</artifactId>
-            <version>1.1.1</version>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.0.1</version>
         </dependency>
         <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-servlet</artifactId>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -136,25 +135,7 @@
                             ${project.groupId}.${project.artifactId}
                         </Bundle-SymbolicName>
                         <Import-Package>
-                            org.slf4j,
-                            org.osgi.framework,
-                            javax.ws.rs,
-                            javax.ws.rs.core,
-                            com.sun.jersey.api.core,
-                            com.sun.jersey.spi.container.servlet,
-                            com.sun.jersey.server.impl.container.servlet,
-                            com.fasterxml.jackson.databind,
-                            com.fasterxml.jackson.databind.node,
-                            com.fasterxml.jackson.core,
-                            org.apache.karaf.shell.commands,
-                            org.apache.karaf.shell.console,
-                            org.apache.karaf.shell.console.completer,
-                            com.google.common.*,
-                            org.onlab.packet.*,
-                            org.onlab.rest.*,
-                            org.onosproject.*,
-                            org.onlab.util.*,
-                            org.jboss.netty.util.*
+                            *,org.glassfish.jersey.servlet
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>

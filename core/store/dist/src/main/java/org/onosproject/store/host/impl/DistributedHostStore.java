@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
-import org.onlab.util.Tools;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
@@ -45,12 +44,10 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
-import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -60,7 +57,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -83,7 +79,7 @@ public class DistributedHostStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
-    private ConsistentMap<HostId, DefaultHost> host;
+    private ConsistentMap<HostId, DefaultHost> hostsConsistentMap;
     private Map<HostId, DefaultHost> hosts;
 
     private final ConcurrentHashMap<HostId, DefaultHost> prevHosts =
@@ -97,24 +93,24 @@ public class DistributedHostStore
         KryoNamespace.Builder hostSerializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API);
 
-        host = storageService.<HostId, DefaultHost>consistentMapBuilder()
+        hostsConsistentMap = storageService.<HostId, DefaultHost>consistentMapBuilder()
                 .withName("onos-hosts")
                 .withRelaxedReadConsistency()
                 .withSerializer(Serializer.using(hostSerializer.build()))
                 .build();
 
-        hosts = host.asJavaMap();
+        hosts = hostsConsistentMap.asJavaMap();
 
         prevHosts.putAll(hosts);
 
-        host.addListener(hostLocationTracker);
+        hostsConsistentMap.addListener(hostLocationTracker);
 
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        host.removeListener(hostLocationTracker);
+        hostsConsistentMap.removeListener(hostLocationTracker);
         prevHosts.clear();
 
         log.info("Stopped");
@@ -162,8 +158,7 @@ public class DistributedHostStore
                                         HostId hostId,
                                         HostDescription hostDescription,
                                         boolean replaceIPs) {
-        Supplier<Versioned<DefaultHost>> supplier =
-                () -> host.computeIf(hostId,
+        hostsConsistentMap.computeIf(hostId,
                        existingHost -> shouldUpdate(existingHost, providerId, hostId,
                                                     hostDescription, replaceIPs),
                        (id, existingHost) -> {
@@ -193,12 +188,6 @@ public class DistributedHostStore
                                                   addresses,
                                                   annotations);
                        });
-
-        Tools.retryable(supplier,
-                        ConsistentMapException.ConcurrentModification.class,
-                        Integer.MAX_VALUE,
-                        50).get();
-
         return null;
     }
 

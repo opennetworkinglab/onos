@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent;
 
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,20 +23,19 @@ import java.util.Set;
 
 import org.junit.Test;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.intent.constraint.LambdaConstraint;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
+import org.onosproject.net.intent.constraint.LatencyConstraint;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.startsWith;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.link;
@@ -132,7 +132,7 @@ public class LinkCollectionIntentTest extends IntentTest {
         final LinkedList<Constraint> constraints = new LinkedList<>();
 
         links1.add(link("src", 1, "dst", 2));
-        constraints.add(new LambdaConstraint(new IndexedLambda(23)));
+        constraints.add(new LatencyConstraint(Duration.ofMillis(100)));
         final LinkCollectionIntent collectionIntent =
                 LinkCollectionIntent.builder()
                         .appId(APP_ID)
@@ -155,7 +155,7 @@ public class LinkCollectionIntentTest extends IntentTest {
 
         final List<Constraint> createdConstraints = collectionIntent.constraints();
         assertThat(createdConstraints, hasSize(1));
-        assertThat(createdConstraints.get(0).toString(), startsWith("LambdaConstraint"));
+        assertThat(createdConstraints.get(0), instanceOf(LatencyConstraint.class));
     }
 
     /**

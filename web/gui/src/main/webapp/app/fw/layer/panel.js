@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,6 +81,7 @@
                 append: appendPanel,
                 width: panelWidth,
                 height: panelHeight,
+                bbox: panelBBox,
                 isVisible: panelIsVisible,
                 classed: classed,
                 el: panelEl
@@ -148,6 +149,10 @@
                 return heightVal(p);
             }
             p.el.style('height', h + 'px');
+        }
+
+        function panelBBox() {
+            return p.el.node().getBoundingClientRect();
         }
 
         function panelIsVisible() {

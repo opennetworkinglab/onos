@@ -1,0 +1,13 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//protocols/ovsdb/api:onos-protocols-ovsdb-api',
+    '//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc',
+    '//apps/pcep-api:onos-apps-pcep-api',
+    '//incubator/api:onos-incubator-api',
+    '//protocols/rest/api:onos-protocols-rest-api',
+    '//lib:javax.ws.rs-api',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)

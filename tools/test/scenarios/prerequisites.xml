@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,12 +15,16 @@
   -->
 <scenario name="prerequisites" description="ONOS test pre-requisites">
     <group name="Prerequisites">
-        <step name="Check-Environment" exec="test -n ${ONOS_ROOT} -a -n ${ONOS_NIC} -a -n ${OC1} -a '${ONOS_USE_SSH}' == 'true'"/>
+        <step name="Check-Environment"
+              exec="test -n ${ONOS_ROOT} -a -n ${ONOS_NIC} -a -n ${OC1}"/>
+        <step name="Check-Secure-SSH"
+              exec="test '${ONOS_USE_SSH}' == 'true' -o '${ONOS_USE_SSH}' == ''"/>
         <step name="Check-ONOS-Bits" exec="onos-check-bits"/>
-
         <parallel var="${OC#}">
             <step name="Check-Passwordless-Login-${#}"
                   exec="ssh -n -o ConnectTimeout=3 -o PasswordAuthentication=no ${ONOS_USER}@${OC#} date"/>
         </parallel>
+        <step name="Check-Passwordless-Login-Proxy" if="${OCT}"
+              exec="ssh -n -o ConnectTimeout=3 -o PasswordAuthentication=no ${ONOS_USER}@${OCT} date"/>
     </group>
 </scenario>

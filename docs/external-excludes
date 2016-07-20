@@ -6,7 +6,7 @@ org.onlab.jdvue*
 org.onlab.stc*
 org.onlab.catalyst*
 
-org.onlab.thirdparty
+org.onlab.atomix
 org.onosproject.provider*
 org.onosproject.rest
 org.onosproject.cli*
@@ -69,5 +69,24 @@ org.onosproject.mfwd*
 org.onosproject.mcast*
 org.onosproject.flowanalyzer
 org.onosproject.grpc*
+org.onosproject.bmv2*
+org.onosproject.isis*
+org.onosproject.pce*
+org.onosproject.ganglia*
+org.onosproject.graphite*
+org.onosproject.influxdb*
+org.onosproject.kafka*
+org.onosproject.loadtest*
+org.onosproject.mlb*
+org.onosproject.ospf*
+org.onosproject.openstack*
+org.onosproject.routing*
+org.onosproject.snmp*
+org.onosproject.xos*
+org.onosproject.dhcp*
+org.onosproject.flowperf*
+org.onosproject.newoptical*
 org.onosproject.yangutils.parser.antlrgencode
 org.onosproject.yangutils.*
+org.onosproject.flow*
+org.onosproject.checkstyle

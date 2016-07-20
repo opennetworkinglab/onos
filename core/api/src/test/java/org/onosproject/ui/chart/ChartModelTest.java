@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,7 @@ package org.onosproject.ui.chart;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 /**
  * Unit tests for {@link ChartModel}.
@@ -35,57 +32,97 @@ public class ChartModelTest {
     private static final Double[] VALUES2 = {3D, 4D, 5D};
     private static final Double[] VALUES3 = {6D, 7D, 8D};
 
-    private static final String[] SERIES = {FOO, BAR, ZOO};
-
     private ChartModel cm;
 
     @Test(expected = NullPointerException.class)
     public void guardAgainstNullSeries() {
-        cm = new ChartModel(1, null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void guardAgainstWrongDpNumber() {
-        cm = new ChartModel(0, FOO);
+        cm = new ChartModel(null);
     }
 
     @Test
     public void testSeriesCount() {
-        cm = new ChartModel(1, FOO, BAR, ZOO);
+        cm = new ChartModel(FOO, BAR, ZOO);
         assertEquals("Wrong series count", 3, cm.seriesCount());
     }
 
     @Test
+    public void emptyLabel() {
+        cm = new ChartModel(FOO, BAR, ZOO);
+        cm.addDataPoint(System.currentTimeMillis());
+
+        assertEquals("bad data point count", 1, cm.dataPointCount());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void dataPointBandSeries() {
+        cm = new ChartModel(FOO, BAR);
+
+        cm.addDataPoint(System.currentTimeMillis())
+                .data(ZOO, VALUES3[0]);
+    }
+
+    @Test
     public void testAddDataPoint() {
-        cm = new ChartModel(2, FOO, BAR, ZOO);
+        cm = new ChartModel(FOO, BAR, ZOO);
 
-        cm.addDataPoint("1", VALUES1);
-        cm.addDataPoint("2", VALUES2);
+        long time = System.currentTimeMillis();
 
-        assertEquals("Wrong result", "1", cm.getDataPoints()[0].getLabel());
-        assertEquals("Wrong result", "2", cm.getDataPoints()[1].getLabel());
+        cm.addDataPoint(time)
+                .data(FOO, VALUES1[0])
+                .data(BAR, VALUES2[0])
+                .data(ZOO, VALUES3[0]);
 
-        cm.addDataPoint("3", VALUES3);
+        cm.addDataPoint(time + 1)
+                .data(FOO, VALUES1[1])
+                .data(BAR, VALUES2[1])
+                .data(ZOO, VALUES3[1]);
 
-        assertEquals("Wrong result", "2", cm.getDataPoints()[0].getLabel());
-        assertEquals("Wrong result", "3", cm.getDataPoints()[1].getLabel());
+        cm.addDataPoint(time + 2)
+                .data(FOO, VALUES1[2])
+                .data(BAR, VALUES2[2])
+                .data(ZOO, VALUES3[2]);
+
+        assertEquals("Wrong result", 3, cm.getDataPoints()[0].size());
+        assertEquals("Wrong result", 3, cm.getDataPoints()[1].size());
+        assertEquals("Wrong result", 3, cm.getDataPoints()[2].size());
+        assertEquals("Wrong result", 3, cm.getDataPoints().length);
     }
 
     @Test
-    public void testGetData() {
-        cm = new ChartModel(2, FOO, BAR, ZOO);
+    public void testGetDataPoint() {
+        cm = new ChartModel(FOO, BAR);
 
-        cm.addDataPoint("1", VALUES1);
-        assertThat(cm.getLastDataPoint().getValue(ZOO), is(2D));
+        long time = System.currentTimeMillis();
 
-        cm.addDataPoint("2", VALUES2);
-        assertThat(cm.getLastDataPoint().getValue(BAR), is(4D));
+        cm.addDataPoint(time)
+                .data(FOO, VALUES1[0])
+                .data(BAR, VALUES2[0]);
+
+        cm.addDataPoint(time + 1)
+                .data(FOO, VALUES1[1])
+                .data(BAR, VALUES2[1]);
+
+        assertEquals("Wrong result", (Double) 0D, cm.getDataPoints()[0].get(FOO));
+        assertEquals("Wrong result", (Double) 1D, cm.getDataPoints()[1].get(FOO));
+        assertEquals("Wrong result", (Double) 3D, cm.getDataPoints()[0].get(BAR));
+        assertEquals("Wrong result", (Double) 4D, cm.getDataPoints()[1].get(BAR));
     }
 
     @Test
-    public void testGetSeries() {
-        cm = new ChartModel(1, FOO, BAR, ZOO);
+    public void testGetLastDataPoint() {
+        cm = new ChartModel(FOO, BAR);
 
-        assertArrayEquals("series", SERIES, cm.getSeries());
+        long time = System.currentTimeMillis();
+
+        cm.addDataPoint(time)
+                .data(FOO, VALUES1[0])
+                .data(BAR, VALUES2[0]);
+
+        cm.addDataPoint(time + 1)
+                .data(FOO, VALUES1[1])
+                .data(BAR, VALUES2[1]);
+
+        assertEquals("Wrong result", VALUES1[1], cm.getLastDataPoint().get(FOO));
+        assertEquals("Wrong result", VALUES2[1], cm.getLastDataPoint().get(BAR));
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,76 +15,41 @@
  */
 
 /*
- ONOS GUI -- Navigation -- CSS file
+ ONOS GUI -- Navigation (layout) -- CSS file
  */
 
 #nav {
     position: absolute;
-    top: 45px;
-    left: 1px;
+    top: 48px;
+    left: 0;
     padding: 0;
     z-index: 3000;
     visibility: hidden;
 }
 
 html[data-platform='iPad'] #nav {
-    top: 57px;
-}
-
-.light #nav {
-    background-color: #bbb;
-    box-shadow: 0 2px 8px #777;
-}
-.dark #nav {
-    background-color: #444;
-    box-shadow: 0 2px 8px #111;
+    top: 60px;
 }
 
 #nav .nav-hdr {
-    font-style: italic;
-    padding: 6px 8px 6px 8px;
-}
-
-.light #nav .nav-hdr {
-    color: #ddd;
-    border-bottom: solid 1px #999;
-    background-color: #aaa;
-}
-.dark #nav .nav-hdr {
-    color: #888;
-    border-bottom: solid 1px #444;
-    background-color: #555;
+    font-weight: bold;
+    font-variant: small-caps;
+    text-transform: uppercase;
+    font-size: 12pt;
+    padding: 8px 15px;
 }
 
 #nav a {
     text-decoration: none;
-    font-size: 14pt;
+    font-size: 12pt;
+    font-weight: lighter;
     display: block;
-    padding: 8px 16px 6px 12px;
-}
-
-.light #nav a {
-    color: #369;
-    border-bottom: solid #ccc 1px;
-}
-.dark #nav a {
-    color: #eee;
-    border-bottom: solid #333 1px;
-}
-
-.light #nav a:hover {
-    background-color: #ddd;
-}
-.dark #nav a:hover {
-    background-color: #777;
+    padding: 6px 10px;
+    margin: 0 7px;
 }
 
 #nav a div {
     display: inline-block;
     vertical-align: middle;
     padding-right: 4px;
-}
-
-#nav a div svg.embeddedIcon g.icon .glyph {
-    fill: #c66;
 }

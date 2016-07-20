@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,12 @@
  */
 package org.onosproject.rest.resources;
 
-import java.net.HttpURLConnection;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,15 +34,12 @@ import org.onosproject.net.config.Config;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.config.SubjectFactory;
-import org.onosproject.rest.ResourceTest;
 
-import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableSet;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.client.WebTarget;
+import java.net.HttpURLConnection;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.replay;
@@ -56,7 +54,6 @@ import static org.junit.Assert.fail;
  * Unit tests for network config web resource.
  */
 public class NetworkConfigWebResourceTest extends ResourceTest {
-
 
     MockNetworkConfigService mockNetworkConfigService;
 
@@ -191,15 +188,11 @@ public class NetworkConfigWebResourceTest extends ResourceTest {
         }
     }
 
-    public NetworkConfigWebResourceTest() {
-        super(CoreWebApplication.class);
-    }
-
     /**
      * Sets up mocked config service.
      */
     @Before
-    public void setUp() {
+    public void setUpMocks() {
         mockNetworkConfigService = new MockNetworkConfigService();
         ServiceDirectory testDirectory =
                 new TestServiceDirectory()
@@ -221,8 +214,8 @@ public class NetworkConfigWebResourceTest extends ResourceTest {
      */
     @Test
     public void testEmptyConfigs() {
-        final WebResource rs = resource();
-        final String response = rs.path("network/configuration").get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("network/configuration").request().get(String.class);
 
         assertThat(response, containsString("\"devices\":{}"));
         assertThat(response, containsString("\"links\":{}"));
@@ -233,8 +226,8 @@ public class NetworkConfigWebResourceTest extends ResourceTest {
      */
     @Test
     public void testEmptyConfig() {
-        final WebResource rs = resource();
-        final String response = rs.path("network/configuration/devices").get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("network/configuration/devices").request().get(String.class);
 
         assertThat(response, is("{}"));
     }
@@ -245,12 +238,12 @@ public class NetworkConfigWebResourceTest extends ResourceTest {
      */
     @Test
     public void testNonExistentConfig() {
-        final WebResource rs = resource();
+        final WebTarget wt = target();
 
         try {
-            final String response = rs.path("network/configuration/nosuchkey").get(String.class);
+            final String response = wt.path("network/configuration/nosuchkey").request().get(String.class);
             fail("GET of non-existent key does not produce an exception " + response);
-        } catch (UniformInterfaceException e) {
+        } catch (NotFoundException e) {
             assertThat(e.getResponse().getStatus(), is(HttpURLConnection.HTTP_NOT_FOUND));
         }
     }
@@ -264,11 +257,10 @@ public class NetworkConfigWebResourceTest extends ResourceTest {
      * Tests the result of the rest api GET when there is a config.
      */
     @Test
-
     public void testConfigs() {
         setUpConfigData();
-        final WebResource rs = resource();
-        final String response = rs.path("network/configuration").get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("network/configuration").request().get(String.class);
 
         final JsonObject result = Json.parse(response).asObject();
         Assert.assertThat(result, notNullValue());
@@ -294,8 +286,8 @@ public class NetworkConfigWebResourceTest extends ResourceTest {
     @Test
     public void testSingleSubjectKeyConfig() {
         setUpConfigData();
-        final WebResource rs = resource();
-        final String response = rs.path("network/configuration/devices").get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("network/configuration/devices").request().get(String.class);
 
         final JsonObject result = Json.parse(response).asObject();
         Assert.assertThat(result, notNullValue());
@@ -318,9 +310,10 @@ public class NetworkConfigWebResourceTest extends ResourceTest {
     @Test
     public void testSingleSubjectConfig() {
         setUpConfigData();
-        final WebResource rs = resource();
+        final WebTarget wt = target();
         final String response =
-                rs.path("network/configuration/devices/device1")
+                wt.path("network/configuration/devices/device1")
+                        .request()
                         .get(String.class);
 
         final JsonObject result = Json.parse(response).asObject();
@@ -341,9 +334,10 @@ public class NetworkConfigWebResourceTest extends ResourceTest {
     @Test
     public void testSingleSubjectSingleConfig() {
         setUpConfigData();
-        final WebResource rs = resource();
+        final WebTarget wt = target();
         final String response =
-                rs.path("network/configuration/devices/device1/basic")
+                wt.path("network/configuration/devices/device1/basic")
+                        .request()
                         .get(String.class);
 
         final JsonObject result = Json.parse(response).asObject();

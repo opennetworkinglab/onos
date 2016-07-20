@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,14 +89,18 @@ public interface LeadershipService
      * Returns the current leader board.
      *
      * @return mapping from topic to leadership info.
+     * @deprecated 1.6.0 Goldeneye release. Replace usages with {@link #getLeadership(String)}
      */
+    @Deprecated
     Map<String, Leadership> getLeaderBoard();
 
     /**
      * Returns the candidate nodes for each topic.
      *
      * @return A mapping from topics to corresponding list of candidates.
+     * @deprecated 1.6.0 Goldeneye release. Replace usages with {@link #getLeadership(String)}
      */
+    @Deprecated
     default Map<String, List<NodeId>> getCandidates() {
         return ImmutableMap.copyOf(Maps.transformValues(getLeaderBoard(), v -> ImmutableList.copyOf(v.candidates())));
     }

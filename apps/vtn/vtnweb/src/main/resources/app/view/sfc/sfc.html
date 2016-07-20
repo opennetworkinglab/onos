@@ -1,0 +1,67 @@
+<!--
+  ~ Copyright 2016-present Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- SFC partial HTML -->
+<div id="ov-sfc">
+    <div class="tabular-header">
+        <h2>service function chains ({{tableData.length}} total)</h2>
+        <div class="ctrl-btns">
+            <div class="refresh" ng-class="{active: autoRefresh}"
+                 icon icon-size="36" icon-id="refresh"
+                 tooltip tt-msg="autoRefreshTip"
+                 ng-click="toggleRefresh()"></div>
+        </div>
+    </div>
+
+    <div class="summary-list" onos-table-resize>
+        <div class="table-header" onos-sortable-header>
+            <table>
+                <tr>
+                    <td colId="_iconid_state" class="table-icon" sortable></td>
+                    <td colId="portChainName" sortable>PortChainName </td>
+                    <td colId="sfs" sortable>Sfs </td>
+                    <td colId="type" sortable>Type </td>
+                    <td colId="srcIp" sortable>Source IP Prefix </td>
+                    <td colId="dstIp" sortable>Destination IP Prefix </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="table-body">
+            <table onos-flash-changes id-prop="one">
+                <tr ng-if="!tableData.length" class="no-data">
+                    <td colspan="6">
+                        No Service Function Chain found
+                    </td>
+                </tr>
+
+                <tr ng-repeat="sfc in tableData track by $index"
+                    ng-repeat-complete row-id="{{sfc.id}}">
+                    <td class="table-icon">
+                        <div icon icon-id="{{sfc._iconid_state}}"></div>
+                    </td>
+                    <td>{{sfc.portChainName}}</td>
+                    <td>{{sfc.sfs}}</td>
+                    <td>{{sfc.type}}</td>
+                    <td>{{sfc.srcIp}}</td>
+                    <td>{{sfc.dstIp}}</td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
+</div>

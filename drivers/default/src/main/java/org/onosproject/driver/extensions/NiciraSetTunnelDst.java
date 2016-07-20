@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public class NiciraSetTunnelDst extends AbstractExtension implements
     private final KryoNamespace appKryo = new KryoNamespace.Builder()
             .register(new Ip4AddressSerializer(), Ip4Address.class)
             .register(byte[].class)
-            .build();
+            .build("NiciraSetTunnelDst");
 
     /**
      * Creates a new set tunnel destination instruction.
@@ -54,7 +54,7 @@ public class NiciraSetTunnelDst extends AbstractExtension implements
      *
      * @param tunnelDst tunnel destination IPv4 address
      */
-    NiciraSetTunnelDst(Ip4Address tunnelDst) {
+    public NiciraSetTunnelDst(Ip4Address tunnelDst) {
         checkNotNull(tunnelDst);
         this.tunnelDst = tunnelDst;
     }

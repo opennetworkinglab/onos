@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public interface PcepClientController {
     void removeListener(PcepClientListener listener);
 
     /**
-     * Register a listener for OF msg events.
+     * Register a listener for PCEP msg events.
      *
      * @param listener the listener to notify
      */
@@ -69,6 +69,34 @@ public interface PcepClientController {
      * @param listener the listener to unregister
      */
     void removeEventListener(PcepEventListener listener);
+
+    /**
+     * Register a listener for PCEP msg events[carrying node descriptor details].
+     *
+     * @param listener the listener to notify
+     */
+    void addNodeListener(PcepNodeListener listener);
+
+    /**
+     * Unregister a listener.
+     *
+     * @param listener the listener to be unregistered
+     */
+    void removeNodeListener(PcepNodeListener listener);
+
+    /**
+     * Register a listener for packet events.
+     *
+     * @param listener the listener to notify
+     */
+    void addPacketListener(PcepPacketListener listener);
+
+    /**
+     * Unregister a packet listener.
+     *
+     * @param listener the listener to unregister
+     */
+    void removePacketListener(PcepPacketListener listener);
 
     /**
      * Send a message to a particular pcc client.

@@ -1,7 +1,5 @@
-package org.onosproject.store.primitives;
-
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +13,8 @@ package org.onosproject.store.primitives;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.store.primitives;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -22,9 +22,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -177,13 +179,28 @@ public class DefaultConsistentMap<K, V> extends Synchronous<AsyncConsistentMap<K
     }
 
     @Override
-    public void addListener(MapEventListener<K, V> listener) {
-        complete(asyncMap.addListener(listener));
+    public void addListener(MapEventListener<K, V> listener, Executor executor) {
+        complete(asyncMap.addListener(listener, executor));
     }
 
     @Override
     public void removeListener(MapEventListener<K, V> listener) {
-        complete(asyncMap.addListener(listener));
+        complete(asyncMap.removeListener(listener));
+    }
+
+    @Override
+    public void addStatusChangeListener(Consumer<Status> listener) {
+        asyncMap.addStatusChangeListener(listener);
+    }
+
+    @Override
+    public void removeStatusChangeListener(Consumer<Status> listener) {
+        asyncMap.removeStatusChangeListener(listener);
+    }
+
+    @Override
+    public Collection<Consumer<Status>> statusChangeListeners() {
+        return asyncMap.statusChangeListeners();
     }
 
     @Override

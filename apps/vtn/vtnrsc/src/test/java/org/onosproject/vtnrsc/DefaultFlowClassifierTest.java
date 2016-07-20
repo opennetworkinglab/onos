@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ public class DefaultFlowClassifierTest {
         final String description = "FlowClassifier1";
         final String ethType = "IPv4";
         final String protocol = "tcp";
+        final int priority = 65535;
         final int minSrcPortRange = 5;
         final int maxSrcPortRange = 10;
         final int minDstPortRange = 5;
@@ -60,22 +61,25 @@ public class DefaultFlowClassifierTest {
         DefaultFlowClassifier.Builder flowClassifierBuilder = new DefaultFlowClassifier.Builder();
         final FlowClassifier flowClassifier1 = flowClassifierBuilder.setFlowClassifierId(flowClassifierId)
                 .setTenantId(tenantId).setName(name).setDescription(description).setEtherType(ethType)
-                .setProtocol(protocol).setMinSrcPortRange(minSrcPortRange).setMaxSrcPortRange(maxSrcPortRange)
-                .setMinDstPortRange(minDstPortRange).setMaxDstPortRange(maxDstPortRange).setSrcIpPrefix(srcIpPrefix)
-                .setDstIpPrefix(dstIpPrefix).setSrcPort(virtualSrcPort).setDstPort(virtualDstPort).build();
+                .setProtocol(protocol).setPriority(priority).setMinSrcPortRange(minSrcPortRange)
+                .setMaxSrcPortRange(maxSrcPortRange).setMinDstPortRange(minDstPortRange)
+                .setMaxDstPortRange(maxDstPortRange).setSrcIpPrefix(srcIpPrefix).setDstIpPrefix(dstIpPrefix)
+                .setSrcPort(virtualSrcPort).setDstPort(virtualDstPort).build();
 
         flowClassifierBuilder = new DefaultFlowClassifier.Builder();
         final FlowClassifier sameAsFlowClassifier1 = flowClassifierBuilder.setFlowClassifierId(flowClassifierId)
                 .setTenantId(tenantId).setName(name).setDescription(description).setEtherType(ethType)
-                .setProtocol(protocol).setMinSrcPortRange(minSrcPortRange).setMaxSrcPortRange(maxSrcPortRange)
-                .setMinDstPortRange(minDstPortRange).setMaxDstPortRange(maxDstPortRange).setSrcIpPrefix(srcIpPrefix)
-                .setDstIpPrefix(dstIpPrefix).setSrcPort(virtualSrcPort).setDstPort(virtualDstPort).build();
+                .setProtocol(protocol).setPriority(priority).setMinSrcPortRange(minSrcPortRange)
+                .setMaxSrcPortRange(maxSrcPortRange).setMinDstPortRange(minDstPortRange)
+                .setMaxDstPortRange(maxDstPortRange).setSrcIpPrefix(srcIpPrefix).setDstIpPrefix(dstIpPrefix)
+                .setSrcPort(virtualSrcPort).setDstPort(virtualDstPort).build();
 
         // Create different classifier object.
         final String name2 = "FlowClassifier2";
         final String description2 = "FlowClassifier2";
         final String ethType2 = "IPv6";
         final String protocol2 = "udp";
+        final int priority2 = 50000;
         final int minSrcPortRange2 = 5;
         final int maxSrcPortRange2 = 10;
         final int minDstPortRange2 = 5;
@@ -92,7 +96,8 @@ public class DefaultFlowClassifierTest {
                 .setTenantId(tenantId2).setName(name2).setDescription(description2).setEtherType(ethType2)
                 .setProtocol(protocol2).setMinSrcPortRange(minSrcPortRange2).setMaxSrcPortRange(maxSrcPortRange2)
                 .setMinDstPortRange(minDstPortRange2).setMaxDstPortRange(maxDstPortRange2).setSrcIpPrefix(srcIpPrefix2)
-                .setDstIpPrefix(dstIpPrefix2).setSrcPort(virtualSrcPort2).setDstPort(virtualDstPort2).build();
+                .setDstIpPrefix(dstIpPrefix2).setSrcPort(virtualSrcPort2).setDstPort(virtualDstPort2)
+                .setPriority(priority2).build();
 
         new EqualsTester().addEqualityGroup(flowClassifier1, sameAsFlowClassifier1).addEqualityGroup(flowClassifier2)
                 .testEquals();
@@ -107,6 +112,7 @@ public class DefaultFlowClassifierTest {
         final String description = "FlowClassifier";
         final String ethType = "IPv4";
         final String protocol = "tcp";
+        final int priority = 30000;
         final int minSrcPortRange = 5;
         final int maxSrcPortRange = 10;
         final int minDstPortRange = 5;
@@ -123,7 +129,8 @@ public class DefaultFlowClassifierTest {
                 .setTenantId(tenantId).setName(name).setDescription(description).setEtherType(ethType)
                 .setProtocol(protocol).setMinSrcPortRange(minSrcPortRange).setMaxSrcPortRange(maxSrcPortRange)
                 .setMinDstPortRange(minDstPortRange).setMaxDstPortRange(maxDstPortRange).setSrcIpPrefix(srcIpPrefix)
-                .setDstIpPrefix(dstIpPrefix).setSrcPort(virtualSrcPort).setDstPort(virtualDstPort).build();
+                .setDstIpPrefix(dstIpPrefix).setSrcPort(virtualSrcPort).setDstPort(virtualDstPort)
+                .setPriority(priority).build();
 
         assertThat(flowClassifierId, is(flowClassifier.flowClassifierId()));
         assertThat(tenantId, is(flowClassifier.tenantId()));
@@ -131,6 +138,7 @@ public class DefaultFlowClassifierTest {
         assertThat(description, is(flowClassifier.description()));
         assertThat(ethType, is(flowClassifier.etherType()));
         assertThat(protocol, is(flowClassifier.protocol()));
+        assertThat(priority, is(flowClassifier.priority()));
         assertThat(minSrcPortRange, is(flowClassifier.minSrcPortRange()));
         assertThat(maxSrcPortRange, is(flowClassifier.maxSrcPortRange()));
         assertThat(minDstPortRange, is(flowClassifier.minDstPortRange()));

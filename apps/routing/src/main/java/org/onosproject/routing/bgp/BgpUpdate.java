@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,10 +154,10 @@ final class BgpUpdate {
         //
         BgpRouteSelector bgpRouteSelector =
             bgpSession.getBgpSessionManager().getBgpRouteSelector();
-        bgpRouteSelector.routeUpdates(bgpSession,
+        bgpRouteSelector.routeUpdates(
                                 decodedBgpRoutes.addedUnicastRoutes4.values(),
                                 decodedBgpRoutes.deletedUnicastRoutes4.values());
-        bgpRouteSelector.routeUpdates(bgpSession,
+        bgpRouteSelector.routeUpdates(
                                 decodedBgpRoutes.addedUnicastRoutes6.values(),
                                 decodedBgpRoutes.deletedUnicastRoutes6.values());
 

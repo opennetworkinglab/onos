@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.HostId;
 
-import java.util.List;
 import java.util.Map;
 
 
@@ -41,7 +40,7 @@ public interface DhcpStore {
      *
      * @param hostId Host ID of the client requesting an IP
      * @param requestedIP requested IP address
-     * @return IP address assigned to the Mac ID
+     * @return IP address assigned to the Mac address; null if no available IP
      */
     Ip4Address suggestIP(HostId hostId, Ip4Address requestedIP);
 
@@ -50,14 +49,10 @@ public interface DhcpStore {
      * Assigns the requested IP to the Mac ID, in response to a DHCP REQUEST message.
      *
      * @param hostId Host Id of the client requesting an IP
-     * @param ipAddr IP Address being requested
-     * @param leaseTime Lease time offered by the server for this mapping
-     * @param rangeNotEnforced true if rangeNotEnforced was set
-     * @param addressList subnetMask, DHCP/Router/DNS IP Addresses if rangeNotEnforced was set
+     * @param ipAssignment ip assignment
      * @return returns true if the assignment was successful, false otherwise
      */
-    boolean assignIP(HostId hostId, Ip4Address ipAddr, int leaseTime, boolean rangeNotEnforced,
-                     List<Ip4Address> addressList);
+    boolean assignIP(HostId hostId, IpAssignment ipAssignment);
 
 
     /**
@@ -92,21 +87,19 @@ public interface DhcpStore {
     /**
      * Assigns the requested IP to the MAC ID (if available) for an indefinite period of time.
      *
-     * @param macID macID of the client
-     * @param ipAddr IP Address requested for the client
-     * @param rangeNotEnforced true if rangeNotEnforced was set
-     * @param addressList subnetMask, DHCP/Router/DNS IP Addresses rangeNotEnforced was set
+     * @param macAddress mac address of the client
+     * @param ipAssignment ip address and dhcp options requested for the client
      * @return true if the mapping was successfully registered, false otherwise
      */
-    boolean assignStaticIP(MacAddress macID, Ip4Address ipAddr, boolean rangeNotEnforced, List<Ip4Address> addressList);
+    boolean assignStaticIP(MacAddress macAddress, IpAssignment ipAssignment);
 
     /**
      * Removes a static IP mapping associated with the given MAC ID from the DHCP Server.
      *
-     * @param macID macID of the client
+     * @param macAddress mac address of the client
      * @return true if the mapping was successfully registered, false otherwise
      */
-    boolean removeStaticIP(MacAddress macID);
+    boolean removeStaticIP(MacAddress macAddress);
 
     /**
      * Returns the list of all the available IPs with the server.

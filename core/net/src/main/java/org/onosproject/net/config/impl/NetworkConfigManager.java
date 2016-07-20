@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -260,6 +260,18 @@ public class NetworkConfigManager
             store.clearQueuedConfig(subject, configKey);
          }
     }
+
+     @Override
+     public <S> void removeConfig(S subject) {
+        checkPermission(CONFIG_WRITE);
+        store.clearConfig(subject);
+     }
+
+     @Override
+     public <S> void removeConfig() {
+         checkPermission(CONFIG_WRITE);
+         store.clearConfig();
+     }
 
     // Auxiliary store delegate to receive notification about changes in
     // the network configuration store state - by the store itself.

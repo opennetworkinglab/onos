@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -260,6 +260,14 @@ public class NodeDescriptors {
                 log.debug("NodeDescriptor compare subtlv's");
                 for (BgpValueType tlv : ((NodeDescriptors) o).subTlvs) {
                     if (tlv.getType() == tlv1.getType()) {
+                        if (tlv.getType() == IGP_ROUTERID_TYPE) {
+                            if ((tlv1 instanceof IsIsNonPseudonode && tlv instanceof IsIsPseudonode)
+                                || (tlv1 instanceof IsIsPseudonode && tlv instanceof IsIsNonPseudonode)
+                                || (tlv1 instanceof OspfNonPseudonode && tlv instanceof OspfPseudonode)
+                                || (tlv1 instanceof OspfPseudonode && tlv instanceof OspfNonPseudonode)) {
+                                continue;
+                            }
+                        }
                         int result = subTlvs.get(subTlvs.indexOf(tlv1)).compareTo(
                                 ((NodeDescriptors) o).subTlvs.get(((NodeDescriptors) o).subTlvs.indexOf(tlv)));
                         if (result != 0) {

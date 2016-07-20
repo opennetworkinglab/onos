@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.Ip4Address;
+import org.onosproject.ospf.controller.OspfPacketType;
 import org.onosproject.ospf.protocol.ospfpacket.OspfPacketHeader;
 import org.onosproject.ospf.protocol.ospfpacket.subtype.LsRequestPacket;
-import org.onosproject.ospf.protocol.util.OspfPacketType;
 
 import java.net.UnknownHostException;
 import java.util.List;

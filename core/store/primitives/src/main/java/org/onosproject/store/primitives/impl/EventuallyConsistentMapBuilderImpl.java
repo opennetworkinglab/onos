@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
     private final ClusterCommunicationService clusterCommunicator;
 
     private String name;
+    private KryoNamespace serializer;
     private KryoNamespace.Builder serializerBuilder;
     private ExecutorService eventExecutor;
     private ExecutorService communicationExecutor;
@@ -81,6 +82,12 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
     public EventuallyConsistentMapBuilder<K, V> withSerializer(
             KryoNamespace.Builder serializerBuilder) {
         this.serializerBuilder = checkNotNull(serializerBuilder);
+        return this;
+    }
+
+    @Override
+    public EventuallyConsistentMapBuilder<K, V> withSerializer(KryoNamespace serializer) {
+        this.serializer = checkNotNull(serializer);
         return this;
     }
 
@@ -147,13 +154,16 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
     @Override
     public EventuallyConsistentMap<K, V> build() {
         checkNotNull(name, "name is a mandatory parameter");
-        checkNotNull(serializerBuilder, "serializerBuilder is a mandatory parameter");
         checkNotNull(timestampProvider, "timestampProvider is a mandatory parameter");
+        if (serializer == null && serializerBuilder != null) {
+            serializer = serializerBuilder.build(name);
+        }
+        checkNotNull(serializer, "serializer is a mandatory parameter");
 
         return new EventuallyConsistentMapImpl<>(name,
                                                  clusterService,
                                                  clusterCommunicator,
-                                                 serializerBuilder,
+                                                 serializer,
                                                  timestampProvider,
                                                  peerUpdateFunction,
                                                  eventExecutor,

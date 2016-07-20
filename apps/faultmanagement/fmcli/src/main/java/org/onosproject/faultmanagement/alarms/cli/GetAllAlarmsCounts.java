@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,9 @@ public class GetAllAlarmsCounts extends AbstractShellCommand {
         printCounts(alarmCounts);
     }
 
-    static void printCounts(Map<Alarm.SeverityLevel, Long> alarmCounts) {
+    void printCounts(Map<Alarm.SeverityLevel, Long> alarmCounts) {
         alarmCounts.entrySet().stream().forEach((countEntry) -> {
-            System.out.println(String.format("%s, %d",
+            print(String.format("%s, %d",
                     countEntry.getKey(), countEntry.getValue()));
 
         });

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ public final class Endpoint {
             return false;
         }
         Endpoint that = (Endpoint) obj;
-        return Objects.equals(this.port, that.port) &&
+        return this.port == that.port &&
                Objects.equals(this.ip, that.ip);
     }
 }

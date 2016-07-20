@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@
         M: { id: 'offline-tog', gid: 'switch', isel: true },
         P: { id: 'ports-tog', gid: 'ports', isel: true },
         B: { id: 'bkgrnd-tog', gid: 'map', isel: false },
+        G: { id: 'bkgrnd-sel', gid: 'filters' },
         S: { id: 'sprite-tog', gid: 'cloud', isel: false },
 
         // TODO: add reset-node-locations button to toolbar
@@ -70,11 +71,12 @@
 
     // initial toggle state: default settings and tag to key mapping
     var defaultPrefsState = {
-            summary: 1,
             insts: 1,
+            summary: 1,
             detail: 1,
             hosts: 0,
             offdev: 1,
+            dlbls: 0,
             porthl: 1,
             bg: 0,
             spr: 0,
@@ -94,7 +96,6 @@
 
     function init(_api_) {
         api = _api_;
-
         // retrieve initial toggle button settings from user prefs
         setInitToggleState();
     }
@@ -104,7 +105,7 @@
     }
 
     function setInitToggleState() {
-        cachedState = ps.asNumbers(ps.getPrefs(cooktag));
+        cachedState = ps.asNumbers(ps.getPrefs(cooktag, defaultPrefsState));
         $log.debug('TOOLBAR---- read prefs state:', cachedState);
 
         if (!cachedState) {
@@ -150,6 +151,7 @@
         addToggle('M');
         addToggle('P', true);
         addToggle('B');
+        addButton('G');
         addToggle('S', true);
     }
 
@@ -264,6 +266,9 @@
 
     function toggleToolbar() {
         toolbar.toggle();
+        var prefs = ps.getPrefs(cooktag, defaultPrefsState);
+        prefs.toolbar = !prefs.toolbar;
+        ps.setPrefs('topo_prefs', prefs);
     }
 
     function setDefaultOverlay() {
@@ -298,6 +303,7 @@
                 keyListener: keyListener,
                 toggleToolbar: toggleToolbar,
                 setDefaultOverlay: setDefaultOverlay,
+                defaultPrefs: defaultPrefsState,
                 fnkey: fnkey
             };
         }]);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
-import org.onosproject.net.resource.link.LinkResourceService;
+import org.onosproject.net.intent.ResourceContext;
 
 import java.util.Collections;
 import java.util.Objects;
@@ -56,8 +56,14 @@ public class ObstacleConstraint extends BooleanConstraint {
         return obstacles;
     }
 
+    // doesn't use LinkResourceService
     @Override
-    public boolean isValid(Link link, LinkResourceService resourceService) {
+    public boolean isValid(Link link, ResourceContext context) {
+        // explicitly call a method not depending on LinkResourceService
+        return isValid(link);
+    }
+
+    private boolean isValid(Link link) {
         DeviceId src = link.src().deviceId();
         DeviceId dst = link.dst().deviceId();
 

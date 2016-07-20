@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,9 +91,9 @@ public class GossipIntentStore
     public void activate() {
         KryoNamespace.Builder intentSerializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
+                .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
                 .register(IntentData.class)
-                .register(MultiValuedTimestamp.class)
-                .register(WallClockTimestamp.class);
+                .register(MultiValuedTimestamp.class);
 
         currentMap = storageService.<Key, IntentData>eventuallyConsistentMapBuilder()
                 .withName("intent-current")
@@ -178,7 +178,11 @@ public class GossipIntentStore
             // Only the master is modifying the current state. Therefore assume
             // this always succeeds
             if (newData.state() == PURGE_REQ) {
-                currentMap.remove(newData.key(), currentData);
+                if (currentData != null) {
+                    currentMap.remove(newData.key(), currentData);
+                } else {
+                    log.info("Gratuitous purge request for intent: {}", newData.key());
+                }
             } else {
                 currentMap.put(newData.key(), new IntentData(newData));
             }

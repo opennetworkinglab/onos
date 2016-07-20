@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -63,18 +63,18 @@
 
         <!-- Verify the hosts using the REST API -->
         <step name="Net-REST.Query-Host-1" requires="Net-REST.Find-Host-2"
-              exec="find-host.py ${OC1} host1 00:00:00:00:00:01/-1"/>
+              exec="find-host.py ${OC1} host1 00:00:00:00:00:01/None"/>
         <step name="Net-REST.Validate-Host-1-Id" requires="^"
-              exec="test '${host1Id}' == '00:00:00:00:00:01/-1'"/>
+              exec="test '${host1Id}' == '00:00:00:00:00:01/None'"/>
         <step name="Net-REST.Validate-Host-1-Mac" requires="^"
               exec="test '${host1Mac}' == '00:00:00:00:00:01'"/>
         <step name="Net-REST.Validate-Host-1-Ip" requires="^"
               exec="test '${host1IpAddress}' == '10.0.0.1'"/>
 
         <step name="Net-REST.Query-Host-2" requires="Net-REST.Find-Host-2"
-              exec="find-host.py ${OC1} host2 00:00:00:00:00:04/-1"/>
+              exec="find-host.py ${OC1} host2 00:00:00:00:00:04/None"/>
         <step name="Net-REST.Validate-Host-2-Id" requires="^"
-              exec="test '${host2Id}' == '00:00:00:00:00:04/-1'"/>
+              exec="test '${host2Id}' == '00:00:00:00:00:04/None'"/>
         <step name="Net-REST.Validate-Host-2-Mac" requires="^"
               exec="test '${host2Mac}' == '00:00:00:00:00:04'"/>
         <step name="Net-REST.Validate-Host-2-Ip" requires="^"
@@ -123,7 +123,7 @@
               exec="test ${dev4outFlowPort} -ge 1 -a ${dev4outFlowPort} -le 5"/>
 
         <!-- Check that connectivity was established -->
-        <step name="Net-REST.Ping-XY" requires="Net-REST.Create-Intent-XY,Net-REST.Create-Intent-YX"
+        <step name="Net-REST.Ping-XY" requires="^"
               exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"/>
         <step name="Net-REST.Ping-YX" requires="^"
               exec="onos-mininet sendAndExpect h4 ping -c1 h1 --expect \ 0% packet loss"/>

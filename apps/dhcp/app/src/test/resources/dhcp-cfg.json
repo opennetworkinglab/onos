@@ -9,11 +9,11 @@
         "router": "10.0.0.1",
         "domain": "10.0.0.1",
         "ttl": "63",
-        "lease": "300",
+        "lease": 300,
         "renew": "150",
-        "rebind": "200",
+        "rebind": 200,
         "delay": "3",
-        "timeout": "150",
+        "timeout": 150,
         "startip": "10.0.0.110",
         "endip": "10.0.0.130"
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,10 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Implementation of OTU port (Optical channel Transport Unit).
+ *
+ * @deprecated in Goldeneye (1.6.0)
  */
-
+@Deprecated
 public class OtuPort extends DefaultPort {
 
     private final OtuSignalType signalType;

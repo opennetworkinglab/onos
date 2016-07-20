@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.onosproject.net.device;
 
 import com.google.common.base.MoreObjects;
+
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.Port;
@@ -26,7 +27,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Default implementation of immutable OCh port description.
+ *
+ * @deprecated in Goldeneye (1.6.0)
  */
+@Deprecated
 public class OchPortDescription extends DefaultPortDescription {
 
     private final OduSignalType signalType;
@@ -42,7 +46,10 @@ public class OchPortDescription extends DefaultPortDescription {
      * @param isTunable   tunable wavelength capability
      * @param lambda      OCh signal
      * @param annotations optional key/value annotations map
+     *
+     * @deprecated in Goldeneye (1.6.0)
      */
+    @Deprecated
     public OchPortDescription(PortNumber number, boolean isEnabled, OduSignalType signalType,
                               boolean isTunable, OchSignal lambda, SparseAnnotations... annotations) {
         super(number, isEnabled, Port.Type.OCH, 0, annotations);
@@ -59,7 +66,10 @@ public class OchPortDescription extends DefaultPortDescription {
      * @param isTunable   tunable wavelength capability
      * @param lambda      OCh signal
      * @param annotations optional key/value annotations map
+     *
+     * @deprecated in Goldeneye (1.6.0)
      */
+    @Deprecated
     public OchPortDescription(PortDescription base, OduSignalType signalType, boolean isTunable,
                               OchSignal lambda, SparseAnnotations annotations) {
         super(base, annotations);

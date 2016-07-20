@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ describe('factory: view/topo/topoFilter.js', function() {
         };
 
     beforeEach(module('ovTopo', 'onosUtil', 'onosLayer', 'ngRoute', 'onosNav',
-        'onosWidget'));
+        'onosWidget', 'onosMast'));
 
     beforeEach(inject(function (_$log_, FnService,
                                 TopoFilterService, ButtonService) {

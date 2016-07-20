@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,25 @@
 
 package org.onosproject.netconf;
 
+import org.onosproject.net.DeviceId;
+
 /**
  * Allows for providers interested in node events to be notified.
  */
 public interface NetconfDeviceListener {
 
     /**
-     * Notifies that the node was added.
+     * Notifies that the device was added.
      *
-     * @param nodeId the node where the event occurred
+     * @param deviceId the device that was added
      */
-    void deviceAdded(NetconfDeviceInfo nodeId);
+    void deviceAdded(DeviceId deviceId);
 
     /**
-     * Notifies that the node was removed.
+     * Notifies that the device was removed.
      *
-     * @param nodeId the node where the event occurred
+     * @param deviceId the device that was removed
      */
-    void deviceRemoved(NetconfDeviceInfo nodeId);
+
+    void deviceRemoved(DeviceId deviceId);
 }

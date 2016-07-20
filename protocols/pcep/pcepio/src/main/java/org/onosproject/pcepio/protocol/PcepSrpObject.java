@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,20 @@ public interface PcepSrpObject {
      * @param bRFlag R Flag of SRP Object
      */
     void setRFlag(boolean bRFlag);
+
+    /**
+     * Returns S flag of SRP Object.
+     *
+     * @return S flag of SRP Object
+     */
+    boolean getSFlag();
+
+    /**
+     * Sets S(sync) flag with specified value.
+     *
+     * @param bSFlag S Flag of SRP Object
+     */
+    void setSFlag(boolean bSFlag);
 
     /**
      * sets the optional TLvs.
@@ -130,12 +144,27 @@ public interface PcepSrpObject {
         boolean getRFlag();
 
         /**
+         * Returns S(sync) flag of SRP Object.
+         *
+         * @return S flag of SRP Object
+         */
+        boolean getSFlag();
+
+        /**
          * Sets R flag and returns its builder.
          *
          * @param bRFlag R flag
          * @return Builder by setting R flag
          */
         Builder setRFlag(boolean bRFlag);
+
+        /**
+         * Sets S flag and returns its builder.
+         *
+         * @param bSFlag S flag
+         * @return Builder by setting S flag
+         */
+        Builder setSFlag(boolean bSFlag);
 
         /**
          * Returns list of optional tlvs.

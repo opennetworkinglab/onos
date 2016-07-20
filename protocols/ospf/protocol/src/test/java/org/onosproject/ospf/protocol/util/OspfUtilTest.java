@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -229,7 +229,7 @@ public class OspfUtilTest {
      */
     @Test
     public void testAddMetadata() throws Exception {
-        result1 = OspfUtil.addMetadata(packet, 123, Ip4Address.valueOf("1.1.1.1"));
+        result1 = OspfUtil.addMetadata(2, packet, 1, Ip4Address.valueOf("1.1.1.1"));
         assertThat(result1, is(notNullValue()));
     }
 
@@ -251,7 +251,7 @@ public class OspfUtilTest {
      */
     @Test
     public void testAddMetaData() throws Exception {
-        result1 = OspfUtil.addMetadata(packet, 1, Ip4Address.valueOf("2.2.2.2"));
+        result1 = OspfUtil.addMetadata(2, packet, 1, Ip4Address.valueOf("2.2.2.2"));
         assertThat(result1, is(notNullValue()));
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,12 @@ import org.onosproject.net.flow.criteria.ExtensionSelectorType;
 import org.onosproject.net.flow.instructions.ExtensionPropertyException;
 
 public class MockExtensionSelector implements ExtensionSelector {
+
+    private ExtensionSelectorType type;
+
+    public MockExtensionSelector(ExtensionSelectorType type) {
+        this.type = type;
+    }
 
     @Override
     public <T> void setPropertyValue(String key, T value) throws ExtensionPropertyException {
@@ -48,6 +54,6 @@ public class MockExtensionSelector implements ExtensionSelector {
 
     @Override
     public ExtensionSelectorType type() {
-        return null;
+        return type;
     }
 }

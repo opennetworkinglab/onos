@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,14 @@
  */
 package org.onosproject.driver.pipeline;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalCause;
+import com.google.common.cache.RemovalNotification;
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
@@ -29,13 +35,18 @@ import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flowobjective.FilteringObjective;
+import org.onosproject.net.flowobjective.FlowObjectiveStore;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveError;
+import org.onosproject.net.group.DefaultGroupKey;
+import org.onosproject.net.group.GroupKey;
 import org.slf4j.Logger;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -48,7 +59,18 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
 
     private ServiceDirectory serviceDirectory;
     private FlowRuleService flowRuleService;
+    private FlowObjectiveStore flowObjectiveStore;
     private DeviceId deviceId;
+
+    private Cache<Integer, NextObjective> pendingNext;
+
+    private KryoNamespace appKryo = new KryoNamespace.Builder()
+            .register(GroupKey.class)
+            .register(DefaultGroupKey.class)
+            .register(SingleGroup.class)
+            .register(byte[].class)
+            .build("DefaultSingleTablePipeline");
+
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
@@ -56,6 +78,17 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
         this.deviceId = deviceId;
 
         flowRuleService = serviceDirectory.get(FlowRuleService.class);
+        flowObjectiveStore = serviceDirectory.get(FlowObjectiveStore.class);
+
+        pendingNext = CacheBuilder.newBuilder()
+                .expireAfterWrite(20, TimeUnit.SECONDS)
+                .removalListener((RemovalNotification<Integer, NextObjective> notification) -> {
+                    if (notification.getCause() == RemovalCause.EXPIRED) {
+                        notification.getValue().context()
+                                .ifPresent(c -> c.onError(notification.getValue(),
+                                        ObjectiveError.FLOWINSTALLATIONFAILED));
+                    }
+                }).build();
     }
 
     @Override
@@ -106,33 +139,48 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
 
     @Override
     public void forward(ForwardingObjective fwd) {
-        // Deal with SPECIFIC and VERSATILE in the same manner.
         TrafficSelector selector = fwd.selector();
-        TrafficTreatment treatment = fwd.treatment();
-        if ((fwd.treatment().deferred().size() == 0) &&
-                (fwd.treatment().immediate().size() == 0) &&
-                (fwd.treatment().tableTransition() == null) &&
-                (!fwd.treatment().clearedDeferred())) {
-            TrafficTreatment.Builder flowTreatment = DefaultTrafficTreatment.builder();
-            flowTreatment.add(Instructions.createNoAction());
-            treatment = flowTreatment.build();
-        }
 
-        FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector)
-                .withTreatment(treatment)
-                .fromApp(fwd.appId())
-                .withPriority(fwd.priority());
+        if (fwd.treatment() != null) {
+            // Deal with SPECIFIC and VERSATILE in the same manner.
+            FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
+                    .forDevice(deviceId)
+                    .withSelector(selector)
+                    .fromApp(fwd.appId())
+                    .withPriority(fwd.priority())
+                    .withTreatment(fwd.treatment());
 
-        if (fwd.permanent()) {
-            ruleBuilder.makePermanent();
+            if (fwd.permanent()) {
+                ruleBuilder.makePermanent();
+            } else {
+                ruleBuilder.makeTemporary(fwd.timeout());
+            }
+            installObjective(ruleBuilder, fwd);
+
         } else {
-            ruleBuilder.makeTemporary(fwd.timeout());
+            NextObjective nextObjective = pendingNext.getIfPresent(fwd.nextId());
+            if (nextObjective != null) {
+                pendingNext.invalidate(fwd.nextId());
+                nextObjective.next().forEach(treat -> {
+                    FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
+                            .forDevice(deviceId)
+                            .withSelector(selector)
+                            .fromApp(fwd.appId())
+                            .withPriority(fwd.priority())
+                            .withTreatment(treat);
+
+                    if (fwd.permanent()) {
+                        ruleBuilder.makePermanent();
+                    } else {
+                        ruleBuilder.makeTemporary(fwd.timeout());
+                    }
+                    installObjective(ruleBuilder, fwd);
+                });
+            } else {
+                fwd.context().ifPresent(c -> c.onError(fwd,
+                        ObjectiveError.GROUPMISSING));
+            }
         }
-
-        installObjective(ruleBuilder, fwd);
-
     }
 
     private void installObjective(FlowRule.Builder ruleBuilder, Objective objective) {
@@ -165,6 +213,35 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
 
     @Override
     public void next(NextObjective nextObjective) {
+
+        pendingNext.put(nextObjective.id(), nextObjective);
+        flowObjectiveStore.putNextGroup(nextObjective.id(),
+                new SingleGroup(new DefaultGroupKey(appKryo.serialize(nextObjective.id()))));
+        nextObjective.context().ifPresent(context -> context.onSuccess(nextObjective));
     }
 
+    @Override
+    public List<String> getNextMappings(NextGroup nextGroup) {
+        // Default single table pipeline does not use nextObjectives or groups
+        return null;
+    }
+
+    private class SingleGroup implements NextGroup {
+
+        private final GroupKey key;
+
+        public SingleGroup(GroupKey key) {
+            this.key = key;
+        }
+
+        public GroupKey key() {
+            return key;
+        }
+
+        @Override
+        public byte[] data() {
+            return appKryo.serialize(key);
+        }
+
+    }
 }

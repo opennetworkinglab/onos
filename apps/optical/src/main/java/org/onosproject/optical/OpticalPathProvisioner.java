@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,6 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
-import org.onosproject.net.OchPort;
-import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.Path;
 import org.onosproject.net.Port;
@@ -46,6 +44,8 @@ import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyEdge;
@@ -60,13 +60,17 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
 
 /**
  * OpticalPathProvisioner listens for event notifications from the Intent F/W.
  * It generates one or more opticalConnectivityIntent(s) and submits (or withdraws) to Intent F/W
  * for adding/releasing capacity at the packet layer.
+ *
+ * @deprecated in Goldeneye (1.6.0)
  */
 
+@Deprecated
 @Component(immediate = true)
 public class OpticalPathProvisioner {
 
@@ -100,6 +104,7 @@ public class OpticalPathProvisioner {
 
     @Activate
     protected void activate() {
+        deviceService = opticalView(deviceService);
         intentService.addListener(pathProvisioner);
         appId = coreService.registerApplication("org.onosproject.optical");
         initOpticalPorts();

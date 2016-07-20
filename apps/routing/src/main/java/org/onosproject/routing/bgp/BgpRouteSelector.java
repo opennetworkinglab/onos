@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.onosproject.routing.bgp;
 
 import org.onlab.packet.IpPrefix;
+import org.onosproject.incubator.net.routing.Route;
 import org.onosproject.routing.RouteUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,15 +46,16 @@ class BgpRouteSelector {
      * Processes route entry updates: added/updated and deleted route
      * entries.
      *
-     * @param bgpSession the BGP session the route entry updates were
-     * received on
      * @param addedBgpRouteEntries the added/updated route entries to process
      * @param deletedBgpRouteEntries the deleted route entries to process
      */
-    synchronized void routeUpdates(BgpSession bgpSession,
+    synchronized void routeUpdates(
                         Collection<BgpRouteEntry> addedBgpRouteEntries,
                         Collection<BgpRouteEntry> deletedBgpRouteEntries) {
-        Collection<RouteUpdate> routeUpdates = new LinkedList<>();
+
+        Collection<Route> updates = new LinkedList<>();
+        Collection<Route> withdraws = new LinkedList<>();
+
         RouteUpdate routeUpdate;
 
         if (bgpSessionManager.isShutdown()) {
@@ -61,32 +63,42 @@ class BgpRouteSelector {
         }
         // Process the deleted route entries
         for (BgpRouteEntry bgpRouteEntry : deletedBgpRouteEntries) {
-            routeUpdate = processDeletedRoute(bgpSession, bgpRouteEntry);
-            if (routeUpdate != null) {
-                routeUpdates.add(routeUpdate);
-            }
+            routeUpdate = processDeletedRoute(bgpRouteEntry);
+            convertRouteUpdateToRoute(routeUpdate, updates, withdraws);
         }
 
         // Process the added/updated route entries
         for (BgpRouteEntry bgpRouteEntry : addedBgpRouteEntries) {
-            routeUpdate = processAddedRoute(bgpSession, bgpRouteEntry);
-            if (routeUpdate != null) {
-                routeUpdates.add(routeUpdate);
+            routeUpdate = processAddedRoute(bgpRouteEntry);
+            convertRouteUpdateToRoute(routeUpdate, updates, withdraws);
+        }
+
+        bgpSessionManager.withdraw(withdraws);
+        bgpSessionManager.update(updates);
+    }
+
+    private void convertRouteUpdateToRoute(RouteUpdate routeUpdate,
+                                           Collection<Route> updates,
+                                           Collection<Route> withdraws) {
+        if (routeUpdate != null) {
+            Route route = new Route(Route.Source.BGP, routeUpdate.routeEntry().prefix(),
+                    routeUpdate.routeEntry().nextHop());
+            if (routeUpdate.type().equals(RouteUpdate.Type.UPDATE)) {
+                updates.add(route);
+            } else if (routeUpdate.type().equals(RouteUpdate.Type.DELETE)) {
+                withdraws.add(route);
             }
         }
-        bgpSessionManager.getRouteListener().update(routeUpdates);
     }
 
     /**
      * Processes an added/updated route entry.
      *
-     * @param bgpSession the BGP session the route entry update was received on
      * @param bgpRouteEntry the added/updated route entry
      * @return the result route update that should be forwarded to the
      * Route Listener, or null if no route update should be forwarded
      */
-    private RouteUpdate processAddedRoute(BgpSession bgpSession,
-                                          BgpRouteEntry bgpRouteEntry) {
+    private RouteUpdate processAddedRoute(BgpRouteEntry bgpRouteEntry) {
         RouteUpdate routeUpdate;
         BgpRouteEntry bestBgpRouteEntry =
             bgpSessionManager.findBgpRoute(bgpRouteEntry.prefix());
@@ -136,13 +148,11 @@ class BgpRouteSelector {
     /**
      * Processes a deleted route entry.
      *
-     * @param bgpSession the BGP session the route entry update was received on
      * @param bgpRouteEntry the deleted route entry
      * @return the result route update that should be forwarded to the
      * Route Listener, or null if no route update should be forwarded
      */
-    private RouteUpdate processDeletedRoute(BgpSession bgpSession,
-                                            BgpRouteEntry bgpRouteEntry) {
+    private RouteUpdate processDeletedRoute(BgpRouteEntry bgpRouteEntry) {
         RouteUpdate routeUpdate;
         BgpRouteEntry bestBgpRouteEntry =
             bgpSessionManager.findBgpRoute(bgpRouteEntry.prefix());

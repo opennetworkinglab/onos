@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ public class OfdpaExtensionTreatmentInterpreter  extends AbstractHandlerBehaviou
     }
 
     @Override
-    public ExtensionTreatment mapAction(OFAction action) {
+    public ExtensionTreatment mapAction(OFAction action) throws UnsupportedOperationException {
         if (action.getType().equals(OFActionType.SET_FIELD)) {
             OFActionSetField setFieldAction = (OFActionSetField) action;
             OFOxm<?> oxm = setFieldAction.getField();

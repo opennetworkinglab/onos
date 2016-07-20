@@ -1,0 +1,10 @@
+# LXC environment for distributed tutorial
+
+export ONOS_NIC="10.0.3.*"
+export OC1="10.0.3.101"
+export OC2="10.0.3.102"
+export OC3="10.0.3.103"
+export OCN="10.0.3.1"
+
+unset ONOS_USE_SSH
+export ONOS_APPS=drivers,openflow,proxyarp

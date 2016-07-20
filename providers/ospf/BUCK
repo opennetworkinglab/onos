@@ -1,0 +1,16 @@
+BUNDLES = [
+    '//protocols/ospf/api:onos-protocols-ospf-api',
+    '//protocols/ospf/ctl:onos-protocols-ospf-ctl',
+    '//protocols/ospf/protocol:onos-protocols-ospf-protocol',
+    '//providers/ospf/cfg:onos-providers-ospf-cfg',
+    '//providers/ospf/topology:onos-providers-ospf-topology',
+]
+
+onos_app (
+    title = 'OSPF Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    description = 'ONOS OSPF protocol adapters.',
+    included_bundles = BUNDLES,
+)
+

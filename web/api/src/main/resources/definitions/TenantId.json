@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "title": "TenantId",
+  "required": [
+    "id"
+  ],
+  "properties": {
+    "id": {
+      "type": "String",
+      "description": "Tenant identifier",
+      "example": "Tenant123"
+    }
+  }
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ public abstract class UiMessageHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final Map<String, RequestHandler> handlerMap = new HashMap<>();
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     private UiConnection connection;

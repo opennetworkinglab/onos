@@ -1,0 +1,18 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//lib:javax.ws.rs-api',
+    '//utils/rest:onlab-rest',
+    '//cli:onos-cli',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'OpenStack Interface App',
+    category = 'Utility',
+    url = 'http://onosproject.org',
+    description = 'Openstack Interface Application.',
+)

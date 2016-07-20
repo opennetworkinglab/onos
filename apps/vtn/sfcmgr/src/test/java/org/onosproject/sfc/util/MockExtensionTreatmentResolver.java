@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public class MockExtensionTreatmentResolver implements ExtensionTreatmentResolve
 
     @Override
     public ExtensionTreatment getExtensionInstruction(ExtensionTreatmentType type) {
-        return new MockExtensionTreatment();
+        return new MockExtensionTreatment(type);
     }
 
 }

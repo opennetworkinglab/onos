@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.onosproject.driver.extensions;
 
+import java.util.Map;
 import java.util.Objects;
 
 import org.onlab.util.KryoNamespace;
@@ -25,6 +26,7 @@ import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.Maps;
 
 /**
  * Nicira set NSH Context header extension instruction.
@@ -53,7 +55,7 @@ public class NiciraSetNshContextHeader extends AbstractExtension implements
      * @param nshCh nsh context header
      * @param type extension treatment type
      */
-    NiciraSetNshContextHeader(NshContextHeader nshCh, ExtensionTreatmentType type) {
+    public NiciraSetNshContextHeader(NshContextHeader nshCh, ExtensionTreatmentType type) {
         this.nshCh = nshCh;
         this.type = type;
     }
@@ -74,12 +76,17 @@ public class NiciraSetNshContextHeader extends AbstractExtension implements
 
     @Override
     public void deserialize(byte[] data) {
-        nshCh = NshContextHeader.of(appKryo.deserialize(data));
+        Map<String, Object> values = appKryo.deserialize(data);
+        nshCh = (NshContextHeader) values.get("nshCh");
+        type = (ExtensionTreatmentType) values.get("type");
     }
 
     @Override
     public byte[] serialize() {
-        return appKryo.serialize(nshCh.nshContextHeader());
+        Map<String, Object> values = Maps.newHashMap();
+        values.put("nshCh", nshCh);
+        values.put("type", type);
+        return appKryo.serialize(values);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.onosproject.store.primitives.resources.impl;
 import static org.onosproject.store.service.MapEvent.Type.INSERT;
 import static org.onosproject.store.service.MapEvent.Type.REMOVE;
 import static org.onosproject.store.service.MapEvent.Type.UPDATE;
+import static org.slf4j.LoggerFactory.getLogger;
 import io.atomix.copycat.server.session.ServerSession;
 import io.atomix.copycat.server.Commit;
 import io.atomix.copycat.server.Snapshottable;
@@ -26,13 +27,13 @@ import io.atomix.copycat.server.session.SessionListener;
 import io.atomix.copycat.server.storage.snapshot.SnapshotReader;
 import io.atomix.copycat.server.storage.snapshot.SnapshotWriter;
 import io.atomix.resource.ResourceStateMachine;
-import io.atomix.resource.ResourceType;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -52,6 +53,7 @@ import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapComman
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Size;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionCommit;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionPrepare;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionPrepareAndCommit;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionRollback;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Unlisten;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.UpdateAndGet;
@@ -59,7 +61,9 @@ import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapComman
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.Versioned;
+import org.slf4j.Logger;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -71,14 +75,15 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class AtomixConsistentMapState extends ResourceStateMachine implements SessionListener, Snapshottable {
 
+    private final Logger log = getLogger(getClass());
     private final Map<Long, Commit<? extends AtomixConsistentMapCommands.Listen>> listeners = new HashMap<>();
     private final Map<String, MapEntryValue> mapEntries = new HashMap<>();
     private final Set<String> preparedKeys = Sets.newHashSet();
     private final Map<TransactionId, Commit<? extends TransactionPrepare>> pendingTransactions = Maps.newHashMap();
     private AtomicLong versionCounter = new AtomicLong(0);
 
-    public AtomixConsistentMapState() {
-        super(new ResourceType(AtomixConsistentMap.class));
+    public AtomixConsistentMapState(Properties properties) {
+        super(properties);
     }
 
     @Override
@@ -111,6 +116,7 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
         executor.register(TransactionPrepare.class, this::prepare);
         executor.register(TransactionCommit.class, this::commit);
         executor.register(TransactionRollback.class, this::rollback);
+        executor.register(TransactionPrepareAndCommit.class, this::prepareAndCommit);
     }
 
     @Override
@@ -253,36 +259,41 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      * @return update result
      */
     protected MapEntryUpdateResult<String, byte[]> updateAndGet(Commit<? extends UpdateAndGet> commit) {
-        MapEntryUpdateResult.Status updateStatus = validate(commit.operation());
-        String key = commit.operation().key();
-        MapEntryValue oldCommitValue = mapEntries.get(commit.operation().key());
-        Versioned<byte[]> oldMapValue = toVersioned(oldCommitValue);
+        try {
+            MapEntryUpdateResult.Status updateStatus = validate(commit.operation());
+            String key = commit.operation().key();
+            MapEntryValue oldCommitValue = mapEntries.get(commit.operation().key());
+            Versioned<byte[]> oldMapValue = toVersioned(oldCommitValue);
 
-        if (updateStatus != MapEntryUpdateResult.Status.OK) {
-            commit.close();
-            return new MapEntryUpdateResult<>(updateStatus, "", key,
-                    oldMapValue, oldMapValue);
-        }
+            if (updateStatus != MapEntryUpdateResult.Status.OK) {
+                commit.close();
+                return new MapEntryUpdateResult<>(updateStatus, "", key,
+                        oldMapValue, oldMapValue);
+            }
 
-        byte[] newValue = commit.operation().value();
-        long newVersion = versionCounter.incrementAndGet();
-        Versioned<byte[]> newMapValue = newValue == null ? null
-                : new Versioned<>(newValue, newVersion);
+            byte[] newValue = commit.operation().value();
+            long newVersion = versionCounter.incrementAndGet();
+            Versioned<byte[]> newMapValue = newValue == null ? null
+                    : new Versioned<>(newValue, newVersion);
 
-        MapEvent.Type updateType = newValue == null ? REMOVE
-                : oldCommitValue == null ? INSERT : UPDATE;
-        if (updateType == REMOVE || updateType == UPDATE) {
-            mapEntries.remove(key);
-            oldCommitValue.discard();
+            MapEvent.Type updateType = newValue == null ? REMOVE
+                    : oldCommitValue == null ? INSERT : UPDATE;
+            if (updateType == REMOVE || updateType == UPDATE) {
+                mapEntries.remove(key);
+                oldCommitValue.discard();
+            }
+            if (updateType == INSERT || updateType == UPDATE) {
+                mapEntries.put(key, new NonTransactionalCommit(newVersion, commit));
+            } else {
+                commit.close();
+            }
+            publish(Lists.newArrayList(new MapEvent<>("", key, newMapValue, oldMapValue)));
+            return new MapEntryUpdateResult<>(updateStatus, "", key, oldMapValue,
+                    newMapValue);
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         }
-        if (updateType == INSERT || updateType == UPDATE) {
-            mapEntries.put(key, new NonTransactionalCommit(newVersion, commit));
-        } else {
-            commit.close();
-        }
-        publish(Lists.newArrayList(new MapEvent<>("", key, newMapValue, oldMapValue)));
-        return new MapEntryUpdateResult<>(updateStatus, "", key, oldMapValue,
-                newMapValue);
     }
 
     /**
@@ -352,6 +363,20 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
     }
 
     /**
+     * Handles an prepare and commit commit.
+     *
+     * @param commit transaction prepare and commit commit
+     * @return prepare result
+     */
+    protected PrepareResult prepareAndCommit(Commit<? extends TransactionPrepareAndCommit> commit) {
+        PrepareResult prepareResult = prepare(commit);
+        if (prepareResult == PrepareResult.OK) {
+            commitInternal(commit.operation().transaction().transactionId());
+        }
+        return prepareResult;
+    }
+
+    /**
      * Handles an prepare commit.
      *
      * @param commit transaction prepare commit
@@ -368,7 +393,7 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
                 }
                 MapEntryValue existingValue = mapEntries.get(key);
                 if (existingValue == null) {
-                    if (update.currentValue() != null) {
+                    if (update.type() != MapUpdate.Type.PUT_IF_ABSENT) {
                         return PrepareResult.OPTIMISTIC_LOCK_FAILURE;
                     }
                 } else {
@@ -383,6 +408,9 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
             transaction.updates().forEach(u -> preparedKeys.add(u.key()));
             ok = true;
             return PrepareResult.OK;
+        } catch (Exception e) {
+            log.warn("Failure applying {}", commit, e);
+            throw Throwables.propagate(e);
         } finally {
             if (!ok) {
                 commit.close();
@@ -399,42 +427,48 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
     protected CommitResult commit(Commit<? extends TransactionCommit> commit) {
         TransactionId transactionId = commit.operation().transactionId();
         try {
-            Commit<? extends TransactionPrepare> prepareCommit = pendingTransactions
-                    .remove(transactionId);
-            if (prepareCommit == null) {
-                return CommitResult.UNKNOWN_TRANSACTION_ID;
-            }
-            MapTransaction<String, byte[]> transaction = prepareCommit.operation().transaction();
-            long totalReferencesToCommit = transaction
-                    .updates()
-                    .stream()
-                    .filter(update -> update.type() != MapUpdate.Type.REMOVE_IF_VERSION_MATCH)
-                    .count();
-            CountDownCompleter<Commit<? extends TransactionPrepare>> completer =
-                    new CountDownCompleter<>(prepareCommit, totalReferencesToCommit, Commit::close);
-            List<MapEvent<String, byte[]>> eventsToPublish = Lists.newArrayList();
-            for (MapUpdate<String, byte[]> update : transaction.updates()) {
-                String key = update.key();
-                MapEntryValue previousValue = mapEntries.remove(key);
-                MapEntryValue newValue = null;
-                checkState(preparedKeys.remove(key), "key is not prepared");
-                if (update.type() != MapUpdate.Type.REMOVE_IF_VERSION_MATCH) {
-                    newValue = new TransactionalCommit(key,
-                            versionCounter.incrementAndGet(), completer);
-                }
-                eventsToPublish.add(new MapEvent<>("", key, toVersioned(newValue), toVersioned(previousValue)));
-                if (newValue != null) {
-                    mapEntries.put(key, newValue);
-                }
-                if (previousValue != null) {
-                    previousValue.discard();
-                }
-            }
-            publish(eventsToPublish);
-            return CommitResult.OK;
+            return commitInternal(transactionId);
+        } catch (Exception e) {
+            log.warn("Failure applying {}", commit, e);
+            throw Throwables.propagate(e);
         } finally {
             commit.close();
         }
+    }
+
+    private CommitResult commitInternal(TransactionId transactionId) {
+        Commit<? extends TransactionPrepare> prepareCommit = pendingTransactions
+                .remove(transactionId);
+        if (prepareCommit == null) {
+            return CommitResult.UNKNOWN_TRANSACTION_ID;
+        }
+        MapTransaction<String, byte[]> transaction = prepareCommit.operation().transaction();
+        long totalReferencesToCommit = transaction
+                .updates()
+                .stream()
+                .filter(update -> update.type() != MapUpdate.Type.REMOVE_IF_VERSION_MATCH)
+                .count();
+        CountDownCompleter<Commit<? extends TransactionPrepare>> completer =
+                new CountDownCompleter<>(prepareCommit, totalReferencesToCommit, Commit::close);
+        List<MapEvent<String, byte[]>> eventsToPublish = Lists.newArrayList();
+        for (MapUpdate<String, byte[]> update : transaction.updates()) {
+            String key = update.key();
+            checkState(preparedKeys.remove(key), "key is not prepared");
+            MapEntryValue previousValue = mapEntries.remove(key);
+            MapEntryValue newValue = null;
+            if (update.type() != MapUpdate.Type.REMOVE_IF_VERSION_MATCH) {
+                newValue = new TransactionalCommit(key, versionCounter.incrementAndGet(), completer);
+            }
+            eventsToPublish.add(new MapEvent<>("", key, toVersioned(newValue), toVersioned(previousValue)));
+            if (newValue != null) {
+                mapEntries.put(key, newValue);
+            }
+            if (previousValue != null) {
+                previousValue.discard();
+            }
+        }
+        publish(eventsToPublish);
+        return CommitResult.OK;
     }
 
     /**

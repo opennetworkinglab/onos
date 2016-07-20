@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,5 +24,6 @@
         <bundle>mvn:${project.groupId}/onos-pcep-controller-impl/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-provider-topology/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-provider-tunnel/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-pcep-provider-packet/${project.version}</bundle>
     </feature>
 </features>

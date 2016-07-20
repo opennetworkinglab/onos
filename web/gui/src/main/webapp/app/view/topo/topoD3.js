@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, sus, is, ts;
+    var $log, fs, sus, is, ts, ps, ttbs;
 
     // api to topoForce
     var api;
@@ -39,34 +39,22 @@
      */
 
     // configuration
-    var devCfg = {
-            xoff: -20,
-            yoff: -18
-        },
-        labelConfig = {
-            imgPad: 16,
-            padLR: 4,
-            padTB: 3,
-            marginLR: 3,
-            marginTB: 2,
-            port: {
-                gap: 3,
-                width: 18,
-                height: 14
-            }
-        },
+    var devIconDim = 36,
+        labelPad = 4,
+        hostRadius = 14,
         badgeConfig = {
             radius: 12,
             yoff: 5,
             gdelta: 10
         },
-        icfg;
-
-    var status = {
-        i: 'badgeInfo',
-        w: 'badgeWarn',
-        e: 'badgeError'
-    };
+        halfDevIcon = devIconDim / 2,
+        devBadgeOff = { dx: -halfDevIcon, dy: -halfDevIcon },
+        hostBadgeOff = { dx: -hostRadius, dy: -hostRadius },
+        status = {
+            i: 'badgeInfo',
+            w: 'badgeWarn',
+            e: 'badgeError'
+        };
 
     // NOTE: this type of hack should go away once we have implemented
     //       the server-side UiModel code.
@@ -87,79 +75,34 @@
     var deviceLabelIndex = 0,
         hostLabelIndex = 0;
 
-
-    var dCol = {
-        black: '#000',
-        paleblue: '#acf',
-        offwhite: '#ddd',
-        darkgrey: '#444',
-        midgrey: '#888',
-        lightgrey: '#bbb',
-        orange: '#f90'
-    };
-
-    // note: these are the device icon colors without affinity
+    // note: these are the device icon colors without affinity (no master)
     var dColTheme = {
         light: {
-            rfill: dCol.offwhite,
-            online: {
-                glyph: dCol.darkgrey,
-                rect: dCol.paleblue
-            },
-            offline: {
-                glyph: dCol.midgrey,
-                rect: dCol.lightgrey
-            }
+            online: '#444444',
+            offline: '#cccccc'
         },
         dark: {
-            rfill: dCol.midgrey,
-            online: {
-                glyph: dCol.darkgrey,
-                rect: dCol.paleblue
-            },
-            offline: {
-                glyph: dCol.midgrey,
-                rect: dCol.darkgrey
-            }
+            // TODO: theme
+            online: '#444444',
+            offline: '#cccccc'
         }
     };
 
-    function devBaseColor(d) {
-        var o = d.online ? 'online' : 'offline';
-        return dColTheme[ts.theme()][o];
+    function devGlyphColor(d) {
+        var o = d.online,
+            id = d.master,
+            otag = o ? 'online' : 'offline';
+        return o ? sus.cat7().getColor(id, 0, ts.theme())
+                 : dColTheme[ts.theme()][otag];
     }
 
     function setDeviceColor(d) {
-        var o = d.online,
-            s = d.el.classed('selected'),
-            c = devBaseColor(d),
-            a = instColor(d.master, o),
-            icon = d.el.select('g.deviceIcon'),
-            g, r;
-
-        if (s) {
-            g = c.glyph;
-            r = dCol.orange;
-        } else if (api.instVisible()) {
-            g = o ? a : c.glyph;
-            r = o ? c.rfill : a;
-        } else {
-            g = c.glyph;
-            r = c.rect;
-        }
-
-        icon.select('use').style('fill', g);
-        icon.select('rect').style('fill', r);
+        d.el.select('use')
+            .style('fill', devGlyphColor(d));
     }
-
-    function instColor(id, online) {
-        return sus.cat7().getColor(id, !online, ts.theme());
-    }
-
-    // ====
 
     function incDevLabIndex() {
-        deviceLabelIndex = (deviceLabelIndex+1) % 3;
+        setDevLabIndex(deviceLabelIndex+1);
         switch(deviceLabelIndex) {
             case 0: return 'Hide device labels';
             case 1: return 'Show friendly device labels';
@@ -167,82 +110,57 @@
         }
     }
 
-    // Returns the newly computed bounding box of the rectangle
-    function adjustRectToFitText(n) {
-        var text = n.select('text'),
-            box = text.node().getBBox(),
-            lab = labelConfig;
-
-        text.attr('text-anchor', 'middle')
-            .attr('y', '-0.8em')
-            .attr('x', lab.imgPad/2);
-
-        // translate the bbox so that it is centered on [x,y]
-        box.x = -box.width / 2;
-        box.y = -box.height / 2;
-
-        // add padding
-        box.x -= (lab.padLR + lab.imgPad/2);
-        box.width += lab.padLR * 2 + lab.imgPad;
-        box.y -= lab.padTB;
-        box.height += lab.padTB * 2;
-
-        return box;
+    function setDevLabIndex(mode) {
+        deviceLabelIndex = mode % 3;
+        var p = ps.getPrefs('topo_prefs', ttbs.defaultPrefs);
+        p.dlbls = deviceLabelIndex;
+        ps.setPrefs('topo_prefs', p);
     }
 
     function hostLabel(d) {
         var idx = (hostLabelIndex < d.labels.length) ? hostLabelIndex : 0;
         return d.labels[idx];
     }
+
     function deviceLabel(d) {
         var idx = (deviceLabelIndex < d.labels.length) ? deviceLabelIndex : 0;
         return d.labels[idx];
     }
+
     function trimLabel(label) {
         return (label && label.trim()) || '';
     }
 
-    function emptyBox() {
+    function computeLabelWidth(n) {
+        var text = n.select('text'),
+            box = text.node().getBBox();
+        return box.width + labelPad * 2;
+    }
+
+    function iconBox(dim, labelWidth) {
         return {
-            x: -2,
-            y: -2,
-            width: 4,
-            height: 4
-        };
+            x: -dim/2,
+            y: -dim/2,
+            width: dim + labelWidth,
+            height: dim
+        }
     }
 
     function updateDeviceRendering(d) {
-        var label = trimLabel(deviceLabel(d)),
-            noLabel = !label,
-            node = d.el,
-            dim = icfg.device.dim,
-            box, dx, dy,
-            bdg = d.badge;
+        var node = d.el,
+            bdg = d.badge,
+            label = trimLabel(deviceLabel(d)),
+            labelWidth;
 
-        node.select('text')
-            .text(label);
-
-        if (noLabel) {
-            box = emptyBox();
-            dx = -dim/2;
-            dy = -dim/2;
-        } else {
-            box = adjustRectToFitText(node);
-            dx = box.x + devCfg.xoff;
-            dy = box.y + devCfg.yoff;
-        }
+        node.select('text').text(label);
+        labelWidth = label ? computeLabelWidth(node) : 0;
 
         node.select('rect')
             .transition()
-            .attr(box);
+            .attr(iconBox(devIconDim, labelWidth));
 
-        node.select('g.deviceIcon')
-            .transition()
-            .attr('transform', sus.translate(dx, dy));
-
-        // handle badge, if defined
         if (bdg) {
-            renderBadge(node, bdg, { dx: dx + dim, dy: dy });
+            renderBadge(node, bdg, devBadgeOff);
         }
     }
 
@@ -252,9 +170,8 @@
 
         updateHostLabel(d);
 
-        // handle badge, if defined
         if (bdg) {
-            renderBadge(node, bdg, icfg.host.badge);
+            renderBadge(node, bdg, hostBadgeOff);
         }
     }
 
@@ -324,41 +241,36 @@
         var node = d3.select(this),
             glyphId = mapDeviceTypeToGlyph(d.type),
             label = trimLabel(deviceLabel(d)),
-            noLabel = !label,
-            box, dx, dy, icon;
+            rect, text, glyph, labelWidth;
 
         d.el = node;
 
-        node.append('rect').attr({ rx: 5, ry: 5 });
-        node.append('text').text(label).attr('dy', '1.1em');
-        box = adjustRectToFitText(node);
-        node.select('rect').attr(box);
+        rect = node.append('rect');
 
-        icon = is.addDeviceIcon(node, glyphId);
+        text = node.append('text').text(label)
+            .attr('text-anchor', 'left')
+            .attr('y', '0.3em')
+            .attr('x', halfDevIcon + labelPad);
 
-        if (noLabel) {
-            dx = -icon.dim/2;
-            dy = -icon.dim/2;
-        } else {
-            box = adjustRectToFitText(node);
-            dx = box.x + devCfg.xoff;
-            dy = box.y + devCfg.yoff;
-        }
+        glyph = is.addDeviceIcon(node, glyphId, devIconDim);
 
-        icon.attr('transform', sus.translate(dx, dy));
+        labelWidth = label ? computeLabelWidth(node) : 0;
+
+        rect.attr(iconBox(devIconDim, labelWidth));
+        glyph.attr(iconBox(devIconDim, 0));
+
+        node.attr('transform', sus.translate(-halfDevIcon, -halfDevIcon));
     }
 
     function hostEnter(d) {
         var node = d3.select(this),
             gid = d.type || 'unknown',
-            rad = icfg.host.radius,
-            r = d.type ? rad.withGlyph : rad.noGlyph,
-            textDy = r + 10;
+            textDy = hostRadius + 10;
 
         d.el = node;
         sus.visible(node, api.showHosts());
 
-        is.addHostIcon(node, r, gid);
+        is.addHostIcon(node, hostRadius, gid);
 
         node.append('text')
             .text(hostLabel)
@@ -599,15 +511,16 @@
     angular.module('ovTopo')
     .factory('TopoD3Service',
         ['$log', 'FnService', 'SvgUtilService', 'IconService', 'ThemeService',
+            'PrefsService', 'TopoToolbarService',
 
-        function (_$log_, _fs_, _sus_, _is_, _ts_) {
+        function (_$log_, _fs_, _sus_, _is_, _ts_, _ps_, _ttbs_) {
             $log = _$log_;
             fs = _fs_;
             sus = _sus_;
             is = _is_;
             ts = _ts_;
-
-            icfg = is.iconConfig();
+            ps = _ps_;
+            ttbs = _ttbs_;
 
             function initD3(_api_) {
                 api = _api_;
@@ -620,7 +533,7 @@
                 destroyD3: destroyD3,
 
                 incDevLabIndex: incDevLabIndex,
-                adjustRectToFitText: adjustRectToFitText,
+                setDevLabIndex: setDevLabIndex,
                 hostLabel: hostLabel,
                 deviceLabel: deviceLabel,
                 trimLabel: trimLabel,

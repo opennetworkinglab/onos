@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ public interface FlowRule {
 
     int MAX_TIMEOUT = 60;
     int MIN_PRIORITY = 0;
+    int MAX_PRIORITY = 65535;
 
     /**
      * Returns the ID of this flow.

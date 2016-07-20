@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,9 +141,9 @@ public final class Match<T> {
             return false;
         }
         Match<T> that = (Match<T>) other;
-        return Objects.equals(this.matchAny, that.matchAny) &&
+        return this.matchAny == that.matchAny &&
                Objects.equals(this.value, that.value) &&
-               Objects.equals(this.negation, that.negation);
+               this.negation == that.negation;
     }
 
     @Override

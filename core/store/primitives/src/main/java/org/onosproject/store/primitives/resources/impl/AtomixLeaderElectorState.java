@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import io.atomix.copycat.server.session.SessionListener;
 import io.atomix.copycat.server.storage.snapshot.SnapshotReader;
 import io.atomix.copycat.server.storage.snapshot.SnapshotWriter;
 import io.atomix.resource.ResourceStateMachine;
-import io.atomix.resource.ResourceType;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -33,6 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
@@ -58,6 +58,7 @@ import org.slf4j.Logger;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -75,8 +76,8 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
                                                            ElectionState.class,
                                                            Registration.class);
 
-    public AtomixLeaderElectorState() {
-        super(new ResourceType(AtomixLeaderElector.class));
+    public AtomixLeaderElectorState(Properties properties) {
+        super(properties);
     }
 
     @Override
@@ -170,6 +171,9 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
                 notifyLeadershipChange(oldLeadership, newLeadership);
             }
             return newLeadership;
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         } finally {
             commit.close();
         }
@@ -189,6 +193,9 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
             if (!Objects.equal(oldLeadership, newLeadership)) {
                 notifyLeadershipChange(oldLeadership, newLeadership);
             }
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         } finally {
             commit.close();
         }
@@ -213,6 +220,9 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
             return (electionState != null &&
                     electionState.leader() != null &&
                     commit.operation().nodeId().equals(electionState.leader().nodeId()));
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         } finally {
             commit.close();
         }
@@ -237,6 +247,9 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
                 notifyLeadershipChange(oldLeadership, newLeadership);
             }
             return true;
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         } finally {
             commit.close();
         }
@@ -260,6 +273,9 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
                 }
             });
             notifyLeadershipChanges(changes);
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         } finally {
             commit.close();
         }
@@ -274,6 +290,9 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
         String topic = commit.operation().topic();
         try {
             return leadership(topic);
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         } finally {
             commit.close();
         }
@@ -291,6 +310,9 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
                 Leader leader = leadership(e.getKey()).leader();
                 return leader != null && leader.nodeId().equals(nodeId);
             }).keySet();
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         } finally {
             commit.close();
         }
@@ -302,8 +324,13 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
      * @return topic to leader mapping
      */
     public Map<String, Leadership> allLeaderships(Commit<? extends GetAllLeaderships> commit) {
+        Map<String, Leadership> result = new HashMap<>();
         try {
-            return Maps.transformEntries(elections, (k, v) -> leadership(k));
+            result.putAll(Maps.transformEntries(elections, (k, v) -> leadership(k)));
+            return result;
+        } catch (Exception e) {
+            log.error("State machine operation failed", e);
+            throw Throwables.propagate(e);
         } finally {
             commit.close();
         }
@@ -539,7 +566,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
         byte[] encodedElections  = serializer.encode(elections);
         writer.writeInt(encodedElections.length);
         writer.write(encodedElections);
-        log.info("Took state machine snapshot");
+        log.debug("Took state machine snapshot");
     }
 
     @Override
@@ -552,7 +579,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
         byte[] encodedElections = new byte[encodedElectionsSize];
         reader.read(encodedElections);
         elections = serializer.decode(encodedElections);
-        log.info("Reinstated state machine from snapshot");
+        log.debug("Reinstated state machine from snapshot");
     }
 
     private AtomicLong termCounter(String topic) {

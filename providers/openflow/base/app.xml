@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014-2016 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/onos-of-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-of-ctl/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-drivers/${project.version}</artifact>
 
     <artifact>mvn:${project.groupId}/onos-of-provider-device/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-of-provider-packet/${project.version}</artifact>

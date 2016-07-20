@@ -1,5 +1,5 @@
 /*
- *  Copyright 2015,2016 Open Networking Laboratory
+ *  Copyright 2015-present Open Networking Laboratory
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -122,9 +122,9 @@
 
     angular.module('onosLayer')
         .factory('LoadingService',
-        ['$log', '$timeout', 'ThemeService', 'FnService',
+        ['$log', '$timeout', 'ThemeService', 'FnService', 'WebSocketService',
 
-            function (_$log_, _$timeout_, _ts_, _fs_) {
+            function (_$log_, _$timeout_, _ts_, _fs_, wss) {
             $log = _$log_;
             $timeout = _$timeout_;
             ts = _ts_;
@@ -132,11 +132,13 @@
 
             preloadImages();
 
-            return {
+            var self = {
                 start: start,
                 stop: stop,
                 waiting: waiting
             };
+            wss._setLoadingDelegate(self);
+            return self;
         }]);
 
 }());

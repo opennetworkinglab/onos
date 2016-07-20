@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,17 @@
  */
 package org.onosproject.dhcp.cli;
 
-import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.dhcp.DhcpService;
+import org.onosproject.dhcp.IpAssignment;
+
+import java.util.Date;
+
+import static org.onosproject.dhcp.IpAssignment.AssignmentStatus.Option_Requested;
 
 /**
  * Registers a static MAC Address to IP Mapping with the DHCP Server.
@@ -49,7 +53,15 @@ public class DhcpSetStaticMapping extends AbstractShellCommand {
         try {
             MacAddress macID = MacAddress.valueOf(macAddr);
             Ip4Address ipAddress = Ip4Address.valueOf(ipAddr);
-            if (dhcpService.setStaticMapping(macID, ipAddress, false, Lists.newArrayList())) {
+
+            IpAssignment ipAssignment = IpAssignment.builder()
+                    .ipAddress(ipAddress)
+                    .leasePeriod(dhcpService.getLeaseTime())
+                    .timestamp(new Date())
+                    .assignmentStatus(Option_Requested)
+                    .build();
+
+            if (dhcpService.setStaticMapping(macID, ipAssignment)) {
                 print(DHCP_SUCCESS);
             } else {
                 print(DHCP_FAILURE);

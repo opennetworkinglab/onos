@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.onosproject.net.intent.impl;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.FlowRule;
@@ -119,7 +120,7 @@ class IntentInstaller {
             // if toInstall was cause of error, then recompile (manage/increment counter, when exceeded -> CORRUPT)
             if (toInstall.isPresent()) {
                 IntentData installData = toInstall.get();
-                log.warn("Failed installation: {} {} on {}",
+                log.warn("Failed installation: {} {} due to {}",
                          installData.key(), installData.intent(), ctx.error());
                 installData.setState(CORRUPT);
                 installData.incrementErrorCount();
@@ -128,7 +129,7 @@ class IntentInstaller {
             // if toUninstall was cause of error, then CORRUPT (another job will clean this up)
             if (toUninstall.isPresent()) {
                 IntentData uninstallData = toUninstall.get();
-                log.warn("Failed withdrawal: {} {} on {}",
+                log.warn("Failed withdrawal: {} {} due to {}",
                          uninstallData.key(), uninstallData.intent(), ctx.error());
                 uninstallData.setState(CORRUPT);
                 uninstallData.incrementErrorCount();
@@ -299,15 +300,15 @@ class IntentInstaller {
 
     // Context for applying and tracking operations related to flow objective intents.
     private class FlowObjectiveOperationContext extends OperationContext {
-        List<FlowObjectiveInstallationContext> contexts;
+        List<FlowObjectiveInstallationContext> contexts = Lists.newLinkedList();
         final Set<ObjectiveContext> pendingContexts = Sets.newHashSet();
         final Set<ObjectiveContext> errorContexts = Sets.newConcurrentHashSet();
 
         @Override
         public void prepareIntents(List<Intent> intentsToApply, Direction direction) {
-            contexts = intentsToApply.stream()
+            intentsToApply.stream()
                     .flatMap(x -> buildObjectiveContexts((FlowObjectiveIntent) x, direction).stream())
-                    .collect(Collectors.toList());
+                    .forEach(contexts::add);
         }
 
         // Builds the specified objective in the appropriate direction
@@ -354,6 +355,7 @@ class IntentInstaller {
         private class FlowObjectiveInstallationContext implements ObjectiveContext {
             Objective objective;
             DeviceId deviceId;
+            ObjectiveError error;
 
             void setObjective(Objective objective, DeviceId deviceId) {
                 this.objective = objective;
@@ -367,6 +369,7 @@ class IntentInstaller {
 
             @Override
             public void onError(Objective objective, ObjectiveError error) {
+                this.error = error;
                 errorContexts.add(this);
                 finish();
             }
@@ -386,7 +389,7 @@ class IntentInstaller {
 
             @Override
             public String toString() {
-                return String.format("(%s, %s)", deviceId, objective);
+                return String.format("(%s on %s for %s)", error, deviceId, objective);
             }
         }
     }

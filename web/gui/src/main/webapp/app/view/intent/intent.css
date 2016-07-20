@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Intent View -- CSS file
+ ONOS GUI -- Intent View (layout) -- CSS file
  */
 
 #ov-intent h2 {
@@ -23,48 +23,11 @@
 }
 
 #ov-intent div.ctrl-btns {
+    width: 110px;
 }
 
-.light #ov-intent tr:nth-child(6n + 1),
-.light #ov-intent tr:nth-child(6n + 2),
-.light #ov-intent tr:nth-child(6n + 3) {
-    background-color: #eee;
-}
-.light #ov-intent tr:nth-child(6n + 4),
-.light #ov-intent tr:nth-child(6n + 5),
-.light #ov-intent tr:nth-child(6n) {
-    background-color: #ddd;
-}
-.dark #ov-intent tr:nth-child(6n + 1),
-.dark #ov-intent tr:nth-child(6n + 2),
-.dark #ov-intent tr:nth-child(6n + 3) {
-    background-color: #444;
-}
-.dark #ov-intent tr:nth-child(6n + 4),
-.dark #ov-intent tr:nth-child(6n + 5),
-.dark #ov-intent tr:nth-child(6n) {
-    background-color: #333;
-}
-
-.light #ov-intent tr:nth-child(6n + 1).data-change,
-.light #ov-intent tr:nth-child(6n + 2).data-change,
-.light #ov-intent tr:nth-child(6n + 3).data-change,
-.light #ov-intent tr:nth-child(6n + 4).data-change,
-.light #ov-intent tr:nth-child(6n + 5).data-change,
-.light #ov-intent tr:nth-child(6n).data-change {
-    background-color: #FDFFDC;
-}
-.dark #ov-intent tr:nth-child(6n + 1).data-change,
-.dark #ov-intent tr:nth-child(6n + 2).data-change,
-.dark #ov-intent tr:nth-child(6n + 3).data-change,
-.dark #ov-intent tr:nth-child(6n + 4).data-change,
-.dark #ov-intent tr:nth-child(6n + 5).data-change,
-.dark #ov-intent tr:nth-child(6n).data-change {
-    background-color: #5A5600;
-}
 
 #ov-intent td.resources,
 #ov-intent td.details {
     padding-left: 36px;
-    opacity: 0.65;
 }

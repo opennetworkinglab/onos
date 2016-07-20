@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * See ITU G.709 "Interfaces for the Optical Transport Network (OTN)"
  *
  * Assumes we only support fixed grid for now.
+ *
+ * @deprecated in Goldeneye (1.6.0)
  */
+@Deprecated
 public class OmsPort extends DefaultPort {
 
     private final Frequency minFrequency;     // Minimum frequency

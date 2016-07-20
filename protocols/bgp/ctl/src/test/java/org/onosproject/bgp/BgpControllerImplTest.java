@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,6 +72,7 @@ import org.onosproject.bgpio.types.IsIsNonPseudonode;
 import org.onosproject.bgpio.types.MultiProtocolExtnCapabilityTlv;
 import org.onosproject.bgpio.types.IsIsPseudonode;
 import org.onosproject.bgpio.types.RouteDistinguisher;
+import org.onosproject.bgpio.util.Constants;
 
 /**
  * Test case for BGPControllerImpl.
@@ -290,6 +291,29 @@ public class BgpControllerImplTest {
         bgpControllerImpl.getConfig().setLsCapability(true);
         BgpValueType tempTlv1 = new MultiProtocolExtnCapabilityTlv(afi, res, safi);
         peer1.peerChannelHandler.capabilityTlv.add(tempTlv1);
+        peer1.connect(connectToSocket);
+
+        boolean result;
+        result = peer1.peerFrameDecoder.receivedOpenMessageLatch.await(
+            MESSAGE_TIMEOUT_MS,
+            TimeUnit.MILLISECONDS);
+        assertThat(result, is(true));
+    }
+
+    @Test
+    public void bgpOpenMessageTest8() throws InterruptedException {
+        // Open message with route policy distribution capability
+        short afi = Constants.AFI_FLOWSPEC_RPD_VALUE;
+        byte res = 0;
+        byte safi = Constants.SAFI_FLOWSPEC_RPD_VALUE;
+        peer1.peerChannelHandler.asNumber = 200;
+        peer1.peerChannelHandler.version = 4;
+        peer1.peerChannelHandler.holdTime = 120;
+
+        bgpControllerImpl.getConfig().setFlowSpecRpdCapability(true);
+        BgpValueType tempTlv1 = new MultiProtocolExtnCapabilityTlv(afi, res, safi);
+        peer1.peerChannelHandler.capabilityTlv.add(tempTlv1);
+
         peer1.connect(connectToSocket);
 
         boolean result;

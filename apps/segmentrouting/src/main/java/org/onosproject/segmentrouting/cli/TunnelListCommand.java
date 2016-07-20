@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.onosproject.segmentrouting.Tunnel;
 /**
  * Command to show the list of tunnels.
  */
-@Command(scope = "onos", name = "srtunnel-list",
+@Command(scope = "onos", name = "sr-tunnel-list",
         description = "Lists all tunnels")
 public class TunnelListCommand extends AbstractShellCommand {
 

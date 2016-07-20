@@ -1,0 +1,19 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+    '//utils/rest:onlab-rest',
+    '//lib:javax.ws.rs-api',
+    '//core/store/serializers:onos-core-serializers',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'Messaging Performance Test App',
+    category = 'Test',
+    url = 'http://onosproject.org',
+    description = 'Messaging performance test application.',
+)

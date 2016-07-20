@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+
 import org.onosproject.core.ApplicationId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.FlowRule;
@@ -45,6 +48,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.ImmutableSet.copyOf;
+import static org.onosproject.net.device.DeviceEvent.Type.*;
 import static org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation.*;
 
 /**
@@ -62,6 +66,7 @@ class FlowRuleDriverProvider extends AbstractProvider implements FlowRuleProvide
     private DeviceService deviceService;
     private MastershipService mastershipService;
 
+    private InternalDeviceListener deviceListener = new InternalDeviceListener();
     private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> poller = null;
 
@@ -86,6 +91,8 @@ class FlowRuleDriverProvider extends AbstractProvider implements FlowRuleProvide
         this.providerService = providerService;
         this.deviceService = deviceService;
         this.mastershipService = mastershipService;
+
+        deviceService.addListener(deviceListener);
 
         if (poller != null && !poller.isCancelled()) {
             poller.cancel(false);
@@ -164,14 +171,36 @@ class FlowRuleDriverProvider extends AbstractProvider implements FlowRuleProvide
         }
     }
 
+    private void pollDeviceFlowEntries(Device device) {
+        providerService.pushFlowMetrics(device.id(), device.as(FlowRuleProgrammable.class).getFlowEntries());
+    }
 
     private void pollFlowEntries() {
         deviceService.getAvailableDevices().forEach(device -> {
             if (mastershipService.isLocalMaster(device.id()) && device.is(FlowRuleProgrammable.class)) {
-                providerService.pushFlowMetrics(device.id(),
-                                                device.as(FlowRuleProgrammable.class).getFlowEntries());
+                pollDeviceFlowEntries(device);
             }
         });
+    }
+
+    private class InternalDeviceListener implements DeviceListener {
+
+        @Override
+        public void event(DeviceEvent event) {
+            executor.execute(() -> handleEvent(event));
+        }
+
+        private void handleEvent(DeviceEvent event) {
+            Device device = event.subject();
+            boolean isRelevant = mastershipService.isLocalMaster(device.id())
+                    && device.is(FlowRuleProgrammable.class)
+                    && (event.type() == DEVICE_ADDED ||
+                        event.type() == DEVICE_UPDATED ||
+                        (event.type() == DEVICE_AVAILABILITY_CHANGED && deviceService.isAvailable(device.id())));
+            if (isRelevant) {
+                pollDeviceFlowEntries(event.subject());
+            }
+        }
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.Set;
 /**
  * Service for administering the cluster node membership.
  */
-public interface ClusterAdminService {
+public interface ClusterAdminService extends ClusterService {
 
     /**
      * Forms cluster configuration based on the specified set of node
@@ -49,5 +49,12 @@ public interface ClusterAdminService {
      * @param nodeId controller node identifier
      */
     void removeNode(NodeId nodeId);
+
+    /**
+     * Marks the current node as fully started or not.
+     *
+     * @param started true indicates all components have been started
+     */
+    void markFullyStarted(boolean started);
 
 }

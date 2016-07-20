@@ -1,0 +1,13 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//incubator/api:onos-incubator-api',
+    '//utils/rest:onlab-rest',
+    '//core/common:onos-core-common',
+]
+
+osgi_jar (
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+)
+

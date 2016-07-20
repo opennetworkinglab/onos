@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,7 +109,25 @@ public final class HexString {
      * @throws NumberFormatException if input hex string cannot be parsed
      */
     public static byte[] fromHexString(final String values) {
-        String[] octets = values.split(":");
+        return fromHexString(values, ":");
+    }
+
+    /**
+     * Convert a hex-string with arbitrary separator to byte array.
+     * If separator is the empty string or null, then no separator will be considered.
+     *
+     * @param values hex string to be converted
+     * @return converted byte array
+     * @throws NumberFormatException if input hex string cannot be parsed
+     */
+    public static byte[] fromHexString(final String values, String separator) {
+        String regexSeparator;
+        if (separator == null || separator.length() == 0) {
+            regexSeparator = "(?<=\\G.{2})"; // Split string into several two character strings
+        } else {
+            regexSeparator = separator;
+        }
+        String[] octets = values.split(regexSeparator);
         byte[] ret = new byte[octets.length];
 
         for (int i = 0; i < octets.length; i++) {

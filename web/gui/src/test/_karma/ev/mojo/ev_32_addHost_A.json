@@ -1,0 +1,20 @@
+{
+  "event": "addHost",
+  "payload": {
+    "id": "0E:2A:69:30:13:86/-1",
+    "ingress": "0E:2A:69:30:13:86/-1/0-of:0000ffffffff000a/2",
+    "egress": "of:0000ffffffff000a/2-0E:2A:69:30:13:86/-1/0",
+    "cp": {
+      "device": "of:0000ffffffff000a",
+      "port": 2
+    },
+    "labels": [
+      "192.168.222.10",
+      "0E:2A:69:30:13:86"
+    ],
+    "metaUi": {
+      "Xx": 800,
+      "Xy": 180
+    }
+  }
+}

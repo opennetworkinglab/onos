@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,11 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.flowobjective.DefaultObjectiveContext;
+import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
+import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.onosproject.segmentrouting.grouphandler.NeighborSet;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -47,7 +50,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -112,9 +114,16 @@ public class RoutingRulePopulator {
             log.warn(e.getMessage() + " Aborting populateIpRuleForHost.");
             return;
         }
-        srManager.flowObjectiveService.
-            forward(deviceId, fwdBuilder.add(new SRObjectiveContext(deviceId,
-                    SRObjectiveContext.ObjectiveType.FORWARDING)));
+        if (fwdBuilder == null) {
+            log.warn("Aborting host routing table entries due "
+                    + "to error for dev:{} host:{}", deviceId, hostIp);
+            return;
+        }
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("IP rule for host {} populated", hostIp),
+                (objective, error) ->
+                        log.warn("Failed to populate IP rule for host {}: {}", hostIp, error));
+        srManager.flowObjectiveService.forward(deviceId, fwdBuilder.add(context));
         rulePopulationCounter.incrementAndGet();
     }
 
@@ -138,9 +147,11 @@ public class RoutingRulePopulator {
             log.warn(e.getMessage() + " Aborting revokeIpRuleForHost.");
             return;
         }
-        srManager.flowObjectiveService.
-                forward(deviceId, fwdBuilder.remove(new SRObjectiveContext(deviceId,
-                        SRObjectiveContext.ObjectiveType.FORWARDING)));
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("IP rule for host {} revoked", hostIp),
+                (objective, error) ->
+                        log.warn("Failed to revoke IP rule for host {}: {}", hostIp, error));
+        srManager.flowObjectiveService.forward(deviceId, fwdBuilder.remove(context));
     }
 
     private ForwardingObjective.Builder getForwardingObjectiveBuilder(
@@ -185,7 +196,10 @@ public class RoutingRulePopulator {
                                     .matchVlanId(outvlan).build();
         int portNextObjId = srManager.getPortNextObjectiveId(deviceId, outPort,
                                                              treatment, meta);
-
+        if (portNextObjId == -1) {
+            // warning log will come from getPortNextObjective method
+            return null;
+        }
         return DefaultForwardingObjective.builder()
                 .withSelector(selector)
                 .nextStep(portNextObjId)
@@ -198,27 +212,39 @@ public class RoutingRulePopulator {
      * Populates IP flow rules for the subnets of the destination router.
      *
      * @param deviceId switch ID to set the rules
-     * @param subnets subnet information
+     * @param subnets subnet being added
      * @param destSw destination switch ID
      * @param nextHops next hop switch ID list
      * @return true if all rules are set successfully, false otherwise
      */
-    public boolean populateIpRuleForSubnet(DeviceId deviceId,
-                                           Set<Ip4Prefix> subnets,
-                                           DeviceId destSw,
-                                           Set<DeviceId> nextHops) {
-
+    public boolean populateIpRuleForSubnet(DeviceId deviceId, Set<Ip4Prefix> subnets,
+            DeviceId destSw, Set<DeviceId> nextHops) {
         for (IpPrefix subnet : subnets) {
             if (!populateIpRuleForRouter(deviceId, subnet, destSw, nextHops)) {
                 return false;
             }
         }
-
         return true;
     }
 
     /**
-     * Populates IP flow rules for the router IP address.
+     * Revokes IP flow rules for the subnets.
+     *
+     * @param subnets subnet being removed
+     * @return true if all rules are removed successfully, false otherwise
+     */
+    public boolean revokeIpRuleForSubnet(Set<Ip4Prefix> subnets) {
+        for (IpPrefix subnet : subnets) {
+            if (!revokeIpRuleForRouter(subnet)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Populates IP flow rules for an IP prefix in the target device. The prefix
+     * is reachable via destination device.
      *
      * @param deviceId target device ID to set the rules
      * @param ipPrefix the IP address of the destination router
@@ -285,25 +311,62 @@ public class RoutingRulePopulator {
                         + "for router IP/subnet {} in switch {}",
                 ipPrefix,
                 deviceId);
-        srManager.flowObjectiveService.
-            forward(deviceId,
-                    fwdBuilder.
-                    add(new SRObjectiveContext(deviceId,
-                                               SRObjectiveContext.ObjectiveType.FORWARDING)));
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("IP rule for router {} populated in dev:{}",
+                                         ipPrefix, deviceId),
+                (objective, error) ->
+                        log.warn("Failed to populate IP rule for router {}: {} in dev:{}",
+                                 ipPrefix, error, deviceId));
+        srManager.flowObjectiveService.forward(deviceId, fwdBuilder.add(context));
         rulePopulationCounter.incrementAndGet();
 
         return true;
     }
 
     /**
-     * Populates MPLS flow rules to all routers.
+     * Revokes IP flow rules for the router IP address.
      *
-     * @param deviceId target device ID of the switch to set the rules
+     * @param ipPrefix the IP address of the destination router
+     * @return true if all rules are removed successfully, false otherwise
+     */
+    public boolean revokeIpRuleForRouter(IpPrefix ipPrefix) {
+        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+        sbuilder.matchIPDst(ipPrefix);
+        sbuilder.matchEthType(Ethernet.TYPE_IPV4);
+        TrafficSelector selector = sbuilder.build();
+        TrafficTreatment dummyTreatment = DefaultTrafficTreatment.builder().build();
+
+        ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective
+                .builder()
+                .fromApp(srManager.appId)
+                .makePermanent()
+                .withSelector(selector)
+                .withTreatment(dummyTreatment)
+                .withPriority(getPriorityFromPrefix(ipPrefix))
+                .withFlag(ForwardingObjective.Flag.SPECIFIC);
+
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("IP rule for router {} revoked", ipPrefix),
+                (objective, error) ->
+                        log.warn("Failed to revoke IP rule for router {}: {}", ipPrefix, error));
+
+        srManager.deviceService.getAvailableDevices().forEach(device -> {
+            srManager.flowObjectiveService.forward(device.id(), fwdBuilder.remove(context));
+        });
+
+        return true;
+    }
+
+    /**
+     * Populates MPLS flow rules in the target device to point towards the
+     * destination device.
+     *
+     * @param targetSwId target device ID of the switch to set the rules
      * @param destSwId destination switch device ID
      * @param nextHops next hops switch ID list
      * @return true if all rules are set successfully, false otherwise
      */
-    public boolean populateMplsRule(DeviceId deviceId, DeviceId destSwId,
+    public boolean populateMplsRule(DeviceId targetSwId, DeviceId destSwId,
                                     Set<DeviceId> nextHops) {
         int segmentId;
         try {
@@ -332,11 +395,11 @@ public class RoutingRulePopulator {
         // If the next hop is the destination router for the segment, do pop
         if (nextHops.size() == 1 && destSwId.equals(nextHops.toArray()[0])) {
             log.debug("populateMplsRule: Installing MPLS forwarding objective for "
-                    + "label {} in switch {} with pop", segmentId, deviceId);
+                    + "label {} in switch {} with pop", segmentId, targetSwId);
 
             // bos pop case (php)
             ForwardingObjective.Builder fwdObjBosBuilder =
-                    getMplsForwardingObjective(deviceId,
+                    getMplsForwardingObjective(targetSwId,
                                                nextHops,
                                                true,
                                                true,
@@ -356,13 +419,13 @@ public class RoutingRulePopulator {
         } else {
             // next hop is not destination, SR CONTINUE case (swap with self)
             log.debug("Installing MPLS forwarding objective for "
-                    + "label {} in switch {} without pop", segmentId, deviceId);
+                    + "label {} in switch {} without pop", segmentId, targetSwId);
 
             // continue case with bos - this does get triggered in edge routers
             // and in core routers - driver can handle depending on availability
             // of MPLS ECMP or not
             ForwardingObjective.Builder fwdObjBosBuilder =
-                    getMplsForwardingObjective(deviceId,
+                    getMplsForwardingObjective(targetSwId,
                                                nextHops,
                                                false,
                                                true,
@@ -381,17 +444,23 @@ public class RoutingRulePopulator {
                                                false); */
 
         }
-
+        // XXX when other cases above are implemented check for validity of
+        // debug messages below
         for (ForwardingObjective.Builder fwdObjBuilder : fwdObjBuilders) {
             ((Builder) ((Builder) fwdObjBuilder.fromApp(srManager.appId)
                     .makePermanent()).withSelector(selector)
                     .withPriority(SegmentRoutingService.DEFAULT_PRIORITY))
                     .withFlag(ForwardingObjective.Flag.SPECIFIC);
-            srManager.flowObjectiveService.
-                forward(deviceId,
-                        fwdObjBuilder.
-                        add(new SRObjectiveContext(deviceId,
-                                    SRObjectiveContext.ObjectiveType.FORWARDING)));
+            ObjectiveContext context = new DefaultObjectiveContext(
+                    (objective) -> log.debug("MPLS rule {} for SID {} populated in dev:{} ",
+                                             objective.id(), segmentId, targetSwId),
+                    (objective, error) ->
+                            log.warn("Failed to populate MPLS rule {} for SID {}: {} in dev:{}",
+                                     objective.id(), segmentId, error, targetSwId));
+            ForwardingObjective fob = fwdObjBuilder.add(context);
+            log.debug("Sending MPLS fwd obj {} for SID {}-> next {} in sw: {}",
+                      fob.id(), segmentId, fob.nextId(), targetSwId);
+            srManager.flowObjectiveService.forward(targetSwId, fob);
             rulePopulationCounter.incrementAndGet();
         }
 
@@ -433,13 +502,16 @@ public class RoutingRulePopulator {
         // packets will be hashed or not.
         fwdBuilder.withTreatment(tbuilder.build());
         NeighborSet ns = new NeighborSet(nextHops);
-        log.debug("Trying to get a nextObjid for mpls rule on device:{} to ns:{}",
+        log.debug("Trying to get a nextObjId for mpls rule on device:{} to ns:{}",
                  deviceId, ns);
 
         int nextId = srManager.getNextObjectiveId(deviceId, ns, meta);
         if (nextId <= 0) {
             log.warn("No next objective in {} for ns: {}", deviceId, ns);
             return null;
+        } else {
+            log.debug("nextObjId found:{} for mpls rule on device:{} to ns:{}",
+                      nextId, deviceId, ns);
         }
 
         fwdBuilder.nextStep(nextId);
@@ -457,8 +529,9 @@ public class RoutingRulePopulator {
      * that drivers can obtain other information (like Router MAC and IP).
      *
      * @param deviceId  the switch dpid for the router
+     * @return true if operation succeeds
      */
-    public void populateRouterMacVlanFilters(DeviceId deviceId) {
+    public boolean populateRouterMacVlanFilters(DeviceId deviceId) {
         log.debug("Installing per-port filtering objective for untagged "
                 + "packets in device {}", deviceId);
 
@@ -467,36 +540,63 @@ public class RoutingRulePopulator {
             deviceMac = config.getDeviceMac(deviceId);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting populateRouterMacVlanFilters.");
-            return;
+            return false;
         }
 
-        for (Port port : srManager.deviceService.getPorts(deviceId)) {
-            ConnectPoint cp = new ConnectPoint(deviceId, port.number());
+        List<Port> devPorts = srManager.deviceService.getPorts(deviceId);
+        if (devPorts != null && devPorts.size() == 0) {
+            log.warn("Device {} ports not available. Unable to add MacVlan filters",
+                     deviceId);
+            return false;
+        }
+        int disabledPorts = 0, suppressedPorts = 0, filteredPorts = 0;
+        for (Port port : devPorts) {
+            ConnectPoint connectPoint = new ConnectPoint(deviceId, port.number());
             // TODO: Handles dynamic port events when we are ready for dynamic config
-            if (!srManager.deviceConfiguration.suppressSubnet().contains(cp) &&
-                    port.isEnabled()) {
-                Ip4Prefix portSubnet = config.getPortSubnet(deviceId, port.number());
-                VlanId assignedVlan = (portSubnet == null)
-                        ? VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET)
-                        : srManager.getSubnetAssignedVlanId(deviceId, portSubnet);
+            SegmentRoutingAppConfig appConfig = srManager.cfgService
+                    .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
+            if (!port.isEnabled()) {
+                disabledPorts++;
+                continue;
+            }
+            if (appConfig != null && appConfig.suppressSubnet().contains(connectPoint)) {
+                suppressedPorts++;
+                continue;
+            }
+            Ip4Prefix portSubnet = config.getPortSubnet(deviceId, port.number());
+            VlanId assignedVlan = (portSubnet == null)
+                    ? VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET)
+                    : srManager.getSubnetAssignedVlanId(deviceId, portSubnet);
 
-                FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
-                fob.withKey(Criteria.matchInPort(port.number()))
+            FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
+            fob.withKey(Criteria.matchInPort(port.number()))
                 .addCondition(Criteria.matchEthDst(deviceMac))
                 .addCondition(Criteria.matchVlanId(VlanId.NONE))
                 .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
-                // vlan assignment is valid only if this instance is master
-                if (srManager.mastershipService.isLocalMaster(deviceId)) {
-                    TrafficTreatment tt = DefaultTrafficTreatment.builder()
-                            .pushVlan().setVlanId(assignedVlan).build();
-                    fob.withMeta(tt);
-                }
-                fob.permit().fromApp(srManager.appId);
-                srManager.flowObjectiveService.
-                filter(deviceId, fob.add(new SRObjectiveContext(deviceId,
-                                      SRObjectiveContext.ObjectiveType.FILTER)));
+            // vlan assignment is valid only if this instance is master
+            if (srManager.mastershipService.isLocalMaster(deviceId)) {
+                TrafficTreatment tt = DefaultTrafficTreatment.builder()
+                        .pushVlan().setVlanId(assignedVlan).build();
+                fob.withMeta(tt);
             }
+            fob.permit().fromApp(srManager.appId);
+            log.debug("Sending filtering objective for dev/port:{}/{}", deviceId, port);
+            filteredPorts++;
+            ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("Filter for {} populated", connectPoint),
+                (objective, error) ->
+                log.warn("Failed to populate filter for {}: {}", connectPoint, error));
+            srManager.flowObjectiveService.filter(deviceId, fob.add(context));
         }
+        log.info("Filtering on dev:{}, disabledPorts:{}, suppressedPorts:{}, filteredPorts:{}",
+                  deviceId, disabledPorts, suppressedPorts, filteredPorts);
+        // XXX With this check, there is a chance that not all the ports that
+        // should be filtered actually get filtered as long as one of them does.
+        // Note there is no PORT_UPDATED event that makes the port go from disabled
+        // to enabled state, because the ports comes enabled from the switch.
+        // Check ONOS core, where the port becoming available and being declared
+        // enabled is possibly not atomic.
+        return (filteredPorts > 0) ? true : false;
     }
 
     /**
@@ -537,11 +637,11 @@ public class RoutingRulePopulator {
                 .withPriority(SegmentRoutingService.HIGHEST_PRIORITY)
                 .makePermanent()
                 .fromApp(srManager.appId);
-            log.debug("Installing forwarding objective to punt port IP addresses");
-            srManager.flowObjectiveService.
-                forward(deviceId,
-                        puntIp.add(new SRObjectiveContext(deviceId,
-                                           SRObjectiveContext.ObjectiveType.FORWARDING)));
+            ObjectiveContext context = new DefaultObjectiveContext(
+                    (objective) -> log.debug("IP punt rule for {} populated", ipaddr),
+                    (objective, error) ->
+                            log.warn("Failed to populate IP punt rule for {}: {}", ipaddr, error));
+            srManager.flowObjectiveService.forward(deviceId, puntIp.add(context));
         }
     }
 
@@ -585,95 +685,11 @@ public class RoutingRulePopulator {
                     .withPriority(SegmentRoutingService.FLOOD_PRIORITY)
                     .fromApp(srManager.appId)
                     .makePermanent();
-
-            srManager.flowObjectiveService.forward(
-                    deviceId,
-                    fob.add(new SRObjectiveContext(
-                                    deviceId,
-                                    SRObjectiveContext.ObjectiveType.FORWARDING)
-                    )
-            );
-        });
-    }
-
-    /**
-     * Creates a filtering objective to permit VLAN cross-connect traffic.
-     *
-     * @param deviceId the DPID of the switch
-     */
-    public void populateXConnectVlanFilters(DeviceId deviceId) {
-        Map<VlanId, List<ConnectPoint>> xConnectsForDevice =
-                config.getXConnects();
-        xConnectsForDevice.forEach((vlanId, connectPoints) -> {
-            // Only proceed  the xConnect for given device
-            for (ConnectPoint connectPoint : connectPoints) {
-                if (!connectPoint.deviceId().equals(deviceId)) {
-                    return;
-                }
-            }
-
-            connectPoints.forEach(connectPoint -> {
-                FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
-                fob.withKey(Criteria.matchInPort(connectPoint.port()))
-                        .addCondition(Criteria.matchVlanId(vlanId))
-                        .addCondition(Criteria.matchEthDst(MacAddress.NONE))
-                        .withPriority(SegmentRoutingService.XCONNECT_PRIORITY);
-
-                fob.permit().fromApp(srManager.appId);
-                srManager.flowObjectiveService
-                        .filter(deviceId, fob.add(new SRObjectiveContext(deviceId,
-                                SRObjectiveContext.ObjectiveType.FILTER)));
-            });
-        });
-    }
-
-    /**
-     * Populates a forwarding objective that points the VLAN cross-connect
-     * packets to a broadcast group.
-     *
-     * @param deviceId switch ID to set the rules
-     */
-    public void populateXConnectBroadcastRule(DeviceId deviceId) {
-        Map<VlanId, List<ConnectPoint>> xConnects =
-                config.getXConnects();
-        xConnects.forEach((vlanId, connectPoints) -> {
-            // Only proceed  the xConnect for given device
-            for (ConnectPoint connectPoint : connectPoints) {
-                if (!connectPoint.deviceId().equals(deviceId)) {
-                    return;
-                }
-            }
-
-            int nextId = srManager.getXConnectNextObjectiveId(deviceId, vlanId);
-            if (nextId < 0) {
-                log.error("Cannot install cross-connect broadcast rule in dev:{} " +
-                        "due to missing nextId:{}", deviceId, nextId);
-                return;
-            }
-
-            /*
-             * Driver should treat objectives with MacAddress.NONE and !VlanId.NONE
-             * as the VLAN cross-connect broadcast rules
-             */
-            TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-            sbuilder.matchVlanId(vlanId);
-            sbuilder.matchEthDst(MacAddress.NONE);
-
-            ForwardingObjective.Builder fob = DefaultForwardingObjective.builder();
-            fob.withFlag(Flag.SPECIFIC)
-                    .withSelector(sbuilder.build())
-                    .nextStep(nextId)
-                    .withPriority(SegmentRoutingService.DEFAULT_PRIORITY)
-                    .fromApp(srManager.appId)
-                    .makePermanent();
-
-            srManager.flowObjectiveService.forward(
-                    deviceId,
-                    fob.add(new SRObjectiveContext(
-                            deviceId,
-                            SRObjectiveContext.ObjectiveType.FORWARDING)
-                    )
-            );
+            ObjectiveContext context = new DefaultObjectiveContext(
+                    (objective) -> log.debug("Subnet broadcast rule for {} populated", subnet),
+                    (objective, error) ->
+                            log.warn("Failed to populate subnet broadcast rule for {}: {}", subnet, error));
+            srManager.flowObjectiveService.forward(deviceId, fob.add(context));
         });
     }
 

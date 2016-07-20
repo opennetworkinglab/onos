@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ public interface Objective {
     boolean DEFAULT_PERMANENT = true;
     int DEFAULT_TIMEOUT = 0;
     int DEFAULT_PRIORITY = 32768;
+    int MIN_PRIORITY = 0;
+    int MAX_PRIORITY = 65535;
 
     /**
      * Type of operation.

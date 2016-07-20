@@ -1,0 +1,24 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:javax.ws.rs-api',
+    '//utils/rest:onlab-rest',
+    '//core/store/serializers:onos-core-serializers',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_REST',
+    '//lib:jersey-server',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    web_context = '/onos/v1/acl',
+)
+
+onos_app (
+    title = 'ACL App',
+    category = 'Security',
+    url = 'http://onosproject.org',
+    description = 'ONOS ACL application.',
+)

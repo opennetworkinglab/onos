@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.EncapsulationType;
-import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -38,8 +37,6 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
-import org.onosproject.net.intent.constraint.LambdaConstraint;
-import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
 
 import java.util.LinkedList;
@@ -170,10 +167,6 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "-b", aliases = "--bandwidth", description = "Bandwidth",
             required = false, multiValued = false)
     private String bandwidthString = null;
-
-    @Option(name = "-l", aliases = "--lambda", description = "Lambda",
-            required = false, multiValued = false)
-    private boolean lambda = false;
 
     @Option(name = "--partial", description = "Allow partial installation",
             required = false, multiValued = false)
@@ -324,7 +317,7 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         }
 
         if (!isNullOrEmpty(setIpDstString)) {
-            treatmentBuilder.setIpSrc(IpAddress.valueOf(setIpDstString));
+            treatmentBuilder.setIpDst(IpAddress.valueOf(setIpDstString));
             emptyTreatment = false;
         }
         if (!isNullOrEmpty(setVlan)) {
@@ -380,12 +373,6 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             }
             constraints.add(new BandwidthConstraint(bandwidth));
         }
-
-        // Check for a lambda specification
-        if (lambda) {
-            constraints.add(new LambdaConstraint(null));
-        }
-        constraints.add(new LinkTypeConstraint(lambda, Link.Type.OPTICAL));
 
         // Check for partial failure specification
         if (partial) {

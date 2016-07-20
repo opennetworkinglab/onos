@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="${project.artifactId}-${project.version}">
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
-        <bundle>mvn:com.sun.jersey/jersey-client/1.19</bundle>
+        <bundle>mvn:org.glassfish.jersey.core/jersey-client/2.22.2</bundle>
         <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
     </feature>
 </features>

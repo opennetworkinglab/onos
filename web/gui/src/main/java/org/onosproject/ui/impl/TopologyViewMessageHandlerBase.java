@@ -1,5 +1,5 @@
 /*
- * Copyright 2015,2016 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
-import org.onosproject.ui.impl.topo.ServicesBundle;
+import org.onosproject.ui.impl.topo.util.ServicesBundle;
 import org.onosproject.ui.topo.PropertyPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +81,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onosproject.cluster.ControllerNode.State.ACTIVE;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.ui.topo.TopoConstants.CoreButtons;
@@ -230,7 +229,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         ObjectNode payload = objectNode()
                 .put("id", node.id().toString())
                 .put("ip", node.ip().toString())
-                .put("online", clusterService.getState(node.id()) == ACTIVE)
+                .put("online", clusterService.getState(node.id()).isActive())
+                .put("ready", clusterService.getState(node.id()).isReady())
                 .put("uiAttached", node.equals(clusterService.getLocalNode()))
                 .put("switches", switchCount);
 

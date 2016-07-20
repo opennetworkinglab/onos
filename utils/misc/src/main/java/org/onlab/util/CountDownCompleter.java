@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,10 +45,13 @@ public final class CountDownCompleter<T> {
      * @param onCompleteCallback callback to invoke when completer is completed
      */
     public CountDownCompleter(T object, long count, Consumer<T> onCompleteCallback) {
-        checkState(count > 0, "count must be positive");
+        checkState(count >= 0, "count must be non-negative");
         this.counter = new AtomicLong(count);
         this.object = checkNotNull(object);
         this.onCompleteCallback = checkNotNull(onCompleteCallback);
+        if (count == 0) {
+            onCompleteCallback.accept(object);
+        }
     }
 
     /**

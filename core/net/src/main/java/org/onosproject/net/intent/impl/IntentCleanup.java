@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,11 +86,12 @@ public class IntentCleanup implements Runnable, IntentListener {
     private ExecutorService executor;
     private Timer timer;
     private TimerTask timerTask;
+    private int cleanupIteration = 0;
 
     @Activate
     public void activate() {
         cfgService.registerProperties(getClass());
-        executor = newSingleThreadExecutor(groupedThreads("onos/intent", "cleanup"));
+        executor = newSingleThreadExecutor(groupedThreads("onos/intent", "cleanup", log));
         timer = new Timer("onos-intent-cleanup-timer");
         service.addListener(this);
         adjustRate();
@@ -149,7 +150,7 @@ public class IntentCleanup implements Runnable, IntentListener {
             timerTask = new TimerTask() {
                 @Override
                 public void run() {
-                    executor.submit(IntentCleanup.this);
+                    executor.execute(IntentCleanup.this);
                 }
             };
 
@@ -188,12 +189,20 @@ public class IntentCleanup implements Runnable, IntentListener {
     }
 
     private void resubmitPendingRequest(IntentData intentData) {
+        if (cleanupIteration % (intentData.errorCount() + 1) != 0) {
+            // backoff
+            return;
+        }
+
         switch (intentData.request()) {
             case INSTALL_REQ:
                 service.submit(intentData.intent());
                 break;
             case WITHDRAW_REQ:
                 service.withdraw(intentData.intent());
+                break;
+            case PURGE_REQ:
+                service.purge(intentData.intent());
                 break;
             default:
                 log.warn("Failed to resubmit pending intent {} in state {} with request {}",
@@ -207,6 +216,8 @@ public class IntentCleanup implements Runnable, IntentListener {
      * re-submit/withdraw appropriately.
      */
     private void cleanup() {
+        cleanupIteration++;
+
         int corruptCount = 0, failedCount = 0, stuckCount = 0, pendingCount = 0;
 
         for (IntentData intentData : store.getIntentData(true, periodMs)) {

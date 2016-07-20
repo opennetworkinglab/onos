@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,22 +27,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class IpAssignment {
 
+    // TODO make some dhcp options optional
     private final Ip4Address ipAddress;
-
     private final Date timestamp;
-
     private final long leasePeriod;
-
     private final Ip4Address subnetMask;
-
+    private final Ip4Address broadcast;
     private final Ip4Address dhcpServer;
-
     private final Ip4Address routerAddress;
-
     private final Ip4Address domainServer;
-
-    private final boolean rangeNotEnforced;
-
     private final AssignmentStatus assignmentStatus;
 
     public enum AssignmentStatus {
@@ -52,8 +45,10 @@ public final class IpAssignment {
         Option_Requested,
 
         /**
-         * IP Assignment has been requested by a OpenStack.
+         * Static IP Assignment with unregistered IP range.
+         * This assignment can only be added or removed by set or remove static mapping.
          */
+        // TODO allow multiple IP ranges and remove this option
         Option_RangeNotEnforced,
         /**
          * IP has been assigned to a host.
@@ -70,30 +65,34 @@ public final class IpAssignment {
      * Constructor for IPAssignment, where the ipAddress, the lease period, the timestamp
      * and assignment status is supplied.
      *
-     * @param ipAddress
-     * @param leasePeriod
-     * @param timestamp
-     * @param assignmentStatus
-     * @param subnetMask
-     * @param dhcpServer
-     * @param routerAddress
-     * @param domainServer
-     * @param rangeNotEnforced
+     * @param ipAddress ip address to assign
+     * @param leasePeriod lease period
+     * @param timestamp time stamp of the assignment
+     * @param assignmentStatus statue of the assignment
+     * @param subnetMask subnet mask of assigned ip range
+     * @param broadcast broadcast address
+     * @param dhcpServer dhcp server address
+     * @param routerAddress router address
+     * @param domainServer domain server address
      */
     private IpAssignment(Ip4Address ipAddress,
                          long leasePeriod,
                          Date timestamp,
-                         AssignmentStatus assignmentStatus, Ip4Address subnetMask, Ip4Address dhcpServer,
-                         Ip4Address routerAddress, Ip4Address domainServer, boolean rangeNotEnforced) {
+                         AssignmentStatus assignmentStatus,
+                         Ip4Address subnetMask,
+                         Ip4Address broadcast,
+                         Ip4Address dhcpServer,
+                         Ip4Address routerAddress,
+                         Ip4Address domainServer) {
         this.ipAddress = ipAddress;
         this.leasePeriod = leasePeriod;
         this.timestamp = timestamp;
         this.assignmentStatus = assignmentStatus;
         this.subnetMask = subnetMask;
+        this.broadcast = broadcast;
         this.dhcpServer = dhcpServer;
         this.routerAddress = routerAddress;
         this.domainServer = domainServer;
-        this.rangeNotEnforced = rangeNotEnforced;
     }
 
     /**
@@ -141,24 +140,49 @@ public final class IpAssignment {
         return (int) this.leasePeriod * 1000;
     }
 
+    /**
+     * Returns subnet mask of the IP assignment.
+     *
+     * @return subnet mask
+     */
     public Ip4Address subnetMask() {
         return subnetMask;
     }
 
+    /**
+     * Returns broadcast address of the IP assignment.
+     *
+     * @return broadcast address
+     */
+    public Ip4Address broadcast() {
+        return broadcast;
+    }
+
+    /**
+     * Returns dhcp server of the IP assignment.
+     *
+     * @return dhcp server ip address
+     */
     public Ip4Address dhcpServer() {
         return dhcpServer;
     }
 
+    /**
+     * Returns router address of the IP assignment.
+     *
+     * @return router ip address
+     */
     public Ip4Address routerAddress() {
         return routerAddress;
     }
 
+    /**
+     * Returns domain server address.
+     *
+     * @return domain server ip address
+     */
     public Ip4Address domainServer() {
         return domainServer;
-    }
-
-    public boolean rangeNotEnforced() {
-        return rangeNotEnforced;
     }
 
     @Override
@@ -169,10 +193,10 @@ public final class IpAssignment {
                 .add("lease", leasePeriod)
                 .add("assignmentStatus", assignmentStatus)
                 .add("subnetMask", subnetMask)
+                .add("broadcast", broadcast)
                 .add("dhcpServer", dhcpServer)
                 .add("routerAddress", routerAddress)
                 .add("domainServer", domainServer)
-                .add("rangeNotEnforced", rangeNotEnforced)
                 .toString();
     }
 
@@ -201,25 +225,16 @@ public final class IpAssignment {
     public static final class Builder {
 
         private Ip4Address ipAddress;
-
         private Date timeStamp;
-
         private long leasePeriod;
-
         private AssignmentStatus assignmentStatus;
-
         private Ip4Address subnetMask;
-
+        private Ip4Address broadcast;
         private Ip4Address dhcpServer;
-
+        private Ip4Address routerAddress;
         private Ip4Address domainServer;
 
-        private Ip4Address routerAddress;
-
-        private boolean rangeNotEnforced = false;
-
         private Builder() {
-
         }
 
         private Builder(IpAssignment ipAssignment) {
@@ -227,12 +242,24 @@ public final class IpAssignment {
             timeStamp = ipAssignment.timestamp();
             leasePeriod = ipAssignment.leasePeriod();
             assignmentStatus = ipAssignment.assignmentStatus();
+            subnetMask = ipAssignment.subnetMask();
+            broadcast = ipAssignment.broadcast();
+            dhcpServer = ipAssignment.dhcpServer();
+            routerAddress = ipAssignment.routerAddress();
+            domainServer = ipAssignment.domainServer();
         }
 
         public IpAssignment build() {
             validateInputs();
-            return new IpAssignment(ipAddress, leasePeriod, timeStamp, assignmentStatus, subnetMask,
-                    dhcpServer, routerAddress, domainServer, rangeNotEnforced);
+            return new IpAssignment(ipAddress,
+                                    leasePeriod,
+                                    timeStamp,
+                                    assignmentStatus,
+                                    subnetMask,
+                                    broadcast,
+                                    dhcpServer,
+                                    routerAddress,
+                                    domainServer);
         }
 
         public Builder ipAddress(Ip4Address addr) {
@@ -260,6 +287,11 @@ public final class IpAssignment {
             return this;
         }
 
+        public Builder broadcast(Ip4Address broadcast) {
+            this.broadcast = broadcast;
+            return this;
+        }
+
         public Builder dhcpServer(Ip4Address dhcpServer) {
             this.dhcpServer = dhcpServer;
             return this;
@@ -275,24 +307,11 @@ public final class IpAssignment {
             return this;
         }
 
-        public Builder rangeNotEnforced(boolean rangeNotEnforced) {
-            this.rangeNotEnforced = rangeNotEnforced;
-            return this;
-        }
-
-
         private void validateInputs() {
             checkNotNull(ipAddress, "IP Address must be specified");
             checkNotNull(assignmentStatus, "Assignment Status must be specified");
             checkNotNull(leasePeriod, "Lease Period must be specified");
             checkNotNull(timeStamp, "Timestamp must be specified");
-
-            if (rangeNotEnforced) {
-                checkNotNull(subnetMask, "subnetMask must be specified in case of rangeNotEnforced");
-                checkNotNull(dhcpServer, "dhcpServer must be specified in case of rangeNotEnforced");
-                checkNotNull(domainServer, "domainServer must be specified in case of rangeNotEnforced");
-                checkNotNull(routerAddress, "routerAddress must be specified in case of rangeNotEnforced");
-            }
 
             switch (assignmentStatus) {
                 case Option_Requested:
