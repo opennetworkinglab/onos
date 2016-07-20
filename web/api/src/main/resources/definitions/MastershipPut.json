@@ -4,7 +4,7 @@
   "required": [
     "deviceId",
     "nodeId",
-    "mastershipRole"
+    "role"
   ],
   "properties": {
     "deviceId": {
@@ -15,7 +15,7 @@
       "type": "string",
       "example": "1"
     },
-    "mastershipRole": {
+    "role": {
       "type": "string",
       "example": "MASTER"
     }

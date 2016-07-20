@@ -1,6 +1,6 @@
 {
   "type": "object",
-  "title": "mastershipRole",
+  "title": "role",
   "required": [
     "role"
   ],
