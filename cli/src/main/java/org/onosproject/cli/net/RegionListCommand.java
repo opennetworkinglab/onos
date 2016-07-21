@@ -42,10 +42,11 @@ public class RegionListCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     String id = null;
 
+    private RegionService regionService;
+
     @Override
     protected void execute() {
-        RegionService regionService = get(RegionService.class);
-
+        regionService = get(RegionService.class);
         if (id == null) {
             for (Region region : getSortedRegions(regionService)) {
                 printRegion(region);
@@ -76,5 +77,6 @@ public class RegionListCommand extends AbstractShellCommand {
     private void printRegion(Region region) {
         print(FMT, region.id(), region.name(), region.type());
         region.masters().forEach(m -> print(FMT_MASTER, m));
+        regionService.getRegionDevices(region.id()).forEach(id -> print("  %s", id));
     }
 }

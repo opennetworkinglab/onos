@@ -1,0 +1,61 @@
+#!/bin/bash
+
+host=${1:-127.0.0.1}
+
+onos ${host} null-simulation stop custom
+onos ${host} wipe-out please
+onos ${host} null-simulation start custom
+
+sleep 1
+
+onos ${host} <<-EOF
+
+null-create-device switch s1 10 0 0
+null-create-device switch s2 10 0 0
+null-create-device switch s3 10 0 0
+null-create-device switch s4 10 0 0
+null-create-device switch s5 10 0 0
+null-create-device switch s6 10 0 0
+null-create-device switch s7 10 0 0
+null-create-device switch s8 10 0 0
+null-create-device switch s9 10 0 0
+# null-create-device switch s10 10 0 0
+
+null-create-link direct s1 s2
+null-create-link direct s2 s3
+null-create-link direct s2 s4
+null-create-link direct s3 s4
+null-create-link direct s3 s5
+null-create-link direct s6 s5
+null-create-link direct s6 s8
+null-create-link direct s7 s9
+null-create-link direct s8 s9
+null-create-link direct s5 s7
+null-create-link direct s8 s7
+
+EOF
+
+
+
+onos ${host} <<-EOF
+
+region-add r1 Region1 METRO ${host}
+region-add r2 Region2 METRO ${host}
+region-add r3 Region3 CAMPUS ${host}
+
+region-add-devices r1 \
+    of:0000000000000002 \
+    of:0000000000000003 \
+    of:0000000000000004
+
+region-add-devices r2 \
+    of:0000000000000005 \
+    of:0000000000000006
+
+region-add-devices r3 \
+    of:0000000000000007 \
+    of:0000000000000008 \
+    of:0000000000000009
+
+regions
+EOF
