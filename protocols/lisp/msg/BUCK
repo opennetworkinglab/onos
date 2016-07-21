@@ -1,6 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
-    '//protocols/lisp/api:onos-protocols-lisp-api'
+    '//protocols/lisp/api:onos-protocols-lisp-api',
+    '//lib:netty-buffer'
 ]
 
 TEST_DEPS = [
