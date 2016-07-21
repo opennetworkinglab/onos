@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.pce.rest;
+package org.onosproject.pcerest;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

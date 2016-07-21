@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.pce.rest;
+package org.onosproject.pcerest;
 
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.onlab.util.Tools.nullIsNotFound;
@@ -69,6 +69,7 @@ public class PcePathWebResource extends AbstractWebResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response queryAllPath() {
         log.debug("Query all paths.");
         Iterable<Tunnel> tunnels = get(PceService.class).queryAllPath();
@@ -92,6 +93,7 @@ public class PcePathWebResource extends AbstractWebResource {
     @GET
     @Path("{path_id}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response queryPath(@PathParam("path_id") String id) {
         log.debug("Query path by identifier {}.", id);
         Tunnel tunnel = nullIsNotFound(get(PceService.class).queryPath(TunnelId.valueOf(id)),
@@ -183,8 +185,10 @@ public class PcePathWebResource extends AbstractWebResource {
      * @param id path id
      * @return 200 OK, 404 if given identifier does not exist
      */
-    @Path("{path_id}")
     @DELETE
+    @Path("{path_id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response releasePath(@PathParam("path_id") String id) {
         log.debug("Deletes path by identifier {}.", id);
 

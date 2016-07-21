@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.pce.rest;
+package org.onosproject.pcerest;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
@@ -160,8 +160,8 @@ public class PcePathResourceTest extends PceResourceTest {
 
        // Annotations
        DefaultAnnotations.Builder builderAnn = DefaultAnnotations.builder();
-       builderAnn.set(PcepAnnotationKeys.LSP_SIG_TYPE, "2");
-       builderAnn.set(PcepAnnotationKeys.COST_TYPE, "2");
+       builderAnn.set(PcepAnnotationKeys.LSP_SIG_TYPE, "WITH_SIGNALLING");
+       builderAnn.set(PcepAnnotationKeys.COST_TYPE, "COST");
        builderAnn.set(PcepAnnotationKeys.BANDWIDTH, "200");
 
        // Tunnel

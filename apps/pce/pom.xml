@@ -33,6 +33,7 @@
     <modules>
         <module>app</module>
         <module>pceweb</module>
+        <module>pcerest</module>
     </modules>
 
 </project>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.pce.rest;
+package org.onosproject.pcerest;
 
 import org.onlab.rest.AbstractWebApplication;
 

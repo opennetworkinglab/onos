@@ -17,4 +17,5 @@
 /**
  * PCE rest application.
  */
-package org.onosproject.pce.rest;
+
+package org.onosproject.pcerest;
