@@ -35,6 +35,6 @@ public class ScalableGatewayListCommand extends AbstractShellCommand {
         service.getGatewayNodes().forEach(node -> print(FORMAT,
                 node.getGatewayDeviceId().toString(),
                 node.getDataIpAddress().toString(),
-                node.getGatewayExternalInterfaceName().toString()));
+                node.getUplinkIntf().toString()));
     }
 }

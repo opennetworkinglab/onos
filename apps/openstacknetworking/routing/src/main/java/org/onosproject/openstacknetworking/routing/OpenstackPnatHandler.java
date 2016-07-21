@@ -147,11 +147,11 @@ public class OpenstackPnatHandler implements Runnable {
 
         ScalableGatewayService gatewayService = getService(ScalableGatewayService.class);
         GatewayNode gatewayNode = gatewayService.getGatewayNode(deviceId);
-        if (gatewayNode.getGatewayExternalInterfaceName() == null) {
+        if (gatewayNode.getUplinkIntf() == null) {
             log.error(EXTERNAL_PORT_NULL, deviceId.toString());
             return;
         }
-        treatment.setOutput(gatewayService.getGatewayExternalPort(deviceId));
+        treatment.setOutput(gatewayService.getUplinkPort(deviceId));
 
         ethernet.resetChecksum();
 

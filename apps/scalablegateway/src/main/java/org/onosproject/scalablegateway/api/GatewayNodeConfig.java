@@ -41,7 +41,7 @@ public class GatewayNodeConfig extends Config<ApplicationId> {
     public static final String NODES = "nodes";
     public static final String BRIDGE_ID = "bridgeId";
     public static final String DATAPLANE_IP = "dataPlaneIp";
-    public static final String EXTERNAL_INTERFACE_NAME = "gatewayExternalInterfaceName";
+    public static final String UPLINK_INTERFACE_NAME = "uplinkInterface";
 
     /**
      * Returns the set of nodes read from network config.
@@ -61,7 +61,7 @@ public class GatewayNodeConfig extends Config<ApplicationId> {
             try {
                 nodes.add(new GatewayNode.Builder()
                         .gatewayDeviceId(DeviceId.deviceId(jsonNode.path(BRIDGE_ID).asText()))
-                        .gatewayExternalInterfaceName(jsonNode.path(EXTERNAL_INTERFACE_NAME).asText())
+                        .uplinkIntf(jsonNode.path(UPLINK_INTERFACE_NAME).asText())
                         .dataIpAddress(Ip4Address.valueOf(jsonNode.path(DATAPLANE_IP).asText())).build());
             } catch (IllegalArgumentException | NullPointerException e) {
                 log.error("Failed to read {}", e.toString());
@@ -86,7 +86,7 @@ public class GatewayNodeConfig extends Config<ApplicationId> {
         ObjectNode objectNode = (ObjectNode) jsonNode;
         return isString(objectNode, BRIDGE_ID, MANDATORY)
                 && isIpAddress(objectNode, DATAPLANE_IP, MANDATORY)
-                && isString(objectNode, EXTERNAL_INTERFACE_NAME, MANDATORY);
+                && isString(objectNode, UPLINK_INTERFACE_NAME, MANDATORY);
     }
 
 }

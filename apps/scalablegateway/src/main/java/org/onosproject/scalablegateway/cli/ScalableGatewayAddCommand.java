@@ -56,7 +56,7 @@ public class ScalableGatewayAddCommand extends AbstractShellCommand {
         GatewayNode gatewayNode = GatewayNode.builder()
                 .gatewayDeviceId(DeviceId.deviceId(deviceId))
                 .dataIpAddress(Ip4Address.valueOf(ipAddress))
-                .gatewayExternalInterfaceName(interfaceName)
+                .uplinkIntf(interfaceName)
                 .build();
         if (service.addGatewayNode(gatewayNode)) {
             print(SUCCESS);

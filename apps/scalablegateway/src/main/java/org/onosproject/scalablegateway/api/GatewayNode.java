@@ -28,13 +28,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class GatewayNode {
     private final DeviceId gatewayDeviceId;
-    private final String gatewayExternalInterfaceName;
+    private final String uplinkIntf;
     private final Ip4Address dataIpAddress;
 
-    private GatewayNode(DeviceId gatewayDeviceId, String gatewayExternalInterfaceName,
-                        Ip4Address dataIpAddress) {
+    private GatewayNode(DeviceId gatewayDeviceId, String uplinkIntf, Ip4Address dataIpAddress) {
         this.gatewayDeviceId = gatewayDeviceId;
-        this.gatewayExternalInterfaceName = gatewayExternalInterfaceName;
+        this.uplinkIntf = uplinkIntf;
         this.dataIpAddress = dataIpAddress;
     }
 
@@ -52,8 +51,8 @@ public final class GatewayNode {
      *
      * @return The gateway`s interface name
      */
-    public String getGatewayExternalInterfaceName() {
-        return gatewayExternalInterfaceName;
+    public String getUplinkIntf() {
+        return uplinkIntf;
     }
 
     /**
@@ -74,8 +73,7 @@ public final class GatewayNode {
         if (obj instanceof GatewayNode) {
             GatewayNode that = (GatewayNode) obj;
             if (Objects.equals(gatewayDeviceId, that.gatewayDeviceId) &&
-                    Objects.equals(gatewayExternalInterfaceName,
-                                   that.gatewayExternalInterfaceName) &&
+                    Objects.equals(uplinkIntf, that.uplinkIntf) &&
                     Objects.equals(dataIpAddress, that.dataIpAddress)) {
                 return true;
             }
@@ -85,17 +83,15 @@ public final class GatewayNode {
 
     @Override
     public int hashCode() {
-        return Objects.hash(gatewayDeviceId,
-                            gatewayExternalInterfaceName,
-                            dataIpAddress);
+        return Objects.hash(gatewayDeviceId, uplinkIntf, dataIpAddress);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("deviceId", gatewayDeviceId)
-                .add("externalPort", gatewayExternalInterfaceName)
-                .add("dataIp", dataIpAddress)
+                .add("gatewayDeviceId", gatewayDeviceId)
+                .add("uplinkInterface", uplinkIntf)
+                .add("dataIpAddress", dataIpAddress)
                 .toString();
     }
 
@@ -114,7 +110,7 @@ public final class GatewayNode {
     public static final class Builder {
 
         private DeviceId gatewayDeviceId;
-        private String gatewayExternalInterfaceName;
+        private String uplinkIntf;
         private Ip4Address dataIpAddress;
 
         /**
@@ -129,13 +125,13 @@ public final class GatewayNode {
         }
 
         /**
-         * Sets the gateway`s interface name.
+         * Sets the gateway`s uplink interface name.
          *
          * @param name The gateway`s interface name
          * @return Builder object
          */
-        public Builder gatewayExternalInterfaceName(String name) {
-            this.gatewayExternalInterfaceName = name;
+        public Builder uplinkIntf(String name) {
+            this.uplinkIntf = name;
             return this;
         }
 
@@ -156,8 +152,8 @@ public final class GatewayNode {
          * @return GatewayNode object
          */
         public GatewayNode build() {
-            return new GatewayNode(checkNotNull(gatewayDeviceId), checkNotNull(gatewayExternalInterfaceName),
-                    checkNotNull(dataIpAddress));
+            return new GatewayNode(checkNotNull(gatewayDeviceId), checkNotNull(uplinkIntf),
+                                   checkNotNull(dataIpAddress));
         }
     }
 }

@@ -331,7 +331,7 @@ public class OpenstackIcmpHandler {
     private Map<DeviceId, PortNumber> getExternalInfo() {
         Map<DeviceId, PortNumber> externalInfoMap = Maps.newHashMap();
         gatewayService.getGatewayDeviceIds().forEach(deviceId ->
-                externalInfoMap.putIfAbsent(deviceId, gatewayService.getGatewayExternalPort(deviceId)));
+                externalInfoMap.putIfAbsent(deviceId, gatewayService.getUplinkPort(deviceId)));
         return externalInfoMap;
     }
 }
