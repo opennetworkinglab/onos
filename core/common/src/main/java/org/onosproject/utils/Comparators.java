@@ -33,6 +33,7 @@ import org.onosproject.net.group.Group;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.statistic.TypedFlowEntryWithLoad;
 import org.onosproject.net.topology.TopologyCluster;
+import org.onosproject.ui.model.topo.UiTopoLayout;
 
 import java.util.Comparator;
 
@@ -154,6 +155,12 @@ public final class Comparators {
         }
     };
 
+    public static final Comparator<UiTopoLayout> LAYOUT_COMPARATOR = new Comparator<UiTopoLayout>() {
+        @Override
+        public int compare(UiTopoLayout l1, UiTopoLayout l2) {
+            return l1.id().toString().compareTo(l2.id().toString());
+        }
+    };
     public static final Comparator<TenantId> TENANT_ID_COMPARATOR = new Comparator<TenantId>() {
         @Override
         public int compare(TenantId tenant1, TenantId tenant2) {

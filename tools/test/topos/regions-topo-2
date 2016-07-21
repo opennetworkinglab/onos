@@ -1,12 +1,11 @@
 #!/bin/bash
+# Test topology
 
 host=${1:-127.0.0.1}
 
 onos ${host} null-simulation stop custom
 onos ${host} wipe-out please
 onos ${host} null-simulation start custom
-
-sleep 1
 
 onos ${host} <<-EOF
 
@@ -35,8 +34,6 @@ null-create-link direct s8 s7
 
 EOF
 
-
-
 onos ${host} <<-EOF
 
 region-add r1 Region1 METRO ${host}
@@ -58,4 +55,10 @@ region-add-devices r3 \
     of:0000000000000009
 
 regions
+
+layout-add l1 r1
+layout-add l2 r2
+layout-add l3 r3 l2
+
+layouts
 EOF

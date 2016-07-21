@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.ui.model.topo.UiTopoLayoutId.DEFAULT_ID;
 
 /**
  * Manages the user interface topology layouts.
@@ -53,8 +54,6 @@ public class UiTopoLayoutManager implements UiTopoLayoutService {
 
     private static final String ID_NULL = "Layout ID cannot be null";
     private static final String LAYOUT_NULL = "Layout cannot be null";
-
-    private static final UiTopoLayoutId DEFAULT_ID = UiTopoLayoutId.layoutId("_default_");
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;

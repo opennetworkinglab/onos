@@ -631,6 +631,19 @@
             </completers>
         </command>
 
+        <!-- UI Layout commands -->
+        <command>
+            <action class="org.onosproject.cli.net.LayoutListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.LayoutAddCommand"/>
+        </command>
+        <!--TODO: add this + completers
+        <command>
+            <action class="org.onosproject.cli.net.LayoutRemoveCommand"/>
+        </command>
+        -->
+
         <!--virtual network commands -->
         <command>
             <action class="org.onosproject.cli.net.vnet.TenantListCommand"/>

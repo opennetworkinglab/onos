@@ -195,6 +195,9 @@ import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.DefaultPacketRequest;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.region.DefaultRegion;
+import org.onosproject.net.region.Region;
+import org.onosproject.net.region.RegionId;
 import org.onosproject.net.resource.ContinuousResource;
 import org.onosproject.net.resource.ContinuousResourceId;
 import org.onosproject.net.resource.DiscreteResource;
@@ -504,6 +507,10 @@ public final class KryoNamespaces {
             .register(new AnnotationsSerializer(), DefaultAnnotations.class)
             .register(new ExtensionInstructionSerializer(), Instructions.ExtensionInstructionWrapper.class)
             .register(new ExtensionCriterionSerializer(), ExtensionCriterion.class)
+            .register(Region.class)
+            .register(Region.Type.class)
+            .register(RegionId.class)
+            .register(DefaultRegion.class)
             .register(ExtensionSelectorType.class)
             .register(ExtensionTreatmentType.class)
             .register(TransactionId.class)

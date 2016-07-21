@@ -23,6 +23,11 @@ import org.onlab.util.Identifier;
  */
 public final class UiTopoLayoutId extends Identifier<String> {
 
+    /**
+     * Default topology layout identifier.
+     */
+    public static final UiTopoLayoutId DEFAULT_ID = UiTopoLayoutId.layoutId("_default_");
+
     // For serialization
     private UiTopoLayoutId() {
     }
