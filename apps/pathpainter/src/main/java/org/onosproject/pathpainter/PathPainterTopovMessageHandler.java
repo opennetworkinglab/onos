@@ -273,7 +273,7 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
     }
 
     private void findAndSendPaths(Mode mode) {
-        log.info("src={}; dst={}; mode={}", src, dst, currentMode);
+        log.debug("src={}; dst={}; mode={}", src, dst, currentMode);
         if (src != null && dst != null) {
             pathIndex = 0;
             ImmutableSet.Builder<Link> builder = ImmutableSet.builder();
