@@ -45,6 +45,7 @@ import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
@@ -88,6 +89,9 @@ public class EventHistoryManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected EdgePortService edgeService;
+
     @Property(name = "excludeStatsEvent", boolValue = true,
               label = "Exclude stats related events")
     private boolean excludeStatsEvent = true;
@@ -127,7 +131,8 @@ public class EventHistoryManager
                  .addListener(linkService, new InternalLinkListener())
                  .addListener(topologyService, new InternalTopologyListener())
                  .addListener(hostService, new InternalHostListener())
-                 .addListener(clusterService, new InternalClusterListener());
+                 .addListener(clusterService, new InternalClusterListener())
+                 .addListener(edgeService, this::addEvent);
 
         log.info("Started");
     }
