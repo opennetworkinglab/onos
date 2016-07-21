@@ -200,6 +200,7 @@
                     </execution>
                     <execution>
                         <id>swagger</id>
+                        <phase>generate-resources</phase>
                         <goals>
                             <goal>swagger</goal>
                         </goals>

@@ -16,50 +16,84 @@
 
 package org.onosproject.kafkaintegration.kafka;
 
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Properties;
 import java.util.concurrent.Future;
 
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import org.onosproject.kafkaintegration.api.KafkaProducerService;
+import org.onosproject.kafkaintegration.api.dto.KafkaServerConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * Implementation of Kafka Producer.
+ * Implementation of a Kafka Producer.
  */
-public class Producer {
+@Component
+@Service
+public class Producer implements KafkaProducerService {
     private KafkaProducer<String, byte[]> kafkaProducer = null;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    Producer(String bootstrapServers, int retries, int maxInFlightRequestsPerConnection,
-             int requestRequiredAcks, String keySerializer, String valueSerializer) {
-
-        Properties prop = new Properties();
-        prop.put("bootstrap.servers", bootstrapServers);
-        prop.put("retries", retries);
-        prop.put("max.in.flight.requests.per.connection", maxInFlightRequestsPerConnection);
-        prop.put("request.required.acks", requestRequiredAcks);
-        prop.put("key.serializer", keySerializer);
-        prop.put("value.serializer", valueSerializer);
-
-        kafkaProducer = new KafkaProducer<>(prop);
-    }
-
-    public void start() {
+    @Activate
+    protected void activate() {
         log.info("Started");
     }
 
+    @Deactivate
+    protected void deactivate() {
+        log.info("Stopped");
+    }
+
+    @Override
+    public void start(KafkaServerConfig config) {
+
+        if (kafkaProducer != null) {
+            log.info("Producer has already started");
+            return;
+        }
+
+        String bootstrapServer =
+                new StringBuilder().append(config.getIpAddress()).append(":")
+                        .append(config.getPort()).toString();
+
+        // Set Server Properties
+        Properties prop = new Properties();
+        prop.put("bootstrap.servers", bootstrapServer);
+        prop.put("retries", config.getNumOfRetries());
+        prop.put("max.in.flight.requests.per.connection",
+                 config.getMaxInFlightRequestsPerConnection());
+        prop.put("request.required.acks", config.getAcksRequired());
+        prop.put("key.serializer", config.getKeySerializer());
+        prop.put("value.serializer", config.getValueSerializer());
+
+        kafkaProducer = new KafkaProducer<>(prop);
+        log.info("Kafka Producer has started.");
+    }
+
+    @Override
     public void stop() {
         if (kafkaProducer != null) {
             kafkaProducer.close();
             kafkaProducer = null;
         }
 
-        log.info("Stopped");
+        log.info("Kafka Producer has Stopped");
     }
 
+    @Override
+    public void restart(KafkaServerConfig config) {
+        stop();
+        start(config);
+    }
+
+    @Override
     public Future<RecordMetadata> send(ProducerRecord<String, byte[]> record) {
         return kafkaProducer.send(record);
     }

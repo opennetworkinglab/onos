@@ -30,7 +30,8 @@
     <packaging>bundle</packaging>
     <description>
         Kafka Integration Application.
-        This module is exclusive of REST calls and is only for the implementation of Apache Kafka.
+        This module is exclusive of REST calls and is only for the implementation
+        of the Application.
     </description>
 
     <dependencies>

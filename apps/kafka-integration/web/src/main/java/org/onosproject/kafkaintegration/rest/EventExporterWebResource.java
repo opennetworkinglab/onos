@@ -18,11 +18,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.kafkaintegration.api.EventSubscriptionService;
 import org.onosproject.kafkaintegration.api.dto.EventSubscriber;
-import org.onosproject.kafkaintegration.api.dto.EventSubscriberGroupId;
+import org.onosproject.kafkaintegration.api.dto.RegistrationResponse;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -62,7 +61,7 @@ public class EventExporterWebResource extends AbstractWebResource {
      *
      * @param appName The application trying to register
      * @return 200 OK with UUID string which should be used as Kafka Consumer
-     *         Group Id
+     *         Group Id and Kafka Server, port information.
      * @onos.rsModel KafkaRegistration
      */
     @POST
@@ -73,12 +72,16 @@ public class EventExporterWebResource extends AbstractWebResource {
 
         EventSubscriptionService service = get(EventSubscriptionService.class);
 
-        EventSubscriberGroupId groupId = service.registerListener(appName);
+        RegistrationResponse response = service.registerListener(appName);
+
+        ObjectNode result = mapper().createObjectNode();
+        result.put("groupId", response.getGroupId().getId().toString());
+        result.put("ipAddress", response.getIpAddress());
+        result.put("port", response.getPort());
 
         log.info("Registered app {}", appName);
-        // TODO: Should also return Kafka server information.
-        // Will glue this in when we have the config and Kafka modules ready
-        return ok(groupId.getId().toString()).build();
+
+        return ok(result.toString()).build();
     }
 
     /**
