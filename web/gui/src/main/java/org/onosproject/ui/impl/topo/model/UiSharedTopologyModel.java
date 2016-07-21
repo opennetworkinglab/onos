@@ -55,6 +55,7 @@ import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionEvent;
+import org.onosproject.net.region.RegionId;
 import org.onosproject.net.region.RegionListener;
 import org.onosproject.net.region.RegionService;
 import org.onosproject.net.statistic.StatisticService;
@@ -62,15 +63,11 @@ import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.impl.topo.UiTopoSession;
 import org.onosproject.ui.model.ServiceBundle;
 import org.onosproject.ui.model.topo.UiClusterMember;
-import org.onosproject.ui.model.topo.UiElement;
 import org.onosproject.ui.model.topo.UiRegion;
-import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -210,23 +207,14 @@ public final class UiSharedTopologyModel
         return cache.getAllClusterMembers();
     }
 
-    public Set<UiElement> getElements(UiTopoLayout layout) {
-        Set<UiElement> results = new HashSet<>();
-
-        // TODO: figure out how to extract the appropriate nodes
-        //       from the cache, for the given layout.
-
-        return results;
-    }
-
     /**
-     * Returns the region for the given layout.
+     * Returns the region for the given identifier.
      *
-     * @param layout layout filter
-     * @return the region the layout is based upon
+     * @param id region identifier
+     * @return the region
      */
-    public UiRegion getRegion(UiTopoLayout layout) {
-        return cache.accessRegion(layout.regionId());
+    public UiRegion getRegion(RegionId id) {
+        return cache.accessRegion(id);
     }
 
     // =====================================================================

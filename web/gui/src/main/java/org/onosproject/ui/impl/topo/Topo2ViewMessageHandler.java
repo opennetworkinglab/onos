@@ -17,6 +17,7 @@
 package org.onosproject.ui.impl.topo;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.ui.RequestHandler;
@@ -24,6 +25,9 @@ import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.impl.UiWebSocket;
 import org.onosproject.ui.model.topo.UiClusterMember;
+import org.onosproject.ui.model.topo.UiDevice;
+import org.onosproject.ui.model.topo.UiHost;
+import org.onosproject.ui.model.topo.UiLink;
 import org.onosproject.ui.model.topo.UiRegion;
 import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.slf4j.Logger;
@@ -31,6 +35,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+
+import static org.onosproject.ui.model.topo.UiNode.LAYER_DEFAULT;
 
 /*
  NOTES:
@@ -58,10 +65,13 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
     private static final String TOPO2_STOP = "topo2Stop";
 
     // === Outbound event identifiers
+    private static final String ALL_INSTANCES = "topo2AllInstances";
     private static final String CURRENT_LAYOUT = "topo2CurrentLayout";
     private static final String CURRENT_REGION = "topo2CurrentRegion";
-    private static final String ALL_INSTANCES = "topo2AllInstances";
+    private static final String PEER_REGIONS = "topo2PeerRegions";
+    private static final String ORPHANS = "topo2Orphans";
     private static final String TOPO_START_DONE = "topo2StartDone";
+
 
     private UiTopoSession topoSession;
     private Topo2Jsonifier t2json;
@@ -99,18 +109,36 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
 
             log.debug("topo2Start: {}", payload);
 
+            // this is the list of ONOS cluster members
             List<UiClusterMember> instances = topoSession.getAllInstances();
             sendMessage(ALL_INSTANCES, t2json.instances(instances));
 
+            // this is the layout that the user has chosen to display
             UiTopoLayout currentLayout = topoSession.currentLayout();
             sendMessage(CURRENT_LAYOUT, t2json.layout(currentLayout));
 
+            // this is the region that is associated with the current layout
+            //   this message includes details of the sub-regions, devices,
+            //   hosts, and links within the region
+            //   (as well as layer-order hints)
             UiRegion region = topoSession.getRegion(currentLayout);
-            sendMessage(CURRENT_REGION, t2json.region(region));
+            Set<UiRegion> kids = topoSession.getSubRegions(currentLayout);
+            sendMessage(CURRENT_REGION, t2json.region(region, kids));
 
-            // TODO: send information about devices/hosts/links in non-region
-            // TODO: send information about "linked, peer" regions
+            // these are the regions that are siblings to this one
+            Set<UiRegion> peers = topoSession.getPeerRegions(currentLayout);
+            ObjectNode peersPayload = objectNode();
+            peersPayload.set("peers", t2json.closedRegions(peers));
+            sendMessage(PEER_REGIONS, peersPayload);
 
+            // return devices, hosts, links belonging to no region
+            Set<UiDevice> oDevices = topoSession.getOrphanDevices();
+            Set<UiHost> oHosts = topoSession.getOrphanHosts();
+            Set<UiLink> oLinks = topoSession.getOrphanLinks();
+            List<String> oLayers = getOrphanLayerOrder();
+            sendMessage(ORPHANS, t2json.orphans(oDevices, oHosts, oLinks, oLayers));
+
+            // finally, tell the UI that we are done
             sendMessage(TOPO_START_DONE, null);
 
 
@@ -122,6 +150,16 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
 //            sendAllHosts();
 //            sendTopoStartDone();
         }
+
+
+    }
+
+    // TODO: we need to decide on how this should really get populated.
+    // For example, to be "backward compatible", this should really be
+    //  [ LAYER_OPTICAL, LAYER_PACKET, LAYER_DEFAULT ]
+    private List<String> getOrphanLayerOrder() {
+        // NOTE that LAYER_DEFAULT must always be last in the array
+        return ImmutableList.of(LAYER_DEFAULT);
     }
 
     private final class Topo2Stop extends RequestHandler {

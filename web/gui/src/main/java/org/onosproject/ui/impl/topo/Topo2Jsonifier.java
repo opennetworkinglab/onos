@@ -37,18 +37,30 @@ import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiDevice;
 import org.onosproject.ui.model.topo.UiHost;
 import org.onosproject.ui.model.topo.UiLink;
+import org.onosproject.ui.model.topo.UiNode;
 import org.onosproject.ui.model.topo.UiRegion;
 import org.onosproject.ui.model.topo.UiTopoLayout;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.ui.model.topo.UiNode.LAYER_DEFAULT;
 
 /**
  * Facility for creating JSON messages to send to the topology view in the
  * Web client.
  */
 class Topo2Jsonifier {
+
+    private static final String E_DEF_NOT_LAST =
+            "UiNode.LAYER_DEFAULT not last in layer list";
+    private static final String E_UNKNOWN_UI_NODE =
+            "Unknown subclass of UiNode: ";
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -87,7 +99,10 @@ class Topo2Jsonifier {
         portStatsService = directory.get(PortStatisticsService.class);
         topologyService = directory.get(TopologyService.class);
         tunnelService = directory.get(TunnelService.class);
+    }
 
+    // for unit testing
+    Topo2Jsonifier() {
     }
 
     private ObjectNode objectNode() {
@@ -155,47 +170,104 @@ class Topo2Jsonifier {
      * Returns a JSON representation of the region to display in the topology
      * view.
      *
-     * @param region the region to transform to JSON
+     * @param region     the region to transform to JSON
+     * @param subRegions the subregions within this region
      * @return a JSON representation of the data
      */
-    ObjectNode region(UiRegion region) {
+    ObjectNode region(UiRegion region, Set<UiRegion> subRegions) {
         ObjectNode payload = objectNode();
-
         if (region == null) {
             payload.put("note", "no-region");
             return payload;
         }
+        payload.put("id", region.idAsString());
+        payload.set("subregions", jsonSubRegions(subRegions));
 
-        payload.put("id", region.id().toString());
+        List<String> layerTags = region.layerOrder();
+        List<Set<UiNode>> splitDevices = splitByLayer(layerTags, region.devices());
+        List<Set<UiNode>> splitHosts = splitByLayer(layerTags, region.hosts());
+        Set<UiLink> links = region.links();
 
-        ArrayNode layerOrder = arrayNode();
-        payload.set("layerOrder", layerOrder);
-        region.layerOrder().forEach(layerOrder::add);
-
-        ArrayNode devices = arrayNode();
-        payload.set("devices", devices);
-        for (UiDevice device : region.devices()) {
-            devices.add(json(device));
-        }
-
-        ArrayNode hosts = arrayNode();
-        payload.set("hosts", hosts);
-        for (UiHost host : region.hosts()) {
-            hosts.add(json(host));
-        }
-
-        ArrayNode links = arrayNode();
-        payload.set("links", links);
-        for (UiLink link : region.links()) {
-            links.add(json(link));
-        }
+        payload.set("devices", jsonGrouped(splitDevices));
+        payload.set("hosts", jsonGrouped(splitHosts));
+        payload.set("links", jsonLinks(links));
+        payload.set("layerOrder", jsonStrings(layerTags));
 
         return payload;
     }
 
+    private ArrayNode jsonSubRegions(Set<UiRegion> subregions) {
+        ArrayNode kids = arrayNode();
+        if (subregions != null) {
+            subregions.forEach(s -> kids.add(jsonClosedRegion(s)));
+        }
+        return kids;
+    }
+
+    private ArrayNode jsonStrings(List<String> strings) {
+        ArrayNode array = arrayNode();
+        strings.forEach(array::add);
+        return array;
+    }
+
+    private ArrayNode jsonLinks(Set<UiLink> links) {
+        ArrayNode result = arrayNode();
+        links.forEach(lnk -> result.add(json(lnk)));
+        return result;
+    }
+
+    private ArrayNode jsonGrouped(List<Set<UiNode>> groupedNodes) {
+        ArrayNode result = arrayNode();
+        groupedNodes.forEach(g -> {
+            ArrayNode subset = arrayNode();
+            g.forEach(n -> subset.add(json(n)));
+            result.add(subset);
+        });
+        return result;
+    }
+
+    /**
+     * Returns a JSON payload that encapsulates the devices, hosts, links that
+     * do not belong to any region.
+     *
+     * @param oDevices  orphan devices
+     * @param oHosts    orphan hosts
+     * @param oLinks    orphan links
+     * @param layerTags layer tags
+     * @return a JSON representation of the data
+     */
+    ObjectNode orphans(Set<UiDevice> oDevices, Set<UiHost> oHosts,
+                       Set<UiLink> oLinks, List<String> layerTags) {
+
+        ObjectNode payload = objectNode();
+
+        List<Set<UiNode>> splitDevices = splitByLayer(layerTags, oDevices);
+        List<Set<UiNode>> splitHosts = splitByLayer(layerTags, oHosts);
+
+        payload.set("devices", jsonGrouped(splitDevices));
+        payload.set("hosts", jsonGrouped(splitHosts));
+        payload.set("links", jsonLinks(oLinks));
+        payload.set("layerOrder", jsonStrings(layerTags));
+
+        return payload;
+    }
+
+    private ObjectNode json(UiNode node) {
+        if (node instanceof UiRegion) {
+            return jsonClosedRegion((UiRegion) node);
+        }
+        if (node instanceof UiDevice) {
+            return json((UiDevice) node);
+        }
+        if (node instanceof UiHost) {
+            return json((UiHost) node);
+        }
+        throw new IllegalStateException(E_UNKNOWN_UI_NODE + node.getClass());
+    }
+
     private ObjectNode json(UiDevice device) {
         ObjectNode node = objectNode()
-                .put("id", device.id().toString())
+                .put("id", device.idAsString())
                 .put("type", device.type())
                 .put("online", device.isOnline())
                 .put("master", device.master().toString())
@@ -216,7 +288,7 @@ class Topo2Jsonifier {
 
     private ObjectNode json(UiHost host) {
         return objectNode()
-                .put("id", host.id().toString())
+                .put("id", host.idAsString())
                 .put("layer", host.layer());
         // TODO: complete host details
     }
@@ -224,9 +296,101 @@ class Topo2Jsonifier {
 
     private ObjectNode json(UiLink link) {
         return objectNode()
-                .put("id", link.id().toString());
+                .put("id", link.idAsString());
         // TODO: complete link details
     }
 
 
+    private ObjectNode jsonClosedRegion(UiRegion region) {
+        return objectNode()
+                .put("id", region.idAsString());
+        // TODO: complete closed-region details
+    }
+
+
+    /**
+     * Returns a JSON array representation of a list of regions. Note that the
+     * information about each region is limited to what needs to be used to
+     * show the regions as nodes on the view.
+     *
+     * @param regions the regions
+     * @return a JSON representation of the minimal region information
+     */
+    public ArrayNode closedRegions(Set<UiRegion> regions) {
+        ArrayNode array = arrayNode();
+        for (UiRegion r : regions) {
+            array.add(jsonClosedRegion(r));
+        }
+        return array;
+    }
+
+    /**
+     * Returns a JSON array representation of a list of devices.
+     *
+     * @param devices the devices
+     * @return a JSON representation of the devices
+     */
+    public ArrayNode devices(Set<UiDevice> devices) {
+        ArrayNode array = arrayNode();
+        for (UiDevice device : devices) {
+            array.add(json(device));
+        }
+        return array;
+    }
+
+    /**
+     * Returns a JSON array representation of a list of hosts.
+     *
+     * @param hosts the hosts
+     * @return a JSON representation of the hosts
+     */
+    public ArrayNode hosts(Set<UiHost> hosts) {
+        ArrayNode array = arrayNode();
+        for (UiHost host : hosts) {
+            array.add(json(host));
+        }
+        return array;
+    }
+
+    /**
+     * Returns a JSON array representation of a list of links.
+     *
+     * @param links the links
+     * @return a JSON representation of the links
+     */
+    public ArrayNode links(Set<UiLink> links) {
+        ArrayNode array = arrayNode();
+        for (UiLink link : links) {
+            array.add(json(link));
+        }
+        return array;
+    }
+
+    // package-private for unit testing
+    List<Set<UiNode>> splitByLayer(List<String> layerTags,
+                                   Set<? extends UiNode> nodes) {
+        final int nLayers = layerTags.size();
+        if (!layerTags.get(nLayers - 1).equals(LAYER_DEFAULT)) {
+            throw new IllegalArgumentException(E_DEF_NOT_LAST);
+        }
+
+        List<Set<UiNode>> splitList = new ArrayList<>(layerTags.size());
+        Map<String, Set<UiNode>> byLayer = new HashMap<>(layerTags.size());
+
+        for (String tag : layerTags) {
+            Set<UiNode> set = new HashSet<>();
+            byLayer.put(tag, set);
+            splitList.add(set);
+        }
+
+        for (UiNode n : nodes) {
+            String which = n.layer();
+            if (!layerTags.contains(which)) {
+                which = LAYER_DEFAULT;
+            }
+            byLayer.get(which).add(n);
+        }
+
+        return splitList;
+    }
 }

@@ -19,7 +19,7 @@ package org.onosproject.ui.model.topo;
 /**
  * Represents a node drawn on the topology view (region, device, host).
  */
-abstract class UiNode extends UiElement {
+public abstract class UiNode extends UiElement {
 
     /**
      * Default "layer" tag.

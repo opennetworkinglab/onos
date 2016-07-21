@@ -22,12 +22,17 @@ import org.onosproject.ui.impl.topo.model.UiModelEvent;
 import org.onosproject.ui.impl.topo.model.UiModelListener;
 import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
 import org.onosproject.ui.model.topo.UiClusterMember;
+import org.onosproject.ui.model.topo.UiDevice;
+import org.onosproject.ui.model.topo.UiHost;
+import org.onosproject.ui.model.topo.UiLink;
 import org.onosproject.ui.model.topo.UiRegion;
 import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Coordinates with the {@link UiTopoLayoutService} to access
@@ -44,6 +49,7 @@ import java.util.List;
  * interact with it when topo-related events come in from the client.
  */
 public class UiTopoSession implements UiModelListener {
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final UiWebSocket webSocket;
@@ -71,6 +77,13 @@ public class UiTopoSession implements UiModelListener {
         this.username = webSocket.userName();
         this.sharedModel = model;
         this.layoutService = layoutService;
+    }
+
+    // constructs a neutered instance, for unit testing
+    UiTopoSession() {
+        webSocket = null;
+        username = null;
+        sharedModel = null;
     }
 
     /**
@@ -154,6 +167,68 @@ public class UiTopoSession implements UiModelListener {
      * @return region that the layout is based upon
      */
     public UiRegion getRegion(UiTopoLayout layout) {
-        return sharedModel.getRegion(layout);
+        return sharedModel.getRegion(layout.regionId());
     }
+
+    /**
+     * Returns the regions that are "peers" to this region. That is, based on
+     * the layout the user is viewing, all the regions that are associated with
+     * layouts that are children of the parent layout to this layout.
+     *
+     * @param layout the layout being viewed
+     * @return all regions that are "siblings" to this layout's region
+     */
+    public Set<UiRegion> getPeerRegions(UiTopoLayout layout) {
+        UiRegion currentRegion = getRegion(layout);
+
+        // TODO: consult topo layout service to get hierarchy info...
+        // TODO: then consult shared model to get regions
+        return Collections.emptySet();
+    }
+
+    /**
+     * Returns the subregions of the region in the specified layout.
+     *
+     * @param layout the layout being viewed
+     * @return all regions that are "contained within" this layout's region
+     */
+    public Set<UiRegion> getSubRegions(UiTopoLayout layout) {
+        UiRegion currentRegion = getRegion(layout);
+
+        // TODO: consult topo layout service to get child layouts...
+        // TODO: then consult shared model to get regions
+        return Collections.emptySet();
+    }
+
+
+    /**
+     * Returns all devices that are not in a region.
+     *
+     * @return all devices not in a region
+     */
+    public Set<UiDevice> getOrphanDevices() {
+        // TODO: get devices with no region
+        return Collections.emptySet();
+    }
+
+    /**
+     * Returns all hosts that are not in a region.
+     *
+     * @return all hosts not in a region
+     */
+    public Set<UiHost> getOrphanHosts() {
+        // TODO: get hosts with no region
+        return Collections.emptySet();
+    }
+
+    /**
+     * Returns all links that are not in a region.
+     *
+     * @return all links not in a region
+     */
+    public Set<UiLink> getOrphanLinks() {
+        // TODO: get links with no region
+        return Collections.emptySet();
+    }
+
 }
