@@ -55,7 +55,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -82,9 +81,6 @@ public class DistributedHostStore
     private ConsistentMap<HostId, DefaultHost> hostsConsistentMap;
     private Map<HostId, DefaultHost> hosts;
 
-    private final ConcurrentHashMap<HostId, DefaultHost> prevHosts =
-            new ConcurrentHashMap<>();
-
     private MapEventListener<HostId, DefaultHost> hostLocationTracker =
             new HostLocationTracker();
 
@@ -101,7 +97,6 @@ public class DistributedHostStore
 
         hosts = hostsConsistentMap.asJavaMap();
 
-        prevHosts.putAll(hosts);
 
         hostsConsistentMap.addListener(hostLocationTracker);
 
@@ -111,7 +106,6 @@ public class DistributedHostStore
     @Deactivate
     public void deactivate() {
         hostsConsistentMap.removeListener(hostLocationTracker);
-        prevHosts.clear();
 
         log.info("Stopped");
     }
@@ -283,13 +277,15 @@ public class DistributedHostStore
     private class HostLocationTracker implements MapEventListener<HostId, DefaultHost> {
         @Override
         public void event(MapEvent<HostId, DefaultHost> event) {
-            DefaultHost host = checkNotNull(event.value().value());
-            Host prevHost = prevHosts.put(host.id(), host);
+            Host host;
             switch (event.type()) {
                 case INSERT:
+                    host = checkNotNull(event.newValue().value());
                     notifyDelegate(new HostEvent(HOST_ADDED, host));
                     break;
                 case UPDATE:
+                    host = checkNotNull(event.newValue().value());
+                    Host prevHost = checkNotNull(event.oldValue().value());
                     if (!Objects.equals(prevHost.location(), host.location())) {
                         notifyDelegate(new HostEvent(HOST_MOVED, host, prevHost));
                     } else if (!Objects.equals(prevHost, host)) {
@@ -297,9 +293,8 @@ public class DistributedHostStore
                     }
                     break;
                 case REMOVE:
-                    if (prevHosts.remove(host.id()) != null) {
-                        notifyDelegate(new HostEvent(HOST_REMOVED, host));
-                    }
+                    host = checkNotNull(event.oldValue().value());
+                    notifyDelegate(new HostEvent(HOST_REMOVED, host));
                     break;
                 default:
                     log.warn("Unknown map event type: {}", event.type());
