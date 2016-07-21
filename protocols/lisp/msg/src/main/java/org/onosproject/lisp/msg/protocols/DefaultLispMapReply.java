@@ -35,4 +35,67 @@ public class DefaultLispMapReply implements LispMapReply {
     public Builder createBuilder() {
         return null;
     }
+
+    @Override
+    public boolean isProbe() {
+        return false;
+    }
+
+    @Override
+    public boolean isEtr() {
+        return false;
+    }
+
+    @Override
+    public boolean isSecurity() {
+        return false;
+    }
+
+    @Override
+    public byte getRecordCount() {
+        return 0;
+    }
+
+    @Override
+    public long getNonce() {
+        return 0;
+    }
+
+    public static final class DefaultReplyBuilder implements ReplyBuilder {
+
+        @Override
+        public LispMessage build() {
+            return null;
+        }
+
+        @Override
+        public LispType getType() {
+            return null;
+        }
+
+        @Override
+        public ReplyBuilder withIsProbe(boolean isProbe) {
+            return null;
+        }
+
+        @Override
+        public ReplyBuilder withIsEtr(boolean isEtr) {
+            return null;
+        }
+
+        @Override
+        public ReplyBuilder withIsSecurity(boolean isSecurity) {
+            return null;
+        }
+
+        @Override
+        public ReplyBuilder withRecordCount(byte recordCount) {
+            return null;
+        }
+
+        @Override
+        public ReplyBuilder withNonce(long nonce) {
+            return null;
+        }
+    }
 }

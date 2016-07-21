@@ -46,7 +46,7 @@ public interface LispMessage {
     /**
      * LISP message builder interface.
      */
-    interface Builder  {
+    interface Builder {
 
         /**
          * Builds LISP message.

@@ -15,8 +15,152 @@
  */
 package org.onosproject.lisp.msg.protocols;
 
+import java.util.List;
+
 /**
  * LISP map register message interface.
+ *
+ * LISP map register message format is defined in RFC6830.
+ * https://tools.ietf.org/html/rfc6830#page-37
+ *
+ * 0                   1                   2                   3
+ * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |Type=3 |P|            Reserved               |M| Record Count  |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                         Nonce . . .                           |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                         . . . Nonce                           |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |            Key ID             |  Authentication Data Length   |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * ~                     Authentication Data                       ~
+ * +-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |   |                          Record TTL                           |
+ * |   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * R   | Locator Count | EID mask-len  | ACT |A|      Reserved         |
+ * e   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * c   | Rsvd  |  Map-Version Number   |        EID-Prefix-AFI         |
+ * o   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * r   |                          EID-Prefix                           |
+ * d   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |  /|    Priority   |    Weight     |  M Priority   |   M Weight    |
+ * | L +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * | o |        Unused Flags     |L|p|R|           Loc-AFI             |
+ * | c +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |  \|                             Locator                           |
+ * +-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */
 public interface LispMapRegister extends LispMessage {
+
+    /**
+     * Obtains proxy map reply flag.
+     *
+     * @return proxy map reply flag
+     */
+    boolean isProxyMapReply();
+
+    /**
+     * Obtains want map notify flag.
+     *
+     * @return want map notify flag
+     */
+    boolean isWantMapNotify();
+
+    /**
+     * Obtains record count value.
+     *
+     * @return record count value
+     */
+    byte getRecordCount();
+
+    /**
+     * Obtains nonce value.
+     *
+     * @return nonce value
+     */
+    long getNonce();
+
+    /**
+     * Obtains key identifier.
+     *
+     * @return key identifier
+     */
+    short getKeyId();
+
+    /**
+     * Obtains authentication data.
+     *
+     * @return authentication data
+     */
+    byte[] getAuthenticationData();
+
+    /**
+     * Obtains a collection of records.
+     *
+     * @return a collection of records
+     */
+    List<LispRecord> getLispRecords();
+
+    /**
+     * A builder of LISP map register message.
+     */
+    interface RegisterBuilder extends Builder {
+
+        /**
+         * Sets isProxyMapReply flag.
+         *
+         * @param isProxyMapReply isProxyMapReply
+         * @return RegisterBuilder object
+         */
+        RegisterBuilder withIsProxyMapReply(boolean isProxyMapReply);
+
+        /**
+         * Sets isWantMapNotify flag.
+         *
+         * @param isWantMapNotify isWantMapNotify
+         * @return RegisterBuilder object
+         */
+        RegisterBuilder withIsWantMapNotify(boolean isWantMapNotify);
+
+        /**
+         * Sets record count.
+         *
+         * @param recordCount record count
+         * @return RegisterBuilder object
+         */
+        RegisterBuilder withRecordCount(byte recordCount);
+
+        /**
+         * Sets nonce value.
+         *
+         * @param nonce nonce value
+         * @return RegisterBuilder object
+         */
+        RegisterBuilder withNonce(long nonce);
+
+        /**
+         * Sets key identifier.
+         *
+         * @param keyId key identifier
+         * @return RegisterBuilder object
+         */
+        RegisterBuilder withKeyId(short keyId);
+
+        /**
+         * Sets authentication data.
+         *
+         * @param authenticationData authentication data
+         * @return RegisterBuilder object
+         */
+        RegisterBuilder withAuthenticationData(byte[] authenticationData);
+
+        /**
+         * Adds a new record to record list.
+         *
+         * @param record record
+         * @return RegisterBuilder object
+         */
+        RegisterBuilder addRecord(LispRecord record);
+    }
 }

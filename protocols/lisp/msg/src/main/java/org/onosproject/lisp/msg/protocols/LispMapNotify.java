@@ -15,8 +15,123 @@
  */
 package org.onosproject.lisp.msg.protocols;
 
+import java.util.List;
+
 /**
  * LISP map notify message interface.
+ *
+ * LISP map notify message format is defined in RFC6830.
+ * https://tools.ietf.org/html/rfc6830#page-39
+ *
+ * 0                   1                   2                   3
+ * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |Type=4 |              Reserved                 | Record Count  |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                         Nonce . . .                           |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                         . . . Nonce                           |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |            Key ID             |  Authentication Data Length   |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * ~                     Authentication Data                       ~
+ * +-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |   |                          Record TTL                           |
+ * |   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * R   | Locator Count | EID mask-len  | ACT |A|      Reserved         |
+ * e   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * c   | Rsvd  |  Map-Version Number   |         EID-Prefix-AFI        |
+ * o   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * r   |                          EID-Prefix                           |
+ * d   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |  /|    Priority   |    Weight     |  M Priority   |   M Weight    |
+ * | L +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * | o |        Unused Flags     |L|p|R|           Loc-AFI             |
+ * | c +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |  \|                             Locator                           |
+ * +-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *
  */
 public interface LispMapNotify extends LispMessage {
+
+    /**
+     * Obtains nonce value.
+     *
+     * @return nonce value
+     */
+    long getNonce();
+
+    /**
+     * Obtains record count value.
+     *
+     * @return record count value
+     */
+    byte getRecordCount();
+
+    /**
+     * Obtains key identifier.
+     *
+     * @return key identifier
+     */
+    short getKeyId();
+
+    /**
+     * Obtains authentication data.
+     *
+     * @return authentication data
+     */
+    byte[] getAuthenticationData();
+
+    /**
+     * Obtains a collection of records.
+     *
+     * @return a collection of records
+     */
+    List<LispRecord> getLispRecords();
+
+    /**
+     * A builder of LISP map notify message.
+     */
+    interface NotifyBuilder extends Builder {
+
+        /**
+         * Sets nonce value.
+         *
+         * @param nonce nonce value
+         * @return NotifyBuilder object
+         */
+        NotifyBuilder withNonce(long nonce);
+
+        /**
+         * Sets record count.
+         *
+         * @param recordCount record count
+         * @return NotifyBuilder object
+         */
+        NotifyBuilder withRecordCount(byte recordCount);
+
+        /**
+         * Sets key identitifer.
+         *
+         * @param keyId key identifier
+         * @return NotifyBuilder object
+         */
+        NotifyBuilder withKeyId(short keyId);
+
+        /**
+         * Sets authentication data.
+         *
+         * @param authenticationData authentication data
+         * @return NotifyBuilder object
+         */
+        NotifyBuilder withAuthenticationData(byte[] authenticationData);
+
+        /**
+         * Adds a new record to record list.
+         *
+         * @param record record
+         * @return NotifyBuilder object
+         */
+        NotifyBuilder addRecord(LispRecord record);
+    }
 }
