@@ -111,7 +111,7 @@ public abstract class AbstractCorsaPipeline extends AbstractHandlerBehaviour imp
 
     private ScheduledExecutorService groupChecker =
             Executors.newScheduledThreadPool(2, groupedThreads("onos/pipeliner",
-                    "ovs-corsa-%d"));
+                    "ovs-corsa-%d", log));
 
     protected static final int CONTROLLER_PRIORITY = 255;
     protected static final int DROP_PRIORITY = 0;

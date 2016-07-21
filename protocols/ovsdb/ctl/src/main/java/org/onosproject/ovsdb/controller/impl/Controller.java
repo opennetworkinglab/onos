@@ -39,6 +39,8 @@ import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
 
+import static org.onlab.util.Tools.groupedThreads;
+
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -47,6 +49,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
+import org.onlab.util.Tools;
 import org.onosproject.ovsdb.controller.OvsdbConstant;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.onosproject.ovsdb.controller.driver.DefaultOvsdbClient;
@@ -70,7 +73,7 @@ public class Controller {
     private Callback monitorCallback;
 
     private final ExecutorService executorService = Executors
-            .newFixedThreadPool(10);
+            .newFixedThreadPool(10, groupedThreads("OVSDB-C", "executor-%d", log));
 
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
@@ -83,8 +86,8 @@ public class Controller {
      * Initialization.
      */
     private void initEventLoopGroup() {
-        bossGroup = new NioEventLoopGroup();
-        workerGroup = new NioEventLoopGroup();
+        bossGroup = new NioEventLoopGroup(0, Tools.groupedThreads("OVSDB-C", "boss-%d", log));
+        workerGroup = new NioEventLoopGroup(0, Tools.groupedThreads("OVSDB-C", "worker-%d", log));
         serverChannelClass = NioServerSocketChannel.class;
     }
 
@@ -118,6 +121,7 @@ public class Controller {
      */
     private class OnosCommunicationChannelInitializer
             extends ChannelInitializer<SocketChannel> {
+        @Override
         protected void initChannel(SocketChannel channel) throws Exception {
             log.info("New channel created");
             channel.pipeline().addLast(new StringEncoder(CharsetUtil.UTF_8));

@@ -61,7 +61,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -69,6 +68,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
+import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onlab.util.Tools.isNullOrEmpty;
@@ -117,8 +117,8 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
 
     private ExecutorService executorService =
             newSingleThreadExecutor(groupedThreads("onos/intent", "objectivetracker", log));
-    private ScheduledExecutorService executor = Executors
-            .newScheduledThreadPool(1);
+    private ScheduledExecutorService executor =
+            newScheduledThreadPool(1, groupedThreads("onos/intent", "scheduledIntentUpdate", log));
 
     private TopologyListener listener = new InternalTopologyListener();
     private ResourceListener resourceListener = new InternalResourceListener();

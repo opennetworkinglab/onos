@@ -85,7 +85,7 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
 
     @Activate
     protected void activate() {
-        threadFactory = groupedThreads("onos/route", "listener-%d");
+        threadFactory = groupedThreads("onos/route", "listener-%d", log);
 
         routeStore.setDelegate(delegate);
         hostService.addListener(hostListener);

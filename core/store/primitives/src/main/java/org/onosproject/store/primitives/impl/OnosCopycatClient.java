@@ -15,12 +15,13 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.net.ConnectException;
 import java.nio.channels.ClosedChannelException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -62,7 +63,7 @@ public class OnosCopycatClient extends DelegatingCopycatClient {
         super(client);
         this.maxRetries = maxRetries;
         this.delayBetweenRetriesMillis = delayBetweenRetriesMillis;
-        this.executor = Executors.newSingleThreadScheduledExecutor();
+        this.executor = newSingleThreadScheduledExecutor(groupedThreads("OnosCopycat", "client", log));
     }
 
     @Override

@@ -134,7 +134,7 @@ public final class UiSharedTopologyModel
     @Activate
     protected void activate() {
         cache = new ModelCache(new DefaultServiceBundle(), eventDispatcher);
-        eventHandler = Executors.newSingleThreadExecutor(Tools.groupedThreads("onos/ui/topo", "event-handler"));
+        eventHandler = Executors.newSingleThreadExecutor(Tools.groupedThreads("onos/ui/topo", "event-handler", log));
 
         eventDispatcher.addSink(UiModelEvent.class, listenerRegistry);
 

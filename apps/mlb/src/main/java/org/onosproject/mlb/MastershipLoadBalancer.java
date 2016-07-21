@@ -36,12 +36,13 @@ import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.slf4j.Logger;
 
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -87,7 +88,7 @@ public class MastershipLoadBalancer {
 
     //Ensures that all executions do not interfere with one another (single thread)
     private ListeningScheduledExecutorService executorService = MoreExecutors.
-            listeningDecorator(Executors.newSingleThreadScheduledExecutor());
+            listeningDecorator(newSingleThreadScheduledExecutor(groupedThreads("MastershipLoadBalancer", "%d", log)));
 
     @Activate
     public void activate() {

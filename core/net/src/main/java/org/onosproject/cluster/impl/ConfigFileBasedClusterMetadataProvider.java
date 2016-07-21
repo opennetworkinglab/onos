@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -65,6 +64,7 @@ import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 
 import static com.google.common.base.Preconditions.checkState;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 
 /**
  * Provider of {@link ClusterMetadata cluster metadata} sourced from a local config file.
@@ -89,7 +89,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
     private static final ProviderId PROVIDER_ID = new ProviderId("file", "none");
     private final AtomicReference<Versioned<ClusterMetadata>> cachedMetadata = new AtomicReference<>();
     private final ScheduledExecutorService configFileChangeDetector =
-            Executors.newSingleThreadScheduledExecutor(groupedThreads("onos/cluster/metadata/config-watcher", ""));
+            newSingleThreadScheduledExecutor(groupedThreads("onos/cluster/metadata/config-watcher", "", log));
 
     private String metadataUrl;
     private ObjectMapper mapper;

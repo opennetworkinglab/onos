@@ -136,6 +136,7 @@ public class BgpSessionManager implements BgpInfoService {
      *
      * @return the BGP sessions
      */
+    @Override
     public Collection<BgpSession> getBgpSessions() {
         return bgpSessions.values();
     }
@@ -145,6 +146,7 @@ public class BgpSessionManager implements BgpInfoService {
      *
      * @return the selected IPv4 BGP routes among all BGP sessions
      */
+    @Override
     public Collection<BgpRouteEntry> getBgpRoutes4() {
         return bgpRoutes4.values();
     }
@@ -154,6 +156,7 @@ public class BgpSessionManager implements BgpInfoService {
      *
      * @return the selected IPv6 BGP routes among all BGP sessions
      */
+    @Override
     public Collection<BgpRouteEntry> getBgpRoutes6() {
         return bgpRoutes6.values();
     }
@@ -309,8 +312,8 @@ public class BgpSessionManager implements BgpInfoService {
         isShutdown = false;
 
         ChannelFactory channelFactory = new NioServerSocketChannelFactory(
-                newCachedThreadPool(groupedThreads("onos/bgp", "sm-boss-%d")),
-                newCachedThreadPool(groupedThreads("onos/bgp", "sm-worker-%d")));
+                newCachedThreadPool(groupedThreads("onos/bgp", "sm-boss-%d", log)),
+                newCachedThreadPool(groupedThreads("onos/bgp", "sm-worker-%d", log)));
         ChannelPipelineFactory pipelineFactory = () -> {
             // Allocate a new session per connection
             BgpSession bgpSessionHandler =

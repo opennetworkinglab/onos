@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collection;
@@ -24,7 +26,6 @@ import java.util.Timer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -58,7 +59,7 @@ public class AtomixWorkQueue extends AbstractResource<AtomixWorkQueue>
 
     private final Logger log = getLogger(getClass());
     public static final String TASK_AVAILABLE = "task-available";
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService executor = newSingleThreadExecutor(groupedThreads("AtomixWorkQueue", "%d", log));
     private final AtomicReference<TaskProcessor> taskProcessor = new AtomicReference<>();
     private final Timer timer = new Timer("atomix-work-queue-completer");
     private final AtomicBoolean isRegistered = new AtomicBoolean(false);

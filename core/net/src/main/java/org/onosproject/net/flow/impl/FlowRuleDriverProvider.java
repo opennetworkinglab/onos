@@ -42,12 +42,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.ImmutableSet.copyOf;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.device.DeviceEvent.Type.*;
 import static org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation.*;
 
@@ -67,7 +68,8 @@ class FlowRuleDriverProvider extends AbstractProvider implements FlowRuleProvide
     private MastershipService mastershipService;
 
     private InternalDeviceListener deviceListener = new InternalDeviceListener();
-    private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledExecutorService executor
+        = newSingleThreadScheduledExecutor(groupedThreads("FlowRuleDriverProvider", "%d", log));
     private ScheduledFuture<?> poller = null;
 
     /**

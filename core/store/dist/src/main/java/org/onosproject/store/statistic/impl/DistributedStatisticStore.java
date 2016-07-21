@@ -58,6 +58,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -357,7 +358,8 @@ public class DistributedStatisticStore implements StatisticStore {
      */
     private void restartMessageHandlerThreadPool() {
         ExecutorService prevExecutor = messageHandlingExecutor;
-        messageHandlingExecutor = Executors.newFixedThreadPool(getMessageHandlerThreadPoolSize());
+        messageHandlingExecutor = newFixedThreadPool(getMessageHandlerThreadPoolSize(),
+                                                     groupedThreads("DistStatsStore", "messageHandling-%d", log));
         prevExecutor.shutdown();
     }
 

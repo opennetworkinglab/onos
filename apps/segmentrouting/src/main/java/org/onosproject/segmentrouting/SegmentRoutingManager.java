@@ -102,6 +102,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkState;
+import static org.onlab.util.Tools.groupedThreads;
 
 
 /**
@@ -178,12 +179,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private final InternalCordConfigListener cordConfigListener = new InternalCordConfigListener();
 
     private ScheduledExecutorService executorService = Executors
-            .newScheduledThreadPool(1);
+            .newScheduledThreadPool(1, groupedThreads("SegmentRoutingManager", "event-%d", log));
 
     @SuppressWarnings("unused")
     private static ScheduledFuture<?> eventHandlerFuture = null;
     @SuppressWarnings("rawtypes")
-    private ConcurrentLinkedQueue<Event> eventQueue = new ConcurrentLinkedQueue<Event>();
+    private ConcurrentLinkedQueue<Event> eventQueue = new ConcurrentLinkedQueue<>();
     private Map<DeviceId, DefaultGroupHandler> groupHandlerMap =
             new ConcurrentHashMap<>();
     /**
@@ -712,7 +713,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     } else if (event.type() == DeviceEvent.Type.PORT_ADDED ||
                             event.type() == DeviceEvent.Type.PORT_UPDATED) {
                         log.info("** PORT ADDED OR UPDATED {}/{} -> {}",
-                                 (Device) event.subject(),
+                                 event.subject(),
                                  ((DeviceEvent) event).port(),
                                  event.type());
                         /* XXX create method for single port filtering rules

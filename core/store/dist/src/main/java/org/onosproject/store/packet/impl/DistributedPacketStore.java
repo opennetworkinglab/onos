@@ -57,6 +57,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -284,7 +285,8 @@ public class DistributedPacketStore
      */
     private void restartMessageHandlerThreadPool() {
         ExecutorService prevExecutor = messageHandlingExecutor;
-        messageHandlingExecutor = Executors.newFixedThreadPool(getMessageHandlerThreadPoolSize());
+        messageHandlingExecutor = newFixedThreadPool(getMessageHandlerThreadPoolSize(),
+                                                     groupedThreads("DistPktStore", "messageHandling-%d", log));
         prevExecutor.shutdown();
     }
 

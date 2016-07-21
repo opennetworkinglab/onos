@@ -29,7 +29,6 @@ import org.apache.karaf.features.BundleInfo;
 import org.apache.karaf.features.Feature;
 import org.apache.karaf.features.FeaturesService;
 import org.onlab.util.KryoNamespace;
-import org.onlab.util.Tools;
 import org.onosproject.app.ApplicationAdminService;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
@@ -50,9 +49,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.security.store.SecurityModeState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -102,7 +102,7 @@ public class DistributedSecurityModeStore
 
     @Activate
     public void activate() {
-        eventHandler = Executors.newSingleThreadExecutor(Tools.groupedThreads("onos/security/store", "event-handler"));
+        eventHandler = newSingleThreadExecutor(groupedThreads("onos/security/store", "event-handler", log));
         states = storageService.<ApplicationId, SecurityInfo>consistentMapBuilder()
                 .withName("smonos-sdata")
                 .withSerializer(STATE_SERIALIZER)

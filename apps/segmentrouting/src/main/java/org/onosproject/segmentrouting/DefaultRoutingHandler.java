@@ -30,11 +30,13 @@ import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.concurrent.Executors.newScheduledThreadPool;
+import static org.onlab.util.Tools.groupedThreads;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -58,7 +60,8 @@ public class DefaultRoutingHandler {
     private DeviceConfiguration config;
     private final Lock statusLock = new ReentrantLock();
     private volatile Status populationStatus;
-    private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+    private ScheduledExecutorService executorService
+        = newScheduledThreadPool(1, groupedThreads("RoutingHandler", "retry-%d", log));
 
     /**
      * Represents the default routing population status.

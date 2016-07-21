@@ -121,8 +121,8 @@ public class FpmManager implements FpmInfoService {
 
     private void startServer() {
         ChannelFactory channelFactory = new NioServerSocketChannelFactory(
-                newCachedThreadPool(groupedThreads("onos/fpm", "sm-boss-%d")),
-                newCachedThreadPool(groupedThreads("onos/fpm", "sm-worker-%d")));
+                newCachedThreadPool(groupedThreads("onos/fpm", "sm-boss-%d", log)),
+                newCachedThreadPool(groupedThreads("onos/fpm", "sm-worker-%d", log)));
         ChannelPipelineFactory pipelineFactory = () -> {
             // Allocate a new session per connection
             FpmSessionHandler fpmSessionHandler =

@@ -31,6 +31,8 @@ import org.onlab.packet.IpPrefix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.onlab.util.Tools.groupedThreads;
+
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collection;
@@ -58,7 +60,7 @@ public class BgpSession extends SimpleChannelHandler {
     private final BgpSessionInfo remoteInfo;    // BGP session remote info
 
     // Timers state
-    private Timer timer = new HashedWheelTimer();
+    private Timer timer = new HashedWheelTimer(groupedThreads("BgpSession", "timer-%d", log));
     private volatile Timeout keepaliveTimeout;  // Periodic KEEPALIVE
     private volatile Timeout sessionTimeout;    // Session timeout
 

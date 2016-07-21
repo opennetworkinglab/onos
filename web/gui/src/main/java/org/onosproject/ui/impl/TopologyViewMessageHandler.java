@@ -177,7 +177,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     private final Accumulator<Event> eventAccummulator = new InternalEventAccummulator();
     private final ExecutorService msgSender =
-            newSingleThreadExecutor(groupedThreads("onos/gui", "msg-sender"));
+            newSingleThreadExecutor(groupedThreads("onos/gui", "msg-sender", log));
 
     private TopoOverlayCache overlayCache;
     private TrafficMonitor traffic;

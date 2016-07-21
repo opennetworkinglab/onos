@@ -62,7 +62,7 @@ public class ComponentManager implements ComponentService {
         components = Sets.newSetFromMap(new ConcurrentHashMap<>());
 
         executor = Executors.newScheduledThreadPool(NUM_THREADS,
-                groupedThreads("onos/component", "%d"));
+                groupedThreads("onos/component", "%d", log));
 
         executor.scheduleAtFixedRate(() -> components.forEach(this::enableComponent),
                 0, POLLING_PERIOD_MS, TimeUnit.MILLISECONDS);

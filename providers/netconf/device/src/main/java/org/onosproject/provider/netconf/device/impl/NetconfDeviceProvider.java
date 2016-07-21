@@ -71,6 +71,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -125,7 +126,10 @@ public class NetconfDeviceProvider extends AbstractProvider
     private final ExecutorService executor =
             Executors.newFixedThreadPool(5, groupedThreads("onos/netconfdeviceprovider",
                                                            "device-installer-%d", log));
-    protected ScheduledExecutorService connectionExecutor = Executors.newScheduledThreadPool(CORE_POOL_SIZE);
+    protected ScheduledExecutorService connectionExecutor
+            = newScheduledThreadPool(CORE_POOL_SIZE,
+                                     groupedThreads("onos/netconfdeviceprovider",
+                                                    "connection-executor-%d", log));
 
     private DeviceProviderService providerService;
     private NetconfDeviceListener innerNodeListener = new InnerNetconfDeviceListener();

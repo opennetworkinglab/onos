@@ -145,7 +145,7 @@ public class FlowObjectiveCompositionManager implements FlowObjectiveService {
 
     @Activate
     protected void activate() {
-        executorService = newFixedThreadPool(4, groupedThreads("onos/objective-installer", "%d"));
+        executorService = newFixedThreadPool(4, groupedThreads("onos/objective-installer", "%d", log));
         flowObjectiveStore.setDelegate(delegate);
         mastershipService.addListener(mastershipListener);
         deviceService.addListener(deviceListener);

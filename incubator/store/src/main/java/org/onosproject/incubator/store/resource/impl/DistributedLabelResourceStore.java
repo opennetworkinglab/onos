@@ -120,7 +120,8 @@ public class DistributedLabelResourceStore
         messageHandlingExecutor = Executors
                 .newFixedThreadPool(MESSAGE_HANDLER_THREAD_POOL_SIZE,
                                     groupedThreads("onos/store/flow",
-                                                   "message-handlers"));
+                                                   "message-handlers",
+                                                   log));
         clusterCommunicator
                 .addSubscriber(LabelResourceMessageSubjects.LABEL_POOL_CREATED,
                         SERIALIZER::<LabelResourcePool>decode,

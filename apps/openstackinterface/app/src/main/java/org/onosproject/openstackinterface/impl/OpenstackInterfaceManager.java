@@ -126,7 +126,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
 
     private InternalConfigListener internalConfigListener = new InternalConfigListener();
     private ExecutorService networkEventExcutorService =
-            Executors.newSingleThreadExecutor(groupedThreads("onos/openstackinterface", "config-event"));
+            Executors.newSingleThreadExecutor(groupedThreads("onos/openstackinterface", "config-event", log));
 
     private final Set<ConfigFactory> factories = ImmutableSet.of(
             new ConfigFactory<ApplicationId, OpenstackInterfaceConfig>(APP_SUBJECT_FACTORY,
@@ -293,6 +293,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
      * @param id Security Group ID
      * @return OpenstackSecurityGroup object or null if fails
      */
+    @Override
     public OpenstackSecurityGroup securityGroup(String id) {
         Invocation.Builder builder = getClientBuilder(neutronUrl, URI_SECURITY_GROUPS + "/" + id);
         if (builder == null) {

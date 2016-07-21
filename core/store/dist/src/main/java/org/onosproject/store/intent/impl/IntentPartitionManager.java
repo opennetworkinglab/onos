@@ -36,6 +36,8 @@ import org.onosproject.net.intent.Key;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.onlab.util.Tools.groupedThreads;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executors;
@@ -77,7 +79,7 @@ public class IntentPartitionManager implements IntentPartitionService {
     private LeadershipEventListener leaderListener = new InternalLeadershipListener();
 
     private ScheduledExecutorService executor = Executors
-            .newScheduledThreadPool(1);
+            .newScheduledThreadPool(1, groupedThreads("IntentPartition", "balancer-%d", log));
 
     @Activate
     public void activate() {

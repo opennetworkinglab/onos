@@ -47,6 +47,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -100,7 +101,9 @@ public class PollingAlarmProvider extends AbstractProvider implements AlarmProvi
 
     @Activate
     public void activate(ComponentContext context) {
-        alarmsExecutor = Executors.newScheduledThreadPool(CORE_POOL_SIZE);
+        alarmsExecutor = newScheduledThreadPool(CORE_POOL_SIZE,
+                                                groupedThreads("onos/pollingalarmprovider",
+                                                               "alarm-executor-%d", log));
         eventHandlingExecutor =
                 Executors.newFixedThreadPool(CORE_POOL_SIZE,
                                              groupedThreads("onos/pollingalarmprovider",
