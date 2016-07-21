@@ -190,7 +190,7 @@ public class HostMonitor implements TimerTask {
             return;
         }
 
-        for (InterfaceIpAddress ia : intf.ipAddresses()) {
+        for (InterfaceIpAddress ia : intf.ipAddressesList()) {
             if (ia.subnetAddress().contains(targetIp)) {
                 sendProbe(intf.connectPoint(), targetIp, ia.ipAddress(),
                         intf.mac(), intf.vlan());
