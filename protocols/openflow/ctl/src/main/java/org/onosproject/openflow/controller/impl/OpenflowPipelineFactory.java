@@ -31,6 +31,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+
+import static org.onlab.util.Tools.groupedThreads;
+
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -55,7 +58,7 @@ public class OpenflowPipelineFactory
         super();
         this.controller = controller;
         this.pipelineExecutor = pipelineExecutor;
-        this.timer = new HashedWheelTimer();
+        this.timer = new HashedWheelTimer(groupedThreads("OpenflowPipelineFactory", "timer-%d", log));
         this.idleHandler = new IdleStateHandler(timer, 20, 25, 0);
         this.readTimeoutHandler = new ReadTimeoutHandler(timer, 30);
         this.sslContext = sslContext;
