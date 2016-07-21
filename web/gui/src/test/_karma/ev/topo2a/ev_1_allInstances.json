@@ -1,0 +1,13 @@
+{
+  "event": "topo2AllInstances",
+  "payload": {
+    "members": [{
+      "id": "127.0.0.1",
+      "ip": "127.0.0.1",
+      "online": true,
+      "ready": true,
+      "uiAttached": true,
+      "switches": 12
+    }]
+  }
+}

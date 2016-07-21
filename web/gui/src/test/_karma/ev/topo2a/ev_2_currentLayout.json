@@ -1,0 +1,9 @@
+{
+  "event": "topo2CurrentLayout",
+  "payload": {
+    "id": "_default_",
+    "parent": "",
+    "region": "",
+    "regionName": ""
+  }
+}

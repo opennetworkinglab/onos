@@ -1,0 +1,6 @@
+{
+  "event": "topo2CurrentRegion",
+  "payload": {
+    "note": "no-region"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "comments": [
+    "Topo 2 - initial scenario for start up events",
+    "This sequence would occur after receiving 'topo2start'..."
+  ],
+  "title": "Topo 2 A",
+  "params": {
+    "lastAuto": 0
+  },
+  "description": [
+    "Press 'a' to load initial events.",
+    "Press 'n' to fire further events."
+  ]
+}

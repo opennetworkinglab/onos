@@ -1,0 +1,13 @@
+{
+  "event": "topo2Orphans",
+  "payload": {
+    "devices": [
+      []
+    ],
+    "hosts": [
+      []
+    ],
+    "links": [],
+    "layerOrder": ["def"]
+  }
+}
