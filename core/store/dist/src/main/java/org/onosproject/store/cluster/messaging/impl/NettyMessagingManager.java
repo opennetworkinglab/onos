@@ -83,6 +83,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.CLUSTER_WRITE;
 
@@ -121,7 +122,7 @@ public class NettyMessagingManager implements MessagingService {
             .build();
 
     private final GenericKeyedObjectPool<Endpoint, Connection> channels
-            = new GenericKeyedObjectPool<Endpoint, Connection>(new OnosCommunicationChannelFactory());
+            = new GenericKeyedObjectPool<>(new OnosCommunicationChannelFactory());
 
     private EventLoopGroup serverGroup;
     private EventLoopGroup clientGroup;
@@ -203,8 +204,8 @@ public class NettyMessagingManager implements MessagingService {
     private void initEventLoopGroup() {
         // try Epoll first and if that does work, use nio.
         try {
-            clientGroup = new EpollEventLoopGroup();
-            serverGroup = new EpollEventLoopGroup();
+            clientGroup = new EpollEventLoopGroup(0, groupedThreads("NettyMessagingEvt", "epollC-%d", log));
+            serverGroup = new EpollEventLoopGroup(0, groupedThreads("NettyMessagingEvt", "epollS-%d", log));
             serverChannelClass = EpollServerSocketChannel.class;
             clientChannelClass = EpollSocketChannel.class;
             return;
@@ -212,8 +213,8 @@ public class NettyMessagingManager implements MessagingService {
             log.debug("Failed to initialize native (epoll) transport. "
                               + "Reason: {}. Proceeding with nio.", e.getMessage());
         }
-        clientGroup = new NioEventLoopGroup();
-        serverGroup = new NioEventLoopGroup();
+        clientGroup = new NioEventLoopGroup(0, groupedThreads("NettyMessagingEvt", "nioC-%d", log));
+        serverGroup = new NioEventLoopGroup(0, groupedThreads("NettyMessagingEvt", "nioS-%d", log));
         serverChannelClass = NioServerSocketChannel.class;
         clientChannelClass = NioSocketChannel.class;
     }
