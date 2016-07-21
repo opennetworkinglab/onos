@@ -1,0 +1,13 @@
+BUNDLES = [
+  '//providers/snmp/device:onos-providers-snmp-device',
+  '//protocols/snmp/api:onos-protocols-snmp-api',
+  '//protocols/snmp/ctl:onos-protocols-snmp-ctl',
+]
+
+onos_app (
+    title = 'SNMP Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    description = 'SNMP providers.',
+)

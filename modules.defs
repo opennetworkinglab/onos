@@ -99,6 +99,7 @@ ONOS_PROVIDERS = [
     '//providers/openflow/app:onos-providers-openflow-app-oar',
     '//providers/rest:onos-providers-rest-oar',
     '//providers/isis:onos-providers-isis-oar',
+    '//providers/snmp:onos-providers-snmp-oar',
 ]
 
 ONOS_APPS = [
