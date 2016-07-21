@@ -51,7 +51,6 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
 import static org.onosproject.net.device.DeviceEvent.Type.*;
 import static org.onosproject.net.edge.EdgePortEvent.Type.EDGE_PORT_ADDED;
 import static org.onosproject.net.edge.EdgePortEvent.Type.EDGE_PORT_REMOVED;
@@ -153,6 +152,8 @@ public class EdgeManager
 
         @Override
         public void event(TopologyEvent event) {
+            log.trace("Processing TopologyEvent {} caused by {}",
+                      event.subject(), event.reasons());
             topology = event.subject();
             event.reasons().forEach(reason -> {
                 if (reason instanceof DeviceEvent) {
@@ -239,7 +240,8 @@ public class EdgeManager
 
     // Removes the specified connection point from the edge points.
     private void removeEdgePort(ConnectPoint point) {
-        if (isEdgePort(point)) {
+        // trying to remove edge ports, so we shouldn't check if it's EdgePoint
+        if (!point.port().isLogical()) {
             Set<ConnectPoint> set = connectionPoints.get(point.deviceId());
             if (set == null) {
                 return;
@@ -250,7 +252,7 @@ public class EdgeManager
             if (set.isEmpty()) {
                 connectionPoints.computeIfPresent(point.deviceId(), (k, v) -> {
                     if (v.isEmpty()) {
-                        return v;
+                        return null;
                     } else {
                         return v;
                     }
