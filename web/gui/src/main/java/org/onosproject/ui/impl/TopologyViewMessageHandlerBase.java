@@ -31,6 +31,7 @@ import org.onosproject.incubator.net.tunnel.OpticalTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.ElementId;
 import org.onosproject.net.Annotated;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Annotations;
@@ -77,6 +78,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -395,7 +397,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         return new PropertyPanel("ONOS Summary", "node")
             .addProp(Properties.VERSION, version)
             .addSeparator()
-            .addProp(Properties.DEVICES,  deviceService.getDeviceCount())
+            .addProp(Properties.DEVICES, deviceService.getDeviceCount())
             .addProp(Properties.LINKS, topology.linkCount())
             .addProp(Properties.HOSTS, hostService.getHostCount())
             .addProp(Properties.TOPOLOGY_SSCS, topology.clusterCount())
@@ -457,12 +459,20 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         int count = 0;
         Collection<Tunnel> tunnels = tunnelService.queryAllTunnels();
         for (Tunnel tunnel : tunnels) {
-            OpticalTunnelEndPoint src = (OpticalTunnelEndPoint) tunnel.src();
-            OpticalTunnelEndPoint dst = (OpticalTunnelEndPoint) tunnel.dst();
-            DeviceId srcDevice = (DeviceId) src.elementId().get();
-            DeviceId dstDevice = (DeviceId) dst.elementId().get();
-            if (srcDevice.toString().equals(deviceId.toString()) ||
-                dstDevice.toString().equals(deviceId.toString())) {
+            //Only OpticalTunnelEndPoint has a device
+            if (!(tunnel.src() instanceof OpticalTunnelEndPoint) ||
+                    !(tunnel.dst() instanceof OpticalTunnelEndPoint)) {
+                continue;
+            }
+
+            Optional<ElementId> srcElementId = ((OpticalTunnelEndPoint) tunnel.src()).elementId();
+            Optional<ElementId> dstElementId = ((OpticalTunnelEndPoint) tunnel.dst()).elementId();
+            if (!srcElementId.isPresent() || !dstElementId.isPresent()) {
+                continue;
+            }
+            DeviceId srcDeviceId = (DeviceId) srcElementId.get();
+            DeviceId dstDeviceId = (DeviceId) dstElementId.get();
+            if (srcDeviceId.equals(deviceId) || dstDeviceId.equals(deviceId)) {
                 count++;
             }
         }
