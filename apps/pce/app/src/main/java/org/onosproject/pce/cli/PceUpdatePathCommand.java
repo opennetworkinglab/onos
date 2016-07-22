@@ -65,16 +65,13 @@ public class PceUpdatePathCommand extends AbstractShellCommand {
             constrntList.add(BandwidthConstraint.of(Double.valueOf(bandwidth), DataRateUnit.valueOf("BPS")));
         }
 
-        // Assign cost
-        if (cost != 0) {
-            // Cost validation
-            if ((cost < 1) || (cost > 2)) {
-                error("The cost attribute value is either IGP cost(1) or TE cost(2).");
-                return;
-            }
-            CostConstraint.Type costType = CostConstraint.Type.values()[cost - 1];
-            constrntList.add(CostConstraint.of(costType));
+        // Cost validation
+        if ((cost < 1) || (cost > 2)) {
+            error("The cost attribute value is either IGP cost(1) or TE cost(2).");
+            return;
         }
+        CostConstraint.Type costType = CostConstraint.Type.values()[cost - 1];
+        constrntList.add(CostConstraint.of(costType));
 
         if (!service.updatePath(TunnelId.valueOf(id), constrntList)) {
             error("Path updation failed.");

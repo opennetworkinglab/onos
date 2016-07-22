@@ -641,6 +641,8 @@ public class PceManagerTest {
         build4RouterTopo(false, false, false, false, 5);
         List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(TE_COST);
+        BandwidthConstraint bwConst = new BandwidthConstraint(Bandwidth.bps(3));
+        constraints.add(bwConst);
         constraints.add(costConstraint);
 
         pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123", constraints, WITH_SIGNALLING);

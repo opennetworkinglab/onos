@@ -279,7 +279,7 @@ public class PcepLabelUpdateVer1 implements PcepLabelUpdate {
             }
 
             llLabelList = labelDownload.getLabelList();
-            if (llLabelList == null) {
+            if (llLabelList == null || llLabelList.isEmpty()) {
                 throw new PcepParseException("Label list is mandatory object for Label Download.");
             } else {
                 ListIterator<PcepLabelObject> listIterator = llLabelList.listIterator();

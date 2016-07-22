@@ -63,8 +63,6 @@ import org.onosproject.bgpio.types.attr.BgpLinkAttrTeDefaultMetric;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
-import org.onosproject.mastership.MastershipEvent;
-import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
@@ -79,6 +77,8 @@ import org.onosproject.net.config.basics.BandwidthCapacity;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
@@ -140,7 +140,7 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
     private DeviceProviderService deviceProviderService;
     private LinkProviderService linkProviderService;
 
-    private InternalMastershipListener masterListener = new InternalMastershipListener();
+    private DeviceListener deviceListener = new InternalDeviceListener();
     private InternalBgpProvider listener = new InternalBgpProvider();
     private static final String UNKNOWN = "unknown";
     public static final long IDENTIFIER_SET = 0x100000000L;
@@ -169,7 +169,7 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
         deviceProviderService = deviceProviderRegistry.register(this);
         linkProviderService = linkProviderRegistry.register(this);
         controller.addListener(listener);
-        mastershipService.addListener(masterListener);
+        deviceService.addListener(deviceListener);
         controller.addLinkListener(listener);
     }
 
@@ -182,25 +182,28 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
         linkProviderService = null;
         controller.removeListener(listener);
         controller.removeLinkListener(listener);
-        mastershipService.removeListener(masterListener);
+        deviceService.removeListener(deviceListener);
     }
 
-    private class InternalMastershipListener implements MastershipListener {
+    private class InternalDeviceListener implements DeviceListener {
         @Override
-        public void event(MastershipEvent event) {
-            if (event.type() == MastershipEvent.Type.MASTER_CHANGED) {
-                if (mastershipService.getMasterFor(event.subject()) != null) {
-                    //Only for L3 device create label pool for that device
-                    Device device = deviceService.getDevice(event.subject());
-                    if (device == null) {
-                        log.debug("Device {} doesn't exist", event.subject());
-                        return;
+        public void event(DeviceEvent event) {
+            Device device = event.subject();
+
+            switch (event.type()) {
+                case DEVICE_ADDED:
+                    if (!mastershipService.isLocalMaster(device.id())) {
+                        break;
                     }
-                    //Reserve device label pool for L3 devices
+
+                    // Reserve device label pool for L3 devices
                     if (device.annotations().value(LSRID) != null) {
-                        createDevicePool(event.subject());
+                        createDevicePool(device.id());
                     }
-                }
+                    break;
+
+                default:
+                    break;
             }
         }
     }
@@ -459,6 +462,10 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
                 networkConfigService.removeConfig(linkDes.dst(), BandwidthCapacity.class);
             }
 
+            linkProviderService.linkVanished(linkDes);
+
+            linkDes = new DefaultLinkDescription(linkDes.dst(), linkDes.src(), Link.Type.DIRECT,
+                    false, linkDes.annotations());
             linkProviderService.linkVanished(linkDes);
         }
     }

@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -237,6 +238,17 @@ public class PcepTunnelAddedTest {
 
             @Override
             public void tunnelUpdated(TunnelDescription tunnel, State state) {
+                TunnelId id = TunnelId.valueOf(String.valueOf(++tunnelIdCounter));
+                Tunnel storedTunnel = new DefaultTunnel(ProviderId.NONE,
+                        tunnel.src(), tunnel.dst(),
+                        tunnel.type(),
+                        tunnel.groupId(),
+                        id,
+                        tunnel.tunnelName(),
+                        tunnel.path(),
+                        tunnel.resource(),
+                        tunnel.annotations());
+                tunnelService.tunnelIdAsKeyStore.put(id, storedTunnel);
             }
 
             @Override
@@ -592,8 +604,11 @@ public class PcepTunnelAddedTest {
 
         controller.processClientMessage(PccId.pccId(IpAddress.valueOf("1.1.1.1")), message);
         TimeUnit.MILLISECONDS.sleep(4000);
-        assertThat(registry.tunnelIdCounter, is((long) 1));
-        assertThat(tunnelService.tunnelIdAsKeyStore.values().iterator().next().annotations().value(DELEGATE),
+        assertThat(registry.tunnelIdCounter, is((long) 2));
+
+        Iterator<Tunnel> iterator = tunnelService.tunnelIdAsKeyStore.values().iterator();
+        iterator.next();
+        assertThat(iterator.next().annotations().value(DELEGATE),
                 is("true"));
     }
 
