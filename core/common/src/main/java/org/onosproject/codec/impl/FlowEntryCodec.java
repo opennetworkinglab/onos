@@ -51,7 +51,7 @@ public final class FlowEntryCodec extends JsonCodec<FlowEntry> {
                 .put("isPermanent", flowEntry.isPermanent())
                 .put("deviceId", flowEntry.deviceId().toString())
                 .put("state", flowEntry.state().toString())
-                .put("life", flowEntry.life())
+                .put("life", flowEntry.life()) //FIXME life is destroying precision (seconds granularity is default)
                 .put("packets", flowEntry.packets())
                 .put("bytes", flowEntry.bytes())
                 .put("lastSeen", flowEntry.lastSeen());

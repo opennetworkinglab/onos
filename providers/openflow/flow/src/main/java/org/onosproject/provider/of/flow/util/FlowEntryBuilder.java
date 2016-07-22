@@ -93,6 +93,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.onosproject.net.flow.criteria.Criteria.*;
 import static org.onosproject.net.flow.instructions.Instructions.modL0Lambda;
@@ -170,7 +171,9 @@ public class FlowEntryBuilder {
                     }
 
                     return new DefaultFlowEntry(builder.build(), FlowEntryState.ADDED,
-                                                stat.getDurationSec(),
+                                                TimeUnit.SECONDS.toNanos(stat.getDurationSec())
+                                                        + stat.getDurationNsec(),
+                                                TimeUnit.NANOSECONDS,
                                                 stat.getPacketCount().getValue(),
                                                 stat.getByteCount().getValue());
                 case REMOVED:
@@ -185,7 +188,9 @@ public class FlowEntryBuilder {
                     }
 
                     return new DefaultFlowEntry(builder.build(), FlowEntryState.REMOVED,
-                                                removed.getDurationSec(),
+                                                TimeUnit.SECONDS.toNanos(removed.getDurationSec())
+                                                        + removed.getDurationNsec(),
+                                                TimeUnit.NANOSECONDS,
                                                 removed.getPacketCount().getValue(),
                                                 removed.getByteCount().getValue());
                 case MOD:
