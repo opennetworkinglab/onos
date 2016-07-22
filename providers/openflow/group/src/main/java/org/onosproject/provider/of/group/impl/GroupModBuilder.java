@@ -152,7 +152,7 @@ public final class GroupModBuilder {
             OFBucket.Builder bucketBuilder = factory.buildBucket();
             bucketBuilder.setActions(actions);
             if (type == GroupDescription.Type.SELECT) {
-                bucketBuilder.setWeight(1);
+                bucketBuilder.setWeight(bucket.weight());
             }
 
             if (type == GroupDescription.Type.FAILOVER && bucket.watchPort() != null) {
@@ -192,7 +192,7 @@ public final class GroupModBuilder {
             OFBucket.Builder bucketBuilder = factory.buildBucket();
             bucketBuilder.setActions(actions);
             if (type == GroupDescription.Type.SELECT) {
-                bucketBuilder.setWeight(1);
+                bucketBuilder.setWeight(bucket.weight());
             }
             if (type == GroupDescription.Type.FAILOVER && bucket.watchPort() != null) {
                 bucketBuilder.setWatchPort(OFPort.of((int) bucket.watchPort().toLong()));
