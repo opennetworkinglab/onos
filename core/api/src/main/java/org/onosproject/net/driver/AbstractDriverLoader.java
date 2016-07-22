@@ -49,7 +49,7 @@ public abstract class AbstractDriverLoader {
     @Activate
     protected void activate() {
         try {
-            provider = new XmlDriverLoader(getClass().getClassLoader())
+            provider = new XmlDriverLoader(getClass().getClassLoader(), driverAdminService)
                     .loadDrivers(getClass().getResourceAsStream(path), driverAdminService);
             driverAdminService.registerProvider(provider);
         } catch (Exception e) {

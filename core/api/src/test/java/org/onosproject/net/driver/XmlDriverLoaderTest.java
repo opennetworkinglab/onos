@@ -33,7 +33,7 @@ public class XmlDriverLoaderTest {
 
     @Test
     public void basics() throws IOException {
-        XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader());
+        XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader(), null);
         InputStream stream = getClass().getResourceAsStream("drivers.1.xml");
         DriverProvider provider = loader.loadDrivers(stream, null);
         System.out.println(provider);
@@ -59,19 +59,19 @@ public class XmlDriverLoaderTest {
 
     @Test(expected = IOException.class)
     public void badXml() throws IOException {
-        XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader());
+        XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader(), null);
         loader.loadDrivers(getClass().getResourceAsStream("drivers.bad.xml"), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void noClass() throws IOException {
-        XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader());
+        XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader(), null);
         loader.loadDrivers(getClass().getResourceAsStream("drivers.noclass.xml"), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void noConstructor() throws IOException {
-        XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader());
+        XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader(), null);
         InputStream stream = getClass().getResourceAsStream("drivers.noconstructor.xml");
         DriverProvider provider = loader.loadDrivers(stream, null);
         Driver driver = provider.getDrivers().iterator().next();
@@ -80,7 +80,7 @@ public class XmlDriverLoaderTest {
 
     @Test
     public void multipleDrivers() throws IOException {
-        XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader());
+        XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader(), null);
         InputStream stream = getClass().getResourceAsStream("drivers.multipleInheritance.xml");
         DriverProvider provider = loader.loadDrivers(stream, null);
         Iterator<Driver> iterator = provider.getDrivers().iterator();
@@ -94,7 +94,7 @@ public class XmlDriverLoaderTest {
 
     @Test
     public void multipleDriversSameBehaviors() throws IOException {
-        XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader());
+        XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader(), null);
         InputStream stream = getClass().getResourceAsStream("drivers.sameMultipleInheritance.xml");
         DriverProvider provider = loader.loadDrivers(stream, null);
         Iterator<Driver> iterator = provider.getDrivers().iterator();

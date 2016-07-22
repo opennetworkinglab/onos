@@ -20,7 +20,7 @@ import java.util.Set;
 /**
  * Service for managing drivers and driver behaviour implementations.
  */
-public interface DriverAdminService extends DriverService {
+public interface DriverAdminService extends DriverService, BehaviourClassResolver {
 
     /**
      * Returns the set of driver providers currently registered.

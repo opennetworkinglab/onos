@@ -70,6 +70,7 @@ public class DriverManager extends DefaultDriverProvider implements DriverAdminS
 
     private Set<DriverProvider> providers = Sets.newConcurrentHashSet();
     private Map<String, Driver> driverByKey = Maps.newConcurrentMap();
+    private Map<String, Class<? extends Behaviour>> classes = Maps.newConcurrentMap();
 
     @Activate
     protected void activate() {
@@ -80,6 +81,9 @@ public class DriverManager extends DefaultDriverProvider implements DriverAdminS
     @Deactivate
     protected void deactivate() {
         AbstractProjectableModel.setDriverService(this, null);
+        providers.clear();
+        driverByKey.clear();
+        classes.clear();
         log.info("Stopped");
     }
 
@@ -95,6 +99,11 @@ public class DriverManager extends DefaultDriverProvider implements DriverAdminS
             driverByKey.put(key(driver.manufacturer(),
                                 driver.hwVersion(),
                                 driver.swVersion()), d);
+            d.behaviours().forEach(b -> {
+                Class<? extends Behaviour> implementation = d.implementation(b);
+                classes.put(b.getName(), b);
+                classes.put(implementation.getName(), implementation);
+            });
         });
         providers.add(provider);
     }
@@ -108,6 +117,11 @@ public class DriverManager extends DefaultDriverProvider implements DriverAdminS
                                    driver.swVersion()));
         });
         providers.remove(provider);
+    }
+
+    @Override
+    public Class<? extends Behaviour> getBehaviourClass(String className) {
+        return classes.get(className);
     }
 
     @Override
