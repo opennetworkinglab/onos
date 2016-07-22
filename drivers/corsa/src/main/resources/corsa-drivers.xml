@@ -48,6 +48,6 @@
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.drivers.corsa.CorsaSwitchHandshaker"/>
         <behaviour api="org.onosproject.net.behaviour.VlanQuery"
-                   impl="org.onosproject.drivers.corsa.CorsaFullVlanAvailable"/>
+                   impl="org.onosproject.driver.query.FullVlanAvailable"/>
     </driver>
 </drivers>
