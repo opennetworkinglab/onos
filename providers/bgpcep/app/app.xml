@@ -34,4 +34,5 @@
     <artifact>mvn:${project.groupId}/onos-bgpcep-provider-flow/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-pce/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-pceweb/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-app-pcerest/${project.version}</artifact>
 </app>

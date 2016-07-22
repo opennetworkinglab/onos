@@ -247,13 +247,15 @@ public final class DefaultPcePath implements PcePath {
             // LSP type
             String lspType = tunnel.annotations().value(PcepAnnotationKeys.LSP_SIG_TYPE);
             if (lspType != null) {
-               this.lspType = LspType.values()[Integer.valueOf(lspType) - 1];
+                this.lspType = LspType.values()[LspType.valueOf(lspType).type()];
             }
+
             // Cost type
             String costType = tunnel.annotations().value(PcepAnnotationKeys.COST_TYPE);
             if (costType != null) {
-                this.costConstraint = CostConstraint.of(CostConstraint.Type.values()[Integer.valueOf(costType) - 1]);
+                this.costConstraint = CostConstraint.of(CostConstraint.Type.valueOf(costType));
             }
+
             // Bandwidth
             String bandwidth = tunnel.annotations().value(PcepAnnotationKeys.BANDWIDTH);
             if (bandwidth != null) {
