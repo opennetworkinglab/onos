@@ -25,13 +25,13 @@
             exec="onos ${OCI} app activate org.onosproject.distributedprimitives"/>
 
         <step name="Test-Map-Get" requires="^"
-              exec="onos-execute-expect ${OCI} map-test foo get a --expect null"/>
+              exec="onos-cluster-execute-expect map-test foo get a --expect null"/>
 
         <step name="Test-Map-Put" requires="^"
               exec="onos-execute-expect ${OCI} map-test foo put a b --expect null"/>
 
         <step name="Test-Map-Updated-After-Put" requires="^"
-              exec="onos-execute-expect ${OCI} map-test foo get a --expect b"/>
+              exec="onos-cluster-execute-expect map-test foo get a --expect b"/>
 
         <step name="Test-Map-PutIfAbsent-When-Key-Present" requires="^"
               exec="onos-execute-expect ${OCI} map-test foo putIfAbsent a c --expect b"/>
@@ -40,7 +40,7 @@
               exec="onos-execute-expect ${OCI} map-test foo putIfAbsent b c --expect null"/>
 
         <step name="Test-Map-Updated-After-PutIfAbsent" requires="^"
-              exec="onos-execute-expect ${OCI} map-test foo get b --expect c"/>
+              exec="onos-cluster-execute-expect map-test foo get b --expect c"/>
 
         <step name="Test-Map-Updated-After-PutAndGet" requires="^"
               exec="onos-execute-expect ${OCI} map-test foo putAndGet b d --expect d"/>
@@ -58,16 +58,16 @@
               exec="onos-execute-expect ${OCI} map-test foo replace b e f --expect true"/>
 
         <step name="Test-Map-ContainsValue-False-Case" requires="^"
-              exec="onos-execute-expect ${OCI} map-test foo containsValue x --expect false"/>
+              exec="onos-cluster-execute-expect map-test foo containsValue x --expect false"/>
 
         <step name="Test-Map-ContainsValue-True-Case" requires="^"
-              exec="onos-execute-expect ${OCI} map-test foo containsValue f --expect true"/>
+              exec="onos-cluster-execute-expect map-test foo containsValue f --expect true"/>
 
         <step name="Test-Map-Size" requires="^"
-              exec="onos-execute-expect ${OCI} map-test foo size --expect 2"/>
+              exec="onos-cluster-execute-expect map-test foo size --expect 2"/>
 
         <step name="Test-Map-IsEmpty" requires="^"
-              exec="onos-execute-expect ${OCI} map-test foo isEmpty --expect false"/>
+              exec="onos-cluster-execute-expect map-test foo isEmpty --expect false"/>
 
         <step name="Test-Map-Remove" requires="^"
               exec="onos-execute-expect ${OCI} map-test foo remove b --expect f"/>

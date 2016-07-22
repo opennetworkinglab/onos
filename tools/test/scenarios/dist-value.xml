@@ -25,25 +25,25 @@
             exec="onos ${OCI} app activate org.onosproject.distributedprimitives"/>
 
         <step name="Test-Value-Initial-Value" requires="^"
-              exec="onos-execute-expect ${OCI} value-test test-value get --expect null"/>
+              exec="onos-cluster-execute-expect value-test test-value get --expect null"/>
 
         <step name="Test-Value-Set" requires="^"
               exec="onos ${OCI} value-test test-value set v0"/>
 
         <step name="Test-Value-Get" requires="^"
-              exec="onos-execute-expect ${OCI} value-test test-value get --expect v0"/>
+              exec="onos-cluster-execute-expect value-test test-value get --expect v0"/>
 
         <step name="Test-Value-CompareAndSet-False" requires="^"
               exec="onos-execute-expect ${OCI} value-test test-value compareAndSet v1 v2 --expect false"/>
 
         <step name="Test-Value-Not-Updated-After-CAS" requires="^"
-              exec="onos-execute-expect ${OCI} value-test test-value get --expect v0"/>
+              exec="onos-cluster-execute-expect value-test test-value get --expect v0"/>
 
         <step name="Test-Value-CompareAndSet-True" requires="^"
               exec="onos-execute-expect ${OCI} value-test test-value compareAndSet v0 v1 --expect true"/>
 
         <step name="Test-Value-Updated-After-CAS" requires="^"
-              exec="onos-execute-expect ${OCI} value-test test-value get --expect v1"/>
+              exec="onos-cluster-execute-expect value-test test-value get --expect v1"/>
 
         <!--Check with check logs-->
         <step name="Check-Log-Exceptions" requires="^"

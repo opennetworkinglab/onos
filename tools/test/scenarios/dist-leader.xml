@@ -25,7 +25,7 @@
             exec="onos ${OCI} app activate org.onosproject.distributedprimitives"/>
 
         <step name="Test-Initial-No-Leader" requires="^"
-              exec="onos-execute-expect ${OCI} leader-test test-elector show foo --expect leader=none#candidates=none"/>
+              exec="onos-cluster-execute-expect leader-test test-elector show foo --expect leader=none#candidates=none"/>
 
         <step name="Test-Leader-Run" requires="^"
               exec="onos-execute-expect ${OCI} leader-test test-elector run foo --expect leader=${OCI}#term=1#candidates=${OCI}"/>
@@ -34,7 +34,7 @@
               exec="onos ${OCI} leader-test test-elector withdraw foo"/>
 
         <step name="Test-No-Leader-After-Withdraw" requires="^"
-              exec="onos-execute-expect ${OCI} leader-test test-elector show foo --expect leader=none#candidates=none"/>
+              exec="onos-cluster-execute-expect leader-test test-elector show foo --expect leader=none#candidates=none"/>
 
         <!--Check with check logs-->
         <step name="Check-Log-Exceptions" requires="^"

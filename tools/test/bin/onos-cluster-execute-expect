@@ -1,0 +1,30 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Executes a command on all ONOS instances in a cluster and matches the output
+# from each instance to the passed one.
+# First argument is the command and it's arguments if needed, then --expect and
+# after it the string of what the output should be.
+# Example:
+# onos-cluster-execute-expect fooCommand fooParamenter --expect fooOutputString
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+
+aux=/tmp/stc-$$.log
+trap "rm -f $aux 2>/dev/null" EXIT
+cmd=""
+for a in ${*:1}; do shift; if [ "$a" = "--expect" ]; then break; fi; cmd="$cmd $a"; done
+expect="${@: -1}"
+echo $cmd
+echo $expect
+node_count=`onos $OC1 nodes | wc -l`
+for i in `seq 1 $node_count`; do
+    node_var="OC$i"
+    onos ${!node_var} $cmd > $aux
+    cat $aux
+    grep -q $expect $aux || exit 1
+done
+echo "expected value found"
+exit 0

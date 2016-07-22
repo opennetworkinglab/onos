@@ -25,13 +25,13 @@
             exec="onos ${OCI} app activate org.onosproject.distributedprimitives"/>
 
         <step name="Test-Counter-Initial-Value" requires="^"
-              exec="onos-execute-expect ${OCI} counter-test test-counter get --expect 0"/>
+              exec="onos-cluster-execute-expect counter-test test-counter get --expect 0"/>
 
         <step name="Test-Counter-Set" requires="^"
               exec="onos ${OCI} counter-test test-counter set 1"/>
 
         <step name="Test-Counter-Get" requires="^"
-              exec="onos-execute-expect ${OCI} counter-test test-counter get --expect 1"/>
+              exec="onos-cluster-execute-expect counter-test test-counter get --expect 1"/>
 
         <step name="Test-Counter-IncrementAndGet" requires="^"
               exec="onos-execute-expect ${OCI} counter-test test-counter incrementAndGet --expect 2"/>
@@ -40,7 +40,7 @@
               exec="onos-execute-expect ${OCI} counter-test test-counter getAndIncrement --expect 2"/>
 
         <step name="Test-Counter-Incremented" requires="^"
-              exec="onos-execute-expect ${OCI} counter-test test-counter get --expect 3"/>
+              exec="onos-cluster-execute-expect counter-test test-counter get --expect 3"/>
 
         <step name="Test-Counter-AddAndGet" requires="^"
               exec="onos-execute-expect ${OCI} counter-test test-counter addAndGet 10 --expect 13"/>
@@ -49,19 +49,25 @@
               exec="onos-execute-expect ${OCI} counter-test test-counter getAndAdd 10 --expect 13"/>
 
         <step name="Test-Counter-Updated-After-GetAndAdd" requires="^"
-              exec="onos-execute-expect ${OCI} counter-test test-counter get --expect 23"/>
+              exec="onos-cluster-execute-expect counter-test test-counter get --expect 23"/>
 
         <step name="Test-Counter-CompareAndSet-False" requires="^"
               exec="onos-execute-expect ${OCI} counter-test test-counter compareAndSet 1 2 --expect false"/>
 
         <step name="Test-Counter-Not-Updated-After-CAS" requires="^"
-              exec="onos-execute-expect ${OCI} counter-test test-counter get --expect 23"/>
+              exec="onos-cluster-execute-expect counter-test test-counter get --expect 23"/>
 
         <step name="Test-Counter-CompareAndSet-True" requires="^"
               exec="onos-execute-expect ${OCI} counter-test test-counter compareAndSet 23 25 --expect true"/>
 
         <step name="Test-Counter-Updated-After-CAS" requires="^"
-              exec="onos-execute-expect ${OCI} counter-test test-counter get --expect 25"/>
+              exec="onos-cluster-execute-expect counter-test test-counter get --expect 25"/>
+
+        <step name="Test-Counter-Reset" requires="^"
+              exec="onos ${OCI} counter-test test-counter set 0"/>
+
+        <step name="Test-Counter-Get-After-Reset" requires="^"
+              exec="onos-cluster-execute-expect counter-test test-counter get --expect 0"/>
 
         <!--Check with check logs-->
         <step name="Check-Log-Exceptions" requires="^"
