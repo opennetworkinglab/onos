@@ -1,6 +1,31 @@
 {
   "event": "topo2CurrentRegion",
   "payload": {
-    "note": "no-region"
+    "id": "<null-region>",
+    "subregions": [{
+      "id": "r2",
+      "nDevs": 2
+    }, {
+      "id": "r1",
+      "nDevs": 3
+    }],
+    "devices": [
+      [],
+      [],
+      [{
+        "id": "null:0000000000000001",
+        "type": "switch",
+        "online": false,
+        "master": "",
+        "layer": "def"
+      }]
+    ],
+    "hosts": [
+      [],
+      [],
+      []
+    ],
+    "links": [],
+    "layerOrder": ["opt", "pkt", "def"]
   }
 }

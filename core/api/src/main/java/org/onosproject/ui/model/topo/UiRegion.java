@@ -29,11 +29,26 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.onosproject.net.region.RegionId.regionId;
 
 /**
  * Represents a region.
  */
 public class UiRegion extends UiNode {
+
+    private static final String NULL_NAME = "<null-region>";
+
+    /**
+     * The identifier for the null-region. That is, a container for devices,
+     * hosts, and links for those that belong to no region.
+     */
+    public static final RegionId NULL_ID = regionId(NULL_NAME);
+
+    private static final String[] DEFAULT_LAYER_TAGS = {
+            UiNode.LAYER_OPTICAL,
+            UiNode.LAYER_PACKET,
+            UiNode.LAYER_DEFAULT
+    };
 
     // loose bindings to things in this region
     private final Set<DeviceId> deviceIds = new HashSet<>();
@@ -53,10 +68,12 @@ public class UiRegion extends UiNode {
      * @param region   backing region
      */
     public UiRegion(UiTopology topology, Region region) {
+        // Implementation Note: if region is null, this UiRegion is being used
+        //  as a container for devices, hosts, links that belong to no region.
         this.topology = topology;
         this.region = region;
-        // unless told otherwise, we'll use a single, default layer
-        layerOrder.add(UiNode.LAYER_DEFAULT);
+
+        setLayerOrder(DEFAULT_LAYER_TAGS);
     }
 
     @Override
@@ -83,7 +100,7 @@ public class UiRegion extends UiNode {
      * @return region ID
      */
     public RegionId id() {
-        return region.id();
+        return region == null ? NULL_ID : region.id();
     }
 
     @Override
@@ -93,11 +110,12 @@ public class UiRegion extends UiNode {
 
     @Override
     public String name() {
-        return region.name();
+        return region == null ? NULL_NAME : region.name();
     }
 
     /**
-     * Returns the region instance backing this UI region.
+     * Returns the region instance backing this UI region. If this instance
+     * represents the "null-region", the value returned will be null.
      *
      * @return the backing region instance
      */
@@ -132,7 +150,17 @@ public class UiRegion extends UiNode {
      * @return region type
      */
     public Region.Type type() {
-        return region.type();
+        return region == null ? null : region.type();
+    }
+
+
+    /**
+     * Returns the count of devices in this region.
+     *
+     * @return the device count
+     */
+    public int deviceCount() {
+        return deviceIds.size();
     }
 
     /**
@@ -195,7 +223,7 @@ public class UiRegion extends UiNode {
      * optical layer should be rendered "below" nodes in the packet layer,
      * this method should return:
      * <pre>
-     * [UiNode.LAYER_OPTICAL, UiNode.LAYER_PACKET]
+     * [UiNode.LAYER_OPTICAL, UiNode.LAYER_PACKET, UiNode.LAYER_DEFAULT]
      * </pre>
      *
      * @return layer ordering

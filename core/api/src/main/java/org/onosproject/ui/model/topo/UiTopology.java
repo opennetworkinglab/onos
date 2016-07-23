@@ -61,6 +61,9 @@ public class UiTopology extends UiElement {
     private final Map<HostId, UiHost> hostLookup = new HashMap<>();
     private final Map<UiLinkId, UiLink> linkLookup = new HashMap<>();
 
+    // a container for devices, hosts, etc. belonging to no region
+    private final UiRegion nullRegion = new UiRegion(this, null);
+
 
     @Override
     public String toString() {
@@ -89,6 +92,8 @@ public class UiTopology extends UiElement {
         deviceLookup.clear();
         hostLookup.clear();
         linkLookup.clear();
+
+        nullRegion.destroy();
     }
 
 
@@ -145,6 +150,16 @@ public class UiTopology extends UiElement {
     }
 
     /**
+     * Returns a reference to the null-region. That is, the container for
+     * devices, hosts, and links that belong to no region.
+     *
+     * @return the null-region
+     */
+    public UiRegion nullRegion() {
+        return nullRegion;
+    }
+
+    /**
      * Returns the region with the specified identifier, or null if
      * no such region exists.
      *
@@ -183,6 +198,15 @@ public class UiTopology extends UiElement {
      */
     public int regionCount() {
         return regionLookup.size();
+    }
+
+    /**
+     * Returns all devices in the model.
+     *
+     * @return all devices
+     */
+    public Set<UiDevice> allDevices() {
+        return new HashSet<>(deviceLookup.values());
     }
 
     /**

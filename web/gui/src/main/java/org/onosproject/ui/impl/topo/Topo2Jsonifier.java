@@ -181,7 +181,9 @@ class Topo2Jsonifier {
             return payload;
         }
         payload.put("id", region.idAsString());
-        payload.set("subregions", jsonSubRegions(subRegions));
+        if (subRegions != null) {
+            payload.set("subregions", jsonSubRegions(subRegions));
+        }
 
         List<String> layerTags = region.layerOrder();
         List<Set<UiNode>> splitDevices = splitByLayer(layerTags, region.devices());
@@ -226,31 +228,6 @@ class Topo2Jsonifier {
         return result;
     }
 
-    /**
-     * Returns a JSON payload that encapsulates the devices, hosts, links that
-     * do not belong to any region.
-     *
-     * @param oDevices  orphan devices
-     * @param oHosts    orphan hosts
-     * @param oLinks    orphan links
-     * @param layerTags layer tags
-     * @return a JSON representation of the data
-     */
-    ObjectNode orphans(Set<UiDevice> oDevices, Set<UiHost> oHosts,
-                       Set<UiLink> oLinks, List<String> layerTags) {
-
-        ObjectNode payload = objectNode();
-
-        List<Set<UiNode>> splitDevices = splitByLayer(layerTags, oDevices);
-        List<Set<UiNode>> splitHosts = splitByLayer(layerTags, oHosts);
-
-        payload.set("devices", jsonGrouped(splitDevices));
-        payload.set("hosts", jsonGrouped(splitHosts));
-        payload.set("links", jsonLinks(oLinks));
-        payload.set("layerOrder", jsonStrings(layerTags));
-
-        return payload;
-    }
 
     private ObjectNode json(UiNode node) {
         if (node instanceof UiRegion) {
@@ -270,7 +247,7 @@ class Topo2Jsonifier {
                 .put("id", device.idAsString())
                 .put("type", device.type())
                 .put("online", device.isOnline())
-                .put("master", device.master().toString())
+                .put("master", nullIsEmpty(device.master()))
                 .put("layer", device.layer());
 
         // TODO: complete device details
@@ -303,7 +280,8 @@ class Topo2Jsonifier {
 
     private ObjectNode jsonClosedRegion(UiRegion region) {
         return objectNode()
-                .put("id", region.idAsString());
+                .put("id", region.idAsString())
+                .put("nDevs", region.deviceCount());
         // TODO: complete closed-region details
     }
 

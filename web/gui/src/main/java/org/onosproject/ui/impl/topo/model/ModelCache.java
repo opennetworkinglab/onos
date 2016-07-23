@@ -41,6 +41,7 @@ import org.onosproject.ui.model.topo.UiTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -169,18 +170,38 @@ class ModelCache {
         // TODO: post event
     }
 
+    // === THE NULL REGION
+
+    UiRegion nullRegion() {
+        return uiTopology.nullRegion();
+    }
 
     // === REGIONS
 
     private UiRegion addNewRegion(Region r) {
         UiRegion region = new UiRegion(uiTopology, r);
         uiTopology.add(region);
+        log.debug("Region {} added to topology", region);
         return region;
     }
 
     private void updateRegion(UiRegion region) {
-        Set<DeviceId> devs = services.region().getRegionDevices(region.id());
-        region.reconcileDevices(devs);
+        RegionId rid = region.id();
+        Set<DeviceId> deviceIds = services.region().getRegionDevices(rid);
+
+        // Make sure device objects refer to their region
+        deviceIds.forEach(d -> {
+            UiDevice dev = uiTopology.findDevice(d);
+            if (dev != null) {
+                dev.setRegionId(rid);
+            } else {
+                // if we don't have the UiDevice in the topology, what can we do?
+                log.warn("Region device {}, but we don't have UiDevice in topology", d);
+            }
+        });
+
+        // Make sure the region object refers to the devices
+        region.reconcileDevices(deviceIds);
     }
 
     private void loadRegions() {
@@ -224,21 +245,22 @@ class ModelCache {
 
     private UiDevice addNewDevice(Device d) {
         UiDevice device = new UiDevice(uiTopology, d);
+        updateDevice(device);
         uiTopology.add(device);
+        log.debug("Device {} added to topology", device);
         return device;
     }
 
+    // make sure the UiDevice is tagged with the region it belongs to
     private void updateDevice(UiDevice device) {
-        Region regionForDevice = services.region().getRegionForDevice(device.id());
-        if (regionForDevice != null) {
-            device.setRegionId(regionForDevice.id());
-        }
+        Region r = services.region().getRegionForDevice(device.id());
+        RegionId rid = r == null ? UiRegion.NULL_ID : r.id();
+        device.setRegionId(rid);
     }
 
     private void loadDevices() {
         for (Device d : services.device().getDevices()) {
-            UiDevice device = addNewDevice(d);
-            updateDevice(device);
+            addNewDevice(d);
         }
     }
 
@@ -248,8 +270,9 @@ class ModelCache {
         UiDevice uiDevice = uiTopology.findDevice(id);
         if (uiDevice == null) {
             uiDevice = addNewDevice(device);
+        } else {
+            updateDevice(uiDevice);
         }
-        updateDevice(uiDevice);
 
         postEvent(DEVICE_ADDED_OR_UPDATED, uiDevice);
     }
@@ -433,6 +456,43 @@ class ModelCache {
         }
     }
 
+
+    /**
+     * Refreshes the internal state.
+     */
+    public void refresh() {
+        // fix up internal linkages if they aren't correct
+
+        // at the moment, this is making sure devices are in the correct region
+        Set<UiDevice> allDevices = uiTopology.allDevices();
+
+        services.region().getRegions().forEach(r -> {
+            RegionId rid = r.id();
+            UiRegion region = uiTopology.findRegion(rid);
+            if (region != null) {
+                Set<DeviceId> deviceIds = services.region().getRegionDevices(rid);
+                region.reconcileDevices(deviceIds);
+
+                deviceIds.forEach(devId -> {
+                    UiDevice dev = uiTopology.findDevice(devId);
+                    if (dev != null) {
+                        dev.setRegionId(r.id());
+                        allDevices.remove(dev);
+                    } else {
+                        log.warn("Region device ID {} but no UiDevice in topology",
+                                devId);
+                    }
+                });
+            } else {
+                log.warn("No UiRegion in topology for ID {}", rid);
+            }
+        });
+
+        // what is left over, must belong to the null-region
+        Set<DeviceId> leftOver = new HashSet<>(allDevices.size());
+        allDevices.forEach(d -> leftOver.add(d.id()));
+        uiTopology.nullRegion().reconcileDevices(leftOver);
+    }
 
     // === CACHE STATISTICS
 

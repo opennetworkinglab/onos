@@ -217,6 +217,22 @@ public final class UiSharedTopologyModel
         return cache.accessRegion(id);
     }
 
+    /**
+     * Returns the null region.
+     *
+     * @return the null region
+     */
+    public UiRegion getNullRegion() {
+        return cache.nullRegion();
+    }
+
+    /**
+     * Refreshes the cache's internal state.
+     */
+    public void refresh() {
+        cache.refresh();
+    }
+
     // =====================================================================
 
 

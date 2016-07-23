@@ -23,10 +23,13 @@ import org.onlab.util.Identifier;
  */
 public final class UiTopoLayoutId extends Identifier<String> {
 
+    private static final String DEFAULT_STR = "_default_";
+
     /**
      * Default topology layout identifier.
      */
-    public static final UiTopoLayoutId DEFAULT_ID = UiTopoLayoutId.layoutId("_default_");
+    public static final UiTopoLayoutId DEFAULT_ID =
+            UiTopoLayoutId.layoutId(DEFAULT_STR);
 
     // For serialization
     private UiTopoLayoutId() {
@@ -44,5 +47,14 @@ public final class UiTopoLayoutId extends Identifier<String> {
      */
     public static UiTopoLayoutId layoutId(String value) {
         return new UiTopoLayoutId(value);
+    }
+
+    /**
+     * Returns true if this is the identifier for the default layout.
+     *
+     * @return true if this is the default layout identifier
+     */
+    public boolean isDefault() {
+        return DEFAULT_STR.equals(identifier);
     }
 }

@@ -57,6 +57,15 @@ public interface UiTopoLayoutService {
     UiTopoLayout getLayout(UiTopoLayoutId layoutId);
 
     /**
+     * Returns the set of peer layouts of the specified layout. That is,
+     * those layouts that share the same parent.
+     *
+     * @param layoutId layout identifier
+     * @return set of peer layouts; empty set if layout has no peers
+     */
+    Set<UiTopoLayout> getPeers(UiTopoLayoutId layoutId);
+
+    /**
      * Returns the set of the child layouts of the specified layout.
      *
      * @param layoutId layout identifier

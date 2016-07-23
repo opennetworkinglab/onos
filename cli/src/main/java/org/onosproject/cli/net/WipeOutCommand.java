@@ -115,7 +115,12 @@ public class WipeOutCommand extends ClustersListCommand {
     private void wipeOutLayouts() {
         print("Wiping UI layouts");
         UiTopoLayoutService service = get(UiTopoLayoutService.class);
-        service.getLayouts().forEach(service::removeLayout);
+        // wipe out all layouts except the default, which should always be there
+        service.getLayouts().forEach(l -> {
+            if (!l.id().isDefault()) {
+                service.removeLayout(l);
+            }
+        });
     }
 
     private void wipeOutRegions() {

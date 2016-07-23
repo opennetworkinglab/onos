@@ -34,6 +34,7 @@ import org.onosproject.ui.model.topo.UiTopoLayoutId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -107,6 +108,21 @@ public class UiTopoLayoutManager implements UiTopoLayoutService {
     public UiTopoLayout getLayout(UiTopoLayoutId layoutId) {
         checkNotNull(layoutId, ID_NULL);
         return layoutMap.get(layoutId);
+    }
+
+    @Override
+    public Set<UiTopoLayout> getPeers(UiTopoLayoutId layoutId) {
+        checkNotNull(layoutId, ID_NULL);
+        UiTopoLayout layout = layoutMap.get(layoutId);
+        if (layout == null) {
+            return Collections.emptySet();
+        }
+
+        UiTopoLayoutId parentId = layout.parent();
+        return layoutMap.values().stream()
+                .filter(l -> !Objects.equals(l.id(), layoutId) &&
+                        Objects.equals(l.parent(), parentId))
+                .collect(Collectors.toSet());
     }
 
     @Override
