@@ -88,7 +88,7 @@ import static org.onlab.util.Tools.groupedThreads;
 public class OpenFlowControllerImpl implements OpenFlowController {
     private static final String APP_ID = "org.onosproject.openflow-base";
     private static final String DEFAULT_OFPORT = "6633,6653";
-    private static final int DEFAULT_WORKER_THREADS = 16;
+    private static final int DEFAULT_WORKER_THREADS = 0;
 
     private static final Logger log =
             LoggerFactory.getLogger(OpenFlowControllerImpl.class);
@@ -111,7 +111,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     private String openflowPorts = DEFAULT_OFPORT;
 
     @Property(name = "workerThreads", intValue = DEFAULT_WORKER_THREADS,
-            label = "Number of controller worker threads; default is 16")
+            label = "Number of controller worker threads")
     private int workerThreads = DEFAULT_WORKER_THREADS;
 
     protected ExecutorService executorMsgs =

@@ -80,7 +80,7 @@ public class Controller {
 
     // Configuration options
     protected List<Integer> openFlowPorts = ImmutableList.of(6633, 6653);
-    protected int workerThreads = 16;
+    protected int workerThreads = 0;
 
     // Start time of the controller
     protected long systemStartTime;
