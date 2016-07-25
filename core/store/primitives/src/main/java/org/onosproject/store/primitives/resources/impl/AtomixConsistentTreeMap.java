@@ -74,7 +74,7 @@ import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTr
  */
 @ResourceTypeInfo(id = -155, factory = AtomixConsistentTreeMapFactory.class)
 public class AtomixConsistentTreeMap extends AbstractResource<AtomixConsistentTreeMap>
-        implements AsyncConsistentTreeMap<String, byte[]> {
+        implements AsyncConsistentTreeMap<byte[]> {
 
     private final Map<MapEventListener<String, byte[]>, Executor>
             mapEventListeners = Maps.newConcurrentMap();
