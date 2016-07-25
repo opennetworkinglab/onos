@@ -1,0 +1,33 @@
+remote_jar (
+  name = 'buck-api',
+  out = 'buck.jar',
+  url = 'https://github.com/bocon13/buck/releases/download/v2016.07.29.01-wip/buck.jar',
+  sha1 = 'f89324cb869b74fdcd4db9972233065a93d890a2',
+  visibility = [],
+)
+
+COMPILE = [
+  '//lib:qdox',
+  #'//lib:jackson-core',
+  #'//lib:jackson-databind',
+  #'//lib:jackson-annotations',
+]
+
+RUNTIME = [
+]
+
+java_library(
+  name = 'lib',
+  srcs = glob(['src/main/java/**/*.java']),
+  resources = glob(['src/main/resources/**/*']),
+  resources_root = 'src/main/resources',
+  deps = COMPILE,
+  provided_deps = [':buck-api'],
+  visibility = [],
+)
+
+java_binary(
+  name = 'onosjar',
+  deps = [':lib'],
+  visibility = ['PUBLIC'],
+)

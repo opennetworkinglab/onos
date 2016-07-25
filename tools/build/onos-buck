@@ -34,5 +34,29 @@ if [ -n "$FORCE_UPDATE" ] || [ ! -f "buck" ] || [ "$REQUIRED_VERSION" != "$(cat 
 fi
 popd > /dev/null
 
+BUCK=$ONOS_ROOT/bin/buck
+PLUGINS=$ONOS_ROOT/bucklets/plugins
+ONOS_PLUGIN=$PLUGINS/onosjar.jar
+
+if [ ! -f "$ONOS_PLUGIN" -o -n "$ONOS_BUILD_PLUGIN" ]; then
+    echo "Building ONOS Buck plugins..."
+
+    # Build it first
+    pluginJar=$(NO_BUCKD=1 $BUCK build //tools/build/buck-plugin:onosjar --show-output 2>/dev/null | grep onosjar.jar | cut -d\  -f2)
+
+    CHK_NEW=$(cksum $pluginJar | cut -d' ' -f1-2)
+    CHK_OLD=$(cksum $ONOS_PLUGIN 2>/dev/null | cut -d' ' -f1-2)
+    if [ "$CHK_NEW" != "$CHK_OLD" ]; then
+        # diff plugins... if different, copy and restart buckd
+        # Then install it
+        mkdir -p $PLUGINS
+        cp $ONOS_ROOT/$pluginJar $PLUGINS
+        echo "Updated to the latest plugin."
+        $BUCK clean 2>/dev/null
+    else
+        echo "Plugin was already up to date."
+    fi
+fi
+
 # Finally, run the Buck command...
-$ONOS_ROOT/bin/buck "$@"
+$BUCK "$@"

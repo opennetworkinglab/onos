@@ -1,6 +1,9 @@
 [buildfile]
   includes = //buck-tools/default.defs
 
+[plugins]
+  directory = //bucklets/plugins
+
 [java]
   source_level = 8
   target_level = 8

@@ -17,6 +17,7 @@ localDB.*
 .buckd
 buck-out
 .buckconfig.local
+.buckjavaargs*
 
 core/store/trivial/data/
 core/store/apps
