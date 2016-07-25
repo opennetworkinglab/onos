@@ -61,10 +61,10 @@ public class DefaultConsistentTreeMap<K, V> extends Synchronous<AsyncConsistentT
             Thread.currentThread().interrupt();
             throw new ConsistentMapException.Interrupted();
         } catch (ExecutionException e) {
-            throw new ConsistentMapException.Timeout();
-        } catch (TimeoutException e) {
             Throwables.propagateIfPossible(e.getCause());
             throw new ConsistentMapException(e.getCause());
+        } catch (TimeoutException e) {
+            throw new ConsistentMapException.Timeout();
         }
     }
 
