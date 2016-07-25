@@ -220,6 +220,11 @@ public class PtToPtIntentVirtualNetworkProviderTest {
         }
 
         @Override
+        public void topologyChanged(Set<Set<ConnectPoint>> clusters) {
+
+        }
+
+        @Override
         public void tunnelUp(NetworkId networkId, ConnectPoint src, ConnectPoint dst, TunnelId tunnelId) {
             // Release one permit on the created semaphore since the tunnelUp method was called.
             created.release();

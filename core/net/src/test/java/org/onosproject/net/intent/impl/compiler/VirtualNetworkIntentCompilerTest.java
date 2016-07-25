@@ -39,13 +39,11 @@ import org.onosproject.incubator.net.virtual.impl.VirtualNetworkManager;
 import org.onosproject.incubator.store.virtual.impl.DistributedVirtualNetworkStore;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultPort;
-import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.TestDeviceParams;
-import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.FakeIntentManager;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentExtensionService;
@@ -53,10 +51,8 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.TestableIntentService;
-import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.store.service.TestStorageService;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -192,6 +188,9 @@ public class VirtualNetworkIntentCompilerTest extends TestDeviceParams {
         return virtualNetwork;
     }
 
+    /**
+     * Tests the virtual network intent compiler.
+     */
     @Test
     public void testCompiler() {
         compiler.activate();
@@ -199,20 +198,16 @@ public class VirtualNetworkIntentCompilerTest extends TestDeviceParams {
 
         Key intentKey = Key.of("test", APP_ID);
 
-        List<Constraint> constraints = new ArrayList<>();
-        constraints.add(new EncapsulationConstraint(EncapsulationType.VLAN));
-
         VirtualNetworkIntent virtualIntent = VirtualNetworkIntent.builder()
                 .networkId(virtualNetwork.id())
                 .key(intentKey)
                 .appId(APP_ID)
-                .ingressPoint(cp1)
-                .egressPoint(cp5)
-                .constraints(constraints)
+                .ingressPoint(cp2)
+                .egressPoint(cp6)
                 .build();
 
         List<Intent> compiled = compiler.compile(virtualIntent, Collections.emptyList());
-        assertEquals("The virtual intents size is not as expected.", 2, compiled.size());
+        assertEquals("The virtual intents size is not as expected.", 5, compiled.size());
 
         compiler.deactivate();
     }

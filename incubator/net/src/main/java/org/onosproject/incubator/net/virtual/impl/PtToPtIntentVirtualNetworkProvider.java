@@ -108,6 +108,11 @@ public class PtToPtIntentVirtualNetworkProvider extends AbstractProvider
     }
 
     @Override
+    public boolean isTraversable(ConnectPoint src, ConnectPoint dst) {
+        return false;
+    }
+
+    @Override
     public TunnelId createTunnel(NetworkId networkId, ConnectPoint src, ConnectPoint dst) {
         checkNotNull(networkId, NETWORK_ID_NULL);
         checkNotNull(src, CONNECT_POINT_NULL);

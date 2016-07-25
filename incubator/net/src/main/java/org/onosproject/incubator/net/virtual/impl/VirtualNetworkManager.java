@@ -27,6 +27,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.incubator.net.tunnel.TunnelId;
+import org.onosproject.incubator.net.virtual.DefaultVirtualLink;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
@@ -76,7 +77,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Service
 public class VirtualNetworkManager
         extends AbstractListenerProviderRegistry<VirtualNetworkEvent, VirtualNetworkListener,
-                                                 VirtualNetworkProvider, VirtualNetworkProviderService>
+        VirtualNetworkProvider, VirtualNetworkProviderService>
         implements VirtualNetworkService, VirtualNetworkAdminService, VirtualNetworkProviderRegistry {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -197,7 +198,36 @@ public class VirtualNetworkManager
         checkNotNull(networkId, NETWORK_NULL);
         checkNotNull(src, LINK_POINT_NULL);
         checkNotNull(dst, LINK_POINT_NULL);
-        return store.addLink(networkId, src, dst, Link.State.ACTIVE, null);
+        ConnectPoint physicalSrc = mapVirtualToPhysicalPort(networkId, src);
+        checkNotNull(physicalSrc, LINK_POINT_NULL);
+        ConnectPoint physicalDst = mapVirtualToPhysicalPort(networkId, dst);
+        checkNotNull(physicalDst, LINK_POINT_NULL);
+
+        VirtualNetworkProvider provider = getProvider(DefaultVirtualLink.PID);
+        Link.State state = Link.State.INACTIVE;
+        if (provider != null) {
+            boolean traversable = provider.isTraversable(physicalSrc, physicalDst);
+            state = traversable ? Link.State.ACTIVE : Link.State.INACTIVE;
+        }
+        return store.addLink(networkId, src, dst, state, null);
+    }
+
+    /**
+     * Maps the virtual connect point to a physical connect point.
+     *
+     * @param networkId network identifier
+     * @param virtualCp virtual connect point
+     * @return physical connect point
+     */
+    private ConnectPoint mapVirtualToPhysicalPort(NetworkId networkId,
+                                                  ConnectPoint virtualCp) {
+        Set<VirtualPort> ports = store.getPorts(networkId, virtualCp.deviceId());
+        for (VirtualPort port : ports) {
+            if (port.number().equals(virtualCp.port())) {
+                return new ConnectPoint(port.realizedBy().element().id(), port.realizedBy().number());
+            }
+        }
+        return null;
     }
 
     /**
@@ -441,13 +471,70 @@ public class VirtualNetworkManager
         return new InternalVirtualNetworkProviderService(provider);
     }
 
-    // Service issued to registered virtual network providers so that they
-    // can interact with the core.
+    /**
+     * Service issued to registered virtual network providers so that they
+     * can interact with the core.
+     */
     private class InternalVirtualNetworkProviderService
             extends AbstractProviderService<VirtualNetworkProvider>
             implements VirtualNetworkProviderService {
+        /**
+         * Constructor.
+         * @param provider virtual network provider
+         */
         InternalVirtualNetworkProviderService(VirtualNetworkProvider provider) {
             super(provider);
+        }
+
+        @Override
+        public void topologyChanged(Set<Set<ConnectPoint>> clusters) {
+
+            Set<TenantId> tenantIds = getTenantIds();
+            tenantIds.forEach(tenantId -> {
+                Set<VirtualNetwork> virtualNetworks = getVirtualNetworks(tenantId);
+
+                virtualNetworks.forEach(virtualNetwork -> {
+                    Set<VirtualLink> virtualLinks = getVirtualLinks(virtualNetwork.id());
+
+                    virtualLinks.forEach(virtualLink -> {
+                        if (isVirtualLinkInCluster(virtualNetwork.id(), virtualLink, clusters)) {
+                            store.updateLink(virtualLink, virtualLink.tunnelId(), Link.State.ACTIVE);
+                        } else {
+                            store.updateLink(virtualLink, virtualLink.tunnelId(), Link.State.INACTIVE);
+                        }
+                    });
+                });
+            });
+        }
+
+        /**
+         * Determines if the virtual link (both source and destination connect point) is in a cluster.
+         *
+         * @param networkId   virtual network identifier
+         * @param virtualLink virtual link
+         * @param clusters    topology clusters
+         * @return true if the virtual link is in a cluster.
+         */
+        private boolean isVirtualLinkInCluster(NetworkId networkId, VirtualLink virtualLink,
+                                               Set<Set<ConnectPoint>> clusters) {
+            ConnectPoint srcPhysicalCp = mapVirtualToPhysicalPort(networkId, virtualLink.src());
+            ConnectPoint dstPhysicalCp = mapVirtualToPhysicalPort(networkId, virtualLink.dst());
+
+            final boolean[] foundSrc = {false};
+            final boolean[] foundDst = {false};
+            clusters.forEach(connectPoints -> {
+                connectPoints.forEach(connectPoint -> {
+                    if (connectPoint.equals(srcPhysicalCp)) {
+                        foundSrc[0] = true;
+                    } else if (connectPoint.equals(dstPhysicalCp)) {
+                        foundDst[0] = true;
+                    }
+                });
+                if (foundSrc[0] && foundDst[0]) {
+                    return;
+                }
+            });
+            return foundSrc[0] && foundDst[0];
         }
 
         @Override

@@ -31,6 +31,7 @@ import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.store.virtual.impl.DistributedVirtualNetworkStore;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultPort;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.DisjointPath;
 import org.onosproject.net.Link;
@@ -108,11 +109,29 @@ public class VirtualNetworkTopologyServiceTest extends TestDeviceParams {
                 manager.createVirtualDevice(virtualNetwork.id(), DID4);
 
         ConnectPoint cp1 = new ConnectPoint(virtualDevice1.id(), PortNumber.portNumber(1));
+        manager.createVirtualPort(virtualNetwork.id(), cp1.deviceId(), cp1.port(),
+                                  new DefaultPort(virtualDevice1, cp1.port(), true));
+
         ConnectPoint cp2 = new ConnectPoint(virtualDevice1.id(), PortNumber.portNumber(2));
+        manager.createVirtualPort(virtualNetwork.id(), cp2.deviceId(), cp2.port(),
+                                  new DefaultPort(virtualDevice1, cp2.port(), true));
+
         ConnectPoint cp3 = new ConnectPoint(virtualDevice2.id(), PortNumber.portNumber(3));
+        manager.createVirtualPort(virtualNetwork.id(), cp3.deviceId(), cp3.port(),
+                                  new DefaultPort(virtualDevice2, cp3.port(), true));
+
         ConnectPoint cp4 = new ConnectPoint(virtualDevice2.id(), PortNumber.portNumber(4));
+        manager.createVirtualPort(virtualNetwork.id(), cp4.deviceId(), cp4.port(),
+                                  new DefaultPort(virtualDevice2, cp4.port(), true));
+
         ConnectPoint cp5 = new ConnectPoint(virtualDevice3.id(), PortNumber.portNumber(5));
+        manager.createVirtualPort(virtualNetwork.id(), cp5.deviceId(), cp5.port(),
+                                  new DefaultPort(virtualDevice3, cp5.port(), true));
+
         ConnectPoint cp6 = new ConnectPoint(virtualDevice3.id(), PortNumber.portNumber(6));
+        manager.createVirtualPort(virtualNetwork.id(), cp6.deviceId(), cp6.port(),
+                                  new DefaultPort(virtualDevice3, cp6.port(), true));
+
         VirtualLink link1 = manager.createVirtualLink(virtualNetwork.id(), cp1, cp3);
         virtualNetworkManagerStore.updateLink(link1, link1.tunnelId(), Link.State.ACTIVE);
         VirtualLink link2 = manager.createVirtualLink(virtualNetwork.id(), cp3, cp1);
@@ -177,7 +196,12 @@ public class VirtualNetworkTopologyServiceTest extends TestDeviceParams {
 
         topology = topologyService.currentTopology();
         ConnectPoint src = new ConnectPoint(srcVirtualDevice.id(), PortNumber.portNumber(1));
+        manager.createVirtualPort(virtualNetwork.id(), src.deviceId(), src.port(),
+                                  new DefaultPort(srcVirtualDevice, src.port(), true));
+
         ConnectPoint dst = new ConnectPoint(dstVirtualDevice.id(), PortNumber.portNumber(2));
+        manager.createVirtualPort(virtualNetwork.id(), dst.deviceId(), dst.port(),
+                                  new DefaultPort(dstVirtualDevice, dst.port(), true));
         VirtualLink link1 = manager.createVirtualLink(virtualNetwork.id(), src, dst);
 
         // test the isLatest() method where a new link has been added to the current topology.
