@@ -36,10 +36,14 @@ public class DefaultDistributedWorkQueue<E> implements WorkQueue<E> {
                                              .collect(Collectors.toCollection(ArrayList::new)));
     }
 
+    private final Collection<Task<E>> decodeCollection(Collection<Task<byte[]>> tasks) {
+        return Collections2.transform(tasks, task -> task.map(serializer::decode));
+    }
+
     @Override
     public CompletableFuture<Collection<Task<E>>> take(int maxTasks) {
         return backingQueue.take(maxTasks)
-                           .thenApply(tasks -> Collections2.transform(tasks, task -> task.<E>map(serializer::decode)));
+                           .thenApply(this::decodeCollection);
     }
 
     @Override
