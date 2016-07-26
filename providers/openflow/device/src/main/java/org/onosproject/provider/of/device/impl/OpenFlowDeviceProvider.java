@@ -360,6 +360,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             DeviceId did = deviceId(uri(dpid));
             OpenFlowSwitch sw = controller.getSwitch(dpid);
             if (sw == null) {
+                LOG.error("Switch {} is not found", dpid);
                 return;
             }
 
@@ -415,6 +416,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             DeviceId did = deviceId(uri(dpid));
             OpenFlowSwitch sw = controller.getSwitch(dpid);
             if (sw == null) {
+                LOG.error("Switch {} is not found", dpid);
                 return;
             }
             final List<PortDescription> ports = buildPortDescriptions(sw);
@@ -835,6 +837,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                             }
                         } else if (((OFStatsReply) msg).getStatsType() == OFStatsType.EXPERIMENTER) {
                             OpenFlowSwitch sw = controller.getSwitch(dpid);
+                            if (sw == null) {
+                                LOG.error("Switch {} is not found", dpid);
+                                break;
+                            }
                             if (sw instanceof OpenFlowOpticalSwitch) {
                                 // Optical switch uses experimenter stats message to update power
                                 List<PortDescription> portDescs =
