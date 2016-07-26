@@ -34,11 +34,6 @@ public class TestStorageService extends StorageServiceAdapter {
     }
 
     @Override
-    public <E> DistributedQueueBuilder<E> queueBuilder() {
-        throw new UnsupportedOperationException("queueBuilder");
-    }
-
-    @Override
     public AtomicCounterBuilder atomicCounterBuilder() {
         return TestAtomicCounter.builder();
     }

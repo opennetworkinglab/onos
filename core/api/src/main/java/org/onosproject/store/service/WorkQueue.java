@@ -39,7 +39,12 @@ import com.google.common.collect.ImmutableList;
  *
  * @param <E> task payload type.
  */
-public interface WorkQueue<E> {
+public interface WorkQueue<E> extends DistributedPrimitive {
+
+    @Override
+    default DistributedPrimitive.Type primitiveType() {
+        return DistributedPrimitive.Type.WORK_QUEUE;
+    }
 
     /**
      * Adds a collection of tasks to the work queue.

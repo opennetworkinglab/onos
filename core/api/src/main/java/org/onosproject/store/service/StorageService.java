@@ -52,14 +52,6 @@ public interface StorageService {
     <E> DistributedSetBuilder<E> setBuilder();
 
     /**
-     * Creates a new DistributedQueueBuilder.
-     *
-     * @param <E> queue entry type
-     * @return builder for an distributed queue
-     */
-    <E> DistributedQueueBuilder<E> queueBuilder();
-
-    /**
      * Creates a new AtomicCounterBuilder.
      *
      * @return atomic counter builder

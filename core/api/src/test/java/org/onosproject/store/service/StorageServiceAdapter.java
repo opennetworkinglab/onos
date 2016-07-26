@@ -35,11 +35,6 @@ public class StorageServiceAdapter implements StorageService {
     }
 
     @Override
-    public <E> DistributedQueueBuilder<E> queueBuilder() {
-        return null;
-    }
-
-    @Override
     public AtomicCounterBuilder atomicCounterBuilder() {
         return null;
     }

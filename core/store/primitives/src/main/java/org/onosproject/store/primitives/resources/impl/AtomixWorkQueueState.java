@@ -16,6 +16,14 @@
 package org.onosproject.store.primitives.resources.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import io.atomix.copycat.server.Commit;
+import io.atomix.copycat.server.Snapshottable;
+import io.atomix.copycat.server.StateMachineExecutor;
+import io.atomix.copycat.server.session.ServerSession;
+import io.atomix.copycat.server.session.SessionListener;
+import io.atomix.copycat.server.storage.snapshot.SnapshotReader;
+import io.atomix.copycat.server.storage.snapshot.SnapshotWriter;
+import io.atomix.resource.ResourceStateMachine;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,6 +39,7 @@ import java.util.stream.IntStream;
 
 import org.onlab.util.CountDownCompleter;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueCommands.Add;
+import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueCommands.Clear;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueCommands.Complete;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueCommands.Register;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueCommands.Stats;
@@ -46,15 +55,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.AtomicLongMap;
-
-import io.atomix.copycat.server.Commit;
-import io.atomix.copycat.server.Snapshottable;
-import io.atomix.copycat.server.StateMachineExecutor;
-import io.atomix.copycat.server.session.ServerSession;
-import io.atomix.copycat.server.session.SessionListener;
-import io.atomix.copycat.server.storage.snapshot.SnapshotReader;
-import io.atomix.copycat.server.storage.snapshot.SnapshotWriter;
-import io.atomix.resource.ResourceStateMachine;
 
 /**
  * State machine for {@link AtomixWorkQueue} resource.
@@ -82,6 +82,7 @@ public class AtomixWorkQueueState  extends ResourceStateMachine implements Sessi
         executor.register(Add.class, (Consumer<Commit<Add>>) this::add);
         executor.register(Take.class, this::take);
         executor.register(Complete.class, (Consumer<Commit<Complete>>) this::complete);
+        executor.register(Clear.class, (Consumer<Commit<Clear>>) this::clear);
     }
 
     protected WorkQueueStats stats(Commit<? extends Stats> commit) {
@@ -94,6 +95,17 @@ public class AtomixWorkQueueState  extends ResourceStateMachine implements Sessi
         } finally {
             commit.close();
         }
+    }
+
+    protected void clear(Commit<? extends Clear> commit) {
+        unassignedTasks.forEach(TaskHolder::complete);
+        unassignedTasks.clear();
+        assignments.values().forEach(TaskAssignment::markComplete);
+        assignments.clear();
+        registeredWorkers.values().forEach(Commit::close);
+        registeredWorkers.clear();
+        activeTasksPerSession.clear();
+        totalCompleted.set(0);
     }
 
     protected void register(Commit<? extends Register> commit) {
@@ -172,7 +184,7 @@ public class AtomixWorkQueueState  extends ResourceStateMachine implements Sessi
         try {
             commit.operation().taskIds().forEach(taskId -> {
                 TaskAssignment assignment = assignments.get(taskId);
-                if (assignment != null) {
+                if (assignment != null && assignment.sessionId() == sessionId) {
                     assignments.remove(taskId).markComplete();
                     // bookkeeping
                     totalCompleted.incrementAndGet();

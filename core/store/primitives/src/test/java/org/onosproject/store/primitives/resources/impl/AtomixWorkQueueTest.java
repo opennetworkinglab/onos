@@ -15,6 +15,13 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import io.atomix.Atomix;
+import io.atomix.AtomixClient;
+import io.atomix.resource.ResourceType;
+
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.UUID;
@@ -22,10 +29,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import io.atomix.Atomix;
-import io.atomix.AtomixClient;
-import io.atomix.resource.ResourceType;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -35,10 +38,6 @@ import org.onosproject.store.service.Task;
 import org.onosproject.store.service.WorkQueueStats;
 
 import com.google.common.util.concurrent.Uninterruptibles;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for {@link AtomixWorkQueue}.
@@ -185,5 +184,55 @@ public class AtomixWorkQueueTest extends AtomixTestBase {
         queue1.registerTaskProcessor(s -> latch2.countDown(), 2, executor);
 
         Uninterruptibles.awaitUninterruptibly(latch2, 500, TimeUnit.MILLISECONDS);
+    }
+
+    @Test
+    public void testDestroy() {
+        String queueName = UUID.randomUUID().toString();
+        Atomix atomix1 = createAtomixClient();
+        AtomixWorkQueue queue1 = atomix1.getResource(queueName, AtomixWorkQueue.class).join();
+        byte[] item = DEFAULT_PAYLOAD;
+        queue1.addOne(item).join();
+
+        Atomix atomix2 = createAtomixClient();
+        AtomixWorkQueue queue2 = atomix2.getResource(queueName, AtomixWorkQueue.class).join();
+        byte[] task2 = DEFAULT_PAYLOAD;
+        queue2.addOne(task2).join();
+
+        WorkQueueStats stats = queue1.stats().join();
+        assertEquals(stats.totalPending(), 2);
+        assertEquals(stats.totalInProgress(), 0);
+        assertEquals(stats.totalCompleted(), 0);
+
+        queue2.destroy().join();
+
+        stats = queue1.stats().join();
+        assertEquals(stats.totalPending(), 0);
+        assertEquals(stats.totalInProgress(), 0);
+        assertEquals(stats.totalCompleted(), 0);
+    }
+
+    @Test
+    public void testCompleteAttemptWithIncorrectSession() {
+        String queueName = UUID.randomUUID().toString();
+        Atomix atomix1 = createAtomixClient();
+        AtomixWorkQueue queue1 = atomix1.getResource(queueName, AtomixWorkQueue.class).join();
+        byte[] item = DEFAULT_PAYLOAD;
+        queue1.addOne(item).join();
+
+        Task<byte[]> task = queue1.take().join();
+        String taskId = task.taskId();
+
+        // Create another client and get a handle to the same queue.
+        Atomix atomix2 = createAtomixClient();
+        AtomixWorkQueue queue2 = atomix2.getResource(queueName, AtomixWorkQueue.class).join();
+
+        // Attempt completing the task with new client and verify task is not completed
+        queue2.complete(taskId).join();
+
+        WorkQueueStats stats = queue1.stats().join();
+        assertEquals(stats.totalPending(), 0);
+        assertEquals(stats.totalInProgress(), 1);
+        assertEquals(stats.totalCompleted(), 0);
     }
 }

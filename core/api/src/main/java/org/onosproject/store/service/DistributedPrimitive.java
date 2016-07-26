@@ -62,9 +62,9 @@ public interface DistributedPrimitive {
         VALUE,
 
         /**
-         * Distributed queue.
+         * Distributed work queue.
          */
-        QUEUE,
+        WORK_QUEUE,
 
         /**
          * Leader elector.

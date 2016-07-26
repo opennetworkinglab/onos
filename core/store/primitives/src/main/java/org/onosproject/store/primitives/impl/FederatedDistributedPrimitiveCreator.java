@@ -29,9 +29,8 @@ import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncLeaderElector;
-import org.onosproject.store.service.DistributedQueue;
-import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.WorkQueue;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
@@ -81,11 +80,6 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
     @Override
     public <V> AsyncAtomicValue<V> newAsyncAtomicValue(String name, Serializer serializer) {
         return getCreator(name).newAsyncAtomicValue(name, serializer);
-    }
-
-    @Override
-    public <E> DistributedQueue<E> newDistributedQueue(String name, Serializer serializer) {
-        return getCreator(name).newDistributedQueue(name, serializer);
     }
 
     @Override

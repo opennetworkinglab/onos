@@ -49,10 +49,9 @@ import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.DistributedPrimitive.Status;
-import org.onosproject.store.service.DistributedQueue;
-import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.PartitionClientInfo;
 import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.WorkQueue;
 import org.slf4j.Logger;
 
 import com.google.common.base.Supplier;
@@ -157,11 +156,6 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
     @Override
     public <V> AsyncAtomicValue<V> newAsyncAtomicValue(String name, Serializer serializer) {
        return new DefaultAsyncAtomicValue<>(name, serializer, onosAtomicValuesMap.get());
-    }
-
-    @Override
-    public <E> DistributedQueue<E> newDistributedQueue(String name, Serializer serializer) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -30,6 +30,11 @@ public class DefaultDistributedWorkQueue<E> implements WorkQueue<E> {
     }
 
     @Override
+    public String name() {
+        return backingQueue.name();
+    }
+
+    @Override
     public CompletableFuture<Void> addMultiple(Collection<E> items) {
         return backingQueue.addMultiple(items.stream()
                                              .map(serializer::encode)
