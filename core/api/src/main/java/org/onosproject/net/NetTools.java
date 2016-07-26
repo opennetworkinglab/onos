@@ -17,7 +17,10 @@ package org.onosproject.net;
 
 /**
  * Networking domain tools.
+ *
+ * @deprecated in Hummingbird release
  */
+@Deprecated
 public final class NetTools {
 
     private NetTools() {
@@ -30,7 +33,9 @@ public final class NetTools {
      *
      * @param dpid the DPID string to convert
      * @return the URI string for this device
+     * @deprecated in Hummingbird release
      */
+    @Deprecated
     public static String dpidToUri(String dpid) {
         return "of:" + dpid.replace(":", "");
     }
