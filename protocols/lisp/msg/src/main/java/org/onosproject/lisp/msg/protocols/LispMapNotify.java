@@ -89,7 +89,7 @@ public interface LispMapNotify extends LispMessage {
      *
      * @return a collection of records
      */
-    List<LispRecord> getLispRecords();
+    List<LispMapRecord> getLispRecords();
 
     /**
      * A builder of LISP map notify message.
@@ -134,6 +134,6 @@ public interface LispMapNotify extends LispMessage {
          * @param record record
          * @return NotifyBuilder object
          */
-        NotifyBuilder addRecord(LispRecord record);
+        NotifyBuilder addRecord(LispMapRecord record);
     }
 }

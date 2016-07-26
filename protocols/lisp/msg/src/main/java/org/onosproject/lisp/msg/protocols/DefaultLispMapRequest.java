@@ -85,7 +85,7 @@ public class DefaultLispMapRequest implements LispMapRequest {
     }
 
     @Override
-    public List<EidRecord> getEids() {
+    public List<LispEidRecord> getEids() {
         return null;
     }
 
@@ -142,7 +142,7 @@ public class DefaultLispMapRequest implements LispMapRequest {
         }
 
         @Override
-        public RequestBuilder addEidRecord(EidRecord record) {
+        public RequestBuilder addEidRecord(LispEidRecord record) {
             return null;
         }
     }

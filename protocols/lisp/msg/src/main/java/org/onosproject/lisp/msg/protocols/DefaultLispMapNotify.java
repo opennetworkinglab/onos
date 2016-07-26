@@ -60,7 +60,7 @@ public class DefaultLispMapNotify implements LispMapNotify {
     }
 
     @Override
-    public List<LispRecord> getLispRecords() {
+    public List<LispMapRecord> getLispRecords() {
         return null;
     }
 
@@ -97,7 +97,7 @@ public class DefaultLispMapNotify implements LispMapNotify {
         }
 
         @Override
-        public NotifyBuilder addRecord(LispRecord record) {
+        public NotifyBuilder addRecord(LispMapRecord record) {
             return null;
         }
     }

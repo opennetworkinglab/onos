@@ -69,7 +69,7 @@ public class DefaultLispMapRegister implements LispMapRegister {
     }
 
     @Override
-    public List<LispRecord> getLispRecords() {
+    public List<LispMapRecord> getLispRecords() {
         return null;
     }
 
@@ -116,7 +116,7 @@ public class DefaultLispMapRegister implements LispMapRegister {
         }
 
         @Override
-        public RegisterBuilder addRecord(LispRecord record) {
+        public RegisterBuilder addRecord(LispMapRecord record) {
             return null;
         }
     }

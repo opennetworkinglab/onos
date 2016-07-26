@@ -122,7 +122,7 @@ public interface LispMapRequest extends LispMessage {
      *
      * @return a collection of EID records
      */
-    List<EidRecord> getEids();
+    List<LispEidRecord> getEids();
 
     /**
      * A builder of LISP map request message.
@@ -199,6 +199,6 @@ public interface LispMapRequest extends LispMessage {
          * @param record EID record
          * @return RequestBuilder object
          */
-        RequestBuilder addEidRecord(EidRecord record);
+        RequestBuilder addEidRecord(LispEidRecord record);
     }
 }
