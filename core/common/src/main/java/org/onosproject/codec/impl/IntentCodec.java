@@ -19,12 +19,12 @@ import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.NetworkResource;
-import org.onosproject.net.intent.HostToHostIntent;
+import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
-import org.onosproject.net.intent.PointToPointIntent;
-
+import org.onosproject.net.intent.HostToHostIntent;
+import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -83,6 +83,8 @@ public final class IntentCodec extends JsonCodec<Intent> {
             return context.codec(PointToPointIntent.class).decode(json, context);
         } else if (type.equals(HostToHostIntent.class.getSimpleName())) {
             return context.codec(HostToHostIntent.class).decode(json, context);
+        } else if (type.equals(SinglePointToMultiPointIntent.class.getSimpleName())) {
+            return context.codec(SinglePointToMultiPointIntent.class).decode(json, context);
         }
 
         throw new IllegalArgumentException("Intent type "

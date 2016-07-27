@@ -18,14 +18,15 @@ package org.onosproject.rest.resources;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.intent.SinglePointToMultiPointIntent;
+import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
-import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 
@@ -108,6 +109,8 @@ public class IntentsWebResource extends AbstractWebResource {
             root = codec(HostToHostIntent.class).encode((HostToHostIntent) intent, this);
         } else if (intent instanceof PointToPointIntent) {
             root = codec(PointToPointIntent.class).encode((PointToPointIntent) intent, this);
+        } else if (intent instanceof SinglePointToMultiPointIntent) {
+            root = codec(SinglePointToMultiPointIntent.class).encode((SinglePointToMultiPointIntent) intent, this);
         } else {
             root = codec(Intent.class).encode(intent, this);
         }
