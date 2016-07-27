@@ -35,10 +35,8 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
-import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.flow.instructions.Instruction;
@@ -101,56 +99,37 @@ public class HostMonitorTest {
 
     @Test
     public void testMonitorIpv4HostExists() throws Exception {
-        ProviderId id = new ProviderId("fake://", "id");
-
-        Host host = createMock(Host.class);
-        expect(host.providerId()).andReturn(id);
-        replay(host);
-
-        HostManager hostManager = createMock(HostManager.class);
-        expect(hostManager.getHostsByIp(TARGET_IPV4_ADDR))
-                .andReturn(Collections.singleton(host));
-        replay(hostManager);
-
-        HostProvider hostProvider = createMock(HostProvider.class);
-        expect(hostProvider.id()).andReturn(id).anyTimes();
-        hostProvider.triggerProbe(host);
-        expectLastCall().once();
-        replay(hostProvider);
-
-        hostMonitor = new HostMonitor(null, hostManager, null, edgePortService);
-
-        hostMonitor.registerHostProvider(hostProvider);
-        hostMonitor.addMonitoringFor(TARGET_IPV4_ADDR);
-
-        hostMonitor.run(null);
-
-        verify(hostProvider);
+        testMonitorHostExists(TARGET_IPV4_ADDR);
     }
 
     @Test
     public void testMonitorIpv6HostExists() throws Exception {
+        testMonitorHostExists(TARGET_IPV6_ADDR);
+    }
+
+    private void testMonitorHostExists(IpAddress hostIp) throws Exception {
         ProviderId id = new ProviderId("fake://", "id");
 
         Host host = createMock(Host.class);
-        expect(host.providerId()).andReturn(id);
+        expect(host.providerId()).andReturn(id).anyTimes();
         replay(host);
 
         HostManager hostManager = createMock(HostManager.class);
-        expect(hostManager.getHostsByIp(TARGET_IPV6_ADDR))
-                .andReturn(Collections.singleton(host));
+        expect(hostManager.getHostsByIp(hostIp))
+                .andReturn(Collections.singleton(host))
+                .anyTimes();
         replay(hostManager);
 
         HostProvider hostProvider = createMock(HostProvider.class);
         expect(hostProvider.id()).andReturn(id).anyTimes();
         hostProvider.triggerProbe(host);
-        expectLastCall().once();
+        expectLastCall().times(2);
         replay(hostProvider);
 
         hostMonitor = new HostMonitor(null, hostManager, null, edgePortService);
 
         hostMonitor.registerHostProvider(hostProvider);
-        hostMonitor.addMonitoringFor(TARGET_IPV6_ADDR);
+        hostMonitor.addMonitoringFor(hostIp);
 
         hostMonitor.run(null);
 
@@ -202,7 +181,7 @@ public class HostMonitorTest {
 
         // Check that a packet was sent to our PacketService and that it has
         // the properties we expect
-        assertEquals(1, packetService.packets.size());
+        assertEquals(2, packetService.packets.size());
         OutboundPacket packet = packetService.packets.get(0);
 
         // Check the output port is correct
@@ -271,7 +250,7 @@ public class HostMonitorTest {
 
         // Check that a packet was sent to our PacketService and that it has
         // the properties we expect
-        assertEquals(1, packetService.packets.size());
+        assertEquals(2, packetService.packets.size());
         OutboundPacket packet = packetService.packets.get(0);
 
         // Check the output port is correct
@@ -342,7 +321,7 @@ public class HostMonitorTest {
 
         // Check that a packet was sent to our PacketService and that it has
         // the properties we expect
-        assertEquals(1, packetService.packets.size());
+        assertEquals(2, packetService.packets.size());
         OutboundPacket packet = packetService.packets.get(0);
 
         // Check the output port is correct
@@ -412,7 +391,7 @@ public class HostMonitorTest {
 
         // Check that a packet was sent to our PacketService and that it has
         // the properties we expect
-        assertEquals(1, packetService.packets.size());
+        assertEquals(2, packetService.packets.size());
         OutboundPacket packet = packetService.packets.get(0);
 
         // Check the output port is correct
@@ -460,23 +439,8 @@ public class HostMonitorTest {
         }
 
         @Override
-        public int getDeviceCount() {
-            return 0;
-        }
-
-        @Override
         public Iterable<Device> getDevices() {
             return devices;
-        }
-
-        @Override
-        public Device getDevice(DeviceId deviceId) {
-            return null;
-        }
-
-        @Override
-        public MastershipRole getRole(DeviceId deviceId) {
-            return null;
         }
 
         @Override
@@ -486,24 +450,6 @@ public class HostMonitorTest {
                 ports.add(p);
             }
             return ports;
-        }
-
-        @Override
-        public Port getPort(DeviceId deviceId, PortNumber portNumber) {
-            return null;
-        }
-
-        @Override
-        public boolean isAvailable(DeviceId deviceId) {
-            return false;
-        }
-
-        @Override
-        public void addListener(DeviceListener listener) {
-        }
-
-        @Override
-        public void removeListener(DeviceListener listener) {
         }
     }
 }
