@@ -280,6 +280,8 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         Collection<OFGroupDescStatsEntry> groupDescStats;
         Collection<OFPortStatsEntry> portStats;
 
+        OpenFlowSwitch sw = this.getSwitch(dpid);
+
         switch (msg.getType()) {
         case PORT_STATUS:
             for (OpenFlowSwitchListener l : ofSwitchListener) {
@@ -292,9 +294,12 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             }
             break;
         case PACKET_IN:
+            if (sw == null) {
+                log.error("Switch {} is not found", dpid);
+                break;
+            }
             OpenFlowPacketContext pktCtx = DefaultOpenFlowPacketContext
-            .packetContextFromPacketIn(this.getSwitch(dpid),
-                    (OFPacketIn) msg);
+            .packetContextFromPacketIn(sw, (OFPacketIn) msg);
             for (PacketListener p : ofPacketListener.values()) {
                 p.handlePacket(pktCtx);
             }
@@ -367,7 +372,11 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                     if (reply instanceof OFCalientFlowStatsReply) {
                         // Convert Calient flow statistics to regular flow stats
                         // TODO: parse remaining fields such as power levels etc. when we have proper monitoring API
-                        OFFlowStatsReply.Builder fsr = getSwitch(dpid).factory().buildFlowStatsReply();
+                        if (sw == null) {
+                            log.error("Switch {} is not found", dpid);
+                            break;
+                        }
+                        OFFlowStatsReply.Builder fsr = sw.factory().buildFlowStatsReply();
                         List<OFFlowStatsEntry> entries = new LinkedList<>();
                         for (OFCalientFlowStatsEntry entry : ((OFCalientFlowStatsReply) msg).getEntries()) {
 
@@ -382,7 +391,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                                     .getFactory(msg.getVersion())
                                     .instructions()
                                     .applyActions(Collections.singletonList(action));
-                            OFFlowStatsEntry fs = getSwitch(dpid).factory().buildFlowStatsEntry()
+                            OFFlowStatsEntry fs = sw.factory().buildFlowStatsEntry()
                                     .setMatch(entry.getMatch())
                                     .setTableId(entry.getTableId())
                                     .setDurationSec(entry.getDurationSec())
@@ -425,12 +434,16 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             }
             break;
         case EXPERIMENTER:
+            if (sw == null) {
+                log.error("Switch {} is not found", dpid);
+                break;
+            }
             long experimenter = ((OFExperimenter) msg).getExperimenter();
             if (experimenter == 0x748771) {
                 // LINC-OE port stats
                 OFCircuitPortStatus circuitPortStatus = (OFCircuitPortStatus) msg;
-                OFPortStatus.Builder portStatus = this.getSwitch(dpid).factory().buildPortStatus();
-                OFPortDesc.Builder portDesc = this.getSwitch(dpid).factory().buildPortDesc();
+                OFPortStatus.Builder portStatus = sw.factory().buildPortStatus();
+                OFPortDesc.Builder portDesc = sw.factory().buildPortDesc();
                 portDesc.setPortNo(circuitPortStatus.getPortNo())
                         .setHwAddr(circuitPortStatus.getHwAddr())
                         .setName(circuitPortStatus.getName())
