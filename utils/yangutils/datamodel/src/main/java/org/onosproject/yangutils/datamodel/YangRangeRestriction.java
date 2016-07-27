@@ -165,7 +165,7 @@ public class YangRangeRestriction<T extends YangBuiltInDataTypeInfo<T>>
 
         T curMaxvalue = getMaxRestrictedvalue();
 
-        if (newInterval.getStartValue().compareTo(curMaxvalue) != 1) {
+        if (newInterval.getStartValue().compareTo(curMaxvalue) < 1) {
             throw new DataModelException(
                     "New added range interval is lesser than the old interval(s)");
         }

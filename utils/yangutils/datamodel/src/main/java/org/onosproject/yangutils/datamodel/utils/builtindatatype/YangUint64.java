@@ -18,7 +18,6 @@ package org.onosproject.yangutils.datamodel.utils.builtindatatype;
 
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.regex.Pattern;
 
 /**
  * Handles the YANG's Uint16 data type processing.
@@ -38,11 +37,6 @@ public class YangUint64 implements YangBuiltInDataTypeInfo<YangUint64>, Serializ
      * YANG's max keyword.
      */
     private static final String MAX_KEYWORD = "max";
-
-    /**
-     * YANG's Integer value pattern.
-     */
-    private static final Pattern NON_NEGATIVE_INTEGER_PATTERN = Pattern.compile("[0-9]+");
 
     /**
      * Valid minimum value of YANG's Uint64.
@@ -71,11 +65,13 @@ public class YangUint64 implements YangBuiltInDataTypeInfo<YangUint64>, Serializ
             value = MIN_VALUE;
         } else if (valueInString.matches(MAX_KEYWORD)) {
             value = MAX_VALUE;
-        } else if (NON_NEGATIVE_INTEGER_PATTERN.matcher(valueInString).matches()) {
-            value = new BigInteger(valueInString);
         } else {
-            throw new DataTypeException("YANG file error : Input value \"" + valueInString + "\" is not a valid " +
-                    "uint64.");
+            try {
+                value = new BigInteger(valueInString);
+            } catch (Exception e) {
+                throw new DataTypeException("YANG file error : Input value \"" + valueInString + "\" is not a valid " +
+                                                    "uint64.");
+            }
         }
 
         if (value.compareTo(MIN_VALUE) < 0) {

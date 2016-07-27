@@ -289,7 +289,10 @@ public class YangType<T>
                 if (getDataTypeExtendedInfo() == null) {
                     getDataObjectFromString(value, getDataType());
                 } else {
-                    ((YangRangeRestriction) getDataTypeExtendedInfo()).isValidValueString(value);
+                    if (!((YangRangeRestriction) getDataTypeExtendedInfo()).isValidValueString(value)) {
+                        throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
+                                                            getDataType());
+                    }
                 }
                 break;
             }
@@ -308,14 +311,14 @@ public class YangType<T>
                         && ((YangStringRestriction) getDataTypeExtendedInfo())
                         .isValidStringOnPatternRestriction(value))) {
                     throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
-                                                        "string");
+                                                        getDataType());
                 }
                 break;
             }
             case BOOLEAN:
                 if (!(value.equals(DataModelUtils.TRUE) || value.equals(DataModelUtils.FALSE))) {
                     throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
-                                                        "boolean");
+                                                        getDataType());
                 }
                 break;
             case ENUMERATION: {
@@ -331,7 +334,7 @@ public class YangType<T>
 
                 if (!isValidated) {
                     throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
-                                                        "union");
+                                                        getDataType());
                 }
                 break;
             }
@@ -339,14 +342,14 @@ public class YangType<T>
                 YangBits bits = (YangBits) getDataTypeExtendedInfo();
                 if (bits.fromString(value) == null) {
                     throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
-                                                        "bits");
+                                                        getDataType());
                 }
                 break;
             }
             case BINARY: {
                 if (!isValidBinary(value, (YangRangeRestriction) getDataTypeExtendedInfo())) {
                     throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
-                                                        "binary");
+                                                        getDataType());
                 }
                 break;
             }
@@ -360,8 +363,11 @@ public class YangType<T>
                 break;
             }
             case EMPTY: {
-                throw new DataTypeException("YANG file error : Input value \"" + value
-                                                    + "\" is not a allowed for a data type " + "empty");
+                if (value.length() > 0) {
+                    throw new DataTypeException("YANG file error : Input value \"" + value
+                                                        + "\" is not allowed for a data type " + getDataType());
+                }
+                break;
             }
             case UNION: {
                 ListIterator<YangType<?>> listIterator = ((YangUnion) getDataTypeExtendedInfo()).getTypeList()
@@ -380,7 +386,7 @@ public class YangType<T>
 
                 if (!isValidated) {
                     throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
-                                                        "union");
+                                                        getDataType());
                 }
                 break;
             }
@@ -399,7 +405,7 @@ public class YangType<T>
                         if (!((YangRangeRestriction) ((YangDerivedInfo) getDataTypeExtendedInfo())
                                 .getResolvedExtendedInfo()).isValidValueString(value)) {
                             throw new DataTypeException("YANG file error : Input value \"" + value
-                                                                + "\" is not a valid " + dataType.toString());
+                                                                + "\" is not a valid " + dataType);
                         }
                     }
                 } else if (dataType == YangDataTypes.STRING) {
@@ -410,20 +416,20 @@ public class YangType<T>
                         if (!(stringRestriction.isValidStringOnLengthRestriction(value) &&
                                 stringRestriction.isValidStringOnPatternRestriction(value))) {
                             throw new DataTypeException("YANG file error : Input value \"" + value
-                                                                + "\" is not a valid " + dataType.toString());
+                                                                + "\" is not a valid " + dataType);
                         }
                     }
                 } else if (dataType == YangDataTypes.BITS) {
                     YangBits bits = (YangBits) getDataTypeExtendedInfo();
                     if (bits.fromString(value) == null) {
                         throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
-                                                            "bits");
+                                                            dataType);
                     }
                 } else if (dataType == YangDataTypes.BINARY) {
                     if (!isValidBinary(value, (YangRangeRestriction) ((YangDerivedInfo)
                             getDataTypeExtendedInfo()).getResolvedExtendedInfo())) {
                         throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
-                                                            dataType.toString());
+                                                            dataType);
                     }
                 } else if (dataType == YangDataTypes.DECIMAL64) {
                     YangDerivedInfo derivedInfo = (YangDerivedInfo) getDataTypeExtendedInfo();
@@ -438,8 +444,8 @@ public class YangType<T>
                 break;
             }
             default: {
-                throw new DataTypeException("YANG file error : Input value \"" + value + "\" is for unsupported " +
-                                                    "data type.");
+                throw new DataTypeException("YANG file error : Input value \"" + value + "\" received for " +
+                                                    "unsupported data type " + getDataType());
             }
         }
     }

@@ -180,6 +180,17 @@ public class DefaultListenerTest {
     }
 
     /**
+     * Validates default invalid value in typedef.
+     */
+    @Test
+    public void processDefaultInvalidValueInTypedef() throws IOException, ParserException {
+        thrown.expect(DataTypeException.class);
+        thrown.expectMessage("YANG file error : Input value \"0\" is not a valid INT32");
+
+        manager.getDataModel("src/test/resources/default/DefaultInvalidValueWithRangeInTypedef.yang");
+    }
+
+    /**
      * Validates default value decimal64 in leaf.
      */
     @Test
@@ -250,7 +261,7 @@ public class DefaultListenerTest {
     @Test
     public void processDefaultInvalidValueStringInLeaf() throws IOException, ParserException {
         thrown.expect(DataTypeException.class);
-        thrown.expectMessage("YANG file error : Input value \"2bB2bB\" is not a valid string");
+        thrown.expectMessage("YANG file error : Input value \"2bB2bB\" is not a valid STRING");
 
         manager.getDataModel("src/test/resources/default/DefaultInvalidValueStringInLeaf.yang");
     }
@@ -288,7 +299,7 @@ public class DefaultListenerTest {
     @Test
     public void processDefaultInvalidValueBooleanInLeaf() throws IOException, ParserException {
         thrown.expect(DataTypeException.class);
-        thrown.expectMessage("YANG file error : Input value \"yes\" is not a valid boolean");
+        thrown.expectMessage("YANG file error : Input value \"yes\" is not a valid BOOLEAN");
 
         manager.getDataModel("src/test/resources/default/DefaultInvalidValueBooleanInLeaf.yang");
     }
@@ -326,7 +337,7 @@ public class DefaultListenerTest {
     @Test
     public void processDefaultInvalidValueEnumberationInLeaf() throws IOException, ParserException {
         thrown.expect(DataTypeException.class);
-        thrown.expectMessage("YANG file error : Input value \"xyz\" is not a valid union");
+        thrown.expectMessage("YANG file error : Input value \"xyz\" is not a valid ENUMERATION");
 
         manager.getDataModel("src/test/resources/default/DefaultInvalidValueEnumerationInLeaf.yang");
     }
@@ -364,7 +375,7 @@ public class DefaultListenerTest {
     @Test
     public void processDefaultInvalidValueBitsInLeaf() throws IOException, ParserException {
         thrown.expect(DataTypeException.class);
-        thrown.expectMessage("YANG file error : Input value \"xyz\" is not a valid bits");
+        thrown.expectMessage("YANG file error : Input value \"xyz\" is not a valid BITS");
 
         manager.getDataModel("src/test/resources/default/DefaultInvalidValueBitsInLeaf.yang");
     }
@@ -402,7 +413,7 @@ public class DefaultListenerTest {
     @Test
     public void processDefaultInvlaidValueBinaryInLeaf() throws IOException, ParserException {
         thrown.expect(DataTypeException.class);
-        thrown.expectMessage("YANG file error : Input value \"000\" is not a valid binary");
+        thrown.expectMessage("YANG file error : Input value \"000\" is not a valid BINARY");
 
         manager.getDataModel("src/test/resources/default/DefaultInvalidValueBinaryInLeaf.yang");
     }
@@ -413,7 +424,7 @@ public class DefaultListenerTest {
     @Test
     public void processDefaultValueEmptyInLeaf() throws IOException, ParserException {
         thrown.expect(DataTypeException.class);
-        thrown.expectMessage("YANG file error : Input value \"something\" is not a allowed for a data type empty");
+        thrown.expectMessage("YANG file error : Input value \"something\" is not allowed for a data type EMPTY");
 
         manager.getDataModel("src/test/resources/default/DefaultValueEmptyInLeaf.yang");
     }
@@ -451,7 +462,7 @@ public class DefaultListenerTest {
     @Test
     public void processDefaultInvalidValueUnionInLeaf() throws IOException, ParserException {
         thrown.expect(DataTypeException.class);
-        thrown.expectMessage("YANG file error : Input value \"xyz\" is not a valid union");
+        thrown.expectMessage("YANG file error : Input value \"xyz\" is not a valid UNION");
 
         manager.getDataModel("src/test/resources/default/DefaultInvalidValueUnionInLeaf.yang");
     }

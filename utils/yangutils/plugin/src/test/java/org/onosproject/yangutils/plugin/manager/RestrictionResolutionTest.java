@@ -19,6 +19,7 @@ package org.onosproject.yangutils.plugin.manager;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ListIterator;
+
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangLeaf;
@@ -28,8 +29,11 @@ import org.onosproject.yangutils.datamodel.YangPatternRestriction;
 import org.onosproject.yangutils.datamodel.YangRangeInterval;
 import org.onosproject.yangutils.datamodel.YangRangeRestriction;
 import org.onosproject.yangutils.datamodel.YangStringRestriction;
+import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangInt16;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangInt32;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangUint64;
 import org.onosproject.yangutils.linker.exceptions.LinkerException;
@@ -289,6 +293,79 @@ public final class RestrictionResolutionTest {
 
         assertThat(((YangInt32) rangeInterval2.getStartValue()).getValue(), is(10));
         assertThat(((YangInt32) rangeInterval2.getEndValue()).getValue(), is(20));
+    }
+
+    /**
+     * Checks range restriction in referred typedef.
+     */
+    @Test
+    public void processRangeRestrictionInRefTypedef()
+            throws IOException, ParserException, DataModelException {
+
+        YangNode node = manager.getDataModel("src/test/resources/RangeRestrictionInRefTypedef.yang");
+
+        // Check whether the data model tree returned is of type module.
+        assertThat(node instanceof YangModule, is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(node.getNodeType(), is(MODULE_NODE));
+
+        // Check whether the module name is set correctly.
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        // check top typedef
+        YangTypeDef topTypedef = (YangTypeDef) yangNode.getChild();
+        assertThat(topTypedef.getName(), is("Num3"));
+        YangType type = topTypedef.getTypeList().iterator().next();
+        assertThat(type.getDataType(), is(YangDataTypes.INT16));
+        assertThat(type.getDataTypeName(), is("int16"));
+
+        // Check for the restriction value.
+        YangRangeRestriction rangeRestriction = (YangRangeRestriction) type.getDataTypeExtendedInfo();
+        ListIterator<YangRangeInterval> rangeListIterator = rangeRestriction.getAscendingRangeIntervals()
+                .listIterator();
+        YangRangeInterval rangeInterval1 = rangeListIterator.next();
+        assertThat((int) ((YangInt16) rangeInterval1.getStartValue()).getValue(), is(-32000));
+        assertThat((int) ((YangInt16) rangeInterval1.getEndValue()).getValue(), is(4));
+
+        YangRangeInterval rangeInterval2 = rangeListIterator.next();
+        assertThat((int) ((YangInt16) rangeInterval2.getStartValue()).getValue(), is(32767));
+        assertThat((int) ((YangInt16) rangeInterval2.getEndValue()).getValue(), is(32767));
+
+        // check referred typedef
+        YangTypeDef refTypedef = (YangTypeDef) topTypedef.getNextSibling();
+        assertThat(refTypedef.getName(), is("Num6"));
+        YangType refType = refTypedef.getTypeList().iterator().next();
+        assertThat(refType.getDataType(), is(YangDataTypes.DERIVED));
+        assertThat(refType.getDataTypeName(), is("Num3"));
+        YangDerivedInfo<YangRangeRestriction> derivedInfo =
+                (YangDerivedInfo<YangRangeRestriction>) refType.getDataTypeExtendedInfo();
+
+        // Check for the restriction value.
+        rangeRestriction = (YangRangeRestriction) derivedInfo.getResolvedExtendedInfo();
+        rangeListIterator = rangeRestriction.getAscendingRangeIntervals().listIterator();
+        rangeInterval1 = rangeListIterator.next();
+        assertThat((int) ((YangInt16) rangeInterval1.getStartValue()).getValue(), is(-3));
+        assertThat((int) ((YangInt16) rangeInterval1.getEndValue()).getValue(), is(-3));
+
+        rangeInterval2 = rangeListIterator.next();
+        assertThat((int) ((YangInt16) rangeInterval2.getStartValue()).getValue(), is(-2));
+        assertThat((int) ((YangInt16) rangeInterval2.getEndValue()).getValue(), is(2));
+
+        YangRangeInterval rangeInterval3 = rangeListIterator.next();
+        assertThat((int) ((YangInt16) rangeInterval3.getStartValue()).getValue(), is(3));
+        assertThat((int) ((YangInt16) rangeInterval3.getEndValue()).getValue(), is(3));
+    }
+
+    /**
+     * Checks invalid range restriction in referred typedef.
+     */
+    @Test(expected = LinkerException.class)
+    public void processInvalidRangeRestrictionInRefTypedef()
+            throws IOException, ParserException, DataModelException {
+
+        manager.getDataModel("src/test/resources/RangeRestrictionInvalidInRefTypedef.yang");
     }
 
     /**

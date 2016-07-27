@@ -1,0 +1,33 @@
+module Test {
+    namespace "urn:ietf:params:xml:ns:yang:yt3";
+    prefix "yt3";
+
+    organization
+        "YANG Language Design Team";
+
+    contact
+        "Andy Bierman";
+
+    description
+        "YANG test module 3.";
+
+    revision 2007-12-04 {
+        description "Initial revision.";
+    }
+
+    typedef Num3 {
+        units seconds;
+        type int16 {
+           range "-32000 .. 4 | max";
+        }
+        description "test 3";
+    }
+
+    typedef Num6 {
+        description "test 6";
+        type Num3 {
+           range "-3 | -2 .. +2 | 3";
+        }
+        default 0;
+    }
+}
