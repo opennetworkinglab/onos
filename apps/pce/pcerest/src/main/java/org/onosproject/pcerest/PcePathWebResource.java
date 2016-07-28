@@ -18,6 +18,7 @@ package org.onosproject.pcerest;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.onlab.util.Tools.nullIsNotFound;
 
+import java.util.Collection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -36,6 +37,7 @@ import javax.ws.rs.core.Response;
 
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
+import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.pce.pceservice.api.PceService;
@@ -118,7 +120,17 @@ public class PcePathWebResource extends AbstractWebResource {
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
             JsonNode port = jsonTree.get("path");
+            TunnelService tunnelService = get(TunnelService.class);
             PcePath path = codec(PcePath.class).decode((ObjectNode) port, this);
+            //Validating tunnel name, duplicated tunnel names not allowed
+            Collection<Tunnel> existingTunnels = tunnelService.queryTunnel(Tunnel.Type.MPLS);
+            if (existingTunnels != null) {
+                for (Tunnel t : existingTunnels) {
+                    if (t.tunnelName().toString().equals(path.name())) {
+                        return Response.status(OK).entity(PCE_SETUP_PATH_FAILED).build();
+                    }
+                }
+            }
 
             DeviceId srcDevice = DeviceId.deviceId(path.source());
             DeviceId dstDevice = DeviceId.deviceId(path.destination());

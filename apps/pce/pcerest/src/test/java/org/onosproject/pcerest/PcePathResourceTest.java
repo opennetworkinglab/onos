@@ -24,7 +24,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-
 import static org.onosproject.net.Link.Type.DIRECT;
 
 import com.eclipsesource.json.Json;
@@ -34,6 +33,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.LinkedList;
 import java.util.List;
+
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
@@ -43,7 +43,6 @@ import javax.ws.rs.NotFoundException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.packet.IpAddress;
@@ -56,6 +55,7 @@ import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.TunnelName;
+import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultLink;
@@ -73,6 +73,7 @@ import org.onosproject.net.provider.ProviderId;
  */
 public class PcePathResourceTest extends PceResourceTest {
     private final PceService pceService = createMock(PceService.class);
+    private final TunnelService tunnelService = createMock(TunnelService.class);
     private final TunnelEndPoint src = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(23423));
     private final TunnelEndPoint dst = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(32421));
     private final DefaultGroupId groupId = new DefaultGroupId(92034);
@@ -100,6 +101,7 @@ public class PcePathResourceTest extends PceResourceTest {
        // Mock environment setup
        MockPceCodecContext context = new MockPceCodecContext();
        ServiceDirectory testDirectory = new TestServiceDirectory().add(PceService.class, pceService)
+                                                                  .add(TunnelService.class, tunnelService)
                                                                   .add(CodecService.class, context.codecManager());
        BaseResource.setServiceDirectory(testDirectory);
 
