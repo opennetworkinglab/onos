@@ -61,6 +61,7 @@ import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -371,6 +372,8 @@ public class VirtualNetworkManager
             service = new VirtualNetworkIntentService(this, network, new DefaultServiceDirectory());
         } else if (serviceKey.serviceClass.equals(HostService.class)) {
             service = new VirtualNetworkHostService(this, network);
+        } else if (serviceKey.serviceClass.equals(PathService.class)) {
+            service = new VirtualNetworkPathService(this, network);
         } else {
             return null;
         }
