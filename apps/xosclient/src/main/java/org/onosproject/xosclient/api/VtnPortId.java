@@ -36,7 +36,7 @@ public final class VtnPortId extends Identifier<String> {
      * @return instance port id
      */
     public static VtnPortId of(String id) {
-        checkArgument(!Strings.isNullOrEmpty(id));
+        checkArgument(!Strings.isNullOrEmpty(id), "VTN port ID cannot be null");
         return new VtnPortId(id);
     }
 }

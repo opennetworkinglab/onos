@@ -119,12 +119,14 @@ public final class DefaultVtnPortApi extends XosApi implements VtnPortApi {
                 pair -> addressPairs.put(IpAddress.valueOf(pair.getIpAddress()),
                                          MacAddress.valueOf(pair.getMacAddress())));
 
-        return new VtnPort(VtnPortId.of(osPort.getId()),
-                           osPort.getName(),
-                           VtnServiceId.of(osPort.getNetworkId()),
-                           MacAddress.valueOf(osPort.getMacAddress()),
-                           IpAddress.valueOf(ipAddr.getIpAddress()),
-                           addressPairs);
+        return VtnPort.builder()
+                .id(VtnPortId.of(osPort.getId()))
+                .name(osPort.getName())
+                .serviceId(VtnServiceId.of(osPort.getNetworkId()))
+                .mac(osPort.getMacAddress())
+                .ip(ipAddr.getIpAddress())
+                .addressPairs(addressPairs)
+                .build();
     }
 
     // TODO remove this when XOS provides this information

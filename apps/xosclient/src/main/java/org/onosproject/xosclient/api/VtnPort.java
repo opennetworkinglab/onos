@@ -16,11 +16,14 @@
 package org.onosproject.xosclient.api;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 
 import java.util.Map;
 import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Representation of port in a CORD VTN controlled network, it can be for VM
@@ -36,23 +39,12 @@ public final class VtnPort {
     // TODO remove this when XOS provides vSG information
     private final Map<IpAddress, MacAddress> addressPairs;
 
-
-    /**
-     * Creates a new vtn port with the specified entities.
-     *
-     * @param id vtn port id
-     * @param name vtn port name
-     * @param serviceId id of the service this port is in
-     * @param mac mac address
-     * @param ip ip address
-     * @param addressPairs ip and mac pairs of nested container
-     */
-    public VtnPort(VtnPortId id,
-                        String name,
-                        VtnServiceId serviceId,
-                        MacAddress mac,
-                        IpAddress ip,
-                        Map<IpAddress, MacAddress> addressPairs) {
+   private VtnPort(VtnPortId id,
+                   String name,
+                   VtnServiceId serviceId,
+                   MacAddress mac,
+                   IpAddress ip,
+                   Map<IpAddress, MacAddress> addressPairs) {
         this.id = id;
         this.name = name;
         this.serviceId = serviceId;
@@ -142,5 +134,162 @@ public final class VtnPort {
                 .add("ip", ip)
                 .add("addressPairs", addressPairs)
                 .toString();
+    }
+
+    /**
+     * Returns a new vtn port builder instance.
+     *
+     * @return new vtn port builder
+     */
+    public static final Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder of VTN port entities.
+     */
+    public static final class Builder {
+
+        private VtnPortId id;
+        private String name;
+        private VtnServiceId serviceId;
+        private MacAddress mac;
+        private IpAddress ip;
+        // TODO remove this when XOS provides vSG information
+        private Map<IpAddress, MacAddress> addressPairs;
+
+        private Builder() {
+        }
+
+        /**
+         * Builds an immutable VTN port.
+         *
+         * @return vtn port instance
+         */
+        public VtnPort build() {
+            checkNotNull(id, "VTN port ID cannot be null");
+            checkNotNull(serviceId, "VTN port service ID cannot be null");
+            checkNotNull(mac, "VTN port MAC address cannot be null");
+            checkNotNull(ip, "VTN port IP address cannot be null");
+            addressPairs = addressPairs == null ? ImmutableMap.of() : addressPairs;
+
+            return new VtnPort(id,
+                               name,
+                               serviceId,
+                               mac,
+                               ip,
+                               addressPairs);
+        }
+
+        /**
+         * Returns VTN port builder with the supplied port ID.
+         *
+         * @param id port identifier
+         * @return vtn port builder
+         */
+        public Builder id(VtnPortId id) {
+            this.id = id;
+            return this;
+        }
+
+        /**
+         * Returns VTN port builder with the supplied port name.
+         * Port name can be null.
+         *
+         * @param name port name
+         * @return vtn port builder
+         */
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        /**
+         * Returns VTN port builder with the supplied service ID.
+         *
+         * @param serviceId vtn port service id
+         * @return vtn port builder
+         */
+        public Builder serviceId(VtnServiceId serviceId) {
+            this.serviceId = serviceId;
+            return this;
+        }
+
+        /**
+         * Returns VTN port builder with the supplied MAC address.
+         *
+         * @param mac mac address
+         * @return vtn port builder
+         */
+        public Builder mac(MacAddress mac) {
+            if (mac == null) {
+                final String msg = "VTN port MAC address cannot be null";
+                throw new IllegalArgumentException(msg);
+            }
+            this.mac = mac;
+            return this;
+        }
+
+        /**
+         * Returns VTN port builder with the supplied MAC address.
+         *
+         * @param mac mac address as a string
+         * @return vtn port builder
+         */
+        public Builder mac(String mac) {
+            try {
+                return mac(MacAddress.valueOf(mac));
+            } catch (IllegalArgumentException | NullPointerException e) {
+                final String msg = "Malformed MAC address string " + mac +
+                        " for VTN port MAC address";
+                throw new IllegalArgumentException(msg);
+            }
+        }
+
+        /**
+         * Returns VTN port builder with the supplied IP address.
+         *
+         * @param ip ip address
+         * @return vtn port builder
+         */
+        public Builder ip(IpAddress ip) {
+            if (ip == null) {
+                final String msg = "VTN port IP address cannot be null";
+                throw new IllegalArgumentException(msg);
+            }
+            this.ip = ip;
+            return this;
+        }
+
+        /**
+         * Returns VTN port builder with the supplied IP address.
+         *
+         * @param ip ip address as a string
+         * @return vtn port builder
+         */
+        public Builder ip(String ip) {
+            try {
+                return ip(IpAddress.valueOf(ip));
+            } catch (IllegalArgumentException | NullPointerException e) {
+                final String msg = "Malformed IP address string " + ip +
+                        " for VTN port IP address";
+                throw new IllegalArgumentException(msg);
+            }
+        }
+
+        /**
+         * Returns VTN port builder with the supplied address pairs.
+         *
+         * @param addressPairs address pairs
+         * @return vtn port builder
+         */
+        public Builder addressPairs(Map<IpAddress, MacAddress> addressPairs) {
+            if (addressPairs == null) {
+                final String msg = "VTN address pairs cannot be null";
+                throw new IllegalArgumentException(msg);
+            }
+            this.addressPairs = addressPairs;
+            return this;
+        }
     }
 }
