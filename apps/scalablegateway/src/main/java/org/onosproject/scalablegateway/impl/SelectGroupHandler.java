@@ -125,7 +125,6 @@ public class SelectGroupHandler {
      * @param deviceId target device id to update the group
      * @param nodeList updated gateway node list for bucket action
      * @param isInsert update type(add or remove)
-     * @return result of process
      */
     public void updateGatewayGroupBuckets(DeviceId deviceId,
                                           List<GatewayNode> nodeList,
