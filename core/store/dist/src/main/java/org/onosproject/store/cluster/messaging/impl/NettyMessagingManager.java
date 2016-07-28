@@ -94,7 +94,7 @@ import static org.onosproject.security.AppPermission.Type.CLUSTER_WRITE;
 @Service
 public class NettyMessagingManager implements MessagingService {
 
-    private static final int REPLY_TIME_OUT_SEC = 2;
+    private static final int REPLY_TIME_OUT_MILLIS = 250;
     private static final short MIN_KS_LENGTH = 6;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -110,7 +110,7 @@ public class NettyMessagingManager implements MessagingService {
     private final Map<String, Consumer<InternalMessage>> handlers = new ConcurrentHashMap<>();
     private final AtomicLong messageIdGenerator = new AtomicLong(0);
     private final Cache<Long, Callback> callbacks = CacheBuilder.newBuilder()
-            .expireAfterWrite(REPLY_TIME_OUT_SEC, TimeUnit.SECONDS)
+            .expireAfterWrite(REPLY_TIME_OUT_MILLIS, TimeUnit.MILLISECONDS)
             .removalListener(new RemovalListener<Long, Callback>() {
                 @Override
                 public void onRemoval(RemovalNotification<Long, Callback> entry) {
@@ -159,7 +159,7 @@ public class NettyMessagingManager implements MessagingService {
         initEventLoopGroup();
         startAcceptingConnections();
         started.set(true);
-        serverGroup.scheduleWithFixedDelay(callbacks::cleanUp, 0, REPLY_TIME_OUT_SEC, TimeUnit.SECONDS);
+        serverGroup.scheduleWithFixedDelay(callbacks::cleanUp, 0, REPLY_TIME_OUT_MILLIS, TimeUnit.MILLISECONDS);
         log.info("Started");
     }
 
