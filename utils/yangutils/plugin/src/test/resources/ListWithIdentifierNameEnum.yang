@@ -1,0 +1,16 @@
+module Test {
+    yang-version 1;
+    namespace "ydt.enum";
+    prefix "t";
+
+    list enumList {
+        key enum;
+        leaf enum {
+            type enumeration {
+                enum ten { value "10";}
+                enum hundred { value "100";}
+                enum thousand { value "1000"; }
+            }
+        }
+    }
+}

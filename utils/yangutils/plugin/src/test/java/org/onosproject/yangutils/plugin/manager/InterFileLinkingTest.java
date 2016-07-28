@@ -24,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.onosproject.yangutils.datamodel.YangAugment;
+import org.onosproject.yangutils.datamodel.YangChoice;
 import org.onosproject.yangutils.datamodel.YangContainer;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangGrouping;
@@ -49,6 +50,7 @@ import static org.onosproject.yangutils.datamodel.YangNodeType.MODULE_NODE;
 import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.RESOLVED;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.STRING;
+import static org.onosproject.yangutils.linker.impl.YangLinkerUtils.updateFilePriority;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 
 /**
@@ -83,6 +85,8 @@ public class InterFileLinkingTest {
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        updateFilePriority(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
@@ -153,6 +157,8 @@ public class InterFileLinkingTest {
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        updateFilePriority(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
@@ -227,6 +233,8 @@ public class InterFileLinkingTest {
         // Add reference to include list.
         yangLinkerManager.addRefToYangFilesIncludeList(utilManager.getYangNodeSet());
 
+        updateFilePriority(utilManager.getYangNodeSet());
+
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
@@ -300,6 +308,8 @@ public class InterFileLinkingTest {
         // Add reference to include list.
         yangLinkerManager.addRefToYangFilesIncludeList(utilManager.getYangNodeSet());
 
+        updateFilePriority(utilManager.getYangNodeSet());
+
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
@@ -370,6 +380,8 @@ public class InterFileLinkingTest {
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
 
+        updateFilePriority(utilManager.getYangNodeSet());
+
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
@@ -439,6 +451,8 @@ public class InterFileLinkingTest {
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        updateFilePriority(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
@@ -511,6 +525,8 @@ public class InterFileLinkingTest {
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
 
+        updateFilePriority(utilManager.getYangNodeSet());
+
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
@@ -578,6 +594,8 @@ public class InterFileLinkingTest {
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        updateFilePriority(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
@@ -836,5 +854,81 @@ public class InterFileLinkingTest {
 
         YangList list = ((YangList) uses.getNextSibling());
         assertThat(list.getName(), is("connectivity-matrix"));
+    }
+
+    /**
+     * Checks contents of uses are copied as child of grouping.
+     */
+    @Test
+    public void interFileUsesInsideChildOfGrouping()
+            throws IOException, ParserException, MojoExecutionException {
+
+        String searchDir = "src/test/resources/interFileUsesInsideChildOfGrouping";
+        utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
+        utilManager.parseYangFileInfoSet();
+        utilManager.resolveDependenciesUsingLinker();
+
+        YangNode selfNode = null;
+        YangNode refNode1 = null;
+
+        for (YangNode rootNode : utilManager.getYangNodeSet()) {
+            if (rootNode.getName().equals("ietf-network")) {
+                selfNode = rootNode;
+            } else if (rootNode.getName().equals("ietf-te-topology")) {
+                refNode1 = rootNode;
+            }
+        }
+
+        // Check whether the data model tree returned is of type module.
+        assertThat(selfNode instanceof YangModule, is(true));
+        assertThat(selfNode.getNodeType(), is(MODULE_NODE));
+        YangModule yangNode = (YangModule) selfNode;
+        assertThat(yangNode.getName(), is("ietf-network"));
+
+        YangModule refNode = (YangModule) refNode1;
+        assertThat(refNode.getName(), is("ietf-te-topology"));
+
+        YangAugment augment = ((YangAugment) refNode.getChild().getNextSibling().
+                getNextSibling().getNextSibling().getNextSibling().getNextSibling());
+        assertThat(augment.getName(), is("/nw:networks/nw:network/nt:link"));
+
+        YangUses uses = ((YangUses) augment.getChild());
+        assertThat(uses.getResolvableStatus(), is(RESOLVED));
+        YangContainer container = ((YangContainer) uses.getNextSibling());
+        assertThat(container.getName(), is("te"));
+
+        container = ((YangContainer) container.getChild());
+        assertThat(container.getName(), is("config"));
+
+        uses = ((YangUses) container.getChild().getNextSibling());
+        assertThat(uses.getName(), is("te-link-config-attributes"));
+        assertThat(uses.getResolvableStatus(), is(RESOLVED));
+
+        YangContainer container1 = ((YangContainer) uses.getNextSibling());
+        assertThat(container1.getName(), is("te-link-attributes"));
+
+        container = ((YangContainer) container1.getChild());
+        assertThat(container.getName(), is("underlay"));
+
+        uses = ((YangUses) container.getChild());
+        assertThat(uses.getName(), is("te-link-underlay-attributes"));
+        assertThat(uses.getResolvableStatus(), is(RESOLVED));
+
+        container = ((YangContainer) uses.getNextSibling());
+        assertThat(container.getName(), is("underlay-primary-path"));
+
+        YangList yangList = ((YangList) container.getChild());
+        assertThat(yangList.getName(), is("path-element"));
+
+        uses = ((YangUses) yangList.getChild());
+        assertThat(uses.getName(), is("te-path-element"));
+        assertThat(uses.getResolvableStatus(), is(RESOLVED));
+
+        uses = ((YangUses) uses.getNextSibling());
+        assertThat(uses.getName(), is("explicit-route-subobject"));
+        assertThat(uses.getResolvableStatus(), is(RESOLVED));
+
+        YangChoice choice = ((YangChoice) uses.getNextSibling());
+        assertThat(choice.getName(), is("type"));
     }
 }

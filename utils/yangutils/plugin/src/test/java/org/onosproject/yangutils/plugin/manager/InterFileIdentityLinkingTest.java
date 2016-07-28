@@ -15,6 +15,8 @@
  */
 package org.onosproject.yangutils.plugin.manager;
 
+import java.io.IOException;
+import java.util.ListIterator;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,12 +36,10 @@ import org.onosproject.yangutils.linker.impl.YangLinkerManager;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
 
-import java.io.IOException;
-import java.util.ListIterator;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.onosproject.yangutils.datamodel.YangNodeType.MODULE_NODE;
+import static org.onosproject.yangutils.linker.impl.YangLinkerUtils.updateFilePriority;
 
 /**
  * Test cases for testing inter file linking for identity.
@@ -72,6 +72,8 @@ public class InterFileIdentityLinkingTest {
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        updateFilePriority(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
@@ -162,6 +164,8 @@ public class InterFileIdentityLinkingTest {
         // Add references to include list.
         yangLinkerManager.addRefToYangFilesIncludeList(utilManager.getYangNodeSet());
 
+        updateFilePriority(utilManager.getYangNodeSet());
+
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
@@ -244,6 +248,8 @@ public class InterFileIdentityLinkingTest {
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
 
+        updateFilePriority(utilManager.getYangNodeSet());
+
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
@@ -302,7 +308,7 @@ public class InterFileIdentityLinkingTest {
         assertThat(yangIdentityRef.getBaseIdentity().getName(), is("ref-address-family"));
         assertThat(yangIdentityRef.getReferredIdentity().getName(), is("ref-address-family"));
         assertThat(yangIdentityRef.getResolvableStatus(), is(ResolvableStatus.RESOLVED));
-   }
+    }
 
     /**
      * Checks inter file feature linking with included file with dependency.
@@ -331,6 +337,8 @@ public class InterFileIdentityLinkingTest {
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        updateFilePriority(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
@@ -417,6 +425,8 @@ public class InterFileIdentityLinkingTest {
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
 
+        updateFilePriority(utilManager.getYangNodeSet());
+
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
     }
@@ -436,10 +446,6 @@ public class InterFileIdentityLinkingTest {
         utilManager.parseYangFileInfoSet();
         utilManager.createYangNodeSet();
 
-        YangNode selfNode = null;
-        YangNode refNode1 = null;
-        YangNode refNode2 = null;
-
         // Create YANG node set
         yangLinkerManager.createYangNodeSet(utilManager.getYangNodeSet());
 
@@ -451,6 +457,9 @@ public class InterFileIdentityLinkingTest {
 
         // Add references to include list.
         yangLinkerManager.addRefToYangFilesIncludeList(utilManager.getYangNodeSet());
+
+        // Update the priority for all the files.
+        updateFilePriority(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
@@ -477,6 +486,8 @@ public class InterFileIdentityLinkingTest {
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        updateFilePriority(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
@@ -569,6 +580,8 @@ public class InterFileIdentityLinkingTest {
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        updateFilePriority(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());

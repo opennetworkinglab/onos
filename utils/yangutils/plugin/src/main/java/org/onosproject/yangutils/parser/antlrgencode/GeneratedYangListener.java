@@ -1835,136 +1835,94 @@ public interface GeneratedYangListener extends ParseTreeListener {
     void exitCompilerAnnotationStatement(GeneratedYangParser.CompilerAnnotationStatementContext currentContext);
 
     /**
-     * Enters a parse tree produced by GeneratedYangParser for grammar rule annotation statement.
+     * Enters a parse tree produced by GeneratedYangParser for grammar rule compiler annotation body statement.
      *
      * @param currentContext current context in the parsed tree
      */
-    void enterAnnotationStatement(GeneratedYangParser.AnnotationStatementContext currentContext);
-
-    /**
-     * Exits a parse tree produced by GeneratedYangParser for grammar rule annotation statement.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void exitAnnotationStatement(GeneratedYangParser.AnnotationStatementContext currentContext);
-
-    /**
-     * Enters a parse tree produced by GeneratedYangParser for grammar rule annotation type.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void enterAnnotationType(GeneratedYangParser.AnnotationTypeContext currentContext);
-
-    /**
-     * Exits a parse tree produced by GeneratedYangParser for grammar rule annotation type.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void exitAnnotationType(GeneratedYangParser.AnnotationTypeContext currentContext);
-
-    /**
-     * Enters a parse tree produced by GeneratedYangParser for grammar rule
-     * annotation parameter specification.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void enterAnnotationParameterSpecification(GeneratedYangParser.AnnotationParameterSpecificationContext
-                                                       currentContext);
-
-    /**
-     * Exits a parse tree produced by GeneratedYangParser for grammar rule
-     * annotation parameter specification.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void exitAnnotationParameterSpecification(GeneratedYangParser.AnnotationParameterSpecificationContext
+    void enterCompilerAnnotationBodyStatement(GeneratedYangParser.CompilerAnnotationBodyStatementContext
                                                       currentContext);
 
     /**
-     * Enters a parse tree produced by GeneratedYangParser for grammar rule
-     * annotation parameter specification argument.
+     * Exits a parse tree produced by GeneratedYangParser for grammar rule compiler annotation body statement.
      *
      * @param currentContext current context in the parsed tree
      */
-    void enterAnnotationParameterSpecificationArg(GeneratedYangParser.AnnotationParameterSpecificationArgContext
-                                                          currentContext);
+    void exitCompilerAnnotationBodyStatement(GeneratedYangParser.CompilerAnnotationBodyStatementContext
+                                                     currentContext);
+
+    /**
+     * Enters a parse tree produced by GeneratedYangParser for grammar rule app data structure statement.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterAppDataStructureStatement(GeneratedYangParser.AppDataStructureStatementContext
+                                                currentContext);
+
+    /**
+     * Exits a parse tree produced by GeneratedYangParser for grammar rule app data structure statement.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitAppDataStructureStatement(GeneratedYangParser.AppDataStructureStatementContext currentContext);
+
+    /**
+     * Enters a parse tree produced by GeneratedYangParser for grammar rule app data structure.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterAppDataStructure(GeneratedYangParser.AppDataStructureContext currentContext);
+
+    /**
+     * Exits a parse tree produced by GeneratedYangParser for grammar rule app data strcuture.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitAppDataStructure(GeneratedYangParser.AppDataStructureContext currentContext);
+
+    /**
+     * Enters a parse tree produced by GeneratedYangParser for grammar rule app extended statement.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterAppExtendedStatement(GeneratedYangParser.AppExtendedStatementContext currentContext);
+
+    /**
+     * Exits a parse tree produced by GeneratedYangParser for grammar rule app extended statement.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitAppExtendedStatement(GeneratedYangParser.AppExtendedStatementContext currentContext);
+
+    /**
+     * Enters a parse tree produced by GeneratedYangParser for grammar rule extended name.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterExtendedName(GeneratedYangParser.ExtendedNameContext currentContext);
+
+    /**
+     * Exits a parse tree produced by GeneratedYangParser for grammar rule extended name.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitExtendedName(GeneratedYangParser.ExtendedNameContext currentContext);
+
+
+    /**
+     * Enters a parse tree produced by GeneratedYangParser for grammar rule
+     * data structure key statement.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterDataStructureKeyStatement(GeneratedYangParser.DataStructureKeyStatementContext currentContext);
 
     /**
      * Exits a parse tree produced by GeneratedYangParser for grammar rule
-     * annotation parameter specification argument.
+     * data structure key statement.
      *
      * @param currentContext current context in the parsed tree
      */
-    void exitAnnotationParameterSpecificationArg(GeneratedYangParser.AnnotationParameterSpecificationArgContext
-                                                         currentContext);
-
-    /**
-     * Enters a parse tree produced by GeneratedYangParser for grammar rule annotation parameter instance.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void enterAnnotationParaInstance(GeneratedYangParser.AnnotationParaInstanceContext
-                                             currentContext);
-
-    /**
-     * Exits a parse tree produced by GeneratedYangParser for grammar rule annotation parameter instance.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void exitAnnotationParaInstance(GeneratedYangParser.AnnotationParaInstanceContext
-                                            currentContext);
-
-    /**
-     * Enters a parse tree produced by GeneratedYangParser for grammar rule
-     * annotation parameter type identifier.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void enterAnnotationParaTypeIdentifier(GeneratedYangParser.AnnotationParaTypeIdentifierContext
-                                                   currentContext);
-
-    /**
-     * Exits a parse tree produced by GeneratedYangParser for grammar rule
-     * annotation parameter type identifier.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void exitAnnotationParaTypeIdentifier(GeneratedYangParser.AnnotationParaTypeIdentifierContext
-                                                  currentContext);
-
-    /**
-     * Enters a parse tree produced by GeneratedYangParser for grammar rule
-     * annotation parameter type value.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void enterAnnotationParaTypeValue(GeneratedYangParser.AnnotationParaTypeValueContext
-                                              currentContext);
-
-    /**
-     * Exits a parse tree produced by GeneratedYangParser for grammar rule
-     * annotation parameter type value.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void exitAnnotationParaTypeValue(GeneratedYangParser.AnnotationParaTypeValueContext
-                                             currentContext);
-
-    /**
-     * Enters a parse tree produced by GeneratedYangParser for grammar rule annotation identifier.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void enterAnnotationIdentifier(GeneratedYangParser.AnnotationIdentifierContext
-                                           currentContext);
-
-    /**
-     * Exits a parse tree produced by GeneratedYangParser for grammar rule annotation identifier.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void exitAnnotationIdentifier(GeneratedYangParser.AnnotationIdentifierContext
-                                          currentContext);
+    void exitDataStructureKeyStatement(GeneratedYangParser.DataStructureKeyStatementContext currentContext);
 
     /**
      * Enters a parse tree produced by GeneratedYangParser for grammar rule require instance.

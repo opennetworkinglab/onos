@@ -24,6 +24,8 @@ import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangListener;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.impl.listeners.AppDataStructureListener;
+import org.onosproject.yangutils.parser.impl.listeners.AppExtendedNameListener;
 import org.onosproject.yangutils.parser.impl.listeners.ArgumentListener;
 import org.onosproject.yangutils.parser.impl.listeners.AugmentListener;
 import org.onosproject.yangutils.parser.impl.listeners.BaseFileListener;
@@ -33,9 +35,11 @@ import org.onosproject.yangutils.parser.impl.listeners.BitListener;
 import org.onosproject.yangutils.parser.impl.listeners.BitsListener;
 import org.onosproject.yangutils.parser.impl.listeners.CaseListener;
 import org.onosproject.yangutils.parser.impl.listeners.ChoiceListener;
+import org.onosproject.yangutils.parser.impl.listeners.CompilerAnnotationListener;
 import org.onosproject.yangutils.parser.impl.listeners.ConfigListener;
 import org.onosproject.yangutils.parser.impl.listeners.ContactListener;
 import org.onosproject.yangutils.parser.impl.listeners.ContainerListener;
+import org.onosproject.yangutils.parser.impl.listeners.DataStructureKeyListener;
 import org.onosproject.yangutils.parser.impl.listeners.Decimal64Listener;
 import org.onosproject.yangutils.parser.impl.listeners.DefaultListener;
 import org.onosproject.yangutils.parser.impl.listeners.DescriptionListener;
@@ -1428,95 +1432,72 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterCompilerAnnotationStatement(GeneratedYangParser.CompilerAnnotationStatementContext ctx) {
-        // TODO: implement the method.
+        CompilerAnnotationListener.processCompilerAnnotationEntry(this, ctx);
     }
 
     @Override
     public void exitCompilerAnnotationStatement(GeneratedYangParser.CompilerAnnotationStatementContext ctx) {
-        // TODO: implement the method.
+        CompilerAnnotationListener.processCompilerAnnotationExit(this, ctx);
     }
 
     @Override
-    public void enterAnnotationStatement(GeneratedYangParser.AnnotationStatementContext ctx) {
-        // TODO: implement the method.
+    public void enterCompilerAnnotationBodyStatement(GeneratedYangParser.CompilerAnnotationBodyStatementContext ctx) {
+        // do nothing
     }
 
     @Override
-    public void exitAnnotationStatement(GeneratedYangParser.AnnotationStatementContext ctx) {
-        // TODO: implement the method.
+    public void exitCompilerAnnotationBodyStatement(GeneratedYangParser.CompilerAnnotationBodyStatementContext ctx) {
+        // do nothing
     }
 
     @Override
-    public void enterAnnotationType(GeneratedYangParser.AnnotationTypeContext ctx) {
-        // TODO: implement the method.
+    public void enterAppDataStructureStatement(GeneratedYangParser.AppDataStructureStatementContext ctx) {
+        AppDataStructureListener.processAppDataStructureEntry(this, ctx);
     }
 
     @Override
-    public void exitAnnotationType(GeneratedYangParser.AnnotationTypeContext ctx) {
-        // TODO: implement the method.
+    public void exitAppDataStructureStatement(GeneratedYangParser.AppDataStructureStatementContext ctx) {
+        AppDataStructureListener.processAppDataStructureExit(this, ctx);
     }
 
     @Override
-    public void enterAnnotationParameterSpecification(GeneratedYangParser.AnnotationParameterSpecificationContext
-                                                              ctx) {
-        // TODO: implement the method.
+    public void enterAppDataStructure(GeneratedYangParser.AppDataStructureContext currentContext) {
+        // do nothing
     }
 
     @Override
-    public void exitAnnotationParameterSpecification(GeneratedYangParser.AnnotationParameterSpecificationContext ctx) {
-        // TODO: implement the method.
+    public void exitAppDataStructure(GeneratedYangParser.AppDataStructureContext currentContext) {
+        // do nothing
     }
 
     @Override
-    public void enterAnnotationParameterSpecificationArg(GeneratedYangParser.AnnotationParameterSpecificationArgContext
-                                                                 ctx) {
-        // TODO: implement the method.
+    public void enterAppExtendedStatement(GeneratedYangParser.AppExtendedStatementContext currentContext) {
+        AppExtendedNameListener.processAppExtendedNameEntry(this, currentContext);
     }
 
     @Override
-    public void exitAnnotationParameterSpecificationArg(GeneratedYangParser.AnnotationParameterSpecificationArgContext
-                                                                ctx) {
-        // TODO: implement the method.
+    public void exitAppExtendedStatement(GeneratedYangParser.AppExtendedStatementContext currentContext) {
+        // TODO : to be implemented
     }
 
     @Override
-    public void enterAnnotationParaInstance(GeneratedYangParser.AnnotationParaInstanceContext ctx) {
-        // TODO: implement the method.
+    public void enterExtendedName(GeneratedYangParser.ExtendedNameContext currentContext) {
+        // do nothing
     }
 
     @Override
-    public void exitAnnotationParaInstance(GeneratedYangParser.AnnotationParaInstanceContext ctx) {
-        // TODO: implement the method.
+    public void exitExtendedName(GeneratedYangParser.ExtendedNameContext currentContext) {
+        // do nothing
     }
 
     @Override
-    public void enterAnnotationParaTypeIdentifier(GeneratedYangParser.AnnotationParaTypeIdentifierContext ctx) {
-        // TODO: implement the method.
+    public void enterDataStructureKeyStatement(GeneratedYangParser.DataStructureKeyStatementContext ctx) {
+        DataStructureKeyListener.processDataStructureKeyEntry(this, ctx);
     }
 
     @Override
-    public void exitAnnotationParaTypeIdentifier(GeneratedYangParser.AnnotationParaTypeIdentifierContext ctx) {
-        // TODO: implement the method.
-    }
-
-    @Override
-    public void enterAnnotationParaTypeValue(GeneratedYangParser.AnnotationParaTypeValueContext ctx) {
-        // TODO: implement the method.
-    }
-
-    @Override
-    public void exitAnnotationParaTypeValue(GeneratedYangParser.AnnotationParaTypeValueContext ctx) {
-        // TODO: implement the method.
-    }
-
-    @Override
-    public void enterAnnotationIdentifier(GeneratedYangParser.AnnotationIdentifierContext ctx) {
-        // TODO: implement the method.
-    }
-
-    @Override
-    public void exitAnnotationIdentifier(GeneratedYangParser.AnnotationIdentifierContext ctx) {
-        // TODO: implement the method.
+    public void exitDataStructureKeyStatement(GeneratedYangParser.DataStructureKeyStatementContext ctx) {
+        // do nothing
     }
 
     @Override

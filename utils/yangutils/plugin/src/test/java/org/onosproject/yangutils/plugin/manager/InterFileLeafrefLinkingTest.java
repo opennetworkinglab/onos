@@ -16,6 +16,9 @@
 
 package org.onosproject.yangutils.plugin.manager;
 
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.ListIterator;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,15 +35,12 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
 
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.ListIterator;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.onosproject.yangutils.datamodel.YangNodeType.MODULE_NODE;
 import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.RESOLVED;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.LEAFREF;
+import static org.onosproject.yangutils.linker.impl.YangLinkerUtils.updateFilePriority;
 
 /**
  * Test cases for testing leafref inter file linking.
@@ -73,6 +73,8 @@ public class InterFileLeafrefLinkingTest {
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        updateFilePriority(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
@@ -146,6 +148,8 @@ public class InterFileLeafrefLinkingTest {
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
 
+        updateFilePriority(utilManager.getYangNodeSet());
+
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
@@ -208,6 +212,8 @@ public class InterFileLeafrefLinkingTest {
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        updateFilePriority(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
@@ -277,6 +283,8 @@ public class InterFileLeafrefLinkingTest {
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        updateFilePriority(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());

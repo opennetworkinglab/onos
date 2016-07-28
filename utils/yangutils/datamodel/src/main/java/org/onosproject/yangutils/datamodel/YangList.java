@@ -16,14 +16,13 @@
 
 package org.onosproject.yangutils.datamodel;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
 
@@ -72,7 +71,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
 public class YangList
         extends YangNode
         implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector,
-        YangAugmentableNode, YangMustHolder, YangIfFeatureHolder, YangDataNode {
+        YangAugmentableNode, YangMustHolder, YangWhenHolder, YangIfFeatureHolder, YangDataNode {
 
     private static final long serialVersionUID = 806201609L;
 
@@ -219,6 +218,7 @@ public class YangList
      *
      * @return the when
      */
+    @Override
     public YangWhen getWhen() {
         return when;
     }
@@ -228,6 +228,7 @@ public class YangList
      *
      * @param when the when to set
      */
+    @Override
     public void setWhen(YangWhen when) {
         this.when = when;
     }
@@ -624,7 +625,6 @@ public class YangList
      * Validates key statement of list.
      *
      * @param leaves    list of leaf attributes of list
-     * @param leafLists list of leaf-list attributes of list
      * @param keys      list of key attributes of list
      * @throws DataModelException a violation of data model rules
      */

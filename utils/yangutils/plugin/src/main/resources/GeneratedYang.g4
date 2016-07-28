@@ -124,7 +124,8 @@ package org.onosproject.yangutils.parser.antlrgencode;
                | augmentStatement
                | rpcStatement
                | notificationStatement
-               | deviationStatement)*
+               | deviationStatement
+               | compilerAnnotationStatement)*
                ;
 
     /**
@@ -237,13 +238,34 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                            [status-stmt stmtsep]
      *                            [description-stmt stmtsep]
      *                            [reference-stmt stmtsep]
-     *                            [compiler-annotation-stmt stmtsep]
      *                        "}")
-     * TODO : 0..1 occurance to be checked in listener
      */
     extensionStatement : EXTENSION_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE extensionBody RIGHT_CURLY_BRACE);
-    extensionBody : (argumentStatement | statusStatement | descriptionStatement
-                  | referenceStatement | compilerAnnotationStatement)* ;
+    extensionBody : argumentStatement? statusStatement? descriptionStatement? referenceStatement?
+                   | argumentStatement? statusStatement? referenceStatement? descriptionStatement?
+                   | argumentStatement? descriptionStatement? statusStatement? referenceStatement?
+                   | argumentStatement? descriptionStatement? referenceStatement? statusStatement?
+                   | argumentStatement? referenceStatement? descriptionStatement? statusStatement?
+                   | argumentStatement? referenceStatement? statusStatement? descriptionStatement?
+                   | statusStatement? referenceStatement? argumentStatement? descriptionStatement?
+                   | statusStatement? referenceStatement? descriptionStatement? argumentStatement?
+                   | statusStatement? descriptionStatement? referenceStatement? argumentStatement?
+                   | statusStatement? descriptionStatement? argumentStatement? referenceStatement?
+                   | statusStatement? argumentStatement? referenceStatement? descriptionStatement?
+                   | statusStatement? argumentStatement? descriptionStatement? referenceStatement?
+                   | descriptionStatement? argumentStatement? statusStatement? referenceStatement?
+                   | descriptionStatement? argumentStatement? referenceStatement? statusStatement?
+                   | descriptionStatement? statusStatement? argumentStatement? referenceStatement?
+                   | descriptionStatement? statusStatement? referenceStatement? argumentStatement?
+                   | descriptionStatement? referenceStatement? statusStatement? argumentStatement?
+                   | descriptionStatement? referenceStatement? argumentStatement? statusStatement?
+                   | referenceStatement? descriptionStatement? argumentStatement? statusStatement?
+                   | referenceStatement? descriptionStatement? statusStatement? argumentStatement?
+                   | referenceStatement? statusStatement? argumentStatement? descriptionStatement?
+                   | referenceStatement? statusStatement? descriptionStatement? argumentStatement?
+                   | referenceStatement? argumentStatement? descriptionStatement? statusStatement?
+                   | referenceStatement? argumentStatement? statusStatement? descriptionStatement?
+                   ;
 
     /**
      * argument-stmt       = argument-keyword sep identifier-arg-str optsep
@@ -270,13 +292,35 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                            [status-stmt stmtsep]
      *                            [description-stmt stmtsep]
      *                            [reference-stmt stmtsep]
-     *                            [compiler-annotation-stmt stmtsep]
      *                        "}")
-     * TODO : 0..1 occurance to be checked in listener
      */
     identityStatement : IDENTITY_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE identityBody RIGHT_CURLY_BRACE);
-    identityBody : (baseStatement | statusStatement | descriptionStatement | referenceStatement
-                 | compilerAnnotationStatement)*;
+    identityBody : baseStatement? statusStatement? descriptionStatement? referenceStatement?
+                  | baseStatement? statusStatement? referenceStatement? descriptionStatement?
+                  | baseStatement? descriptionStatement? statusStatement? referenceStatement?
+                  | baseStatement? descriptionStatement? referenceStatement? statusStatement?
+                  | baseStatement? referenceStatement? descriptionStatement? statusStatement?
+                  | baseStatement? referenceStatement? statusStatement? descriptionStatement?
+                  | referenceStatement? baseStatement? statusStatement? descriptionStatement?
+                  | referenceStatement? baseStatement? descriptionStatement? statusStatement?
+                  | referenceStatement? statusStatement? baseStatement? descriptionStatement?
+                  | referenceStatement? statusStatement? descriptionStatement? baseStatement?
+                  | referenceStatement? descriptionStatement? statusStatement? baseStatement?
+                  | referenceStatement? descriptionStatement? baseStatement? statusStatement?
+                  | descriptionStatement? referenceStatement? statusStatement? baseStatement?
+                  | descriptionStatement? referenceStatement? statusStatement? baseStatement?
+                  | descriptionStatement? referenceStatement? baseStatement? statusStatement?
+                  | descriptionStatement? statusStatement? baseStatement? referenceStatement?
+                  | descriptionStatement? statusStatement? referenceStatement? baseStatement?
+                  | descriptionStatement? baseStatement? referenceStatement? statusStatement?
+                  | descriptionStatement? baseStatement? statusStatement? referenceStatement?
+                  | statusStatement? baseStatement? descriptionStatement? referenceStatement?
+                  | statusStatement? baseStatement? referenceStatement? descriptionStatement?
+                  | statusStatement? descriptionStatement? baseStatement? referenceStatement?
+                  | statusStatement? descriptionStatement? referenceStatement? baseStatement?
+                  | statusStatement? referenceStatement? descriptionStatement? baseStatement?
+                  | statusStatement? referenceStatement? baseStatement? descriptionStatement?
+                  ;
 
     /**
      * base-stmt           = base-keyword sep identifier-ref-arg-str
@@ -294,13 +338,34 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                             [status-stmt stmtsep]
      *                             [description-stmt stmtsep]
      *                             [reference-stmt stmtsep]
-     *                             [compiler-annotation-stmt stmtsep]
      *                         "}")
-     * TODO : 0..1 occurance to be checked in listener
      */
     featureStatement : FEATURE_KEYWORD string (STMTEND | LEFT_CURLY_BRACE featureBody RIGHT_CURLY_BRACE);
-    featureBody : (ifFeatureStatement | statusStatement | descriptionStatement
-                | referenceStatement | compilerAnnotationStatement)* ;
+    featureBody : ifFeatureStatement* statusStatement? descriptionStatement? referenceStatement?
+                 | ifFeatureStatement* statusStatement? referenceStatement? descriptionStatement?
+                 | ifFeatureStatement* descriptionStatement? statusStatement? referenceStatement?
+                 | ifFeatureStatement* descriptionStatement? referenceStatement? statusStatement?
+                 | ifFeatureStatement* referenceStatement? statusStatement? descriptionStatement?
+                 | ifFeatureStatement* referenceStatement? descriptionStatement? statusStatement?
+                 | statusStatement? ifFeatureStatement* descriptionStatement? referenceStatement?
+                 | statusStatement? ifFeatureStatement* referenceStatement? descriptionStatement?
+                 | statusStatement? descriptionStatement? ifFeatureStatement* referenceStatement?
+                 | statusStatement? descriptionStatement? referenceStatement? ifFeatureStatement*
+                 | statusStatement? referenceStatement? ifFeatureStatement* descriptionStatement?
+                 | statusStatement? referenceStatement? descriptionStatement? ifFeatureStatement*
+                 | descriptionStatement? ifFeatureStatement* statusStatement? referenceStatement?
+                 | descriptionStatement? ifFeatureStatement* referenceStatement? statusStatement?
+                 | descriptionStatement? statusStatement? ifFeatureStatement* referenceStatement?
+                 | descriptionStatement? statusStatement? referenceStatement? ifFeatureStatement*
+                 | descriptionStatement? referenceStatement* statusStatement? ifFeatureStatement*
+                 | descriptionStatement? referenceStatement* ifFeatureStatement? statusStatement?
+                 | referenceStatement? ifFeatureStatement* statusStatement? descriptionStatement?
+                 | referenceStatement? ifFeatureStatement* descriptionStatement? statusStatement?
+                 | referenceStatement? descriptionStatement? statusStatement? ifFeatureStatement*
+                 | referenceStatement? descriptionStatement? ifFeatureStatement* statusStatement?
+                 | referenceStatement? statusStatement? descriptionStatement? ifFeatureStatement*
+                 | referenceStatement? statusStatement? ifFeatureStatement* descriptionStatement?
+                 ;
 
     /**
      *  data-def-stmt       = container-stmt /
@@ -340,13 +405,11 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                             [status-stmt stmtsep]
      *                             [description-stmt stmtsep]
      *                             [reference-stmt stmtsep]
-     *                             [compiler-annotation-stmt stmtsep]
      *                           "}"
      * TODO : 0..1 occurance to be validated in listener
      */
     typedefStatement : TYPEDEF_KEYWORD identifier LEFT_CURLY_BRACE
-                   (typeStatement | unitsStatement | defaultStatement | statusStatement | descriptionStatement
-                   | compilerAnnotationStatement | referenceStatement)*
+                   (typeStatement | unitsStatement | defaultStatement | statusStatement | descriptionStatement | referenceStatement)*
                    RIGHT_CURLY_BRACE;
 
     /**
@@ -715,7 +778,6 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                            [status-stmt stmtsep]
      *                             [description-stmt stmtsep]
      *                             [reference-stmt stmtsep]
-     *                             [compiler-annotation-stmt stmtsep]
      *                             *((typedef-stmt /
      *                                grouping-stmt) stmtsep)
      *                             *(data-def-stmt stmtsep)
@@ -724,7 +786,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      */
     groupingStatement : GROUPING_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE
                       (statusStatement | descriptionStatement | referenceStatement | typedefStatement | groupingStatement
-                       | dataDefStatement | compilerAnnotationStatement)* RIGHT_CURLY_BRACE);
+                       | dataDefStatement)* RIGHT_CURLY_BRACE);
 
     /**
      *  container-stmt      = container-keyword sep identifier-arg-str optsep
@@ -739,7 +801,6 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                             [status-stmt stmtsep]
      *                             [description-stmt stmtsep]
      *                             [reference-stmt stmtsep]
-     *                             [compiler-annotation-stmt stmtsep]
      *                             *((typedef-stmt /
      *                                grouping-stmt) stmtsep)
      *                             *(data-def-stmt stmtsep)
@@ -749,7 +810,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
     containerStatement : CONTAINER_KEYWORD identifier
                      (STMTEND | LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | mustStatement | presenceStatement | configStatement
                      | statusStatement | descriptionStatement | referenceStatement | typedefStatement | groupingStatement
-                     | dataDefStatement | compilerAnnotationStatement)* RIGHT_CURLY_BRACE);
+                     | dataDefStatement)* RIGHT_CURLY_BRACE);
 
     /**
      *  leaf-stmt           = leaf-keyword sep identifier-arg-str optsep
@@ -771,7 +832,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      */
     leafStatement : LEAF_KEYWORD identifier LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | typeStatement | unitsStatement
               | mustStatement | defaultStatement | configStatement | mandatoryStatement | statusStatement  | descriptionStatement
-              | referenceStatement | compilerAnnotationStatement)* RIGHT_CURLY_BRACE;
+              | referenceStatement)* RIGHT_CURLY_BRACE;
 
     /**
      *  leaf-list-stmt      = leaf-list-keyword sep identifier-arg-str optsep
@@ -794,7 +855,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      */
     leafListStatement : LEAF_LIST_KEYWORD identifier LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | typeStatement
                      | unitsStatement | mustStatement | configStatement | minElementsStatement | maxElementsStatement | orderedByStatement
-                     | statusStatement | descriptionStatement | referenceStatement | compilerAnnotationStatement)* RIGHT_CURLY_BRACE;
+                     | statusStatement | descriptionStatement | referenceStatement)* RIGHT_CURLY_BRACE;
 
     /**
      *  list-stmt           = list-keyword sep identifier-arg-str optsep
@@ -820,8 +881,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      */
     listStatement : LIST_KEYWORD identifier LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | mustStatement | keyStatement
               | uniqueStatement | configStatement | minElementsStatement | maxElementsStatement | orderedByStatement | statusStatement
-              | descriptionStatement | referenceStatement | typedefStatement | groupingStatement| dataDefStatement
-              | compilerAnnotationStatement)* RIGHT_CURLY_BRACE;
+              | descriptionStatement | referenceStatement | typedefStatement | groupingStatement| dataDefStatement)* RIGHT_CURLY_BRACE;
 
     /**
      *  key-stmt            = key-keyword sep key-arg-str stmtend
@@ -852,7 +912,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      */
     choiceStatement : CHOICE_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | defaultStatement
                   | configStatement | mandatoryStatement | statusStatement | descriptionStatement | referenceStatement | shortCaseStatement
-                  | caseStatement | compilerAnnotationStatement)* RIGHT_CURLY_BRACE);
+                  | caseStatement)* RIGHT_CURLY_BRACE);
 
     /**
      *  short-case-stmt     = container-stmt /
@@ -897,7 +957,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      */
      anyxmlStatement : ANYXML_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement
                      | mustStatement | configStatement | mandatoryStatement | statusStatement | descriptionStatement
-                     | referenceStatement | compilerAnnotationStatement)* RIGHT_CURLY_BRACE);
+                     | referenceStatement)* RIGHT_CURLY_BRACE);
 
     /**
      *  uses-stmt           = uses-keyword sep identifier-ref-arg-str optsep
@@ -909,15 +969,13 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                             [status-stmt stmtsep]
      *                             [description-stmt stmtsep]
      *                             [reference-stmt stmtsep]
-     *                             [compiler-annotation-stmt stmtsep]
      *                             *(refine-stmt stmtsep)
      *                             *(uses-augment-stmt stmtsep)
      *                         "}")
      * TODO : 0..1 occurance to be checked in listener
      */
     usesStatement : USES_KEYWORD string (STMTEND | LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | statusStatement
-                | descriptionStatement | referenceStatement | refineStatement | augmentStatement
-                | compilerAnnotationStatement)* RIGHT_CURLY_BRACE);
+                | descriptionStatement | referenceStatement | refineStatement | augmentStatement)* RIGHT_CURLY_BRACE);
 
     /**
      *  refine-stmt         = refine-keyword sep refine-arg-str optsep
@@ -1032,8 +1090,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      * TODO : 0..1 occurance to be checked in listener
      */
     augmentStatement : AUGMENT_KEYWORD augment LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | statusStatement
-                   | descriptionStatement | referenceStatement | dataDefStatement  | caseStatement
-                   | compilerAnnotationStatement)* RIGHT_CURLY_BRACE;
+                   | descriptionStatement | referenceStatement | dataDefStatement  | caseStatement)* RIGHT_CURLY_BRACE;
 
     /**
      *  when-stmt           = when-keyword sep string optsep
@@ -1061,13 +1118,10 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                                grouping-stmt) stmtsep)
      *                             [input-stmt stmtsep]
      *                             [output-stmt stmtsep]
-     *                             [compiler-annotation-stmt stmtsep]
      *                         "}")
-     * TODO : 0..1 occurance to be checked in listener
      */
-    rpcStatement : RPC_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE (ifFeatureStatement | statusStatement
-                 | descriptionStatement | referenceStatement | typedefStatement | groupingStatement | inputStatement
-                 | outputStatement | compilerAnnotationStatement)* RIGHT_CURLY_BRACE);
+    rpcStatement : RPC_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE (ifFeatureStatement | statusStatement | descriptionStatement
+                | referenceStatement | typedefStatement | groupingStatement | inputStatement | outputStatement)* RIGHT_CURLY_BRACE);
 
     /**
      * input-stmt          = input-keyword optsep
@@ -1101,7 +1155,6 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                             [status-stmt stmtsep]
      *                             [description-stmt stmtsep]
      *                             [reference-stmt stmtsep]
-     *                             [compiler-annotation-stmt stmtsep]
      *                             *((typedef-stmt /
      *                                grouping-stmt) stmtsep)
      *                             *(data-def-stmt stmtsep)
@@ -1110,7 +1163,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      */
      notificationStatement : NOTIFICATION_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE (ifFeatureStatement
                            | statusStatement | descriptionStatement | referenceStatement | typedefStatement
-                           | groupingStatement | dataDefStatement | compilerAnnotationStatement)* RIGHT_CURLY_BRACE);
+                           | groupingStatement | dataDefStatement)* RIGHT_CURLY_BRACE);
 
     /**
      *  deviation-stmt      = deviation-keyword sep
@@ -1119,7 +1172,6 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                            ;; these stmts can appear in any order
      *                            [description-stmt stmtsep]
      *                            [reference-stmt stmtsep]
-     *                            [compiler-annotation-stmt stmtsep]
      *                            (deviate-not-supported-stmt /
      *                              1*(deviate-add-stmt /
      *                                 deviate-replace-stmt /
@@ -1129,7 +1181,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      */
     deviationStatement: DEVIATION_KEYWORD deviation LEFT_CURLY_BRACE (descriptionStatement | referenceStatement
                       | deviateNotSupportedStatement | deviateAddStatement | deviateReplaceStatement
-                      | deviateDeleteStatement | compilerAnnotationStatement)* RIGHT_CURLY_BRACE;
+                      | deviateDeleteStatement)* RIGHT_CURLY_BRACE;
 
     /**
      * deviate-not-supported-stmt =
@@ -1190,66 +1242,41 @@ package org.onosproject.yangutils.parser.antlrgencode;
                            maxElementsStatement? RIGHT_CURLY_BRACE));
 
     /**
-     * compiler-annotation-stmt = compiler-annotation-keyword optsep
-     *                    "{" stmtsep
-     *                        ;; these stmts can appear in any order
-     *                        *(if-feature-stmt stmtsep)
-     *                         [status-stmt stmtsep]
-     *                         [units-stmt stmtsep]
-     *                         [reference-stmt stmtsep]
-     *                         1*(compiler-annotation-stmt stmtsep)
-     *                    "}"
+     *   compiler-annotation-stmt = prefix:compiler-annotation-keyword string
+     *                          "{"
+     *                              [app-data-structure-stmt stmtsep]
+     *                              [app-extended-stmt stmtsep]
+     *                          "}"
      */
-    compilerAnnotationStatement : COMPILER_ANNOTATION_KEYWORD LEFT_CURLY_BRACE (ifFeatureStatement | statusStatement
-                                | unitsStatement | referenceStatement | annotationStatement)*
-                                  RIGHT_CURLY_BRACE;
+    compilerAnnotationStatement : COMPILER_ANNOTATION string LEFT_CURLY_BRACE
+                                       compilerAnnotationBodyStatement RIGHT_CURLY_BRACE;
+
+    compilerAnnotationBodyStatement : appDataStructureStatement? appExtendedStatement? ;
 
     /**
-     * annotation-stmt = "@" annotation-type [annotation-parameter-specification] ";"
+     *   app-data-structure-stmt = prefix:app-data-structure-keyword string
+     *                         (";" /
+     *                          "{"
+     *                              [data-structure-key-stmt stmtsep]
+     *                          "}")
      */
-    annotationStatement : annotationType annotationParameterSpecification? STMTEND;
+    appDataStructureStatement : APP_DATA_STRUCTURE appDataStructure (STMTEND | (LEFT_CURLY_BRACE
+                  dataStructureKeyStatement? RIGHT_CURLY_BRACE));
 
     /**
-     * annotation-type = identifier
+     *   data-structure-key-stmt = prefix:key-keyword string ";"
      */
-    annotationType : annotationIdentifier;
+    dataStructureKeyStatement : DATA_STRUCTURE_KEY string STMTEND;
 
     /**
-     * annotation-parameter-specification = "(" optsep annotation-parameter-specification-arg optsep ")"
+     *   app-extended-stmt = prefix:app-extended-name-keyword string ";"
      */
-    annotationParameterSpecification : LEFT_ROUND_BRACE annotationParameterSpecificationArg RIGHT_ROUND_BRACE;
-
-    /**
-     * annotation-parameter-specification-arg = annotation-para-type-value
-     *                                     / annotation-para-instance *("," annotation-para-instance)
-     */
-    annotationParameterSpecificationArg : annotationParaTypeValue
-                                        | annotationParaInstance (COMMA annotationParaInstance)*;
-
-    /**
-     * annotation-para-instance = annotation-para-type-identifier optsep "=" optsep annotation-para-type-value
-     */
-    annotationParaInstance : annotationParaTypeIdentifier EQUAL annotationParaTypeValue;
-
-    /**
-     * annotation-para-type-identifier = identifier
-     */
-    annotationParaTypeIdentifier : identifier;
-
-    /**
-     * annotation-para-type-value = identifier
-     */
-    annotationParaTypeValue : identifier;
+    appExtendedStatement : APP_EXTENDED extendedName STMTEND;
 
     string : STRING (PLUS STRING)*
            | IDENTIFIER
            | INTEGER
            | yangConstruct;
-
-    annotationIdentifier : STRING (PLUS STRING)*
-                         | ANNOTATION_IDENTIFIER
-                         | IDENTIFIER
-                         | yangConstruct;
 
     identifier : STRING (PLUS STRING)*
                | IDENTIFIER
@@ -1296,15 +1323,19 @@ package org.onosproject.yangutils.parser.antlrgencode;
 
     fraction : string;
 
+    appDataStructure : string;
+
+    extendedName : string;
+
     yangConstruct : ANYXML_KEYWORD | ARGUMENT_KEYWORD | AUGMENT_KEYWORD | BASE_KEYWORD | BELONGS_TO_KEYWORD
                   | BIT_KEYWORD | CASE_KEYWORD | CHOICE_KEYWORD | CONFIG_KEYWORD | CONTACT_KEYWORD | CONTAINER_KEYWORD
-                  | DEFAULT_KEYWORD | DESCRIPTION_KEYWORD | ENUM_KEYWORD ERROR_APP_TAG_KEYWORD | ERROR_MESSAGE_KEYWORD
+                  | DEFAULT_KEYWORD | DESCRIPTION_KEYWORD | ENUM_KEYWORD | ERROR_APP_TAG_KEYWORD | ERROR_MESSAGE_KEYWORD
                   | EXTENSION_KEYWORD | DEVIATION_KEYWORD | DEVIATE_KEYWORD | FEATURE_KEYWORD
                   | FRACTION_DIGITS_KEYWORD | GROUPING_KEYWORD | IDENTITY_KEYWORD | IF_FEATURE_KEYWORD
                   | IMPORT_KEYWORD | INCLUDE_KEYWORD | INPUT_KEYWORD | KEY_KEYWORD | LEAF_KEYWORD | LEAF_LIST_KEYWORD
                   | LENGTH_KEYWORD | LIST_KEYWORD | MANDATORY_KEYWORD | MAX_ELEMENTS_KEYWORD | MIN_ELEMENTS_KEYWORD
                   | MODULE_KEYWORD | MUST_KEYWORD | NAMESPACE_KEYWORD | NOTIFICATION_KEYWORD | ORDERED_BY_KEYWORD
-                  | ORGANIZATION_KEYWORD | OUTPUT_KEYWORD | PATH_KEYWORD | PATTERN_KEYWORD |POSITION_KEYWORD
+                  | ORGANIZATION_KEYWORD | OUTPUT_KEYWORD | PATH_KEYWORD | PATTERN_KEYWORD | POSITION_KEYWORD
                   | PREFIX_KEYWORD | PRESENCE_KEYWORD | RANGE_KEYWORD | REFERENCE_KEYWORD | REFINE_KEYWORD
                   | REQUIRE_INSTANCE_KEYWORD | REVISION_KEYWORD | REVISION_DATE_KEYWORD | RPC_KEYWORD
                   | STATUS_KEYWORD | SUBMODULE_KEYWORD | TYPE_KEYWORD | TYPEDEF_KEYWORD | UNIQUE_KEYWORD
@@ -1312,4 +1343,5 @@ package org.onosproject.yangutils.parser.antlrgencode;
                   | YIN_ELEMENT_KEYWORD | ADD_KEYWORD | CURRENT_KEYWORD | DELETE_KEYWORD | DEPRECATED_KEYWORD
                   | FALSE_KEYWORD | MAX_KEYWORD | MIN_KEYWORD | NOT_SUPPORTED_KEYWORD | OBSOLETE_KEYWORD
                   | REPLACE_KEYWORD | SYSTEM_KEYWORD | TRUE_KEYWORD | UNBOUNDED_KEYWORD | USER_KEYWORD
-                  | COMPILER_ANNOTATION_KEYWORD;
+                  | COMPILER_ANNOTATION_KEYWORD | APP_DATA_STRUCTURE_KEYWORD | DATA_STRUCTURE_KEYWORD
+                  | APP_EXTENDED_KEYWORD;

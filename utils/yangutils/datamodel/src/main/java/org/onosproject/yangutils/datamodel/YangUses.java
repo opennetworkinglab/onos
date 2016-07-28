@@ -17,17 +17,20 @@ package org.onosproject.yangutils.datamodel;
 
 import java.util.LinkedList;
 import java.util.List;
-
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 import org.onosproject.yangutils.datamodel.utils.ResolvableStatus;
 import org.onosproject.yangutils.datamodel.utils.YangConstructType;
 
+import static org.onosproject.yangutils.datamodel.TraversalType.CHILD;
+import static org.onosproject.yangutils.datamodel.TraversalType.PARENT;
+import static org.onosproject.yangutils.datamodel.TraversalType.ROOT;
+import static org.onosproject.yangutils.datamodel.TraversalType.SIBILING;
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.getParentNodeInGenCode;
-import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.updateClonedLeavesUnionEnumRef;
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.resolveLeafrefUnderGroupingForLeaf;
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.resolveLeafrefUnderGroupingForLeafList;
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.updateClonedLeavesUnionEnumRef;
 
 /*-
  * Reference RFC 6020.
@@ -365,6 +368,14 @@ public class YangUses
 
         if (referredGrouping == null) {
             throw new DataModelException("YANG uses linker error, cannot resolve uses");
+        } else {
+            /*
+             * if referredGrouping has uses which is not resolved then set the status
+             * as Intra file resolved and return
+             */
+            if (checkIsUnresolvedRecursiveUsesInGrouping(referredGrouping)) {
+                return null;
+            }
         }
 
         YangNode usesParentNode = getParentNodeInGenCode(this);
@@ -405,7 +416,7 @@ public class YangUses
                     clonedLeafList = leafList.clone();
                     if (getCurrentGroupingDepth() == 0) {
                         YangEntityToResolveInfoImpl resolveInfo =
-                                    resolveLeafrefUnderGroupingForLeafList(clonedLeafList, usesParentLeavesHolder);
+                                resolveLeafrefUnderGroupingForLeafList(clonedLeafList, usesParentLeavesHolder);
                         if (resolveInfo != null) {
                             addEntityToResolve(resolveInfo);
                         }
@@ -426,6 +437,49 @@ public class YangUses
         }
         updateClonedLeavesUnionEnumRef(usesParentLeavesHolder);
         return getEntityToResolveInfoList();
+    }
+
+    /**
+     * Checks if referred grouping has uses which is not resolved then it set the
+     * status of current uses as intra file resolved and returns true.
+     *
+     * @param referredGrouping referred grouping node of uses
+     * @return true if referred grouping has unresolved uses
+     */
+    private boolean checkIsUnresolvedRecursiveUsesInGrouping(YangGrouping referredGrouping) {
+
+        /**
+         * Search the grouping node's children for presence of uses node.
+         */
+        TraversalType curTraversal = ROOT;
+        YangNode curNode = referredGrouping.getChild();
+        while (curNode != null) {
+            if (curNode.getName().equals(referredGrouping.getName())) {
+                // if we have traversed all the child nodes, then exit from loop
+                return false;
+            }
+
+            // if child nodes has uses, then add it to resolution stack
+            if (curNode instanceof YangUses) {
+                if (((YangUses) curNode).getResolvableStatus() != ResolvableStatus.RESOLVED) {
+                    setResolvableStatus(ResolvableStatus.INTRA_FILE_RESOLVED);
+                    return true;
+                }
+            }
+
+            // Traversing all the child nodes of grouping
+            if (curTraversal != PARENT && curNode.getChild() != null) {
+                curTraversal = CHILD;
+                curNode = curNode.getChild();
+            } else if (curNode.getNextSibling() != null) {
+                curTraversal = SIBILING;
+                curNode = curNode.getNextSibling();
+            } else {
+                curTraversal = PARENT;
+                curNode = curNode.getParent();
+            }
+        }
+        return false;
     }
 
     /**

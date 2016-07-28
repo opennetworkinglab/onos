@@ -486,7 +486,7 @@ public class IntraFileUsesLinkingTest {
 
         // Check whether uses is getting resolved.
         assertThat(uses.getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
+                is(ResolvableStatus.INTRA_FILE_RESOLVED));
 
         // Check whether grouping is the child of module.
         assertThat((yangNode.getChild() instanceof YangGrouping), is(true));
@@ -610,7 +610,7 @@ public class IntraFileUsesLinkingTest {
 
         // Check whether uses is getting resolved.
         assertThat(yangUses1.getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
+                is(ResolvableStatus.INTRA_FILE_RESOLVED));
 
         // Check whether grouping is the sibling of uses.
         YangGrouping yangGrouping1 = (YangGrouping) yangUses1.getNextSibling();

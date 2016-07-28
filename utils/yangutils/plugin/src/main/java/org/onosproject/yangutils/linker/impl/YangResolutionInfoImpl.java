@@ -1594,11 +1594,7 @@ public class YangResolutionInfoImpl<T>
             if (linkedNode != null) {
                 // Add the link to external entity.
                 addReferredEntityLink(linkedNode, INTER_FILE_LINKED);
-                /*
-                 * Update the current reference resolver to external
-                 * module/sub-module containing the referred typedef/grouping.
-                 */
-                setCurReferenceResolver((YangReferenceResolver) yangInclude.getIncludedNode());
+
                 // Add the type/uses of referred typedef/grouping to the stack.
                 addUnresolvedRecursiveReferenceToStack(linkedNode);
                 return true;
@@ -1641,12 +1637,7 @@ public class YangResolutionInfoImpl<T>
                 if (linkedNode != null) {
                     // Add the link to external entity.
                     addReferredEntityLink(linkedNode, INTER_FILE_LINKED);
-                    /*
-                     * Update the current reference resolver to external
-                     * module/sub-module containing the referred
-                     * typedef/grouping.
-                     */
-                    setCurReferenceResolver((YangReferenceResolver) yangImport.getImportedNode());
+
                     // Add the type/uses of referred typedef/grouping to the
                     // stack.
                     addUnresolvedRecursiveReferenceToStack(linkedNode);

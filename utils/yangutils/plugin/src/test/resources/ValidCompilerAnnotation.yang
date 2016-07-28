@@ -1,0 +1,13 @@
+module event {
+
+    namespace "http://example.com/event";
+    prefix "ev";
+
+    ca:compiler-annotation "/candidate-servers/server" {
+        abc:app-data-structure "map" {
+            ca:key "name";
+        }
+       xyz:app-extended-name "special-server";
+    }
+}
+

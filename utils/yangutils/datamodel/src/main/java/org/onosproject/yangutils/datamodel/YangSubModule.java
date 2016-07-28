@@ -224,6 +224,11 @@ public class YangSubModule
     private List<YangResolutionInfo> identityrefResolutionList;
 
     /**
+     * Compiler annotation list.
+     */
+    private List<YangCompilerAnnotation> compilerAnnotationList;
+
+    /**
      * extension list.
      */
     private List<YangExtension> extensionList;
@@ -245,6 +250,7 @@ public class YangSubModule
         leafrefResolutionList = new LinkedList<>();
         baseResolutionList = new LinkedList<>();
         identityrefResolutionList = new LinkedList<>();
+        compilerAnnotationList = new LinkedList<>();
         importList = new LinkedList<YangImport>();
         includeList = new LinkedList<YangInclude>();
         listOfLeaf = new LinkedList<YangLeaf>();
@@ -690,6 +696,34 @@ public class YangSubModule
     public void setListOfFeature(List<YangFeature> listOfFeature) {
         this.listOfFeature = listOfFeature;
     }
+
+    /**
+     * Adds compiler annotation in compiler annotation list.
+     *
+     * @param compilerAnnotation the compiler annotation to be added
+     */
+    public void addCompilerAnnotation(YangCompilerAnnotation compilerAnnotation) {
+        getCompilerAnnotationList().add(compilerAnnotation);
+    }
+
+    /**
+     * Returns the compiler annotation list.
+     *
+     * @return the compiler annotation list
+     */
+    public List<YangCompilerAnnotation> getCompilerAnnotationList() {
+        return compilerAnnotationList;
+    }
+
+    /**
+     * Sets the compiler annotation list.
+     *
+     * @param compilerAnnotationList the list of compiler annotation
+     */
+    public void setCompilerAnnotationList(List<YangCompilerAnnotation> compilerAnnotationList) {
+        this.compilerAnnotationList = compilerAnnotationList;
+    }
+
 
     /**
      * Adds extension in extension list.

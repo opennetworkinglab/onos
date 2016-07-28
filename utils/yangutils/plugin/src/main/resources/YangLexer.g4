@@ -101,6 +101,14 @@ lexer grammar YangLexer;
     UNBOUNDED_KEYWORD   : 'unbounded';
     USER_KEYWORD        : 'user';
     COMPILER_ANNOTATION_KEYWORD : 'compiler-annotation';
+    COMPILER_ANNOTATION : IDENTIFIER COLON COMPILER_ANNOTATION_KEYWORD;
+    APP_DATA_STRUCTURE_KEYWORD : 'app-data-structure';
+    APP_DATA_STRUCTURE : IDENTIFIER COLON APP_DATA_STRUCTURE_KEYWORD;
+    DATA_STRUCTURE_KEYWORD : 'data-structure';
+    DATA_STRUCTURE : IDENTIFIER COLON DATA_STRUCTURE_KEYWORD;
+    DATA_STRUCTURE_KEY : IDENTIFIER COLON KEY_KEYWORD;
+    APP_EXTENDED_KEYWORD : 'app-extended-name';
+    APP_EXTENDED : IDENTIFIER COLON APP_EXTENDED_KEYWORD;
 
     // Lexer tokens to be skipped
     COMMENT
@@ -117,18 +125,11 @@ lexer grammar YangLexer;
     DATE_ARG            : DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT;
     LEFT_CURLY_BRACE    : '{';
     RIGHT_CURLY_BRACE   : '}';
-    LEFT_ROUND_BRACE    : '(';
-    RIGHT_ROUND_BRACE   : ')';
-    ANNOTATION_START    : '@';
-    ANNOTATION_IDENTIFIER : ('@')(ALPHA | '_')
-                              (ALPHA | DIGIT | '_' | '-' | '.')*;
     IDENTIFIER          : (ALPHA | '_')
                           (ALPHA | DIGIT | '_' | '-' | '.')*;
     STMTEND             : ';';
     DQUOTE              : '"';
     COLON               : ':';
-    COMMA               : ',';
-    EQUAL               : '=';
     PLUS : '+';
     MINUS: '-';
 

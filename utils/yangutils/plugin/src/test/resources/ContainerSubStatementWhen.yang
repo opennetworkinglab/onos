@@ -1,8 +1,11 @@
 module Test {
     yang-version 1;
-    namespace http://huawei.com;
+    namespace "http://huawei.com";
     prefix Ant;
     list interface-switching-capability {
+         when "../switching-capability = 'TDM'" {
+                 description "Valid only for TDM";
+         }
          key "switching-capability";
          description
            "List of Interface Switching Capabilities Descriptors (ISCD)

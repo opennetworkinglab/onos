@@ -1,0 +1,37 @@
+module ietf-network-topology {
+    yang-version 1;
+    namespace "ietf-vidya-topology";
+    prefix lnk;
+
+    import ietf-network {
+        prefix nd;
+    }
+
+    revision 2015-12-08 {
+        description
+         "Initial revision.
+          NOTE TO RFC EDITOR: Please replace the following reference
+          to draft-ietf-i2rs-yang-network-topo-02 with
+          RFC number when published (i.e. RFC xxxx).";
+        reference
+          "draft-ietf-i2rs-yang-network-topo-02.";
+    }
+
+    augment "/nd:networks/nd:network" {
+        list link {
+            key "link-id";
+            container source {
+                leaf source-node {
+                    type string;
+                    mandatory true;
+                }
+                leaf source-tp {
+                    type string;
+                }
+            }
+            leaf link-id {
+                type string;
+            }
+        }
+    }
+}

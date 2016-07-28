@@ -1026,4 +1026,28 @@ public final class ListenerUtil {
             throw parserException;
         }
     }
+
+    /**
+     * Checks and return valid prefix.
+     *
+     * @param inputString   string from yang file
+     * @param yangConstruct yang construct for creating error message
+     * @param ctx           yang construct's context to get the line number and character position
+     * @return valid prefix
+     */
+    public static String getValidPrefix(String inputString,
+                                        YangConstructType yangConstruct, ParserRuleContext ctx) {
+        String tmpPrefixString = removeQuotesAndHandleConcat(inputString);
+        String[] tmpData = tmpPrefixString.split(Pattern.quote(COLON));
+        if (tmpData.length == 2) {
+            return tmpData[0];
+        } else {
+            ParserException parserException = new ParserException("YANG file error : " +
+                    YangConstructType.getYangConstructType(yangConstruct) + " name " + inputString +
+                    " is not valid.");
+            parserException.setLine(ctx.getStart().getLine());
+            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+            throw parserException;
+        }
+    }
 }

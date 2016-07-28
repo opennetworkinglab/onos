@@ -1,0 +1,65 @@
+module ietf-te-topology {
+    yang-version 1;
+    namespace "ietf-te-topology";
+    prefix "tet";
+
+    import ietf-te-types {
+        prefix "te-types";
+    }
+
+    import ietf-network {
+        prefix "nw";
+    }
+
+    import ietf-network-topology {
+        prefix "nt";
+    }
+
+    revision "2016-03-17" {
+        description "Initial revision";
+        reference "TBD";
+    }
+
+    grouping te-link-augment {
+        container te {
+            container config {
+                uses te-link-config;
+            } // config
+        } // te
+    } // te-link-augment
+
+    grouping te-link-config {
+        uses te-link-config-attributes;
+    } // te-link-config
+
+    grouping te-link-config-attributes {
+        container te-link-attributes {
+            container underlay {
+                uses te-link-underlay-attributes;
+            } // underlay
+        } // te-link-attributes
+    } // te-link-config-attributes
+
+    grouping te-link-underlay-attributes {
+        container underlay-primary-path {
+            list path-element {
+                key "path-element-id";
+                description
+                    "A list of path elements describing the service path.";
+                leaf path-element-id {
+                    type uint32;
+                    description "To identify the element in a path.";
+                }
+                uses te-path-element;
+            }
+        } // underlay-primary-path
+    } // te-link-underlay-attributes
+
+    grouping te-path-element {
+        uses te-types:explicit-route-subobject;
+    } // te-path-element
+
+    augment "/nw:networks/nw:network/nt:link" {
+        uses te-link-augment;
+    }
+}

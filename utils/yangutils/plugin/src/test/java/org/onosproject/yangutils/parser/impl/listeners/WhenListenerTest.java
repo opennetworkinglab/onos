@@ -16,6 +16,8 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import java.io.IOException;
+import java.util.ListIterator;
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangContainer;
 import org.onosproject.yangutils.datamodel.YangLeaf;
@@ -24,9 +26,6 @@ import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-
-import java.io.IOException;
-import java.util.ListIterator;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -49,12 +48,12 @@ public class WhenListenerTest {
         assertThat(yangNode.getName(), is("Test"));
 
         YangList yangList = (YangList) yangNode.getChild();
+        String expectedConstraint = "../switching-capability = 'TDM'";
         assertThat(yangList.getName(), is("interface-switching-capability"));
+        assertThat(yangList.getWhen().getCondition(), is(expectedConstraint));
 
         YangContainer container = (YangContainer) yangList.getNextSibling();
         assertThat(container.getName(), is("time-division-multiplex-capable"));
-
-        String expectedConstraint = "../switching-capability = 'TDM'";
         assertThat(container.getWhen().getCondition(), is(expectedConstraint));
     }
 

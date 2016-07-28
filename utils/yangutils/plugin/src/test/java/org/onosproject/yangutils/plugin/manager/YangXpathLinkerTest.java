@@ -18,7 +18,6 @@ package org.onosproject.yangutils.plugin.manager;
 
 import java.io.IOException;
 import java.util.List;
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.ResolvableType;
@@ -32,6 +31,7 @@ import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.onosproject.yangutils.linker.impl.YangLinkerUtils.updateFilePriority;
 
 /**
  * Unit test cases for x-path linker.
@@ -237,6 +237,7 @@ public class YangXpathLinkerTest {
         utilManager.parseYangFileInfoSet();
         utilManager.createYangNodeSet();
         linkerManager.createYangNodeSet(utilManager.getYangNodeSet());
+        updateFilePriority(utilManager.getYangNodeSet());
         linkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
         YangNode targetNode = null;
@@ -267,6 +268,7 @@ public class YangXpathLinkerTest {
         utilManager.parseYangFileInfoSet();
         utilManager.createYangNodeSet();
         linkerManager.createYangNodeSet(utilManager.getYangNodeSet());
+        updateFilePriority(utilManager.getYangNodeSet());
         linkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
         YangNode targetNode = null;
@@ -451,6 +453,7 @@ public class YangXpathLinkerTest {
         linkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
         linkerManager.linkSubModulesToParentModule(utilManager.getYangNodeSet());
         linkerManager.addRefToYangFilesIncludeList(utilManager.getYangNodeSet());
+        updateFilePriority(utilManager.getYangNodeSet());
         linkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
         YangNode targetNode = null;
@@ -484,6 +487,7 @@ public class YangXpathLinkerTest {
         linkerManager.linkSubModulesToParentModule(utilManager.getYangNodeSet());
         linkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
         linkerManager.addRefToYangFilesIncludeList(utilManager.getYangNodeSet());
+        updateFilePriority(utilManager.getYangNodeSet());
         linkerManager.processInterFileLinking(utilManager.getYangNodeSet());
         YangNode targetNode = null;
         String targetNodeName = null;
@@ -516,6 +520,7 @@ public class YangXpathLinkerTest {
         linkerManager.linkSubModulesToParentModule(utilManager.getYangNodeSet());
         linkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
         linkerManager.addRefToYangFilesIncludeList(utilManager.getYangNodeSet());
+        updateFilePriority(utilManager.getYangNodeSet());
         linkerManager.processInterFileLinking(utilManager.getYangNodeSet());
         YangNode targetNode = null;
         String targetNodeName = null;
@@ -548,6 +553,7 @@ public class YangXpathLinkerTest {
         linkerManager.linkSubModulesToParentModule(utilManager.getYangNodeSet());
         linkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
         linkerManager.addRefToYangFilesIncludeList(utilManager.getYangNodeSet());
+        updateFilePriority(utilManager.getYangNodeSet());
         linkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
         YangNode targetNode = null;
@@ -581,6 +587,7 @@ public class YangXpathLinkerTest {
         linkerManager.createYangNodeSet(utilManager.getYangNodeSet());
         linkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
         linkerManager.addRefToYangFilesIncludeList(utilManager.getYangNodeSet());
+        updateFilePriority(utilManager.getYangNodeSet());
         linkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
         YangNode targetNode = null;
@@ -614,6 +621,7 @@ public class YangXpathLinkerTest {
         linkerManager.linkSubModulesToParentModule(utilManager.getYangNodeSet());
         linkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
         linkerManager.addRefToYangFilesIncludeList(utilManager.getYangNodeSet());
+        updateFilePriority(utilManager.getYangNodeSet());
         linkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
         YangNode targetNode = null;

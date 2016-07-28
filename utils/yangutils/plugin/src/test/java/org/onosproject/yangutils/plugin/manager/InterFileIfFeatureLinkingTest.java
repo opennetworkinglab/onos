@@ -36,6 +36,7 @@ import static org.hamcrest.core.Is.is;
 import static org.onosproject.yangutils.datamodel.YangNodeType.MODULE_NODE;
 import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.INTRA_FILE_RESOLVED;
 import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.RESOLVED;
+import static org.onosproject.yangutils.linker.impl.YangLinkerUtils.updateFilePriority;
 
 /**
  * Test cases for testing inter file linking.
@@ -66,6 +67,8 @@ public class InterFileIfFeatureLinkingTest {
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        updateFilePriority(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
@@ -137,6 +140,8 @@ public class InterFileIfFeatureLinkingTest {
         // Add references to include list.
         yangLinkerManager.addRefToYangFilesIncludeList(utilManager.getYangNodeSet());
 
+        updateFilePriority(utilManager.getYangNodeSet());
+
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
@@ -200,6 +205,9 @@ public class InterFileIfFeatureLinkingTest {
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        // Update the priority for all the files.
+        updateFilePriority(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
@@ -272,6 +280,8 @@ public class InterFileIfFeatureLinkingTest {
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
 
+        updateFilePriority(utilManager.getYangNodeSet());
+
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
@@ -336,6 +346,8 @@ public class InterFileIfFeatureLinkingTest {
 
         // Add references to import list.
         yangLinkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+
+        updateFilePriority(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());
@@ -408,6 +420,8 @@ public class InterFileIfFeatureLinkingTest {
 
         // Add references to include list.
         yangLinkerManager.addRefToYangFilesIncludeList(utilManager.getYangNodeSet());
+
+        updateFilePriority(utilManager.getYangNodeSet());
 
         // Carry out inter-file linking.
         yangLinkerManager.processInterFileLinking(utilManager.getYangNodeSet());

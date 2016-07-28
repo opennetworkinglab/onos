@@ -1,0 +1,19 @@
+module ietf-te-types {
+
+    namespace "ietf-te-types";
+    prefix "te-types";
+
+    revision 2016-03-20 {
+        description "Latest revision of TE generic types";
+        reference "RFC3209";
+    }
+    grouping explicit-route-subobject {
+        choice type {
+            case ipv4-address {
+                leaf v4-address {
+                    type string;
+                }
+            }
+        }
+    }
+}

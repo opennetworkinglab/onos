@@ -1,0 +1,30 @@
+module ietf-network {
+    yang-version 1;
+    namespace "ietf-network";
+    prefix nd;
+
+    revision 2015-12-08 {
+        description
+         "Initial revision.
+          NOTE TO RFC EDITOR: Please replace the following reference
+          to draft-ietf-i2rs-yang-network-topo-02 with
+          RFC number when published (i.e. RFC xxxx).";
+         reference
+          "draft-ietf-i2rs-yang-network-topo-02";
+    }
+
+    container networks {
+        list network {
+            key "network-id";
+            leaf network-id {
+                type string;
+            }
+            list node {
+                key "node-id";
+                leaf node-id {
+                    type string;
+                }
+            }
+        }
+    }
+}
