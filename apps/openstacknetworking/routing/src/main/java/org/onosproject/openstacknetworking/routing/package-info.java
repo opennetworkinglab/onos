@@ -15,6 +15,8 @@
  */
 
 /**
- * Application for OpenstackRouting.
+ * Implements OpenStack L3 service plugin, which routes packets between subnets,
+ * forwards packets from internal networks to external ones, and accesses instances
+ * from external networks through floating IPs.
  */
 package org.onosproject.openstacknetworking.routing;

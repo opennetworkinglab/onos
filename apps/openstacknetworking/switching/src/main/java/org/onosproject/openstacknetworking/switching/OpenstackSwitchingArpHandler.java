@@ -40,6 +40,7 @@ import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackNetwork;
 import org.onosproject.openstackinterface.OpenstackPort;
+import org.onosproject.openstacknetworking.AbstractVmHandler;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,12 +55,11 @@ import static org.onosproject.openstacknetworking.Constants.*;
  * Handles ARP packet from VMs.
  */
 @Component(immediate = true)
-public final class OpenstackArpHandler extends AbstractVmHandler {
+public final class OpenstackSwitchingArpHandler extends AbstractVmHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String GATEWAY_MAC = "gatewayMac";
-    private static final String DEFAULT_GATEWAY_MAC = "1f:1f:1f:1f:1f:1f";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
@@ -67,9 +67,9 @@ public final class OpenstackArpHandler extends AbstractVmHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackInterfaceService openstackService;
 
-    @Property(name = GATEWAY_MAC, value = DEFAULT_GATEWAY_MAC,
+    @Property(name = GATEWAY_MAC, value = DEFAULT_GATEWAY_MAC_STR,
             label = "Fake MAC address for virtual network subnet gateway")
-    private String gatewayMac = DEFAULT_GATEWAY_MAC;
+    private String gatewayMac = DEFAULT_GATEWAY_MAC_STR;
 
     private final InternalPacketProcessor packetProcessor = new InternalPacketProcessor();
     private final Set<Ip4Address> gateways = Sets.newConcurrentHashSet();

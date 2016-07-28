@@ -20,7 +20,7 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * An Openstack Neutron Router Interface Model.
+ * An OpenStack Neutron router interface model.
  */
 public final class OpenstackRouterInterface {
     private final String id;
@@ -37,9 +37,9 @@ public final class OpenstackRouterInterface {
     }
 
     /**
-     * Returns Router Interface ID.
+     * Returns router interface ID.
      *
-     * @return router interface ID
+     * @return router interface id
      */
     public String id() {
         return id;
@@ -48,7 +48,7 @@ public final class OpenstackRouterInterface {
     /**
      * Returns tenant ID.
      *
-     * @return tenant ID
+     * @return tenant id
      */
     public String tenantId() {
         return tenantId;
@@ -57,7 +57,7 @@ public final class OpenstackRouterInterface {
     /**
      * Returns subnet ID.
      *
-     * @return subnet ID
+     * @return subnet id
      */
     public String subnetId() {
         return subnetId;
@@ -66,7 +66,7 @@ public final class OpenstackRouterInterface {
     /**
      * Returns port ID.
      *
-     * @return port ID
+     * @return port id
      */
     public String portId() {
         return portId;
@@ -96,7 +96,16 @@ public final class OpenstackRouterInterface {
     }
 
     /**
-     * An Openstack Router Interface Builder class.
+     * Returns OpenStack router interface builder.
+     *
+     * @return openstack router interface builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * An OpenStack Router interface builder class.
      */
     public static final class Builder {
         private String id;
@@ -105,10 +114,10 @@ public final class OpenstackRouterInterface {
         private String portId;
 
         /**
-         * Sets Router Interface ID.
+         * Sets router interface ID.
          *
-         * @param id router interface ID
-         * @return Builder object
+         * @param id router interface id
+         * @return builder object
          */
         public Builder id(String id) {
             this.id = id;
@@ -119,7 +128,7 @@ public final class OpenstackRouterInterface {
          * Sets tenant ID.
          *
          * @param tenantId tenant ID
-         * @return Builder object
+         * @return builder object
          */
         public Builder tenantId(String tenantId) {
             this.tenantId = tenantId;
@@ -130,7 +139,7 @@ public final class OpenstackRouterInterface {
          * Sets subnet ID.
          *
          * @param subnetId subnet ID
-         * @return Builder object
+         * @return builder object
          */
         public Builder subnetId(String subnetId) {
             this.subnetId = subnetId;
@@ -141,7 +150,7 @@ public final class OpenstackRouterInterface {
          * Sets port ID.
          *
          * @param portId port ID
-         * @return Builder object
+         * @return builder object
          */
         public Builder portId(String portId) {
             this.portId = portId;
@@ -149,14 +158,13 @@ public final class OpenstackRouterInterface {
         }
 
         /**
-         * Builds an Openstack Router Interface object.
+         * Builds an OpenStack router interface object.
          *
-         * @return OpenstackRouterInterface object
+         * @return openstack router interface object
          */
         public OpenstackRouterInterface build() {
             return new OpenstackRouterInterface(checkNotNull(id), checkNotNull(tenantId),
                     checkNotNull(subnetId), checkNotNull(portId));
         }
-
     }
 }

@@ -30,6 +30,7 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.TpPort;
 import org.onlab.util.Tools;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -43,6 +44,7 @@ import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstackinterface.OpenstackSecurityGroup;
 import org.onosproject.openstackinterface.OpenstackSecurityGroupRule;
 import org.onosproject.openstacknetworking.OpenstackSecurityGroupService;
+import org.onosproject.openstacknetworking.AbstractVmHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +62,7 @@ import static org.onosproject.openstacknetworking.Constants.*;
  */
 @Component(immediate = true)
 @Service
-public class OpenstackSecurityGroupRulePopulator extends AbstractVmHandler
+public class OpenstackSecurityGroupManager extends AbstractVmHandler
         implements OpenstackSecurityGroupService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -77,10 +79,12 @@ public class OpenstackSecurityGroupRulePopulator extends AbstractVmHandler
     private static final String ETHTYPE_IPV4 = "IPV4";
 
     private final Map<Host, Set<SecurityGroupRule>> securityGroupRuleMap = Maps.newConcurrentMap();
+    private ApplicationId appId;
 
     @Activate
     protected void activate() {
         super.activate();
+        appId = coreService.registerApplication(SWITCHING_APP_ID);
     }
 
     @Deactivate
@@ -96,7 +100,7 @@ public class OpenstackSecurityGroupRulePopulator extends AbstractVmHandler
 
         Optional<Host> host = getVmByPortId(osPort.id());
         if (!host.isPresent()) {
-            log.warn("No host found with {}", osPort);
+            log.debug("No host found with {}", osPort.id());
             return;
         }
         eventExecutor.execute(() -> updateSecurityGroupRules(host.get(), true));

@@ -15,76 +15,49 @@
  */
 package org.onosproject.openstacknetworking;
 
-import org.onosproject.openstackinterface.OpenstackFloatingIP;
 import org.onosproject.openstackinterface.OpenstackRouter;
 import org.onosproject.openstackinterface.OpenstackRouterInterface;
 
 /**
- * Supports L3 management REST API for openstack.
+ * Handles router update requests from OpenStack.
  */
 public interface OpenstackRoutingService {
 
     /**
-     * Stores the floating IP information created by openstack.
+     * Handles the router create request from OpenStack.
      *
-     * @param openstackFloatingIp Floating IP information
+     * @param osRouter router information
      */
-    void createFloatingIP(OpenstackFloatingIP openstackFloatingIp);
+    void createRouter(OpenstackRouter osRouter);
 
     /**
-     * Updates flow rules corresponding to the floating IP information updated by openstack.
+     * Handles the router update request from OpenStack.
+     * Update router is called when the name, administrative state, or the external
+     * gateway setting is updated. The external gateway update is the only case
+     * that openstack routing service cares.
      *
-     * @param openstackFloatingIp Floating IP information
+     * @param osRouter router information
      */
-    void updateFloatingIP(OpenstackFloatingIP openstackFloatingIp);
+    void updateRouter(OpenstackRouter osRouter);
 
     /**
-     * Removes flow rules corresponding to floating IP information removed by openstack.
+     * Handles the router remove request from OpenStack.
      *
-     * @param id Deleted Floating IP`s ID
+     * @param osRouterId identifier of the router
      */
-    void deleteFloatingIP(String id);
+    void removeRouter(String osRouterId);
 
     /**
-     * Stores the router information created by openstack.
+     * Handles router interface add request from OpenStack.
      *
-     * @param openstackRouter Router information
+     * @param osInterface router interface information
      */
-    void createRouter(OpenstackRouter openstackRouter);
+    void addRouterInterface(OpenstackRouterInterface osInterface);
 
     /**
-     * Updates flow rules corresponding to the router information updated by openstack.
+     * Handles router interface remove request from OpenStack.
      *
-     * @param openstackRouter Router information
+     * @param osInterface router interface information
      */
-    void updateRouter(OpenstackRouter openstackRouter);
-
-    /**
-     * Removes flow rules corresponding to the router information removed by openstack.
-     *
-     * @param id Deleted router`s ID
-     */
-    void deleteRouter(String id);
-
-    /**
-     * Updates flow rules corresponding to the router information updated by openstack.
-     *
-     * @param openstackRouterInterface Router interface information
-     */
-    void updateRouterInterface(OpenstackRouterInterface openstackRouterInterface);
-
-    /**
-     * Removes flow rules corresponding to the router information removed by openstack.
-     *
-     * @param openstackRouterInterface Router interface information
-     */
-    void removeRouterInterface(OpenstackRouterInterface openstackRouterInterface);
-
-    /**
-     * Returns network id for routerInterface.
-     *
-     * @param portId routerInterface`s port id
-     * @return network id
-     */
-    String networkIdForRouterInterface(String portId);
+    void removeRouterInterface(OpenstackRouterInterface osInterface);
 }

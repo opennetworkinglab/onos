@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacknetworking.switching;
+package org.onosproject.openstacknetworking;
 
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ip4Address;
 import org.onlab.util.Tools;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Host;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
-import org.onosproject.openstacknetworking.Constants;
 import org.slf4j.Logger;
 
 import java.util.Objects;
@@ -53,7 +51,6 @@ public abstract class AbstractVmHandler {
     protected MastershipService mastershipService;
     protected HostService hostService;
 
-    protected ApplicationId appId;
     protected HostListener hostListener = new InternalHostListener();
 
     protected void activate() {
@@ -61,8 +58,6 @@ public abstract class AbstractVmHandler {
         coreService = services.get(CoreService.class);
         mastershipService = services.get(MastershipService.class);
         hostService = services.get(HostService.class);
-
-        appId = coreService.registerApplication(Constants.APP_ID);
         hostService.addListener(hostListener);
 
         log.info("Started");
@@ -75,9 +70,19 @@ public abstract class AbstractVmHandler {
         log.info("Stopped");
     }
 
-    abstract void hostDetected(Host host);
+    /**
+     * Performs any action when a host is detected.
+     *
+     * @param host detected host
+     */
+    protected abstract void hostDetected(Host host);
 
-    abstract void hostRemoved(Host host);
+    /**
+     * Performs any action when a host is removed.
+     *
+     * @param host removed host
+     */
+    protected abstract void hostRemoved(Host host);
 
     protected boolean isValidHost(Host host) {
         return !host.ipAddresses().isEmpty() &&

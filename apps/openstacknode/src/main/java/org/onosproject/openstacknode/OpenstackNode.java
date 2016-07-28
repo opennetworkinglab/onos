@@ -28,6 +28,7 @@ import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.openstacknode.Constants.PATCH_INTG_BRIDGE;
 import static org.onosproject.openstacknode.OpenstackNodeEvent.NodeState.INIT;
 
 /**
@@ -180,6 +181,20 @@ public final class OpenstackNode {
      */
     public DeviceId ovsdbId() {
         return DeviceId.deviceId("ovsdb:" + managementIp.toString());
+    }
+
+    /**
+     * Returns the name of the port connected to the external network.
+     * It returns valid value only if the node is gateway node.
+     *
+     * @return external port name
+     */
+    public Optional<String> externalPortName() {
+        if (type == NodeType.GATEWAY) {
+            return Optional.of(PATCH_INTG_BRIDGE);
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
