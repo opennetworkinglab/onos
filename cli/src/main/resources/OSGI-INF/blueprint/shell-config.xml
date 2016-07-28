@@ -463,6 +463,13 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.net.PortQueryVlansCommand"/>
+            <completers>
+                <ref component-id="connectPointCompleter"/>
+            </completers>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.net.TableStatisticsCommand"/>
         </command>
 
