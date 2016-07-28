@@ -205,7 +205,9 @@ public class VirtualNetworkIntentService extends AbstractListenerManager<IntentE
     @Override
     public IntentState getIntentState(Key intentKey) {
         checkNotNull(intentKey, KEY_NULL);
-        return store.getIntentData(intentKey).state();
+        return Optional.ofNullable(store.getIntentData(intentKey))
+                .map(IntentData::state)
+                .orElse(null);
     }
 
     @Override
