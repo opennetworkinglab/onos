@@ -1,4 +1,3 @@
-#FIXME - these should be shared with bucklets
 ONOS_ORIGIN = 'ON.Lab'
 ONOS_GROUP_ID = 'org.onosproject'
 ONOS_VERSION = '1.7.0-SNAPSHOT'

@@ -9,10 +9,7 @@ TEST = 'src/test/java/**/'
 RESOURCES_ROOT = 'src/main/resources/'
 TEST_RESOURCES_ROOT = 'src/test/resources/'
 
-
-ONOS_GROUP_ID = 'org.onosproject'
-ONOS_VERSION = '1.7.0-SNAPSHOT'
-ONOS_ARTIFACT_BASE = 'onos-'
+include_defs('//onos.defs')
 
 def _get_name():
     base_path = get_base_path()
