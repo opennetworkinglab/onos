@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-present Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Timer;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -159,6 +160,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     label = "Frequency (in seconds) for polling switch Port statistics")
     private int portStatsPollFrequency = POLL_INTERVAL;
 
+    private final Timer timer = new Timer("onos-openflow-collector");
+
     private HashMap<Dpid, PortStatsCollector> collectors = Maps.newHashMap();
 
     /**
@@ -221,7 +224,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 // disconnect to trigger switch-add later
                 sw.disconnectSwitch();
             }
-            PortStatsCollector psc = new PortStatsCollector(sw, portStatsPollFrequency);
+            PortStatsCollector psc = new PortStatsCollector(timer, sw, portStatsPollFrequency);
             psc.start();
             collectors.put(new Dpid(sw.getId()), psc);
         }
@@ -382,7 +385,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             providerService.deviceConnected(did, description);
             providerService.updatePorts(did, buildPortDescriptions(sw));
 
-            PortStatsCollector psc = new PortStatsCollector(sw, portStatsPollFrequency);
+            PortStatsCollector psc = new PortStatsCollector(timer, sw, portStatsPollFrequency);
             stopCollectorIfNeeded(collectors.put(dpid, psc));
             psc.start();
 
