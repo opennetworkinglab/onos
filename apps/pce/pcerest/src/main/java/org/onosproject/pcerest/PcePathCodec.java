@@ -21,6 +21,8 @@ import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.pce.pceservice.PcePath;
 import org.onosproject.pce.pceservice.DefaultPcePath;
+import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import org.onosproject.pce.pceservice.constraint.CostConstraint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +72,11 @@ public final class PcePathCodec extends JsonCodec<PcePath> {
         jNode = json.get(LSP_TYPE);
         if (jNode != null) {
             String lspType = jNode.asText();
+            //Validating LSP type
+            int type = Integer.parseInt(lspType);
+            if ((type < 0) || (type > 2)) {
+                return null;
+            }
             resultBuilder.lspType(lspType);
         }
 
@@ -87,6 +94,11 @@ public final class PcePathCodec extends JsonCodec<PcePath> {
             jNode = constraintJNode.get(COST);
             if (jNode != null) {
                 String cost = jNode.asText();
+                //Validating Cost type
+                int costType = Integer.parseInt(cost);
+                if ((costType < 1) || (costType > 2)) {
+                    return null;
+                }
                 resultBuilder.costConstraint(cost);
             }
 
@@ -94,6 +106,10 @@ public final class PcePathCodec extends JsonCodec<PcePath> {
             jNode = constraintJNode.get(BANDWIDTH);
             if (jNode != null) {
                 String bandwidth = jNode.asText();
+                double bw = Double.parseDouble(bandwidth);
+                if (bw < 0) {
+                    return null;
+                }
                 resultBuilder.bandwidthConstraint(bandwidth);
             }
         }
@@ -114,8 +130,8 @@ public final class PcePathCodec extends JsonCodec<PcePath> {
 
         ObjectNode constraintNode = context.mapper()
                 .createObjectNode()
-                .put(COST, path.costConstraint().toString())
-                .put(BANDWIDTH, path.bandwidthConstraint().toString());
+                .put(COST, ((CostConstraint) path.costConstraint()).type().type())
+                .put(BANDWIDTH, ((BandwidthConstraint) path.bandwidthConstraint()).bandwidth().bps());
 
         result.set(CONSTRAINT, constraintNode);
         return result;

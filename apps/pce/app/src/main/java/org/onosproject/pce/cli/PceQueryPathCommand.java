@@ -80,7 +80,8 @@ public class PceQueryPathCommand extends AbstractShellCommand {
                 "constraints:            \n" +
                 "   cost            : %s \n" +
                 "   bandwidth       : %s",
-                tunnel.tunnelId().id(), tunnel.src().toString(), tunnel.dst().toString(),
+                tunnel.tunnelId().id(), tunnel.path().src().deviceId().toString(),
+                tunnel.path().dst().deviceId().toString(),
                 tunnel.type().name(), tunnel.tunnelName(), tunnel.annotations().value(COST_TYPE),
                 tunnel.annotations().value(AnnotationKeys.BANDWIDTH));
     }
