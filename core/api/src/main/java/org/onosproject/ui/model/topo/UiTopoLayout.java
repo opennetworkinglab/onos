@@ -39,7 +39,8 @@ public class UiTopoLayout {
     public UiTopoLayout(UiTopoLayoutId id, Region region, UiTopoLayoutId parent) {
         this.id = id;
         this.region = region;
-        this.parent = parent;
+        // NOTE: root layout is its own parent...
+        this.parent = parent != null ? parent : this.id;
     }
 
     @Override
@@ -85,5 +86,13 @@ public class UiTopoLayout {
         return parent;
     }
 
-    // TODO: additional properties pertinent to the layout
+    /**
+     * Returns true if this layout instance is at the top of the
+     * hierarchy tree.
+     *
+     * @return true if this is the root layout
+     */
+    public boolean isRoot() {
+        return id.equals(parent);
+    }
 }

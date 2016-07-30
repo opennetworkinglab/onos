@@ -111,15 +111,17 @@ public class UiTopoLayoutManager implements UiTopoLayoutService {
     }
 
     @Override
-    public Set<UiTopoLayout> getPeers(UiTopoLayoutId layoutId) {
+    public Set<UiTopoLayout> getPeerLayouts(UiTopoLayoutId layoutId) {
         checkNotNull(layoutId, ID_NULL);
+
         UiTopoLayout layout = layoutMap.get(layoutId);
-        if (layout == null) {
+        if (layout == null || layout.isRoot()) {
             return Collections.emptySet();
         }
 
         UiTopoLayoutId parentId = layout.parent();
         return layoutMap.values().stream()
+                // all layouts who are NOT me and who share my parent...
                 .filter(l -> !Objects.equals(l.id(), layoutId) &&
                         Objects.equals(l.parent(), parentId))
                 .collect(Collectors.toSet());
@@ -129,7 +131,7 @@ public class UiTopoLayoutManager implements UiTopoLayoutService {
     public Set<UiTopoLayout> getChildren(UiTopoLayoutId layoutId) {
         checkNotNull(layoutId, ID_NULL);
         return layoutMap.values().stream()
-                .filter(l -> Objects.equals(l.parent(), layoutId))
+                .filter(l -> !l.isRoot() && Objects.equals(l.parent(), layoutId))
                 .collect(Collectors.toSet());
     }
 

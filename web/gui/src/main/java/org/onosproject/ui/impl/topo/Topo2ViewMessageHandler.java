@@ -24,6 +24,7 @@ import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.impl.UiWebSocket;
 import org.onosproject.ui.model.topo.UiClusterMember;
+import org.onosproject.ui.model.topo.UiNode;
 import org.onosproject.ui.model.topo.UiRegion;
 import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.slf4j.Logger;
@@ -55,8 +56,9 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     // === Inbound event identifiers
-    private static final String TOPO2_START = "topo2Start";
-    private static final String TOPO2_STOP = "topo2Stop";
+    private static final String START = "topo2Start";
+    private static final String NAV_REGION = "topo2navRegion";
+    private static final String STOP = "topo2Stop";
 
     // === Outbound event identifiers
     private static final String ALL_INSTANCES = "topo2AllInstances";
@@ -83,6 +85,7 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
     protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
                 new Topo2Start(),
+                new Topo2NavRegion(),
                 new Topo2Stop()
         );
     }
@@ -92,7 +95,7 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
 
     private final class Topo2Start extends RequestHandler {
         private Topo2Start() {
-            super(TOPO2_START);
+            super(START);
         }
 
         @Override
@@ -124,10 +127,10 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
             Set<UiRegion> kids = topoSession.getSubRegions(currentLayout);
             sendMessage(CURRENT_REGION, t2json.region(region, kids));
 
-            // these are the regions that are siblings to this one
-            Set<UiRegion> peers = topoSession.getPeerRegions(currentLayout);
+            // these are the regions/devices that are siblings to this region
+            Set<UiNode> peers = topoSession.getPeerNodes(currentLayout);
             ObjectNode peersPayload = objectNode();
-            peersPayload.set("peers", t2json.closedRegions(peers));
+            peersPayload.set("peers", t2json.closedNodes(peers));
             sendMessage(PEER_REGIONS, peersPayload);
 
             // finally, tell the UI that we are done : TODO review / delete??
@@ -146,9 +149,22 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
 
     }
 
+    private final class Topo2NavRegion extends RequestHandler {
+        private Topo2NavRegion() {
+            super(NAV_REGION);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            String dir = string(payload, "dir");
+            String rid = string(payload, "rid");
+            log.debug("NavRegion: dir={}, rid={}", dir, rid);
+        }
+    }
+
     private final class Topo2Stop extends RequestHandler {
         private Topo2Stop() {
-            super(TOPO2_STOP);
+            super(STOP);
         }
 
         @Override

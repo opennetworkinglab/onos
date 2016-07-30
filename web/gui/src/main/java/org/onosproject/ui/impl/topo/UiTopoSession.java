@@ -23,6 +23,7 @@ import org.onosproject.ui.impl.topo.model.UiModelEvent;
 import org.onosproject.ui.impl.topo.model.UiModelListener;
 import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
 import org.onosproject.ui.model.topo.UiClusterMember;
+import org.onosproject.ui.model.topo.UiNode;
 import org.onosproject.ui.model.topo.UiRegion;
 import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.slf4j.Logger;
@@ -170,17 +171,32 @@ public class UiTopoSession implements UiModelListener {
     }
 
     /**
-     * Returns the regions that are "peers" to this region. That is, based on
-     * the layout the user is viewing, all the regions that are associated with
-     * layouts that share the same parent layout as this layout.
+     * Returns the regions/devices that are "peers" to this region. That is,
+     * based on the layout the user is viewing, all the regions/devices that
+     * are associated with layouts that share the same parent layout as this
+     * layout, AND that are linked to an element within this region.
      *
      * @param layout the layout being viewed
-     * @return all regions that are "siblings" to this layout's region
+     * @return all regions/devices that are "siblings" to this layout's region
      */
-    public Set<UiRegion> getPeerRegions(UiTopoLayout layout) {
-        Set<UiTopoLayout> peerLayouts = layoutService.getPeers(layout.id());
-        Set<UiRegion> peers = new HashSet<>();
-        peerLayouts.forEach(l -> peers.add(sharedModel.getRegion(l.regionId())));
+    public Set<UiNode> getPeerNodes(UiTopoLayout layout) {
+        Set<UiNode> peers = new HashSet<>();
+
+        // first, get the peer regions
+        Set<UiTopoLayout> peerLayouts = layoutService.getPeerLayouts(layout.id());
+        peerLayouts.forEach(l -> {
+            RegionId peerRegion = l.regionId();
+            peers.add(sharedModel.getRegion(peerRegion));
+        });
+
+        // now add the devices that reside in the parent region
+        if (!layout.isRoot()) {
+            UiTopoLayout parentLayout = layoutService.getLayout(layout.parent());
+            getRegion(parentLayout).devices().forEach(peers::add);
+        }
+
+        // TODO: Finally, filter out regions / devices that are not connected
+        //       directly to this region by an implicit link
         return peers;
     }
 

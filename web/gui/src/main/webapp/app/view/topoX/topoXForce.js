@@ -45,7 +45,7 @@
     }
 
     function doTmpCurrentLayout(data) {
-        var topdiv = d3.select('#topo2tmp');
+        var topdiv = d3.select('#topoXtmp');
         var parentRegion = data.parent;
         var span = topdiv.select('.parentRegion').select('span');
         span.text(parentRegion || '[no parent]');
@@ -53,7 +53,7 @@
     }
 
     function doTmpCurrentRegion(data) {
-        var topdiv = d3.select('#topo2tmp');
+        var topdiv = d3.select('#topoXtmp');
         var span = topdiv.select('.thisRegion').select('span');
         var div;
 
@@ -119,13 +119,9 @@
         doTmpCurrentRegion(data);
     }
 
-    function topo2PeerRegions(data) {
+    function peerRegions(data) {
         $log.debug('>> topo2PeerRegions event:', data)
         doTmpPeerRegions(data);
-    }
-
-    function topo2PeerRegions(data) {
-        $log.debug('>> topo2PeerRegions event:', data)
     }
 
     function startDone(data) {
@@ -134,8 +130,8 @@
     
     // ========================== Main Service Definition
 
-    angular.module('ovTopo2')
-    .factory('Topo2ForceService',
+    angular.module('ovTopoX')
+    .factory('TopoXForceService',
         ['$log', 'WebSocketService',
 
         function (_$log_, _wss_) {
@@ -148,7 +144,7 @@
                 topo2AllInstances: allInstances,
                 topo2CurrentLayout: currentLayout,
                 topo2CurrentRegion: currentRegion,
-                topo2PeerRegions: topo2PeerRegions,
+                topo2PeerRegions: peerRegions,
                 topo2StartDone: startDone
             };
         }]);

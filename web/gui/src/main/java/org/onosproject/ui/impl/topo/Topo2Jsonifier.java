@@ -40,6 +40,8 @@ import org.onosproject.ui.model.topo.UiLink;
 import org.onosproject.ui.model.topo.UiNode;
 import org.onosproject.ui.model.topo.UiRegion;
 import org.onosproject.ui.model.topo.UiTopoLayout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,6 +63,12 @@ class Topo2Jsonifier {
             "UiNode.LAYER_DEFAULT not last in layer list";
     private static final String E_UNKNOWN_UI_NODE =
             "Unknown subclass of UiNode: ";
+
+    private static final String REGION = "region";
+    private static final String DEVICE = "device";
+    private static final String HOST = "host";
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -245,6 +253,7 @@ class Topo2Jsonifier {
     private ObjectNode json(UiDevice device) {
         ObjectNode node = objectNode()
                 .put("id", device.idAsString())
+                .put("nodeType", DEVICE)
                 .put("type", device.type())
                 .put("online", device.isOnline())
                 .put("master", nullIsEmpty(device.master()))
@@ -266,6 +275,7 @@ class Topo2Jsonifier {
     private ObjectNode json(UiHost host) {
         return objectNode()
                 .put("id", host.idAsString())
+                .put("nodeType", HOST)
                 .put("layer", host.layer());
         // TODO: complete host details
     }
@@ -281,10 +291,31 @@ class Topo2Jsonifier {
     private ObjectNode jsonClosedRegion(UiRegion region) {
         return objectNode()
                 .put("id", region.idAsString())
+                .put("nodeType", REGION)
                 .put("nDevs", region.deviceCount());
         // TODO: complete closed-region details
     }
 
+    /**
+     * Returns a JSON array representation of a set of regions/devices. Note
+     * that the information is sufficient for showing regions as nodes.
+     *
+     * @param nodes the nodes
+     * @return a JSON representation of the nodes
+     */
+    public ArrayNode closedNodes(Set<UiNode> nodes) {
+        ArrayNode array = arrayNode();
+        for (UiNode node: nodes) {
+            if (node instanceof UiRegion) {
+                array.add(jsonClosedRegion((UiRegion) node));
+            } else if (node instanceof UiDevice) {
+                array.add(json((UiDevice) node));
+            } else {
+                log.warn("Unexpected node instance: {}", node.getClass());
+            }
+        }
+        return array;
+    }
 
     /**
      * Returns a JSON array representation of a list of regions. Note that the

@@ -27,30 +27,28 @@
     'use strict';
 
     // injected refs
-    var $log, wss, t2fs;
+    var $log, wss, tXfs;
 
     // internal state
     var handlerMap,
         openListener;
 
-    // TODO: only add heartbeat timer etc. if we really need to be doing that..
-
     // ========================== Helper Functions
 
     function createHandlerMap() {
         handlerMap = {
-            topo2AllInstances: t2fs,
-            topo2CurrentLayout: t2fs,
-            topo2CurrentRegion: t2fs,
-            topo2PeerRegions: t2fs,
-            topo2StartDone: t2fs
+            topo2AllInstances: tXfs,
+            topo2CurrentLayout: tXfs,
+            topo2CurrentRegion: tXfs,
+            topo2PeerRegions: tXfs,
+            topo2StartDone: tXfs
 
             // Add further event names / module references as needed
         };
     }
 
     function wsOpen(host, url) {
-        $log.debug('topo2Event: WSopen - cluster node:', host, 'URL:', url);
+        $log.debug('topoXEvent: WSopen - cluster node:', host, 'URL:', url);
         // tell the server we are ready to receive topo events
         wss.sendEvent('topo2Start');
     }
@@ -59,7 +57,7 @@
     //  callbacks get invoked for incoming events
     function bindHandlers() {
         wss.bindHandlers(handlerMap);
-        $log.debug('topo2 event handlers bound');
+        $log.debug('topoX event handlers bound');
     }
 
     // tell the server we are ready to receive topology events
@@ -68,7 +66,7 @@
         // listen for wsock-open events
         openListener = wss.addOpenListener(wsOpen);
         wss.sendEvent('topo2Start');
-        $log.debug('topo2 comms started');
+        $log.debug('topoX comms started');
     }
 
     // tell the server we no longer wish to receive topology events
@@ -77,19 +75,19 @@
         wss.unbindHandlers(handlerMap);
         wss.removeOpenListener(openListener);
         openListener = null;
-        $log.debug('topo2 comms stopped');
+        $log.debug('topoX comms stopped');
     }
 
     // ========================== Main Service Definition
 
-    angular.module('ovTopo2')
-    .factory('Topo2EventService',
-        ['$log', 'WebSocketService', 'Topo2ForceService',
+    angular.module('ovTopoX')
+    .factory('TopoXEventService',
+        ['$log', 'WebSocketService', 'TopoXForceService',
 
-        function (_$log_, _wss_, _t2fs_) {
+        function (_$log_, _wss_, _tXfs_) {
             $log = _$log_;
             wss = _wss_;
-            t2fs = _t2fs_;
+            tXfs = _tXfs_;
 
             // deferred creation of handler map, so module references are good
             createHandlerMap();

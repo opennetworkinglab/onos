@@ -63,7 +63,7 @@ public interface UiTopoLayoutService {
      * @param layoutId layout identifier
      * @return set of peer layouts; empty set if layout has no peers
      */
-    Set<UiTopoLayout> getPeers(UiTopoLayoutId layoutId);
+    Set<UiTopoLayout> getPeerLayouts(UiTopoLayoutId layoutId);
 
     /**
      * Returns the set of the child layouts of the specified layout.
