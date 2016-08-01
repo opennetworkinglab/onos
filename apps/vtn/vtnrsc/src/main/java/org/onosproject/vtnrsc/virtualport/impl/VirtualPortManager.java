@@ -150,7 +150,7 @@ implements VirtualPortService {
     public VirtualPort getPort(FixedIp fixedIP) {
         checkNotNull(fixedIP, FIXEDIP_NOT_NULL);
         List<VirtualPort> vPorts = new ArrayList<>();
-        vPortStore.values().stream().forEach(p -> {
+        vPortStore.values().forEach(p -> {
             Iterator<FixedIp> fixedIps = p.fixedIps().iterator();
             while (fixedIps.hasNext()) {
                 if (fixedIps.next().equals(fixedIP)) {

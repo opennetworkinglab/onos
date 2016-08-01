@@ -72,7 +72,7 @@ public class VirtualHostCreateCommand extends AbstractShellCommand {
 
         Set<IpAddress> hostIps = new HashSet<>();
         if (hostIpStrings != null) {
-            Arrays.asList(hostIpStrings).stream().forEach(s -> hostIps.add(IpAddress.valueOf(s)));
+            Arrays.stream(hostIpStrings).forEach(s -> hostIps.add(IpAddress.valueOf(s)));
         }
         HostLocation hostLocation = new HostLocation(DeviceId.deviceId(hostLocationDeviceId),
                                                      PortNumber.portNumber(hostLocationPortNumber),

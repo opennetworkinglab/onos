@@ -400,7 +400,6 @@ public class DefaultFlowRule implements FlowRule {
 
         private int hash() {
             Funnel<TrafficSelector> selectorFunnel = (from, into) -> from.criteria()
-                    .stream()
                     .forEach(c -> into.putString(c.toString(), Charsets.UTF_8));
 
             HashFunction hashFunction = Hashing.murmur3_32();

@@ -321,7 +321,7 @@ public class DistributedGroupStoreTest {
 
         List<GroupEvent> eventsAfterAdds = delegate.eventsSeen();
         assertThat(eventsAfterAdds, hasSize(2));
-        eventsAfterAdds.stream().forEach(event -> assertThat(event.type(), is(GroupEvent.Type.GROUP_ADD_REQUESTED)));
+        eventsAfterAdds.forEach(event -> assertThat(event.type(), is(GroupEvent.Type.GROUP_ADD_REQUESTED)));
         delegate.resetEvents();
 
         GroupOperation opAdd =

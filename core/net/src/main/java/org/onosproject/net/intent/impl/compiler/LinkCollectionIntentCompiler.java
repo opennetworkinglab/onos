@@ -112,8 +112,7 @@ public class LinkCollectionIntentCompiler implements IntentCompiler<LinkCollecti
     private List<FlowRule> createRules(LinkCollectionIntent intent, DeviceId deviceId,
                                        Set<PortNumber> inPorts, Set<PortNumber> outPorts) {
         TrafficTreatment.Builder defaultTreatmentBuilder = DefaultTrafficTreatment.builder();
-        outPorts.stream()
-                .forEach(defaultTreatmentBuilder::setOutput);
+        outPorts.forEach(defaultTreatmentBuilder::setOutput);
         TrafficTreatment outputOnlyTreatment = defaultTreatmentBuilder.build();
         Set<PortNumber> ingressPorts = Collections.emptySet();
         Set<PortNumber> egressPorts = Collections.emptySet();
@@ -138,8 +137,7 @@ public class LinkCollectionIntentCompiler implements IntentCompiler<LinkCollecti
 
             if (!intent.applyTreatmentOnEgress()) {
                 TrafficTreatment.Builder ingressTreatmentBuilder = DefaultTrafficTreatment.builder(intent.treatment());
-                outPorts.stream()
-                        .forEach(ingressTreatmentBuilder::setOutput);
+                outPorts.forEach(ingressTreatmentBuilder::setOutput);
                 intentTreatment = ingressTreatmentBuilder.build();
 
                 if (ingressPorts.contains(inPort)) {
@@ -153,8 +151,7 @@ public class LinkCollectionIntentCompiler implements IntentCompiler<LinkCollecti
                 if (outPorts.stream().allMatch(egressPorts::contains)) {
                     TrafficTreatment.Builder egressTreatmentBuilder =
                             DefaultTrafficTreatment.builder(intent.treatment());
-                    outPorts.stream()
-                            .forEach(egressTreatmentBuilder::setOutput);
+                    outPorts.forEach(egressTreatmentBuilder::setOutput);
 
                     selectorBuilder = DefaultTrafficSelector.builder(intent.selector());
                     treatment = egressTreatmentBuilder.build();

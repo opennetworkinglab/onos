@@ -106,7 +106,7 @@ public class YangXmlUtilsTest {
         List<ControllerInfo> controllers =
                 ImmutableList.of(new ControllerInfo(IpAddress.valueOf("1.1.1.1"), 1, "tcp"),
                                  new ControllerInfo(IpAddress.valueOf("2.2.2.2"), 2, "tcp"));
-        controllers.stream().forEach(cInfo -> {
+        controllers.forEach(cInfo -> {
             elements.add(new YangElement("controller", ImmutableMap.of("id", cInfo.target(),
                                                                        "ip-address", cInfo.ip().toString())));
         });

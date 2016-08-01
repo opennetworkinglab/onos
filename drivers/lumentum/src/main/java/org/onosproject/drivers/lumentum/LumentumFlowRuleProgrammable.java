@@ -153,11 +153,10 @@ public class LumentumFlowRuleProgrammable extends AbstractHandlerBehaviour imple
 
         // Cache the cookie/priority
         CrossConnectCache cache = this.handler().get(CrossConnectCache.class);
-        added.stream()
-                .forEach(xc -> cache.set(
-                        Objects.hash(data().deviceId(), xc.selector(), xc.treatment()),
-                        xc.id(),
-                        xc.priority()));
+        added.forEach(xc -> cache.set(
+                Objects.hash(data().deviceId(), xc.selector(), xc.treatment()),
+                xc.id(),
+                xc.priority()));
 
         return added;
     }
@@ -185,9 +184,8 @@ public class LumentumFlowRuleProgrammable extends AbstractHandlerBehaviour imple
 
         // Remove flow rule from cache
         CrossConnectCache cache = this.handler().get(CrossConnectCache.class);
-        removed.stream()
-                .forEach(xc -> cache.remove(
-                        Objects.hash(data().deviceId(), xc.selector(), xc.treatment())));
+        removed.forEach(xc -> cache.remove(
+                Objects.hash(data().deviceId(), xc.selector(), xc.treatment())));
 
         return removed;
     }

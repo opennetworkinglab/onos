@@ -123,23 +123,20 @@ public class PartitionsListCommand extends AbstractShellCommand {
         ArrayNode partitions = mapper.createArrayNode();
 
         // Create a JSON node for each partition
-        partitionInfo.stream()
-            .forEach(info -> {
-                ObjectNode partition = mapper.createObjectNode();
+        partitionInfo.forEach(info -> {
+            ObjectNode partition = mapper.createObjectNode();
 
-                // Add each member to the "members" array for this partition
-                ArrayNode members = partition.putArray("members");
-                info.members()
-                        .stream()
-                        .forEach(members::add);
+            // Add each member to the "members" array for this partition
+            ArrayNode members = partition.putArray("members");
+            info.members().forEach(members::add);
 
-                // Complete the partition attributes and add it to the array
-                partition.put("name", info.name())
-                         .put("term", info.term())
-                         .put("leader", info.leader());
-                partitions.add(partition);
+            // Complete the partition attributes and add it to the array
+            partition.put("name", info.name())
+                    .put("term", info.term())
+                    .put("leader", info.leader());
+            partitions.add(partition);
 
-            });
+        });
 
         return partitions;
     }
@@ -155,25 +152,24 @@ public class PartitionsListCommand extends AbstractShellCommand {
         ClusterService clusterService = get(ClusterService.class);
 
         // Create a JSON node for each partition client
-        partitionClientInfo.stream()
-            .forEach(info -> {
-                ObjectNode partition = mapper.createObjectNode();
+        partitionClientInfo.forEach(info -> {
+            ObjectNode partition = mapper.createObjectNode();
 
-                // Add each member to the "servers" array for this partition
-                ArrayNode servers = partition.putArray("servers");
-                info.servers()
-                        .stream()
-                        .map(clusterService::getNode)
-                        .map(node -> String.format("%s:%d", node.ip(), node.tcpPort()))
-                        .forEach(servers::add);
+            // Add each member to the "servers" array for this partition
+            ArrayNode servers = partition.putArray("servers");
+            info.servers()
+                    .stream()
+                    .map(clusterService::getNode)
+                    .map(node -> String.format("%s:%d", node.ip(), node.tcpPort()))
+                    .forEach(servers::add);
 
-                // Complete the partition attributes and add it to the array
-                partition.put("partitionId", info.partitionId().toString())
-                         .put("sessionId", info.sessionId())
-                         .put("status", info.status().toString());
-                partitions.add(partition);
+            // Complete the partition attributes and add it to the array
+            partition.put("partitionId", info.partitionId().toString())
+                    .put("sessionId", info.sessionId())
+                    .put("status", info.status().toString());
+            partitions.add(partition);
 
-            });
+        });
 
         return partitions;
     }

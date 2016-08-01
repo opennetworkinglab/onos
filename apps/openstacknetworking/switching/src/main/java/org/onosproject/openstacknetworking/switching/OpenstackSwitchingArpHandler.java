@@ -194,8 +194,7 @@ public final class OpenstackSwitchingArpHandler extends AbstractVmHandler {
             log.warn("Failed to get OpenStack network for {}", host);
             return;
         }
-        osNet.subnets().stream()
-                .forEach(subnet -> gateways.add(Ip4Address.valueOf(subnet.gatewayIp())));
+        osNet.subnets().forEach(subnet -> gateways.add(Ip4Address.valueOf(subnet.gatewayIp())));
     }
 
     @Override

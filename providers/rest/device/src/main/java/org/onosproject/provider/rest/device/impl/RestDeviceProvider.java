@@ -212,7 +212,7 @@ public class RestDeviceProvider extends AbstractProvider
                             deviceAdded(device);
                         });
                 //Removing devices not wanted anymore
-                toBeRemoved.stream().forEach(device -> deviceRemoved(device.deviceId()));
+                toBeRemoved.forEach(device -> deviceRemoved(device.deviceId()));
 
             }
         } catch (ConfigException e) {

@@ -307,7 +307,7 @@ public class MastershipManagerTest {
     private void checkDeviceMasters(Set<DeviceId> deviceIds, Set<NodeId> expectedMasters,
                                      Consumer<DeviceId> checkRole) {
         // each device's master must be contained in the list of expectedMasters
-        deviceIds.stream().forEach(deviceId -> {
+        deviceIds.forEach(deviceId -> {
             assertTrue("wrong master:", expectedMasters.contains(mgr.getMasterFor(deviceId)));
             if (checkRole != null) {
                 checkRole.accept(deviceId);

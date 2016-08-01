@@ -60,13 +60,12 @@ public class MapsListCommand extends AbstractShellCommand {
         ArrayNode maps = mapper.createArrayNode();
 
         // Create a JSON node for each map
-        mapInfo.stream()
-            .forEach(info -> {
-                ObjectNode map = mapper.createObjectNode();
-                map.put("name", info.name())
-                   .put("size", info.size());
-                maps.add(map);
-            });
+        mapInfo.forEach(info -> {
+            ObjectNode map = mapper.createObjectNode();
+            map.put("name", info.name())
+                    .put("size", info.size());
+            maps.add(map);
+        });
 
         return maps;
     }

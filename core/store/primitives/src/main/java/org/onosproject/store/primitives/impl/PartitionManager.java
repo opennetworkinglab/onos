@@ -89,7 +89,6 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
         metadataService.addListener(metadataListener);
         currentClusterMetadata.get()
                        .getPartitions()
-                       .stream()
                        .forEach(partition -> partitions.put(partition.getId(), new StoragePartition(partition,
                                messagingService,
                                clusterService,

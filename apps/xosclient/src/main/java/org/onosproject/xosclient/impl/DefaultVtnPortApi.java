@@ -115,9 +115,9 @@ public final class DefaultVtnPortApi extends XosApi implements VtnPortApi {
         }
 
         Map<IpAddress, MacAddress> addressPairs = Maps.newHashMap();
-        osPort.getAllowedAddressPairs().stream().forEach(
+        osPort.getAllowedAddressPairs().forEach(
                 pair -> addressPairs.put(IpAddress.valueOf(pair.getIpAddress()),
-                                         MacAddress.valueOf(pair.getMacAddress())));
+                        MacAddress.valueOf(pair.getMacAddress())));
 
         return VtnPort.builder()
                 .id(VtnPortId.of(osPort.getId()))

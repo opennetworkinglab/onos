@@ -861,7 +861,7 @@ public class DistributedFlowRuleStore
             try {
                 // compute a mapping from node to the set of devices whose flow entries it should backup
                 Map<NodeId, Set<DeviceId>> devicesToBackupByNode = Maps.newHashMap();
-                flowEntries.keySet().stream().forEach(deviceId -> {
+                flowEntries.keySet().forEach(deviceId -> {
                     List<NodeId> backupNodes = getBackupNodes(deviceId);
                     backupNodes.forEach(backupNode -> {
                             if (lastBackupTimes.getOrDefault(new BackupOperation(backupNode, deviceId), 0L)

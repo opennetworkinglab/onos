@@ -120,13 +120,11 @@ public class LinkCollectionIntentFlowObjectivesCompiler implements IntentCompile
                 .collect(Collectors.toSet());
 
         TrafficTreatment.Builder defaultTreatmentBuilder = DefaultTrafficTreatment.builder();
-        outPorts.stream()
-                .forEach(defaultTreatmentBuilder::setOutput);
+        outPorts.forEach(defaultTreatmentBuilder::setOutput);
         TrafficTreatment defaultTreatment = defaultTreatmentBuilder.build();
 
         TrafficTreatment.Builder ingressTreatmentBuilder = DefaultTrafficTreatment.builder(intent.treatment());
-        outPorts.stream()
-                .forEach(ingressTreatmentBuilder::setOutput);
+        outPorts.forEach(ingressTreatmentBuilder::setOutput);
         TrafficTreatment ingressTreatment = ingressTreatmentBuilder.build();
 
         List<Objective> objectives = new ArrayList<>(inPorts.size());

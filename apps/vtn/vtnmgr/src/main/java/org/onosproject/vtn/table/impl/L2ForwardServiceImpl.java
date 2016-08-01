@@ -83,7 +83,7 @@ public final class L2ForwardServiceImpl implements L2ForwardService {
             log.info("No other host port and tunnel in the device");
             return;
         }
-        Sets.newHashSet(localVmPorts).stream().forEach(lp -> {
+        Sets.newHashSet(localVmPorts).forEach(lp -> {
             TrafficSelector selector = DefaultTrafficSelector.builder()
                     .matchInPort(lp).matchEthDst(MacAddress.BROADCAST)
                     .add(Criteria.matchTunnelId(Long
@@ -124,7 +124,7 @@ public final class L2ForwardServiceImpl implements L2ForwardService {
             log.info("No other host port or tunnel ports in the device");
             return;
         }
-        Sets.newHashSet(localTunnelPorts).stream().forEach(tp -> {
+        Sets.newHashSet(localTunnelPorts).forEach(tp -> {
             TrafficSelector selector = DefaultTrafficSelector.builder()
                     .matchInPort(tp)
                     .add(Criteria.matchTunnelId(Long

@@ -307,7 +307,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         NetconfProviderConfig cfg = cfgService.getConfig(appId, NetconfProviderConfig.class);
         if (cfg != null) {
             try {
-                cfg.getDevicesAddresses().stream().forEach(addr -> {
+                cfg.getDevicesAddresses().forEach(addr -> {
                     DeviceId deviceId = getDeviceId(addr.ip().toString(), addr.port());
                     Preconditions.checkNotNull(deviceId, ISNULL);
                     //Netconf configuration object
@@ -375,7 +375,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         if (cfg != null) {
             log.info("Checking connection to devices in configuration");
             try {
-                cfg.getDevicesAddresses().stream().forEach(addr -> {
+                cfg.getDevicesAddresses().forEach(addr -> {
                     DeviceId deviceId = getDeviceId(addr.ip().toString(), addr.port());
                     Preconditions.checkNotNull(deviceId, ISNULL);
                     //Netconf configuration object

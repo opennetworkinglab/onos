@@ -36,7 +36,7 @@ public class GetAllAlarms extends AbstractShellCommand {
     }
 
     void printAlarms(Set<Alarm> alarms) {
-        alarms.stream().forEach((alarm) -> {
+        alarms.forEach((alarm) -> {
             print(ToStringBuilder.reflectionToString(alarm, ToStringStyle.SHORT_PREFIX_STYLE));
         });
     }

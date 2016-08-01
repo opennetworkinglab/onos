@@ -129,7 +129,7 @@ public class SfcViewMessageHandler extends UiMessageHandler {
             StringBuffer srcipbuf = new StringBuffer();
             StringBuffer dstipbuf = new StringBuffer();
             if (flowClassifierList != null) {
-                flowClassifierList.stream().forEach(fcid -> {
+                flowClassifierList.forEach(fcid -> {
                     FlowClassifier fc = fcs.getFlowClassifier(fcid);
                     String srcip = fc.srcIpPrefix().toString();
                     String dstip = fc.dstIpPrefix().toString();
@@ -157,11 +157,11 @@ public class SfcViewMessageHandler extends UiMessageHandler {
             VirtualPortService vps = get(VirtualPortService.class);
             List<VirtualPort> vpList = new ArrayList<VirtualPort>();
             if (portPairGroupList != null) {
-                portPairGroupList.stream().forEach(ppgid -> {
+                portPairGroupList.forEach(ppgid -> {
                     PortPairGroup ppg = ppgs.getPortPairGroup(ppgid);
                     List<PortPairId> portPairList = ppg.portPairs();
                     if (portPairList != null) {
-                        portPairList.stream().forEach(ppid -> {
+                        portPairList.forEach(ppid -> {
                             PortPair pp = pps.getPortPair(ppid);
                             VirtualPort vp = vps.getPort(VirtualPortId.portId(pp.ingress()));
                             vpList.add(vp);

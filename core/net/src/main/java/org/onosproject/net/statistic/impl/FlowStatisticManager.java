@@ -601,7 +601,7 @@ public class FlowStatisticManager implements FlowStatisticService {
     }
 
     private void checkLoadValidity(Set<FlowEntry> current, Set<FlowEntry> previous) {
-        current.stream().forEach(c -> {
+        current.forEach(c -> {
             FlowEntry f = previous.stream().filter(p -> c.equals(p)).
                     findAny().orElse(null);
             if (f != null && c.bytes() < f.bytes()) {

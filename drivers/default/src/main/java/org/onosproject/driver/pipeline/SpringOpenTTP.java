@@ -1158,23 +1158,22 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                     .filter(key -> groupService.getGroup(deviceId, key) != null)
                     .collect(Collectors.toSet());
 
-            keys.stream()
-                    .forEach(key -> {
-                                 NextObjective obj = pendingGroups
-                                         .getIfPresent(key);
-                                 if (obj == null) {
-                                     return;
-                                 }
-                                 log.debug("Group verified: dev:{} gid:{} <<->> nextId:{}",
-                                           deviceId,
-                                           groupService.getGroup(deviceId, key).id(),
-                                           obj.id());
-                                 pass(obj);
-                                 pendingGroups.invalidate(key);
-                                 flowObjectiveStore.putNextGroup(
-                                                        obj.id(),
-                                                        new SpringOpenGroup(key, null));
-                    });
+            keys.forEach(key -> {
+                NextObjective obj = pendingGroups
+                        .getIfPresent(key);
+                if (obj == null) {
+                    return;
+                }
+                log.debug("Group verified: dev:{} gid:{} <<->> nextId:{}",
+                        deviceId,
+                        groupService.getGroup(deviceId, key).id(),
+                        obj.id());
+                pass(obj);
+                pendingGroups.invalidate(key);
+                flowObjectiveStore.putNextGroup(
+                        obj.id(),
+                        new SpringOpenGroup(key, null));
+            });
 
             if (!pendingGroups.asMap().isEmpty()) {
                 // Periodically execute only if entry remains in pendingGroups.

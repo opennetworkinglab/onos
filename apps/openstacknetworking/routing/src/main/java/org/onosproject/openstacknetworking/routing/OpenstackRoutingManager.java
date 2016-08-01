@@ -215,7 +215,7 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
                         .filter(h -> routableNetIds.contains(h.annotations().value(NETWORK_ID)))
                         .collect(Collectors.toSet());
 
-        hosts.stream().forEach(h -> populateRoutingRules(h, routableNets));
+        hosts.forEach(h -> populateRoutingRules(h, routableNets));
     }
 
     private void unsetRoutes(OpenstackRouter osRouter, OpenstackNetwork osNet) {
@@ -226,7 +226,7 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
                         h.annotations().value(NETWORK_ID), osNet.id()))
                 .forEach(h -> removeRoutingRules(h, routableNets));
 
-        routableNets.stream().forEach(n -> {
+        routableNets.forEach(n -> {
             Tools.stream(hostService.getHosts())
                     .filter(h -> Objects.equals(
                             h.annotations().value(NETWORK_ID),
@@ -269,7 +269,7 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
                 .matchTunnelId(Long.valueOf(osNet.segmentId()))
                 .matchEthDst(Constants.DEFAULT_GATEWAY_MAC);
 
-        nodeService.completeNodes().stream().forEach(node -> {
+        nodeService.completeNodes().forEach(node -> {
             ForwardingObjective.Flag flag = node.type().equals(GATEWAY) ?
                     ForwardingObjective.Flag.VERSATILE :
                     ForwardingObjective.Flag.SPECIFIC;
@@ -359,8 +359,7 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
                 .fromApp(appId)
                 .add();
 
-        gatewayService.getGatewayDeviceIds().stream()
-                .forEach(deviceId -> flowObjectiveService.forward(deviceId, fo));
+        gatewayService.getGatewayDeviceIds().forEach(deviceId -> flowObjectiveService.forward(deviceId, fo));
     }
 
     private void populateCnodeToGateway(long vni) {

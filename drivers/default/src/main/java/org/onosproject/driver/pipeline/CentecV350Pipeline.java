@@ -602,7 +602,7 @@ public class CentecV350Pipeline extends AbstractHandlerBehaviour implements Pipe
                     .filter(key -> groupService.getGroup(deviceId, key) != null)
                     .collect(Collectors.toSet());
 
-            keys.stream().forEach(key -> {
+            keys.forEach(key -> {
                 NextObjective obj = pendingGroups.getIfPresent(key);
                 if (obj == null) {
                     return;

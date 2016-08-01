@@ -518,7 +518,7 @@ public class FlowRuleManager
             switch (event.type()) {
             case BATCH_OPERATION_REQUESTED:
                 // Request has been forwarded to MASTER Node, and was
-                request.ops().stream().forEach(
+                request.ops().forEach(
                         op -> {
                             switch (op.operator()) {
 
@@ -652,7 +652,7 @@ public class FlowRuleManager
             if (context != null) {
                 final FlowRuleOperations.Builder failedOpsBuilder =
                     FlowRuleOperations.builder();
-                failures.stream().forEach(failedOpsBuilder::add);
+                failures.forEach(failedOpsBuilder::add);
 
                 context.onError(failedOpsBuilder.build());
             }

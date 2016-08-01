@@ -137,7 +137,7 @@ public class SnmpDeviceProvider extends AbstractProvider
     public void deactivate(ComponentContext context) {
 
         try {
-            controller.getDevices().stream().forEach(device -> {
+            controller.getDevices().forEach(device -> {
                 deviceBuilderExecutor.execute(new DeviceFactory(device, false));
             });
             deviceBuilderExecutor.awaitTermination(1000, TimeUnit.MILLISECONDS);
@@ -161,7 +161,7 @@ public class SnmpDeviceProvider extends AbstractProvider
         SnmpProviderConfig cfg = netCfgService.getConfig(appId, SnmpProviderConfig.class);
         if (cfg != null) {
             try {
-                cfg.getDevicesInfo().stream().forEach(info -> {
+                cfg.getDevicesInfo().forEach(info -> {
                     SnmpDevice device = new DefaultSnmpDevice(info.ip().toString(),
                                                               info.port(), info.username(), info.password());
                     buildDevice(device);

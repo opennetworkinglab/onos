@@ -177,7 +177,7 @@ public abstract class AbstractCorsaPipeline extends AbstractHandlerBehaviour imp
                     .filter(key -> groupService.getGroup(deviceId, key) != null)
                     .collect(Collectors.toSet());
 
-            keys.stream().forEach(key -> {
+            keys.forEach(key -> {
                 NextObjective obj = pendingGroups.getIfPresent(key);
                 if (obj == null) {
                     return;

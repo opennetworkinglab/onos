@@ -78,8 +78,7 @@ public class GrpcRemoteServiceProvider implements RemoteServiceContextProvider {
         rpcRegistry.unregister(this);
 
         // shutdown all channels
-        channels.values().stream()
-            .forEach(ManagedChannel::shutdown);
+        channels.values().forEach(ManagedChannel::shutdown);
         // Should we wait for shutdown? How?
         channels.clear();
         log.info("Stopped");

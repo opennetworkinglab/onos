@@ -143,8 +143,7 @@ public class GrpcRemoteServiceServer {
             Thread.currentThread().interrupt();
         }
 
-        registeredProviders.stream()
-            .forEach(deviceProviderRegistry::unregister);
+        registeredProviders.forEach(deviceProviderRegistry::unregister);
 
         server.shutdown();
         // Should we wait for shutdown?

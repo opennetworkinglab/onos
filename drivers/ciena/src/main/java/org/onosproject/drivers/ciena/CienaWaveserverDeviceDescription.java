@@ -103,7 +103,7 @@ public class CienaWaveserverDeviceDescription extends AbstractHandlerBehaviour
                 loadXml(controller.get(deviceId, GENERAL_PORT_REQUEST, XML));
         List<HierarchicalConfiguration> portsConfig =
                 parseWaveServerCienaPorts(config);
-        portsConfig.stream().forEach(sub -> {
+        portsConfig.forEach(sub -> {
             String portId = sub.getString(PORT_ID);
             String name = sub.getString(NAME);
             if (LINESIDE_PORT_ID.contains(portId)) {
