@@ -16,6 +16,7 @@ TEST_DEPS = [
 
 BUNDLES = [
     '//apps/cpman/api:onos-apps-cpman-api',
+    ':onos-apps-cpman-app',
 ]
 
 EXCLUDED_BUNDLES = [
@@ -25,13 +26,16 @@ EXCLUDED_BUNDLES = [
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
+    web_context = '/onos/cpman',
 )
 
 onos_app (
-    title = 'Control Plane Manager REST API',
-    category = 'Provider',
+    app_name = 'org.onosproject.cpman',
+    title = 'Control Plane Manager application',
+    category = 'Monitoring',
     url = 'http://onosproject.org',
-    description = 'APIs for interacting with the Control Plane Management application.',
+    description = 'Control Plane Management application for monitoring the health of the ONOS cluster',
     included_bundles = BUNDLES,
     excluded_bundles = EXCLUDED_BUNDLES,
+    required_apps = [ 'org.onosproject.openflow-message' ],
 )
