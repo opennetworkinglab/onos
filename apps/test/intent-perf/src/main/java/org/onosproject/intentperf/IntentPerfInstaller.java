@@ -425,7 +425,7 @@ public class IntentPerfInstaller {
         private Iterable<Intent> subset(Set<Intent> intents) {
             List<Intent> subset = Lists.newArrayList(intents);
             Collections.shuffle(subset);
-            return subset.subList(0, lastCount);
+            return subset.subList(0, Math.min(intents.size(), lastCount));
         }
 
         // Submits the specified intent.
