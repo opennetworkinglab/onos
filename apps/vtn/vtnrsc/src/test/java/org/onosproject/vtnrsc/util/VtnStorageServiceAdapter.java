@@ -16,6 +16,7 @@
 package org.onosproject.vtnrsc.util;
 
 import org.onosproject.store.service.Topic;
+import org.onosproject.store.service.ConsistentTreeMapBuilder;
 import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.ConsistentMapBuilder;
@@ -38,6 +39,11 @@ public class VtnStorageServiceAdapter implements StorageService {
 
     @Override
     public <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder() {
+        return null;
+    }
+
+    @Override
+    public <V> ConsistentTreeMapBuilder<V> consistentTreeMapBuilder() {
         return null;
     }
 

@@ -27,6 +27,7 @@ import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.Serializer;
@@ -65,6 +66,12 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
             return sortedMemberPartitionIds.get(Math.abs(hashCode) % members.size());
         };
         return new PartitionedAsyncConsistentMap<>(name, maps, hasher);
+    }
+
+    @Override
+    public <V> AsyncConsistentTreeMap<V> newAsyncConsistentTreeMap(String name,
+                                                                   Serializer serializer) {
+        return getCreator(name).newAsyncConsistentTreeMap(name, serializer);
     }
 
     @Override

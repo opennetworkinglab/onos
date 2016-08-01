@@ -31,6 +31,7 @@ import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapFactory;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands;
 import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorCommands;
 import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorFactory;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueCommands;
@@ -96,6 +97,7 @@ public final class CatalystSerializers {
         serializer.resolve(new AtomixLeaderElectorCommands.TypeResolver());
         serializer.resolve(new AtomixWorkQueueCommands.TypeResolver());
         serializer.resolve(new ResourceManagerTypeResolver());
+        serializer.resolve(new AtomixConsistentTreeMapCommands.TypeResolver());
 
         serializer.registerClassLoader(AtomixConsistentMapFactory.class)
                   .registerClassLoader(AtomixLeaderElectorFactory.class)

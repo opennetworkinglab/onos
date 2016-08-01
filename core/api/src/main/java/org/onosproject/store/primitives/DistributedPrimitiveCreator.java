@@ -20,6 +20,7 @@ import java.util.Set;
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.WorkQueue;
@@ -40,6 +41,16 @@ public interface DistributedPrimitiveCreator {
      * @return map
      */
     <K, V> AsyncConsistentMap<K, V> newAsyncConsistentMap(String name, Serializer serializer);
+
+    /**
+     * Creates a new {@code AsyncConsistentTreeMap}.
+     *
+     * @param name tree name
+     * @param serializer serializer to use for serializing/deserializing map entries
+     * @param <V> value type
+     * @return distributedTreeMap
+     */
+    <V> AsyncConsistentTreeMap<V> newAsyncConsistentTreeMap(String name, Serializer serializer);
 
     /**
      * Creates a new {@code AsyncAtomicCounter}.

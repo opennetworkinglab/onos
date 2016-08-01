@@ -63,4 +63,8 @@ public class StorageServiceAdapter implements StorageService {
     public <T> Topic<T> getTopic(String name, Serializer serializer) {
         return null;
     }
+
+    public <V> ConsistentTreeMapBuilder<V> consistentTreeMapBuilder() {
+        return null;
+    }
 }

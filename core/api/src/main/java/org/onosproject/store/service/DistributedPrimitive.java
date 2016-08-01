@@ -52,6 +52,11 @@ public interface DistributedPrimitive {
         SET,
 
         /**
+         * Tree map.
+         */
+        CONSISTENT_TREEMAP,
+
+        /**
          * atomic counter.
          */
         COUNTER,

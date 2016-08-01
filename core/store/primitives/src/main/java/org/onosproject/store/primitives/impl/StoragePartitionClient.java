@@ -39,6 +39,7 @@ import java.util.function.Function;
 import org.onlab.util.HexString;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMap;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMap;
 import org.onosproject.store.primitives.resources.impl.AtomixCounter;
 import org.onosproject.store.primitives.resources.impl.AtomixLeaderElector;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueue;
@@ -46,6 +47,7 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.DistributedPrimitive.Status;
@@ -139,6 +141,30 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                         value -> value == null ? null : serializer.encode(value),
                         bytes -> serializer.decode(bytes));
 
+        return transcodedMap;
+    }
+
+    @Override
+    public <V> AsyncConsistentTreeMap<V> newAsyncConsistentTreeMap(String name, Serializer serializer) {
+        AtomixConsistentTreeMap atomixConsistentTreeMap =
+                client.getResource(name, AtomixConsistentTreeMap.class).join();
+        Consumer<State> statusListener = state -> {
+            atomixConsistentTreeMap.statusChangeListeners()
+                    .forEach(listener -> listener.accept(mapper.apply(state)));
+        };
+            resourceClient.client().onStateChange(statusListener);
+        AsyncConsistentTreeMap<byte[]> rawMap =
+                new DelegatingAsyncConsistentTreeMap<byte[]>(atomixConsistentTreeMap) {
+                    @Override
+                    public String name() {
+                        return name();
+                    }
+                };
+        AsyncConsistentTreeMap<V> transcodedMap =
+                DistributedPrimitives.<V, byte[]>newTranscodingTreeMap(
+                rawMap,
+                value -> value == null ? null : serializer.encode(value),
+                bytes -> serializer.decode(bytes));
         return transcodedMap;
     }
 

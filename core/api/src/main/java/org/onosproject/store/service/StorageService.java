@@ -44,6 +44,14 @@ public interface StorageService {
     <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder();
 
     /**
+     * Creates a new {@code AsyncConsistentTreeMapBuilder}.
+     *
+     * @param <V> value type
+     * @return builder for a async consistent tree map
+     */
+    <V> ConsistentTreeMapBuilder<V> consistentTreeMapBuilder();
+
+    /**
      * Creates a new DistributedSetBuilder.
      *
      * @param <E> set element type
