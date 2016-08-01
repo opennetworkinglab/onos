@@ -68,6 +68,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -196,7 +197,7 @@ public final class UiSharedTopologyModel
 
 
     // =======================================================================
-    //  methods that the topo session will use to extract information from us
+    //  Methods for topo session (or CLI) to use to get information from us
 
     /**
      * Returns the list of cluster members stored in our model cache.
@@ -205,6 +206,15 @@ public final class UiSharedTopologyModel
      */
     public List<UiClusterMember> getClusterMembers() {
         return cache.getAllClusterMembers();
+    }
+
+    /**
+     * Returns the set of regions stored in our model cache.
+     *
+     * @return set of regions
+     */
+    public Set<UiRegion> getRegions() {
+        return cache.getAllRegions();
     }
 
     /**

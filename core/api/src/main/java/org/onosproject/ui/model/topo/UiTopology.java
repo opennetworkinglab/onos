@@ -149,6 +149,16 @@ public class UiTopology extends UiElement {
         return cnodeLookup.size();
     }
 
+
+    /**
+     * Returns all regions in the model.
+     *
+     * @return all regions
+     */
+    public Set<UiRegion> allRegions() {
+        return new HashSet<>(regionLookup.values());
+    }
+
     /**
      * Returns a reference to the null-region. That is, the container for
      * devices, hosts, and links that belong to no region.

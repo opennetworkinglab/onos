@@ -240,6 +240,10 @@ class ModelCache {
         }
     }
 
+    Set<UiRegion> getAllRegions() {
+        return uiTopology.allRegions();
+    }
+
 
     // === DEVICES
 
