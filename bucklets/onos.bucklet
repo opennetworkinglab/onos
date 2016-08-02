@@ -46,8 +46,6 @@ def checkstyle(
                 test_rule_timeout_ms = 20000,
                 labels = [ 'checkstyle' ],
         )
-    else:
-        print 'Not generating checkstyle rule for %s because there are no sources.' % name
 
 def java_doc(
     name,
@@ -254,9 +252,6 @@ def osgi_jar_with_tests(
 
   if test_srcs is None:
       test_srcs = glob([TEST + '/*.java'])
-
-  if not test_srcs:
-          print "Generating test rule for %s, but there are no tests." % name
 
   java_test(
     name = name + '-tests',
