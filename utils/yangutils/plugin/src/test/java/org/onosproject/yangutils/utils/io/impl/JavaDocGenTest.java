@@ -22,6 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;

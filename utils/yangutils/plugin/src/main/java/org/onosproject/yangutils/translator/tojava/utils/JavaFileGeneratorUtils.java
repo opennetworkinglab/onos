@@ -25,12 +25,13 @@ import org.onosproject.yangutils.datamodel.YangAtomicPath;
 import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.JavaImportData;
-import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
+import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator;
 import org.onosproject.yangutils.translator.tojava.TempJavaBeanFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaEnumerationFragmentFiles;
@@ -40,7 +41,6 @@ import org.onosproject.yangutils.translator.tojava.TempJavaServiceFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaTypeFragmentFiles;
 import org.onosproject.yangutils.utils.io.impl.CopyrightHeader;
 import org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType;
-import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
@@ -76,7 +76,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.TO_STRING_IMPL_MASK;
-import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getQualifiedTypeInfoOfCurNode;
+import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator.getQualifiedTypeInfoOfCurNode;
 import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.getAugmentedNodesPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.ClassDefinitionGenerator.generateClassDefinition;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
@@ -343,7 +343,7 @@ public final class JavaFileGeneratorUtils {
      * @param importsList list of java imports
      * @param curNode     current YANG node
      * @param className   class name
-     * @throws IOException
+     * @throws IOException when fails to do IO operations
      */
     private static void appendContents(File file, int genType, List<String> importsList, YangNode curNode,
                                        String className)
@@ -597,7 +597,7 @@ public final class JavaFileGeneratorUtils {
         TempJavaCodeFragmentFiles tempJavaCodeFragmentFiles = ((JavaCodeGeneratorInfo) parent)
                 .getTempJavaCodeFragmentFiles();
         YangNode augmentedNode;
-        JavaQualifiedTypeInfo javaQualifiedTypeInfo;
+        JavaQualifiedTypeInfoTranslator javaQualifiedTypeInfo;
         String curNodeName;
         JavaFileInfo parentInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo();
         for (YangAtomicPath nodeId : targets) {
@@ -625,9 +625,10 @@ public final class JavaFileGeneratorUtils {
      * @param pluginConfig  plugin configurations
      * @return qualified type info of augmented node
      */
-    private static JavaQualifiedTypeInfo getQualifiedTypeInfoOfAugmentedNode(YangNode augmentedNode, String curNodeName,
-                                                                             YangPluginConfig pluginConfig) {
-        JavaQualifiedTypeInfo javaQualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(augmentedNode,
+    private static JavaQualifiedTypeInfoTranslator getQualifiedTypeInfoOfAugmentedNode(YangNode augmentedNode,
+                                                                                       String curNodeName,
+                                                                                       YangPluginConfig pluginConfig) {
+        JavaQualifiedTypeInfoTranslator javaQualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(augmentedNode,
                 getCapitalCase(curNodeName));
         if (javaQualifiedTypeInfo.getPkgInfo() == null) {
             javaQualifiedTypeInfo.setPkgInfo(getAugmentedNodesPackage(augmentedNode,
@@ -643,9 +644,9 @@ public final class JavaFileGeneratorUtils {
      * @param importData            import data
      * @return true if present in imports
      */
-    private static boolean validateQualifiedInfoOfAugmentedNode(JavaQualifiedTypeInfo javaQualifiedTypeInfo,
+    private static boolean validateQualifiedInfoOfAugmentedNode(JavaQualifiedTypeInfoTranslator javaQualifiedTypeInfo,
                                                                 JavaImportData importData) {
-        for (JavaQualifiedTypeInfo curImportInfo : importData.getImportSet()) {
+        for (JavaQualifiedTypeInfoTranslator curImportInfo : importData.getImportSet()) {
             if (curImportInfo.getClassInfo()
                     .contentEquals(javaQualifiedTypeInfo.getClassInfo())) {
                 return curImportInfo.getPkgInfo()
@@ -664,7 +665,7 @@ public final class JavaFileGeneratorUtils {
      */
     static String getAugmentedClassNameForDataMethods(YangNode augmentedNode, YangNode parent) {
         String curNodeName;
-        JavaQualifiedTypeInfo javaQualifiedTypeInfo;
+        JavaQualifiedTypeInfoTranslator javaQualifiedTypeInfo;
         JavaFileInfo parentInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo();
         YangPluginConfig pluginConfig = parentInfo.getPluginConfig();
         TempJavaServiceFragmentFiles tempJavaServiceFragmentFiles = ((JavaCodeGeneratorInfo) parent)

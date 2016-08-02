@@ -48,7 +48,7 @@ public final class JavaAttributeInfo {
      * The class info will be used to set the attribute type and package info
      * will be use for qualified name.
      */
-    private JavaQualifiedTypeInfo importInfo;
+    private JavaQualifiedTypeInfoTranslator importInfo;
 
     /**
      * If conflict occurs.
@@ -69,9 +69,9 @@ public final class JavaAttributeInfo {
     /**
      * Creates object of java attribute info.
      *
-     * @param attrType YANG type
-     * @param name attribute name
-     * @param isListAttr is list attribute
+     * @param attrType        YANG type
+     * @param name            attribute name
+     * @param isListAttr      is list attribute
      * @param isQualifiedName is qualified name
      */
     public JavaAttributeInfo(YangType<?> attrType, String name, boolean isListAttr, boolean isQualifiedName) {
@@ -139,7 +139,7 @@ public final class JavaAttributeInfo {
      *
      * @param isList if the added attribute is a list of info
      */
-    public void setListAttr(boolean isList) {
+    private void setListAttr(boolean isList) {
         isListAttr = isList;
     }
 
@@ -159,9 +159,9 @@ public final class JavaAttributeInfo {
      * manner.
      *
      * @param isQualified if the added attribute has to be accessed in a fully
-     * qualified manner
+     *                    qualified manner
      */
-    public void setIsQualifiedAccess(boolean isQualified) {
+    private void setIsQualifiedAccess(boolean isQualified) {
         isQualifiedName = isQualified;
     }
 
@@ -171,7 +171,7 @@ public final class JavaAttributeInfo {
      *
      * @return import info
      */
-    public JavaQualifiedTypeInfo getImportInfo() {
+    public JavaQualifiedTypeInfoTranslator getImportInfo() {
         return importInfo;
     }
 
@@ -180,59 +180,60 @@ public final class JavaAttributeInfo {
      *
      * @param importInfo import info for the attribute type
      */
-    public void setImportInfo(JavaQualifiedTypeInfo importInfo) {
+    public void setImportInfo(JavaQualifiedTypeInfoTranslator importInfo) {
         this.importInfo = importInfo;
     }
 
     /**
-     * Returns true if conflict between int and uint.
+     * Returns true if conflict between int and uInt.
      *
-     * @return true if conflict between int and uint
+     * @return true if conflict between int and uInt
      */
     public boolean isIntConflict() {
         return isIntConflict;
     }
 
     /**
-     * Sets true if conflict between int and uint.
+     * Sets true if conflict between int and uInt.
      *
-     * @param intConflict true if conflict between int and uint
+     * @param intConflict true if conflict between int and uInt
      */
-    public void setIntConflict(boolean intConflict) {
+    void setIntConflict(boolean intConflict) {
         isIntConflict = intConflict;
     }
 
     /**
-     * Returns true if conflict between long and ulong.
+     * Returns true if conflict between long and uLong.
      *
-     * @return true if conflict between long and ulong
+     * @return true if conflict between long and uLong
      */
     public boolean isLongConflict() {
         return isLongConflict;
     }
 
     /**
-     * Sets true if conflict between long and ulong.
+     * Sets true if conflict between long and uLong.
      *
-     * @param longConflict true if conflict between long and ulong
+     * @param longConflict true if conflict between long and uLong
      */
-    public void setLongConflict(boolean longConflict) {
+    void setLongConflict(boolean longConflict) {
         isLongConflict = longConflict;
     }
 
     /**
      * Returns java attribute info.
      *
-     * @param importInfo java qualified type info
-     * @param attributeName attribute name
-     * @param attributeType attribute type
+     * @param importInfo        java qualified type info
+     * @param attributeName     attribute name
+     * @param attributeType     attribute type
      * @param isQualifiedAccess is the attribute a qualified access
-     * @param isListAttribute is list attribute
+     * @param isListAttribute   is list attribute
      * @return java attribute info.
      */
-    public static JavaAttributeInfo getAttributeInfoForTheData(JavaQualifiedTypeInfo importInfo, String attributeName,
-            YangType<?> attributeType, boolean isQualifiedAccess,
-            boolean isListAttribute) {
+    public static JavaAttributeInfo getAttributeInfoForTheData(JavaQualifiedTypeInfoTranslator importInfo,
+                                                               String attributeName,
+                                                               YangType<?> attributeType, boolean isQualifiedAccess,
+                                                               boolean isListAttribute) {
 
         JavaAttributeInfo newAttr = new JavaAttributeInfo();
         newAttr.setImportInfo(importInfo);

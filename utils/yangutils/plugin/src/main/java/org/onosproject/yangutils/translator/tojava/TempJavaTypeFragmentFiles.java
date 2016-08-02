@@ -24,10 +24,11 @@ import java.util.List;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeHolder;
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaType;
-import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaTypeTranslator;
 
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.INT32;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.INT64;
@@ -39,7 +40,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.FROM_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.OF_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getAttributeInfoForTheData;
-import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getQualifiedInfoOfFromString;
+import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator.getQualifiedInfoOfFromString;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateTypeDefClassFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateUnionClassFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.createPackage;
@@ -250,7 +251,7 @@ public class TempJavaTypeFragmentFiles
         List<YangType<?>> typeList = yangTypeHolder.getTypeList();
         if (typeList != null) {
             for (YangType<?> yangType : typeList) {
-                if (!(yangType instanceof YangJavaType)) {
+                if (!(yangType instanceof YangJavaTypeTranslator)) {
                     throw new TranslatorException("Type does not have Java info");
                 }
                 JavaAttributeInfo javaAttributeInfo = getAttributeForType(yangType, pluginConfig);
@@ -270,7 +271,7 @@ public class TempJavaTypeFragmentFiles
      * @return java attribute
      */
     private JavaAttributeInfo getAttributeForType(YangType yangType, YangPluginConfig pluginConfig) {
-        YangJavaType<?> javaType = (YangJavaType<?>) yangType;
+        YangJavaTypeTranslator<?> javaType = (YangJavaTypeTranslator<?>) yangType;
         javaType.updateJavaQualifiedInfo(pluginConfig.getConflictResolver());
         String typeName = javaType.getDataTypeName();
         typeName = getCamelCase(typeName, pluginConfig.getConflictResolver());
@@ -317,11 +318,11 @@ public class TempJavaTypeFragmentFiles
     }
 
     /**
-     * Adds of method and constructor when there is no conflictiing types.
+     * Adds of method and constructor when there is no conflicting types.
      *
      * @param javaAttributeInfo java attribute info
      * @param pluginConfig      plugin configurations
-     * @throws IOException when fails to do IO opearions
+     * @throws IOException when fails to do IO operations
      */
     private void addMethodsWhenNoConflictingTypes(JavaAttributeInfo javaAttributeInfo,
                                                   YangPluginConfig pluginConfig) throws IOException {
@@ -394,7 +395,7 @@ public class TempJavaTypeFragmentFiles
      */
     private void addFromStringMethod(JavaAttributeInfo newAttrInfo, YangPluginConfig pluginConfig) throws IOException {
 
-        JavaQualifiedTypeInfo qualifiedInfoOfFromString = getQualifiedInfoOfFromString(newAttrInfo,
+        JavaQualifiedTypeInfoTranslator qualifiedInfoOfFromString = getQualifiedInfoOfFromString(newAttrInfo,
                 pluginConfig.getConflictResolver());
             /*
              * Create a new java attribute info with qualified information of

@@ -17,7 +17,7 @@
 package org.onosproject.yangutils.translator.tojava;
 
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 /**
  * Abstraction of an entity which provides Code generator functionalities.

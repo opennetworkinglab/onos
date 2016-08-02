@@ -20,8 +20,9 @@ import java.io.IOException;
 
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangTypeHolder;
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ALL_EVENT_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
@@ -106,7 +107,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param beanTempFiles temp file handle for bean file generation
      */
-    public void setBeanTempFiles(TempJavaBeanFragmentFiles beanTempFiles) {
+    private void setBeanTempFiles(TempJavaBeanFragmentFiles beanTempFiles) {
         this.beanTempFiles = beanTempFiles;
     }
 
@@ -124,7 +125,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param typeTempFiles temp file handle for data type file generation
      */
-    public void setTypeTempFiles(TempJavaTypeFragmentFiles typeTempFiles) {
+    private void setTypeTempFiles(TempJavaTypeFragmentFiles typeTempFiles) {
         this.typeTempFiles = typeTempFiles;
     }
 
@@ -142,7 +143,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param serviceTempFiles temp file handle for service file generation
      */
-    public void setServiceTempFiles(TempJavaServiceFragmentFiles serviceTempFiles) {
+    private void setServiceTempFiles(TempJavaServiceFragmentFiles serviceTempFiles) {
         this.serviceTempFiles = serviceTempFiles;
     }
 
@@ -160,7 +161,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param enumerationTempFiles temp file handle for enumeration file generation
      */
-    public void setEnumerationTempFiles(
+    private void setEnumerationTempFiles(
             TempJavaEnumerationFragmentFiles enumerationTempFiles) {
         this.enumerationTempFiles = enumerationTempFiles;
     }
@@ -179,7 +180,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param tempJavaEventFragmentFiles temp file handle for event file generation
      */
-    public void setEventFragmentFiles(TempJavaEventFragmentFiles tempJavaEventFragmentFiles) {
+    private void setEventFragmentFiles(TempJavaEventFragmentFiles tempJavaEventFragmentFiles) {
         this.tempJavaEventFragmentFiles = tempJavaEventFragmentFiles;
     }
 
@@ -212,7 +213,7 @@ public class TempJavaCodeFragmentFiles {
             getServiceTempFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, curNode);
         }
 
-        /**
+        /*
          * Creates event, event listener and event subject files.
          */
         if (fileType == GENERATE_ALL_EVENT_CLASS_MASK) {
@@ -220,36 +221,10 @@ public class TempJavaCodeFragmentFiles {
         }
 
         /*
-         * Creats enumeration class file.
+         * Creates enumeration class file.
          */
         if (fileType == GENERATE_ENUM_CLASS) {
             getEnumerationTempFiles().generateJavaFile(GENERATE_ENUM_CLASS, curNode);
-        }
-    }
-
-    /**
-     * Adds the new attribute info to the target generated temporary files.
-     *
-     * @param newAttrInfo the attribute info that needs to be added to temporary
-     * files
-     * @param pluginConfig plugin configurations
-     * @throws IOException IO operation fail
-     */
-    public void addJavaSnippetInfoToApplicableTempFiles(JavaAttributeInfo newAttrInfo,
-            YangPluginConfig pluginConfig)
-            throws IOException {
-
-        if (getBeanTempFiles() != null) {
-            getBeanTempFiles()
-                    .addJavaSnippetInfoToApplicableTempFiles(newAttrInfo, pluginConfig);
-        }
-
-        /**
-         * Creates user defined data type class file.
-         */
-        if (getTypeTempFiles() != null) {
-            getTypeTempFiles()
-                    .addJavaSnippetInfoToApplicableTempFiles(newAttrInfo, pluginConfig);
         }
     }
 
@@ -258,10 +233,10 @@ public class TempJavaCodeFragmentFiles {
      * generated temporary file.
      *
      * @param yangTypeHolder YANG java data model node which has type info, eg union / typedef
-     * @param pluginConfig plugin configurations for naming convention
+     * @param pluginConfig   plugin configurations for naming convention
      * @throws IOException IO operation fail
      */
-    public void addTypeInfoToTempFiles(YangTypeHolder yangTypeHolder, YangPluginConfig pluginConfig)
+    void addTypeInfoToTempFiles(YangTypeHolder yangTypeHolder, YangPluginConfig pluginConfig)
             throws IOException {
         getTypeTempFiles()
                 .addTypeInfoToTempFiles(yangTypeHolder, pluginConfig);
@@ -285,8 +260,8 @@ public class TempJavaCodeFragmentFiles {
     /**
      * Adds default constructor for class.
      *
-     * @param modifier modifier for constructor.
-     * @param toAppend string which need to be appended with the class name
+     * @param modifier     modifier for constructor.
+     * @param toAppend     string which need to be appended with the class name
      * @param pluginConfig plugin configurations
      * @return default constructor for class
      * @throws IOException when fails to append to file
@@ -324,10 +299,10 @@ public class TempJavaCodeFragmentFiles {
      * Removes all temporary file handles.
      *
      * @param isErrorOccurred when translator fails to generate java files we need to close
-     * all open file handles include temporary files and java files.
+     *                        all open file handles include temporary files and java files.
      * @throws IOException when failed to delete the temporary files
      */
-    public void freeTemporaryResources(boolean isErrorOccurred)
+    void freeTemporaryResources(boolean isErrorOccurred)
             throws IOException {
 
         if (getBeanTempFiles() != null) {

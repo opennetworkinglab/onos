@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangAugmentableNode;
+import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangLeavesHolder;
@@ -34,16 +35,16 @@ import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
-import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
+import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
 import org.onosproject.yangutils.translator.tojava.TempJavaEnumerationFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaEventFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaServiceFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaTypeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.YangJavaModelUtils;
-import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
@@ -79,7 +80,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.TO_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getAttributeInfoForTheData;
-import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getQualifiedTypeInfoOfCurNode;
+import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator.getQualifiedTypeInfoOfCurNode;
 import static org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles.getCurNodeAsAttributeInTarget;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.addAugmentationAttribute;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getEnumsValueAttribute;
@@ -816,6 +817,7 @@ public final class JavaFileGenerator {
         YangTypeDef typeDef = (YangTypeDef) curNode;
         List<YangType<?>> types = typeDef.getTypeList();
         YangType type = types.get(0);
+        YangDataTypes yangDataTypes = type.getDataType();
         if (type.getDataType().equals(YangDataTypes.BINARY)) {
             imports.add(IMPORT + JAVA_UTIL_OBJECTS_IMPORT_PKG + PERIOD + JAVA_UTIL_IMPORT_BASE64_CLASS);
         }
@@ -878,7 +880,7 @@ public final class JavaFileGenerator {
 
             //To string method.
             if (type.getDataType().equals(YangDataTypes.BINARY)) {
-                JavaQualifiedTypeInfo qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(curNode,
+                JavaQualifiedTypeInfoTranslator qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(curNode,
                         getCapitalCase("binary"));
 
                 JavaAttributeInfo attr = getAttributeInfoForTheData(qualifiedTypeInfo, "binary", null, false,
@@ -892,7 +894,7 @@ public final class JavaFileGenerator {
                         + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE;
                 methods.add(bitsToStringMethod);
             } else if (type.getDataType().equals(YangDataTypes.BITS)) {
-                JavaQualifiedTypeInfo qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(curNode,
+                JavaQualifiedTypeInfoTranslator qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(curNode,
                         getCapitalCase("bits"));
 
                 JavaAttributeInfo attr = getAttributeInfoForTheData(qualifiedTypeInfo, "bits", null, false, false);
@@ -912,11 +914,26 @@ public final class JavaFileGenerator {
 
             JavaCodeGeneratorInfo javaGenInfo = (JavaCodeGeneratorInfo) curNode;
 
-            //From string method.
-            methods.add(getFromStringMethodSignature(className, pluginConfig)
-                    + getDataFromTempFileHandle(FROM_STRING_IMPL_MASK, javaGenInfo.getTempJavaCodeFragmentFiles()
-                    .getTypeTempFiles(), path)
-                    + getFromStringMethodClose());
+            if ((type.getDataType().equals(YangDataTypes.DERIVED))
+                    && (((YangDerivedInfo) type.getDataTypeExtendedInfo()).getEffectiveBuiltInType()
+                    .equals(YangDataTypes.IDENTITYREF))) {
+                yangDataTypes = YangDataTypes.IDENTITYREF;
+            }
+
+            if (type.getDataType().equals(YangDataTypes.IDENTITYREF)) {
+                yangDataTypes = YangDataTypes.IDENTITYREF;
+            }
+
+            if (!yangDataTypes.equals(YangDataTypes.IDENTITYREF)) {
+
+
+                //From string method.
+                methods.add(getFromStringMethodSignature(className, pluginConfig)
+                                    + getDataFromTempFileHandle(FROM_STRING_IMPL_MASK, javaGenInfo
+                        .getTempJavaCodeFragmentFiles()
+                        .getTypeTempFiles(), path)
+                                    + getFromStringMethodClose());
+            }
 
         } catch (IOException e) {
             throw new IOException("No data found in temporary java code fragment files for " + className

@@ -24,10 +24,10 @@ import java.util.Date;
 import java.util.List;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.utils.io.impl.YangIoUtils;
-import org.onosproject.yangutils.utils.io.impl.YangToJavaNamingConflictUtil;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangToJavaNamingConflictUtil;
 
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.getParentNodeInGenCode;
 import static org.onosproject.yangutils.utils.UtilConstants.COLAN;

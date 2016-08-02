@@ -20,7 +20,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Test;
-import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
+import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -78,7 +78,7 @@ public class JavaCodeSnippetGenTest {
      */
     @Test
     public void testForImportText() {
-        JavaQualifiedTypeInfo importInfo = new JavaQualifiedTypeInfo();
+        JavaQualifiedTypeInfoTranslator importInfo = new JavaQualifiedTypeInfoTranslator();
         importInfo.setPkgInfo(PKG_INFO);
         importInfo.setClassInfo(CLASS_INFO);
 

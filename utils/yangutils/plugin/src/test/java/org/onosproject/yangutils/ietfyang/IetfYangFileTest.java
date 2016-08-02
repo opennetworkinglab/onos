@@ -25,7 +25,7 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 import org.onosproject.yangutils.plugin.manager.YangUtilManager;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
-import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 

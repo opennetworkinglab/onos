@@ -22,9 +22,9 @@ import org.onosproject.yangutils.datamodel.YangIdentity;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNotification;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
-import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
+import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
@@ -445,7 +445,7 @@ public final class ClassDefinitionGenerator {
      * @return updated class definition
      */
     private static String getDefinitionString(String def, JavaExtendsListHolder holder) {
-        for (JavaQualifiedTypeInfo info : holder.getExtendsList()) {
+        for (JavaQualifiedTypeInfoTranslator info : holder.getExtendsList()) {
             if (!holder.getExtendedClassStore().get(info)) {
                 def = def + info.getClassInfo() + COMMA + SPACE;
             } else {

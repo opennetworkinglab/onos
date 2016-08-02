@@ -21,10 +21,11 @@ import java.io.IOException;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModule;
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModuleTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModuleTranslator;
 import org.onosproject.yangutils.translator.tojava.utils.JavaExtendsListHolder;
-import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.RPC_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.RPC_INTERFACE_MASK;
@@ -213,12 +214,12 @@ public class TempJavaServiceFragmentFiles
                 .getJavaImportData().getImports();
         createPackage(curNode);
         boolean isNotification = false;
-        if (curNode instanceof YangJavaModule) {
-            if (!((YangJavaModule) curNode).getNotificationNodes().isEmpty()) {
+        if (curNode instanceof YangJavaModuleTranslator) {
+            if (!((YangJavaModuleTranslator) curNode).getNotificationNodes().isEmpty()) {
                 isNotification = true;
             }
-        } else if (curNode instanceof YangJavaSubModule) {
-            if (!((YangJavaSubModule) curNode).getNotificationNodes().isEmpty()) {
+        } else if (curNode instanceof YangJavaSubModuleTranslator) {
+            if (!((YangJavaSubModuleTranslator) curNode).getNotificationNodes().isEmpty()) {
                 isNotification = true;
             }
         }

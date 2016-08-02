@@ -20,9 +20,9 @@ import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
-import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
+import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator;
 import org.onosproject.yangutils.translator.tojava.TempJavaServiceFragmentFiles;
-import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getEnumJavaAttribute;
 import static org.onosproject.yangutils.utils.UtilConstants.ACTIVATE_ANNOTATION_IMPORT;
@@ -105,7 +105,7 @@ public final class JavaCodeSnippetGen {
      * @param importInfo import info
      * @return the textual java code information corresponding to the import list
      */
-    static String getImportText(JavaQualifiedTypeInfo importInfo) {
+    static String getImportText(JavaQualifiedTypeInfoTranslator importInfo) {
         return IMPORT + importInfo.getPkgInfo() + PERIOD + importInfo.getClassInfo() + SEMI_COLAN + NEW_LINE;
     }
 

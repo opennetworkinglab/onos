@@ -22,10 +22,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.JavaImportData;
-import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
+import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator;
 import org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles;
 
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
@@ -36,8 +36,8 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase
  */
 public class JavaExtendsListHolder {
 
-    private Map<JavaQualifiedTypeInfo, Boolean> extendedClassStore;
-    private List<JavaQualifiedTypeInfo> extendsList;
+    private Map<JavaQualifiedTypeInfoTranslator, Boolean> extendedClassStore;
+    private List<JavaQualifiedTypeInfoTranslator> extendsList;
 
     /**
      * Creates an instance of JavaExtendsListHolder.
@@ -52,7 +52,7 @@ public class JavaExtendsListHolder {
      *
      * @return extends list
      */
-    public Map<JavaQualifiedTypeInfo, Boolean> getExtendedClassStore() {
+    public Map<JavaQualifiedTypeInfoTranslator, Boolean> getExtendedClassStore() {
         return extendedClassStore;
     }
 
@@ -61,7 +61,7 @@ public class JavaExtendsListHolder {
      *
      * @param extendedClass map of classes need to be extended
      */
-    private void setExtendedClassStore(Map<JavaQualifiedTypeInfo, Boolean> extendedClass) {
+    private void setExtendedClassStore(Map<JavaQualifiedTypeInfoTranslator, Boolean> extendedClass) {
         extendedClassStore = extendedClass;
     }
 
@@ -72,7 +72,7 @@ public class JavaExtendsListHolder {
      * @param node                  YANG node
      * @param tempJavaFragmentFiles temp java fragment files
      */
-    public void addToExtendsList(JavaQualifiedTypeInfo info, YangNode node,
+    public void addToExtendsList(JavaQualifiedTypeInfoTranslator info, YangNode node,
                                  TempJavaFragmentFiles tempJavaFragmentFiles) {
         JavaFileInfo fileInfo = ((JavaFileInfoContainer) node).getJavaFileInfo();
 
@@ -91,7 +91,7 @@ public class JavaExtendsListHolder {
      *
      * @return the extendsList
      */
-    public List<JavaQualifiedTypeInfo> getExtendsList() {
+    public List<JavaQualifiedTypeInfoTranslator> getExtendsList() {
         return extendsList;
     }
 
@@ -100,7 +100,7 @@ public class JavaExtendsListHolder {
      *
      * @param classInfoList the extends List to set
      */
-    private void setExtendsList(List<JavaQualifiedTypeInfo> classInfoList) {
+    private void setExtendsList(List<JavaQualifiedTypeInfoTranslator> classInfoList) {
         extendsList = classInfoList;
     }
 
@@ -109,7 +109,7 @@ public class JavaExtendsListHolder {
      *
      * @param classInfo class info
      */
-    private void addToExtendsList(JavaQualifiedTypeInfo classInfo) {
+    private void addToExtendsList(JavaQualifiedTypeInfoTranslator classInfo) {
         getExtendsList().add(classInfo);
     }
 

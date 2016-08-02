@@ -34,7 +34,7 @@ import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.TempJavaBeanFragmentFiles;
 import org.onosproject.yangutils.utils.io.impl.JavaDocGen;
-import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BINARY;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BITS;
@@ -1629,6 +1629,8 @@ public final class MethodsGenerator {
             case DECIMAL64:
                 return NEW + SPACE + BIG_DECIMAL;
             case STRING:
+                return EMPTY_STRING;
+            case IDENTITYREF:
                 return EMPTY_STRING;
             case EMPTY:
             case BOOLEAN:

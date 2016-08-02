@@ -39,8 +39,8 @@ import org.onosproject.yangutils.parser.YangUtilsParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
-import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
-import org.onosproject.yangutils.utils.io.impl.YangToJavaNamingConflictUtil;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangToJavaNamingConflictUtil;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 import static org.apache.maven.plugins.annotations.LifecyclePhase.GENERATE_SOURCES;

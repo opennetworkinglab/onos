@@ -21,23 +21,22 @@ import java.util.Stack;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangEnumeration;
 import org.onosproject.yangutils.datamodel.YangIdentity;
-import org.onosproject.yangutils.datamodel.YangLeafRef;
 import org.onosproject.yangutils.datamodel.YangIdentityRef;
+import org.onosproject.yangutils.datamodel.YangLeafRef;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
-import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.YangUnion;
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangToJavaNamingConflictUtil;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
-import org.onosproject.yangutils.utils.io.impl.YangToJavaNamingConflictUtil;
 
 import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.getCurNodePackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
-import static org.onosproject.yangutils.utils.UtilConstants.BIG_INTEGER;
 import static org.onosproject.yangutils.utils.UtilConstants.BIG_DECIMAL;
+import static org.onosproject.yangutils.utils.UtilConstants.BIG_INTEGER;
 import static org.onosproject.yangutils.utils.UtilConstants.BIT_SET;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_DATA_TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_WRAPPER;
@@ -155,7 +154,7 @@ public final class AttributesJavaDataType {
                     return BOOLEAN_WRAPPER;
                 case ENUMERATION:
                     return getCapitalCase(
-                            getCamelCase(((YangJavaEnumeration) yangType.getDataTypeExtendedInfo()).getName(),
+                            getCamelCase(((YangJavaEnumerationTranslator) yangType.getDataTypeExtendedInfo()).getName(),
                                     pluginConfig));
                 case BITS:
                     return BIT_SET;
@@ -163,17 +162,17 @@ public final class AttributesJavaDataType {
                     return BYTE + SQUARE_BRACKETS;
                 case LEAFREF:
                     YangType<?> referredType = getReferredTypeFromLeafref(yangType);
-                    return getJavaImportClass(referredType, isListAttr, pluginConfig);
+                    return getJavaImportClass(referredType, true, pluginConfig);
                 case IDENTITYREF:
                     YangIdentityRef identityRef = (YangIdentityRef) yangType.getDataTypeExtendedInfo();
                     YangIdentity identity = identityRef.getReferredIdentity();
-                    return getCapitalCase(getCamelCase(((YangJavaIdentity) identity).
-                                                        getName(), pluginConfig));
+                    return getCapitalCase(getCamelCase(identity.
+                            getName(), pluginConfig));
                 case EMPTY:
                     return BOOLEAN_WRAPPER;
                 case UNION:
-                    return getCapitalCase(getCamelCase(((YangJavaUnion) yangType.getDataTypeExtendedInfo()).getName(),
-                            pluginConfig));
+                    return getCapitalCase(getCamelCase(((YangJavaUnionTranslator) yangType
+                            .getDataTypeExtendedInfo()).getName(), pluginConfig));
                 case INSTANCE_IDENTIFIER:
                     return STRING_DATA_TYPE;
                 case DERIVED:
@@ -190,7 +189,7 @@ public final class AttributesJavaDataType {
                     return STRING_DATA_TYPE;
                 case ENUMERATION:
                     return getCapitalCase(
-                            getCamelCase(((YangJavaEnumeration) yangType.getDataTypeExtendedInfo()).getName(),
+                            getCamelCase(((YangJavaEnumerationTranslator) yangType.getDataTypeExtendedInfo()).getName(),
                                     pluginConfig));
                 case BITS:
                     return BIT_SET;
@@ -198,16 +197,16 @@ public final class AttributesJavaDataType {
                     return BIG_DECIMAL;
                 case LEAFREF:
                     YangType<?> referredType = getReferredTypeFromLeafref(yangType);
-                    return getJavaImportClass(referredType, isListAttr, pluginConfig);
+                    return getJavaImportClass(referredType, false, pluginConfig);
                 case IDENTITYREF:
                     YangIdentityRef identityRef = (YangIdentityRef) yangType.getDataTypeExtendedInfo();
                     YangIdentity identity = identityRef.getReferredIdentity();
-                    return getCapitalCase(getCamelCase(((YangJavaIdentity) identity).getName(), pluginConfig));
+                    return getCapitalCase(getCamelCase(identity.getName(), pluginConfig));
                 case EMPTY:
                     return BOOLEAN_DATA_TYPE;
                 case UNION:
-                    return getCapitalCase(getCamelCase(((YangJavaUnion) yangType.getDataTypeExtendedInfo()).getName(),
-                            pluginConfig));
+                    return getCapitalCase(getCamelCase(((YangJavaUnionTranslator) yangType
+                            .getDataTypeExtendedInfo()).getName(), pluginConfig));
                 case INSTANCE_IDENTIFIER:
                     return STRING_DATA_TYPE;
                 case DERIVED:
@@ -255,7 +254,7 @@ public final class AttributesJavaDataType {
                     return COLLECTION_IMPORTS;
                 case LEAFREF:
                     YangType<?> referredType = getReferredTypeFromLeafref(yangType);
-                    return getJavaImportPackage(referredType, isListAttr, conflictResolver);
+                    return getJavaImportPackage(referredType, true, conflictResolver);
                 case IDENTITYREF:
                     return getIdentityRefPackage(yangType, conflictResolver);
                 case UNION:
@@ -281,7 +280,7 @@ public final class AttributesJavaDataType {
                     return COLLECTION_IMPORTS;
                 case LEAFREF:
                     YangType<?> referredType = getReferredTypeFromLeafref(yangType);
-                    return getJavaImportPackage(referredType, isListAttr, conflictResolver);
+                    return getJavaImportPackage(referredType, false, conflictResolver);
                 case IDENTITYREF:
                     return getIdentityRefPackage(yangType, conflictResolver);
                 case UNION:
@@ -309,11 +308,11 @@ public final class AttributesJavaDataType {
             throw new TranslatorException("type should have been derived.");
         }
 
-        if (!(((YangDerivedInfo<?>) var).getReferredTypeDef() instanceof YangTypeDef)) {
+        if (!(((YangDerivedInfo<?>) var).getReferredTypeDef() != null)) {
             throw new TranslatorException("derived info is not an instance of typedef.");
         }
 
-        YangJavaTypeDef typedef = (YangJavaTypeDef) ((YangDerivedInfo<?>) var).getReferredTypeDef();
+        YangJavaTypeDefTranslator typedef = (YangJavaTypeDefTranslator) ((YangDerivedInfo<?>) var).getReferredTypeDef();
         if (typedef.getJavaFileInfo().getPackage() == null) {
             return getPackageFromParent(typedef.getParent(), conflictResolver);
         }
@@ -333,7 +332,7 @@ public final class AttributesJavaDataType {
             throw new TranslatorException("type should have been union.");
         }
 
-        YangJavaUnion union = (YangJavaUnion) type.getDataTypeExtendedInfo();
+        YangJavaUnionTranslator union = (YangJavaUnionTranslator) type.getDataTypeExtendedInfo();
         if (union.getJavaFileInfo().getPackage() == null) {
             return getPackageFromParent(union.getParent(), conflictResolver);
         }
@@ -352,7 +351,7 @@ public final class AttributesJavaDataType {
         if (!(type.getDataTypeExtendedInfo() instanceof YangEnumeration)) {
             throw new TranslatorException("type should have been enumeration.");
         }
-        YangJavaEnumeration enumeration = (YangJavaEnumeration) type.getDataTypeExtendedInfo();
+        YangJavaEnumerationTranslator enumeration = (YangJavaEnumerationTranslator) type.getDataTypeExtendedInfo();
         if (enumeration.getJavaFileInfo().getPackage() == null) {
             return getPackageFromParent(enumeration.getParent(), conflictResolver);
         }
@@ -372,12 +371,13 @@ public final class AttributesJavaDataType {
             throw new TranslatorException("type should have been identityref.");
         }
         YangIdentityRef identityRef = (YangIdentityRef) type.getDataTypeExtendedInfo();
-        YangJavaIdentity identity = (YangJavaIdentity) (identityRef.getReferredIdentity());
+        YangJavaIdentityTranslator identity = (YangJavaIdentityTranslator) (identityRef.getReferredIdentity());
         if (identity.getJavaFileInfo().getPackage() == null) {
             return getPackageFromParent(identity.getParent(), conflictResolver);
         }
         return identity.getJavaFileInfo().getPackage();
     }
+
     /**
      * Returns package from parent node.
      *
@@ -406,7 +406,7 @@ public final class AttributesJavaDataType {
      */
     public static void updateJavaFileInfo(YangNode yangNode,
                                           YangToJavaNamingConflictUtil conflictResolver) {
-        Stack<YangNode> nodesToUpdatePackage = new Stack<YangNode>();
+        Stack<YangNode> nodesToUpdatePackage = new Stack<>();
 
         /*
          * Add the nodes to be updated for package info in a stack.
@@ -425,12 +425,12 @@ public final class AttributesJavaDataType {
         if (yangNode == null) {
             yangNode = nodesToUpdatePackage.pop();
             String pkg;
-            if (yangNode instanceof YangJavaModule) {
-                YangJavaModule module = (YangJavaModule) yangNode;
+            if (yangNode instanceof YangJavaModuleTranslator) {
+                YangJavaModuleTranslator module = (YangJavaModuleTranslator) yangNode;
                 pkg = getRootPackage(module.getVersion(), module.getNameSpace().getUri(), module
                         .getRevision().getRevDate(), conflictResolver);
-            } else if (yangNode instanceof YangJavaSubModule) {
-                YangJavaSubModule submodule = (YangJavaSubModule) yangNode;
+            } else if (yangNode instanceof YangJavaSubModuleTranslator) {
+                YangJavaSubModuleTranslator submodule = (YangJavaSubModuleTranslator) yangNode;
                 pkg = getRootPackage(submodule.getVersion(),
                         submodule.getNameSpaceFromModule(submodule.getBelongsTo()),
                         submodule.getRevision().getRevDate(), conflictResolver);
@@ -448,7 +448,7 @@ public final class AttributesJavaDataType {
                                     .getPackage()));
         }
 
-        /**
+        /*
          * Parent of the node in stack is updated with java info,
          * all the nodes can be popped and updated
          */

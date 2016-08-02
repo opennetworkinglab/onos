@@ -20,9 +20,10 @@ import java.io.IOException;
 
 import org.onosproject.yangutils.datamodel.TraversalType;
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
 import org.onosproject.yangutils.translator.exception.InvalidNodeForTranslatorException;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 import static org.onosproject.yangutils.datamodel.TraversalType.CHILD;
 import static org.onosproject.yangutils.datamodel.TraversalType.PARENT;

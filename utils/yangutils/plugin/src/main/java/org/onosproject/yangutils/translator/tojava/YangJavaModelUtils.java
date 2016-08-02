@@ -26,19 +26,18 @@ import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangCase;
 import org.onosproject.yangutils.datamodel.YangChoice;
 import org.onosproject.yangutils.datamodel.YangLeavesHolder;
-import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
-import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.YangTranslatorOperatorNode;
 import org.onosproject.yangutils.datamodel.YangTypeHolder;
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 import org.onosproject.yangutils.datamodel.utils.DataModelUtils;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaAugment;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaEnumeration;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModule;
-import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaAugmentTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaEnumerationTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModuleTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModuleTranslator;
 
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.isRpcChildNodePresent;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
@@ -74,9 +73,9 @@ public final class YangJavaModelUtils {
     public static void updatePackageInfo(JavaCodeGeneratorInfo javaCodeGeneratorInfo,
                                          YangPluginConfig yangPluginConfig)
             throws IOException {
-        if (javaCodeGeneratorInfo instanceof YangJavaAugment) {
+        if (javaCodeGeneratorInfo instanceof YangJavaAugmentTranslator) {
             javaCodeGeneratorInfo.getJavaFileInfo()
-                    .setJavaName(getAugmentClassName((YangJavaAugment) javaCodeGeneratorInfo,
+                    .setJavaName(getAugmentClassName((YangJavaAugmentTranslator) javaCodeGeneratorInfo,
                             yangPluginConfig));
         } else {
             javaCodeGeneratorInfo.getJavaFileInfo()
@@ -137,13 +136,13 @@ public final class YangJavaModelUtils {
             javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
                     .getServiceTempFiles().addCurNodeLeavesInfoToTempFiles(
                     (YangNode) javaCodeGeneratorInfo, yangPluginConfig);
-            if (javaCodeGeneratorInfo instanceof YangJavaModule) {
-                if (!((YangJavaModule) javaCodeGeneratorInfo).getNotificationNodes().isEmpty()) {
-                    updateNotificaitonNodeInfo(javaCodeGeneratorInfo, yangPluginConfig);
+            if (javaCodeGeneratorInfo instanceof YangJavaModuleTranslator) {
+                if (!((YangJavaModuleTranslator) javaCodeGeneratorInfo).getNotificationNodes().isEmpty()) {
+                    updateNotificationNodeInfo(javaCodeGeneratorInfo, yangPluginConfig);
                 }
-            } else if (javaCodeGeneratorInfo instanceof YangJavaSubModule) {
-                if (!((YangJavaSubModule) javaCodeGeneratorInfo).getNotificationNodes().isEmpty()) {
-                    updateNotificaitonNodeInfo(javaCodeGeneratorInfo, yangPluginConfig);
+            } else if (javaCodeGeneratorInfo instanceof YangJavaSubModuleTranslator) {
+                if (!((YangJavaSubModuleTranslator) javaCodeGeneratorInfo).getNotificationNodes().isEmpty()) {
+                    updateNotificationNodeInfo(javaCodeGeneratorInfo, yangPluginConfig);
                 }
             }
 
@@ -168,7 +167,7 @@ public final class YangJavaModelUtils {
              */
             javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
                     .addTypeInfoToTempFiles((YangTypeHolder) javaCodeGeneratorInfo, yangPluginConfig);
-        } else if (javaCodeGeneratorInfo instanceof YangJavaEnumeration) {
+        } else if (javaCodeGeneratorInfo instanceof YangJavaEnumerationTranslator) {
             /*
              * Enumeration
              */
@@ -207,22 +206,22 @@ public final class YangJavaModelUtils {
      * @param yangPluginConfig      plugin configurations
      * @throws IOException when fails to do IO operations
      */
-    private static void updateNotificaitonNodeInfo(JavaCodeGeneratorInfo javaCodeGeneratorInfo,
+    private static void updateNotificationNodeInfo(JavaCodeGeneratorInfo javaCodeGeneratorInfo,
                                                    YangPluginConfig yangPluginConfig)
             throws IOException {
-        if (javaCodeGeneratorInfo instanceof YangJavaModule) {
-            for (YangNode notificaiton : ((YangJavaModule) javaCodeGeneratorInfo).getNotificationNodes()) {
+        if (javaCodeGeneratorInfo instanceof YangJavaModuleTranslator) {
+            for (YangNode notification : ((YangJavaModuleTranslator) javaCodeGeneratorInfo).getNotificationNodes()) {
                 javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
                         .getEventFragmentFiles()
-                        .addJavaSnippetOfEvent(notificaiton, yangPluginConfig);
+                        .addJavaSnippetOfEvent(notification, yangPluginConfig);
             }
         }
-        if (javaCodeGeneratorInfo instanceof YangJavaSubModule) {
-            for (YangNode notificaiton : ((YangJavaSubModule) javaCodeGeneratorInfo)
+        if (javaCodeGeneratorInfo instanceof YangJavaSubModuleTranslator) {
+            for (YangNode notification : ((YangJavaSubModuleTranslator) javaCodeGeneratorInfo)
                     .getNotificationNodes()) {
                 javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
                         .getEventFragmentFiles()
-                        .addJavaSnippetOfEvent(notificaiton, yangPluginConfig);
+                        .addJavaSnippetOfEvent(notification, yangPluginConfig);
             }
         }
     }
@@ -269,9 +268,9 @@ public final class YangJavaModelUtils {
 
         generateCodeOfNode(javaCodeGeneratorInfo, yangPlugin);
         TempJavaCodeFragmentFiles tempJavaCodeFragmentFiles = javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles();
-        if (javaCodeGeneratorInfo instanceof YangJavaAugment) {
+        if (javaCodeGeneratorInfo instanceof YangJavaAugmentTranslator) {
 
-            JavaQualifiedTypeInfo yangAugmentedInfo = new JavaQualifiedTypeInfo();
+            JavaQualifiedTypeInfoTranslator yangAugmentedInfo = new JavaQualifiedTypeInfoTranslator();
             yangAugmentedInfo.setClassInfo(YANG_AUGMENTED_INFO);
             yangAugmentedInfo.setPkgInfo(YANG_AUGMENTED_INFO_CLASS_IMPORT_PKG);
             javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles().getBeanTempFiles().getJavaExtendsListHolder()
@@ -280,7 +279,7 @@ public final class YangJavaModelUtils {
         }
         if (javaCodeGeneratorInfo instanceof YangCase) {
             YangNode parent = ((YangCase) javaCodeGeneratorInfo).getParent();
-            JavaQualifiedTypeInfo parentsInfo = new JavaQualifiedTypeInfo();
+            JavaQualifiedTypeInfoTranslator parentsInfo = new JavaQualifiedTypeInfoTranslator();
             String parentName = getCapitalCase(((JavaFileInfoContainer) parent).getJavaFileInfo().getJavaName());
             String parentPkg = ((JavaFileInfoContainer) parent).getJavaFileInfo().getPackage();
             parentsInfo.setClassInfo(parentName);
@@ -399,7 +398,7 @@ public final class YangJavaModelUtils {
         File codeGenDir = new File(info.getBaseCodeGenPath()
                 + info.getPackageFilePath());
         File[] files = codeGenDir.listFiles();
-        if (files.length >= 1) {
+        if (files != null && files.length >= 1) {
             for (File file : files) {
                 if (file.getName().contentEquals(getCapitalCase(info.getJavaName() + MANAGER + ".java"))) {
                     return false;
@@ -420,36 +419,31 @@ public final class YangJavaModelUtils {
 
         List<String> clsInfo = new ArrayList<>();
         while (node.getParent() != null) {
-            if (!(node instanceof YangModule)
-                    || !(node instanceof YangSubModule)) {
-                if (node instanceof YangJavaAugment) {
-                    clsInfo.add(getAugmentClassName((YangAugment) node, yangPluginConfig));
-                } else {
-                    clsInfo.add(getCamelCase(node.getName(), yangPluginConfig.getConflictResolver()));
-                }
+            if (node instanceof YangJavaAugmentTranslator) {
+                clsInfo.add(getAugmentClassName((YangAugment) node, yangPluginConfig));
+            } else {
+                clsInfo.add(getCamelCase(node.getName(), yangPluginConfig.getConflictResolver()));
             }
-            if (node instanceof YangJavaModule
-                    || node instanceof YangJavaSubModule) {
-                break;
-            }
+
             node = node.getParent();
         }
 
         StringBuilder pkg = new StringBuilder();
-        if (node instanceof YangJavaModule) {
-            YangJavaModule module = (YangJavaModule) node;
+        if (node instanceof YangJavaModuleTranslator) {
+            YangJavaModuleTranslator module = (YangJavaModuleTranslator) node;
             pkg.append(getRootPackage(module.getVersion(), module.getNameSpace().getUri(), module
                     .getRevision().getRevDate(), yangPluginConfig.getConflictResolver()));
-        } else if (node instanceof YangJavaSubModule) {
-            YangJavaSubModule submodule = (YangJavaSubModule) node;
+        } else if (node instanceof YangJavaSubModuleTranslator) {
+            YangJavaSubModuleTranslator submodule = (YangJavaSubModuleTranslator) node;
             pkg.append(getRootPackage(submodule.getVersion(),
                     submodule.getNameSpaceFromModule(submodule.getBelongsTo()),
                     submodule.getRevision().getRevDate(), yangPluginConfig.getConflictResolver()));
         }
+        String concat = "";
         for (int i = 1; i <= clsInfo.size(); i++) {
-            pkg.append("." + clsInfo.get(clsInfo.size() - i));
+            concat = concat + "." + clsInfo.get(clsInfo.size() - i);
         }
-
+        pkg.append(concat);
         return pkg.toString().toLowerCase();
 
     }

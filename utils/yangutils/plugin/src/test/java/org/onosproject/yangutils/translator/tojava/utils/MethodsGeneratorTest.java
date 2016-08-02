@@ -22,8 +22,8 @@ import java.lang.reflect.InvocationTargetException;
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
-import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
-import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
+import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
@@ -297,8 +297,8 @@ public final class MethodsGeneratorTest {
      *
      * @return java qualified info
      */
-    private JavaQualifiedTypeInfo getTestJavaQualifiedTypeInfo() {
-        JavaQualifiedTypeInfo info = new JavaQualifiedTypeInfo();
+    private JavaQualifiedTypeInfoTranslator getTestJavaQualifiedTypeInfo() {
+        JavaQualifiedTypeInfoTranslator info = new JavaQualifiedTypeInfoTranslator();
         info.setPkgInfo(JAVA_LANG);
         info.setClassInfo(STRING_DATA_TYPE);
         return info;

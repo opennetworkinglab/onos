@@ -28,13 +28,14 @@ import org.onosproject.yangutils.datamodel.YangLeavesHolder;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangSubModule;
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.javamodel.JavaLeafInfoContainer;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaGrouping;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModule;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaGroupingTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModuleTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModuleTranslator;
 import org.onosproject.yangutils.translator.tojava.utils.JavaExtendsListHolder;
-import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
 
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.getParentNodeInGenCode;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
@@ -56,8 +57,8 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.TO_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getAttributeInfoForTheData;
-import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getQualifiedInfoOfFromString;
-import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getQualifiedTypeInfoOfCurNode;
+import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator.getQualifiedInfoOfFromString;
+import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator.getQualifiedTypeInfoOfCurNode;
 import static org.onosproject.yangutils.translator.tojava.javamodel.AttributesJavaDataType.updateJavaFileInfo;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getJavaAttributeDefination;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getJavaClassDefClose;
@@ -240,7 +241,7 @@ public class TempJavaFragmentFiles {
     /**
      * Java file handle for builder op param class file.
      */
-    private File builderOpParmClassJavaFileHandle;
+    private File builderOpParamClassJavaFileHandle;
 
     /**
      * Java file handle for impl class file.
@@ -300,7 +301,7 @@ public class TempJavaFragmentFiles {
     /**
      * Import info for case.
      */
-    private JavaQualifiedTypeInfo caseImportInfo;
+    private JavaQualifiedTypeInfoTranslator caseImportInfo;
 
     /**
      * Is attribute added.
@@ -446,7 +447,7 @@ public class TempJavaFragmentFiles {
             throw new TranslatorException("missing parent node to contain current node info in generated file");
         }
 
-        if (parent instanceof YangJavaGrouping) {
+        if (parent instanceof YangJavaGroupingTranslator) {
             /*
              * In case of grouping, there is no need to add the information, it
              * will be taken care in uses
@@ -484,7 +485,7 @@ public class TempJavaFragmentFiles {
          * Get the import info corresponding to the attribute for import in
          * generated java files or qualified access
          */
-        JavaQualifiedTypeInfo qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(curNode,
+        JavaQualifiedTypeInfoTranslator qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(curNode,
                 getCapitalCase(curNodeName));
         if (!(targetNode instanceof TempJavaCodeFragmentFilesContainer)) {
             throw new TranslatorException("Parent node does not have file info");
@@ -493,7 +494,7 @@ public class TempJavaFragmentFiles {
         JavaFileInfo fileInfo = ((JavaFileInfoContainer) targetNode).getJavaFileInfo();
 
         boolean isQualified;
-        if ((targetNode instanceof YangJavaModule || targetNode instanceof YangJavaSubModule)
+        if ((targetNode instanceof YangJavaModuleTranslator || targetNode instanceof YangJavaSubModuleTranslator)
                 && (qualifiedTypeInfo.getClassInfo().contentEquals(SERVICE)
                 || qualifiedTypeInfo.getClassInfo().contentEquals(COMPONENT)
                 || qualifiedTypeInfo.getClassInfo().contentEquals(getCapitalCase(ACTIVATE))
@@ -506,7 +507,7 @@ public class TempJavaFragmentFiles {
             isQualified = true;
         } else {
             String className;
-            if (targetNode instanceof YangJavaModule || targetNode instanceof YangJavaSubModule) {
+            if (targetNode instanceof YangJavaModuleTranslator || targetNode instanceof YangJavaSubModuleTranslator) {
                 className = getCapitalCase(fileInfo.getJavaName()) + "Service";
             } else {
                 className = getCapitalCase(fileInfo.getJavaName());
@@ -599,17 +600,17 @@ public class TempJavaFragmentFiles {
      *
      * @return op param builder temporary file handle
      */
-    private File getBuilderOpParmClassJavaFileHandle() {
-        return builderOpParmClassJavaFileHandle;
+    private File getBuilderOpParamClassJavaFileHandle() {
+        return builderOpParamClassJavaFileHandle;
     }
 
     /**
      * Sets the java file handle for op param builder class.
      *
-     * @param builderOpParmClassJavaFileHandle java file handle
+     * @param builderOpParamClassJavaFileHandle java file handle
      */
-    private void setBuilderOpParmClassJavaFileHandle(File builderOpParmClassJavaFileHandle) {
-        this.builderOpParmClassJavaFileHandle = builderOpParmClassJavaFileHandle;
+    private void setBuilderOpParamClassJavaFileHandle(File builderOpParamClassJavaFileHandle) {
+        this.builderOpParamClassJavaFileHandle = builderOpParamClassJavaFileHandle;
     }
 
     /**
@@ -1170,11 +1171,17 @@ public class TempJavaFragmentFiles {
         String path = getTempDirPath(getAbsoluteDirPath());
         File dir = new File(path);
         if (!dir.exists()) {
-            dir.mkdirs();
+            boolean isCreated = dir.mkdirs();
+            if (!isCreated) {
+                throw new IOException("failed to create temporary directory for " + fileName);
+            }
         }
         File file = new File(path + fileName + TEMP_FILE_EXTENSION);
         if (!file.exists()) {
-            file.createNewFile();
+            boolean isCreated = file.createNewFile();
+            if (!isCreated) {
+                throw new IOException("failed to create temporary files for " + fileName);
+            }
         } else {
             throw new IOException(fileName + " is reused due to YANG naming");
         }
@@ -1273,7 +1280,7 @@ public class TempJavaFragmentFiles {
      * @param pluginConfig plugin configurations
      */
     void addParentInfoInCurNodeTempFile(YangNode curNode, YangPluginConfig pluginConfig) {
-        caseImportInfo = new JavaQualifiedTypeInfo();
+        caseImportInfo = new JavaQualifiedTypeInfoTranslator();
         YangNode parent = getParentNodeInGenCode(curNode);
         if (!(parent instanceof JavaCodeGenerator)) {
             throw new TranslatorException("missing parent node to contain current node info in generated file");
@@ -1358,7 +1365,7 @@ public class TempJavaFragmentFiles {
      * @throws IOException IO operation fail
      */
     void addCurNodeLeavesInfoToTempFiles(YangNode curNode,
-                                                YangPluginConfig yangPluginConfig)
+                                         YangPluginConfig yangPluginConfig)
             throws IOException {
         if (!(curNode instanceof YangLeavesHolder)) {
             throw new TranslatorException("Data model node does not have any leaves");
@@ -1411,7 +1418,7 @@ public class TempJavaFragmentFiles {
             }
 
             if ((getGeneratedTempFiles() & FROM_STRING_IMPL_MASK) != 0) {
-                JavaQualifiedTypeInfo qualifiedInfoOfFromString = getQualifiedInfoOfFromString(newAttrInfo,
+                JavaQualifiedTypeInfoTranslator qualifiedInfoOfFromString = getQualifiedInfoOfFromString(newAttrInfo,
                         pluginConfig.getConflictResolver());
             /*
              * Create a new java attribute info with qualified information of
@@ -1570,7 +1577,7 @@ public class TempJavaFragmentFiles {
                 if (curNode instanceof YangAugmentableNode) {
                     addYangAugmentedOpParamInfoImport(imports);
                 }
-                JavaQualifiedTypeInfo qualifiedTypeInfo = new JavaQualifiedTypeInfo();
+                JavaQualifiedTypeInfoTranslator qualifiedTypeInfo = new JavaQualifiedTypeInfoTranslator();
                 qualifiedTypeInfo.setClassInfo(getCapitalCase(DEFAULT) + getCapitalCase(getJavaFileInfo()
                         .getJavaName()));
                 qualifiedTypeInfo.setPkgInfo(getJavaFileInfo().getPackage());
@@ -1592,14 +1599,14 @@ public class TempJavaFragmentFiles {
                  * Create builder class file.
                  */
                 if ((fileType & BUILDER_CLASS_MASK) != 0) {
-                    setBuilderOpParmClassJavaFileHandle(getJavaFileHandle(getOpParamBuilderImplClassName()));
-                    setBuilderOpParmClassJavaFileHandle(
-                            generateOpParamBuilderClassFile(getBuilderOpParmClassJavaFileHandle(), curNode,
+                    setBuilderOpParamClassJavaFileHandle(getJavaFileHandle(getOpParamBuilderImplClassName()));
+                    setBuilderOpParamClassJavaFileHandle(
+                            generateOpParamBuilderClassFile(getBuilderOpParamClassJavaFileHandle(), curNode,
                                     isAttributePresent()));
                     /*
                      * Append impl class to builder class and close it.
                      */
-                    mergeJavaFiles(getBuilderOpParmClassJavaFileHandle(), getOpParamClassJavaFileHandle());
+                    mergeJavaFiles(getBuilderOpParamClassJavaFileHandle(), getOpParamClassJavaFileHandle());
                     validateLineLength(getOpParamClassJavaFileHandle());
 
                     addBitSetImport(imports, false);
@@ -1689,7 +1696,7 @@ public class TempJavaFragmentFiles {
      */
     private void removeAugmentedInfoImport(List<String> imports) {
         imports.remove(getJavaImportData().getYangAugmentedInfoImport());
-        for (JavaQualifiedTypeInfo type : getJavaImportData().getImportSet()) {
+        for (JavaQualifiedTypeInfoTranslator type : getJavaImportData().getImportSet()) {
             if (type.getClassInfo().equals(YANG_AUGMENTED_INFO)) {
                 getJavaImportData().getImportSet().remove(type);
                 getJavaExtendsListHolder().getExtendsList().remove(type);
@@ -1715,7 +1722,7 @@ public class TempJavaFragmentFiles {
             closeFile(getBuilderClassJavaFileHandle(), true);
         }
         if ((getGeneratedJavaFiles() & OPERATION_BUILDER_CLASS_MASK) != 0) {
-            closeFile(getBuilderOpParmClassJavaFileHandle(), true);
+            closeFile(getBuilderOpParamClassJavaFileHandle(), true);
         }
         if ((getGeneratedJavaFiles() & BUILDER_INTERFACE_MASK) != 0) {
             closeFile(getBuilderInterfaceJavaFileHandle(), true);
@@ -1755,7 +1762,7 @@ public class TempJavaFragmentFiles {
      * @return status of the qualified access to the attribute
      */
     boolean getIsQualifiedAccessOrAddToImportList(
-            JavaQualifiedTypeInfo importInfo) {
+            JavaQualifiedTypeInfoTranslator importInfo) {
 
         return getJavaImportData().addImportInfo(importInfo, getGeneratedJavaClassName(),
                 getJavaFileInfo().getPackage());

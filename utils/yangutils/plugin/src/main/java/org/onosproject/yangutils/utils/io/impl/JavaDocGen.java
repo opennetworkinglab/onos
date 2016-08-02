@@ -16,6 +16,8 @@
 
 package org.onosproject.yangutils.utils.io.impl;
 
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
+
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_FOR_VALIDATOR;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_FOR_VALIDATOR_RETURN;

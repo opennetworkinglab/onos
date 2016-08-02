@@ -24,8 +24,8 @@ import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
-import org.onosproject.yangutils.utils.io.impl.YangToJavaNamingConflictUtil;
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangToJavaNamingConflictUtil;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
@@ -168,7 +168,7 @@ public class AttributesJavaDataTypeTest {
      */
     @SuppressWarnings("unchecked")
     private YangType<?> getStubExtendedInfo(YangType<?> type) throws DataModelException {
-        YangJavaTypeDef typedef = new YangJavaTypeDef();
+        YangJavaTypeDefTranslator typedef = new YangJavaTypeDefTranslator();
         getStubParent().addChild(typedef);
         YangDerivedInfo<?> derInfo = new YangDerivedInfo<>();
         derInfo.setReferredTypeDef(typedef);
@@ -194,7 +194,7 @@ public class AttributesJavaDataTypeTest {
      * @return stub parent module
      */
     private YangNode getStubParent() {
-        YangJavaModule parent = new YangJavaModule();
+        YangJavaModuleTranslator parent = new YangJavaModuleTranslator();
         parent.setJavaFileInfo(addStubJavaFileInfo());
         return parent;
     }

@@ -36,26 +36,26 @@ import org.onosproject.yangutils.datamodel.YangUnion;
 import org.onosproject.yangutils.datamodel.YangUses;
 import org.onosproject.yangutils.datamodel.utils.GeneratedLanguage;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaAugment;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaCase;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaChoice;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaContainer;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaEnumeration;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaGrouping;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaIdentity;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaInput;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaLeaf;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaLeafList;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaList;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaNotification;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaOutput;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaRpc;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModule;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaType;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaTypeDef;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaUnion;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaUses;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaAugmentTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaCaseTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaChoiceTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaContainerTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaEnumerationTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaGroupingTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaIdentityTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaInputTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaLeafTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaLeafListTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaListTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModuleTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaNotificationTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaOutputTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaRpcTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModuleTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaTypeTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaTypeDefTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaUnionTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaUsesTranslator;
 
 /**
  * Represents factory to create data model objects based on the target file type.
@@ -78,7 +78,7 @@ public final class YangDataModelFactory {
     public static YangModule getYangModuleNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaModule();
+                return new YangJavaModuleTranslator();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");
@@ -96,7 +96,7 @@ public final class YangDataModelFactory {
     public static YangAugment getYangAugmentNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaAugment();
+                return new YangJavaAugmentTranslator();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");
@@ -114,7 +114,7 @@ public final class YangDataModelFactory {
     public static YangCase getYangCaseNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaCase();
+                return new YangJavaCaseTranslator();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");
@@ -132,7 +132,7 @@ public final class YangDataModelFactory {
     public static YangChoice getYangChoiceNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaChoice();
+                return new YangJavaChoiceTranslator();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");
@@ -150,7 +150,7 @@ public final class YangDataModelFactory {
     public static YangContainer getYangContainerNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaContainer();
+                return new YangJavaContainerTranslator();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");
@@ -168,7 +168,7 @@ public final class YangDataModelFactory {
     public static YangIdentity getYangIdentityNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaIdentity();
+                return new YangJavaIdentityTranslator();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");
@@ -186,7 +186,7 @@ public final class YangDataModelFactory {
     public static YangGrouping getYangGroupingNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaGrouping();
+                return new YangJavaGroupingTranslator();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");
@@ -204,7 +204,7 @@ public final class YangDataModelFactory {
     public static YangList getYangListNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaList();
+                return new YangJavaListTranslator();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");
@@ -222,7 +222,7 @@ public final class YangDataModelFactory {
     public static YangSubModule getYangSubModuleNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaSubModule();
+                return new YangJavaSubModuleTranslator();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");
@@ -240,7 +240,7 @@ public final class YangDataModelFactory {
     public static YangTypeDef getYangTypeDefNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaTypeDef();
+                return new YangJavaTypeDefTranslator();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");
@@ -258,7 +258,7 @@ public final class YangDataModelFactory {
     public static YangUnion getYangUnionNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaUnion();
+                return new YangJavaUnionTranslator();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");
@@ -276,7 +276,7 @@ public final class YangDataModelFactory {
     public static YangUses getYangUsesNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaUses();
+                return new YangJavaUsesTranslator();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");
@@ -294,7 +294,7 @@ public final class YangDataModelFactory {
     public static YangNotification getYangNotificationNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaNotification();
+                return new YangJavaNotificationTranslator();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");
@@ -312,7 +312,7 @@ public final class YangDataModelFactory {
     public static YangLeaf getYangLeaf(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaLeaf();
+                return new YangJavaLeafTranslator();
             }
             default: {
                 throw new RuntimeException("Only YANG to Java is supported.");
@@ -330,7 +330,7 @@ public final class YangDataModelFactory {
     public static YangLeafList getYangLeafList(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaLeafList();
+                return new YangJavaLeafListTranslator();
             }
             default: {
                 throw new RuntimeException("Only YANG to Java is supported.");
@@ -348,7 +348,7 @@ public final class YangDataModelFactory {
     public static YangRpc getYangRpcNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaRpc();
+                return new YangJavaRpcTranslator();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");
@@ -366,7 +366,7 @@ public final class YangDataModelFactory {
     public static YangInput getYangInputNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaInput();
+                return new YangJavaInputTranslator();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");
@@ -384,7 +384,7 @@ public final class YangDataModelFactory {
     public static YangOutput getYangOutputNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaOutput();
+                return new YangJavaOutputTranslator();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");
@@ -399,10 +399,10 @@ public final class YangDataModelFactory {
      * generated
      * @return the corresponding inherited node based on the target language
      */
-    public static YangJavaEnumeration getYangEnumerationNode(GeneratedLanguage targetLanguage) {
+    public static YangJavaEnumerationTranslator getYangEnumerationNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaEnumeration();
+                return new YangJavaEnumerationTranslator();
             }
             default: {
                 throw new TranslatorException("Only YANG to Java is supported.");
@@ -419,7 +419,7 @@ public final class YangDataModelFactory {
     public static YangType getYangType(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
-                return new YangJavaType();
+                return new YangJavaTypeTranslator();
             }
             default: {
                 throw new RuntimeException("Only YANG to Java is supported.");

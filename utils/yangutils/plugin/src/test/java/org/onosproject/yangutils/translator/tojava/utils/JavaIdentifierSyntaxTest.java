@@ -27,7 +27,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.utils.io.impl.YangToJavaNamingConflictUtil;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangToJavaNamingConflictUtil;
 
 import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.hamcrest.core.Is.is;

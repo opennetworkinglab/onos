@@ -34,7 +34,7 @@ public enum TraversalType {
     /**
      * Sibling node traversal.
      */
-    SIBILING,
+    SIBLING,
 
     /**
      * Parent node traversal.

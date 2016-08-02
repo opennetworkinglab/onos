@@ -22,9 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaGrouping;
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaGroupingTranslator;
 import org.onosproject.yangutils.translator.tojava.utils.JavaExtendsListHolder;
-import org.onosproject.yangutils.utils.io.impl.YangPluginConfig;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_SUBJECT_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EVENT_ENUM_MASK;
@@ -33,7 +34,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EVENT_SUBJECT_GETTER_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EVENT_SUBJECT_SETTER_MASK;
 import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getAttributeInfoForTheData;
-import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getQualifiedTypeInfoOfCurNode;
+import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator.getQualifiedTypeInfoOfCurNode;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateEventFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateEventListenerFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateEventSubjectFile;
@@ -319,7 +320,7 @@ public class TempJavaEventFragmentFiles
 
         //Creates event interface file.
         setEventSubjectJavaFileHandle(getJavaFileHandle(curNode, curNodeInfo +
-                TempJavaEventFragmentFiles.EVENT_SUBJECT_NAME_SUFFIX));
+                EVENT_SUBJECT_NAME_SUFFIX));
         generateEventSubjectFile(getEventSubjectJavaFileHandle(), curNode);
 
     }
@@ -428,7 +429,7 @@ public class TempJavaEventFragmentFiles
                 pluginConfig.getConflictResolver()));
         String notificationName = curNode.getName();
 
-        JavaQualifiedTypeInfo qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(curNode,
+        JavaQualifiedTypeInfoTranslator qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(curNode,
                 getCapitalCase(currentInfo));
 
         JavaAttributeInfo javaAttributeInfo = getAttributeInfoForTheData(qualifiedTypeInfo, getSmallCase(currentInfo),
@@ -492,7 +493,7 @@ public class TempJavaEventFragmentFiles
         YangNode childNode = curNode.getChild();
 
         // Skip grouping, as it wont have the package name.
-        while (childNode instanceof YangJavaGrouping) {
+        while (childNode instanceof YangJavaGroupingTranslator) {
             childNode = childNode.getNextSibling();
         }
         JavaFileInfo childInfo = ((JavaFileInfoContainer) childNode).getJavaFileInfo();

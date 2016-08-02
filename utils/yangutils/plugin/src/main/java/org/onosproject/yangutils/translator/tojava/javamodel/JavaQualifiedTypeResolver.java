@@ -15,8 +15,8 @@
  */
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
+import org.onosproject.yangutils.datamodel.javadatamodel.YangToJavaNamingConflictUtil;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoContainer;
-import org.onosproject.yangutils.utils.io.impl.YangToJavaNamingConflictUtil;
 
 /**
  * Represent java based identification of the YANG leaves.
@@ -27,7 +27,7 @@ public interface JavaQualifiedTypeResolver
     /**
      * updates the qualified access details of the type.
      *
-     * @param confilictResolver plugin configurations
+     * @param conflictResolver plugin configurations
      */
-    void updateJavaQualifiedInfo(YangToJavaNamingConflictUtil confilictResolver);
+    void updateJavaQualifiedInfo(YangToJavaNamingConflictUtil conflictResolver);
 }

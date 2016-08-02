@@ -25,12 +25,12 @@ public interface JavaQualifiedTypeInfoContainer {
      *
      * @return java qualified type details
      */
-    JavaQualifiedTypeInfo getJavaQualifiedInfo();
+    JavaQualifiedTypeInfoTranslator getJavaQualifiedInfo();
 
     /**
      * Assign the qualified type info.
      *
      * @param typeInfo qualified type information
      */
-    void setJavaQualifiedInfo(JavaQualifiedTypeInfo typeInfo);
+    void setJavaQualifiedInfo(JavaQualifiedTypeInfoTranslator typeInfo);
 }
