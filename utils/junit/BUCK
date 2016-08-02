@@ -20,6 +20,7 @@ osgi_jar(
     visibility = ['PUBLIC'],
     resources_root = 'src/main/resources',
     resources = glob(['src/main/resources/**']),
+    package_name_root = 'org.onlab',
 )
 
 java_test(

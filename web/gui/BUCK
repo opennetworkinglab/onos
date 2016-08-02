@@ -7,6 +7,7 @@ COMPILE_DEPS = [
     '//lib:jersey-media-multipart',
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',
+    '//lib:jersey-server',
     '//incubator/api:onos-incubator-api',
     '//incubator/net:onos-incubator-net',
     '//utils/rest:onlab-rest',

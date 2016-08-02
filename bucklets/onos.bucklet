@@ -46,6 +46,8 @@ def checkstyle(
                 test_rule_timeout_ms = 20000,
                 labels = [ 'checkstyle' ],
         )
+    else:
+        print 'Not generating checkstyle rule for %s because there are no sources.' % name
 
 def java_doc(
     name,
@@ -61,29 +63,34 @@ def java_doc(
     sourcepath = paths
   else:
     sourcepath = ['$SRCDIR/' + n for n in paths]
-  genrule(
-    name = name,
+
+  if len(srcs) != 0:
     cmd = ' '.join([
-      'while ! test -f .buckconfig; do cd ..; done;',
-      'javadoc',
-      '-quiet',
-      '-protected',
-      '-encoding UTF-8',
-      '-charset UTF-8',
-      '-notimestamp',
-      '-windowtitle "' + title + '"',
-      '-link http://docs.oracle.com/javase/7/docs/api',
-      '-subpackages ',
-      ':'.join(pkgs),
-      '-sourcepath ',
-      ':'.join(sourcepath),
-      ' -classpath ',
-      ':'.join(['$(classpath %s)' % n for n in deps]),
-      '-d $TMP',
-    ]) + ';jar cf $OUT -C $TMP .',
-    srcs = srcs,
-    out = name + '.jar',
-    visibility = visibility,
+        'while ! test -f .buckconfig; do cd ..; done;',
+        'javadoc',
+        '-tag onos.rsModel:a:"onos model"',
+        '-quiet',
+        '-protected',
+        '-encoding UTF-8',
+        '-charset UTF-8',
+        '-notimestamp',
+        '-windowtitle "' + title + '"',
+        '-link http://docs.oracle.com/javase/8/docs/api',
+        '-subpackages ',
+        ':'.join(pkgs),
+        '-sourcepath ',
+        ':'.join(sourcepath),
+        ' -classpath ',
+        ':'.join(['$(classpath %s)' % n for n in deps]),
+        '-d $TMP',
+      ]) + ';jar cf $OUT -C $TMP .'
+
+    genrule(
+      name = name,
+      cmd = cmd,
+      srcs = srcs,
+      out = name + '.jar',
+      visibility = visibility,
 )
 
 
@@ -99,6 +106,7 @@ def osgi_jar(
     debug = False,
     import_packages = '*',
     export_packages = '*',
+    package_name_root = 'org.onosproject',
     include_resources = NONE,
     web_context = NONE,
     resources = NONE,
@@ -187,7 +195,7 @@ def osgi_jar(
   java_doc(
        name = name + '-javadoc',
        title = 'Java Docs',
-       pkgs = [ 'org.onosproject' ],
+       pkgs = [ package_name_root ],
        paths = [ 'src/main/java' ],
        srcs = srcs,
        deps = deps,
@@ -253,6 +261,9 @@ def osgi_jar_with_tests(
   if test_srcs is None:
       test_srcs = glob([TEST + '/*.java'])
 
+  if not test_srcs:
+          print "Generating test rule for %s, but there are no tests." % name
+
   java_test(
     name = name + '-tests',
     srcs = test_srcs,
@@ -272,6 +283,3 @@ def osgi_jar_with_tests(
   )
 
   #FIXME need to run checkstyle on test sources
-
-
-
