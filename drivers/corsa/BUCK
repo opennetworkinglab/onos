@@ -19,6 +19,7 @@ osgi_jar_with_tests (
 )
 
 onos_app (
+    app_name = 'org.onosproject.drivers.corsa',
     title = 'Corsa device drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
