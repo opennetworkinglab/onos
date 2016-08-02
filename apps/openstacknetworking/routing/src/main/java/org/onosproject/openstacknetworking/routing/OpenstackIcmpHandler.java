@@ -191,8 +191,10 @@ public class OpenstackIcmpHandler {
         icmpReq.setChecksum((short) 0);
         icmpReq.setIcmpType(ICMP.TYPE_ECHO_REPLY).resetChecksum();
 
+        int destinationAddress = ipPacket.getSourceAddress();
+
         ipPacket.setSourceAddress(ipPacket.getDestinationAddress())
-                .setDestinationAddress(ipPacket.getSourceAddress())
+                .setDestinationAddress(destinationAddress)
                 .resetChecksum();
 
         ipPacket.setPayload(icmpReq);
@@ -200,7 +202,7 @@ public class OpenstackIcmpHandler {
         icmpReply.setEtherType(Ethernet.TYPE_IPV4)
                 .setSourceMACAddress(Constants.DEFAULT_GATEWAY_MAC)
                 .setDestinationMACAddress(reqHost.mac())
-                .setPayload(icmpReq);
+                .setPayload(ipPacket);
 
         sendReply(icmpReply, reqHost);
     }

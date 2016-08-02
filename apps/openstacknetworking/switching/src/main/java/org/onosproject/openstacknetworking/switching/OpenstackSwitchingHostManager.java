@@ -161,7 +161,15 @@ public final class OpenstackSwitchingHostManager extends AbstractProvider
             return;
         }
 
-        registerDhcpInfo(osPort);
+        OpenstackSubnet openstackSubnet = openstackService.subnets().stream()
+                .filter(n -> n.networkId().equals(osPort.networkId()))
+                .findFirst().orElse(null);
+        if (openstackSubnet == null) {
+            log.warn("Failed to find subnet for {}", osPort);
+            return;
+        }
+
+        registerDhcpInfo(osPort, openstackSubnet);
         ConnectPoint connectPoint = new ConnectPoint(port.element().id(), port.number());
         // TODO remove gateway IP from host annotation
         Map.Entry<String, Ip4Address> fixedIp = osPort.fixedIps().entrySet().stream().findFirst().get();
@@ -175,7 +183,7 @@ public final class OpenstackSwitchingHostManager extends AbstractProvider
                 .set(VXLAN_ID, osNet.segmentId())
                 .set(TENANT_ID, osNet.tenantId())
                 // TODO remove gateway IP from host annotation
-                .set(GATEWAY_IP, fixedIp.getValue().toString())
+                .set(GATEWAY_IP, openstackSubnet.gatewayIp())
                 .set(CREATE_TIME, String.valueOf(System.currentTimeMillis()));
 
         HostDescription hostDesc = new DefaultHostDescription(
@@ -202,17 +210,10 @@ public final class OpenstackSwitchingHostManager extends AbstractProvider
                 });
     }
 
-    private void registerDhcpInfo(OpenstackPort openstackPort) {
+    private void registerDhcpInfo(OpenstackPort openstackPort, OpenstackSubnet openstackSubnet) {
         checkNotNull(openstackPort);
+        checkNotNull(openstackSubnet);
         checkArgument(!openstackPort.fixedIps().isEmpty());
-
-        OpenstackSubnet openstackSubnet = openstackService.subnets().stream()
-                .filter(n -> n.networkId().equals(openstackPort.networkId()))
-                .findFirst().orElse(null);
-        if (openstackSubnet == null) {
-            log.warn("Failed to find subnet for {}", openstackPort);
-            return;
-        }
 
         Ip4Address ipAddress = openstackPort.fixedIps().values().stream().findFirst().get();
         IpPrefix subnetPrefix = IpPrefix.valueOf(openstackSubnet.cidr());
