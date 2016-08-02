@@ -91,28 +91,28 @@ public interface LispMapReply extends LispMessage {
     interface ReplyBuilder extends Builder {
 
         /**
-         * Sets isProbe flag.
+         * Sets probe flag.
          *
-         * @param isProbe isProbe flag
+         * @param probe probe flag
          * @return ReplyBuilder object
          */
-        ReplyBuilder withIsProbe(boolean isProbe);
+        ReplyBuilder withIsProbe(boolean probe);
 
         /**
-         * Sets isEtr flag.
+         * Sets etr flag.
          *
-         * @param isEtr isEtr flag
+         * @param etr etr flag
          * @return ReplyBuilder object
          */
-        ReplyBuilder withIsEtr(boolean isEtr);
+        ReplyBuilder withIsEtr(boolean etr);
 
         /**
-         * Sets isSecurity flag.
+         * Sets security flag.
          *
-         * @param isSecurity isSecurity flag
+         * @param security security flag
          * @return ReplyBuilder object
          */
-        ReplyBuilder withIsSecurity(boolean isSecurity);
+        ReplyBuilder withIsSecurity(boolean security);
 
         /**
          * Sets record count.

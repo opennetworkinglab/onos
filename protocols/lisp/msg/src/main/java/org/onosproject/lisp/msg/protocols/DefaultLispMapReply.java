@@ -20,15 +20,40 @@ import io.netty.buffer.ByteBuf;
 /**
  * Default LISP map reply message class.
  */
-public class DefaultLispMapReply implements LispMapReply {
+public final class DefaultLispMapReply implements LispMapReply {
+
+    private final long nonce;
+    private final byte recordCount;
+    private final boolean probe;
+    private final boolean etr;
+    private final boolean security;
+
+    /**
+     * A private constructor that protects object instantiation from external.
+     *
+     * @param nonce       nonce
+     * @param recordCount record count number
+     * @param probe       probe flag
+     * @param etr         etr flag
+     * @param security    security flag
+     */
+    private DefaultLispMapReply(long nonce, byte recordCount, boolean probe,
+                                boolean etr, boolean security) {
+        this.nonce = nonce;
+        this.recordCount = recordCount;
+        this.probe = probe;
+        this.etr = etr;
+        this.security = security;
+    }
+
     @Override
     public LispType getType() {
-        return null;
+        return LispType.LISP_MAP_REPLY;
     }
 
     @Override
     public void writeTo(ByteBuf byteBuf) {
-
+        // TODO: serialize LispMapReply message
     }
 
     @Override
@@ -38,64 +63,75 @@ public class DefaultLispMapReply implements LispMapReply {
 
     @Override
     public boolean isProbe() {
-        return false;
+        return this.probe;
     }
 
     @Override
     public boolean isEtr() {
-        return false;
+        return this.etr;
     }
 
     @Override
     public boolean isSecurity() {
-        return false;
+        return this.security;
     }
 
     @Override
     public byte getRecordCount() {
-        return 0;
+        return this.recordCount;
     }
 
     @Override
     public long getNonce() {
-        return 0;
+        return this.nonce;
     }
 
     public static final class DefaultReplyBuilder implements ReplyBuilder {
 
-        @Override
-        public LispMessage build() {
-            return null;
-        }
+        private long nonce;
+        private byte recordCount;
+        private boolean probe;
+        private boolean etr;
+        private boolean security;
 
         @Override
         public LispType getType() {
-            return null;
+            return LispType.LISP_MAP_REPLY;
         }
 
         @Override
-        public ReplyBuilder withIsProbe(boolean isProbe) {
-            return null;
+        public ReplyBuilder withIsProbe(boolean probe) {
+            this.probe = probe;
+            return this;
         }
 
         @Override
-        public ReplyBuilder withIsEtr(boolean isEtr) {
-            return null;
+        public ReplyBuilder withIsEtr(boolean etr) {
+            this.etr = etr;
+            return this;
         }
 
         @Override
-        public ReplyBuilder withIsSecurity(boolean isSecurity) {
-            return null;
+        public ReplyBuilder withIsSecurity(boolean security) {
+            this.security = security;
+            return this;
         }
 
         @Override
         public ReplyBuilder withRecordCount(byte recordCount) {
-            return null;
+            this.recordCount = recordCount;
+            return this;
         }
 
         @Override
         public ReplyBuilder withNonce(long nonce) {
-            return null;
+            this.nonce = nonce;
+            return this;
+        }
+
+        @Override
+        public LispMessage build() {
+            return new DefaultLispMapReply(nonce, recordCount, probe, etr, security);
         }
     }
 }
