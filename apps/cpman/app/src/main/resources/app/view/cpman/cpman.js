@@ -107,9 +107,10 @@
                     scaleFontSize : 16
                 };
                 $scope.onClick = function (points, evt) {
-                    if (points[0]) {
-                        ns.navTo('cpman', { devId: points[0].label });
-                        $log.log(points[0].label);
+                    var label = labels[points[0]._index];
+                    if (label) {
+                        ns.navTo('cpman', { devId: label });
+                        $log.log(label);
                     }
                 };
 
