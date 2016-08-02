@@ -844,7 +844,7 @@
             transform: function (d) {
                 var lnk = tms.findLinkById(d.key);
                 if (lnk) {
-                    return td3.transformLabel(lnk.position);
+                    return td3.transformLabel(lnk.position, d.key);
                 }
             }
         }
