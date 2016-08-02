@@ -11,6 +11,11 @@ TEST_DEPS = [
     '//core/api:onos-api-tests',
 ]
 
+BUNDLES = [
+    ':onos-drivers-ciena',
+    '//drivers/utilities:onos-drivers-utilities',
+]
+
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
@@ -19,9 +24,11 @@ osgi_jar_with_tests (
 )
 
 onos_app (
+    app_name = 'org.onosproject.drivers.ciena',
     title = 'Ciena Device Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
     description = 'ONOS Ciena Device Drivers application.',
+    included_bundles = BUNDLES,
     required_apps = [ 'org.onosproject.restsb' ],
 )
