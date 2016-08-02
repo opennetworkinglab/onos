@@ -1,0 +1,21 @@
+module second-remote {
+    yang-version "1";
+    namespace "http://rob.sh/yang/test/typedef/second-remote";
+    prefix "second-remote";
+
+    organization "BugReports Inc";
+    contact "A bug reporter";
+
+    description
+        "A test module";
+    revision 2014-01-01 {
+        description "april-fools";
+        reference "fooled-you";
+    }
+
+    typedef second-remote-definition {
+        type string {
+            pattern "z.*";
+        }
+    }
+}

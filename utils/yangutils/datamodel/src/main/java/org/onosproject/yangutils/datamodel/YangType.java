@@ -302,8 +302,11 @@ public class YangType<T>
                 break;
             }
             case STRING: {
-                if (!(((YangStringRestriction) getDataTypeExtendedInfo()).isValidStringOnLengthRestriction(value) &&
-                        ((YangStringRestriction) getDataTypeExtendedInfo()).isValidStringOnPatternRestriction(value))) {
+                if (getDataTypeExtendedInfo() == null) {
+                    break;
+                } else if (!(((YangStringRestriction) getDataTypeExtendedInfo()).isValidStringOnLengthRestriction(value)
+                        && ((YangStringRestriction) getDataTypeExtendedInfo())
+                        .isValidStringOnPatternRestriction(value))) {
                     throw new DataTypeException("YANG file error : Input value \"" + value + "\" is not a valid " +
                                                         "string");
                 }
@@ -319,7 +322,7 @@ public class YangType<T>
                 Iterator<YangEnum> iterator = ((YangEnumeration) getDataTypeExtendedInfo()).getEnumSet().iterator();
                 boolean isValidated = false;
                 while (iterator.hasNext()) {
-                    YangEnum enumTemp = (YangEnum) iterator.next();
+                    YangEnum enumTemp = iterator.next();
                     if (enumTemp.getNamedValue().equals(value)) {
                         isValidated = true;
                         break;

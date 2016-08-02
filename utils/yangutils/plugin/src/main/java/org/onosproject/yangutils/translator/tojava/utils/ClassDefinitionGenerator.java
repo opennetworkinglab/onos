@@ -386,7 +386,7 @@ public final class ClassDefinitionGenerator {
             throw new RuntimeException("Event listener interface name is error");
         }
         intfDef = intfDef.substring(0, intfDef.length() - 8);
-        intfDef = intfDef + "Event>" + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+        intfDef = intfDef + ">" + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
 
         return intfDef;
     }

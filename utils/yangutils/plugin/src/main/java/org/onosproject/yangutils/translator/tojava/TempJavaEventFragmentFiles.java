@@ -100,7 +100,7 @@ public class TempJavaEventFragmentFiles
     /**
      * File name for generated class file for special type like union, typedef suffix.
      */
-    private static final String EVENT_LISTENER_FILE_NAME_SUFFIX = "Listener";
+    private static final String EVENT_LISTENER_FILE_NAME_SUFFIX = "EventListener";
 
     private static final String JAVA_FILE_EXTENSION = ".java";
 

@@ -1,0 +1,33 @@
+module remote {
+    yang-version "1";
+    namespace "http://rob.sh/yang/test/typedef/remote";
+    prefix "remote";
+
+    import second-remote { prefix sr; }
+
+    organization "BugReports Inc";
+    contact "A bug reporter";
+
+    description
+        "A test module";
+    revision 2014-01-01 {
+        description "april-fools";
+        reference "fooled-you";
+    }
+
+    typedef remote-definition {
+        type string;
+    }
+
+    typedef remote-local-definition {
+        type local-definition;
+    }
+
+    typedef local-definition {
+        type string;
+    }
+
+    typedef hybrid-definition {
+        type sr:second-remote-definition;
+    }
+}

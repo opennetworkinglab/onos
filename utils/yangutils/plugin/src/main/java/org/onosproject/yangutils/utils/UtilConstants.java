@@ -1191,7 +1191,7 @@ public final class UtilConstants {
     /**
      * For event listener file generation.
      */
-    public static final String EVENT_LISTENER_STRING = "Listener";
+    public static final String EVENT_LISTENER_STRING = "EventListener";
 
     /**
      * For event subject file generation.

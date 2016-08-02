@@ -33,8 +33,6 @@ import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.javamodel.JavaLeafInfoContainer;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaGroupingTranslator;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModuleTranslator;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModuleTranslator;
 import org.onosproject.yangutils.translator.tojava.utils.JavaExtendsListHolder;
 
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.getParentNodeInGenCode;
@@ -494,7 +492,7 @@ public class TempJavaFragmentFiles {
         JavaFileInfo fileInfo = ((JavaFileInfoContainer) targetNode).getJavaFileInfo();
 
         boolean isQualified;
-        if ((targetNode instanceof YangJavaModuleTranslator || targetNode instanceof YangJavaSubModuleTranslator)
+        if ((tempJavaFragmentFiles instanceof TempJavaServiceFragmentFiles)
                 && (qualifiedTypeInfo.getClassInfo().contentEquals(SERVICE)
                 || qualifiedTypeInfo.getClassInfo().contentEquals(COMPONENT)
                 || qualifiedTypeInfo.getClassInfo().contentEquals(getCapitalCase(ACTIVATE))
@@ -507,7 +505,7 @@ public class TempJavaFragmentFiles {
             isQualified = true;
         } else {
             String className;
-            if (targetNode instanceof YangJavaModuleTranslator || targetNode instanceof YangJavaSubModuleTranslator) {
+            if (tempJavaFragmentFiles instanceof TempJavaServiceFragmentFiles) {
                 className = getCapitalCase(fileInfo.getJavaName()) + "Service";
             } else {
                 className = getCapitalCase(fileInfo.getJavaName());

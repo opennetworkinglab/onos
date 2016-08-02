@@ -1,0 +1,201 @@
+module typedef {
+
+    yang-version "1";
+    namespace "http://rob.sh/yang/test/list";
+    prefix "foo";
+
+    import remote { prefix defn; }
+
+    organization "BugReports Inc";
+    contact "A bug reporter";
+
+    description
+        "A test module";
+    revision 2014-01-01 {
+        description "april-fools";
+        reference "fooled-you";
+    }
+
+    typedef derived-string-type {
+        type string;
+    }
+
+    typedef restricted-integer-type {
+        type uint16 {
+            range 0..64;
+        }
+    }
+
+    typedef bgp-session-direction {
+        type enumeration {
+            enum INBOUND;
+            enum OUTBOUND;
+        }
+    }
+
+    typedef new-string-type {
+        type string;
+        default "defaultValue";
+    }
+
+    typedef restricted-inherit {
+        type string {
+            pattern "^a.*";
+        }
+    }
+
+    typedef restricted-int-inherit {
+        type int8 {
+            range 0..100;
+        }
+    }
+
+    typedef parent-union {
+        type union {
+            type string {
+                pattern "a.*";
+            }
+            type string {
+                pattern "b.*";
+            }
+        }
+    }
+
+    typedef child-union {
+        type union {
+            type parent-union;
+            type string {
+                pattern "z.*";
+            }
+        }
+    }
+
+    typedef union-included {
+        type union {
+            type string {
+                pattern "a.*";
+            }
+            type string {
+                pattern "b.*";
+            }
+        }
+    }
+
+    identity identity_base;
+    identity IDONE {
+        base "identity_base";
+    }
+
+    identity IDTWO {
+        base "identity_base";
+    }
+
+    typedef identity_one {
+        type identityref {
+            base identity_base;
+        }
+    }
+
+    typedef referenced-leaf {
+        type leafref {
+            path "/container/target";
+            require-instance false;
+        }
+    }
+
+    grouping scoped-typedef {
+        typedef scoped-type {
+            type string {
+                pattern "a.*";
+            }
+        }
+
+        leaf scoped-leaf {
+            type scoped-type;
+        }
+    }
+
+    container container {
+        description
+            "A container";
+
+        leaf-list target {
+            type string;
+            description
+                "A target leaf for leafref checks";
+        }
+
+        leaf string {
+            type derived-string-type;
+        }
+
+        leaf integer {
+            type restricted-integer-type;
+        }
+
+        leaf stringdefault {
+            type derived-string-type;
+            default "aDefaultValue";
+        }
+
+        leaf integerdefault {
+            type restricted-integer-type;
+            default 10;
+        }
+
+        leaf new-string {
+            type new-string-type;
+        }
+
+        leaf remote-new-type {
+            type defn:remote-definition;
+        }
+
+        leaf session-dir {
+            type bgp-session-direction;
+        }
+
+        leaf remote-local-type {
+            type defn:remote-local-definition;
+        }
+
+        leaf inheritance {
+            type restricted-inherit {
+                pattern ".*k";
+            }
+        }
+
+        leaf int-inheritance {
+            type restricted-int-inherit {
+                range 2..5;
+            }
+        }
+
+        leaf-list stacked-union {
+            type child-union;
+        }
+
+        leaf include-of-include-definition {
+            type defn:hybrid-definition;
+        }
+
+        leaf identity-one-typedef {
+            type identity_one;
+        }
+
+        leaf union-with-union {
+            type union {
+                type union-included;
+                type string {
+                    pattern "q.*";
+                }
+            }
+        }
+
+        leaf reference {
+            type referenced-leaf;
+        }
+
+        uses scoped-typedef;
+    }
+}

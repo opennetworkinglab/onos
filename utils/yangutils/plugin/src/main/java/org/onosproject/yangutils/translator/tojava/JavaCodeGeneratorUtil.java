@@ -19,12 +19,14 @@ package org.onosproject.yangutils.translator.tojava;
 import java.io.IOException;
 
 import org.onosproject.yangutils.datamodel.TraversalType;
+import org.onosproject.yangutils.datamodel.YangInput;
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
+import org.onosproject.yangutils.datamodel.YangNodeType;
+import org.onosproject.yangutils.datamodel.YangOutput;
 import org.onosproject.yangutils.translator.exception.InvalidNodeForTranslatorException;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
-
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
 import static org.onosproject.yangutils.datamodel.TraversalType.CHILD;
 import static org.onosproject.yangutils.datamodel.TraversalType.PARENT;
 import static org.onosproject.yangutils.datamodel.TraversalType.ROOT;
@@ -304,5 +306,44 @@ public final class JavaCodeGeneratorUtil {
      */
     private static void setRootNode(YangNode rootNode) {
         JavaCodeGeneratorUtil.rootNode = rootNode;
+    }
+
+    /**
+     * Searches child node in data model tree.
+     *
+     * @param parentNode parent node
+     * @param nodeType   node type
+     * @param nodeName   node name
+     * @return child node
+     */
+    public static YangNode searchYangNode(YangNode parentNode, YangNodeType nodeType, String nodeName) {
+        YangNode child = parentNode.getChild();
+        TraversalType curTraversal = ROOT;
+        if (child == null) {
+            throw new IllegalArgumentException("given parent node does not contain any child nodes");
+        }
+
+        while (child != null) {
+            if (curTraversal != PARENT) {
+                if (child instanceof YangInput || child instanceof YangOutput) {
+                    if (child.getNodeType().equals(nodeType)) {
+                        return child;
+                    }
+                } else if (child.getName().equals(nodeName) && child.getNodeType().equals(nodeType)) {
+                    return child;
+                }
+            }
+            if (curTraversal != PARENT && child.getChild() != null) {
+                curTraversal = CHILD;
+                child = child.getChild();
+            } else if (child.getNextSibling() != null) {
+                curTraversal = SIBILING;
+                child = child.getNextSibling();
+            } else {
+                curTraversal = PARENT;
+                child = child.getParent();
+            }
+        }
+        return null;
     }
 }
