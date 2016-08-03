@@ -25,6 +25,8 @@ import java.util.List;
  * LISP map request message format is defined in RFC6830.
  * https://tools.ietf.org/html/rfc6830#page-27
  *
+ * <pre>
+ * {@literal
  * 0                   1                   2                   3
  * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -48,6 +50,7 @@ import java.util.List;
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * |                   Map-Reply Record  ...                       |
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * }</pre>
  */
 public interface LispMapRequest extends LispMessage {
 

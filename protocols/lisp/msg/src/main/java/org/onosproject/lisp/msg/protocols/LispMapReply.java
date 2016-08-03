@@ -21,6 +21,8 @@ package org.onosproject.lisp.msg.protocols;
  * LISP map reply message format is defined in RFC6830.
  * https://tools.ietf.org/html/rfc6830#page-31
  *
+ * <pre>
+ * {@literal
  * 0                   1                   2                   3
  * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -44,6 +46,7 @@ package org.onosproject.lisp.msg.protocols;
  * | c +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * |  \|                             Locator                           |
  * +-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * }</pre>
  */
 public interface LispMapReply extends LispMessage {
 
