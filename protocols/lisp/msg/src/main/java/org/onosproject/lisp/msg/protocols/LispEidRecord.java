@@ -20,7 +20,7 @@ import org.onosproject.lisp.msg.types.LispAfiAddress;
 /**
  * LISP EID record section which is part of LISP map request message.
  */
-public class LispEidRecord {
+public final class LispEidRecord {
 
     private final byte maskLength;
     private final LispAfiAddress prefix;

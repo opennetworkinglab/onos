@@ -20,79 +20,130 @@ import org.onosproject.lisp.msg.types.LispAfiAddress;
 /**
  * Default implementation of LispMapRecord.
  */
-public class DefaultLispMapRecord implements LispMapRecord {
+public final class DefaultLispMapRecord implements LispMapRecord {
 
-    private int recordTtl;
-    private int locatorCount;
-    private byte maskLength;
-    private LispMapReplyAction action;
-    private boolean authoritative;
-    private short mapVersionNumber;
-    private LispAfiAddress eidPrefixAfi;
+    private final int recordTtl;
+    private final int locatorCount;
+    private final byte maskLength;
+    private final LispMapReplyAction action;
+    private final boolean authoritative;
+    private final short mapVersionNumber;
+    private final LispAfiAddress eidPrefixAfi;
 
+    /**
+     * A private constructor that protects object instantiation from external.
+     *
+     * @param recordTtl        record time-to-live value
+     * @param locatorCount     locator's count number
+     * @param maskLength       mask length
+     * @param action           lisp map reply action
+     * @param authoritative    authoritative flag
+     * @param mapVersionNumber map version number
+     * @param eidPrefixAfi     EID prefix AFI address
+     */
+    private DefaultLispMapRecord(int recordTtl, int locatorCount, byte maskLength,
+                                 LispMapReplyAction action, boolean authoritative,
+                                 short mapVersionNumber, LispAfiAddress eidPrefixAfi) {
+        this.recordTtl = recordTtl;
+        this.locatorCount = locatorCount;
+        this.maskLength = maskLength;
+        this.action = action;
+        this.authoritative = authoritative;
+        this.mapVersionNumber = mapVersionNumber;
+        this.eidPrefixAfi = eidPrefixAfi;
+    }
+
+    @Override
     public int getRecordTtl() {
         return recordTtl;
     }
 
+    @Override
     public int getLocatorCount() {
         return locatorCount;
     }
 
+    @Override
     public byte getMaskLength() {
         return maskLength;
     }
 
+    @Override
     public LispMapReplyAction getAction() {
         return action;
     }
 
+    @Override
     public boolean isAuthoritative() {
         return authoritative;
     }
 
+    @Override
     public short getMapVersionNumber() {
         return mapVersionNumber;
     }
 
+    @Override
     public LispAfiAddress getEidPrefixAfi() {
         return eidPrefixAfi;
     }
 
     public static final class DefaultMapRecordBuilder implements MapRecordBuilder {
 
+        private int recordTtl;
+        private int locatorCount;
+        private byte maskLength;
+        private LispMapReplyAction action;
+        private boolean authoritative;
+        private short mapVersionNumber;
+        private LispAfiAddress eidPrefixAfi;
+
         @Override
         public MapRecordBuilder withRecordTtl(int recordTtl) {
-            return null;
+            this.recordTtl = recordTtl;
+            return this;
         }
 
         @Override
         public MapRecordBuilder withLocatorCount(int locatorCount) {
-            return null;
+            this.locatorCount = locatorCount;
+            return this;
         }
 
         @Override
         public MapRecordBuilder withMaskLength(byte maskLength) {
-            return null;
+            this.maskLength = maskLength;
+            return this;
         }
 
         @Override
         public MapRecordBuilder withAction(LispMapReplyAction action) {
-            return null;
+            this.action = action;
+            return this;
         }
 
         @Override
         public MapRecordBuilder withAuthoritative(boolean authoritative) {
-            return null;
+            this.authoritative = authoritative;
+            return this;
         }
 
         @Override
         public MapRecordBuilder withMapVersionNumber(short mapVersionNumber) {
-            return null;
+            this.mapVersionNumber = mapVersionNumber;
+            return this;
         }
 
         @Override
         public MapRecordBuilder withEidPrefixAfi(LispAfiAddress prefix) {
-            return null;
+            this.eidPrefixAfi = prefix;
+            return this;
+        }
+
+        @Override
+        public LispMapRecord build() {
+            return new DefaultLispMapRecord(recordTtl, locatorCount, maskLength,
+                    action, authoritative, mapVersionNumber, eidPrefixAfi);
         }
     }
 }

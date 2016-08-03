@@ -131,5 +131,12 @@ public interface LispMapRecord {
          * @return MapRecordBuilder object
          */
         MapRecordBuilder withEidPrefixAfi(LispAfiAddress prefix);
+
+        /**
+         * Builds map record.
+         *
+         * @return map record instance
+         */
+        LispMapRecord build();
     }
 }
