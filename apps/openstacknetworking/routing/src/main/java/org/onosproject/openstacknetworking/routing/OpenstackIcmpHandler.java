@@ -49,6 +49,7 @@ import org.onosproject.openstacknode.OpenstackNode;
 import org.onosproject.openstacknode.OpenstackNodeEvent;
 import org.onosproject.openstacknode.OpenstackNodeListener;
 import org.onosproject.openstacknode.OpenstackNodeService;
+import org.onosproject.scalablegateway.api.GatewayNode;
 import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.slf4j.Logger;
 
@@ -322,7 +323,15 @@ public class OpenstackIcmpHandler {
                 case COMPLETE:
                     if (node.type() == GATEWAY) {
                         log.info("GATEWAY node {} detected", node.hostname());
-                        eventExecutor.execute(() -> requestPacket(appId));
+                        eventExecutor.execute(() -> {
+                            GatewayNode gnode = GatewayNode.builder()
+                                    .gatewayDeviceId(node.intBridge())
+                                    .dataIpAddress(node.dataIp().getIp4Address())
+                                    .uplinkIntf(node.externalPortName().get())
+                                    .build();
+                            gatewayService.addGatewayNode(gnode);
+                            requestPacket(appId);
+                        });
                     }
                     break;
                 case INIT:

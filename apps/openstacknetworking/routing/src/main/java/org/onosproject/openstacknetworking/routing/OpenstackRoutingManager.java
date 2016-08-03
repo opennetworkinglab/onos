@@ -481,15 +481,17 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
             switch (event.type()) {
                 case COMPLETE:
                     log.info("COMPLETE node {} detected", node.hostname());
-                    if (node.type() == GATEWAY) {
-                        GatewayNode gnode = GatewayNode.builder()
-                                .gatewayDeviceId(node.intBridge())
-                                .dataIpAddress(node.dataIp().getIp4Address())
-                                .uplinkIntf(node.externalPortName().get())
-                                .build();
-                        gatewayService.addGatewayNode(gnode);
-                    }
-                    eventExecutor.execute(OpenstackRoutingManager.this::reloadRoutingRules);
+                    eventExecutor.execute(() -> {
+                        if (node.type() == GATEWAY) {
+                            GatewayNode gnode = GatewayNode.builder()
+                                    .gatewayDeviceId(node.intBridge())
+                                    .dataIpAddress(node.dataIp().getIp4Address())
+                                    .uplinkIntf(node.externalPortName().get())
+                                    .build();
+                            gatewayService.addGatewayNode(gnode);
+                        }
+                        reloadRoutingRules();
+                    });
                     break;
                 case INIT:
                 case DEVICE_CREATED:

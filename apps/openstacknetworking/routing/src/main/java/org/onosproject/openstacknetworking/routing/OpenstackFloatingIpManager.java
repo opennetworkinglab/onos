@@ -309,13 +309,15 @@ public class OpenstackFloatingIpManager implements OpenstackFloatingIpService {
                 case COMPLETE:
                     if (node.type() == GATEWAY) {
                         log.info("GATEWAY node {} detected", node.hostname());
-                        GatewayNode gnode = GatewayNode.builder()
-                                .gatewayDeviceId(node.intBridge())
-                                .dataIpAddress(node.dataIp().getIp4Address())
-                                .uplinkIntf(node.externalPortName().get())
-                                .build();
-                        gatewayService.addGatewayNode(gnode);
-                        eventExecutor.execute(OpenstackFloatingIpManager.this::reloadFloatingIpRules);
+                        eventExecutor.execute(() -> {
+                            GatewayNode gnode = GatewayNode.builder()
+                                    .gatewayDeviceId(node.intBridge())
+                                    .dataIpAddress(node.dataIp().getIp4Address())
+                                    .uplinkIntf(node.externalPortName().get())
+                                    .build();
+                            gatewayService.addGatewayNode(gnode);
+                            reloadFloatingIpRules();
+                        });
                     }
                     break;
                 case INIT:

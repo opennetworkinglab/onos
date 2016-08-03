@@ -208,7 +208,7 @@ public class ScalableGatewayManager implements ScalableGatewayService {
     }
 
     @Override
-    public boolean addGatewayNode(GatewayNode gatewayNode) {
+    public synchronized boolean addGatewayNode(GatewayNode gatewayNode) {
         Versioned<GatewayNode> existingNode = gatewayNodeMap.putIfAbsent(
                 gatewayNode.getGatewayDeviceId(), gatewayNode);
         if (existingNode == null) {
@@ -221,7 +221,7 @@ public class ScalableGatewayManager implements ScalableGatewayService {
     }
 
     @Override
-    public boolean deleteGatewayNode(GatewayNode gatewayNode) {
+    public synchronized boolean deleteGatewayNode(GatewayNode gatewayNode) {
         boolean result = gatewayNodeMap.remove(gatewayNode.getGatewayDeviceId(), gatewayNode);
         if (result) {
             updateGatewayGroup(gatewayNode, false);
