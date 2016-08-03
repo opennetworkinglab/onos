@@ -1,0 +1,34 @@
+module typedef {
+    yang-version "1";
+    namespace "http://rob.sh/yang/test/list";
+    prefix "foo";
+    organization "BugReports Inc";
+    contact "Bug reporter";
+
+    description
+        "A test module";
+    revision 2014-01-01 {
+        description "april-fools";
+        reference "fooled-you";
+    }
+
+    typedef referenced-leaf {
+        type leafref {
+            path "/container/target";
+            require-instance false;
+        }
+    }
+
+    container container {
+        description
+            "A container";
+        leaf-list target {
+            type uint8;
+            description
+                "A target leaf for leafref checks";
+        }
+        leaf reference {
+            type referenced-leaf;
+        }
+    }
+}

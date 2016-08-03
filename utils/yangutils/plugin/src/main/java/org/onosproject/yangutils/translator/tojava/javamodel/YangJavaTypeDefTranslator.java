@@ -16,10 +16,13 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
-
+import org.onosproject.yangutils.datamodel.YangDerivedInfo;
+import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
 import org.onosproject.yangutils.datamodel.javadatamodel.YangJavaTypeDef;
 import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
+import org.onosproject.yangutils.translator.exception.InvalidNodeForTranslatorException;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
@@ -105,6 +108,15 @@ public class YangJavaTypeDefTranslator
      */
     @Override
     public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
+        YangType typeInTypeDef = this.getTypeDefBaseType();
+        if (typeInTypeDef.getDataType() == YangDataTypes.DERIVED) {
+            YangDerivedInfo derivedInfo = (YangDerivedInfo) typeInTypeDef.getDataTypeExtendedInfo();
+            if (derivedInfo.getEffectiveBuiltInType() == YangDataTypes.LEAFREF) {
+                throw new InvalidNodeForTranslatorException();
+            }
+        } else if (typeInTypeDef.getDataType() == YangDataTypes.LEAFREF) {
+            throw new InvalidNodeForTranslatorException();
+        }
         try {
             generateCodeOfNode(this, yangPlugin);
         } catch (IOException e) {

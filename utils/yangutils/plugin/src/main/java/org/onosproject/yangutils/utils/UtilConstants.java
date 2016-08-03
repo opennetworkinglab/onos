@@ -1022,11 +1022,11 @@ public final class UtilConstants {
      * List of keywords in java, this is used for checking if the input does not contain these keywords.
      */
     public static final List<String> JAVA_KEY_WORDS = Arrays.asList(
-            "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",
-            "default", "do", "double", "else", "extends", "false", "final", "finally", "float", "for", "goto", "if",
-            "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "null", "package",
-            "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch",
-            "synchronized", "this", "throw", "throws", "transient", "true", "try", "void", "volatile", "while");
+            "abstract", "continue", "for", "new", "switch", "assert", "default", "goto", "package", "synchronized",
+            "boolean", "do", "if", "private", "this", "break", "double", "implements", "protected", "throw", "byte",
+            "else", "import", "public", "throws", "case", "enum", "instanceof", "return", "transient", "catch",
+            "extends", "int", "short", "try", "char", "final", "interface", "static", "void", "class", "finally",
+            "long", "strictfp", "volatile", "const", "float", "native", "super", "while");
 
     /**
      * Static attribute for regex for all the special characters.

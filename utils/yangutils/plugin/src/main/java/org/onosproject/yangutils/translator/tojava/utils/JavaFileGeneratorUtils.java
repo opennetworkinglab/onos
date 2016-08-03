@@ -20,13 +20,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.onosproject.yangutils.datamodel.YangAtomicPath;
 import org.onosproject.yangutils.datamodel.YangAugment;
+import org.onosproject.yangutils.datamodel.YangLeafRef;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
+import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
 import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
@@ -80,6 +82,7 @@ import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoT
 import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.getAugmentedNodesPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.ClassDefinitionGenerator.generateClassDefinition;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.LEAFREF;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
@@ -705,4 +708,31 @@ public final class JavaFileGeneratorUtils {
 
     }
 
+    /**
+     * Checks if the type name is leafref and returns the effective type name.
+     *
+     * @param attributeName name of the current type
+     * @param attributeType effective type
+     * @return name of the effective type
+     */
+    public static String isTypeNameLeafref(String attributeName, YangType<?> attributeType) {
+        if (attributeName.equalsIgnoreCase(LEAFREF)) {
+            return attributeType.getDataTypeName();
+        }
+        return attributeName;
+    }
+
+    /**
+     * Checks if the type is leafref and returns the effective type.
+     *
+     * @param attributeType current type
+     * @return effective type
+     */
+    public static YangType isTypeLeafref(YangType<?> attributeType) {
+        if (attributeType.getDataType() == YangDataTypes.LEAFREF) {
+            YangLeafRef leafRef = (YangLeafRef) attributeType.getDataTypeExtendedInfo();
+            return leafRef.getEffectiveDataType();
+        }
+        return attributeType;
+    }
 }

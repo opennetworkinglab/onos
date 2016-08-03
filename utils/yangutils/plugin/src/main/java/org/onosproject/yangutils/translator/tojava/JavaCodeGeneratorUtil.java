@@ -17,16 +17,16 @@
 package org.onosproject.yangutils.translator.tojava;
 
 import java.io.IOException;
-
 import org.onosproject.yangutils.datamodel.TraversalType;
 import org.onosproject.yangutils.datamodel.YangInput;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeType;
 import org.onosproject.yangutils.datamodel.YangOutput;
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 import org.onosproject.yangutils.translator.exception.InvalidNodeForTranslatorException;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
-import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
+
 import static org.onosproject.yangutils.datamodel.TraversalType.CHILD;
 import static org.onosproject.yangutils.datamodel.TraversalType.PARENT;
 import static org.onosproject.yangutils.datamodel.TraversalType.ROOT;
@@ -279,14 +279,15 @@ public final class JavaCodeGeneratorUtil {
             ((TempJavaCodeFragmentFilesContainer) node).getTempJavaCodeFragmentFiles().freeTemporaryResources(true);
         } else {
 
-            JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) getRootNode()).getJavaFileInfo();
-            if (javaFileInfo != null) {
-                searchAndDeleteTempDir(javaFileInfo.getBaseCodeGenPath() +
-                        javaFileInfo.getPackageFilePath());
-            } else {
-                searchAndDeleteTempDir(yangPlugin.getManagerCodeGenDir());
+            if (getRootNode() != null) {
+                JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) getRootNode()).getJavaFileInfo();
+                if (javaFileInfo != null) {
+                    searchAndDeleteTempDir(javaFileInfo.getBaseCodeGenPath() +
+                            javaFileInfo.getPackageFilePath());
+                } else {
+                    searchAndDeleteTempDir(yangPlugin.getManagerCodeGenDir());
+                }
             }
-
         }
     }
 
@@ -320,7 +321,7 @@ public final class JavaCodeGeneratorUtil {
         YangNode child = parentNode.getChild();
         TraversalType curTraversal = ROOT;
         if (child == null) {
-            throw new IllegalArgumentException("given parent node does not contain any child nodes");
+            throw new IllegalArgumentException("Given parent node does not contain any child nodes");
         }
 
         while (child != null) {

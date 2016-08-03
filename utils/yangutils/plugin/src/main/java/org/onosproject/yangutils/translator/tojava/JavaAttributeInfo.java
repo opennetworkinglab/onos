@@ -19,6 +19,9 @@ package org.onosproject.yangutils.translator.tojava;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 
+import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.isTypeLeafref;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.isTypeNameLeafref;
+
 /**
  * Represents the attribute info corresponding to class/interface generated.
  */
@@ -235,6 +238,10 @@ public final class JavaAttributeInfo {
                                                                YangType<?> attributeType, boolean isQualifiedAccess,
                                                                boolean isListAttribute) {
 
+        if (attributeType != null) {
+            attributeType = isTypeLeafref(attributeType);
+        }
+        attributeName = isTypeNameLeafref(attributeName, attributeType);
         JavaAttributeInfo newAttr = new JavaAttributeInfo();
         newAttr.setImportInfo(importInfo);
         newAttr.setAttributeName(attributeName);
