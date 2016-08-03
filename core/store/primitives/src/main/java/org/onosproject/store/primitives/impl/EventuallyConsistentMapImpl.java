@@ -416,6 +416,10 @@ public class EventuallyConsistentMapImpl<K, V>
         MapValue<V> computedValue = items.compute(serializer.copy(key), (k, mv) -> {
             previousValue.set(mv);
             V newRawValue = recomputeFunction.apply(key, mv == null ? null : mv.get());
+            if (mv != null && Objects.equals(newRawValue, mv.get())) {
+                // value was not updated
+                return mv;
+            }
             MapValue<V> newValue = new MapValue<>(newRawValue, timestampProvider.apply(key, newRawValue));
             if (mv == null || newValue.isNewerThan(mv)) {
                 updated.set(true);
