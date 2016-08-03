@@ -261,6 +261,15 @@ public class UiTopology extends UiElement {
     }
 
     /**
+     * Returns all links in the model.
+     *
+     * @return all links
+     */
+    public Set<UiLink> allLinks() {
+        return new HashSet<>(linkLookup.values());
+    }
+
+    /**
      * Returns the link with the specified identifier, or null if no such
      * link exists.
      *
@@ -299,6 +308,15 @@ public class UiTopology extends UiElement {
      */
     public int linkCount() {
         return linkLookup.size();
+    }
+
+    /**
+     * Returns all hosts in the model.
+     *
+     * @return all hosts
+     */
+    public Set<UiHost> allHosts() {
+        return new HashSet<>(hostLookup.values());
     }
 
     /**

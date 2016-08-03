@@ -298,6 +298,10 @@ class ModelCache {
         }
     }
 
+    Set<UiDevice> getAllDevices() {
+        return uiTopology.allDevices();
+    }
+
 
     // === LINKS
 
@@ -357,6 +361,9 @@ class ModelCache {
         }
     }
 
+    Set<UiLink> getAllLinks() {
+        return uiTopology.allLinks();
+    }
 
     // === HOSTS
 
@@ -458,6 +465,10 @@ class ModelCache {
         } else {
             log.warn(E_NO_ELEMENT, "host", id);
         }
+    }
+
+    Set<UiHost> getAllHosts() {
+        return uiTopology.allHosts();
     }
 
 

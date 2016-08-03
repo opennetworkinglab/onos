@@ -63,6 +63,9 @@ import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.impl.topo.UiTopoSession;
 import org.onosproject.ui.model.ServiceBundle;
 import org.onosproject.ui.model.topo.UiClusterMember;
+import org.onosproject.ui.model.topo.UiDevice;
+import org.onosproject.ui.model.topo.UiHost;
+import org.onosproject.ui.model.topo.UiLink;
 import org.onosproject.ui.model.topo.UiRegion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -200,7 +203,14 @@ public final class UiSharedTopologyModel
     //  Methods for topo session (or CLI) to use to get information from us
 
     /**
-     * Returns the list of cluster members stored in our model cache.
+     * Refreshes the cache's internal state.
+     */
+    public void refresh() {
+        cache.refresh();
+    }
+
+    /**
+     * Returns the list of cluster members stored in the model cache.
      *
      * @return list of cluster members
      */
@@ -209,7 +219,7 @@ public final class UiSharedTopologyModel
     }
 
     /**
-     * Returns the set of regions stored in our model cache.
+     * Returns the set of regions stored in the model cache.
      *
      * @return set of regions
      */
@@ -237,10 +247,30 @@ public final class UiSharedTopologyModel
     }
 
     /**
-     * Refreshes the cache's internal state.
+     * Returns the set of devices stored in the model cache.
+     *
+     * @return set of devices
      */
-    public void refresh() {
-        cache.refresh();
+    public Set<UiDevice> getDevices() {
+        return cache.getAllDevices();
+    }
+
+    /**
+     * Returns the set of hosts stored in the model cache.
+     *
+     * @return set of hosts
+     */
+    public Set<UiHost> getHosts() {
+        return cache.getAllHosts();
+    }
+
+    /**
+     * Returns the set of links stored in the model cache.
+     *
+     * @return set of links
+     */
+    public Set<UiLink> getLinks() {
+        return cache.getAllLinks();
     }
 
     // =====================================================================
