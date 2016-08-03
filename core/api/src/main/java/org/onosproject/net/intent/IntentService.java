@@ -72,6 +72,17 @@ public interface IntentService
     Iterable<Intent> getIntents();
 
     /**
+     * Adds an intent data object to the pending map for processing.
+     * <p>
+     * This method is intended to only be called by core components, not
+     * applications.
+     * </p>
+     *
+     * @param intentData intent data to be added to pending map
+     */
+    void addPending(IntentData intentData);
+
+    /**
      * Returns an iterable of intent data objects currently in the system.
      *
      * @return set of intent data objects

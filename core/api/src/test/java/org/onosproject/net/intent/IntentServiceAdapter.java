@@ -43,6 +43,11 @@ public class IntentServiceAdapter implements IntentService {
     }
 
     @Override
+    public void addPending(IntentData intentData) {
+
+    }
+
+    @Override
     public Iterable<IntentData> getIntentData() {
         return null;
     }

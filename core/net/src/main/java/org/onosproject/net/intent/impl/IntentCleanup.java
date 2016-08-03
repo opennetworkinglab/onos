@@ -170,8 +170,9 @@ public class IntentCleanup implements Runnable, IntentListener {
 
     private void resubmitCorrupt(IntentData intentData, boolean checkThreshold) {
         if (checkThreshold && intentData.errorCount() >= retryThreshold) {
+            //FIXME trace or debug statement?
             return; // threshold met or exceeded
-        }
+        } // FIXME should we backoff here?
 
         switch (intentData.request()) {
             case INSTALL_REQ:
@@ -188,15 +189,12 @@ public class IntentCleanup implements Runnable, IntentListener {
     }
 
     private void resubmitPendingRequest(IntentData intentData) {
+        // FIXME should we back off here?
         switch (intentData.request()) {
             case INSTALL_REQ:
-                service.submit(intentData.intent());
-                break;
             case WITHDRAW_REQ:
-                service.withdraw(intentData.intent());
-                break;
             case PURGE_REQ:
-                service.purge(intentData.intent());
+                service.addPending(intentData);
                 break;
             default:
                 log.warn("Failed to resubmit pending intent {} in state {} with request {}",
@@ -235,7 +233,7 @@ public class IntentCleanup implements Runnable, IntentListener {
 
         for (IntentData intentData : store.getPendingData(true, periodMs)) {
             resubmitPendingRequest(intentData);
-            stuckCount++;
+            pendingCount++;
         }
 
         if (corruptCount + failedCount + stuckCount + pendingCount > 0) {

@@ -176,6 +176,11 @@ public class FakeIntentManager implements TestableIntentService {
     }
 
     @Override
+    public void addPending(IntentData intentData) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Iterable<IntentData> getIntentData() {
         throw new UnsupportedOperationException();
     }

@@ -192,6 +192,11 @@ public class VirtualNetworkIntentService extends AbstractListenerManager<IntentE
     }
 
     @Override
+    public void addPending(IntentData intentData) {
+        intentService.addPending(intentData);
+    }
+
+    @Override
     public Iterable<IntentData> getIntentData() {
         return store.getIntentData();
     }
