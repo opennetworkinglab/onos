@@ -71,7 +71,7 @@ public final class DefaultLispMapRegister implements LispMapRegister {
 
     @Override
     public Builder createBuilder() {
-        return null;
+        return new DefaultRegisterBuilder();
     }
 
     @Override
@@ -167,7 +167,7 @@ public final class DefaultLispMapRegister implements LispMapRegister {
         }
 
         @Override
-        public LispMessage build() {
+        public LispMapRegister build() {
             return new DefaultLispMapRegister(nonce, keyId, authenticationData,
                     recordCount, mapRecords, proxyMapReply, wantMapNotify);
         }

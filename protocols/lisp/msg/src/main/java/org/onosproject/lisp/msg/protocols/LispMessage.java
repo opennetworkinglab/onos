@@ -49,13 +49,6 @@ public interface LispMessage {
     interface Builder {
 
         /**
-         * Builds LISP message.
-         *
-         * @return LISP message
-         */
-        LispMessage build();
-
-        /**
          * Obtains LISP message type.
          *
          * @return LISP message type

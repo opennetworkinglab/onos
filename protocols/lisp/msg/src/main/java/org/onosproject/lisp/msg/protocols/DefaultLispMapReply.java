@@ -58,7 +58,7 @@ public final class DefaultLispMapReply implements LispMapReply {
 
     @Override
     public Builder createBuilder() {
-        return null;
+        return new DefaultReplyBuilder();
     }
 
     @Override
@@ -130,7 +130,7 @@ public final class DefaultLispMapReply implements LispMapReply {
         }
 
         @Override
-        public LispMessage build() {
+        public LispMapReply build() {
             return new DefaultLispMapReply(nonce, recordCount, probe, etr, security);
         }
     }

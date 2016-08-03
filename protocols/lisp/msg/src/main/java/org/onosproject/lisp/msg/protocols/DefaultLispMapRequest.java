@@ -83,7 +83,7 @@ public final class DefaultLispMapRequest implements LispMapRequest {
 
     @Override
     public Builder createBuilder() {
-        return null;
+        return new DefaultRequestBuilder();
     }
 
     @Override
@@ -228,7 +228,7 @@ public final class DefaultLispMapRequest implements LispMapRequest {
         }
 
         @Override
-        public LispMessage build() {
+        public LispMapRequest build() {
             return new DefaultLispMapRequest(nonce, recordCount, sourceEid, itrRlocs,
                     eidRecords, authoritative, mapDataPresent, probe, smr, pitr, smrInvoked);
         }

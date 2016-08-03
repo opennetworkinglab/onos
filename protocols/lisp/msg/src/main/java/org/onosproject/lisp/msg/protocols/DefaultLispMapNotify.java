@@ -63,7 +63,7 @@ public final class DefaultLispMapNotify implements LispMapNotify {
 
     @Override
     public Builder createBuilder() {
-        return null;
+        return new DefaultNotifyBuilder();
     }
 
     @Override
@@ -135,7 +135,7 @@ public final class DefaultLispMapNotify implements LispMapNotify {
         }
 
         @Override
-        public LispMessage build() {
+        public LispMapNotify build() {
             return new DefaultLispMapNotify(nonce, keyId, authenticationData,
                     recordCount, mapRecords);
         }

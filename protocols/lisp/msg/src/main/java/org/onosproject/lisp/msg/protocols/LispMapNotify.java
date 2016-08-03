@@ -135,5 +135,12 @@ public interface LispMapNotify extends LispMessage {
          * @return NotifyBuilder object
          */
         NotifyBuilder addRecord(LispMapRecord record);
+
+        /**
+         * Builds LISP map notify message.
+         *
+         * @return LISP map notify message
+         */
+        LispMapNotify build();
     }
 }

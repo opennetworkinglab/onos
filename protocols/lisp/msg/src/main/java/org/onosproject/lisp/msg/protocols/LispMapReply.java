@@ -129,5 +129,12 @@ public interface LispMapReply extends LispMessage {
          * @return ReplyBuilder object
          */
         ReplyBuilder withNonce(long nonce);
+
+        /**
+         * Builds LISP map reply message.
+         *
+         * @return LISP map reply message
+         */
+        LispMapReply build();
     }
 }

@@ -165,5 +165,12 @@ public interface LispMapRegister extends LispMessage {
          * @return RegisterBuilder object
          */
         RegisterBuilder addRecord(LispMapRecord record);
+
+        /**
+         * Builds LISP map register message.
+         *
+         * @return LISP map register message
+         */
+        LispMapRegister build();
     }
 }

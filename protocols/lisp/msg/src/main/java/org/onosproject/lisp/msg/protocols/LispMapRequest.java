@@ -224,5 +224,12 @@ public interface LispMapRequest extends LispMessage {
          * @return RequestBuilder object
          */
         RequestBuilder addEidRecord(LispEidRecord record);
+
+        /**
+         * Builds LISP map request message.
+         *
+         * @return LISP map request message
+         */
+        LispMapRequest build();
     }
 }
