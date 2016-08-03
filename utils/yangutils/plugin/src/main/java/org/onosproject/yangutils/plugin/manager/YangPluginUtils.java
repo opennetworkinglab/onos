@@ -19,41 +19,36 @@ package org.onosproject.yangutils.plugin.manager;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.utils.DataModelUtils;
 import org.slf4j.Logger;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
-import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.deSerializeDataModel;
 import static org.onosproject.yangutils.utils.UtilConstants.HYPHEN;
 import static org.onosproject.yangutils.utils.UtilConstants.JAR;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.TEMP;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_RESOURCES;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCamelCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getPackageDirPathFromJavaJPackage;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Represents YANG plugin utilities.
  */
-public final class YangPluginUtils {
+final class YangPluginUtils {
 
     private static final Logger log = getLogger(YangPluginUtils.class);
 
@@ -71,7 +66,7 @@ public final class YangPluginUtils {
      * @param project current maven project
      * @param context current build context
      */
-    public static void addToCompilationRoot(String source, MavenProject project, BuildContext context) {
+    static void addToCompilationRoot(String source, MavenProject project, BuildContext context) {
         project.addCompileSourceRoot(source);
         context.refresh(project.getBasedir());
         log.info("Source directory added to compilation root: " + source);
@@ -85,7 +80,7 @@ public final class YangPluginUtils {
      * @param project      maven project
      * @throws IOException when fails to copy files to destination resource directory
      */
-    public static void copyYangFilesToTarget(Set<YangFileInfo> yangFileInfo, String outputDir, MavenProject project)
+    static void copyYangFilesToTarget(Set<YangFileInfo> yangFileInfo, String outputDir, MavenProject project)
             throws IOException {
 
         List<File> files = getListOfFile(yangFileInfo);
@@ -129,8 +124,8 @@ public final class YangPluginUtils {
      * @param operation   true if need to add to resource
      * @throws IOException when fails to do IO operations
      */
-    public static void serializeDataModel(String directory, Set<YangFileInfo> fileInfoSet,
-                                          MavenProject project, boolean operation) throws IOException {
+    static void serializeDataModel(String directory, Set<YangFileInfo> fileInfoSet,
+                                   MavenProject project, boolean operation) throws IOException {
 
         String serFileDirPath = directory + TARGET_RESOURCE_PATH;
         File dir = new File(serFileDirPath);
@@ -142,7 +137,7 @@ public final class YangPluginUtils {
 
         for (YangFileInfo fileInfo : fileInfoSet) {
 
-            String serFileName = serFileDirPath + getCamelCase(fileInfo.getRootNode().getName(), null)
+            String serFileName = serFileDirPath + fileInfo.getRootNode().getName()
                     + SERIALIZED_FILE_EXTENSION;
             fileInfo.setSerializedFile(serFileName);
             FileOutputStream fileOutputStream = new FileOutputStream(serFileName);
@@ -201,65 +196,16 @@ public final class YangPluginUtils {
      * @return list of resolved datamodel nodes
      * @throws IOException when fails to do IO operations
      */
-    public static List<YangNode> resolveInterJarDependencies(MavenProject project, ArtifactRepository localRepository,
-                                                             List<ArtifactRepository> remoteRepos, String directory)
+    static List<YangNode> resolveInterJarDependencies(MavenProject project, ArtifactRepository localRepository,
+                                                      List<ArtifactRepository> remoteRepos, String directory)
             throws IOException {
 
-        List<String> dependeciesJarPaths = resolveDependencyJarPath(project, localRepository, remoteRepos);
+        List<String> dependenciesJarPaths = resolveDependencyJarPath(project, localRepository, remoteRepos);
         List<YangNode> resolvedDataModelNodes = new ArrayList<>();
-        for (String dependecy : dependeciesJarPaths) {
-            resolvedDataModelNodes.addAll(deSerializeDataModel(parseJarFile(dependecy, directory)));
+        for (String dependency : dependenciesJarPaths) {
+            resolvedDataModelNodes.addAll(DataModelUtils.parseJarFile(dependency, directory));
         }
         return resolvedDataModelNodes;
-    }
-
-    /**
-     * Parses jar file and returns list of serialized file names.
-     *
-     * @param jarFile   jar file to be parsed
-     * @param directory directory for keeping the searized files
-     * @return list of serialized files
-     * @throws IOException when fails to do IO operations
-     */
-    public static List<String> parseJarFile(String jarFile, String directory)
-            throws IOException {
-
-        List<String> serailizedFiles = new ArrayList<>();
-        JarFile jar = new JarFile(jarFile);
-        Enumeration<?> enumEntries = jar.entries();
-
-        File serializedFileDir = new File(directory);
-        serializedFileDir.mkdirs();
-        while (enumEntries.hasMoreElements()) {
-            JarEntry file = (JarEntry) enumEntries.nextElement();
-            if (file.getName().endsWith(SERIALIZED_FILE_EXTENSION)) {
-                if (file.getName().contains(SLASH)) {
-                    String[] strArray = file.getName().split(SLASH);
-                    String tempPath = "";
-                    for (int i = 0; i < strArray.length - 1; i++) {
-                        tempPath = SLASH + tempPath + SLASH + strArray[i];
-                    }
-                    File dir = new File(directory + tempPath);
-                    dir.mkdirs();
-                }
-                File serailizedFile = new File(directory + SLASH + file.getName());
-                if (file.isDirectory()) {
-                    serailizedFile.mkdirs();
-                    continue;
-                }
-                InputStream inputStream = jar.getInputStream(file);
-
-                FileOutputStream fileOutputStream = new FileOutputStream(serailizedFile);
-                while (inputStream.available() > 0) {
-                    fileOutputStream.write(inputStream.read());
-                }
-                fileOutputStream.close();
-                inputStream.close();
-                serailizedFiles.add(serailizedFile.toString());
-            }
-        }
-        jar.close();
-        return serailizedFiles;
     }
 
     /* Adds directory to resources of project */

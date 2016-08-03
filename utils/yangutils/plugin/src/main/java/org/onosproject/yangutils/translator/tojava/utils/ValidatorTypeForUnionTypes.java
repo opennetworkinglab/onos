@@ -22,12 +22,12 @@ package org.onosproject.yangutils.translator.tojava.utils;
 public enum ValidatorTypeForUnionTypes {
 
     /**
-     * When conflict is there for int32 and uint16.
+     * When conflict is there for int32 and uInt16.
      */
     INT_TYPE_CONFLICT,
 
     /**
-     * When conflict is there for int64 and uint32.
+     * When conflict is there for int64 and uInt32.
      */
     LONG_TYPE_CONFLICT
 }

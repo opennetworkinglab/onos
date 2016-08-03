@@ -16,18 +16,20 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
+
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
 import org.onosproject.yangutils.datamodel.javadatamodel.YangJavaTypeDef;
 import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
-import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.translator.exception.InvalidNodeForTranslatorException;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.DERIVED;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.LEAFREF;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.generateCodeOfNode;
 
@@ -109,12 +111,12 @@ public class YangJavaTypeDefTranslator
     @Override
     public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
         YangType typeInTypeDef = this.getTypeDefBaseType();
-        if (typeInTypeDef.getDataType() == YangDataTypes.DERIVED) {
+        if (typeInTypeDef.getDataType() == DERIVED) {
             YangDerivedInfo derivedInfo = (YangDerivedInfo) typeInTypeDef.getDataTypeExtendedInfo();
-            if (derivedInfo.getEffectiveBuiltInType() == YangDataTypes.LEAFREF) {
+            if (derivedInfo.getEffectiveBuiltInType() == LEAFREF) {
                 throw new InvalidNodeForTranslatorException();
             }
-        } else if (typeInTypeDef.getDataType() == YangDataTypes.LEAFREF) {
+        } else if (typeInTypeDef.getDataType() == LEAFREF) {
             throw new InvalidNodeForTranslatorException();
         }
         try {

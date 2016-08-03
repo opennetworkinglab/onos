@@ -54,7 +54,6 @@ public class IetfYangFileTest {
         String userDir = System.getProperty("user.dir");
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/ietfyang/l3vpnservice/");
-        yangPluginConfig.setManagerCodeGenDir("target/ietfyang/l3vpnservice/");
 
         utilManager.translateToJava(yangPluginConfig);
 

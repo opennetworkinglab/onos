@@ -90,10 +90,6 @@ public final class JavaAttributeInfo {
      * @return the data type info of attribute
      */
     public YangType<?> getAttributeType() {
-
-        if (attrType == null) {
-            throw new TranslatorException("Expected java attribute type is null");
-        }
         return attrType;
     }
 

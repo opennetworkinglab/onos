@@ -19,6 +19,7 @@ package org.onosproject.yangutils.plugin.manager;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.ListIterator;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,7 +33,6 @@ import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.linker.impl.YangLinkerManager;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
-import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -52,7 +52,6 @@ public class InterFileLeafrefLinkingTest {
 
     private final YangUtilManager utilManager = new YangUtilManager();
     private final YangLinkerManager yangLinkerManager = new YangLinkerManager();
-    private final YangUtilsParserManager manager = new YangUtilsParserManager();
 
     /**
      * Checks inter file leafref linking.

@@ -47,7 +47,7 @@ public class YangJavaIdentityTranslator extends YangJavaIdentity
     //File type extension for java classes.
     private static final String JAVA_FILE_EXTENSION = ".java";
 
-    //Contains the information of the importd.
+    //Contains the information of the imported.
     private transient JavaImportData importData;
 
     /**
@@ -118,6 +118,7 @@ public class YangJavaIdentityTranslator extends YangJavaIdentity
     @Override
     public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
         try {
+
             updatePackageInfo(this, yangPlugin);
             JavaQualifiedTypeInfoTranslator basePkgInfo = new JavaQualifiedTypeInfoTranslator();
             String className = getCapitalCase(getJavaFileInfo().getJavaName());
@@ -142,7 +143,7 @@ public class YangJavaIdentityTranslator extends YangJavaIdentity
                 }
             }
 
-            File file = getFileObject(path, className, JAVA_FILE_EXTENSION, getJavaFileInfo().getBaseCodeGenPath());
+            File file = getFileObject(path, className, JAVA_FILE_EXTENSION, getJavaFileInfo());
 
             initiateJavaFileGeneration(file, GENERATE_IDENTITY_CLASS, imports, this, className);
             closeFile(file, false);

@@ -36,16 +36,9 @@ import org.onosproject.yangutils.datamodel.YangUnion;
 import org.onosproject.yangutils.datamodel.YangUses;
 import org.onosproject.yangutils.datamodel.utils.GeneratedLanguage;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaAugmentTranslator;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaCaseTranslator;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaChoiceTranslator;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaContainerTranslator;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaEnumerationTranslator;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaGroupingTranslator;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaIdentityTranslator;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaInputTranslator;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaLeafTranslator;
-import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaLeafListTranslator;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaListTranslator;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModuleTranslator;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaNotificationTranslator;
@@ -56,6 +49,13 @@ import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaTypeTransla
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaTypeDefTranslator;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaUnionTranslator;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaUsesTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaAugmentTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaCaseTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaGroupingTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaIdentityTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaInputTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaLeafTranslator;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaLeafListTranslator;
 
 /**
  * Represents factory to create data model objects based on the target file type.

@@ -122,6 +122,21 @@ public final class GeneratedTempFileType {
     public static final int EVENT_SUBJECT_SETTER_MASK = 524288;
 
     /**
+     * Add to list method interface for class.
+     */
+    public static final int ADD_TO_LIST_INTERFACE_MASK = 1048576;
+
+    /**
+     * Add to list method implementation for class.
+     */
+    public static final int ADD_TO_LIST_IMPL_MASK = 2097152;
+
+    /**
+     * Leaf identifier enum attributes for class.
+     */
+    public static final int LEAF_IDENTIFIER_ENUM_ATTRIBUTES_MASK = 4194304;
+
+    /**
      * Creates an instance of generated temp file type.
      */
     private GeneratedTempFileType() {

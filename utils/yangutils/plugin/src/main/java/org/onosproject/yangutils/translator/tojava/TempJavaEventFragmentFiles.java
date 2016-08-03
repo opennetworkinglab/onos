@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
 import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
@@ -489,7 +490,7 @@ public class TempJavaEventFragmentFiles
 
         JavaFileInfo parentInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
         return getFileObject(getDirPath(parentInfo), name, JAVA_FILE_EXTENSION,
-                parentInfo.getPluginConfig().getCodeGenDir());
+                parentInfo);
     }
 
     /**

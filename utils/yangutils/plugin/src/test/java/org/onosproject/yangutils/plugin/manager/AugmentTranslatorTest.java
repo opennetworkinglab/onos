@@ -20,9 +20,9 @@ import java.io.IOException;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Test;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
-import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 
@@ -49,10 +49,8 @@ public class AugmentTranslatorTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/augmentTranslator/");
-        yangPluginConfig.setManagerCodeGenDir("target/augmentTranslator/");
         utilManager.translateToJava(yangPluginConfig);
 
-        deleteDirectory("target/augmentTranslator/");
+        deleteDirectory("target/augmentTranslator1/");
     }
-
 }

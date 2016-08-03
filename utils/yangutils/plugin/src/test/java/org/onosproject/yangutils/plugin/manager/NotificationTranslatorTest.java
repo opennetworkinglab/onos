@@ -45,12 +45,10 @@ public final class NotificationTranslatorTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/NotificationTest/");
-        yangPluginConfig.setManagerCodeGenDir("target/NotificationTest1/");
 
         generateJavaCode(node, yangPluginConfig);
 
         deleteDirectory("target/NotificationTest/");
-        deleteDirectory("target/NotificationTest1/");
     }
 
     // TODO enhance the test cases, after having a framework of translator test.

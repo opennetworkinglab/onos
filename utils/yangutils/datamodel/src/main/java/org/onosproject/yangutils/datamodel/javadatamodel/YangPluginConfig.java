@@ -27,25 +27,20 @@ public final class YangPluginConfig {
     private String codeGenDir;
 
     /**
-     * Contains the code generation directory.
-     */
-    private String managerCodeGenDir;
-
-    /**
      * Contains information of naming conflicts that can be resolved.
      */
     private YangToJavaNamingConflictUtil conflictResolver;
+
+    /**
+     * Java code generation is for sbi.
+     */
+    private String codeGenerateForsbi;
 
     /**
      * Creates an object for YANG plugin config.
      */
     public YangPluginConfig() {
     }
-
-    /**
-     * Java code generation is for sbi.
-     */
-    private String codeGenerateForsbi;
 
     /**
      * Returns the string for code generation.
@@ -101,21 +96,4 @@ public final class YangPluginConfig {
         return conflictResolver;
     }
 
-    /**
-     * Returns manager's code generation directory.
-     *
-     * @return manager's code generation directory
-     */
-    public String getManagerCodeGenDir() {
-        return managerCodeGenDir;
-    }
-
-    /**
-     * Sets manager's code generation directory.
-     *
-     * @param moduleCodeGenDir manager's code generation directory
-     */
-    public void setManagerCodeGenDir(String moduleCodeGenDir) {
-        this.managerCodeGenDir = moduleCodeGenDir;
-    }
 }

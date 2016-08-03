@@ -41,11 +41,10 @@ import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.RESOLVED;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.STRING;
-import static org.onosproject.yangutils.datamodel.utils.ResolvableStatus.RESOLVED;
-import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.deSerializeDataModel;
-import static org.onosproject.yangutils.plugin.manager.YangPluginUtils.parseJarFile;
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.parseJarFile;
 import static org.onosproject.yangutils.plugin.manager.YangPluginUtils.serializeDataModel;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.TEMP;
@@ -189,7 +188,6 @@ public class InterJarLinkerTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir(TARGET);
-        yangPluginConfig.setManagerCodeGenDir(TARGET);
 
         utilManager.translateToJava(yangPluginConfig);
 
@@ -206,7 +204,7 @@ public class InterJarLinkerTest {
         File folder = new File(System.getProperty("user.dir") + SLASH + FLOW_CLASSIFIER_FOLDER);
         File file = new File(System.getProperty("user.dir") + SLASH + FLOW_CLASSIFIER_MANAGER);
         assertThat(true, is(folder.exists()));
-        assertThat(true, is(file.exists()));
+        assertThat(false, is(file.exists()));
     }
 
     /**
@@ -304,7 +302,7 @@ public class InterJarLinkerTest {
      */
     private void addInterJarRootNodes(String jarFile) throws IOException {
         try {
-            List<YangNode> interJarResolvedNodes = deSerializeDataModel(parseJarFile(jarFile, TARGET));
+            List<YangNode> interJarResolvedNodes = parseJarFile(jarFile, TARGET);
 
             for (YangNode node : interJarResolvedNodes) {
                 YangFileInfo dependentFileInfo = new YangFileInfo();
@@ -326,7 +324,6 @@ public class InterJarLinkerTest {
 
         File file = new File(TARGET + TARGET_RESOURCE_PATH);
         File[] files = file.listFiles();
-
         String[] source = new String[files.length];
 
         for (int i = 0; i < files.length; i++) {

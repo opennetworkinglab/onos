@@ -116,7 +116,7 @@ public class YangJavaNotificationTranslator
     @Override
     public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
 
-        /**
+        /*
          * As part of the notification support the following files needs to be generated.
          * 1) Subject of the notification(event), this is simple interface with builder class.
          * 2) Event class extending "AbstractEvent" and defining event type enum.

@@ -35,8 +35,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.generateCodeOfRootNode;
-import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.isGenerationOfCodeReq;
-import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.isManagerCodeGenRequired;
+import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.isRootNodesCodeGenRequired;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 import static org.onosproject.yangutils.utils.UtilConstants.SBI;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.searchAndDeleteTempDir;
@@ -66,11 +65,11 @@ public class YangJavaSubModuleTranslator
     public YangJavaSubModuleTranslator() {
         super();
         setJavaFileInfo(new JavaFileInfo());
-        int gentype = GENERATE_SERVICE_AND_MANAGER | GENERATE_INTERFACE_WITH_BUILDER;
+        int genType = GENERATE_SERVICE_AND_MANAGER | GENERATE_INTERFACE_WITH_BUILDER;
         if (isNotificationChildNodePresent(this)) {
-            gentype = GENERATE_SERVICE_AND_MANAGER | GENERATE_ALL_EVENT_CLASS_MASK;
+            genType = GENERATE_SERVICE_AND_MANAGER | GENERATE_ALL_EVENT_CLASS_MASK;
         }
-        getJavaFileInfo().setGeneratedFileTypes(gentype);
+        getJavaFileInfo().setGeneratedFileTypes(genType);
     }
 
     /**
@@ -168,17 +167,14 @@ public class YangJavaSubModuleTranslator
             if ((getJavaFileInfo().getGeneratedFileTypes() & GENERATE_ALL_EVENT_CLASS_MASK) != 0) {
                 getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_ALL_EVENT_CLASS_MASK, this);
             }
-            getTempJavaCodeFragmentFiles()
-                    .generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
-            if (isManagerCodeGenRequired(this)) {
-                if (isGenerationOfCodeReq(getJavaFileInfo())) {
-                    if ((getJavaFileInfo().getPluginConfig().getCodeGenerateForsbi() == null)
-                            || (!getJavaFileInfo().getPluginConfig().getCodeGenerateForsbi().equals(SBI))) {
-                        getTempJavaCodeFragmentFiles().getServiceTempFiles().setManagerNeedToBeGenerated(true);
-                    }
+            if (isRootNodesCodeGenRequired(this)) {
+                getTempJavaCodeFragmentFiles()
+                        .generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
+                if ((getJavaFileInfo().getPluginConfig().getCodeGenerateForsbi() == null)
+                        || (!getJavaFileInfo().getPluginConfig().getCodeGenerateForsbi().equals(SBI))) {
+                    getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
                 }
             }
-            getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
 
             searchAndDeleteTempDir(getJavaFileInfo().getBaseCodeGenPath() +
                     getJavaFileInfo().getPackageFilePath());
@@ -203,22 +199,22 @@ public class YangJavaSubModuleTranslator
      *
      * @param curNode notification node
      */
-    private void addToNotificaitonList(YangNode curNode) {
+    private void addToNotificationList(YangNode curNode) {
         getNotificationNodes().add(curNode);
     }
 
     /**
-     * Checks if there is any rpc defined in the module or sub-module.
+     * Checks if there is any notification node present.
      *
      * @param rootNode root node of the data model
-     * @return status of rpc's existence
+     * @return status of notification's existence
      */
     private boolean isNotificationChildNodePresent(YangNode rootNode) {
         YangNode childNode = rootNode.getChild();
 
         while (childNode != null) {
             if (childNode instanceof YangNotification) {
-                addToNotificaitonList(childNode);
+                addToNotificationList(childNode);
             }
             childNode = childNode.getNextSibling();
         }

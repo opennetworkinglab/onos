@@ -4,8 +4,6 @@ submodule test1 {
          prefix test;
     }           
 
-    include test4;
-
     organization "";  
     contact "";  
        
@@ -30,14 +28,6 @@ submodule test1 {
     augment /cont1/cont2 {
         container cont4 {
           leaf leaf1 {
-             type int32;
-          }
-       }
-    }
-
-     augment /group1/cont3/cont4 {
-        container cont8 {
-          leaf leaf8 {
              type int32;
           }
        }

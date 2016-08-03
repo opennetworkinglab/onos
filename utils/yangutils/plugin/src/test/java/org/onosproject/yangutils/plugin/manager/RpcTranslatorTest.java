@@ -45,7 +45,6 @@ public final class RpcTranslatorTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/RpcTestGenFile/");
-        yangPluginConfig.setManagerCodeGenDir("target/RpcTestGenFile/");
 
         generateJavaCode(node, yangPluginConfig);
 

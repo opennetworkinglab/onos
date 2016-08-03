@@ -20,11 +20,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.onosproject.yangutils.datamodel.YangAtomicPath;
 import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangLeafRef;
+import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
+import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
 import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
@@ -46,6 +49,7 @@ import org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.DEFAULT_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_LISTENER_INTERFACE;
@@ -54,10 +58,9 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.OPERATION_BUILDER_CLASS_MASK;
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.OPERATION_CLASS_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ADD_TO_LIST_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ADD_TO_LIST_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ATTRIBUTES_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_FOR_TYPE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_IMPL_MASK;
@@ -72,6 +75,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.HASH_CODE_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.LEAF_IDENTIFIER_ENUM_ATTRIBUTES_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.OF_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.RPC_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.RPC_INTERFACE_MASK;
@@ -79,14 +83,14 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.TO_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator.getQualifiedTypeInfoOfCurNode;
-import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.getAugmentedNodesPackage;
+import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.getNodesPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.ClassDefinitionGenerator.generateClassDefinition;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.LEAFREF;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.OP_PARAM;
 import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
-import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_ANY_STRING_ENDING_WITH_SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
@@ -98,9 +102,7 @@ import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.EVE
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.EVENT_SUBJECT_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.IMPL_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.INTERFACE;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.OPERATION_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.RPC_INTERFACE;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.RPC_MANAGER;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCamelCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
@@ -122,15 +124,14 @@ public final class JavaFileGeneratorUtils {
     /**
      * Returns a file object for generated file.
      *
-     * @param filePath     file package path
-     * @param fileName     file name
-     * @param extension    file extension
-     * @param baseCodePath cached file handle
+     * @param filePath  file package path
+     * @param fileName  file name
+     * @param extension file extension
+     * @param handler   cached file handle
      * @return file object
      */
-    public static File getFileObject(String filePath, String fileName, String extension, String baseCodePath) {
-
-        return new File(baseCodePath + filePath + SLASH + fileName + extension);
+    public static File getFileObject(String filePath, String fileName, String extension, JavaFileInfo handler) {
+        return new File(handler.getBaseCodeGenPath() + filePath + SLASH + fileName + extension);
     }
 
     /**
@@ -187,6 +188,18 @@ public final class JavaFileGeneratorUtils {
         } else if ((generatedTempFiles & SETTER_FOR_CLASS_MASK) != 0) {
             return tempJavaFragmentFiles
                     .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getSetterImplTempFileHandle(),
+                            absolutePath);
+        } else if ((generatedTempFiles & ADD_TO_LIST_INTERFACE_MASK) != 0) {
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getAddToListInterfaceTempFileHandle(),
+                            absolutePath);
+        } else if ((generatedTempFiles & ADD_TO_LIST_IMPL_MASK) != 0) {
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getAddToListImplTempFileHandle(),
+                            absolutePath);
+        } else if ((generatedTempFiles & LEAF_IDENTIFIER_ENUM_ATTRIBUTES_MASK) != 0) {
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getLeafIdAttributeTempFileHandle(),
                             absolutePath);
         } else if ((generatedTempFiles & CONSTRUCTOR_IMPL_MASK) != 0) {
             if (beanFragmentFiles == null) {
@@ -370,18 +383,11 @@ public final class JavaFileGeneratorUtils {
                 appendHeaderContents(file, pkgString, importsList);
                 write(file, genType, INTERFACE, curNode, className);
                 break;
-            case IMPL_CLASS_MASK:
+            case DEFAULT_CLASS_MASK:
                 appendHeaderContents(file, pkgString, importsList);
                 write(file, genType, IMPL_CLASS, curNode, className);
                 break;
-            case OPERATION_CLASS_MASK:
-                appendHeaderContents(file, pkgString, importsList);
-                write(file, genType, OPERATION_CLASS, curNode, className);
-                break;
             case BUILDER_CLASS_MASK:
-                write(file, genType, BUILDER_CLASS, curNode, className);
-                break;
-            case OPERATION_BUILDER_CLASS_MASK:
                 write(file, genType, BUILDER_CLASS, curNode, className);
                 break;
             case BUILDER_INTERFACE_MASK:
@@ -511,16 +517,7 @@ public final class JavaFileGeneratorUtils {
             throws IOException {
 
         YangPluginConfig pluginConfig = ((JavaFileInfoContainer) curNode).getJavaFileInfo().getPluginConfig();
-        if ((genType & GENERATE_SERVICE_AND_MANAGER) != 0) {
-            if (!fileName.matches(REGEX_FOR_ANY_STRING_ENDING_WITH_SERVICE)) {
-                insertDataIntoJavaFile(file, getJavaDoc(RPC_MANAGER, fileName, false, pluginConfig));
-                insertDataIntoJavaFile(file, JavaCodeSnippetGen.addComponentString());
-            } else {
-                insertDataIntoJavaFile(file, getJavaDoc(javaDocType, fileName, false, pluginConfig));
-            }
-        } else {
-            insertDataIntoJavaFile(file, getJavaDoc(javaDocType, fileName, false, pluginConfig));
-        }
+        insertDataIntoJavaFile(file, getJavaDoc(javaDocType, fileName, false, pluginConfig));
         insertDataIntoJavaFile(file, generateClassDefinition(genType, fileName, curNode));
     }
 
@@ -616,6 +613,13 @@ public final class JavaFileGeneratorUtils {
                     parentInfo.getPluginConfig());
             tempJavaCodeFragmentFiles.getServiceTempFiles().getJavaImportData().addImportInfo(javaQualifiedTypeInfo,
                     parentInfo.getJavaName(), parentInfo.getPackage());
+            if (augmentedNode instanceof YangModule || augmentedNode instanceof YangSubModule) {
+                javaQualifiedTypeInfo = getQualifiedTypeInfoOfAugmentedNode(augmentedNode,
+                        getCapitalCase(curNodeName) + OP_PARAM,
+                        parentInfo.getPluginConfig());
+                tempJavaCodeFragmentFiles.getServiceTempFiles().getJavaImportData().addImportInfo(javaQualifiedTypeInfo,
+                        parentInfo.getJavaName(), parentInfo.getPackage());
+            }
 
         }
     }
@@ -634,7 +638,7 @@ public final class JavaFileGeneratorUtils {
         JavaQualifiedTypeInfoTranslator javaQualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(augmentedNode,
                 getCapitalCase(curNodeName));
         if (javaQualifiedTypeInfo.getPkgInfo() == null) {
-            javaQualifiedTypeInfo.setPkgInfo(getAugmentedNodesPackage(augmentedNode,
+            javaQualifiedTypeInfo.setPkgInfo(getNodesPackage(augmentedNode,
                     pluginConfig));
         }
         return javaQualifiedTypeInfo;
@@ -735,4 +739,5 @@ public final class JavaFileGeneratorUtils {
         }
         return attributeType;
     }
+
 }

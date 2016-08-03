@@ -27,8 +27,8 @@ import java.util.Stack;
  */
 public final class YangFileScanner {
 
-    private static final String JAVA_FILE_EXTENTION = ".java";
-    private static final String YANG_FILE_EXTENTION = ".yang";
+    private static final String JAVA_FILE_EXTENSION = ".java";
+    private static final String YANG_FILE_EXTENSION = ".yang";
 
     /**
      * Creates an instance of YANG file scanner.
@@ -45,9 +45,8 @@ public final class YangFileScanner {
      * @throws IOException          when files get deleted while performing the
      *                              operations
      */
-    public static List<String> getJavaFiles(String root) throws IOException {
-
-        return getFiles(root, JAVA_FILE_EXTENTION);
+    static List<String> getJavaFiles(String root) throws IOException {
+        return getFiles(root, JAVA_FILE_EXTENSION);
     }
 
     /**
@@ -60,8 +59,7 @@ public final class YangFileScanner {
      *                              operations
      */
     public static List<String> getYangFiles(String root) throws IOException {
-
-        return getFiles(root, YANG_FILE_EXTENTION);
+        return getFiles(root, YANG_FILE_EXTENSION);
     }
 
     /**
@@ -73,22 +71,22 @@ public final class YangFileScanner {
      * @throws NullPointerException when no file is there
      * @throws IOException          when files get deleted while performing the operations
      */
-    public static List<String> getFiles(String root, String extension) throws IOException {
+    private static List<String> getFiles(String root, String extension) throws IOException {
 
         List<String> store = new LinkedList<>();
         Stack<String> stack = new Stack<>();
         stack.push(root);
         File file;
-        File[] filelist;
+        File[] fileList;
         try {
             while (!stack.empty()) {
                 root = stack.pop();
                 file = new File(root);
-                filelist = file.listFiles();
-                if ((filelist == null) || (filelist.length == 0)) {
+                fileList = file.listFiles();
+                if ((fileList == null) || (fileList.length == 0)) {
                     continue;
                 }
-                for (File current : filelist) {
+                for (File current : fileList) {
                     if (current.isDirectory()) {
                         stack.push(current.toString());
                     } else {

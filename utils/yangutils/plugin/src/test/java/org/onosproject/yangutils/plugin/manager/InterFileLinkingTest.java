@@ -656,7 +656,6 @@ public class InterFileLinkingTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/interfilewithusesreferringtype/");
-        yangPluginConfig.setManagerCodeGenDir("target/interfilewithusesreferringtype/");
 
         utilManager.translateToJava(yangPluginConfig);
 
@@ -678,7 +677,6 @@ public class InterFileLinkingTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/file1UsesFile2TypeDefFile3Type/");
-        yangPluginConfig.setManagerCodeGenDir("target/file1UsesFile2TypeDefFile3Type/");
 
         utilManager.translateToJava(yangPluginConfig);
 
@@ -700,7 +698,6 @@ public class InterFileLinkingTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/interfileietf/");
-        yangPluginConfig.setManagerCodeGenDir("target/interfileietf/");
 
         utilManager.translateToJava(yangPluginConfig);
 
@@ -722,7 +719,6 @@ public class InterFileLinkingTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/usesInContainer/");
-        yangPluginConfig.setManagerCodeGenDir("target/usesInContainer/");
 
         utilManager.translateToJava(yangPluginConfig);
 
@@ -744,7 +740,6 @@ public class InterFileLinkingTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/groupingNodeSameAsModule/");
-        yangPluginConfig.setManagerCodeGenDir("target/groupingNodeSameAsModule/");
 
         utilManager.translateToJava(yangPluginConfig);
 

@@ -91,7 +91,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
 public class YangContainer
         extends YangNode
         implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector,
-        YangAugmentableNode, YangMustHolder, YangWhenHolder, YangIfFeatureHolder {
+        YangAugmentableNode, YangMustHolder, YangWhenHolder, YangIfFeatureHolder, YangIsFilterContentNodes {
 
     private static final long serialVersionUID = 806201605L;
 
@@ -158,6 +158,8 @@ public class YangContainer
      */
     public YangContainer() {
         super(YangNodeType.CONTAINER_NODE);
+        listOfLeaf = new LinkedList<>();
+        listOfLeafList = new LinkedList<>();
     }
 
     /**

@@ -21,9 +21,9 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator;
-import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
@@ -131,7 +131,7 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getBuildTest() {
-        String method = getBuild(CLASS_NAME);
+        String method = getBuild(CLASS_NAME, false);
         assertThat(true, is(method.equals(FOUR_SPACE_INDENTATION + PUBLIC + SPACE + CLASS_NAME + SPACE + BUILD
                 + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION
                 + RETURN + SPACE + NEW + SPACE + "Default" + CLASS_NAME + OPEN_PARENTHESIS + THIS + CLOSE_PARENTHESIS
@@ -177,7 +177,7 @@ public final class MethodsGeneratorTest {
     @Test
     public void getConstructorStartTest() {
         YangPluginConfig pluginConfig = new YangPluginConfig();
-        String method = getConstructorStart(CLASS_NAME, pluginConfig);
+        String method = getConstructorStart(CLASS_NAME, pluginConfig, false);
         assertThat(true, is(method.contains(PUBLIC + SPACE + "Default" + CLASS_NAME + OPEN_PARENTHESIS + CLASS_NAME
                 + BUILDER + SPACE + BUILDER.toLowerCase() + OBJECT + CLOSE_PARENTHESIS + SPACE
                 + OPEN_CURLY_BRACKET + NEW_LINE)));

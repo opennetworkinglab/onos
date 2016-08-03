@@ -24,7 +24,7 @@ import org.onosproject.yangutils.datamodel.utils.ResolvableStatus;
 /**
  * Represents YANG file information.
  */
-public class YangFileInfo {
+class YangFileInfo {
 
     /**
      * YANG file name.
@@ -79,7 +79,7 @@ public class YangFileInfo {
      *
      * @return yangFileName YANG file name
      */
-    public String getYangFileName() {
+    String getYangFileName() {
         return yangFileName;
     }
 
@@ -88,7 +88,7 @@ public class YangFileInfo {
      *
      * @param yangFileName YANG file name
      */
-    public void setYangFileName(String yangFileName) {
+    void setYangFileName(String yangFileName) {
         this.yangFileName = yangFileName;
     }
 
@@ -151,7 +151,7 @@ public class YangFileInfo {
      *
      * @return isForTranslator true if node need to be translated
      */
-    public boolean isForTranslator() {
+    boolean isForTranslator() {
         return isForTranslator;
     }
 
@@ -160,7 +160,7 @@ public class YangFileInfo {
      *
      * @param isForTranslator true if node need to be translated
      */
-    public void setForTranslator(boolean isForTranslator) {
+    void setForTranslator(boolean isForTranslator) {
         this.isForTranslator = isForTranslator;
     }
 

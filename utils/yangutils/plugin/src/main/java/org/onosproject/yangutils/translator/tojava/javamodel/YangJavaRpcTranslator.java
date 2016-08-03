@@ -23,28 +23,22 @@ import org.onosproject.yangutils.datamodel.YangInput;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangOutput;
 import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator;
 import org.onosproject.yangutils.datamodel.javadatamodel.YangJavaRpc;
 import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
+import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
 import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
-import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
-import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
 import org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles;
 
+import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator.getQualifiedTypeInfoOfCurNode;
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.getParentNodeInGenCode;
 import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getAttributeInfoForTheData;
-import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator.getQualifiedTypeInfoOfCurNode;
 import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.updatePackageInfo;
-import static org.onosproject.yangutils.utils.UtilConstants.ACTIVATE;
-import static org.onosproject.yangutils.utils.UtilConstants.COMPONENT;
-import static org.onosproject.yangutils.utils.UtilConstants.DEACTIVATE;
-import static org.onosproject.yangutils.utils.UtilConstants.MANAGER;
-import static org.onosproject.yangutils.utils.UtilConstants.REFERENCE;
-import static org.onosproject.yangutils.utils.UtilConstants.REFERENCE_CARDINALITY;
 import static org.onosproject.yangutils.utils.UtilConstants.SERVICE;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 
@@ -58,7 +52,7 @@ public class YangJavaRpcTranslator
     private static final long serialVersionUID = 806201622L;
 
     /**
-     * Temproary file for code generation.
+     * Temporary file for code generation.
      */
     private transient TempJavaCodeFragmentFiles tempJavaCodeFragmentFiles;
 
@@ -191,7 +185,7 @@ public class YangJavaRpcTranslator
      * @return AttributeInfo attribute details required to add in temporary
      * files
      */
-    public JavaAttributeInfo getChildNodeAsAttributeInParentService(
+    private JavaAttributeInfo getChildNodeAsAttributeInParentService(
             YangNode childNode, YangNode currentNode) {
 
         YangNode parentNode = getParentNodeInGenCode(currentNode);
@@ -229,13 +223,7 @@ public class YangJavaRpcTranslator
         JavaFileInfo fileInfo = ((JavaFileInfoContainer) getParent()).getJavaFileInfo();
 
         if (importInfo.getClassInfo().contentEquals(SERVICE)
-                || importInfo.getClassInfo().contentEquals(COMPONENT)
-                || importInfo.getClassInfo().contentEquals(getCapitalCase(ACTIVATE))
-                || importInfo.getClassInfo().contentEquals(getCapitalCase(DEACTIVATE))
-                || importInfo.getClassInfo().contentEquals(REFERENCE_CARDINALITY)
-                || importInfo.getClassInfo().contentEquals(REFERENCE)
-                || importInfo.getClassInfo().contentEquals(getCapitalCase(fileInfo.getJavaName() + SERVICE))
-                || importInfo.getClassInfo().contentEquals(getCapitalCase(fileInfo.getJavaName() + MANAGER))) {
+                || importInfo.getClassInfo().contentEquals(getCapitalCase(fileInfo.getJavaName() + SERVICE))) {
             return true;
         }
 

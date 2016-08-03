@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
+
 import org.onosproject.yangutils.datamodel.Resolvable;
 import org.onosproject.yangutils.datamodel.ResolvableType;
 import org.onosproject.yangutils.datamodel.TraversalType;
@@ -1221,7 +1222,7 @@ public class YangResolutionInfoImpl<T>
         YangXpathLinker<T> xPathLinker = new YangXpathLinker<T>();
 
         if (entityToResolve instanceof YangAugment) {
-            YangNode targetNode = null;
+            YangNode targetNode;
             YangAugment augment = (YangAugment) entityToResolve;
             targetNode = xPathLinker.processAugmentXpathLinking(augment.getTargetNode(),
                     (YangNode) root);
@@ -1485,9 +1486,9 @@ public class YangResolutionInfoImpl<T>
     /**
      * Fills the absolute path values in the leafref from relative path.
      *
-     * @param leafref              instance of YANG leafref
-     * @param pathNameToBePrefixed path name which has to be prefixed to relative path
-     * @param atomicPathsInRelative   atomic paths in relative
+     * @param leafref               instance of YANG leafref
+     * @param pathNameToBePrefixed  path name which has to be prefixed to relative path
+     * @param atomicPathsInRelative atomic paths in relative
      * @throws DataModelException a violation of data model rules
      */
     private void fillAbsolutePathValuesInLeafref(YangLeafRef leafref, String pathNameToBePrefixed,

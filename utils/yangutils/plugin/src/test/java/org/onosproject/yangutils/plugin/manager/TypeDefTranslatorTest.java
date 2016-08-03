@@ -20,9 +20,9 @@ import java.io.IOException;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Test;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
-import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 
@@ -49,7 +49,6 @@ public class TypeDefTranslatorTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/typedefTranslator/");
-        yangPluginConfig.setManagerCodeGenDir("target/typedefTranslator/");
         utilManager.translateToJava(yangPluginConfig);
 
         deleteDirectory("target/typedefTranslator/");
@@ -63,7 +62,6 @@ public class TypeDefTranslatorTest {
     @Test
     public void processTypeDefWithRestrictionsTranslator() throws IOException, ParserException, MojoExecutionException {
 
-        /*FIXME: After typedef with leafref is fixed.
         String searchDir = "src/test/resources/typedefTranslator/with";
         utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
         utilManager.parseYangFileInfoSet();
@@ -72,10 +70,10 @@ public class TypeDefTranslatorTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/typedefTranslator/");
-        yangPluginConfig.setManagerCodeGenDir("target/typedefTranslator/");
         utilManager.translateToJava(yangPluginConfig);
 
         deleteDirectory("target/typedefTranslator/");
-        */
+
     }
+
 }

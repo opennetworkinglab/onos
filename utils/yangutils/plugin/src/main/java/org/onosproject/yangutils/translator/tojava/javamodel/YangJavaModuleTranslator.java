@@ -33,8 +33,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.generateCodeOfRootNode;
-import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.isGenerationOfCodeReq;
-import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.isManagerCodeGenRequired;
+import static org.onosproject.yangutils.translator.tojava.YangJavaModelUtils.isRootNodesCodeGenRequired;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 import static org.onosproject.yangutils.utils.UtilConstants.SBI;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.searchAndDeleteTempDir;
@@ -140,7 +139,7 @@ public class YangJavaModuleTranslator
      */
     @Override
     public void generateCodeExit() throws TranslatorException {
-        /**
+        /*
          * As part of the notification support the following files needs to be generated.
          * 1) Subject of the notification(event), this is simple interface with builder class.
          * 2) Event class extending "AbstractEvent" and defining event type enum.
@@ -153,17 +152,15 @@ public class YangJavaModuleTranslator
             if ((getJavaFileInfo().getGeneratedFileTypes() & GENERATE_ALL_EVENT_CLASS_MASK) != 0) {
                 getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_ALL_EVENT_CLASS_MASK, this);
             }
-            getTempJavaCodeFragmentFiles()
-                    .generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
-            if (isManagerCodeGenRequired(this)) {
-                if (isGenerationOfCodeReq(getJavaFileInfo())) {
-                    if ((getJavaFileInfo().getPluginConfig().getCodeGenerateForsbi() == null)
-                            || (!getJavaFileInfo().getPluginConfig().getCodeGenerateForsbi().equals(SBI))) {
-                        getTempJavaCodeFragmentFiles().getServiceTempFiles().setManagerNeedToBeGenerated(true);
-                    }
+
+            if (isRootNodesCodeGenRequired(this)) {
+                getTempJavaCodeFragmentFiles()
+                        .generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
+                if ((getJavaFileInfo().getPluginConfig().getCodeGenerateForsbi() == null)
+                        || (!getJavaFileInfo().getPluginConfig().getCodeGenerateForsbi().equals(SBI))) {
+                    getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
                 }
             }
-            getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
 
             searchAndDeleteTempDir(getJavaFileInfo().getBaseCodeGenPath() +
                     getJavaFileInfo().getPackageFilePath());
@@ -197,22 +194,22 @@ public class YangJavaModuleTranslator
      *
      * @param curNode notification node
      */
-    private void addToNotificaitonList(YangNode curNode) {
+    private void addToNotificationList(YangNode curNode) {
         getNotificationNodes().add(curNode);
     }
 
     /**
-     * Checks if there is any rpc defined in the module or sub-module.
+     * Checks if there is any notification node present.
      *
      * @param rootNode root node of the data model
-     * @return status of rpc's existence
+     * @return status of notification's existence
      */
     private boolean isNotificationChildNodePresent(YangNode rootNode) {
         YangNode childNode = rootNode.getChild();
 
         while (childNode != null) {
             if (childNode instanceof YangNotification) {
-                addToNotificaitonList(childNode);
+                addToNotificationList(childNode);
             }
             childNode = childNode.getNextSibling();
         }

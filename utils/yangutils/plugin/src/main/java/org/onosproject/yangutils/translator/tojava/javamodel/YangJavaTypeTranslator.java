@@ -16,10 +16,13 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import org.onosproject.yangutils.datamodel.YangType;
-import org.onosproject.yangutils.datamodel.javadatamodel.JavaQualifiedTypeInfo;
-import org.onosproject.yangutils.datamodel.javadatamodel.YangToJavaNamingConflictUtil;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangToJavaNamingConflictUtil;
+
+import static org.onosproject.yangutils.translator.tojava.javamodel.AttributesJavaDataType.getJavaDataType;
+import static org.onosproject.yangutils.translator.tojava.javamodel.AttributesJavaDataType.getJavaImportClass;
+import static org.onosproject.yangutils.translator.tojava.javamodel.AttributesJavaDataType.getJavaImportPackage;
 
 /**
  * Represents java information corresponding to the YANG type.
@@ -30,7 +33,7 @@ public class YangJavaTypeTranslator<T>
         extends YangType<T>
         implements JavaQualifiedTypeResolver {
 
-    private JavaQualifiedTypeInfo javaQualifiedAccess;
+    private JavaQualifiedTypeInfoTranslator javaQualifiedAccess;
 
     /**
      * Create a YANG leaf object with java qualified access details.
@@ -47,15 +50,15 @@ public class YangJavaTypeTranslator<T>
         /*
          * Type is added as an attribute in the class.
          */
-        String className = AttributesJavaDataType.getJavaImportClass(this, false, conflictResolver);
+        String className = getJavaImportClass(this, false, conflictResolver);
         if (className != null) {
             /*
              * Corresponding to the attribute type a class needs to be imported,
              * since it can be a derived type or a usage of wrapper classes.
              */
             importInfo.setClassInfo(className);
-            String classPkg = AttributesJavaDataType.getJavaImportPackage(this,
-                    false, conflictResolver);
+            String classPkg = getJavaImportPackage(this,
+                    false,  conflictResolver);
             if (classPkg == null) {
                 throw new TranslatorException("import package cannot be null when the class is used");
             }
@@ -65,7 +68,7 @@ public class YangJavaTypeTranslator<T>
              * The attribute does not need a class to be imported, for example
              * built in java types.
              */
-            String dataTypeName = AttributesJavaDataType.getJavaDataType(this);
+            String dataTypeName = getJavaDataType(this);
             if (dataTypeName == null) {
                 throw new TranslatorException("not supported data type");
             }
@@ -76,7 +79,7 @@ public class YangJavaTypeTranslator<T>
 
     @Override
     public JavaQualifiedTypeInfoTranslator getJavaQualifiedInfo() {
-        return (JavaQualifiedTypeInfoTranslator) javaQualifiedAccess;
+        return javaQualifiedAccess;
     }
 
     @Override

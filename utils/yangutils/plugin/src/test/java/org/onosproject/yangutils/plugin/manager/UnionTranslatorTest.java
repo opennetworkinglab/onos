@@ -47,7 +47,6 @@ public final class UnionTranslatorTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/UnionTestGenFile/");
-        yangPluginConfig.setManagerCodeGenDir("target/UnionTestGenFile/");
 
         generateJavaCode(node, yangPluginConfig);
 
@@ -71,7 +70,6 @@ public final class UnionTranslatorTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/unionTranslator/");
-        yangPluginConfig.setManagerCodeGenDir("target/unionTranslator/");
 
         utilManager.translateToJava(yangPluginConfig);
         deleteDirectory("target/unionTranslator/");
@@ -94,7 +92,6 @@ public final class UnionTranslatorTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/unionTranslator/");
-        yangPluginConfig.setManagerCodeGenDir("target/unionTranslator/");
 
         utilManager.translateToJava(yangPluginConfig);
         deleteDirectory("target/unionTranslator/");
@@ -117,7 +114,6 @@ public final class UnionTranslatorTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/unionTranslator/");
-        yangPluginConfig.setManagerCodeGenDir("target/unionTranslator/");
 
         utilManager.translateToJava(yangPluginConfig);
         deleteDirectory("target/unionTranslator/");
@@ -140,7 +136,6 @@ public final class UnionTranslatorTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/unionTranslator/");
-        yangPluginConfig.setManagerCodeGenDir("target/unionTranslator/");
 
         utilManager.translateToJava(yangPluginConfig);
         deleteDirectory("target/unionTranslator/");
@@ -163,7 +158,6 @@ public final class UnionTranslatorTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/unionTranslator/");
-        yangPluginConfig.setManagerCodeGenDir("target/unionTranslator/");
 
         utilManager.translateToJava(yangPluginConfig);
         deleteDirectory("target/unionTranslator/");
@@ -187,7 +181,6 @@ public final class UnionTranslatorTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/unionTranslator/");
-        yangPluginConfig.setManagerCodeGenDir("target/unionTranslator/");
 
         utilManager.translateToJava(yangPluginConfig);
         deleteDirectory("target/unionTranslator/");
@@ -211,7 +204,6 @@ public final class UnionTranslatorTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/unionTranslator/");
-        yangPluginConfig.setManagerCodeGenDir("target/unionTranslator/");
 
         utilManager.translateToJava(yangPluginConfig);
         deleteDirectory("target/unionTranslator/");

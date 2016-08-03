@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.onosproject.yangutils.datamodel.YangAtomicPath;
 import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangAugmentableNode;
 import org.onosproject.yangutils.datamodel.YangAugmentedInfo;
@@ -41,7 +42,6 @@ import org.onosproject.yangutils.linker.exceptions.LinkerException;
 
 import static org.onosproject.yangutils.utils.UtilConstants.COLON;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
-import static org.onosproject.yangutils.utils.UtilConstants.SLASH_FOR_STRING;
 
 /**
  * Represent utilities for YANG linker.
@@ -73,7 +73,7 @@ public final class YangLinkerUtils {
             }
         }
         if (targetNode instanceof YangChoice) {
-            // no need to check here.
+            //Do nothing
         } else {
             detectCollisionInLeaveHolders(targetNode, augment);
             while (augmentsChild != null) {
@@ -83,7 +83,7 @@ public final class YangLinkerUtils {
         }
     }
 
-    /*Detects collision between leaves/leaflists*/
+    /*Detects collision between leaves/leaf-lists*/
     private static void detectCollisionInLeaveHolders(YangNode targetNode, YangAugment augment) {
         YangLeavesHolder targetNodesLeavesHolder = (YangLeavesHolder) targetNode;
         YangNode parent = targetNode;
@@ -160,17 +160,19 @@ public final class YangLinkerUtils {
      * @param remainingAncestors ancestor count to move in augment path
      * @return list of path names needed in leafref
      */
-    public static List<String> getPathWithAugment(YangAugment augment, int remainingAncestors) {
-        String augmentName = augment.getName();
+    static List<String> getPathWithAugment(YangAugment augment, int remainingAncestors) {
         List<String> listOfPathName = new ArrayList<>();
-        if (augmentName.contains(SLASH_FOR_STRING)) {
-            String[] augmentNodeNames = augmentName.split(SLASH_FOR_STRING);
-            for (String valueInAugment : augmentNodeNames) {
-                if (valueInAugment != null && valueInAugment != EMPTY_STRING && !valueInAugment.isEmpty()) {
-                    listOfPathName.add(valueInAugment);
-                }
+        for (YangAtomicPath atomicPath : augment.getTargetNode()) {
+            if (atomicPath.getNodeIdentifier().getPrefix() != null && !atomicPath.getNodeIdentifier().getPrefix()
+                    .equals(EMPTY_STRING)) {
+                listOfPathName.add(atomicPath.getNodeIdentifier().getPrefix() + ":" +
+                        atomicPath.getNodeIdentifier().getName());
+            } else {
+                listOfPathName.add(atomicPath.getNodeIdentifier().getName());
             }
         }
+
+
         for (int countOfAncestor = 0; countOfAncestor < remainingAncestors; countOfAncestor++) {
             listOfPathName.remove(listOfPathName.size() - 1);
         }
@@ -185,7 +187,7 @@ public final class YangLinkerUtils {
      * @return parent node which can hold data
      * @throws LinkerException a violation of linker rules
      */
-    public static YangNode skipInvalidDataNodes(YangNode currentParent, YangLeafRef leafref) throws LinkerException {
+    static YangNode skipInvalidDataNodes(YangNode currentParent, YangLeafRef leafref) throws LinkerException {
         while (currentParent instanceof YangChoice || currentParent instanceof YangCase) {
             if (currentParent.getParent() == null) {
                 throw new LinkerException("YANG file error: The target node, in the leafref path " +
@@ -203,8 +205,8 @@ public final class YangLinkerUtils {
      * @param yangConstruct        yang construct for creating error message
      * @return valid node identifier
      */
-    public static YangNodeIdentifier getValidNodeIdentifier(String nodeIdentifierString,
-                                                            YangConstructType yangConstruct) {
+    static YangNodeIdentifier getValidNodeIdentifier(String nodeIdentifierString,
+                                                     YangConstructType yangConstruct) {
         String[] tmpData = nodeIdentifierString.split(Pattern.quote(COLON));
         if (tmpData.length == 1) {
             YangNodeIdentifier nodeIdentifier = new YangNodeIdentifier();
@@ -264,7 +266,7 @@ public final class YangLinkerUtils {
      *
      * @param yangNode YANG node information
      */
-    public static void updateFilePriorityOfNode(YangNode yangNode) {
+    private static void updateFilePriorityOfNode(YangNode yangNode) {
         int curNodePriority = yangNode.getPriority();
         if (yangNode instanceof YangReferenceResolver) {
             List<YangImport> yangImportList = ((YangReferenceResolver) yangNode).getImportList();

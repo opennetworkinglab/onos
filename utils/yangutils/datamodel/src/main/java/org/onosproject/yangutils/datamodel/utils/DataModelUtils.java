@@ -16,6 +16,22 @@
 
 package org.onosproject.yangutils.datamodel.utils;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+
 import org.onosproject.yangutils.datamodel.CollisionDetector;
 import org.onosproject.yangutils.datamodel.ResolvableType;
 import org.onosproject.yangutils.datamodel.YangAtomicPath;
@@ -41,22 +57,13 @@ import org.onosproject.yangutils.datamodel.YangUses;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 /**
  * Represents utilities for data model tree.
  */
 public final class DataModelUtils {
     public static final String TRUE = "true";
     public static final String FALSE = "false";
+    private static final String SLASH = File.separator;
 
     /**
      * Creates a new data model tree utility.
@@ -103,7 +110,7 @@ public final class DataModelUtils {
      * @param node           node instance of calling node
      * @throws DataModelException a violation of data model rules
      */
-    public static void detectCollidingForUsesGrouping(String identifierName, YangConstructType dataType, YangNode node)
+    private static void detectCollidingForUsesGrouping(String identifierName, YangConstructType dataType, YangNode node)
             throws DataModelException {
 
         node = node.getChild();
@@ -297,27 +304,24 @@ public final class DataModelUtils {
     /**
      * Returns de-serializes YANG data-model nodes.
      *
-     * @param serializableInfoSet YANG file info set
+     * @param serializedFileInfo serialized File Info
      * @return de-serializes YANG data-model nodes
      * @throws IOException when fails do IO operations
      */
-    public static List<YangNode> deSerializeDataModel(List<String> serializableInfoSet) throws IOException {
+    public static YangNode deSerializeDataModel(String serializedFileInfo) throws IOException {
 
-        List<YangNode> nodes = new ArrayList<>();
-        for (String fileInfo : serializableInfoSet) {
-            YangNode node = null;
-            try {
-                FileInputStream fileInputStream = new FileInputStream(fileInfo);
-                ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-                node = (YangNode) objectInputStream.readObject();
-                nodes.add(node);
-                objectInputStream.close();
-                fileInputStream.close();
-            } catch (IOException | ClassNotFoundException e) {
-                throw new IOException(fileInfo + " not found.");
-            }
+        YangNode node;
+        try {
+            FileInputStream fileInputStream = new FileInputStream(serializedFileInfo);
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+            node = (YangNode) objectInputStream.readObject();
+            objectInputStream.close();
+            fileInputStream.close();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new IOException(serializedFileInfo + " not found.");
         }
-        return nodes;
+
+        return node;
     }
 
     /**
@@ -332,7 +336,7 @@ public final class DataModelUtils {
             throws CloneNotSupportedException, DataModelException {
         List<YangLeaf> currentListOfLeaves = leavesHolder.getListOfLeaf();
         if (currentListOfLeaves != null) {
-            List<YangLeaf> clonedLeavesList = new LinkedList<YangLeaf>();
+            List<YangLeaf> clonedLeavesList = new LinkedList<>();
             for (YangLeaf leaf : currentListOfLeaves) {
                 YangLeaf clonedLeaf = leaf.clone();
                 if (yangUses.getCurrentGroupingDepth() == 0) {
@@ -350,7 +354,7 @@ public final class DataModelUtils {
 
         List<YangLeafList> currentListOfLeafList = leavesHolder.getListOfLeafList();
         if (currentListOfLeafList != null) {
-            List<YangLeafList> clonedListOfLeafList = new LinkedList<YangLeafList>();
+            List<YangLeafList> clonedListOfLeafList = new LinkedList<>();
             for (YangLeafList leafList : currentListOfLeafList) {
                 YangLeafList clonedLeafList = leafList.clone();
                 if (yangUses.getCurrentGroupingDepth() == 0) {
@@ -410,11 +414,9 @@ public final class DataModelUtils {
             while (atomicPathIterator.hasNext()) {
                 YangAtomicPath atomicPath = atomicPathIterator.next();
                 Map<String, String> prefixesAndItsImportNameNode = leafrefForCloning.getPrefixAndItsImportedModule();
-                if (!prefixesAndItsImportNameNode.isEmpty() || prefixesAndItsImportNameNode != null) {
-                    String prefixInPath = atomicPath.getNodeIdentifier().getPrefix();
-                    String importedNodeName = prefixesAndItsImportNameNode.get(prefixInPath);
-                    assignCurrentLeafrefWithNewPrefixes(importedNodeName, atomicPath, yangUses);
-                }
+                String prefixInPath = atomicPath.getNodeIdentifier().getPrefix();
+                String importedNodeName = prefixesAndItsImportNameNode.get(prefixInPath);
+                assignCurrentLeafedWithNewPrefixes(importedNodeName, atomicPath, yangUses);
             }
         }
     }
@@ -427,8 +429,8 @@ public final class DataModelUtils {
      * @param node             instance of YANG uses where cloning is done
      * @throws DataModelException data model error
      */
-    private static void assignCurrentLeafrefWithNewPrefixes(String importedNodeName, YangAtomicPath atomicPath,
-                                                            YangNode node) throws DataModelException {
+    private static void assignCurrentLeafedWithNewPrefixes(String importedNodeName, YangAtomicPath atomicPath,
+                                                           YangNode node) throws DataModelException {
         while (!(node instanceof YangReferenceResolver)) {
             node = node.getParent();
             if (node == null) {
@@ -534,12 +536,60 @@ public final class DataModelUtils {
                 dataTypeName = unionNode.getName();
             }
             if (potentialTypeNode.getName().contentEquals(dataTypeName)) {
-                dataType.setDataTypeExtendedInfo((Object) potentialTypeNode);
+                dataType.setDataTypeExtendedInfo(potentialTypeNode);
                 return;
             }
             potentialTypeNode = potentialTypeNode.getNextSibling();
         }
 
         throw new DataModelException("Data model error: cloned leaves type is not found");
+    }
+
+    /**
+     * Parses jar file and returns list of serialized file names.
+     *
+     * @param jarFile   jar file to be parsed
+     * @param directory directory where to search
+     * @return list of serialized files
+     * @throws IOException when fails to do IO operations
+     */
+    public static List<YangNode> parseJarFile(String jarFile, String directory)
+            throws IOException {
+
+        List<YangNode> nodes = new ArrayList<>();
+        JarFile jar = new JarFile(jarFile);
+        Enumeration<?> enumEntries = jar.entries();
+
+        while (enumEntries.hasMoreElements()) {
+            JarEntry file = (JarEntry) enumEntries.nextElement();
+            if (file.getName().endsWith(".ser")) {
+
+                if (file.getName().contains(SLASH)) {
+                    String[] strArray = file.getName().split(SLASH);
+                    String tempPath = "";
+                    for (int i = 0; i < strArray.length - 1; i++) {
+                        tempPath = SLASH + tempPath + SLASH + strArray[i];
+                    }
+                    File dir = new File(directory + tempPath);
+                    dir.mkdirs();
+                }
+                File serializedFile = new File(directory + SLASH + file.getName());
+                if (file.isDirectory()) {
+                    serializedFile.mkdirs();
+                    continue;
+                }
+                InputStream inputStream = jar.getInputStream(file);
+
+                FileOutputStream fileOutputStream = new FileOutputStream(serializedFile);
+                while (inputStream.available() > 0) {
+                    fileOutputStream.write(inputStream.read());
+                }
+                fileOutputStream.close();
+                inputStream.close();
+                nodes.add(deSerializeDataModel(serializedFile.toString()));
+            }
+        }
+        jar.close();
+        return nodes;
     }
 }

@@ -16,8 +16,8 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import org.onosproject.yangutils.datamodel.YangType;
-import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoContainer;
 import org.onosproject.yangutils.datamodel.javadatamodel.YangToJavaNamingConflictUtil;
+import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoContainer;
 
 /**
  * Represent java based identification of the YANG leaves.
@@ -25,21 +25,21 @@ import org.onosproject.yangutils.datamodel.javadatamodel.YangToJavaNamingConflic
 public interface JavaLeafInfoContainer
         extends JavaQualifiedTypeInfoContainer {
     /**
-     * Retreives the data type of the leaf.
+     * Retrieves the data type of the leaf.
      *
      * @return data type of the leaf
      */
     YangType<?> getDataType();
 
     /**
-     * Retreives the name of the leaf.
+     * Retrieves the name of the leaf.
      *
      * @return name of the leaf
      */
     String getName();
 
     /**
-     * Retreives the java name of the leaf.
+     * Retrieves the java name of the leaf.
      *
      * @param conflictResolveConfig user config to resolve conflicts
      * @return name of the leaf
@@ -61,14 +61,14 @@ public interface JavaLeafInfoContainer
     /**
      * Returns java naming conflict resolver.
      *
-     * @return  java naming conflict resolver
+     * @return java naming conflict resolver
      */
     YangToJavaNamingConflictUtil getConflictResolveConfig();
 
     /**
      * Sets  java naming conflict resolver.
      *
-     * @param conflictResolveConfig  java naming conflict resolver
+     * @param conflictResolveConfig java naming conflict resolver
      */
     void setConflictResolveConfig(YangToJavaNamingConflictUtil conflictResolveConfig);
 

@@ -19,17 +19,12 @@ package org.onosproject.yangutils.utils.io.impl;
 import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED;
-import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_FOR_VALIDATOR;
-import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_FOR_VALIDATOR_RETURN;
-import static org.onosproject.yangutils.utils.UtilConstants.MAX_RANGE;
-import static org.onosproject.yangutils.utils.UtilConstants.MIN_RANGE;
-import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_CLASS_JAVA_DOC;
-import static org.onosproject.yangutils.utils.UtilConstants.OP_PARAM_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_INTERFACE_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_OBJECT;
 import static org.onosproject.yangutils.utils.UtilConstants.CLASS;
+import static org.onosproject.yangutils.utils.UtilConstants.EIGHT_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.ENUM_ATTRIBUTE_JAVADOC;
 import static org.onosproject.yangutils.utils.UtilConstants.ENUM_CLASS_JAVADOC;
@@ -38,15 +33,17 @@ import static org.onosproject.yangutils.utils.UtilConstants.EVENT_LISTENER_JAVA_
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_METHOD_NAME;
 import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_PARAM_NAME;
-import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPL_CLASS_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.INPUT;
 import static org.onosproject.yangutils.utils.UtilConstants.INTERFACE_JAVA_DOC;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_ADD_TO_LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_BUILD;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_BUILD_RETURN;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_CONSTRUCTOR;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_END_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_FIRST_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_FOR_VALIDATOR;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_FOR_VALIDATOR_RETURN;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_GETTERS;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_MANAGER_SETTERS;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_OF;
@@ -57,11 +54,14 @@ import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_SETTERS;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_SETTERS_COMMON;
 import static org.onosproject.yangutils.utils.UtilConstants.LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.MAP;
+import static org.onosproject.yangutils.utils.UtilConstants.MAX_RANGE;
+import static org.onosproject.yangutils.utils.UtilConstants.MIN_RANGE;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE_ASTERISK;
 import static org.onosproject.yangutils.utils.UtilConstants.OBJECT;
 import static org.onosproject.yangutils.utils.UtilConstants.OBJECT_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.OF;
+import static org.onosproject.yangutils.utils.UtilConstants.OP_PARAM_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE_INFO_JAVADOC;
 import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE_INFO_JAVADOC_OF_CHILD;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
@@ -71,6 +71,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.UtilConstants.STRING_DATA_TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.VALUE;
 import static org.onosproject.yangutils.utils.UtilConstants.VOID;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCamelCase;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getSmallCase;
 
@@ -92,7 +93,7 @@ public final class JavaDocGen {
      * @param name         name of the YangNode
      * @param isList       is list attribute
      * @param pluginConfig plugin configurations
-     * @return javadocs.
+     * @return javaDocs.
      */
     public static String getJavaDoc(JavaDocType type, String name, boolean isList, YangPluginConfig pluginConfig) {
 
@@ -167,6 +168,9 @@ public final class JavaDocGen {
             case EVENT_SUBJECT_CLASS: {
                 return generateForClass(name);
             }
+            case ADD_TO_LIST: {
+                return generateForAddToList(name);
+            }
             default: {
                 return generateForConstructors(name);
             }
@@ -180,8 +184,8 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForEnumAttr(String name) {
-        return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + ENUM_ATTRIBUTE_JAVADOC
-                + name + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
+        return EIGHT_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + EIGHT_SPACE_INDENTATION + ENUM_ATTRIBUTE_JAVADOC
+                + name + PERIOD + NEW_LINE + EIGHT_SPACE_INDENTATION + JAVA_DOC_END_LINE;
     }
 
     /**
@@ -438,11 +442,11 @@ public final class JavaDocGen {
     /**
      * Generates javaDoc for the builder interface.
      *
-     * @param builderforName builder for name
+     * @param builderForName builder for name
      * @return javaDocs
      */
-    private static String generateForBuilderInterface(String builderforName) {
-        return JAVA_DOC_FIRST_LINE + BUILDER_INTERFACE_JAVA_DOC + builderforName + PERIOD + NEW_LINE
+    private static String generateForBuilderInterface(String builderForName) {
+        return JAVA_DOC_FIRST_LINE + BUILDER_INTERFACE_JAVA_DOC + builderForName + PERIOD + NEW_LINE
                 + JAVA_DOC_END_LINE;
     }
 
@@ -480,7 +484,7 @@ public final class JavaDocGen {
      */
     private static String generateForConstructors(String className) {
         return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_CONSTRUCTOR
-                + className + IMPL + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK
+                + className + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK
                 + FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM + BUILDER.toLowerCase() + OBJECT + SPACE + BUILDER_OBJECT
                 + className + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
     }
@@ -504,7 +508,7 @@ public final class JavaDocGen {
      * @param attribute attribute string
      * @return javaDocs for type constructor
      */
-    public static String generateForTypeConstructor(String attribute) {
+    private static String generateForTypeConstructor(String attribute) {
         return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_CONSTRUCTOR
                 + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION
                 + JAVA_DOC_PARAM + VALUE + SPACE + VALUE + SPACE + OF + SPACE + attribute + NEW_LINE
@@ -555,6 +559,52 @@ public final class JavaDocGen {
                 FOUR_SPACE_INDENTATION + JAVA_DOC_FOR_VALIDATOR_RETURN + NEW_LINE + FOUR_SPACE_INDENTATION +
                 JAVA_DOC_END_LINE;
     }
+
+    /**
+     * Generates javaDocs for type constructor.
+     *
+     * @param attribute attribute string
+     * @return javaDocs for type constructor
+     */
+    public static String generateForGetMethodWithAttribute(String attribute) {
+        return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_GETTERS
+                + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION
+                + JAVA_DOC_PARAM + attribute + SPACE + VALUE + SPACE + OF + SPACE + attribute + NEW_LINE
+                + FOUR_SPACE_INDENTATION + JAVA_DOC_RETURN + VALUE + SPACE + OF + SPACE + attribute + NEW_LINE
+                + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
+    }
+
+    /**
+     * Returns javaDocs for add to list method.
+     *
+     * @param attribute attribute
+     * @return javaDocs
+     */
+    private static String generateForAddToList(String attribute) {
+        String javadoc = NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION
+                + JAVA_DOC_ADD_TO_LIST + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK
+                + FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM + VALUE + SPACE;
+        javadoc = javadoc + VALUE + SPACE + OF + SPACE;
+        javadoc = javadoc + attribute + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
+        return javadoc;
+    }
+
+    /**
+     * Generates for builder method.
+     *
+     * @param attribute attribute
+     * @return javaDocs
+     */
+    public static String generateForBuilderMethod(String attribute) {
+
+        String javadoc = FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION
+                + JAVA_DOC_GETTERS + attribute + BUILDER + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION
+                + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION + JAVA_DOC_RETURN;
+        javadoc = javadoc + VALUE + SPACE + OF + SPACE;
+        javadoc = javadoc + attribute + BUILDER + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
+        return javadoc;
+    }
+
 
     /**
      * JavaDocs types.
@@ -679,6 +729,12 @@ public final class JavaDocGen {
         /**
          * For operation builder.
          */
-        OPERATION_BUILDER_CLASS
+        OPERATION_BUILDER_CLASS,
+
+        /**
+         * For add to list.
+         */
+        ADD_TO_LIST,
     }
+
 }

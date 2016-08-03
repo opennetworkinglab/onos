@@ -96,7 +96,7 @@ import static org.onosproject.yangutils.datamodel.utils.YangConstructType.CASE_D
 public class YangCase
         extends YangNode
         implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector, YangAugmentableNode,
-        YangWhenHolder, YangIfFeatureHolder {
+        YangWhenHolder, YangIfFeatureHolder, YangIsFilterContentNodes {
 
     private static final long serialVersionUID = 806201603L;
 
@@ -149,6 +149,8 @@ public class YangCase
      */
     public YangCase() {
         super(YangNodeType.CASE_NODE);
+        listOfLeaf = new LinkedList<>();
+        listOfLeafList = new LinkedList<>();
     }
 
     /**
@@ -239,7 +241,7 @@ public class YangCase
     @Override
     public void addLeaf(YangLeaf leaf) {
         if (getListOfLeaf() == null) {
-            setListOfLeaf(new LinkedList<YangLeaf>());
+            setListOfLeaf(new LinkedList<>());
         }
 
         getListOfLeaf().add(leaf);

@@ -18,6 +18,7 @@ package org.onosproject.yangutils.plugin.manager;
 
 import java.io.IOException;
 import java.util.List;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.ResolvableType;
@@ -28,22 +29,24 @@ import org.onosproject.yangutils.datamodel.YangResolutionInfo;
 import org.onosproject.yangutils.linker.impl.YangLinkerManager;
 import org.onosproject.yangutils.linker.impl.YangXpathLinker;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.onosproject.yangutils.linker.impl.YangLinkerUtils.updateFilePriority;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 
 /**
  * Unit test cases for x-path linker.
  */
 public class YangXpathLinkerTest {
 
-    private YangUtilManager utilManager = new YangUtilManager();
-    private YangXpathLinker linker = new YangXpathLinker();
-    private YangLinkerManager linkerManager = new YangLinkerManager();
     private static final String INTRA_FILE_PATH = "src/test/resources/xPathLinker/IntraFile/";
     private static final String INTER_FILE_PATH = "src/test/resources/xPathLinker/InterFile/";
     private static final String CASE_FILE_PATH = "src/test/resources/xPathLinker/Case/";
+    private YangUtilManager utilManager = new YangUtilManager();
+    private YangXpathLinker linker = new YangXpathLinker();
+    private YangLinkerManager linkerManager = new YangLinkerManager();
 
     /**
      * Unit test case for intra file linking for single level container.
@@ -622,6 +625,7 @@ public class YangXpathLinkerTest {
         linkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
         linkerManager.addRefToYangFilesIncludeList(utilManager.getYangNodeSet());
         updateFilePriority(utilManager.getYangNodeSet());
+
         linkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
         YangNode targetNode = null;
@@ -649,30 +653,34 @@ public class YangXpathLinkerTest {
     @Test
     public void processInterFileLinkingInMultipleUses() throws IOException {
 
-        /** FIXME: once order of linking is done.
-         utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(CASE_FILE_PATH + "uses/"));
-         utilManager.parseYangFileInfoSet();
-         utilManager.createYangNodeSet();
-         linkerManager.createYangNodeSet(utilManager.getYangNodeSet());
-         linkerManager.linkSubModulesToParentModule(utilManager.getYangNodeSet());
-         linkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
-         linkerManager.addRefToYangFilesIncludeList(utilManager.getYangNodeSet());
-         linkerManager.processInterFileLinking(utilManager.getYangNodeSet());
+        utilManager.createYangFileInfoSet(YangFileScanner.getYangFiles(CASE_FILE_PATH + "uses/"));
+        utilManager.parseYangFileInfoSet();
+        utilManager.createYangNodeSet();
+        linkerManager.createYangNodeSet(utilManager.getYangNodeSet());
+        linkerManager.linkSubModulesToParentModule(utilManager.getYangNodeSet());
+        linkerManager.addRefToYangFilesImportList(utilManager.getYangNodeSet());
+        linkerManager.addRefToYangFilesIncludeList(utilManager.getYangNodeSet());
+        updateFilePriority(utilManager.getYangNodeSet());
+        linkerManager.processInterFileLinking(utilManager.getYangNodeSet());
 
-         YangNode targetNode = null;
-         String targetNodeName = null;
+        YangNode targetNode = null;
+        String targetNodeName = null;
 
-         for (YangNode node : utilManager.getYangNodeSet()) {
-         List<YangAugment> augments = linker.getListOfYangAugment(node);
+        for (YangNode node : utilManager.getYangNodeSet()) {
+            List<YangAugment> augments = linker.getListOfYangAugment(node);
 
-         for (YangAugment augment : augments) {
-         targetNodeName = augment.getTargetNode().get(augment.getTargetNode().size() - 1)
-         .getNodeIdentifier().getName();
-         targetNode = augment.getAugmentedNode();
-         }
-         }
+            for (YangAugment augment : augments) {
+                targetNodeName = augment.getTargetNode().get(augment.getTargetNode().size() - 1)
+                        .getNodeIdentifier().getName();
+                targetNode = augment.getAugmentedNode();
+            }
+        }
 
-         assertThat(true, is(targetNode.getName().equals(targetNodeName)));
-         */
+        YangPluginConfig yangPluginConfig = new YangPluginConfig();
+        yangPluginConfig.setCodeGenDir("target/xpath/");
+        utilManager.translateToJava(yangPluginConfig);
+        assertThat(true, is(targetNode.getName().equals(targetNodeName)));
+
+        deleteDirectory("target/xpath/");
     }
 }

@@ -39,7 +39,7 @@ public final class GeneratedJavaFileType {
     /**
      * Impl class file.
      */
-    public static final int IMPL_CLASS_MASK = 8;
+    public static final int DEFAULT_CLASS_MASK = 8;
 
     /**
      * Interface and class file.
@@ -69,7 +69,7 @@ public final class GeneratedJavaFileType {
     /**
      * Java class corresponding to typedef.
      */
-    public static final int GENERATE_TYPE_CLASS = GENERATE_TYPEDEF_CLASS
+    static final int GENERATE_TYPE_CLASS = GENERATE_TYPEDEF_CLASS
             | GENERATE_UNION_CLASS;
 
     /**
@@ -97,16 +97,6 @@ public final class GeneratedJavaFileType {
      * Identity listener class.
      */
     public static final int GENERATE_IDENTITY_CLASS = 2048;
-
-    /**
-     * Operation class file.
-     */
-    public static final int OPERATION_CLASS_MASK = 4096;
-
-    /**
-     * Operation class builder file.
-     */
-    public static final int OPERATION_BUILDER_CLASS_MASK = 8192;
 
     /**
      * Creates an instance of generate java file type.

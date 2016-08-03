@@ -44,16 +44,13 @@ public final class FileSystemUtil {
     }
 
     /**
-     * Reads the contents from source file and append its contents to append
-     * file.
+     * Reads the contents from source file and append its contents to append file.
      *
-     * @param toAppend destination file in which the contents of source file is
-     *                 appended
-     * @param srcFile  source file from which data is read and added to to append
-     *                 file
+     * @param toAppend destination file in which the contents of source file is appended
+     * @param srcFile  source file from which data is read and added to to append file
      * @throws IOException any IO errors
      */
-    public static void appendFileContents(File toAppend, File srcFile)
+    static void appendFileContents(File toAppend, File srcFile)
             throws IOException {
         updateFileHandle(srcFile, NEW_LINE + readAppendFile(toAppend.toString(), FOUR_SPACE_INDENTATION), false);
     }
@@ -76,14 +73,21 @@ public final class FileSystemUtil {
             String line = bufferReader.readLine();
 
             while (line != null) {
-                if (line.equals(SPACE) || line.equals(EMPTY_STRING) || line.equals(EIGHT_SPACE_INDENTATION)
-                        || line.equals(MULTIPLE_NEW_LINE)) {
-                    stringBuilder.append(NEW_LINE);
-                } else if (line.equals(FOUR_SPACE_INDENTATION)) {
-                    stringBuilder.append(EMPTY_STRING);
-                } else {
-                    stringBuilder.append(spaces + line);
-                    stringBuilder.append(NEW_LINE);
+                switch (line) {
+                    case SPACE:
+                    case EMPTY_STRING:
+                    case EIGHT_SPACE_INDENTATION:
+                    case MULTIPLE_NEW_LINE:
+                        stringBuilder.append(NEW_LINE);
+                        break;
+                    case FOUR_SPACE_INDENTATION:
+                        stringBuilder.append(EMPTY_STRING);
+                        break;
+                    default:
+                        String append = spaces + line;
+                        stringBuilder.append(append);
+                        stringBuilder.append(NEW_LINE);
+                        break;
                 }
                 line = bufferReader.readLine();
             }
@@ -100,10 +104,10 @@ public final class FileSystemUtil {
      * @param inputFile        input file
      * @param contentTobeAdded content to be appended to the file
      * @param isClose          when close of file is called.
-     * @throws IOException if the named file exists but is a directory rather than a regular file,
-     *                     does not exist but cannot be created, or cannot be opened for any other reason
+     * @throws IOException if the named file exists but is a directory rather than a regular file, does not exist but
+     *                     cannot be created, or cannot be opened for any other reason
      */
-    public static void updateFileHandle(File inputFile, String contentTobeAdded, boolean isClose)
+    static void updateFileHandle(File inputFile, String contentTobeAdded, boolean isClose)
             throws IOException {
 
         List<FileWriter> fileWriterStore = new ArrayList<>();
@@ -119,7 +123,6 @@ public final class FileSystemUtil {
             for (FileWriter curWriter : fileWriterStore) {
                 curWriter.flush();
                 curWriter.close();
-                curWriter = null;
             }
         }
     }
@@ -137,7 +140,10 @@ public final class FileSystemUtil {
         if (file != null) {
             updateFileHandle(file, null, true);
             if (toBeDeleted) {
-                file.delete();
+                boolean deleted = file.delete();
+                if (!deleted) {
+                    throw new IOException("Failed to delete temporary file " + file.getName());
+                }
             }
         }
     }

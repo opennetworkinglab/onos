@@ -29,6 +29,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPE_CLASS;
+import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 
 /**
  * Represents implementation of java code fragments temporary implementations.
@@ -263,18 +264,24 @@ public class TempJavaCodeFragmentFiles {
      * @param modifier     modifier for constructor.
      * @param toAppend     string which need to be appended with the class name
      * @param pluginConfig plugin configurations
+     * @param curNode      YANG node
      * @return default constructor for class
      * @throws IOException when fails to append to file
      */
-    public String addDefaultConstructor(String modifier, String toAppend, YangPluginConfig pluginConfig)
+    public String addDefaultConstructor(String modifier, String toAppend, YangPluginConfig pluginConfig,
+                                        YangNode curNode)
             throws IOException {
+        boolean isSuffix = false;
+        if (toAppend.equals(BUILDER)) {
+            isSuffix = true;
+        }
         if (getTypeTempFiles() != null) {
             return getTypeTempFiles()
-                    .addDefaultConstructor(modifier, toAppend, pluginConfig);
+                    .addDefaultConstructor(modifier, toAppend, pluginConfig, isSuffix);
         }
 
         if (getBeanTempFiles() != null) {
-            return getBeanTempFiles().addDefaultConstructor(modifier, toAppend, pluginConfig);
+            return getBeanTempFiles().addDefaultConstructor(modifier, toAppend, pluginConfig, isSuffix);
         }
 
         throw new TranslatorException("default constructor should not be added");
@@ -283,10 +290,11 @@ public class TempJavaCodeFragmentFiles {
     /**
      * Adds build method's implementation for class.
      *
+     * @param curNode YANG node
      * @return build method implementation for class
      * @throws IOException when fails to append to temporary file
      */
-    public String addBuildMethodImpl()
+    public String addBuildMethodImpl(YangNode curNode)
             throws IOException {
         if (getBeanTempFiles() != null) {
             return getBeanTempFiles().addBuildMethodImpl();

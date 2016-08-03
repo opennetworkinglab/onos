@@ -262,7 +262,7 @@ public final class AttributesJavaDataType {
                 case INSTANCE_IDENTIFIER:
                     return JAVA_LANG;
                 case DERIVED:
-                    return getTypDefsPackage(yangType, conflictResolver);
+                    return getTypeDefsPackage(yangType, conflictResolver);
                 default:
                     throw new TranslatorException("given data type is not supported.");
             }
@@ -288,7 +288,7 @@ public final class AttributesJavaDataType {
                 case INSTANCE_IDENTIFIER:
                     return JAVA_LANG;
                 case DERIVED:
-                    return getTypDefsPackage(yangType, conflictResolver);
+                    return getTypeDefsPackage(yangType, conflictResolver);
                 default:
                     return null;
             }
@@ -302,7 +302,7 @@ public final class AttributesJavaDataType {
      * @param conflictResolver object of YANG to java naming conflict util
      * @return java package for typedef node
      */
-    private static String getTypDefsPackage(YangType<?> type, YangToJavaNamingConflictUtil conflictResolver) {
+    private static String getTypeDefsPackage(YangType<?> type, YangToJavaNamingConflictUtil conflictResolver) {
         Object var = type.getDataTypeExtendedInfo();
         if (!(var instanceof YangDerivedInfo)) {
             throw new TranslatorException("type should have been derived.");

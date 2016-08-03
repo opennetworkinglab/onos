@@ -31,6 +31,19 @@ module test {
         }
      }
 
+    choice choice1 {
+         case case1 {
+              leaf case-leaf {
+                  type int32;
+               }
+              container case-container3 {
+                 leaf leafs {
+                     type int64;
+                 }
+              }  
+         }
+     }
+                    
 
     augment /cont3 {
         leaf leaf1 {
@@ -39,9 +52,27 @@ module test {
     }
 
     augment /cont1/cont2 {
-        leaf leaf2 {
+        leaf-list leaf2 {
            type int32;
         }
+    }
+    augment /choice1 {
+        leaf-list leaf2 {
+           type int32;
+        }
+        leaf leaf1 {
+           type int32;
+         }
+         container case-container {
+            leaf leafs {
+                 type int64;
+             }
+         }  
+         container case-container2 {
+            leaf leafs {
+                 type int64;
+             }
+         }         
     }
 
     augment /test1:cont1/test1:cont2 {
@@ -57,10 +88,25 @@ module test {
       }
 
      augment /test1:cont1/test1:cont2/test1:cont1s/test1:cont1s/test2:aa {
-        leaf a {
+        leaf name {
+              type string;
+          }
+        leaf surname {
+              type string;
+          }
+        leaf-list aleaflist {
            type int32;
         }
-        container aa {
+        container cont1 {
+        }
+        list alist {
+          key "name";
+          leaf name {
+              type string;
+          }
+          leaf-list surname {
+              type string;
+          }
         }
      }
 

@@ -83,7 +83,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
 public class YangAugment
         extends YangNode
         implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector, YangAugmentedInfo, Resolvable,
-        YangXPathResolver, YangWhenHolder, YangIfFeatureHolder {
+        YangXPathResolver, YangWhenHolder, YangIfFeatureHolder, YangTranslatorOperatorNode {
 
     private static final long serialVersionUID = 806201602L;
 
@@ -254,7 +254,7 @@ public class YangAugment
     @Override
     public void addLeaf(YangLeaf leaf) {
         if (getListOfLeaf() == null) {
-            setListOfLeaf(new LinkedList<YangLeaf>());
+            setListOfLeaf(new LinkedList<>());
         }
 
         getListOfLeaf().add(leaf);
@@ -288,7 +288,7 @@ public class YangAugment
     @Override
     public void addLeafList(YangLeafList leafList) {
         if (getListOfLeafList() == null) {
-            setListOfLeafList(new LinkedList<YangLeafList>());
+            setListOfLeafList(new LinkedList<>());
         }
 
         getListOfLeafList().add(leafList);

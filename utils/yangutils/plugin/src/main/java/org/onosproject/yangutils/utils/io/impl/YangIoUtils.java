@@ -62,6 +62,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.UtilConstants.TWELVE_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.UNDER_SCORE;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUTO_PREFIX;
+import static org.onosproject.yangutils.utils.io.impl.CopyrightHeader.getCopyrightHeader;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.appendFileContents;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.updateFileHandle;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.PACKAGE_INFO;
@@ -87,10 +88,16 @@ public final class YangIoUtils {
      *
      * @param path directory path
      * @return directory structure
+     * @throws IOException when fails to do IO operations
      */
-    public static File createDirectories(String path) {
+    public static File createDirectories(String path) throws IOException {
         File generatedDir = new File(path);
-        generatedDir.mkdirs();
+        if (!generatedDir.exists()) {
+            boolean isGenerated = generatedDir.mkdirs();
+            if (!isGenerated) {
+                throw new IOException("failed to generated directory " + path);
+            }
+        }
         return generatedDir;
     }
 
@@ -113,22 +120,26 @@ public final class YangIoUtils {
         try {
 
             File packageInfo = new File(path + SLASH + "package-info.java");
-            packageInfo.createNewFile();
-
+            if (!packageInfo.exists()) {
+                boolean isGenerated = packageInfo.createNewFile();
+                if (!isGenerated) {
+                    throw new IOException("failed to generated package-info " + path);
+                }
+            }
             FileWriter fileWriter = new FileWriter(packageInfo);
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
 
-            bufferedWriter.write(CopyrightHeader.getCopyrightHeader());
+            bufferedWriter.write(getCopyrightHeader());
             bufferedWriter.write(getJavaDoc(PACKAGE_INFO, classInfo, isChildNode, pluginConfig));
             String pkg = PACKAGE + SPACE + pack + SEMI_COLAN;
             if (pkg.length() > LINE_SIZE) {
-                pkg = whenDelimiterIsPersent(pkg, LINE_SIZE);
+                pkg = whenDelimiterIsPresent(pkg, LINE_SIZE);
             }
             bufferedWriter.write(pkg);
             bufferedWriter.close();
             fileWriter.close();
         } catch (IOException e) {
-            throw new IOException("Exception occured while creating package info file.");
+            throw new IOException("Exception occurred while creating package info file.");
         }
     }
 
@@ -192,11 +203,11 @@ public final class YangIoUtils {
         while (!stack.empty()) {
             root = stack.pop();
             File file = new File(root);
-            File[] filelist = file.listFiles();
-            if (filelist == null || filelist.length == 0) {
+            File[] fileList = file.listFiles();
+            if (fileList == null || fileList.length == 0) {
                 continue;
             }
-            for (File current : filelist) {
+            for (File current : fileList) {
                 if (current.isDirectory()) {
                     stack.push(current.toString());
                     if (current.getName().endsWith("-Temp")) {
@@ -215,12 +226,12 @@ public final class YangIoUtils {
      * Removes extra char from the string.
      *
      * @param valueString   string to be trimmed
-     * @param removalStirng extra chars
+     * @param removalString extra chars
      * @return new string
      */
-    public static String trimAtLast(String valueString, String removalStirng) {
+    public static String trimAtLast(String valueString, String removalString) {
         StringBuilder stringBuilder = new StringBuilder(valueString);
-        int index = valueString.lastIndexOf(removalStirng);
+        int index = valueString.lastIndexOf(removalString);
         if (index != -1) {
             stringBuilder.deleteCharAt(index);
         }
@@ -302,9 +313,9 @@ public final class YangIoUtils {
      */
     public static File validateLineLength(File dataFile)
             throws IOException {
-        File tempFile = dataFile;
         FileReader fileReader = new FileReader(dataFile);
         BufferedReader bufferReader = new BufferedReader(fileReader);
+        String append;
         try {
             StringBuilder stringBuilder = new StringBuilder();
             String line = bufferReader.readLine();
@@ -312,20 +323,21 @@ public final class YangIoUtils {
             while (line != null) {
                 if (line.length() > LINE_SIZE) {
                     if (line.contains(PERIOD)) {
-                        line = whenDelimiterIsPersent(line, LINE_SIZE);
+                        line = whenDelimiterIsPresent(line, LINE_SIZE);
                     } else if (line.contains(SPACE)) {
                         line = whenSpaceIsPresent(line, LINE_SIZE);
                     }
                     stringBuilder.append(line);
                 } else {
-                    stringBuilder.append(line + NEW_LINE);
+                    append = line + NEW_LINE;
+                    stringBuilder.append(append);
                 }
                 line = bufferReader.readLine();
             }
-            FileWriter writer = new FileWriter(tempFile);
+            FileWriter writer = new FileWriter(dataFile);
             writer.write(stringBuilder.toString());
             writer.close();
-            return tempFile;
+            return dataFile;
         } finally {
             fileReader.close();
             bufferReader.close();
@@ -333,14 +345,15 @@ public final class YangIoUtils {
     }
 
     /* When delimiters are present in the given line. */
-    private static String whenDelimiterIsPersent(String line, int lineSize) {
+    private static String whenDelimiterIsPresent(String line, int lineSize) {
         StringBuilder stringBuilder = new StringBuilder();
-
+        String append;
         if (line.length() > lineSize) {
             String[] strArray = line.split(Pattern.quote(PERIOD));
             stringBuilder = updateString(strArray, stringBuilder, PERIOD, lineSize);
         } else {
-            stringBuilder.append(line + NEW_LINE);
+            append = line + NEW_LINE;
+            stringBuilder.append(append);
         }
         String[] strArray = stringBuilder.toString().split(NEW_LINE);
         StringBuilder tempBuilder = new StringBuilder();
@@ -353,7 +366,8 @@ public final class YangIoUtils {
                     tempBuilder.append(whenSpaceIsPresent(str, SUB_LINE_SIZE));
                 }
             } else {
-                tempBuilder.append(str + NEW_LINE);
+                append = str + NEW_LINE;
+                tempBuilder.append(append);
             }
         }
         return tempBuilder.toString();
@@ -363,11 +377,13 @@ public final class YangIoUtils {
     /* When spaces are present in the given line. */
     private static String whenSpaceIsPresent(String line, int lineSize) {
         StringBuilder stringBuilder = new StringBuilder();
+        String append;
         if (line.length() > lineSize) {
             String[] strArray = line.split(SPACE);
             stringBuilder = updateString(strArray, stringBuilder, SPACE, lineSize);
         } else {
-            stringBuilder.append(line + NEW_LINE);
+            append = line + NEW_LINE;
+            stringBuilder.append(append);
         }
 
         String[] strArray = stringBuilder.toString().split(NEW_LINE);
@@ -379,7 +395,8 @@ public final class YangIoUtils {
                     tempBuilder = updateString(strArr, tempBuilder, SPACE, SUB_LINE_SIZE);
                 }
             } else {
-                tempBuilder.append(str + NEW_LINE);
+                append = str + NEW_LINE;
+                tempBuilder.append(append);
             }
         }
         return tempBuilder.toString();
@@ -390,28 +407,34 @@ public final class YangIoUtils {
                                               int lineSize) {
 
         StringBuilder tempBuilder = new StringBuilder();
+        String append;
         for (String str : strArray) {
-            tempBuilder.append(str + string);
+            append = str + string;
+            tempBuilder.append(append);
             if (tempBuilder.length() > lineSize) {
                 String tempString = stringBuilder.toString();
                 stringBuilder.delete(ZERO, stringBuilder.length());
                 tempString = trimAtLast(tempString, string);
                 stringBuilder.append(tempString);
                 if (string.equals(PERIOD)) {
-                    stringBuilder.append(NEW_LINE + TWELVE_SPACE_INDENTATION + PERIOD + str + string);
+                    append = NEW_LINE + TWELVE_SPACE_INDENTATION + PERIOD + str + string;
+                    stringBuilder.append(append);
                 } else {
-                    stringBuilder.append(NEW_LINE + TWELVE_SPACE_INDENTATION + str + string);
+                    append = NEW_LINE + TWELVE_SPACE_INDENTATION + str + string;
+                    stringBuilder.append(append);
                 }
                 tempBuilder.delete(ZERO, tempBuilder.length());
                 tempBuilder.append(TWELVE_SPACE_INDENTATION);
             } else {
-                stringBuilder.append(str + string);
+                append = str + string;
+                stringBuilder.append(append);
             }
         }
         String tempString = stringBuilder.toString();
         tempString = trimAtLast(tempString, string);
         stringBuilder.delete(ZERO, stringBuilder.length());
-        stringBuilder.append(tempString + NEW_LINE);
+        append = tempString + NEW_LINE;
+        stringBuilder.append(append);
         return stringBuilder;
     }
 
@@ -464,7 +487,7 @@ public final class YangIoUtils {
      * @param consecCapitalCaseRemover which requires the restriction of consecutive capital case
      * @return string without consecutive capital case
      */
-    public static String restrictConsecutiveCapitalCase(String consecCapitalCaseRemover) {
+    private static String restrictConsecutiveCapitalCase(String consecCapitalCaseRemover) {
 
         for (int k = 0; k < consecCapitalCaseRemover.length(); k++) {
             if (k + 1 < consecCapitalCaseRemover.length()) {
@@ -487,7 +510,7 @@ public final class YangIoUtils {
      * @param conflictResolver object of YANG to java naming conflict util
      * @return prefixed camel case string
      */
-    public static String addPrefix(String camelCasePrefix, YangToJavaNamingConflictUtil conflictResolver) {
+    private static String addPrefix(String camelCasePrefix, YangToJavaNamingConflictUtil conflictResolver) {
 
         String prefix = getPrefixForIdentifier(conflictResolver);
         if (camelCasePrefix.matches(REGEX_FOR_FIRST_DIGIT)) {
@@ -508,7 +531,7 @@ public final class YangIoUtils {
      * @param conflictResolver object of YANG to java naming conflict util
      * @return camel case rule checked string
      */
-    public static String applyCamelCaseRule(String[] stringArray, YangToJavaNamingConflictUtil conflictResolver) {
+    private static String applyCamelCaseRule(String[] stringArray, YangToJavaNamingConflictUtil conflictResolver) {
 
         String ruleChecker = stringArray[0].toLowerCase();
         int i;
@@ -551,8 +574,8 @@ public final class YangIoUtils {
      * @param conflictResolver object of YANG to java naming conflict util
      * @return camel cased string
      */
-    public static String upperCaseConflictResolver(String[] stringArray,
-                                                   YangToJavaNamingConflictUtil conflictResolver) {
+    private static String upperCaseConflictResolver(String[] stringArray,
+                                                    YangToJavaNamingConflictUtil conflictResolver) {
 
         for (int l = 0; l < stringArray.length; l++) {
             String[] upperCaseSplitArray = stringArray[l].split(REGEX_WITH_UPPERCASE);
@@ -579,7 +602,7 @@ public final class YangIoUtils {
             }
             stringArray[l] = strBuilder.toString();
         }
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         for (String element : stringArray) {
             String[] capitalCaseSplitArray = element.split(REGEX_WITH_UPPERCASE);
             for (String letter : capitalCaseSplitArray) {
@@ -625,10 +648,8 @@ public final class YangIoUtils {
         yangIdentifier = yangIdentifier.replaceAll(REGEX_FOR_IDENTIFIER_SPECIAL_CHAR, COLAN);
         String[] strArray = yangIdentifier.split(COLAN);
         if (strArray[0].isEmpty()) {
-            List<String> stringArrangement = new ArrayList<String>();
-            for (int i = 1; i < strArray.length; i++) {
-                stringArrangement.add(strArray[i]);
-            }
+            List<String> stringArrangement = new ArrayList<>();
+            stringArrangement.addAll(Arrays.asList(strArray).subList(1, strArray.length));
             strArray = stringArrangement.toArray(new String[stringArrangement.size()]);
         }
         return upperCaseConflictResolver(strArray, conflictResolver);
@@ -651,10 +672,8 @@ public final class YangIoUtils {
             String[] strArray = prefixForIdentifier.split(COLAN);
             try {
                 if (strArray[0].isEmpty()) {
-                    List<String> stringArrangement = new ArrayList<String>();
-                    for (int i = 1; i < strArray.length; i++) {
-                        stringArrangement.add(strArray[i]);
-                    }
+                    List<String> stringArrangement = new ArrayList<>();
+                    stringArrangement.addAll(Arrays.asList(strArray).subList(1, strArray.length));
                     strArray = stringArrangement.toArray(new String[stringArrangement.size()]);
                 }
                 prefixForIdentifier = strArray[0];

@@ -21,21 +21,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangAugmentableNode;
+import org.onosproject.yangutils.datamodel.YangChoice;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
-import org.onosproject.yangutils.datamodel.YangLeaf;
-import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangLeavesHolder;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
-import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
@@ -43,11 +42,12 @@ import org.onosproject.yangutils.translator.tojava.TempJavaEnumerationFragmentFi
 import org.onosproject.yangutils.translator.tojava.TempJavaEventFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaServiceFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaTypeFragmentFiles;
-import org.onosproject.yangutils.translator.tojava.YangJavaModelUtils;
-import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BINARY;
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BITS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.DEFAULT_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_LISTENER_INTERFACE;
@@ -55,10 +55,9 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.OPERATION_BUILDER_CLASS_MASK;
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.OPERATION_CLASS_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ADD_TO_LIST_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ADD_TO_LIST_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ATTRIBUTES_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_FOR_TYPE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_IMPL_MASK;
@@ -73,8 +72,8 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.HASH_CODE_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.LEAF_IDENTIFIER_ENUM_ATTRIBUTES_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.OF_STRING_IMPL_MASK;
-import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.RPC_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.RPC_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_INTERFACE_MASK;
@@ -82,19 +81,19 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getAttributeInfoForTheData;
 import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator.getQualifiedTypeInfoOfCurNode;
 import static org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles.getCurNodeAsAttributeInTarget;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.addAugmentationAttribute;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getEnumsValueAttribute;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getEventEnumTypeStart;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getOperationAttributeForConstructor;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getOperationAttributes;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getOperationTypeAttr;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getOperationTypeEnum;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getOperationTypeForConstructor;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getDataFromTempFileHandle;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.initiateJavaFileGeneration;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.addActivateMethod;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.addDeActivateMethod;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.builderMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAddAugmentInfoMethodImpl;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAugmentInfoImpl;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAugmentInfoMapImpl;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAugmentsDataMethodForManager;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAddAugmentInfoMethodInterface;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAugmentsDataMethodForService;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getBaseClassMethodImpl;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getConstructorStart;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getEnumsConstructor;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getEnumsOfMethod;
@@ -103,78 +102,62 @@ import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getFromStringMethodClose;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getFromStringMethodSignature;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getGetter;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getGetterForClass;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getGetterForOperationType;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getGetterString;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getGettersForValueAndSelectLeaf;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getHashCodeMethodClose;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getHashCodeMethodOpen;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getInterfaceLeafIdEnumMethods;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getInterfaceLeafIdEnumSignature;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getIsFilterContentMatch;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getOmitNullValueString;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getOpParamConstructorStart;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getOperationTypeSetter;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getOperationTypegetter;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getOperationAttributesGetters;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getOverRideString;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getSetterForClass;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getSetterForLeaf;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getSetterForLeafList;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getRangeValidatorMethodForUnion;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getSetterForOperationType;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getSetterForSelectLeaf;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getSetterString;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringLeafListgetter;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringLeafgetter;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringMethodClose;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringMethodOpen;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringSelectLeafListgetter;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringSelectLeafgetter;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getYangAugmentInfoImpl;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getYangAugmentInfoInterface;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getYangAugmentInfoMapImpl;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getYangAugmentInfoMapInterface;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.isFilterContentMatchInterface;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.isLeafValueSetInterface;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.isSelectLeafSetInterface;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.setSelectLeafSetInterface;
 import static org.onosproject.yangutils.utils.UtilConstants.BASE64;
 import static org.onosproject.yangutils.utils.UtilConstants.BIG_INTEGER;
-import static org.onosproject.yangutils.utils.UtilConstants.BITSET;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
-import static org.onosproject.yangutils.utils.UtilConstants.CREATE;
 import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT;
-import static org.onosproject.yangutils.utils.UtilConstants.DELETE;
 import static org.onosproject.yangutils.utils.UtilConstants.EIGHT_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.ENCODE_TO_STRING;
-import static org.onosproject.yangutils.utils.UtilConstants.ENUM;
-import static org.onosproject.yangutils.utils.UtilConstants.EQUAL;
 import static org.onosproject.yangutils.utils.UtilConstants.EVENT_LISTENER_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.EVENT_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.EVENT_SUBJECT_NAME_SUFFIX;
-import static org.onosproject.yangutils.utils.UtilConstants.FILTER_LEAF;
-import static org.onosproject.yangutils.utils.UtilConstants.FILTER_LEAF_LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.GET_ENCODER;
-import static org.onosproject.yangutils.utils.UtilConstants.GET_FILTER_LEAF;
-import static org.onosproject.yangutils.utils.UtilConstants.GET_FILTER_LEAF_LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.INT;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_UTIL_IMPORT_BASE64_CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_UTIL_OBJECTS_IMPORT_PKG;
-import static org.onosproject.yangutils.utils.UtilConstants.LOGGER_STATEMENT;
-import static org.onosproject.yangutils.utils.UtilConstants.MANAGER;
-import static org.onosproject.yangutils.utils.UtilConstants.MERGE;
-import static org.onosproject.yangutils.utils.UtilConstants.NEW;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
-import static org.onosproject.yangutils.utils.UtilConstants.OBJECT;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_PARENTHESIS;
-import static org.onosproject.yangutils.utils.UtilConstants.OPERATION_ENUM;
-import static org.onosproject.yangutils.utils.UtilConstants.OP_PARAM_TYPE;
+import static org.onosproject.yangutils.utils.UtilConstants.OP_PARAM;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.PRIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
-import static org.onosproject.yangutils.utils.UtilConstants.REMOVE;
-import static org.onosproject.yangutils.utils.UtilConstants.REPLACE;
 import static org.onosproject.yangutils.utils.UtilConstants.RETURN;
-import static org.onosproject.yangutils.utils.UtilConstants.SELECT_LEAF;
-import static org.onosproject.yangutils.utils.UtilConstants.SELECT_LEAF_LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SERVICE_METHOD_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
-import static org.onosproject.yangutils.utils.UtilConstants.STATIC;
 import static org.onosproject.yangutils.utils.UtilConstants.STRING_DATA_TYPE;
-import static org.onosproject.yangutils.utils.UtilConstants.SUPER;
 import static org.onosproject.yangutils.utils.UtilConstants.TO;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.GETTER_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.TYPE_CONSTRUCTOR;
@@ -218,13 +201,38 @@ public final class JavaFileGenerator {
 
         String className = getCapitalCase(javaFileInfo.getJavaName());
 
-        initiateJavaFileGeneration(file, INTERFACE_MASK, imports, curNode, className);
+        boolean isLeavesPresent;
+        YangLeavesHolder leavesHolder;
+        if (curNode instanceof YangLeavesHolder) {
+            leavesHolder = (YangLeavesHolder) curNode;
+            isLeavesPresent = leavesHolder.getListOfLeaf() != null && !leavesHolder.getListOfLeaf().isEmpty()
+                    || leavesHolder.getListOfLeafList() != null && !leavesHolder.getListOfLeafList().isEmpty();
+        } else {
+            isLeavesPresent = false;
+        }
 
+        initiateJavaFileGeneration(file, INTERFACE_MASK, imports, curNode, className);
+        List<String> methods = new ArrayList<>();
         if (isAttrPresent) {
             // Add getter methods to interface file.
             try {
+                //Leaf identifier enum.
+                if (isLeavesPresent) {
+                    insertDataIntoJavaFile(file, NEW_LINE + getInterfaceLeafIdEnumSignature(className) + NEW_LINE +
+                            trimAtLast(trimAtLast(
+                                    getDataFromTempFileHandle(LEAF_IDENTIFIER_ENUM_ATTRIBUTES_MASK,
+                                            ((TempJavaCodeFragmentFilesContainer) curNode)
+                                                    .getTempJavaCodeFragmentFiles()
+                                                    .getBeanTempFiles(), path), COMMA), NEW_LINE) + SEMI_COLAN
+                            + NEW_LINE + NEW_LINE + getInterfaceLeafIdEnumMethods());
+                }
+
                 //Getter methods.
                 insertDataIntoJavaFile(file, getDataFromTempFileHandle(GETTER_FOR_INTERFACE_MASK,
+                        ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                .getBeanTempFiles(), path));
+                //Add to list method.
+                insertDataIntoJavaFile(file, getDataFromTempFileHandle(ADD_TO_LIST_INTERFACE_MASK,
                         ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                                 .getBeanTempFiles(), path));
             } catch (IOException e) {
@@ -232,7 +240,24 @@ public final class JavaFileGenerator {
                         + " while interface file generation");
             }
         }
+
+        if (curNode instanceof YangAugmentableNode && !(curNode instanceof YangChoice)) {
+            methods.add(getAddAugmentInfoMethodInterface());
+            methods.add(getYangAugmentInfoInterface());
+            methods.add(getYangAugmentInfoMapInterface(javaFileInfo.getPluginConfig()));
+        }
+        if (!(curNode instanceof YangChoice)) {
+            methods.add(NEW_LINE + isFilterContentMatchInterface(className));
+        }
+        if (!(curNode instanceof YangChoice) && isLeavesPresent) {
+            methods.add(NEW_LINE + isLeafValueSetInterface());
+            methods.add(NEW_LINE + isSelectLeafSetInterface());
+        }
+        for (String method : methods) {
+            insertDataIntoJavaFile(file, method);
+        }
         return validateLineLength(file);
+
     }
 
     /**
@@ -249,6 +274,16 @@ public final class JavaFileGenerator {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
         YangPluginConfig pluginConfig = javaFileInfo.getPluginConfig();
+
+        boolean isLeavesPresent;
+        YangLeavesHolder leavesHolder;
+        if (curNode instanceof YangLeavesHolder) {
+            leavesHolder = (YangLeavesHolder) curNode;
+            isLeavesPresent = leavesHolder.getListOfLeaf() != null && !leavesHolder.getListOfLeaf().isEmpty()
+                    || leavesHolder.getListOfLeafList() != null && !leavesHolder.getListOfLeafList().isEmpty();
+        } else {
+            isLeavesPresent = false;
+        }
 
         String className = getCapitalCase(javaFileInfo.getJavaName());
         String path;
@@ -279,6 +314,9 @@ public final class JavaFileGenerator {
             }
         }
 
+        if (isLeavesPresent) {
+            methods.add(NEW_LINE + setSelectLeafSetInterface(className));
+        }
         //Add build method to builder interface file.
         methods.add(
                 ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
@@ -303,16 +341,28 @@ public final class JavaFileGenerator {
      * @return builder class file
      * @throws IOException when fails to write in file
      */
+
     public static File generateBuilderClassFile(File file, YangNode curNode,
                                                 boolean isAttrPresent) throws IOException {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
         YangPluginConfig pluginConfig = javaFileInfo.getPluginConfig();
 
-        String className = getCapitalCase(javaFileInfo.getJavaName());
+        boolean isLeavesPresent;
+        YangLeavesHolder leavesHolder;
+        if (curNode instanceof YangLeavesHolder) {
+            leavesHolder = (YangLeavesHolder) curNode;
+            isLeavesPresent = leavesHolder.getListOfLeaf() != null && !leavesHolder.getListOfLeaf().isEmpty()
+                    || leavesHolder.getListOfLeafList() != null && !leavesHolder.getListOfLeafList().isEmpty();
+        } else {
+            isLeavesPresent = false;
+        }
 
+        String className = getCapitalCase(javaFileInfo.getJavaName());
+        boolean isRootNode = false;
         String path;
         if (curNode instanceof YangModule || curNode instanceof YangSubModule) {
+            isRootNode = true;
             path = javaFileInfo.getPluginConfig().getCodeGenDir() + javaFileInfo.getPackageFilePath();
         } else {
             path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
@@ -334,6 +384,10 @@ public final class JavaFileGenerator {
                         + " while builder class file generation");
             }
 
+            insertDataIntoJavaFile(file, getOperationTypeAttr());
+            if (isLeavesPresent) {
+                insertDataIntoJavaFile(file, getOperationAttributes());
+            }
             try {
                 //Getter methods.
                 methods.add(getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK,
@@ -345,6 +399,14 @@ public final class JavaFileGenerator {
                                 .getBeanTempFiles(), path));
 
                 insertDataIntoJavaFile(file, NEW_LINE);
+
+                methods.add(getGetterForOperationType());
+                methods.add(getSetterForOperationType(className));
+                //Add operation attribute methods.
+                if (isLeavesPresent) {
+                    methods.add(getOperationAttributesGetters() + NEW_LINE);
+                    methods.add(getSetterForSelectLeaf(className, isRootNode));
+                }
             } catch (IOException e) {
                 throw new IOException("No data found in temporary java code fragment files for " + className
                         + " while builder class file generation");
@@ -355,191 +417,22 @@ public final class JavaFileGenerator {
 
         // Add default constructor and build method impl.
         methods.add(((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
-                .addBuildMethodImpl());
+                .addBuildMethodImpl(curNode));
         methods.add(((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
-                .addDefaultConstructor(PUBLIC, BUILDER, pluginConfig));
+                .addDefaultConstructor(PUBLIC, BUILDER, pluginConfig, curNode));
 
 
         //Add methods in builder class.
         for (String method : methods) {
             insertDataIntoJavaFile(file, method);
         }
+
         insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET);
         return validateLineLength(file);
     }
 
     /**
-     * Returns generated op param builder class file for current node.
-     *
-     * @param file          file handle
-     * @param curNode       current YANG node
-     * @param isAttrPresent if any attribute is present or not
-     * @return builder class file
-     * @throws IOException when fails to write in file
-     */
-    public static File generateOpParamBuilderClassFile(File file, YangNode curNode,
-                                                       boolean isAttrPresent) throws IOException {
-
-        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
-        YangPluginConfig pluginConfig = javaFileInfo.getPluginConfig();
-
-        String className = getCapitalCase(javaFileInfo.getJavaName());
-
-        initiateJavaFileGeneration(file, OPERATION_BUILDER_CLASS_MASK, null, curNode, className);
-        List<String> methods = new ArrayList<>();
-
-        if (isAttrPresent) {
-            //Add attribute strings.
-            try {
-                insertDataIntoJavaFile(file, FOUR_SPACE_INDENTATION + PRIVATE + SPACE +
-                        OPERATION_ENUM + SPACE + OP_PARAM_TYPE + SEMI_COLAN + NEW_LINE);
-
-            } catch (IOException e) {
-                throw new IOException("No data found in temporary java code fragment files for " + className
-                        + " while impl class file generation");
-            }
-
-            try {
-                if (curNode instanceof YangLeavesHolder) {
-                    YangLeavesHolder leavesHolder = (YangLeavesHolder) curNode;
-                    List<YangLeaf> leaves = leavesHolder.getListOfLeaf();
-                    List<YangLeafList> listOfLeafList = leavesHolder.getListOfLeafList();
-
-                    if (leaves != null && !leaves.isEmpty()) {
-                        insertDataIntoJavaFile(file, FOUR_SPACE_INDENTATION + PRIVATE + SPACE +
-                                BITSET + SPACE + FILTER_LEAF + SPACE + EQUAL + SPACE +
-                                NEW + SPACE + BITSET + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN
-                                + NEW_LINE);
-
-                        insertDataIntoJavaFile(file, FOUR_SPACE_INDENTATION + PRIVATE + SPACE +
-                                BITSET + SPACE + SELECT_LEAF + SPACE + EQUAL + SPACE +
-                                NEW + SPACE + BITSET + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
-                                + SEMI_COLAN + NEW_LINE);
-                    }
-
-                    if (listOfLeafList != null && !listOfLeafList.isEmpty()) {
-                        insertDataIntoJavaFile(file, FOUR_SPACE_INDENTATION + PRIVATE + SPACE +
-                                BITSET + SPACE + FILTER_LEAF_LIST + SPACE + EQUAL + SPACE +
-                                NEW + SPACE + BITSET + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
-                                + SEMI_COLAN + NEW_LINE);
-
-                        insertDataIntoJavaFile(file, FOUR_SPACE_INDENTATION + PRIVATE + SPACE +
-                                BITSET + SPACE + SELECT_LEAF_LIST + SPACE + EQUAL + SPACE +
-                                NEW + SPACE + BITSET + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
-                                + SEMI_COLAN + NEW_LINE);
-                    }
-                }
-
-            } catch (IOException e) {
-                throw new IOException("No data found in temporary java code fragment files for " + className
-                        + " while impl class file generation");
-            }
-
-            try {
-                // Setter methods.
-                methods.add(getSetterForLeaf(className, curNode, pluginConfig));
-                methods.add(getSetterForLeafList(className, curNode, pluginConfig));
-
-                if (curNode instanceof YangLeavesHolder) {
-                    YangLeavesHolder leavesHolder = (YangLeavesHolder) curNode;
-                    List<YangLeaf> leaves = leavesHolder.getListOfLeaf();
-                    List<YangLeafList> listOfLeafList = leavesHolder.getListOfLeafList();
-
-                    if (leaves != null && !leaves.isEmpty()) {
-                        methods.add(getToStringLeafgetter());
-                        methods.add(getToStringSelectLeafgetter());
-                    }
-
-                    if (listOfLeafList != null && !listOfLeafList.isEmpty()) {
-                        methods.add(getToStringLeafListgetter());
-                        methods.add(getToStringSelectLeafListgetter());
-                    }
-                }
-
-                methods.add(getOperationTypegetter());
-                methods.add(getOperationTypeSetter());
-                insertDataIntoJavaFile(file, NEW_LINE);
-            } catch (IOException e) {
-                throw new IOException("No data found in temporary java code fragment files for " + className
-                        + " while builder class file generation");
-            }
-        } else {
-            insertDataIntoJavaFile(file, NEW_LINE);
-        }
-
-        // Add methods in builder class.
-        for (String method : methods) {
-            insertDataIntoJavaFile(file, method);
-        }
-        insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET);
-        return validateLineLength(file);
-    }
-
-
-    /**
-     * Returns generated manager class file for current node.
-     *
-     * @param file    file
-     * @param imports imports for the file
-     * @param curNode current YANG node
-     * @return builder class file
-     * @throws IOException when fails to write in file
-     */
-    public static File generateManagerClassFile(File file, List<String> imports, YangNode curNode)
-            throws IOException {
-
-        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
-
-        String className = getCapitalCase(javaFileInfo.getJavaName()) + MANAGER;
-        String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
-
-        initiateJavaFileGeneration(file, GENERATE_SERVICE_AND_MANAGER, imports, curNode, className);
-
-        List<String> methods = new ArrayList<>();
-
-        insertDataIntoJavaFile(file, LOGGER_STATEMENT);
-        methods.add(addActivateMethod());
-        methods.add(addDeActivateMethod());
-
-        TempJavaServiceFragmentFiles tempJavaServiceFragmentFiles = ((JavaCodeGeneratorInfo) curNode)
-                .getTempJavaCodeFragmentFiles().getServiceTempFiles();
-
-        JavaAttributeInfo rootAttribute = getCurNodeAsAttributeInTarget(curNode, curNode, false,
-                tempJavaServiceFragmentFiles);
-        try {
-            //Getter methods.
-            methods.add(getOverRideString() +
-                    getGetterForClass(rootAttribute, GENERATE_SERVICE_AND_MANAGER) + NEW_LINE);
-            // Setter methods.
-            methods.add(getOverRideString() +
-                    getSetterForClass(rootAttribute, className, GENERATE_SERVICE_AND_MANAGER)
-                    + NEW_LINE);
-
-            methods.add(getAugmentsDataMethodForManager(curNode) + NEW_LINE);
-
-            if (((JavaCodeGeneratorInfo) curNode).getTempJavaCodeFragmentFiles().getServiceTempFiles() != null) {
-                JavaCodeGeneratorInfo javaGenInfo = (JavaCodeGeneratorInfo) curNode;
-
-                //Rpc methods
-                methods.add(getDataFromTempFileHandle(RPC_IMPL_MASK,
-                        javaGenInfo.getTempJavaCodeFragmentFiles().getServiceTempFiles(), path));
-            }
-            insertDataIntoJavaFile(file, NEW_LINE);
-
-        } catch (IOException e) {
-            throw new IOException("No data found in temporary java code fragment files for " + className
-                    + " while manager class file generation");
-        }
-
-        // Add methods in builder class.
-        for (String method : methods) {
-            insertDataIntoJavaFile(file, method);
-        }
-        return validateLineLength(file);
-    }
-
-    /**
-     * Returns generated impl class file for current node.
+     * Returns generated default class file for current node.
      *
      * @param file          file
      * @param curNode       current YANG node
@@ -548,25 +441,41 @@ public final class JavaFileGenerator {
      * @return impl class file
      * @throws IOException when fails to write in file
      */
-    public static File generateImplClassFile(File file, YangNode curNode, boolean isAttrPresent, List<String> imports)
+    public static File generateDefaultClassFile(File file, YangNode curNode, boolean isAttrPresent,
+                                                List<String> imports)
             throws IOException {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
         YangPluginConfig pluginConfig = javaFileInfo.getPluginConfig();
 
+        boolean isLeavesPresent;
+        YangLeavesHolder leavesHolder;
+        if (curNode instanceof YangLeavesHolder) {
+            leavesHolder = (YangLeavesHolder) curNode;
+            isLeavesPresent = leavesHolder.getListOfLeaf() != null && !leavesHolder.getListOfLeaf().isEmpty()
+                    || leavesHolder.getListOfLeafList() != null && !leavesHolder.getListOfLeafList().isEmpty();
+        } else {
+            isLeavesPresent = false;
+        }
+
+        boolean isRootNode = false;
+
         String className = getCapitalCase(javaFileInfo.getJavaName());
+        String opParamClassName = className;
         String path;
         if (curNode instanceof YangModule || curNode instanceof YangSubModule) {
+            opParamClassName = className + OP_PARAM;
+            isRootNode = true;
             path = javaFileInfo.getPluginConfig().getCodeGenDir() + javaFileInfo.getPackageFilePath();
         } else {
             path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
         }
 
-        initiateJavaFileGeneration(file, IMPL_CLASS_MASK, imports, curNode, className);
+        initiateJavaFileGeneration(file, DEFAULT_CLASS_MASK, imports, curNode, className);
 
         List<String> methods = new ArrayList<>();
         if (curNode instanceof YangAugmentableNode) {
-            insertDataIntoJavaFile(file, addAugmentationAttribute());
+            insertDataIntoJavaFile(file, JavaCodeSnippetGen.addAugmentationAttribute());
         }
         if (isAttrPresent) {
 
@@ -581,12 +490,23 @@ public final class JavaFileGenerator {
                         + " while impl class file generation");
             }
 
+            //Add operation attributes
+            insertDataIntoJavaFile(file, getOperationTypeEnum());
+            insertDataIntoJavaFile(file, getOperationTypeAttr());
+            if (isLeavesPresent) {
+                insertDataIntoJavaFile(file, getOperationAttributes());
+            }
+
             try {
                 //Getter methods.
                 methods.add(getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK,
                         ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                                 .getBeanTempFiles(), path));
 
+                //Add to list impl method.
+                methods.add(getDataFromTempFileHandle(ADD_TO_LIST_IMPL_MASK,
+                        ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                .getBeanTempFiles(), path));
 
                 // Hash code method.
                 methods.add(getHashCodeMethodClose(getHashCodeMethodOpen() +
@@ -595,11 +515,17 @@ public final class JavaFileGenerator {
                                         .getBeanTempFiles(), path).replace(NEW_LINE, EMPTY_STRING)));
 
                 //Equals method.
-                methods.add(getEqualsMethodClose(getEqualsMethodOpen(getCapitalCase(DEFAULT) + className)
-                        + getDataFromTempFileHandle(EQUALS_IMPL_MASK,
-                        ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
-                                .getBeanTempFiles(), path)));
-
+                if (isRootNode) {
+                    methods.add(getEqualsMethodClose(getEqualsMethodOpen(opParamClassName)
+                            + getDataFromTempFileHandle(EQUALS_IMPL_MASK,
+                            ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                    .getBeanTempFiles(), path)));
+                } else {
+                    methods.add(getEqualsMethodClose(getEqualsMethodOpen(getCapitalCase(DEFAULT) + className)
+                            + getDataFromTempFileHandle(EQUALS_IMPL_MASK,
+                            ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                    .getBeanTempFiles(), path)));
+                }
                 // To string method.
                 methods.add(getToStringMethodOpen() + getDataFromTempFileHandle(TO_STRING_IMPL_MASK,
                         ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
@@ -613,185 +539,44 @@ public final class JavaFileGenerator {
         } else {
             insertDataIntoJavaFile(file, NEW_LINE);
         }
-        try {
 
+        if (curNode instanceof YangAugmentableNode) {
+            methods.add(getAddAugmentInfoMethodImpl());
+            methods.add(getYangAugmentInfoImpl());
+            methods.add(getYangAugmentInfoMapImpl());
+        }
+        try {
             //Constructor.
-            String constructor = getConstructorStart(className, pluginConfig);
+            String constructor = getConstructorStart(className, pluginConfig, isRootNode);
             constructor = constructor + getDataFromTempFileHandle(CONSTRUCTOR_IMPL_MASK,
                     ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                             .getBeanTempFiles(), path);
 
-            methods.add(constructor + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET);
+            if (isAttrPresent) {
+                constructor = constructor + getOperationTypeForConstructor();
+            }
+            if (isLeavesPresent) {
+                constructor = constructor + getOperationAttributeForConstructor();
+            }
+            methods.add(constructor + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE);
         } catch (IOException e) {
             throw new IOException("No data found in temporary java code fragment files for " + className
                     + " while impl class file generation");
         }
 
-        if (curNode instanceof YangAugmentableNode) {
-            methods.add(getAddAugmentInfoMethodImpl());
-            methods.add(getAugmentInfoImpl());
-            methods.add(getAugmentInfoMapImpl(javaFileInfo.getPluginConfig()));
-        }
+        methods.add(((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                .addDefaultConstructor(PUBLIC, DEFAULT, pluginConfig, curNode));
 
+        methods.add(builderMethod(className));
+        methods.add(getIsFilterContentMatch(curNode, pluginConfig));
+        if (isLeavesPresent) {
+            methods.add(getOperationAttributesGetters());
+            methods.add(getGettersForValueAndSelectLeaf());
+        }
         // Add methods in impl class.
         for (String method : methods) {
             insertDataIntoJavaFile(file, method);
         }
-
-        return validateLineLength(file);
-    }
-
-    /**
-     * Returns generated op param class file for current node.
-     *
-     * @param file          file handle
-     * @param curNode       current YANG node
-     * @param isAttrPresent if any attribute is present or not
-     * @param imports       import list
-     * @return returns generated op param class file for current node
-     * @throws IOException when fails to write in file
-     */
-    public static File generateOpParamImplClassFile(File file, YangNode curNode,
-                                                    boolean isAttrPresent, List<String> imports)
-            throws IOException {
-
-        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
-        YangPluginConfig pluginConfig = javaFileInfo.getPluginConfig();
-
-        String className = getCapitalCase(javaFileInfo.getJavaName());
-
-        initiateJavaFileGeneration(file, OPERATION_CLASS_MASK, imports, curNode, className);
-
-        List<String> methods = new ArrayList<>();
-
-        if (isAttrPresent) {
-
-            // Add attribute strings.
-            try {
-                insertDataIntoJavaFile(file, FOUR_SPACE_INDENTATION + PUBLIC + SPACE + STATIC +
-                        SPACE + ENUM + SPACE + OPERATION_ENUM + SPACE + OPEN_CURLY_BRACKET +
-                        NEW_LINE + EIGHT_SPACE_INDENTATION + MERGE +
-                        NEW_LINE + EIGHT_SPACE_INDENTATION + REPLACE +
-                        NEW_LINE + EIGHT_SPACE_INDENTATION + CREATE +
-                        NEW_LINE + EIGHT_SPACE_INDENTATION + DELETE +
-                        NEW_LINE + EIGHT_SPACE_INDENTATION + REMOVE +
-                        NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE);
-
-            } catch (IOException e) {
-                throw new IOException("No data found in temporary java code fragment files for " + className
-                        + " while impl class file generation");
-            }
-
-
-            // Add attribute strings.
-            try {
-                insertDataIntoJavaFile(file, FOUR_SPACE_INDENTATION + PRIVATE + SPACE +
-                        OPERATION_ENUM + SPACE + OP_PARAM_TYPE + SEMI_COLAN + NEW_LINE);
-
-            } catch (IOException e) {
-                throw new IOException("No data found in temporary java code fragment files for " + className
-                        + " while impl class file generation");
-            }
-
-            try {
-                if (curNode instanceof YangLeavesHolder) {
-                    YangLeavesHolder leavesHolder = (YangLeavesHolder) curNode;
-                    List<YangLeaf> leaves = leavesHolder.getListOfLeaf();
-                    List<YangLeafList> listOfLeafList = leavesHolder.getListOfLeafList();
-
-                    if (leaves != null && !leaves.isEmpty()) {
-                        insertDataIntoJavaFile(file, FOUR_SPACE_INDENTATION + PRIVATE + SPACE +
-                                BITSET + SPACE + FILTER_LEAF + SPACE + EQUAL + SPACE +
-                                NEW + SPACE + BITSET + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
-                                + SEMI_COLAN + NEW_LINE);
-
-                        insertDataIntoJavaFile(file, FOUR_SPACE_INDENTATION + PRIVATE + SPACE +
-                                BITSET + SPACE + SELECT_LEAF + SPACE + EQUAL + SPACE +
-                                NEW + SPACE + BITSET + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
-                                + SEMI_COLAN + NEW_LINE);
-                    }
-
-                    if (listOfLeafList != null && !listOfLeafList.isEmpty()) {
-                        insertDataIntoJavaFile(file, FOUR_SPACE_INDENTATION + PRIVATE + SPACE +
-                                BITSET + SPACE + FILTER_LEAF_LIST + SPACE + EQUAL + SPACE +
-                                NEW + SPACE + BITSET + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
-                                + SEMI_COLAN + NEW_LINE);
-
-                        insertDataIntoJavaFile(file, FOUR_SPACE_INDENTATION + PRIVATE + SPACE +
-                                BITSET + SPACE + SELECT_LEAF_LIST + SPACE + EQUAL + SPACE +
-                                NEW + SPACE + BITSET + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
-                                + SEMI_COLAN + NEW_LINE);
-                    }
-                }
-
-            } catch (IOException e) {
-                throw new IOException("No data found in temporary java code fragment files for " + className
-                        + " while impl class file generation");
-            }
-
-            if (curNode instanceof YangLeavesHolder) {
-                YangLeavesHolder leavesHolder = (YangLeavesHolder) curNode;
-                List<YangLeaf> leaves = leavesHolder.getListOfLeaf();
-                List<YangLeafList> listOfLeafList = leavesHolder.getListOfLeafList();
-
-                if (leaves != null && !leaves.isEmpty()) {
-                    methods.add(getToStringLeafgetter());
-                    methods.add(getToStringSelectLeafgetter());
-                }
-
-                if (listOfLeafList != null && !listOfLeafList.isEmpty()) {
-                    methods.add(getToStringLeafListgetter());
-                    methods.add(getToStringSelectLeafListgetter());
-                }
-            }
-
-            methods.add(getOperationTypegetter());
-            methods.add(getIsFilterContentMatch(className, curNode, pluginConfig));
-
-        } else {
-            insertDataIntoJavaFile(file, NEW_LINE);
-        }
-        String constructor = getOpParamConstructorStart(className, pluginConfig);
-
-        constructor = constructor + EIGHT_SPACE_INDENTATION + SUPER + OPEN_PARENTHESIS
-                + BUILDER.toLowerCase() + OBJECT
-                + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
-
-        if (curNode instanceof YangLeavesHolder) {
-            YangLeavesHolder leavesHolder = (YangLeavesHolder) curNode;
-            List<YangLeaf> leaves = leavesHolder.getListOfLeaf();
-            List<YangLeafList> listOfLeafList = leavesHolder.getListOfLeafList();
-            String filterLeaf = "";
-            String filterLeafList = "";
-
-            if (leaves != null && !leaves.isEmpty()) {
-                filterLeaf = EIGHT_SPACE_INDENTATION + FILTER_LEAF + SPACE + EQUAL + SPACE
-                        + BUILDER.toLowerCase() + OBJECT + PERIOD + GET_FILTER_LEAF + OPEN_PARENTHESIS
-                        + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
-            }
-
-            if (listOfLeafList != null && !listOfLeafList.isEmpty()) {
-                filterLeafList = EIGHT_SPACE_INDENTATION + FILTER_LEAF_LIST + SPACE + EQUAL + SPACE
-                        + BUILDER.toLowerCase() + OBJECT + PERIOD + GET_FILTER_LEAF_LIST + OPEN_PARENTHESIS
-                        + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
-            }
-
-            constructor = constructor + filterLeaf + filterLeafList;
-        }
-
-        methods.add(constructor + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET);
-
-        if (curNode instanceof YangAugment) {
-            String clsName = getCapitalCase(DEFAULT) +
-                    getCapitalCase(YangJavaModelUtils.getAugmentClassName((YangAugment) curNode, pluginConfig));
-            methods.add(getBaseClassMethodImpl(clsName));
-        }
-
-        // Add methods in impl class.
-        for (String method : methods) {
-            insertDataIntoJavaFile(file, method);
-        }
-
 
         return validateLineLength(file);
     }
@@ -818,7 +603,7 @@ public final class JavaFileGenerator {
         List<YangType<?>> types = typeDef.getTypeList();
         YangType type = types.get(0);
         YangDataTypes yangDataTypes = type.getDataType();
-        if (type.getDataType().equals(YangDataTypes.BINARY)) {
+        if (type.getDataType().equals(BINARY)) {
             imports.add(IMPORT + JAVA_UTIL_OBJECTS_IMPORT_PKG + PERIOD + JAVA_UTIL_IMPORT_BASE64_CLASS);
         }
 
@@ -841,10 +626,9 @@ public final class JavaFileGenerator {
 
         //Default constructor.
         methods.add(((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
-                .addDefaultConstructor(PRIVATE, EMPTY_STRING, pluginConfig));
+                .addDefaultConstructor(PRIVATE, EMPTY_STRING, pluginConfig, curNode));
 
         try {
-
 
             //Type constructor.
             methods.add(getDataFromTempFileHandle(CONSTRUCTOR_FOR_TYPE_MASK,
@@ -879,27 +663,27 @@ public final class JavaFileGenerator {
 
 
             //To string method.
-            if (type.getDataType().equals(YangDataTypes.BINARY)) {
+            if (type.getDataType().equals(BINARY)) {
                 JavaQualifiedTypeInfoTranslator qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(curNode,
                         getCapitalCase("binary"));
 
                 JavaAttributeInfo attr = getAttributeInfoForTheData(qualifiedTypeInfo, "binary", null, false,
                         false);
                 String attributeName = attr.getAttributeName();
-                String bitsToStringMethod = MethodsGenerator.getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC
+                String bitsToStringMethod = getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC
                         + SPACE + STRING_DATA_TYPE + SPACE + TO + STRING_DATA_TYPE + OPEN_PARENTHESIS
                         + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION
                         + RETURN + SPACE + BASE64 + PERIOD + GET_ENCODER + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
                         + PERIOD + ENCODE_TO_STRING + OPEN_PARENTHESIS + attributeName + CLOSE_PARENTHESIS
                         + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE;
                 methods.add(bitsToStringMethod);
-            } else if (type.getDataType().equals(YangDataTypes.BITS)) {
+            } else if (type.getDataType().equals(BITS)) {
                 JavaQualifiedTypeInfoTranslator qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(curNode,
                         getCapitalCase("bits"));
 
                 JavaAttributeInfo attr = getAttributeInfoForTheData(qualifiedTypeInfo, "bits", null, false, false);
                 String attributeName = attr.getAttributeName();
-                String bitsToStringMethod = MethodsGenerator.getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC
+                String bitsToStringMethod = getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC
                         + SPACE + STRING_DATA_TYPE + SPACE + TO + STRING_DATA_TYPE + OPEN_PARENTHESIS
                         + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION
                         + RETURN + SPACE + attributeName + PERIOD + TO + STRING_DATA_TYPE + OPEN_PARENTHESIS
@@ -914,6 +698,7 @@ public final class JavaFileGenerator {
 
             JavaCodeGeneratorInfo javaGenInfo = (JavaCodeGeneratorInfo) curNode;
 
+            //From string method.
             if ((type.getDataType().equals(YangDataTypes.DERIVED))
                     && (((YangDerivedInfo) type.getDataTypeExtendedInfo()).getEffectiveBuiltInType()
                     .equals(YangDataTypes.IDENTITYREF))) {
@@ -925,14 +710,10 @@ public final class JavaFileGenerator {
             }
 
             if (!yangDataTypes.equals(YangDataTypes.IDENTITYREF)) {
-
-
-                //From string method.
                 methods.add(getFromStringMethodSignature(className, pluginConfig)
-                                    + getDataFromTempFileHandle(FROM_STRING_IMPL_MASK, javaGenInfo
-                        .getTempJavaCodeFragmentFiles()
+                        + getDataFromTempFileHandle(FROM_STRING_IMPL_MASK, javaGenInfo.getTempJavaCodeFragmentFiles()
                         .getTypeTempFiles(), path)
-                                    + getFromStringMethodClose());
+                        + getFromStringMethodClose());
             }
 
         } catch (IOException e) {
@@ -1022,7 +803,7 @@ public final class JavaFileGenerator {
 
         //Default constructor.
         methods.add(((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
-                .addDefaultConstructor(PRIVATE, EMPTY_STRING, pluginConfig));
+                .addDefaultConstructor(PRIVATE, EMPTY_STRING, pluginConfig, curNode));
 
         try {
 
@@ -1074,10 +855,10 @@ public final class JavaFileGenerator {
                     + getFromStringMethodClose());
 
             if (isIntConflict) {
-                methods.add(MethodsGenerator.getRangeValidatorMethodForUnion(INT));
+                methods.add(getRangeValidatorMethodForUnion(INT));
             }
             if (isLongConflict) {
-                methods.add(MethodsGenerator.getRangeValidatorMethodForUnion(BIG_INTEGER));
+                methods.add(getRangeValidatorMethodForUnion(BIG_INTEGER));
             }
 
         } catch (IOException e) {

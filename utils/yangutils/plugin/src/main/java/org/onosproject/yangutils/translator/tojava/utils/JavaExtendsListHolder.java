@@ -52,7 +52,7 @@ public class JavaExtendsListHolder {
      *
      * @return extends list
      */
-    public Map<JavaQualifiedTypeInfoTranslator, Boolean> getExtendedClassStore() {
+    Map<JavaQualifiedTypeInfoTranslator, Boolean> getExtendedClassStore() {
         return extendedClassStore;
     }
 

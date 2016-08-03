@@ -26,7 +26,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getImportText;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getJavaAttributeDefination;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getJavaAttributeDefinition;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getJavaClassDefClose;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_CLOSE_BRACKET;
@@ -53,11 +53,11 @@ public class JavaCodeSnippetGenTest {
     /**
      * Unit test for private constructor.
      *
-     * @throws SecurityException if any security violation is observed
-     * @throws NoSuchMethodException if when the method is not found
-     * @throws IllegalArgumentException if there is illegal argument found
-     * @throws InstantiationException if instantiation is provoked for the private constructor
-     * @throws IllegalAccessException if instance is provoked or a method is provoked
+     * @throws SecurityException         if any security violation is observed
+     * @throws NoSuchMethodException     if when the method is not found
+     * @throws IllegalArgumentException  if there is illegal argument found
+     * @throws InstantiationException    if instantiation is provoked for the private constructor
+     * @throws IllegalAccessException    if instance is provoked or a method is provoked
      * @throws InvocationTargetException when an exception occurs by the method or constructor
      */
     @Test
@@ -65,7 +65,7 @@ public class JavaCodeSnippetGenTest {
             throws SecurityException, NoSuchMethodException, IllegalArgumentException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
 
-        Class<?>[] classesToConstruct = {JavaCodeSnippetGen.class };
+        Class<?>[] classesToConstruct = {JavaCodeSnippetGen.class};
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
@@ -102,26 +102,26 @@ public class JavaCodeSnippetGenTest {
     @Test
     public void testForJavaAttributeInfo() {
 
-        String attributeWithoutTypePkg = getJavaAttributeDefination(null, STRING_DATA_TYPE, YANG_NAME,
-                                                                    false, PRIVATE);
+        String attributeWithoutTypePkg = getJavaAttributeDefinition(null, STRING_DATA_TYPE, YANG_NAME,
+                false, PRIVATE);
         assertThat(true, is(attributeWithoutTypePkg.equals(
                 PRIVATE + SPACE + STRING_DATA_TYPE + SPACE + YANG_NAME + SEMI_COLAN + NEW_LINE)));
 
-        String attributeWithTypePkg = getJavaAttributeDefination(JAVA_LANG, STRING_DATA_TYPE, YANG_NAME,
-                                                                 false, PRIVATE);
+        String attributeWithTypePkg = getJavaAttributeDefinition(JAVA_LANG, STRING_DATA_TYPE, YANG_NAME,
+                false, PRIVATE);
         assertThat(true, is(attributeWithTypePkg.equals(PRIVATE + SPACE + JAVA_LANG + PERIOD
                 + STRING_DATA_TYPE + SPACE + YANG_NAME + SEMI_COLAN + NEW_LINE)));
 
-        String attributeWithListPkg = getJavaAttributeDefination(JAVA_LANG, STRING_DATA_TYPE, YANG_NAME,
-                                                                 true, PRIVATE);
-        assertThat(true, is(attributeWithListPkg.equals(
+        String attributeWithListPkg = getJavaAttributeDefinition(JAVA_LANG, STRING_DATA_TYPE, YANG_NAME,
+                true, PRIVATE);
+        assertThat(true, is(attributeWithListPkg.contains(
                 PRIVATE + SPACE + LIST + DIAMOND_OPEN_BRACKET + JAVA_LANG + PERIOD + STRING_DATA_TYPE
-                        + DIAMOND_CLOSE_BRACKET + SPACE + YANG_NAME + SEMI_COLAN + NEW_LINE)));
+                        + DIAMOND_CLOSE_BRACKET + SPACE + YANG_NAME)));
 
-        String attributeWithListWithoutPkg = getJavaAttributeDefination(null, STRING_DATA_TYPE, YANG_NAME,
-                                                                        true, PRIVATE);
-        assertThat(true, is(attributeWithListWithoutPkg.equals(
+        String attributeWithListWithoutPkg = getJavaAttributeDefinition(null, STRING_DATA_TYPE, YANG_NAME,
+                true, PRIVATE);
+        assertThat(true, is(attributeWithListWithoutPkg.contains(
                 PRIVATE + SPACE + LIST + DIAMOND_OPEN_BRACKET + STRING_DATA_TYPE + DIAMOND_CLOSE_BRACKET + SPACE
-                        + YANG_NAME + SEMI_COLAN + NEW_LINE)));
+                        + YANG_NAME)));
     }
 }

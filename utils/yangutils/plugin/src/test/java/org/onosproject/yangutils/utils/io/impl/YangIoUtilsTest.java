@@ -47,7 +47,7 @@ public final class YangIoUtilsTest {
     private static final String CHECK1 = "check1";
     private static final String PKG_INFO = "package-info.java";
     private static final String PATH = "src/main/yangmodel/";
-    private static final String MSG = "Exception occured while creating package info file.";
+    private static final String MSG = "Exception occurred while creating package info file.";
 
     /**
      * Expected exceptions.

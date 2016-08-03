@@ -17,6 +17,7 @@ package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
 
+import org.onosproject.yangutils.datamodel.YangChoice;
 import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
 import org.onosproject.yangutils.datamodel.javadatamodel.YangJavaAugment;
 import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
@@ -118,10 +119,21 @@ public class YangJavaAugmentTranslator
     @Override
     public void generateCodeExit() throws TranslatorException {
         try {
-            getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
+            if (validateAugmentNode()) {
+                getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
+            }
         } catch (IOException e) {
             throw new TranslatorException("Failed to generate code for augmentable node " + getName());
         }
+    }
+
+    /**
+     * Returns true if augment does not have choice as target node.
+     *
+     * @return true if augment does not have choice as target node
+     */
+    private boolean validateAugmentNode() {
+        return !(getAugmentedNode() instanceof YangChoice);
     }
 
 }

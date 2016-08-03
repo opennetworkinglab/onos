@@ -32,6 +32,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangToJavaNamingConflictUtil;
 import org.onosproject.yangutils.linker.YangLinker;
 import org.onosproject.yangutils.linker.exceptions.LinkerException;
 import org.onosproject.yangutils.linker.impl.YangLinkerManager;
@@ -39,8 +41,6 @@ import org.onosproject.yangutils.parser.YangUtilsParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
-import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
-import org.onosproject.yangutils.datamodel.javadatamodel.YangToJavaNamingConflictUtil;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 import static org.apache.maven.plugins.annotations.LifecyclePhase.GENERATE_SOURCES;
@@ -70,7 +70,7 @@ public class YangUtilManager
         extends AbstractMojo {
 
     private static final String DEFAULT_PKG = SLASH + getPackageDirPathFromJavaJPackage(DEFAULT_BASE_PKG);
-    YangPluginConfig yangPlugin = new YangPluginConfig();
+    private YangPluginConfig yangPlugin = new YangPluginConfig();
     private YangNode rootNode;
     // YANG file information set.
     private Set<YangFileInfo> yangFileInfoSet = new HashSet<>();
@@ -89,12 +89,6 @@ public class YangUtilManager
      */
     @Parameter(property = "classFileDir", defaultValue = "target/generated-sources")
     private String classFileDir;
-
-    /**
-     * Source directory for manager's generated files.
-     */
-    @Parameter(property = "managerFileDir", defaultValue = "src/main/java")
-    private String managerFileDir;
 
     /**
      * Base directory for project.
@@ -159,8 +153,8 @@ public class YangUtilManager
     /**
      * Code generation is for nbi or sbi.
      */
-    @Parameter(property = "generateJavaFileForsbi", defaultValue = "nbi")
-    private String generateJavaFileForsbi;
+    @Parameter(property = "generateJavaFileForSbi", defaultValue = "nbi")
+    private String generateJavaFileForSbi;
 
     @Override
     public void execute()
@@ -171,12 +165,10 @@ public class YangUtilManager
             /*
              * For deleting the generated code in previous build.
              */
-            deleteDirectory(getDirectory(baseDir, classFileDir) + DEFAULT_PKG);
             deleteDirectory(getDirectory(baseDir, outputDirectory));
 
             String searchDir = getDirectory(baseDir, yangFilesDir);
             String codeGenDir = getDirectory(baseDir, classFileDir) + SLASH;
-            String managerCodeGenDir = getDirectory(baseDir, managerFileDir) + SLASH;
 
             // Creates conflict resolver and set values to it.
             YangToJavaNamingConflictUtil conflictResolver = new YangToJavaNamingConflictUtil();
@@ -185,10 +177,9 @@ public class YangUtilManager
             conflictResolver.setReplacementForUnderscore(replacementForUnderscore);
             conflictResolver.setPrefixForIdentifier(prefixForIdentifier);
             yangPlugin.setCodeGenDir(codeGenDir);
-            yangPlugin.setManagerCodeGenDir(managerCodeGenDir);
             yangPlugin.setConflictResolver(conflictResolver);
 
-            yangPlugin.setCodeGenerateForsbi(generateJavaFileForsbi.toLowerCase());
+            yangPlugin.setCodeGenerateForsbi(generateJavaFileForSbi.toLowerCase());
             /*
              * Obtain the YANG files at a path mentioned in plugin and creates
              * YANG file information set.
@@ -216,7 +207,6 @@ public class YangUtilManager
             serializeDataModel(getDirectory(baseDir, outputDirectory), getYangFileInfoSet(), project, true);
 
             addToCompilationRoot(codeGenDir, project, context);
-            addToCompilationRoot(managerCodeGenDir, project, context);
 
             copyYangFilesToTarget(getYangFileInfoSet(), getDirectory(baseDir, outputDirectory), project);
         } catch (IOException | ParserException e) {
@@ -232,7 +222,7 @@ public class YangUtilManager
                         "Error handler failed to delete files for data model node.");
             }
             throw new MojoExecutionException(
-                    "Exception occured due to " + e.getLocalizedMessage() + " in " + fileName
+                    "Exception occurred due to " + e.getLocalizedMessage() + " in " + fileName
                             + " YANG file.");
         }
     }
@@ -264,14 +254,14 @@ public class YangUtilManager
                 getYangFileInfoSet().add(dependentFileInfo);
             }
         } catch (IOException e) {
-            throw new IOException("failed to resolve in interjar scenario.");
+            throw new IOException("failed to resolve in inter-jar scenario.");
         }
     }
 
     /**
      * Links all the provided with the YANG file info set.
      *
-     * @throws MojoExecutionException a violation in mojo excecution
+     * @throws MojoExecutionException a violation in mojo execution
      */
     public void resolveDependenciesUsingLinker()
             throws MojoExecutionException {
@@ -378,7 +368,7 @@ public class YangUtilManager
      *
      * @return the YANG file info set
      */
-    public Set<YangFileInfo> getYangFileInfoSet() {
+    Set<YangFileInfo> getYangFileInfoSet() {
         return yangFileInfoSet;
     }
 

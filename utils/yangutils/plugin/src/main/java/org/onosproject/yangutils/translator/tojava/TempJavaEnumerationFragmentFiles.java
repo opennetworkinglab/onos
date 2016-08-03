@@ -22,26 +22,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
-import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangEnum;
 import org.onosproject.yangutils.datamodel.YangEnumeration;
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaTypeTranslator;
-import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.INT32;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ENUM_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getAttributeInfoForTheData;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.generateEnumAttributeString;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateEnumClassFile;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.createPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getEnumJavaAttribute;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getPrefixForIdentifier;
-import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.closeFile;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.INT;
 import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_FIRST_DIGIT;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUTO_PREFIX;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.createPackage;
+import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.closeFile;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getPrefixForIdentifier;
 
 /**
  * Represents implementation of java code fragments temporary implementations. Maintains the temp files required
@@ -227,8 +228,8 @@ public class TempJavaEnumerationFragmentFiles extends TempJavaFragmentFiles {
      */
     public JavaAttributeInfo getJavaAttributeForEnum(YangPluginConfig pluginConfig) {
         YangJavaTypeTranslator<?> javaType = new YangJavaTypeTranslator<>();
-        javaType.setDataType(YangDataTypes.INT32);
-        javaType.setDataTypeName("int");
+        javaType.setDataType(INT32);
+        javaType.setDataTypeName(INT);
         javaType.updateJavaQualifiedInfo(pluginConfig.getConflictResolver());
         return getAttributeInfoForTheData(
                 javaType.getJavaQualifiedInfo(),

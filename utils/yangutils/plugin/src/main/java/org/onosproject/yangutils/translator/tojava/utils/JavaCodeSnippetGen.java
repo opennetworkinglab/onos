@@ -19,40 +19,36 @@ package org.onosproject.yangutils.translator.tojava.utils;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorInfo;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoTranslator;
 import org.onosproject.yangutils.translator.tojava.TempJavaServiceFragmentFiles;
-import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getEnumJavaAttribute;
-import static org.onosproject.yangutils.utils.UtilConstants.ACTIVATE_ANNOTATION_IMPORT;
+import static org.onosproject.yangutils.utils.UtilConstants.ARRAY_LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.CLASS_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
-import static org.onosproject.yangutils.utils.UtilConstants.COMPONENT_ANNOTATION;
-import static org.onosproject.yangutils.utils.UtilConstants.COMPONENT_ANNOTATION_IMPORT;
-import static org.onosproject.yangutils.utils.UtilConstants.DEACTIVATE_ANNOTATION_IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_CLOSE_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_OPEN_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.EIGHT_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.ENUM;
 import static org.onosproject.yangutils.utils.UtilConstants.EQUAL;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.HASH_MAP;
-import static org.onosproject.yangutils.utils.UtilConstants.IMMEDIATE;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.INT;
 import static org.onosproject.yangutils.utils.UtilConstants.INT_MAX_RANGE_ATTR;
 import static org.onosproject.yangutils.utils.UtilConstants.INT_MIN_RANGE_ATTR;
 import static org.onosproject.yangutils.utils.UtilConstants.LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_SERVICE;
-import static org.onosproject.yangutils.utils.UtilConstants.LOGGER_FACTORY_IMPORT;
-import static org.onosproject.yangutils.utils.UtilConstants.LOGGER_IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.LONG_MAX_RANGE_ATTR;
 import static org.onosproject.yangutils.utils.UtilConstants.LONG_MIN_RANGE_ATTR;
 import static org.onosproject.yangutils.utils.UtilConstants.MAP;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.OBJECT_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
@@ -60,10 +56,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.PRIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
 import static org.onosproject.yangutils.utils.UtilConstants.QUESTION_MARK;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
-import static org.onosproject.yangutils.utils.UtilConstants.SERVICE_ANNOTATION;
-import static org.onosproject.yangutils.utils.UtilConstants.SERVICE_ANNOTATION_IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
-import static org.onosproject.yangutils.utils.UtilConstants.TRUE;
 import static org.onosproject.yangutils.utils.UtilConstants.TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.UINT_MAX_RANGE_ATTR;
 import static org.onosproject.yangutils.utils.UtilConstants.UINT_MIN_RANGE_ATTR;
@@ -93,7 +86,7 @@ public final class JavaCodeSnippetGen {
      */
     public static String getFileHeaderComment() {
 
-        /**
+        /*
          * TODO return the file header.
          */
         return null;
@@ -119,39 +112,29 @@ public final class JavaCodeSnippetGen {
      * @param attributeAccessType  attribute access type
      * @return the textual java code for attribute definition in class
      */
-    public static String getJavaAttributeDefination(String javaAttributeTypePkg, String javaAttributeType,
+    public static String getJavaAttributeDefinition(String javaAttributeTypePkg, String javaAttributeType,
                                                     String javaAttributeName, boolean isList,
                                                     String attributeAccessType) {
 
-        String attributeDefination = attributeAccessType + SPACE;
+        String attributeDefinition = attributeAccessType + SPACE;
 
         if (!isList) {
             if (javaAttributeTypePkg != null) {
-                attributeDefination = attributeDefination + javaAttributeTypePkg + PERIOD;
+                attributeDefinition = attributeDefinition + javaAttributeTypePkg + PERIOD;
             }
 
-            attributeDefination = attributeDefination + javaAttributeType + SPACE + javaAttributeName + SEMI_COLAN
+            attributeDefinition = attributeDefinition + javaAttributeType + SPACE + javaAttributeName + SEMI_COLAN
                     + NEW_LINE;
         } else {
-            attributeDefination = attributeDefination + LIST + DIAMOND_OPEN_BRACKET;
+            attributeDefinition = attributeDefinition + LIST + DIAMOND_OPEN_BRACKET;
             if (javaAttributeTypePkg != null) {
-                attributeDefination = attributeDefination + javaAttributeTypePkg + PERIOD;
+                attributeDefinition = attributeDefinition + javaAttributeTypePkg + PERIOD;
             }
 
-            attributeDefination = attributeDefination + javaAttributeType + DIAMOND_CLOSE_BRACKET + SPACE
-                    + javaAttributeName + SEMI_COLAN + NEW_LINE;
+            attributeDefinition = attributeDefinition + javaAttributeType + DIAMOND_CLOSE_BRACKET + SPACE
+                    + javaAttributeName + SPACE + EQUAL + SPACE + NEW + SPACE + ARRAY_LIST + SEMI_COLAN + NEW_LINE;
         }
-        return attributeDefination;
-    }
-
-    /**
-     * Returns list attribute string.
-     *
-     * @param type attribute type
-     * @return list attribute string
-     */
-    public static String getListAttribute(String type) {
-        return LIST + DIAMOND_OPEN_BRACKET + type + DIAMOND_CLOSE_BRACKET;
+        return attributeDefinition;
     }
 
     /**
@@ -172,34 +155,9 @@ public final class JavaCodeSnippetGen {
      * @return string for enum's attribute
      */
     public static String generateEnumAttributeString(String name, int value, YangPluginConfig pluginConfig) {
-        return getJavaDoc(ENUM_ATTRIBUTE, name, false, pluginConfig) + FOUR_SPACE_INDENTATION
-                + getEnumJavaAttribute(name).toUpperCase() + OPEN_PARENTHESIS
+        return NEW_LINE + getJavaDoc(ENUM_ATTRIBUTE, name, false, pluginConfig)
+                + EIGHT_SPACE_INDENTATION + getEnumJavaAttribute(name).toUpperCase() + OPEN_PARENTHESIS
                 + value + CLOSE_PARENTHESIS + COMMA + NEW_LINE;
-    }
-
-    /**
-     * Adds annotations imports.
-     *
-     * @param imports   list if imports
-     * @param operation to add or to delete
-     */
-    public static void addAnnotationsImports(List<String> imports, boolean operation) {
-        if (operation) {
-            imports.add(ACTIVATE_ANNOTATION_IMPORT);
-            imports.add(DEACTIVATE_ANNOTATION_IMPORT);
-            imports.add(COMPONENT_ANNOTATION_IMPORT);
-            imports.add(SERVICE_ANNOTATION_IMPORT);
-            imports.add(LOGGER_FACTORY_IMPORT);
-            imports.add(LOGGER_IMPORT);
-        } else {
-            imports.remove(ACTIVATE_ANNOTATION_IMPORT);
-            imports.remove(DEACTIVATE_ANNOTATION_IMPORT);
-            imports.remove(COMPONENT_ANNOTATION_IMPORT);
-            imports.remove(SERVICE_ANNOTATION_IMPORT);
-            imports.remove(LOGGER_FACTORY_IMPORT);
-            imports.remove(LOGGER_IMPORT);
-        }
-        sortImports(imports);
     }
 
     /**
@@ -233,7 +191,7 @@ public final class JavaCodeSnippetGen {
      */
     public static void addListenersImport(YangNode curNode, List<String> imports, boolean operation,
                                           String classInfo) {
-        String thisImport = "";
+        String thisImport;
         TempJavaServiceFragmentFiles tempJavaServiceFragmentFiles = ((JavaCodeGeneratorInfo) curNode)
                 .getTempJavaCodeFragmentFiles().getServiceTempFiles();
         if (classInfo.equals(LISTENER_SERVICE)) {
@@ -276,23 +234,13 @@ public final class JavaCodeSnippetGen {
     }
 
     /**
-     * Returns component string.
-     *
-     * @return component string
-     */
-    static String addComponentString() {
-        return NEW_LINE + COMPONENT_ANNOTATION + OPEN_PARENTHESIS + IMMEDIATE + SPACE
-                + EQUAL + SPACE + TRUE + CLOSE_PARENTHESIS + NEW_LINE + SERVICE_ANNOTATION;
-    }
-
-    /**
      * Returns attribute for augmentation.
      *
      * @return attribute for augmentation
      */
     static String addAugmentationAttribute() {
         return NEW_LINE + FOUR_SPACE_INDENTATION + PRIVATE + SPACE + MAP + DIAMOND_OPEN_BRACKET + CLASS_STRING
-                + DIAMOND_OPEN_BRACKET + QUESTION_MARK + DIAMOND_CLOSE_BRACKET + COMMA + SPACE + YANG_AUGMENTED_INFO
+                + DIAMOND_OPEN_BRACKET + QUESTION_MARK + DIAMOND_CLOSE_BRACKET + COMMA + SPACE + OBJECT_STRING
                 + DIAMOND_CLOSE_BRACKET + SPACE + getSmallCase(YANG_AUGMENTED_INFO) + MAP + SPACE + EQUAL + SPACE +
                 NEW + SPACE + HASH_MAP + DIAMOND_OPEN_BRACKET + DIAMOND_CLOSE_BRACKET + OPEN_PARENTHESIS
                 + CLOSE_PARENTHESIS + SEMI_COLAN;
@@ -332,4 +280,76 @@ public final class JavaCodeSnippetGen {
                     FOUR_SPACE_INDENTATION + modifier + SPACE + ULONG_MAX_RANGE_ATTR;
         }
     }
+
+    /**
+     * Returns operation type enum.
+     *
+     * @return operation type enum
+     */
+    static String getOperationTypeEnum() {
+        return "\n" +
+                "    /**\n" +
+                "     * Specify the node specific operation in protocols like NETCONF.\n" +
+                "     * Applicable in protocol edit operation, not applicable in query operation\n" +
+                "     */\n" +
+                "    public enum OperationType {\n" +
+                "        MERGE,\n" +
+                "        REPLACE,\n" +
+                "        CREATE,\n" +
+                "        DELETE,\n" +
+                "        REMOVE\n" +
+                "    }\n";
+    }
+
+    /**
+     * Returns operation type enum, leaf value set attribute and select leaf attribute.
+     *
+     * @return operation type enum, leaf value set attribute and select leaf attribute.
+     */
+    static String getOperationAttributes() {
+        return "    /**\n" +
+                "     * Identify the leafs whose value are explicitly set\n" +
+                "     * Applicable in protocol edit and query operation\n" +
+                "     */\n" +
+                "    private BitSet _valueLeafFlags = new BitSet();\n" +
+                "\n" +
+                "    /**\n" +
+                "     * Identify the leafs to be selected, in a query operation\n" +
+                "     */\n" +
+                "    private BitSet _selectLeafFlags = new BitSet();\n";
+    }
+
+    /**
+     * Returns operation type enum, leaf value set attribute and select leaf attribute.
+     *
+     * @return operation type enum, leaf value set attribute and select leaf attribute.
+     */
+    static String getOperationTypeAttr() {
+        return "\n    /**\n" +
+                "     * Specify the node specific operation in protocols like NETCONF.\n" +
+                "     * Applicable in protocol edit operation, will be ignored in query operation\n" +
+                "     */\n" +
+                "    private OperationType _operationType;\n" +
+                "\n";
+    }
+
+    /**
+     * Returns operation type enum, leaf value set attribute and select leaf attribute for constructor.
+     *
+     * @return operation type enum, leaf value set attribute and select leaf attribute for constructor
+     */
+    static String getOperationAttributeForConstructor() {
+        return "        this._valueLeafFlags = builderObject.get_valueLeafFlags();\n" +
+                "        this._selectLeafFlags = builderObject.get_selectLeafFlags();\n";
+    }
+
+    /**
+     * Returns operation type enum, leaf value set attribute and select leaf attribute for constructor.
+     *
+     * @return operation type enum, leaf value set attribute and select leaf attribute for constructor
+     */
+    static String getOperationTypeForConstructor() {
+        return "        this._operationType = builderObject.get_operationType();\n";
+    }
+
 }

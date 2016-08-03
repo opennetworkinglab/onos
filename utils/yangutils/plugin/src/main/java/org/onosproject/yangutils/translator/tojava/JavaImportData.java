@@ -42,9 +42,6 @@ import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.ONOS_EVENT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
-import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_INFO_CLASS_IMPORT_CLASS;
-import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_INFO_CLASS_IMPORT_PKG;
-import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUGMENTED_OP_PARAM_INFO_CLASS;
 import static java.util.Collections.sort;
 
 /**
@@ -226,7 +223,7 @@ public class JavaImportData {
      *
      * @return import for list attribute
      */
-    private String getImportForList() {
+    String getImportForList() {
         return IMPORT + COLLECTION_IMPORTS + PERIOD + LIST + SEMI_COLAN + NEW_LINE;
     }
 
@@ -282,25 +279,6 @@ public class JavaImportData {
      */
     String getHashMapImport() {
         return IMPORT + COLLECTION_IMPORTS + PERIOD + HASH_MAP + SEMI_COLAN + NEW_LINE;
-    }
-
-    /**
-     * Returns import string for hash map class.
-     *
-     * @return import string for hash map class
-     */
-    String getYangAugmentedInfoImport() {
-        return IMPORT + YANG_AUGMENTED_INFO_CLASS_IMPORT_PKG + PERIOD + YANG_AUGMENTED_INFO_CLASS_IMPORT_CLASS;
-    }
-
-    /**
-     * Returns import string for YangAugmentedOpParamInfo class.
-     *
-     * @return import string for YangAugmentedOpParamInfo class
-     */
-    String getYangAugmentedOpParamInfoImport() {
-        return IMPORT + YANG_AUGMENTED_INFO_CLASS_IMPORT_PKG + PERIOD +
-                YANG_AUGMENTED_OP_PARAM_INFO_CLASS;
     }
 
     /**

@@ -22,23 +22,20 @@ import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
+import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModuleTranslator;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModuleTranslator;
 import org.onosproject.yangutils.translator.tojava.utils.JavaExtendsListHolder;
-import org.onosproject.yangutils.datamodel.javadatamodel.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.RPC_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.RPC_INTERFACE_MASK;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.addAnnotationsImports;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.addListenersImport;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getJavaClassDefClose;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateManagerClassFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateServiceInterfaceFile;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.addResolvedAugmentedDataNodeImports;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.createPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getRpcManagerMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getRpcServiceMethod;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
-import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_REG;
 import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.RPC_INPUT_VAR_NAME;
@@ -47,7 +44,6 @@ import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.closeFile;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.generateJavaDocForRpc;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.insertDataIntoJavaFile;
 
 /**
  * Represents implementation of java service code fragments temporary implementations. Maintains the temp files required
@@ -72,16 +68,6 @@ public class TempJavaServiceFragmentFiles
     private static final String SERVICE_FILE_NAME_SUFFIX = "Service";
 
     /**
-     * File name for generated class file for manager suffix.
-     */
-    private static final String MANAGER_FILE_NAME_SUFFIX = "Manager";
-
-    /**
-     * Flag to set the manager files generation.
-     */
-    private boolean isManagerNeedToBeGenerated = false;
-
-    /**
      * Temporary file handle for rpc interface.
      */
     private File rpcInterfaceTempFileHandle;
@@ -97,16 +83,6 @@ public class TempJavaServiceFragmentFiles
     private File serviceInterfaceJavaFileHandle;
 
     /**
-     * Path for service file to be generated.
-     */
-    private String serviceGenPath;
-
-    /**
-     * Java file handle for manager impl file.
-     */
-    private File managerJavaFileHandle;
-
-    /**
      * Creates an instance of temporary java code fragment.
      *
      * @param javaFileInfo generated file information
@@ -117,8 +93,6 @@ public class TempJavaServiceFragmentFiles
         setJavaExtendsListHolder(new JavaExtendsListHolder());
         setJavaImportData(new JavaImportData());
         setJavaFileInfo(javaFileInfo);
-        setBaseCodePath(getJavaFileInfo().getBaseCodeGenPath());
-        setServiceGenPath(getJavaFileInfo().getPluginConfig().getCodeGenDir());
         setAbsoluteDirPath(getAbsolutePackagePath(getJavaFileInfo().getBaseCodeGenPath(),
                 getJavaFileInfo().getPackageFilePath()));
         addGeneratedTempFile(RPC_INTERFACE_MASK);
@@ -144,24 +118,6 @@ public class TempJavaServiceFragmentFiles
      */
     private void setServiceInterfaceJavaFileHandle(File serviceInterfaceJavaFileHandle) {
         this.serviceInterfaceJavaFileHandle = serviceInterfaceJavaFileHandle;
-    }
-
-    /**
-     * Returns managers java file handle.
-     *
-     * @return java file handle
-     */
-    private File getManagerJavaFileHandle() {
-        return managerJavaFileHandle;
-    }
-
-    /**
-     * Sets manager java file handle.
-     *
-     * @param managerJavaFileHandle file handle for to manager
-     */
-    private void setManagerJavaFileHandle(File managerJavaFileHandle) {
-        this.managerJavaFileHandle = managerJavaFileHandle;
     }
 
     /**
@@ -210,6 +166,8 @@ public class TempJavaServiceFragmentFiles
     @Override
     public void generateJavaFile(int fileType, YangNode curNode)
             throws IOException {
+
+        addResolvedAugmentedDataNodeImports(curNode);
         List<String> imports = ((JavaCodeGeneratorInfo) curNode).getTempJavaCodeFragmentFiles().getServiceTempFiles()
                 .getJavaImportData().getImports();
         createPackage(curNode);
@@ -228,28 +186,8 @@ public class TempJavaServiceFragmentFiles
             addListenersImport(curNode, imports, true, LISTENER_SERVICE);
         }
 
-        // Creates rpc interface file.
-        setBaseCodePath(getServiceGenPath());
         setServiceInterfaceJavaFileHandle(getJavaFileHandle(getJavaClassName(SERVICE_FILE_NAME_SUFFIX)));
         generateServiceInterfaceFile(getServiceInterfaceJavaFileHandle(), curNode, imports);
-        setBaseCodePath(getJavaFileInfo().getBaseCodeGenPath());
-        if (isNotification) {
-            addListenersImport(curNode, imports, false, LISTENER_SERVICE);
-            addListenersImport(curNode, imports, true, LISTENER_REG);
-        }
-        addAnnotationsImports(imports, true);
-
-        // Create builder class file.
-        if (isManagerNeedToBeGenerated()) {
-            setManagerJavaFileHandle(getJavaFileHandle(getJavaClassName(MANAGER_FILE_NAME_SUFFIX)));
-            generateManagerClassFile(getManagerJavaFileHandle(), imports, curNode);
-            insertDataIntoJavaFile(getManagerJavaFileHandle(), getJavaClassDefClose());
-        }
-        if (isNotification) {
-            addListenersImport(curNode, imports, false, LISTENER_REG);
-        }
-        addAnnotationsImports(imports, false);
-
 
         // Close all the file handles.
         freeTemporaryResources(false);
@@ -314,7 +252,6 @@ public class TempJavaServiceFragmentFiles
             throws IOException {
 
         closeFile(getServiceInterfaceJavaFileHandle(), isErrorOccurred);
-        closeFile(getManagerJavaFileHandle(), isErrorOccurred);
 
         closeFile(getRpcInterfaceTempFileHandle(), true);
         closeFile(getRpcImplTempFileHandle(), true);
@@ -325,41 +262,4 @@ public class TempJavaServiceFragmentFiles
         super.freeTemporaryResources(isErrorOccurred);
 
     }
-
-    /**
-     * Returns the path where service file should be generated.
-     *
-     * @return path where service file should be generated
-     */
-    private String getServiceGenPath() {
-        return serviceGenPath;
-    }
-
-    /**
-     * Sets path where service file should be generated.
-     *
-     * @param serviceGenPath path where service file should be generated
-     */
-    private void setServiceGenPath(String serviceGenPath) {
-        this.serviceGenPath = serviceGenPath;
-    }
-
-    /**
-     * Returns true if manager needs to be generated.
-     *
-     * @return true if manager needs to be generated
-     */
-    private boolean isManagerNeedToBeGenerated() {
-        return isManagerNeedToBeGenerated;
-    }
-
-    /**
-     * Sets true if manager needs to be generated.
-     *
-     * @param managerNeedToBeGenerated true if manager needs to be generated
-     */
-    public void setManagerNeedToBeGenerated(boolean managerNeedToBeGenerated) {
-        isManagerNeedToBeGenerated = managerNeedToBeGenerated;
-    }
-
 }

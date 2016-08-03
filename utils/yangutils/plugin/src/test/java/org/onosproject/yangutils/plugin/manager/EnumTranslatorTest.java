@@ -45,7 +45,6 @@ public final class EnumTranslatorTest {
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/EnumTestGenFile/");
-        yangPluginConfig.setManagerCodeGenDir("target/EnumTestGenFile/");
 
         generateJavaCode(node, yangPluginConfig);
 

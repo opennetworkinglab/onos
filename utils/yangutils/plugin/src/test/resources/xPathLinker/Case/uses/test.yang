@@ -2,9 +2,7 @@ module test {
     namespace "xpath:intra:single";  
     prefix test ;  
    
-    include test1;
     include test2;
-    include test4;
 
     organization "";  
     contact "";  
@@ -17,12 +15,6 @@ module test {
     }  
 
     augment /cont5/cont6/cont3/cont4 {
-       leaf a {
-          type int32;
-       }
-    }
-
-   augment /group1/cont3/cont4/cont8 {
        leaf a {
           type int32;
        }

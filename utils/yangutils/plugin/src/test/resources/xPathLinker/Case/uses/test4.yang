@@ -1,10 +1,9 @@
-submodule test4 {  
+submodule test3 {  
 
     belongs-to test {
          prefix test;
     } 
-      
-    include test2;
+    
     organization "";  
     contact "";  
        
@@ -27,11 +26,5 @@ submodule test4 {
             }
         }
     }
-
-    augment /ethernet/cont11 {
-       leaf leaf11 {
-             type int32;
-       }
-   }
     
 }

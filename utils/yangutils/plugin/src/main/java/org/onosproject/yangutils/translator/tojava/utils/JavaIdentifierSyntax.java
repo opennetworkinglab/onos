@@ -20,14 +20,16 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.datamodel.javadatamodel.JavaFileInfo;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
-import org.onosproject.yangutils.utils.io.impl.YangIoUtils;
 import org.onosproject.yangutils.datamodel.javadatamodel.YangToJavaNamingConflictUtil;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.getParentNodeInGenCode;
 import static org.onosproject.yangutils.utils.UtilConstants.COLAN;
@@ -48,6 +50,7 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.createDirector
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getJavaPackageFromPackagePath;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getPackageDirPathFromJavaJPackage;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getPrefixForIdentifier;
 
 /**
  * Represents an utility Class for translating the name from YANG to java convention.
@@ -109,14 +112,12 @@ public final class JavaIdentifierSyntax {
      */
     private static String getPkgFromNameSpace(String nameSpace, YangToJavaNamingConflictUtil conflictResolver) {
 
-        ArrayList<String> pkgArr = new ArrayList<String>();
+        ArrayList<String> pkgArr = new ArrayList<>();
         nameSpace = nameSpace.replace(QUOTES, EMPTY_STRING);
         String properNameSpace = nameSpace.replaceAll(REGEX_WITH_ALL_SPECIAL_CHAR, COLAN);
         String[] nameSpaceArr = properNameSpace.split(COLAN);
 
-        for (String nameSpaceString : nameSpaceArr) {
-            pkgArr.add(nameSpaceString);
-        }
+        Collections.addAll(pkgArr, nameSpaceArr);
         return getPkgFrmArr(pkgArr, conflictResolver);
     }
 
@@ -159,7 +160,7 @@ public final class JavaIdentifierSyntax {
         for (String member : pkgArr) {
             boolean presenceOfKeyword = JAVA_KEY_WORDS.contains(member.toLowerCase());
             if (presenceOfKeyword || member.matches(REGEX_FOR_FIRST_DIGIT)) {
-                String prefix = YangIoUtils.getPrefixForIdentifier(conflictResolver);
+                String prefix = getPrefixForIdentifier(conflictResolver);
                 member = prefix + member;
             }
             pkg = pkg + member;
@@ -183,10 +184,8 @@ public final class JavaIdentifierSyntax {
         String[] strArray = name.split(COLAN);
         String output = EMPTY_STRING;
         if (strArray[0].isEmpty()) {
-            List<String> stringArrangement = new ArrayList<String>();
-            for (int i = 1; i < strArray.length; i++) {
-                stringArrangement.add(strArray[i]);
-            }
+            List<String> stringArrangement = new ArrayList<>();
+            stringArrangement.addAll(Arrays.asList(strArray).subList(1, strArray.length));
             strArray = stringArrangement.toArray(new String[stringArrangement.size()]);
         }
         for (int i = 0; i < strArray.length; i++) {
@@ -236,7 +235,7 @@ public final class JavaIdentifierSyntax {
      * @param pkg Package to check if it is created
      * @return existence status of package
      */
-    public static boolean doesPackageExist(String pkg) {
+    static boolean doesPackageExist(String pkg) {
         File pkgDir = new File(getPackageDirPathFromJavaJPackage(pkg));
         File pkgWithFile = new File(pkgDir + SLASH + "package-info.java");
         return pkgDir.exists() && pkgWithFile.isFile();

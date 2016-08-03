@@ -107,6 +107,11 @@ public final class UtilConstants {
     public static final String JAVA_DOC_SETTERS = " * Returns the builder object of ";
 
     /**
+     * JavaDocs's description for add to list method.
+     */
+    public static final String JAVA_DOC_ADD_TO_LIST = " * Adds to the list of ";
+
+    /**
      * JavaDocs's description for setter method.
      */
     public static final String JAVA_DOC_MANAGER_SETTERS = " * Sets the value to attribute ";
@@ -187,11 +192,6 @@ public final class UtilConstants {
     public static final String OPERATION = "OpParam";
 
     /**
-     * Static attribute for operation type.
-     */
-    public static final String OPERATION_ENUM = "OperationType";
-
-    /**
      * Static attribute for java code generation for sbi.
      */
     public static final String SBI = "sbi";
@@ -217,14 +217,14 @@ public final class UtilConstants {
     public static final String PERIOD = ".";
 
     /**
+     * Static attribute for period.
+     */
+    public static final String INVOKE = "invoke";
+
+    /**
      * Static attribute for parse byte.
      */
     public static final String PARSE_BYTE = "parseByte";
-
-    /**
-     * Static attribute for get bytes.
-     */
-    public static final String GET_BYTES = "getBytes";
 
     /**
      * Static attribute for parse boolean.
@@ -694,11 +694,6 @@ public final class UtilConstants {
     public static final String OPEN_PARENTHESIS = "(";
 
     /**
-     * Static attribute for received syntax.
-     */
-    public static final String RECEIVED_OBJECT = "recv";
-
-    /**
      * Static attribute for switch syntax.
      */
     public static final String SWITCH = "switch";
@@ -749,6 +744,16 @@ public final class UtilConstants {
     public static final String GET_METHOD_PREFIX = "get";
 
     /**
+     * Static attribute for getter method prefix.
+     */
+    public static final String GET_METHOD = "getMethod";
+
+    /**
+     * Static attribute for getter method prefix.
+     */
+    public static final String GET_CLASS = "getClass()";
+
+    /**
      * Static attribute for setter method prefix.
      */
     public static final String SET_METHOD_PREFIX = "set";
@@ -756,62 +761,58 @@ public final class UtilConstants {
     /**
      * Static attribute for get filter leaf flags.
      */
-    public static final String GET_FILTER_LEAF = "getFilterLeafFlags";
+    public static final String GET_FILTER_LEAF = "get_valueLeafFlags";
 
     /**
-     * Static attribute for get filter leaf list flags.
+     * Static attribute for getLeafIndex.
      */
-    public static final String GET_FILTER_LEAF_LIST = "getFilterLeafListFlags";
+    public static final String GET_LEAF_INDEX = "getLeafIndex()";
 
     /**
-     * Static attribute for filter leaf flags.
+     * Static attribute for op param.
      */
-    public static final String FILTER_LEAF = "filterLeafFlags";
+    public static final String OP_PARAM = "OpParam";
 
-    /**
-     * Static attribute for filter leaf list flags.
-     */
-    public static final String FILTER_LEAF_LIST = "filterLeafListFlags";
-
-    /**
-     * Static attribute for get select leaf flags.
-     */
-    public static final String GET_SELECT_LEAF = "getSelectLeafFlags";
-
-    /**
-     * Static attribute for get select leaf list flags.
-     */
-    public static final String GET_SELECT_LEAF_LIST = "getSelectLeafListFlags";
-
-    /**
-     * Static attribute for get operation type.
-     */
-    public static final String GET_OPERATION_TYPE = "getOpertionType";
-
-    /**
-     * Static attribute for set operation type.
-     */
-    public static final String SET_OPERATION_TYPE = "setOpertionType";
-
-    /**
-     * Static attribute for select leaf flags.
-     */
-    public static final String SELECT_LEAF = "selectLeafFlags";
-
-    /**
-     * Static attribute for select leaf list flags.
-     */
-    public static final String SELECT_LEAF_LIST = "selectLeafListFlags";
-
-    /**
-     * Static attribute for op param type.
-     */
-    public static final String OP_PARAM_TYPE = "opParamType";
 
     /**
      * Static attribute for is filter content match method prefix.
      */
     public static final String FILTER_CONTENT_MATCH = "isFilterContentMatch";
+
+    /**
+     * Static attribute for flag prefix.
+     */
+    public static final String FLAG = "flag";
+
+    /**
+     * Static attribute for break prefix.
+     */
+    public static final String BREAK = "break";
+
+    /**
+     * Static attribute for break prefix.
+     */
+    public static final String IS_EMPTY = "isEmpty()";
+
+    /**
+     * Static attribute for is isLeafValueSet method prefix.
+     */
+    public static final String VALUE_LEAF_SET = "isLeafValueSet";
+
+    /**
+     * Static attribute for is isSelectLeaf method prefix.
+     */
+    public static final String IS_SELECT_LEAF = "isSelectLeaf";
+
+    /**
+     * Static attribute for is selectLeaf method prefix.
+     */
+    public static final String SET_SELECT_LEAF = "selectLeaf";
+
+    /**
+     * Static attribute for is LeafIdentifier enum prefix.
+     */
+    public static final String LEAF_IDENTIFIER = "LeafIdentifier";
 
     /**
      * Static attribute for four space indentation.
@@ -834,36 +835,6 @@ public final class UtilConstants {
     public static final String CATCH = "catch";
 
     /**
-     * Static attribute for super syntax.
-     */
-    public static final String SUPER = "super";
-
-    /**
-     * Static attribute for merge syntax.
-     */
-    public static final String MERGE = "MERGE,";
-
-    /**
-     * Static attribute for replace syntax.
-     */
-    public static final String REPLACE = "REPLACE,";
-
-    /**
-     * Static attribute for create syntax.
-     */
-    public static final String CREATE = "CREATE,";
-
-    /**
-     * Static attribute for delete syntax.
-     */
-    public static final String DELETE = "DELETE,";
-
-    /**
-     * Static attribute for remove syntax.
-     */
-    public static final String REMOVE = "REMOVE";
-
-    /**
      * Static attribute for eight space indentation.
      */
     public static final String EIGHT_SPACE_INDENTATION = FOUR_SPACE_INDENTATION + FOUR_SPACE_INDENTATION;
@@ -877,6 +848,16 @@ public final class UtilConstants {
      * Static attribute for sixteen space indentation.
      */
     public static final String SIXTEEN_SPACE_INDENTATION = EIGHT_SPACE_INDENTATION + EIGHT_SPACE_INDENTATION;
+
+    /**
+     * Static attribute for twenty space indentation.
+     */
+    public static final String TWENTY_SPACE_INDENTATION = FOUR_SPACE_INDENTATION + SIXTEEN_SPACE_INDENTATION;
+
+    /**
+     * Static attribute for twenty four space indentation.
+     */
+    public static final String TWENTY_FOUR_SPACE_INDENTATION = EIGHT_SPACE_INDENTATION + SIXTEEN_SPACE_INDENTATION;
 
     /**
      * Static attribute for generated code path.
@@ -899,7 +880,7 @@ public final class UtilConstants {
     public static final String YANG_AUTO_PREFIX = "yangAutoPrefix";
 
     /**
-     * Static attribute for YANG version perifx.
+     * Static attribute for YANG version prefix.
      */
     public static final String VERSION_PREFIX = "v";
 
@@ -1014,7 +995,7 @@ public final class UtilConstants {
     public static final String LONG_WRAPPER = "Long";
 
     /**
-     * Static varibale for question mark.
+     * Static variable for question mark.
      */
     public static final String QUESTION_MARK = "?";
 
@@ -1022,11 +1003,11 @@ public final class UtilConstants {
      * List of keywords in java, this is used for checking if the input does not contain these keywords.
      */
     public static final List<String> JAVA_KEY_WORDS = Arrays.asList(
-            "abstract", "continue", "for", "new", "switch", "assert", "default", "goto", "package", "synchronized",
-            "boolean", "do", "if", "private", "this", "break", "double", "implements", "protected", "throw", "byte",
-            "else", "import", "public", "throws", "case", "enum", "instanceof", "return", "transient", "catch",
-            "extends", "int", "short", "try", "char", "final", "interface", "static", "void", "class", "finally",
-            "long", "strictfp", "volatile", "const", "float", "native", "super", "while");
+            "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",
+            "default", "do", "double", "else", "extends", "false", "final", "finally", "float", "for", "goto", "if",
+            "implements", "import", "instanceof", "enum", "int", "interface", "long", "native", "new", "null",
+            "package", "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch",
+            "synchronized", "this", "throw", "throws", "transient", "true", "try", "void", "volatile", "while");
 
     /**
      * Static attribute for regex for all the special characters.
@@ -1199,11 +1180,6 @@ public final class UtilConstants {
     public static final String EVENT_SUBJECT_NAME_SUFFIX = "EventSubject";
 
     /**
-     * Static attribute for impl syntax.
-     */
-    public static final String IMPL = "Impl";
-
-    /**
      * Static attribute for build method syntax.
      */
     public static final String BUILD = "build";
@@ -1275,21 +1251,6 @@ public final class UtilConstants {
     public static final String JAVA_UTIL_IMPORT_BASE64_CLASS = "Base64;\n";
 
     /**
-     * Static attribute for AugmentedInfo class import package.
-     */
-    public static final String YANG_AUGMENTED_INFO_CLASS_IMPORT_PKG = "org.onosproject.yangutils.datamodel";
-
-    /**
-     * Static attribute for AugmentedInfo class import class.
-     */
-    public static final String YANG_AUGMENTED_INFO_CLASS_IMPORT_CLASS = "YangAugmentedInfo;\n";
-
-    /**
-     * Static attribute for augmentation class.
-     */
-    public static final String AUGMENTED_INFO = "AugmentedInfo";
-
-    /**
      * Static attribute for AugmentedInfo class.
      */
     public static final String YANG_AUGMENTED_INFO = "YangAugmentedInfo";
@@ -1305,102 +1266,9 @@ public final class UtilConstants {
     public static final String LIST = "List";
 
     /**
-     * Comment to be added for autogenerated impl methods.
+     * Comment to be added for auto generated impl methods.
      */
     public static final String YANG_UTILS_TODO = "//TODO: YANG utils generated code";
-
-    /**
-     * Static attribute for activate annotation.
-     */
-    public static final String ACTIVATE_ANNOTATION = "@Activate\n";
-
-    /**
-     * Static attribute for activate.
-     */
-    public static final String ACTIVATE = "activate";
-
-    /**
-     * Static attribute for activate annotation import.
-     */
-    public static final String ACTIVATE_ANNOTATION_IMPORT = "import org.apache.felix.scr.annotations.Activate;\n";
-
-    /**
-     * Static attribute for deactivate annotation.
-     */
-    public static final String DEACTIVATE_ANNOTATION = "@Deactivate\n";
-
-    /**
-     * Static attribute for deactivate.
-     */
-    public static final String DEACTIVATE = "deactivate";
-
-    /**
-     * Static attribute for deactivate annotation import.
-     */
-    public static final String DEACTIVATE_ANNOTATION_IMPORT =
-            "import org.apache.felix.scr.annotations.Deactivate;\n";
-
-    /**
-     * Static attribute for component annotation.
-     */
-    public static final String COMPONENT_ANNOTATION = "@Component";
-
-    /**
-     * Static attribute for component.
-     */
-    public static final String COMPONENT = "Component";
-
-    /**
-     * Static attribute for immediate.
-     */
-    public static final String IMMEDIATE = "immediate";
-
-    /**
-     * Static attribute for component annotation import.
-     */
-    public static final String COMPONENT_ANNOTATION_IMPORT =
-            "import org.apache.felix.scr.annotations.Component;\n";
-
-    /**
-     * Static attribute for service annotation.
-     */
-    public static final String SERVICE_ANNOTATION = "@Service\n";
-
-    /**
-     * Static attribute for service annotation import.
-     */
-    public static final String SERVICE_ANNOTATION_IMPORT =
-            "import org.apache.felix.scr.annotations.Service;\n";
-
-    /**
-     * Static attribute for logger factory import.
-     */
-    public static final String LOGGER_FACTORY_IMPORT =
-            "import static org.slf4j.LoggerFactory.getLogger;\n";
-
-    /**
-     * Static attribute for logger import.
-     */
-    public static final String LOGGER_IMPORT =
-            "import org.slf4j.Logger;\n";
-
-    /**
-     * Static attribute for logger statement.
-     */
-    public static final String LOGGER_STATEMENT =
-            "\n    private final Logger log = getLogger(getClass());\n";
-
-    /**
-     * Static attribute for logger statement for started.
-     */
-    public static final String STARTED_LOG_INFO =
-            "log.info(\"Started\");\n";
-
-    /**
-     * Static attribute for logger statement for stopped.
-     */
-    public static final String STOPPED_LOG_INFO =
-            "log.info(\"Stopped\");\n";
 
     /**
      * Static attribute for AbstractEvent.
@@ -1470,16 +1338,6 @@ public final class UtilConstants {
             + "identity for given base";
 
     /**
-     * Static attribute for reference.
-     */
-    public static final String REFERENCE = "Reference";
-
-    /**
-     * Static attribute for ReferenceCardinality.
-     */
-    public static final String REFERENCE_CARDINALITY = "ReferenceCardinality";
-
-    /**
      * Static attribute for jar.
      */
     public static final String JAR = "jar";
@@ -1495,31 +1353,34 @@ public final class UtilConstants {
     public static final String YANG_AUGMENTED_OP_PARAM_INFO = "YangAugmentedOpParamInfo";
 
     /**
-     * Static attribute for YangAugmentedOpParamInfo.
+     * Static attribute for NoSuchMethodException.
      */
-    public static final String YANG_AUGMENTED_OP_PARAM_INFO_CLASS = "YangAugmentedOpParamInfo;\n";
+    public static final String NO_SUCH_METHOD_EXCEPTION = "NoSuchMethodException";
 
     /**
-     * Static attribute for IllegalArgumentException.
+     * Static attribute for InvocationTargetException.
      */
-    public static final String ILLEGAL_ARGUMENT_EXCEPTION = "IllegalArgumentException";
+    public static final String INVOCATION_TARGET_EXCEPTION = "InvocationTargetException";
 
     /**
-     * Static attribute for IllegalArgumentException.
+     * Static attribute for InvocationTargetException.
      */
-    public static final String ILLEGAL_ARGUMENT_EXCEPTION_MSG = "\"provided augmented info is invalid for content " +
-            "match.\"";
+    public static final String INVOCATION_TARGET_EXCEPTION_IMPORT = "import" +
+            " java.lang.reflect.InvocationTargetException;\n";
+    /**
+     * Static attribute for IllegalAccessException.
+     */
+    public static final String ILLEGAL_ACCESS_EXCEPTION = "IllegalAccessException";
 
     /**
-     * Static attribute for throw.
+     * Static attribute for arrayList.
      */
-    public static final String THROW = "throw";
+    public static final String ARRAY_LIST = "ArrayList<>()";
 
     /**
-     * Static attribute for baseClass().
+     * Static attribute for arrayList import.
      */
-    public static final String BASE_CLASS = "BaseClass()";
-
+    public static final String ARRAY_LIST_IMPORT = IMPORT + COLLECTION_IMPORTS + ".ArrayList;\n";
 
     /**
      * Creates an instance of util constants.

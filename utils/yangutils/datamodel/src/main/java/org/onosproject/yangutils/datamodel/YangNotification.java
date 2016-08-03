@@ -124,8 +124,8 @@ public class YangNotification
      */
     public YangNotification() {
         super(YangNodeType.NOTIFICATION_NODE);
-        listOfLeaf = new LinkedList<YangLeaf>();
-        listOfLeafList = new LinkedList<YangLeafList>();
+        listOfLeaf = new LinkedList<>();
+        listOfLeafList = new LinkedList<>();
     }
 
     @Override

@@ -13,21 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.yangutils.translator.tojava.javamodel;
 
-import org.onosproject.yangutils.datamodel.javadatamodel.YangToJavaNamingConflictUtil;
-import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoContainer;
+package org.onosproject.yangutils.datamodel;
 
 /**
- * Represent java based identification of the YANG leaves.
+ * Represent the YANG nodes which can contain is filter content match.
  */
-interface JavaQualifiedTypeResolver
-        extends JavaQualifiedTypeInfoContainer {
-
-    /**
-     * updates the qualified access details of the type.
-     *
-     * @param conflictResolver plugin configurations
-     */
-    void updateJavaQualifiedInfo(YangToJavaNamingConflictUtil conflictResolver);
+public interface YangIsFilterContentNodes {
 }

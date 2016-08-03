@@ -36,7 +36,6 @@ import static org.onosproject.yangutils.translator.tojava.javamodel.AttributesJa
  */
 public class JavaQualifiedTypeInfoTranslator extends JavaQualifiedTypeInfo
         implements Comparable<JavaQualifiedTypeInfoTranslator>, Serializable {
-
     private static final long serialVersionUID = 806201634L;
 
     /**
@@ -98,7 +97,7 @@ public class JavaQualifiedTypeInfoTranslator extends JavaQualifiedTypeInfo
          * Current leaves holder is adding a leaf info as a attribute to the
          * current class.
          */
-        String className = AttributesJavaDataType.getJavaImportClass(leaf.getDataType(), leaf.isLeafList(),
+        String className = getJavaImportClass(leaf.getDataType(), leaf.isLeafList(),
                 leaf.getConflictResolveConfig());
         if (className != null) {
             /*
@@ -106,7 +105,7 @@ public class JavaQualifiedTypeInfoTranslator extends JavaQualifiedTypeInfo
              * since it can be a derived type or a usage of wrapper classes.
              */
             importInfo.setClassInfo(className);
-            String classPkg = AttributesJavaDataType.getJavaImportPackage(leaf.getDataType(),
+            String classPkg = getJavaImportPackage(leaf.getDataType(),
                     leaf.isLeafList(), leaf.getConflictResolveConfig());
             if (classPkg == null) {
                 throw new TranslatorException("import package cannot be null when the class is used");
@@ -222,5 +221,4 @@ public class JavaQualifiedTypeInfoTranslator extends JavaQualifiedTypeInfo
     public int compareTo(JavaQualifiedTypeInfoTranslator other) {
         return getClassInfo().compareTo(other.getClassInfo());
     }
-
 }

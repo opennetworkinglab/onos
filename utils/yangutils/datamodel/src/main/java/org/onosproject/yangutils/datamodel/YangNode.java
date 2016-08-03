@@ -16,6 +16,7 @@
 package org.onosproject.yangutils.datamodel;
 
 import java.io.Serializable;
+
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.datamodel.utils.Parsable;
 
@@ -185,7 +186,7 @@ public abstract class YangNode
      *
      * @param sibling YANG node
      */
-    private void setNextSibling(YangNode sibling) {
+    public void setNextSibling(YangNode sibling) {
         nextSibling = sibling;
     }
 
@@ -203,7 +204,7 @@ public abstract class YangNode
      *
      * @param previousSibling points to predecessor sibling
      */
-    private void setPreviousSibling(YangNode previousSibling) {
+    public void setPreviousSibling(YangNode previousSibling) {
         this.previousSibling = previousSibling;
     }
 

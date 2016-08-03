@@ -123,4 +123,5 @@ public class YangJavaCaseTranslator
             throw new TranslatorException("Failed to generate code for case node " + getName());
         }
     }
+
 }

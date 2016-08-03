@@ -71,7 +71,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  */
 public class YangInput
         extends YangNode
-        implements YangLeavesHolder, Parsable, CollisionDetector, YangAugmentableNode {
+        implements YangLeavesHolder, Parsable, CollisionDetector, YangAugmentableNode, YangIsFilterContentNodes {
 
     private static final long serialVersionUID = 806201608L;
 
@@ -97,8 +97,8 @@ public class YangInput
      */
     public YangInput() {
         super(YangNodeType.INPUT_NODE);
-        listOfLeaf = new LinkedList<YangLeaf>();
-        listOfLeafList = new LinkedList<YangLeafList>();
+        listOfLeaf = new LinkedList<>();
+        listOfLeafList = new LinkedList<>();
     }
 
     @Override
