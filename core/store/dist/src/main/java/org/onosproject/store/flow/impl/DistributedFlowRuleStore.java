@@ -745,7 +745,7 @@ public class DistributedFlowRuleStore
                             Sets.difference(deviceFlowEntries.keySet(), backedupDevices);
                         if (devicesNotBackedup.size() > 0) {
                             log.warn("Failed to backup devices: {}. Reason: {}",
-                                     devicesNotBackedup, error.getMessage());
+                                     devicesNotBackedup, error != null ? error.getMessage() : "none");
                         }
                         if (backedupDevices != null) {
                             backedupDevices.forEach(id -> {
