@@ -15,21 +15,22 @@
  */
 package org.onosproject.net.optical;
 
-import org.onosproject.net.CltSignalType;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.Port;
+
 import com.google.common.annotations.Beta;
 
 /**
- * ODU client port (Optical channel Data Unit).
- * Also referred to as a T-port or wide band port.
- * See ITU G.709 "Interfaces for the Optical Transport Network (OTN)"
+ * Abstraction of a network port.
  */
 @Beta
-public interface OduCltPort extends ProjectedPort {
+public interface ProjectedPort extends Port {
 
     /**
-     * Returns ODU client signal type.
+     * Returns the key/value annotations, not used by projection.
      *
-     * @return ODU client signal type
+     * @return key/value annotations
      */
-    CltSignalType signalType();
+    Annotations unhandledAnnotations();
+
 }

@@ -33,6 +33,7 @@ import org.onosproject.net.optical.impl.DefaultOduCltPort;
 import org.slf4j.Logger;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * ODU client port related helpers.
@@ -120,6 +121,16 @@ public final class OduCltPortHelper {
             log.warn("{} was not well-formed OduClt port.", port, e);
             return Optional.empty();
         }
+    }
+
+    /**
+     * Returns {@link Annotations} not used by the port type projection.
+     *
+     * @param input {@link Annotations}
+     * @return filtered view of given {@link Annotations}
+     */
+    public static Annotations stripHandledAnnotations(Annotations input) {
+        return new FilteredAnnotation(input, ImmutableSet.of(SIGNAL_TYPE));
     }
 
     // not meant to be instantiated

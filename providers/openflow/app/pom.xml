@@ -33,6 +33,7 @@
         <onos.app.title>OpenFlow Meta App</onos.app.title>
         <onos.app.category>Provider</onos.app.category>
         <onos.app.requires>
+            org.onosproject.optical-model,
             org.onosproject.openflow-base,
             org.onosproject.hostprovider,
             org.onosproject.lldpprovider

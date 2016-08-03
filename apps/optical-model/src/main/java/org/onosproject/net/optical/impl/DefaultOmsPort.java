@@ -16,10 +16,12 @@
 package org.onosproject.net.optical.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.optical.device.OmsPortHelper.stripHandledAnnotations;
 
 import java.util.Objects;
 
 import org.onlab.util.Frequency;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.Port;
 import org.onosproject.net.optical.OmsPort;
 import org.onosproject.net.utils.ForwardingPort;
@@ -67,6 +69,12 @@ public class DefaultOmsPort extends ForwardingPort implements OmsPort {
     }
 
     @Override
+    public Annotations unhandledAnnotations() {
+        return stripHandledAnnotations(super.annotations());
+    }
+
+
+    @Override
     public Frequency minFrequency() {
         return minFrequency;
     }
@@ -112,6 +120,7 @@ public class DefaultOmsPort extends ForwardingPort implements OmsPort {
                 .add("minFrequency", minFrequency())
                 .add("maxFrequency", maxFrequency())
                 .add("grid", grid())
+                .add("annotations", unhandledAnnotations())
                 .toString();
     }
 

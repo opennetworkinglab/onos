@@ -17,8 +17,6 @@ package org.onosproject.net.optical;
 
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalType;
-import org.onosproject.net.Port;
-
 import com.google.common.annotations.Beta;
 
 /**
@@ -27,7 +25,7 @@ import com.google.common.annotations.Beta;
  * See ITU G.709 "Interfaces for the Optical Transport Network (OTN)"
  */
 @Beta
-public interface OchPort extends Port {
+public interface OchPort extends ProjectedPort {
 
     /**
      * Returns ODU signal type.

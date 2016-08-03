@@ -5,8 +5,6 @@ COMPILE_DEPS = [
     '//incubator/net:onos-incubator-net',
     '//utils/rest:onlab-rest',
     '//core/common:onos-core-common',
-    # TODO Remove after decoupling optical
-    '//apps/optical-model:onos-apps-optical-model',
 ]
 
 osgi_jar (

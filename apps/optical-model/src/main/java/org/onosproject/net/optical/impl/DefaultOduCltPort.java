@@ -16,9 +16,11 @@
 package org.onosproject.net.optical.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.optical.device.OduCltPortHelper.stripHandledAnnotations;
 
 import java.util.Objects;
 
+import org.onosproject.net.Annotations;
 import org.onosproject.net.CltSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.optical.OduCltPort;
@@ -58,6 +60,11 @@ public class DefaultOduCltPort extends ForwardingPort implements OduCltPort {
     }
 
     @Override
+    public Annotations unhandledAnnotations() {
+        return stripHandledAnnotations(super.annotations());
+    }
+
+    @Override
     public CltSignalType signalType() {
         return signalType;
     }
@@ -87,6 +94,7 @@ public class DefaultOduCltPort extends ForwardingPort implements OduCltPort {
     public String toString() {
         return super.toStringHelper()
                 .add("signalType", signalType())
+                .add("annotations", unhandledAnnotations())
                 .toString();
     }
 

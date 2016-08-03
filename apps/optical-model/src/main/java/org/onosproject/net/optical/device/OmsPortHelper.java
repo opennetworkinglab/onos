@@ -33,6 +33,7 @@ import org.onosproject.net.optical.impl.DefaultOmsPort;
 import org.slf4j.Logger;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * OMS port related helpers.
@@ -140,6 +141,16 @@ public final class OmsPortHelper {
             log.warn("{} was not well-formed OMS port.", port, e);
             return Optional.empty();
         }
+    }
+
+    /**
+     * Returns {@link Annotations} not used by the port type projection.
+     *
+     * @param input {@link Annotations}
+     * @return filtered view of given {@link Annotations}
+     */
+    public static Annotations stripHandledAnnotations(Annotations input) {
+        return new FilteredAnnotation(input, ImmutableSet.of(MIN_FREQ_HZ, MAX_FREQ_HZ, GRID_HZ));
     }
 
     // not meant to be instantiated

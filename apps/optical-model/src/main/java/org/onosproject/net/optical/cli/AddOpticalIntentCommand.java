@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cli.net;
+package org.onosproject.net.optical.cli;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
+import org.onosproject.cli.app.AllApplicationNamesCompleter;
+import org.onosproject.cli.net.ConnectPointCompleter;
+import org.onosproject.cli.net.ConnectivityIntentCommand;
 import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -44,6 +47,14 @@ import static org.onosproject.net.optical.device.OpticalDeviceServiceView.optica
 @Command(scope = "onos", name = "add-optical-intent",
          description = "Installs optical connectivity intent")
 public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
+
+    // OSGi workaround
+    @SuppressWarnings("unused")
+    private ConnectPointCompleter cpCompleter;
+
+    // OSGi workaround
+    @SuppressWarnings("unused")
+    private AllApplicationNamesCompleter appCompleter;
 
     @Argument(index = 0, name = "ingressDevice",
               description = "Ingress Device/Port Description",

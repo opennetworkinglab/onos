@@ -16,8 +16,6 @@
 package org.onosproject.net.optical;
 
 import org.onlab.util.Frequency;
-import org.onosproject.net.Port;
-
 import com.google.common.annotations.Beta;
 
 /**
@@ -28,7 +26,7 @@ import com.google.common.annotations.Beta;
  * Assumes we only support fixed grid for now.
  */
 @Beta
-public interface OmsPort extends Port {
+public interface OmsPort extends ProjectedPort {
 
     /**
      * Returns the total number of channels on the port.

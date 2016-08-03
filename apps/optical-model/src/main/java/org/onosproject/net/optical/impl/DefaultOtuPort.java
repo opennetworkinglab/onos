@@ -16,9 +16,11 @@
 package org.onosproject.net.optical.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.optical.device.OtuPortHelper.stripHandledAnnotations;
 
 import java.util.Objects;
 
+import org.onosproject.net.Annotations;
 import org.onosproject.net.OtuSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.optical.OtuPort;
@@ -57,6 +59,11 @@ public class DefaultOtuPort extends ForwardingPort implements OtuPort {
 //    }
 
     @Override
+    public Annotations unhandledAnnotations() {
+        return stripHandledAnnotations(super.annotations());
+    }
+
+    @Override
     public OtuSignalType signalType() {
         return signalType;
     }
@@ -86,6 +93,7 @@ public class DefaultOtuPort extends ForwardingPort implements OtuPort {
     public String toString() {
         return super.toStringHelper()
                 .add("signalType", signalType())
+                .add("annotations", unhandledAnnotations())
                 .toString();
     }
 

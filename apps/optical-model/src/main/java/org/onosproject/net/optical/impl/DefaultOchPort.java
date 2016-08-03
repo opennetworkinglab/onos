@@ -25,6 +25,7 @@ import org.onosproject.net.utils.ForwardingPort;
 import com.google.common.annotations.Beta;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.optical.device.OchPortHelper.stripHandledAnnotations;
 
 import java.util.Objects;
 
@@ -71,12 +72,9 @@ public class DefaultOchPort extends ForwardingPort implements OchPort {
         return signalType.bitRate();
     }
 
-
     @Override
-    public Annotations annotations() {
-        // FIXME Filter OCh annotations, after confirming that
-        // it'll not result in information-loss
-        return super.annotations();
+    public Annotations unhandledAnnotations() {
+        return stripHandledAnnotations(super.annotations());
     }
 
     /**
@@ -140,6 +138,7 @@ public class DefaultOchPort extends ForwardingPort implements OchPort {
                 .add("signalType", signalType())
                 .add("isTunable", isTunable())
                 .add("lambda", lambda())
+                .add("annotations", unhandledAnnotations())
                 .toString();
     }
 }

@@ -16,8 +16,6 @@
 package org.onosproject.net.optical;
 
 import org.onosproject.net.OtuSignalType;
-import org.onosproject.net.Port;
-
 import com.google.common.annotations.Beta;
 
 /**
@@ -27,7 +25,7 @@ import com.google.common.annotations.Beta;
  * Open Networking Foundation "Optical Transport Protocol Extensions Version 1.0".
  */
 @Beta
-public interface OtuPort extends Port {
+public interface OtuPort extends ProjectedPort {
 
     /**
      * Returns OTU signal type.

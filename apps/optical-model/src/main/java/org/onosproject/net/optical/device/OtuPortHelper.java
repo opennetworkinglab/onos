@@ -33,6 +33,7 @@ import org.onosproject.net.optical.impl.DefaultOtuPort;
 import org.slf4j.Logger;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * OTU port related helpers.
@@ -122,6 +123,15 @@ public final class OtuPortHelper {
         }
     }
 
+    /**
+     * Returns {@link Annotations} not used by the port type projection.
+     *
+     * @param input {@link Annotations}
+     * @return filtered view of given {@link Annotations}
+     */
+    public static Annotations stripHandledAnnotations(Annotations input) {
+        return new FilteredAnnotation(input, ImmutableSet.of(SIGNAL_TYPE));
+    }
 
     // not meant to be instantiated
     private OtuPortHelper() {}

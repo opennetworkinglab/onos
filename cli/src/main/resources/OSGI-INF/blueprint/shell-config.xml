@@ -292,16 +292,6 @@
             </optional-completers>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.AddOpticalIntentCommand"/>
-            <completers>
-                <ref component-id="connectPointCompleter"/>
-                <ref component-id="connectPointCompleter"/>
-            </completers>
-            <optional-completers>
-                <entry key="-a" value-ref="allAppNameCompleter"/>
-            </optional-completers>
-        </command>
-        <command>
             <action class="org.onosproject.cli.net.GetStatisticsCommand"/>
             <completers>
                 <ref component-id="connectPointCompleter"/>

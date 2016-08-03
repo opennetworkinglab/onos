@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.Beta;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * OCh port related helpers.
@@ -149,6 +150,16 @@ public final class OchPortHelper {
             log.warn("{} was not well-formed OCh port.", port, e);
             return Optional.empty();
         }
+    }
+
+    /**
+     * Returns {@link Annotations} not used by the port type projection.
+     *
+     * @param input {@link Annotations}
+     * @return filtered view of given {@link Annotations}
+     */
+    public static Annotations stripHandledAnnotations(Annotations input) {
+        return new FilteredAnnotation(input, ImmutableSet.of(SIGNAL_TYPE, TUNABLE, LAMBDA));
     }
 
     // not meant to be instantiated

@@ -1,6 +1,8 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//incubator/api:onos-incubator-api',
+    '//cli:onos-cli',
+    '//lib:org.apache.karaf.shell.console',
 ]
 
 TEST_DEPS = [
