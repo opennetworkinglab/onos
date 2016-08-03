@@ -1,5 +1,4 @@
 APPS = [
-    'org.onosproject.optical-model',
     'org.onosproject.openflow-base',
     'org.onosproject.hostprovider',
     'org.onosproject.lldpprovider',

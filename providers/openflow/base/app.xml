@@ -17,7 +17,7 @@
 <app name="org.onosproject.openflow-base" origin="ON.Lab" version="${project.version}"
      category="Provider" url="http://onosproject.org" title="OpenFlow Provider"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
-     features="${project.artifactId}">
+     features="${project.artifactId}" apps="org.onosproject.optical-model">
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/onos-of-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-of-ctl/${project.version}</artifact>
