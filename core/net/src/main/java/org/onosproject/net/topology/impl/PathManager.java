@@ -18,13 +18,17 @@ package org.onosproject.net.topology.impl;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.DisjointPath;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
+import org.onosproject.net.host.HostService;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
+import org.onosproject.net.topology.TopologyService;
 import org.onosproject.net.topology.AbstractPathService;
 import org.slf4j.Logger;
 
@@ -45,11 +49,19 @@ import static org.onosproject.security.AppPermission.Type.*;
 @Service
 public class PathManager extends AbstractPathService implements PathService {
 
-
     private final Logger log = getLogger(getClass());
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected TopologyService topologyService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostService hostService;
 
     @Activate
     public void activate() {
+        // initialize AbstractPathService
+        super.topologyService = this.topologyService;
+        super.hostService = this.hostService;
         log.info("Started");
     }
 

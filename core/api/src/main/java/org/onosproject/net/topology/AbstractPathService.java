@@ -18,9 +18,6 @@ package org.onosproject.net.topology;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultDisjointPath;
 import org.onosproject.net.DefaultEdgeLink;
@@ -46,9 +43,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Helper class for path service.
+ * <p>
+ * Class inheriting this must manually initialize {@code topologyService}
+ * and {@code hostService} fields.
  */
-@Component(componentAbstract = true)
-public abstract class AbstractPathService {
+public abstract class AbstractPathService
+    implements PathService {
 
     private static final String ELEMENT_ID_NULL = "Element ID cannot be null";
     private static final EdgeLink NOT_HOST = new NotHost();
@@ -56,12 +56,11 @@ public abstract class AbstractPathService {
     private static final ProviderId PID = new ProviderId("core", "org.onosproject.core");
     private static final PortNumber P0 = PortNumber.portNumber(0);
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyService topologyService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
+    @Override
     public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight) {
         checkNotNull(src, ELEMENT_ID_NULL);
         checkNotNull(dst, ELEMENT_ID_NULL);
@@ -94,6 +93,7 @@ public abstract class AbstractPathService {
         return edgeToEdgePaths(srcEdge, dstEdge, paths);
     }
 
+    @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeight weight) {
         checkNotNull(src, ELEMENT_ID_NULL);
         checkNotNull(dst, ELEMENT_ID_NULL);
@@ -126,6 +126,7 @@ public abstract class AbstractPathService {
         return edgeToEdgePathsDisjoint(srcEdge, dstEdge, paths);
     }
 
+    @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeight weight,
                                               Map<Link, Object> riskProfile) {
         checkNotNull(src, ELEMENT_ID_NULL);
