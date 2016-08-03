@@ -15,7 +15,10 @@
  */
 package org.onosproject.lisp.msg.protocols;
 
+import com.google.common.base.Objects;
 import io.netty.buffer.ByteBuf;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Default LISP map reply message class.
@@ -84,6 +87,38 @@ public final class DefaultLispMapReply implements LispMapReply {
     @Override
     public long getNonce() {
         return this.nonce;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("type", getType())
+                .add("nonce", nonce)
+                .add("recordCount", recordCount)
+                .add("probe", probe)
+                .add("etr", etr)
+                .add("security", security).toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultLispMapReply that = (DefaultLispMapReply) o;
+        return Objects.equal(nonce, that.nonce) &&
+                Objects.equal(recordCount, that.recordCount) &&
+                Objects.equal(probe, that.probe) &&
+                Objects.equal(etr, that.etr) &&
+                Objects.equal(security, that.security);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(nonce, recordCount, probe, etr, security);
     }
 
     public static final class DefaultReplyBuilder implements ReplyBuilder {

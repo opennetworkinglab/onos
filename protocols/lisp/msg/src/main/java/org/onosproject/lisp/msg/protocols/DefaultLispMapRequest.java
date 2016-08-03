@@ -15,12 +15,15 @@
  */
 package org.onosproject.lisp.msg.protocols;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 
 import java.util.List;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Default LISP map request message class.
@@ -139,6 +142,51 @@ public final class DefaultLispMapRequest implements LispMapRequest {
     @Override
     public List<LispEidRecord> getEids() {
         return ImmutableList.copyOf(eidRecords);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("type", getType())
+                .add("nonce", nonce)
+                .add("recordCount", recordCount)
+                .add("source EID", sourceEid)
+                .add("ITR rlocs", itrRlocs)
+                .add("EID records", eidRecords)
+                .add("authoritative", authoritative)
+                .add("mapDataPresent", mapDataPresent)
+                .add("probe", probe)
+                .add("SMR", smr)
+                .add("Proxy ITR", pitr)
+                .add("SMR Invoked", smrInvoked).toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultLispMapRequest that = (DefaultLispMapRequest) o;
+        return Objects.equal(nonce, that.nonce) &&
+                Objects.equal(recordCount, that.recordCount) &&
+                Objects.equal(sourceEid, that.sourceEid) &&
+                Objects.equal(itrRlocs, that.itrRlocs) &&
+                Objects.equal(eidRecords, that.eidRecords) &&
+                Objects.equal(authoritative, that.authoritative) &&
+                Objects.equal(mapDataPresent, that.mapDataPresent) &&
+                Objects.equal(probe, that.probe) &&
+                Objects.equal(smr, that.smr) &&
+                Objects.equal(pitr, that.pitr) &&
+                Objects.equal(smrInvoked, that.smrInvoked);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(nonce, recordCount, sourceEid, itrRlocs, eidRecords,
+                authoritative, mapDataPresent, probe, smr, pitr, smrInvoked);
     }
 
     public static final class DefaultRequestBuilder implements RequestBuilder {

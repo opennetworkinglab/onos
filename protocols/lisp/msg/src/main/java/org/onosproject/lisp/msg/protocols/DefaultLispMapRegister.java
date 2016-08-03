@@ -15,12 +15,15 @@
  */
 package org.onosproject.lisp.msg.protocols;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import org.onlab.util.ImmutableByteSequence;
 
 import java.util.List;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Default LISP map register message class.
@@ -107,6 +110,42 @@ public final class DefaultLispMapRegister implements LispMapRegister {
     @Override
     public List<LispMapRecord> getLispRecords() {
         return ImmutableList.copyOf(mapRecords);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("type", getType())
+                .add("nonce", nonce)
+                .add("recordCount", recordCount)
+                .add("keyId", keyId)
+                .add("mapRecords", mapRecords)
+                .add("proxyMapReply", proxyMapReply)
+                .add("wantMapNotify", wantMapNotify).toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultLispMapRegister that = (DefaultLispMapRegister) o;
+        return Objects.equal(nonce, that.nonce) &&
+                Objects.equal(recordCount, that.recordCount) &&
+                Objects.equal(keyId, that.keyId) &&
+                Objects.equal(authenticationData, that.authenticationData) &&
+                Objects.equal(proxyMapReply, that.proxyMapReply) &&
+                Objects.equal(wantMapNotify, that.wantMapNotify);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(nonce, recordCount, keyId, authenticationData,
+                                proxyMapReply, wantMapNotify);
     }
 
     public static final class DefaultRegisterBuilder implements RegisterBuilder {
