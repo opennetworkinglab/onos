@@ -221,6 +221,7 @@ public class DistributedPacketStore
                     firstRequest.set(true);
                     return ImmutableSet.of(request);
                 } else if (!existingRequests.contains(request)) {
+                    firstRequest.set(true);
                     return ImmutableSet.<PacketRequest>builder()
                                        .addAll(existingRequests)
                                        .add(request)
