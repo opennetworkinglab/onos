@@ -55,6 +55,7 @@ public final class OduCltPortHelper {
      * @param number        port number
      * @param isEnabled     port enabled state
      * @param signalType    ODU client signal type
+     * @return              port description
      */
     public static PortDescription oduCltPortDescription(PortNumber number,
                                         boolean isEnabled,
@@ -69,6 +70,7 @@ public final class OduCltPortHelper {
      * @param isEnabled     port enabled state
      * @param signalType    ODU client signal type
      * @param annotations   key/value annotations map
+     * @return              port description
      */
     public static PortDescription oduCltPortDescription(PortNumber number,
                                                         boolean isEnabled,
@@ -93,6 +95,7 @@ public final class OduCltPortHelper {
      * @param base          PortDescription to get basic information from
      * @param signalType    ODU client signal type
      * @param annotations   key/value annotations map
+     * @return              port description
      */
     public static PortDescription oduCltPortDescription(PortDescription base,
                                                         CltSignalType signalType,

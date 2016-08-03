@@ -24,7 +24,7 @@ public interface BehaviourClassResolver {
     /**
      * Returns the class corresponding to the specified class name.
      * @param className class className
-     * @return
+     * @return class for the resolver
      */
     Class<? extends Behaviour> getBehaviourClass(String className);
 

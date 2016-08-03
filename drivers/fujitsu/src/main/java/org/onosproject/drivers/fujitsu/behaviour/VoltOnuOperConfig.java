@@ -28,6 +28,7 @@ public interface VoltOnuOperConfig extends HandlerBehaviour {
      * Reboot an ONU in the device.
      *
      * @param target input data in string
+     * @return response string
      */
     String rebootOnu(String target);
 
@@ -35,6 +36,7 @@ public interface VoltOnuOperConfig extends HandlerBehaviour {
      * Operate/release loopback on Ethernet port an ONU in the device.
      *
      * @param target input data in string
+     * @return response string
      */
     String loopbackEthOnu(String target);
 

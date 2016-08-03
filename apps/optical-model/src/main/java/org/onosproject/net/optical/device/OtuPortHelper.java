@@ -55,6 +55,7 @@ public final class OtuPortHelper {
      * @param number        port number
      * @param isEnabled     port enabled state
      * @param signalType    OTU client signal type
+     * @return              port description
      */
     public static PortDescription otuPortDescription(PortNumber number,
                                                      boolean isEnabled,
@@ -69,6 +70,7 @@ public final class OtuPortHelper {
      * @param isEnabled     port enabled state
      * @param signalType    OTU client signal type
      * @param annotations   key/value annotations map
+     * @return              port description
      */
     public static PortDescription otuPortDescription(PortNumber number,
                                                      boolean isEnabled,
@@ -93,6 +95,7 @@ public final class OtuPortHelper {
      * @param base          PortDescription to get basic information from
      * @param signalType    OTU client signal type
      * @param annotations   key/value annotations map
+     * @return              port description
      */
     public static PortDescription otuPortDescription(PortDescription base,
                                                      OtuSignalType signalType,

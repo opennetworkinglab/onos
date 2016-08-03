@@ -77,6 +77,9 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
     /**
      * Returns true if this map contains at least one key-value pair with key
      * and value specified.
+     *
+     * @param key key
+     * @param value value
      * @return a future whose value will be true if there is a key-value pair
      * with the specified key and value,
      * false otherwise.
@@ -89,6 +92,7 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
      * returns true, if the key-value pair already exists then behavior is
      * implementation specific with some implementations allowing duplicates
      * and others ignoring put requests for existing entries.
+     *
      * @param key the key to add
      * @param value the value to add
      * @return a future whose value will be true if the map has changed because
@@ -100,6 +104,7 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
      * Removes the key-value pair with the specified values if it exists. In
      * implementations that allow duplicates which matching entry will be
      * removed is undefined.
+     *
      * @param key the key of the pair to be removed
      * @param value the value of the pair to be removed
      * @return a future whose value will be true if the map changed because of
@@ -113,6 +118,7 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
      * will remove one matching entry, which one is not defined. Equivalent to
      * repeated calls to {@code remove()} for each key value pair but more
      * efficient.
+     *
      * @param key the key of the pair to be removed
      * @param values the set of values to be removed
      * @return a future whose value will be true if the map changes because of
@@ -124,6 +130,7 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
     /**
      * Removes all values associated with the specified key as well as the key
      * itself.
+     *
      * @param key the key whose key-value pairs will be removed
      * @return a future whose value is the set of values that were removed,
      * which may be empty, if the values did not exist the version will be
@@ -136,6 +143,7 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
      * values in the iterable if each key-value pair does not already exist,
      * if the pair does exist the behavior is implementation specific.
      * (Same as repeated puts but with efficiency gains.)
+     *
      * @param key the key to use for all pairs to be added
      * @param values the set of values to be added in pairs with the key
      * @return a future whose value will be true if any change in the map
@@ -148,6 +156,7 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
      * Stores all the values in values associated with the key specified,
      * removes all preexisting values and returns a collection of the removed
      * values which may be empty if the entry did not exist.
+     *
      * @param key the key for all entries to be added
      * @param values the values to be associated with the key
      * @return a future whose value will be the collection of removed values,
@@ -158,6 +167,7 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
 
     /**
      * Removes all key-value pairs, after which it will be empty.
+     *
      * @return a future whose value is irrelevant, simply used to determine if
      * the call has completed
      */
@@ -166,6 +176,7 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
     /**
      * Returns a collection of values associated with the specified key, if the
      * key is not in the map it will return an empty collection.
+     *
      * @param key the key whose associated values will be returned
      * @return a future whose value will be the collection of the values
      * associated with the specified key, the collection may be empty
@@ -175,6 +186,7 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
     /**
      * Returns a set of the keys contained in this multimap with one or more
      * associated values.
+     *
      * @return a future whose value will be the collection of all keys with one
      * or more associated values, this may be empty
      */
@@ -184,6 +196,7 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
      * Returns a multiset of the keys present in this multimap with one or more
      * associated values each. Keys will appear once for each key-value pair
      * in which they participate.
+     *
      * @return a future whose value will be a multiset of the keys, this may
      * be empty
      */
@@ -193,6 +206,7 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
      * Returns a collection of values in the set with duplicates permitted, the
      * size of this collection will equal the size of the map at the time of
      * creation.
+     *
      * @return a future whose value will be a collection of values, this may be
      * empty
      */
@@ -200,6 +214,7 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
 
     /**
      * Returns a collection of each key-value pair in this map.
+     *
      * @return a future whose value will be a collection of all entries in the
      * map, this may be empty
      */
@@ -209,6 +224,7 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
      * Returns a map of keys to collections of values that reflect the set of
      * key-value pairs contained in the multimap, where the key value pairs
      * would be the key paired with each of the values in the collection.
+     *
      * @return a future whose value will be a map of keys to collections of
      * values, the returned map may be empty.
      */

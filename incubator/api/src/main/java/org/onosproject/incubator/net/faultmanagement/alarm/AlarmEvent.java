@@ -41,6 +41,7 @@ public class AlarmEvent extends AbstractEvent<AlarmEvent.Type, Alarm> {
     /**
      * Creates an event due to one alarm.
      *
+     * @param type alarm type
      * @param alarm the alarm related to the event.
      */
     public AlarmEvent(AlarmEvent.Type type, Alarm alarm) {

@@ -36,6 +36,9 @@ public interface ProbedLinkProvider extends LinkProvider {
     /**
      * Build a stringified MAC address using the ClusterMetadata hash for uniqueness.
      * Form of MAC is "02:eb" followed by four bytes of clusterMetadata hash.
+     *
+     * @param cm cluster metadata
+     * @return stringified mac address
      */
     static String fingerprintMac(ClusterMetadata cm) {
         if (cm == null) {

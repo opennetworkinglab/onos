@@ -71,6 +71,7 @@ public interface FlowEntry extends FlowRule {
     /**
      * Returns the time this flow rule has been applied.
      *
+     * @param unit time unit the result will be converted to
      * @return time in the requested {@link TimeUnit}
      */
     long life(TimeUnit unit);

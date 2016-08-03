@@ -32,6 +32,9 @@ public interface PortMapper<P extends Port> {
 
     /**
      * Returns true if this port is capable of being projected as {@code <P>}.
+     *
+     * @param port port
+     * @return true if this port can be projected as the given type
      */
     boolean is(Port port);
 

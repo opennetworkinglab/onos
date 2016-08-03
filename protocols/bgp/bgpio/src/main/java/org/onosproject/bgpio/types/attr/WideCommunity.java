@@ -81,6 +81,7 @@ public class WideCommunity implements BgpValueType {
     /**
      * Returns object of this class with specified values.
      *
+     * @param wideCommunityHeader community header
      * @param community wide community
      * @param localAsn local ASN number
      * @param contextAsn context ASN number

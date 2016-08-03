@@ -117,6 +117,7 @@ public final class HexString {
      * If separator is the empty string or null, then no separator will be considered.
      *
      * @param values hex string to be converted
+     * @param separator regex for separator
      * @return converted byte array
      * @throws NumberFormatException if input hex string cannot be parsed
      */

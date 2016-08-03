@@ -57,7 +57,7 @@ public class PacketLinkRealizedByOptical {
      * @param src source connect point
      * @param dst destination connect point
      * @param intent OpticalCircuitIntent that realizes packet link between src and dst
-     * @return
+     * @return PacketLinkRealizedByOptical instance with specified connect points and OpticalCircuitIntent
      */
     public static PacketLinkRealizedByOptical create(ConnectPoint src, ConnectPoint dst,
                                                      OpticalCircuitIntent intent) {
@@ -76,7 +76,7 @@ public class PacketLinkRealizedByOptical {
      * @param src source connect point
      * @param dst destination connect point
      * @param intent OpticalConnectivityIntent that realizes packet link between src and dst
-     * @return
+     * @return PacketLinkRealizedByOptical instance with specified connect points and OpticalConnectivityIntent
      */
     public static PacketLinkRealizedByOptical create(ConnectPoint src, ConnectPoint dst,
                                                      OpticalConnectivityIntent intent) {

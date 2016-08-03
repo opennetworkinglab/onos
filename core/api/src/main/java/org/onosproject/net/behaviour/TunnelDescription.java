@@ -185,6 +185,7 @@ public interface TunnelDescription extends Description, Annotated {
         /**
          * Returns tunnel interface description builder with a tunnel key.
          *
+         * @param tunnelKey tunnel key
          * @return tunnel description builder
          */
         Builder key(TunnelKey tunnelKey);

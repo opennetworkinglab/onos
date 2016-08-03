@@ -66,6 +66,7 @@ public final class OmsPortHelper {
      * @param maxFrequency  maximum frequency
      * @param grid          grid spacing frequency
      * @param annotations   key/value annotations map
+     * @return              port description
      */
     public static PortDescription omsPortDescription(PortNumber number,
                                               boolean isEnabled,
@@ -93,6 +94,7 @@ public final class OmsPortHelper {
      * @param minFrequency  minimum frequency
      * @param maxFrequency  maximum frequency
      * @param grid          grid spacing frequency
+     * @return              port description
      */
     public static PortDescription omsPortDescription(PortNumber number,
                                               boolean isEnabled,
@@ -110,6 +112,7 @@ public final class OmsPortHelper {
      * @param maxFrequency  maximum frequency
      * @param grid          grid spacing frequency
      * @param annotations   key/value annotations map
+     * @return              port description
      */
     public static PortDescription omsPortDescription(PortDescription base,
                                               Frequency minFrequency,

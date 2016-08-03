@@ -76,6 +76,7 @@ public abstract class OchSignalCodec {
     /**
      * Returns a JSON Object representation of this instance.
      *
+     * @param j Och signal object
      * @return JSON Object representing OchSignal
      */
     public static ObjectNode encode(OchSignal j) {

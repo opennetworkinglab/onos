@@ -80,6 +80,7 @@ public interface DistributedPrimitiveCreator {
     /**
      * Creates a new {@code WorkQueue}.
      *
+     * @param <E> work element type
      * @param name work queue name
      * @param serializer serializer
      * @return work queue

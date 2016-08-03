@@ -61,6 +61,8 @@ public class Task<E> {
 
     /**
      * Maps task from one payload type to another.
+     *
+     * @param <F> future type
      * @param mapper type mapper.
      * @return mapped task.
      */

@@ -102,6 +102,8 @@ public interface StorageService {
 
     /**
      * Returns an instance of {@code WorkQueue} with specified name.
+     *
+     * @param <E> work element type
      * @param name work queue name
      * @param serializer serializer
      *
