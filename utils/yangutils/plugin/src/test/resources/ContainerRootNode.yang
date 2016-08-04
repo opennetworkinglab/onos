@@ -1,9 +1,0 @@
-container valid {
-    reference "RFC 6020";
-    leaf invalid-interval {
-        type "uint16";
-        units "seconds";
-        status current;
-        reference "RFC 6020";
-    }
-}

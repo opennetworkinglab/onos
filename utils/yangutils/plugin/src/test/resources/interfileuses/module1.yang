@@ -1,9 +1,0 @@
-module module1 {
-    yang-version 1;
-    namespace http://huawei.com;
-    prefix Ant;
-    import module2 {
-        prefix p;
-    }
-    uses p:hello;
-}

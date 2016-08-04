@@ -1,5 +1,0 @@
-module Test:Test {
-yang-version 1;
-namespace urn:ietf:params:xml:ns:yang:ietf-ospf;
-prefix On;
-}

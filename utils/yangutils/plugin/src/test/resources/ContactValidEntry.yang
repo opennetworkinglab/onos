@@ -1,9 +1,0 @@
-module Test {
-yang-version 1;
-namespace urn:ietf:params:xml:ns:yang:ietf-ospf;
-prefix On;
-organization "IETF SPRING Working Group";
-contact "WG List:  <mailto:spring@ietf.org>
-Editor:    Stephane Litkowski
-           <mailto:stephane.litkowski@orange.com>";
-}

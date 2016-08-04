@@ -1,9 +1,0 @@
-module module1 {
-    yang-version 1;
-    namespace http://huawei.com;
-    prefix Ant;
-    include module2;
-    leaf invalid-interval {
-        type hello;
-    }
-}

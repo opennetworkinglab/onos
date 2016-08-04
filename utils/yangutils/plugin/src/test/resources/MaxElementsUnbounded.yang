@@ -1,9 +1,0 @@
-module Test {
-    yang-version 1;
-    namespace http://huawei.com;
-    prefix Ant;
-    leaf-list invalid-interval {
-       type "uint16";
-       max-elements unbounded;
-    }
-}

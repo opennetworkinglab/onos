@@ -1,9 +1,0 @@
-submodule module2 {
-    yang-version 1;
-    belongs-to module1 {
-        prefix "module1";
-    }
-    typedef hello {
-        type string;
-    }
-}
