@@ -31,6 +31,7 @@ import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ClusterStore;
@@ -118,8 +119,15 @@ public class DistributedClusterStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MessagingService messagingService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
+        cfgService.registerProperties(getClass());
+
+        modified(context);
+
         localNode = clusterMetadataService.getLocalNode();
 
         messagingService.registerHandler(HEARTBEAT_MESSAGE,
@@ -135,6 +143,7 @@ public class DistributedClusterStore
 
     @Deactivate
     public void deactivate() {
+        cfgService.unregisterProperties(getClass(), false);
         messagingService.unregisterHandler(HEARTBEAT_MESSAGE);
         heartBeatSender.shutdownNow();
         heartBeatMessageHandler.shutdownNow();
