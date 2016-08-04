@@ -16,6 +16,8 @@ dependency-reduced-pom.xml
 buck-out
 .buckconfig.local
 .buckjavaargs*
+bucklets/plugins/
+.watchmanconfig
 
 /bin/
 
