@@ -29,6 +29,7 @@ public class ListRegions extends AbstractElementCommand {
     @Override
     protected void execute() {
         UiSharedTopologyModel model = get(UiSharedTopologyModel.class);
+        print("%s", model.getNullRegion());
         sorted(model.getRegions()).forEach(r -> print("%s", r));
     }
 }

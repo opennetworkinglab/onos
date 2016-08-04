@@ -28,6 +28,7 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.region.RegionService;
 import org.onosproject.ui.AbstractUiTest;
+import org.onosproject.ui.UiTopoLayoutService;
 
 /**
  * Base class for UI model unit tests.
@@ -41,6 +42,11 @@ public class AbstractUiModelTest extends AbstractUiTest {
      */
     protected static final ServiceBundle MOCK_SERVICES =
             new ServiceBundle() {
+                @Override
+                public UiTopoLayoutService layout() {
+                    return null;
+                }
+
                 @Override
                 public ClusterService cluster() {
                     return MOCK_CLUSTER;

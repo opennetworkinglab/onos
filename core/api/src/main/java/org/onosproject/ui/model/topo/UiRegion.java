@@ -61,6 +61,10 @@ public class UiRegion extends UiNode {
 
     private final Region region;
 
+    // keep track of hierarchy (inferred from UiTopoLayoutService)
+    private RegionId parent;
+    private final Set<RegionId> kids = new HashSet<>();
+
     /**
      * Constructs a UI region, with a reference to the specified backing region.
      *
@@ -103,6 +107,52 @@ public class UiRegion extends UiNode {
         return region == null ? NULL_ID : region.id();
     }
 
+    /**
+     * Returns the identity of the parent region.
+     *
+     * @return parent region ID
+     */
+    public RegionId parent() {
+        return parent;
+    }
+
+    /**
+     * Returns true if this is the root (default) region.
+     *
+     * @return true if root region
+     */
+    public boolean isRoot() {
+        return id().equals(parent);
+    }
+
+    /**
+     * Returns the identities of the child regions.
+     *
+     * @return child region IDs
+     */
+    public Set<RegionId> children() {
+        return ImmutableSet.copyOf(kids);
+    }
+
+    /**
+     * Sets the parent ID for this region.
+     *
+     * @param parentId parent ID
+     */
+    public void setParent(RegionId parentId) {
+        parent = parentId;
+    }
+
+    /**
+     * Sets the children IDs for this region.
+     *
+     * @param children children IDs
+     */
+    public void setChildren(Set<RegionId> children) {
+        kids.clear();
+        kids.addAll(children);
+    }
+
     @Override
     public String idAsString() {
         return id().toString();
@@ -138,6 +188,8 @@ public class UiRegion extends UiNode {
         return toStringHelper(this)
                 .add("id", id())
                 .add("name", name())
+                .add("parent", parent)
+                .add("kids", kids)
                 .add("devices", deviceIds)
                 .add("#hosts", hostIds.size())
                 .add("#links", uiLinkIds.size())

@@ -29,6 +29,7 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionId;
+import org.onosproject.ui.UiTopoLayoutService;
 import org.onosproject.ui.model.ServiceBundle;
 import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiDevice;
@@ -37,6 +38,8 @@ import org.onosproject.ui.model.topo.UiHost;
 import org.onosproject.ui.model.topo.UiLink;
 import org.onosproject.ui.model.topo.UiLinkId;
 import org.onosproject.ui.model.topo.UiRegion;
+import org.onosproject.ui.model.topo.UiTopoLayout;
+import org.onosproject.ui.model.topo.UiTopoLayoutId;
 import org.onosproject.ui.model.topo.UiTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -202,6 +205,34 @@ class ModelCache {
 
         // Make sure the region object refers to the devices
         region.reconcileDevices(deviceIds);
+
+        fixupContainmentHierarchy(region);
+    }
+
+    private void fixupContainmentHierarchy(UiRegion region) {
+        UiTopoLayoutService ls = services.layout();
+        RegionId regionId = region.id();
+
+        UiTopoLayout layout = ls.getLayout(regionId);
+        if (layout == null) {
+            // no layout backed by this region
+            log.warn("No layout backed by region {}", regionId);
+            return;
+        }
+
+        UiTopoLayoutId layoutId = layout.id();
+
+        if (!layout.isRoot()) {
+            UiTopoLayoutId parentId = layout.parent();
+            UiTopoLayout parentLayout = ls.getLayout(parentId);
+            RegionId parentRegionId = parentLayout.regionId();
+            region.setParent(parentRegionId);
+        }
+
+        Set<UiTopoLayout> kids = ls.getChildren(layoutId);
+        Set<RegionId> kidRegionIds = new HashSet<>(kids.size());
+        kids.forEach(k -> kidRegionIds.add(k.regionId()));
+        region.setChildren(kidRegionIds);
     }
 
     private void loadRegions() {
@@ -478,7 +509,11 @@ class ModelCache {
     public void refresh() {
         // fix up internal linkages if they aren't correct
 
-        // at the moment, this is making sure devices are in the correct region
+        // make sure regions reflect layout containment hierarchy
+        fixupContainmentHierarchy(uiTopology.nullRegion());
+        uiTopology.allRegions().forEach(this::fixupContainmentHierarchy);
+
+        // make sure devices are in the correct region
         Set<UiDevice> allDevices = uiTopology.allDevices();
 
         services.region().getRegions().forEach(r -> {

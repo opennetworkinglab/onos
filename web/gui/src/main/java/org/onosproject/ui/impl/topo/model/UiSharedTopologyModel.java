@@ -60,6 +60,7 @@ import org.onosproject.net.region.RegionListener;
 import org.onosproject.net.region.RegionService;
 import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.TopologyService;
+import org.onosproject.ui.UiTopoLayoutService;
 import org.onosproject.ui.impl.topo.UiTopoSession;
 import org.onosproject.ui.model.ServiceBundle;
 import org.onosproject.ui.model.topo.UiClusterMember;
@@ -85,6 +86,9 @@ public final class UiSharedTopologyModel
 
     private static final Logger log =
             LoggerFactory.getLogger(UiSharedTopologyModel.class);
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private UiTopoLayoutService layoutService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private ClusterService clusterService;
@@ -281,6 +285,11 @@ public final class UiSharedTopologyModel
      * dynamically injected services.
      */
     private class DefaultServiceBundle implements ServiceBundle {
+        @Override
+        public UiTopoLayoutService layout() {
+            return layoutService;
+        }
+
         @Override
         public ClusterService cluster() {
             return clusterService;

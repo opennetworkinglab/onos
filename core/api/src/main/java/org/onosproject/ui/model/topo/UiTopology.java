@@ -151,7 +151,8 @@ public class UiTopology extends UiElement {
 
 
     /**
-     * Returns all regions in the model.
+     * Returns all regions in the model (except the
+     * {@link #nullRegion() null region}).
      *
      * @return all regions
      */
@@ -177,7 +178,7 @@ public class UiTopology extends UiElement {
      * @return corresponding UI region
      */
     public UiRegion findRegion(RegionId id) {
-        return regionLookup.get(id);
+        return UiRegion.NULL_ID.equals(id) ? nullRegion() : regionLookup.get(id);
     }
 
     /**

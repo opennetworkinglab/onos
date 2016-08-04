@@ -15,6 +15,7 @@
  */
 package org.onosproject.ui;
 
+import org.onosproject.net.region.RegionId;
 import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.onosproject.ui.model.topo.UiTopoLayoutId;
 
@@ -55,6 +56,15 @@ public interface UiTopoLayoutService {
      * @return layout or null if no such layout is found
      */
     UiTopoLayout getLayout(UiTopoLayoutId layoutId);
+
+    /**
+     * Returns the layout which has the backing region identified by
+     * the given region identifier.
+     *
+     * @param regionId region identifier
+     * @return corresponding layout
+     */
+    UiTopoLayout getLayout(RegionId regionId);
 
     /**
      * Returns the set of peer layouts of the specified layout. That is,

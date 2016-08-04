@@ -68,13 +68,16 @@ public class UiTopoLayout {
     }
 
     /**
-     * Returns the identifier of the backing region. Will be null if the
-     * region is null.
+     * Returns the identifier of the backing region. If this is the default
+     * layout, the null-region ID will be returned, otherwise the ID of the
+     * backing region for this layout will be returned; null in the case that
+     * there is no backing region.
      *
      * @return backing region identifier
      */
     public RegionId regionId() {
-        return region == null ? null : region.id();
+        return isRoot() ? UiRegion.NULL_ID
+                : (region == null ? null : region.id());
     }
 
     /**
