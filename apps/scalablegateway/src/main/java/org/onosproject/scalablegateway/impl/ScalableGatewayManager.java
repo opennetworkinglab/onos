@@ -122,17 +122,18 @@ public class ScalableGatewayManager implements ScalableGatewayService {
     @Activate
     protected void activate() {
         appId = coreService.registerApplication(APP_ID);
-        configRegistry.registerConfigFactory(configFactory);
-        configService.addListener(configListener);
-        deviceService.addListener(internalDeviceListener);
-
-        selectGroupHandler = new SelectGroupHandler(groupService, deviceService, driverService, appId);
 
         gatewayNodeMap = storageService.<DeviceId, GatewayNode>consistentMapBuilder()
                 .withSerializer(Serializer.using(GATEWAYNODE_SERIALIZER.build()))
                 .withName(GATEWAYNODE_MAP_NAME)
                 .withApplicationId(appId)
                 .build();
+
+        configRegistry.registerConfigFactory(configFactory);
+        configService.addListener(configListener);
+        deviceService.addListener(internalDeviceListener);
+
+        selectGroupHandler = new SelectGroupHandler(groupService, deviceService, driverService, appId);
 
         log.info("started");
     }
