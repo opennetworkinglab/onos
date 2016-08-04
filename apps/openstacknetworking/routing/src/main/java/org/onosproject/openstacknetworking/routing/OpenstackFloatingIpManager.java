@@ -241,8 +241,8 @@ public class OpenstackFloatingIpManager implements OpenstackFloatingIpService {
                     .setEthDst(associatedVm.mac())
                     .setIpDst(associatedVm.ipAddresses().stream().findFirst().get())
                     .setTunnelId(Long.valueOf(associatedVm.annotations().value(VXLAN_ID)))
-                    .extension(buildExtension(deviceService, cnodeId, dataIp.get().getIp4Address()),
-                               cnodeId)
+                    .extension(buildExtension(deviceService, gnodeId, dataIp.get().getIp4Address()),
+                               gnodeId)
                     .setOutput(nodeService.tunnelPort(gnodeId).get())
                     .build();
 
