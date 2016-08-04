@@ -15,12 +15,13 @@ rm -fr $ONOS_TEST_STAGE # Remove this when package script is completed
 
 # Create the stage directory and warp into it
 mkdir -p $ONOS_TEST_STAGE/tools/test \
-    $ONOS_TEST_STAGE/tools/dev \
+    $ONOS_TEST_STAGE/tools/dev/bin \
     $ONOS_TEST_STAGE/tools/build \
     $ONOS_TEST_STAGE/tools/package/config
 
 cp -r $ONOS_ROOT/tools/test $ONOS_TEST_STAGE/tools
 cp $ONOS_ROOT/tools/dev/bash_profile $ONOS_TEST_STAGE/tools/dev
+cp $ONOS_ROOT/tools/dev/bin/onos-app $ONOS_ROOT/tools/dev/bin/onos-create-app $ONOS_TEST_STAGE/tools/dev/bin
 cp $ONOS_ROOT/tools/build/envDefaults $ONOS_TEST_STAGE/tools/build
 
 cd $ONOS_TEST_STAGE_ROOT
