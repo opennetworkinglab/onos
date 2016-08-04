@@ -25,6 +25,7 @@ import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
 import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiNode;
 import org.onosproject.ui.model.topo.UiRegion;
+import org.onosproject.ui.model.topo.UiSynthLink;
 import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -211,6 +212,16 @@ public class UiTopoSession implements UiModelListener {
         Set<UiRegion> kids = new HashSet<>();
         kidLayouts.forEach(l -> kids.add(sharedModel.getRegion(l.regionId())));
         return kids;
+    }
+
+    /**
+     * Returns the (synthetic) links of the region in the specified layout.
+     *
+     * @param layout the layout being viewed
+     * @return all links that are contained by this layout's region
+     */
+    public List<UiSynthLink> getLinks(UiTopoLayout layout) {
+        return sharedModel.getSynthLinks(layout.regionId());
     }
 
     /**

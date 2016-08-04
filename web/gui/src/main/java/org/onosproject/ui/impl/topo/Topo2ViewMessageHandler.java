@@ -26,6 +26,7 @@ import org.onosproject.ui.impl.UiWebSocket;
 import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiNode;
 import org.onosproject.ui.model.topo.UiRegion;
+import org.onosproject.ui.model.topo.UiSynthLink;
 import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,13 +126,16 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
             //   (as well as layer-order hints)
             UiRegion region = topoSession.getRegion(currentLayout);
             Set<UiRegion> kids = topoSession.getSubRegions(currentLayout);
-            sendMessage(CURRENT_REGION, t2json.region(region, kids));
+            List<UiSynthLink> links = topoSession.getLinks(currentLayout);
+            sendMessage(CURRENT_REGION, t2json.region(region, kids, links));
 
             // these are the regions/devices that are siblings to this region
             Set<UiNode> peers = topoSession.getPeerNodes(currentLayout);
             ObjectNode peersPayload = objectNode();
             peersPayload.set("peers", t2json.closedNodes(peers));
             sendMessage(PEER_REGIONS, peersPayload);
+
+            // TODO: send breadcrumb message
 
             // finally, tell the UI that we are done : TODO review / delete??
             sendMessage(TOPO_START_DONE, null);

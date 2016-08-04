@@ -65,9 +65,10 @@ import org.onosproject.ui.impl.topo.UiTopoSession;
 import org.onosproject.ui.model.ServiceBundle;
 import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiDevice;
+import org.onosproject.ui.model.topo.UiDeviceLink;
 import org.onosproject.ui.model.topo.UiHost;
-import org.onosproject.ui.model.topo.UiLink;
 import org.onosproject.ui.model.topo.UiRegion;
+import org.onosproject.ui.model.topo.UiSynthLink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -269,12 +270,22 @@ public final class UiSharedTopologyModel
     }
 
     /**
-     * Returns the set of links stored in the model cache.
+     * Returns the set of device links stored in the model cache.
      *
-     * @return set of links
+     * @return set of device links
      */
-    public Set<UiLink> getLinks() {
-        return cache.getAllLinks();
+    public Set<UiDeviceLink> getDeviceLinks() {
+        return cache.getAllDeviceLinks();
+    }
+
+    /**
+     * Returns the synthetic links associated with the specified region.
+     *
+     * @param regionId region ID
+     * @return synthetic links for that region
+     */
+    public List<UiSynthLink> getSynthLinks(RegionId regionId) {
+        return cache.getSynthLinks(regionId);
     }
 
     // =====================================================================
@@ -434,11 +445,11 @@ public final class UiSharedTopologyModel
 
                 case LINK_ADDED:
                 case LINK_UPDATED:
-                    cache.addOrUpdateLink(link);
+                    cache.addOrUpdateDeviceLink(link);
                     break;
 
                 case LINK_REMOVED:
-                    cache.removeLink(link);
+                    cache.removeDeviceLink(link);
                     break;
 
                 default:

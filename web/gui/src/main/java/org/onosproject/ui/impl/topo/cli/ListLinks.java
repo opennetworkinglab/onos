@@ -29,6 +29,6 @@ public class ListLinks extends AbstractElementCommand {
     @Override
     protected void execute() {
         UiSharedTopologyModel model = get(UiSharedTopologyModel.class);
-        sorted(model.getLinks()).forEach(l -> print("%s", l));
+        sorted(model.getDeviceLinks()).forEach(l -> print("%s", l));
     }
 }

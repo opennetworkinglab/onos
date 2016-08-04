@@ -16,6 +16,7 @@
 
 package org.onosproject.ui.impl.topo;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -39,6 +40,7 @@ import org.onosproject.ui.model.topo.UiHost;
 import org.onosproject.ui.model.topo.UiLink;
 import org.onosproject.ui.model.topo.UiNode;
 import org.onosproject.ui.model.topo.UiRegion;
+import org.onosproject.ui.model.topo.UiSynthLink;
 import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -180,9 +182,11 @@ class Topo2Jsonifier {
      *
      * @param region     the region to transform to JSON
      * @param subRegions the subregions within this region
+     * @param links      the links within this region
      * @return a JSON representation of the data
      */
-    ObjectNode region(UiRegion region, Set<UiRegion> subRegions) {
+    ObjectNode region(UiRegion region, Set<UiRegion> subRegions,
+                      List<UiSynthLink> links) {
         ObjectNode payload = objectNode();
         if (region == null) {
             payload.put("note", "no-region");
@@ -193,14 +197,16 @@ class Topo2Jsonifier {
             payload.set("subregions", jsonSubRegions(subRegions));
         }
 
+        if (links != null) {
+            payload.set("links", jsonLinks(links));
+        }
+
         List<String> layerTags = region.layerOrder();
         List<Set<UiNode>> splitDevices = splitByLayer(layerTags, region.devices());
         List<Set<UiNode>> splitHosts = splitByLayer(layerTags, region.hosts());
-        Set<UiLink> links = region.links();
 
         payload.set("devices", jsonGrouped(splitDevices));
         payload.set("hosts", jsonGrouped(splitHosts));
-        payload.set("links", jsonLinks(links));
         payload.set("layerOrder", jsonStrings(layerTags));
 
         return payload;
@@ -208,22 +214,20 @@ class Topo2Jsonifier {
 
     private ArrayNode jsonSubRegions(Set<UiRegion> subregions) {
         ArrayNode kids = arrayNode();
-        if (subregions != null) {
-            subregions.forEach(s -> kids.add(jsonClosedRegion(s)));
-        }
+        subregions.forEach(s -> kids.add(jsonClosedRegion(s)));
         return kids;
+    }
+
+    private JsonNode jsonLinks(List<UiSynthLink> links) {
+        ArrayNode synthLinks = arrayNode();
+        links.forEach(l -> synthLinks.add(json(l)));
+        return synthLinks;
     }
 
     private ArrayNode jsonStrings(List<String> strings) {
         ArrayNode array = arrayNode();
         strings.forEach(array::add);
         return array;
-    }
-
-    private ArrayNode jsonLinks(Set<UiLink> links) {
-        ArrayNode result = arrayNode();
-        links.forEach(lnk -> result.add(json(lnk)));
-        return result;
     }
 
     private ArrayNode jsonGrouped(List<Set<UiNode>> groupedNodes) {
@@ -280,11 +284,13 @@ class Topo2Jsonifier {
         // TODO: complete host details
     }
 
-
-    private ObjectNode json(UiLink link) {
+    private ObjectNode json(UiSynthLink sLink) {
+        UiLink uLink = sLink.link();
         return objectNode()
-                .put("id", link.idAsString());
-        // TODO: complete link details
+                .put("id", uLink.idAsString())
+                .put("epA", uLink.endPointA())
+                .put("epB", uLink.endPointB())
+                .put("type", uLink.type());
     }
 
 
@@ -305,7 +311,7 @@ class Topo2Jsonifier {
      */
     public ArrayNode closedNodes(Set<UiNode> nodes) {
         ArrayNode array = arrayNode();
-        for (UiNode node: nodes) {
+        for (UiNode node : nodes) {
             if (node instanceof UiRegion) {
                 array.add(jsonClosedRegion((UiRegion) node));
             } else if (node instanceof UiDevice) {
@@ -357,20 +363,6 @@ class Topo2Jsonifier {
         ArrayNode array = arrayNode();
         for (UiHost host : hosts) {
             array.add(json(host));
-        }
-        return array;
-    }
-
-    /**
-     * Returns a JSON array representation of a list of links.
-     *
-     * @param links the links
-     * @return a JSON representation of the links
-     */
-    public ArrayNode links(Set<UiLink> links) {
-        ArrayNode array = arrayNode();
-        for (UiLink link : links) {
-            array.add(json(link));
         }
         return array;
     }

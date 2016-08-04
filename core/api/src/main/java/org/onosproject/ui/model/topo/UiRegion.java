@@ -53,7 +53,6 @@ public class UiRegion extends UiNode {
     // loose bindings to things in this region
     private final Set<DeviceId> deviceIds = new HashSet<>();
     private final Set<HostId> hostIds = new HashSet<>();
-    private final Set<UiLinkId> uiLinkIds = new HashSet<>();
 
     private final List<String> layerOrder = new ArrayList<>();
 
@@ -84,7 +83,6 @@ public class UiRegion extends UiNode {
     protected void destroy() {
         deviceIds.clear();
         hostIds.clear();
-        uiLinkIds.clear();
     }
 
     /**
@@ -132,6 +130,15 @@ public class UiRegion extends UiNode {
      */
     public Set<RegionId> children() {
         return ImmutableSet.copyOf(kids);
+    }
+
+    /**
+     * Returns the UI region that is the parent of this region.
+     *
+     * @return the parent region
+     */
+    public UiRegion parentRegion() {
+        return topology.findRegion(parent);
     }
 
     /**
@@ -192,7 +199,6 @@ public class UiRegion extends UiNode {
                 .add("kids", kids)
                 .add("devices", deviceIds)
                 .add("#hosts", hostIds.size())
-                .add("#links", uiLinkIds.size())
                 .toString();
     }
 
@@ -249,24 +255,6 @@ public class UiRegion extends UiNode {
      */
     public Set<UiHost> hosts() {
         return topology.hostSet(hostIds);
-    }
-
-    /**
-     * Returns the set of link identifiers for this region.
-     *
-     * @return link identifiers for this region
-     */
-    public Set<UiLinkId> linkIds() {
-        return ImmutableSet.copyOf(uiLinkIds);
-    }
-
-    /**
-     * Returns the links in this region.
-     *
-     * @return the links in this region
-     */
-    public Set<UiLink> links() {
-        return topology.linkSet(uiLinkIds);
     }
 
     /**
