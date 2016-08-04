@@ -190,6 +190,7 @@ public class OpenstackPnatHandler {
         iPacket.setSourceAddress(externalIp.toString());
         iPacket.resetChecksum();
         iPacket.setParent(ethernet);
+        ethernet.setDestinationMACAddress(DEFAULT_EXTERNAL_ROUTER_MAC);
         ethernet.setPayload(iPacket);
 
         treatment.setOutput(gatewayService.getUplinkPort(deviceId));
