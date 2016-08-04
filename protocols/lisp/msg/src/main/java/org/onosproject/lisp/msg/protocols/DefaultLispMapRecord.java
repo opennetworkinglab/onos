@@ -15,7 +15,10 @@
  */
 package org.onosproject.lisp.msg.protocols;
 
+import com.google.common.base.Objects;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Default implementation of LispMapRecord.
@@ -86,6 +89,42 @@ public final class DefaultLispMapRecord implements LispMapRecord {
     @Override
     public LispAfiAddress getEidPrefixAfi() {
         return eidPrefixAfi;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("record TTL", recordTtl)
+                .add("locatorCount", locatorCount)
+                .add("maskLength", maskLength)
+                .add("action", action)
+                .add("authoritative", authoritative)
+                .add("mapVersionNumber", mapVersionNumber)
+                .add("EID prefix AFI address", eidPrefixAfi).toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultLispMapRecord that = (DefaultLispMapRecord) o;
+        return Objects.equal(recordTtl, that.recordTtl) &&
+                Objects.equal(locatorCount, that.locatorCount) &&
+                Objects.equal(maskLength, that.maskLength) &&
+                Objects.equal(action, that.action) &&
+                Objects.equal(authoritative, that.authoritative) &&
+                Objects.equal(mapVersionNumber, that.mapVersionNumber) &&
+                Objects.equal(eidPrefixAfi, that.eidPrefixAfi);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(recordTtl, locatorCount, maskLength, action,
+                                authoritative, mapVersionNumber, eidPrefixAfi);
     }
 
     public static final class DefaultMapRecordBuilder implements MapRecordBuilder {
