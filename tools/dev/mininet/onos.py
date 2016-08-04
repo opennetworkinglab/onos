@@ -62,6 +62,7 @@ from functools import partial
 KarafPort = 8101	# ssh port indicating karaf is running
 GUIPort = 8181		# GUI/REST port
 OpenFlowPort = 6653 	# OpenFlow port
+CopycatPort = 9876      # Copycat port
 
 def defaultUser():
     "Return a reasonable default user"
@@ -334,6 +335,17 @@ class ONOSNode( Controller ):
             result = quietRun( '%s -h %s "apps -a"' %
                                ( self.client, self.IP() ), shell=True )
             if 'openflow' in result:
+                break
+            info( '.' )
+            self.sanityCheck()
+            time.sleep( 1 )
+        info( ' node-status' )
+        while True:
+            result = quietRun( '%s -h %s "nodes"' %
+                               ( self.client, self.IP() ), shell=True )
+            nodeStr = 'id=%s, address=%s:%s, state=READY, updated' %\
+                      ( self.IP(), self.IP(), CopycatPort )
+            if nodeStr in result:
                 break
             info( '.' )
             self.sanityCheck()
