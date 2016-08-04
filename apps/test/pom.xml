@@ -38,6 +38,7 @@
         <module>flow-perf</module>
         <module>demo</module>
         <module>distributed-primitives</module>
+        <module>netcfg-monitor</module>
     </modules>
 
 </project>
