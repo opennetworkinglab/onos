@@ -7,17 +7,16 @@
     "test": "tests"
   },
   "scripts": {
-    "bs": "browser-sync start --config bs-config.js",
-    "dev-server": "node dev_server.js",
+    "bs": "browser-sync start  --config bs-config.js",
+    "dev-server": "node --harmony_destructuring dev_server.js",
     "start": "parallelshell \"npm run dev-server\" \"npm run bs\""
   },
   "author": "ON.Lab",
   "license": "Apache 2.0",
   "devDependencies": {
     "browser-sync": "^2.12.8",
-    "connect": "^3.4.1",
-    "http-proxy": "^1.13.2",
     "parallelshell": "^2.0.0",
-    "serve-static": "^1.10.2"
+    "serve-static": "^1.10.2",
+    "express": "^4.14.0"
   }
 }

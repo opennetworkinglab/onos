@@ -26,4 +26,17 @@ Dev server is up and listening on http://localhost: 8182
 [BS] Watching files...
 ```
 
-To open ONOS visit the local URL (eg: `http://localhost:3000`) plus `/onos/ui` (eg: `http://localhost:3000/onos/ui`)
+To open ONOS visit the local URL (eg: `http://localhost:3000`) plus `/onos/ui`
+(eg: `http://localhost:3000/onos/ui`)
+
+## Loading files from external applications
+
+The UI development environment provide the ability to serve UI files
+from an external forlder that can be specified with:
+`ONOS_EXTERNAL_APP_DIRS="appName:path-to-the-first-folder" npm start`
+
+Eg:
+`ONOS_EXTERNAL_APP_DIRS="sampleCustom:../../meow/sample/meowster-sample/" npm start`
+
+_Note that `ONOS_EXTERNAL_APP_DIRS` is an environment variable,so it can be set with_
+_`export ONOS_EXTERNAL_APP_DIRS="sampleCustom:../../meow/sample/meowster-sample/"`_
