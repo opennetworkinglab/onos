@@ -32,28 +32,18 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.UnmodifiableDeque;
-import org.onosproject.cluster.ClusterEvent;
-import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
 import org.onosproject.event.ListenerTracker;
-import org.onosproject.mastership.MastershipEvent;
-import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.edge.EdgePortService;
-import org.onosproject.net.host.HostEvent;
-import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
-import org.onosproject.net.link.LinkEvent;
-import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
-import org.onosproject.net.topology.TopologyEvent;
-import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,12 +116,12 @@ public class EventHistoryManager
                                       pruneInterval, pruneInterval, TimeUnit.SECONDS);
 
         listeners = new ListenerTracker();
-        listeners.addListener(mastershipService, new InternalMastershipListener())
+        listeners.addListener(mastershipService, this::addEvent)
                  .addListener(deviceService, new InternalDeviceListener())
-                 .addListener(linkService, new InternalLinkListener())
-                 .addListener(topologyService, new InternalTopologyListener())
-                 .addListener(hostService, new InternalHostListener())
-                 .addListener(clusterService, new InternalClusterListener())
+                 .addListener(linkService, this::addEvent)
+                 .addListener(topologyService, this::addEvent)
+                 .addListener(hostService, this::addEvent)
+                 .addListener(clusterService, this::addEvent)
                  .addListener(edgeService, this::addEvent);
 
         log.info("Started");
@@ -172,15 +162,6 @@ public class EventHistoryManager
         history.offer(event);
     }
 
-    class InternalMastershipListener
-            implements MastershipListener {
-
-        @Override
-        public void event(MastershipEvent event) {
-            addEvent(event);
-        }
-    }
-
     class InternalDeviceListener
             implements DeviceListener {
 
@@ -195,42 +176,6 @@ public class EventHistoryManager
 
         @Override
         public void event(DeviceEvent event) {
-            addEvent(event);
-        }
-    }
-
-    class InternalLinkListener
-            implements LinkListener {
-
-        @Override
-        public void event(LinkEvent event) {
-            addEvent(event);
-        }
-    }
-
-    class InternalTopologyListener
-            implements TopologyListener {
-
-        @Override
-        public void event(TopologyEvent event) {
-            addEvent(event);
-        }
-    }
-
-    class InternalHostListener
-            implements HostListener {
-
-        @Override
-        public void event(HostEvent event) {
-            addEvent(event);
-        }
-    }
-
-    class InternalClusterListener
-            implements ClusterEventListener {
-
-        @Override
-        public void event(ClusterEvent event) {
             addEvent(event);
         }
     }

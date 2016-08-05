@@ -15,13 +15,14 @@
  */
 package org.onosproject.event;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 import org.apache.commons.lang3.tuple.Pair;
-
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Lists;
 
@@ -66,6 +67,9 @@ public class ListenerTracker {
      */
     public <E extends Event<?, ?>, L extends EventListener<E>>
     ListenerTracker addListener(ListenerService<E, L> service, L listener) {
+
+        checkNotNull(service);
+        checkNotNull(listener);
         service.addListener(listener);
         listeners.add(Pair.of(service, listener));
         return this;
