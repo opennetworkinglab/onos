@@ -22,8 +22,16 @@
         <step name="Netcfg.Activate-Dhcp"
               exec="onos ${OC1} app activate org.onosproject.dhcp"/>
 
+        <!-- Check that the activation was successful -->
+        <group name="Netcfg.Check-Dhcp-App-Activated" requires="Netcfg.Activate-Dhcp">
+            <parallel var="${OC#}">
+                <step name="Netcfg.Check-Dhcp-App-Activated-${#}" delay="2"
+                      exec="onos-check-apps ${OC#} drivers,openflow,proxyarp,dhcp includes"/>
+            </parallel>
+        </group>
+
         <!-- Upload the first set of config changes -->
-        <step name="Netcfg.Post-1" requires="^"
+        <step name="Netcfg.Post-1" requires="Netcfg.Check-Dhcp-App-Activated"
               exec="post-netcfg.py ${OC1} ${ONOS_SCENARIOS}/netcfg-test/dhcp-cfg1.json"/>
 
         <group name="Query1" requires="Netcfg.Post-1">

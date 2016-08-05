@@ -11,38 +11,34 @@ if len(sys.argv) < 3:
 
 node = sys.argv[1]
 
-cfgRequest = requests.get('http://' + node + ':8181/onos/v1/network/configuration',
+cfgRequest = requests.get('http://' + node +
+                          ':8181/onos/v1/network/configuration/apps/org.onosproject.dhcp',
                           auth=HTTPBasicAuth('onos', 'rocks'))
 
+print cfgRequest.text
+
 if cfgRequest.status_code != 200:
-    print cfgRequest.text
     sys.exit(1)
 
 cfgJson = cfgRequest.json()
-appFound = False
-
 
 for index in range(2, len(sys.argv)):
     pair = sys.argv[index].split("=")
-    for app in cfgJson["apps"]:
-        if app == "org.onosproject.dhcp":
-            dhcp = cfgJson["apps"][app]["dhcp"]
-            appFound = True
 
-            name = pair[0]
-            value = pair[1]
+    dhcp = cfgJson["dhcp"]
+    appFound = True
 
-            if dhcp[name] != value:
-                print name + " differs: expected " + value + " but found " + dhcp[name]
-                print cfgJson
-                sys.exit(1)
+    name = pair[0]
+    value = pair[1]
 
-if appFound:
-    sys.exit(0)
+    if dhcp[name] != value:
+        print name + " differs: expected " + value + " but found " + dhcp[name]
+        print cfgJson
+        sys.exit(1)
 
-print "DHCP app not found"
-print cfgJson
-sys.exit(2)
+
+sys.exit(0)
+
 
 
 
