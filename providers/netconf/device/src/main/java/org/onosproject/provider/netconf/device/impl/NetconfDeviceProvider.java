@@ -347,9 +347,23 @@ public class NetconfDeviceProvider extends AbstractProvider
         } else {
             boolean isReachable = isReachable(deviceId);
             if (isReachable && !deviceService.isAvailable(deviceId)) {
+                Device device = deviceService.getDevice(deviceId);
+                DeviceDescription updatedDeviceDescription = null;
+                if (device.is(DeviceDescriptionDiscovery.class)) {
+                    if (mastershipService.isLocalMaster(deviceId)) {
+                        DeviceDescriptionDiscovery deviceDescriptionDiscovery =
+                                device.as(DeviceDescriptionDiscovery.class);
+                        updatedDeviceDescription = deviceDescriptionDiscovery.discoverDeviceDetails();
+                    }
+                } else {
+                    log.warn("No DeviceDescriptionDiscovery behaviour for device {}", deviceId);
+                }
+                if (updatedDeviceDescription == null) {
+                    updatedDeviceDescription = deviceDescription;
+                }
                 providerService.deviceConnected(
                         deviceId, new DefaultDeviceDescription(
-                                deviceDescription, true, deviceDescription.annotations()));
+                                updatedDeviceDescription, true, updatedDeviceDescription.annotations()));
             } else if (!isReachable && deviceService.isAvailable(deviceId)) {
                 providerService.deviceDisconnected(deviceId);
             }
@@ -422,7 +436,6 @@ public class NetconfDeviceProvider extends AbstractProvider
                     device.as(DeviceDescriptionDiscovery.class);
             providerService.updatePorts(deviceId,
                                         deviceDescriptionDiscovery.discoverPortDetails());
-
         } else {
             log.warn("No portGetter behaviour for device {}", deviceId);
         }
