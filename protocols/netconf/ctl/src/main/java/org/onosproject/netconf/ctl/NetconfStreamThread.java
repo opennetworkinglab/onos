@@ -221,7 +221,11 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
             String[] outer = reply.split(MESSAGE_ID);
             Preconditions.checkArgument(outer.length != 1,
                                         "Error in retrieving the message id");
-            String messageID = outer[1].substring(0, 3).replace("\"", "");
+            /* Hans: An upstream bug that prevents reply messages with message_id greater than 100 from being parsed
+             *       properly.
+             */
+            //String messageID = outer[1].substring(0, 3).replace("\"", "");
+            String messageID = outer[1].split("\"")[1];
             Preconditions.checkNotNull(Integer.parseInt(messageID),
                                        "Error in retrieving the message id");
             return Optional.of(Integer.parseInt(messageID));
