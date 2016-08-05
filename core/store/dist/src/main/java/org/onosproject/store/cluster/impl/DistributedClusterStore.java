@@ -119,15 +119,36 @@ public class DistributedClusterStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MessagingService messagingService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    // This must be optional to avoid a cyclic dependency
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY)
     protected ComponentConfigService cfgService;
 
+    /**
+     * Hook for wiring up optional reference to a service.
+     *
+     * @param service service being announced
+     */
+    protected void bindComponentConfigService(ComponentConfigService service) {
+        if (cfgService == null) {
+            cfgService = service;
+            cfgService.registerProperties(getClass());
+        }
+    }
+
+    /**
+     * Hook for unwiring optional reference to a service.
+     *
+     * @param service service being withdrawn
+     */
+    protected void unbindComponentConfigService(ComponentConfigService service) {
+        if (cfgService == service) {
+            cfgService.unregisterProperties(getClass(), false);
+            cfgService = null;
+        }
+    }
+
     @Activate
-    public void activate(ComponentContext context) {
-        cfgService.registerProperties(getClass());
-
-        modified(context);
-
+    public void activate() {
         localNode = clusterMetadataService.getLocalNode();
 
         messagingService.registerHandler(HEARTBEAT_MESSAGE,
@@ -143,7 +164,6 @@ public class DistributedClusterStore
 
     @Deactivate
     public void deactivate() {
-        cfgService.unregisterProperties(getClass(), false);
         messagingService.unregisterHandler(HEARTBEAT_MESSAGE);
         heartBeatSender.shutdownNow();
         heartBeatMessageHandler.shutdownNow();

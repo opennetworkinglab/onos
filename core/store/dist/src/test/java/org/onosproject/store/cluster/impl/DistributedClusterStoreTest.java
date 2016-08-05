@@ -29,7 +29,7 @@ public class DistributedClusterStoreTest {
     @Before
     public void setUp() throws Exception {
         distributedClusterStore = new DistributedClusterStore();
-        distributedClusterStore.activate(null);
+        distributedClusterStore.activate();
     }
 
     @After
