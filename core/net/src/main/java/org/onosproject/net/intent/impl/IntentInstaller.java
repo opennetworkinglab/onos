@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -200,8 +201,64 @@ class IntentInstaller {
             this.toInstall = toInstall;
             this.successConsumer = successConsumer;
             this.errorConsumer = errorConsumer;
-            prepareIntentData(toUninstall, Direction.REMOVE);
-            prepareIntentData(toInstall, Direction.ADD);
+            prepareIntentData(toUninstall, toInstall);
+        }
+
+        private void prepareIntentData(Optional<IntentData> uninstallData,
+                                       Optional<IntentData> installData) {
+            if (!installData.isPresent() && !uninstallData.isPresent()) {
+                return;
+            } else if (!installData.isPresent()) {
+                prepareIntentData(uninstallData, Direction.REMOVE);
+            } else if (!uninstallData.isPresent()) {
+                prepareIntentData(installData, Direction.ADD);
+            } else {
+                IntentData uninstall = uninstallData.get();
+                IntentData install = installData.get();
+                List<Intent> uninstallIntents = new ArrayList<>();
+                uninstallIntents.addAll(uninstall.installables());
+                List<Intent> installIntents = new ArrayList<>();
+                installIntents.addAll(install.installables());
+
+                checkState(uninstallIntents.stream().allMatch(this::isSupported),
+                           "Unsupported installable intents detected");
+                checkState(installIntents.stream().allMatch(this::isSupported),
+                           "Unsupported installable intents detected");
+
+                //TODO: Filter FlowObjective intents
+                // Filter out same intents and intents with same flow rules
+                Iterator<Intent> iterator = installIntents.iterator();
+                while (iterator.hasNext()) {
+                    Intent installIntent = iterator.next();
+                    uninstallIntents.stream().filter(uIntent -> {
+                        if (uIntent.equals(installIntent)) {
+                            return true;
+                        } else if (uIntent instanceof FlowRuleIntent && installIntent instanceof FlowRuleIntent) {
+                            return ((FlowRuleIntent) uIntent).flowRules()
+                                    .containsAll(((FlowRuleIntent) installIntent).flowRules());
+                        } else {
+                            return false;
+                        }
+                    }).findFirst().ifPresent(common -> {
+                        uninstallIntents.remove(common);
+                        iterator.remove();
+                    });
+                }
+
+                final IntentData newUninstall = new IntentData(uninstall, uninstallIntents);
+                final IntentData newInstall = new IntentData(install, installIntents);
+
+                trackerService.removeTrackedResources(newUninstall.key(), newUninstall.intent().resources());
+                uninstallIntents.forEach(installable ->
+                                                 trackerService.removeTrackedResources(newUninstall.intent().key(),
+                                                                                       installable.resources()));
+                trackerService.addTrackedResources(newInstall.key(), newInstall.intent().resources());
+                installIntents.forEach(installable ->
+                                               trackerService.addTrackedResources(newInstall.key(),
+                                                                                  installable.resources()));
+                prepareIntents(uninstallIntents, Direction.REMOVE);
+                prepareIntents(installIntents, Direction.ADD);
+            }
         }
 
         /**
