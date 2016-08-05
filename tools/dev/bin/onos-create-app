@@ -23,7 +23,8 @@ otherOptions=""
 [ -n "$1" ] && otherOptions="$otherOptions -Dversion=$1" && shift
 [ -n "$1" ] && otherOptions="$otherOptions -Dpackage=$1" && shift
 
-mvn archetype:generate -DarchetypeGroupId=org.onosproject \
+mvn archetype:generate -DarchetypeCatalog=local,remote \
+    -DarchetypeGroupId=org.onosproject \
     -DarchetypeArtifactId=onos-$archetype-archetype \
     -DarchetypeVersion=$ONOS_POM_VERSION $otherOptions "$@"
 
