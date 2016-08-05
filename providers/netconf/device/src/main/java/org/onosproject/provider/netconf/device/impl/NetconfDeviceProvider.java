@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
+import org.onlab.util.SharedScheduledExecutors;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
@@ -66,8 +67,12 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.Device.Type.ROUTER;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -139,6 +144,10 @@ public class NetconfDeviceProvider extends AbstractProvider
     private ApplicationId appId;
     private boolean active;
 
+    private static final int POLL_PERIOD = 5_000; // milliseconds
+    private final ScheduledExecutorService scheduledExecutorService = SharedScheduledExecutors.getPoolThreadExecutor();
+    private ScheduledFuture<?> poller;
+
 
     @Activate
     public void activate() {
@@ -151,6 +160,8 @@ public class NetconfDeviceProvider extends AbstractProvider
         deviceService.addListener(deviceListener);
         executor.execute(NetconfDeviceProvider.this::connectDevices);
         localNodeId = clusterService.getLocalNode().id();
+        /* Poll devices every 1000 milliseconds */
+        poller = scheduledExecutorService.scheduleAtFixedRate(this::pollDevices, 1_000, POLL_PERIOD, MILLISECONDS);
         log.info("Started");
     }
 
@@ -255,6 +266,25 @@ public class NetconfDeviceProvider extends AbstractProvider
     public void changePortState(DeviceId deviceId, PortNumber portNumber,
                                 boolean enable) {
         // TODO if required
+    }
+
+    private void pollDevices() {
+        for (Device device: deviceService.getAvailableDevices(ROUTER)) {
+            if (mastershipService.isLocalMaster(device.id())) {
+                executor.execute(() -> pollingTask(device.id()));
+            }
+        }
+    }
+
+    private void pollingTask(DeviceId deviceId) {
+        log.debug("Polling device {}...", deviceId);
+        if (isReachable(deviceId)) {
+            log.debug("Netconf device {} is reachable, updating ports and stats", deviceId);
+            //updatePortsAndStats(deviceId);
+        } else {
+            log.debug("Netconf device {} is unreachable, disconnecting", deviceId);
+            //disconnectDevice(deviceId);
+        }
     }
 
     private class InnerNetconfDeviceListener implements NetconfDeviceListener {
