@@ -112,30 +112,29 @@ class SharedExecutorService implements ExecutorService {
         Counter taskCounter = new Counter();
         taskCounter.reset();
         return executor.submit(() -> {
-                    T t = null;
-                    long queueWaitTime = (long) taskCounter.duration();
-                    Class className;
-                    if (task instanceof  CallableExtended) {
-                        className =  ((CallableExtended) task).getRunnable().getClass();
-                    } else {
-                        className = task.getClass();
-                    }
-                    if (queueMetrics != null) {
-                        queueMetrics.update(queueWaitTime, TimeUnit.SECONDS);
-                    }
-                    taskCounter.reset();
-                    try {
-                        t = task.call();
-                    } catch (Exception e) {
-                        getLogger(className).error("Uncaught exception on " + className, e);
-                    }
-                    long taskwaittime = (long) taskCounter.duration();
-                    if (delayMetrics != null) {
-                        delayMetrics.update(taskwaittime, TimeUnit.SECONDS);
-                    }
-                    return t;
-                }
-        );
+                   T t = null;
+                   long queueWaitTime = (long) taskCounter.duration();
+                   Class className;
+                   if (task instanceof CallableExtended) {
+                       className = ((CallableExtended) task).getRunnable().getClass();
+                   } else {
+                       className = task.getClass();
+                   }
+                   if (queueMetrics != null) {
+                       queueMetrics.update(queueWaitTime, TimeUnit.SECONDS);
+                   }
+                   taskCounter.reset();
+                   try {
+                       t = task.call();
+                   } catch (Exception e) {
+                       getLogger(className).error("Uncaught exception on " + className, e);
+                   }
+                   long taskwaittime = (long) taskCounter.duration();
+                   if (delayMetrics != null) {
+                       delayMetrics.update(taskwaittime, TimeUnit.SECONDS);
+                   }
+                   return t;
+               });
     }
 
     @Override
@@ -179,20 +178,26 @@ class SharedExecutorService implements ExecutorService {
         executor.execute(command);
     }
 
-    public void setCalculatePoolPerformance(boolean calculatePoolPerformance, MetricsService metricsSrv) {
-       this.metricsService = metricsSrv;
-       if (calculatePoolPerformance) {
-           if (metricsService != null) {
-               executorMetrics = metricsService.registerComponent("SharedExecutor");
-               MetricsFeature mf = executorMetrics.registerFeature("*");
-               queueMetrics = metricsService.createTimer(executorMetrics, mf, "Queue");
-               delayMetrics = metricsService.createTimer(executorMetrics, mf, "Delay");
-           }
-       } else {
-           metricsService = null;
-           queueMetrics = null;
-           delayMetrics = null;
-       }
+    /**
+     * Enables or disables calculation of the pool performance metrics. If
+     * the metrics service is not null metric collection will be enabled;
+     * otherwise it will be disabled.
+     *
+     * @param metricsService optional metric service
+     */
+    public void setMetricsService(MetricsService metricsService) {
+        if (this.metricsService == null && metricsService != null) {
+            // If metrics service was newly introduced, initialize metrics.
+            executorMetrics = metricsService.registerComponent("SharedExecutor");
+            MetricsFeature mf = executorMetrics.registerFeature("*");
+            queueMetrics = metricsService.createTimer(executorMetrics, mf, "Queue");
+            delayMetrics = metricsService.createTimer(executorMetrics, mf, "Delay");
+        } else if (this.metricsService != null && metricsService == null) {
+            // If the metrics service was newly withdrawn, tear-down metrics.
+            queueMetrics = null;
+            delayMetrics = null;
+        } // Otherwise just record the metrics service
+        this.metricsService = metricsService;
     }
 
     private Runnable wrap(Runnable command) {
@@ -223,8 +228,8 @@ class SharedExecutorService implements ExecutorService {
     }
 
     /**
-     *  CallableExtended class is used to get Runnable Object
-     *  from Callable Object.
+     * CallableExtended class is used to get Runnable Object
+     * from Callable Object.
      */
     class CallableExtended implements Callable {
 
@@ -232,11 +237,13 @@ class SharedExecutorService implements ExecutorService {
 
         /**
          * Wrapper for Callable object .
+         *
          * @param runnable Runnable object
          */
         public CallableExtended(Runnable runnable) {
             this.runnable = runnable;
         }
+
         public Runnable getRunnable() {
             return runnable;
         }
