@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.ApplicationIdStore;
+import org.onosproject.app.ApplicationIdStore;
 import org.onosproject.core.DefaultApplicationId;
 
 import java.util.Map;

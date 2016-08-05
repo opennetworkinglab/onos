@@ -29,7 +29,7 @@ import org.onosproject.app.ApplicationStore;
 import org.onosproject.common.app.ApplicationArchive;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.ApplicationIdStore;
+import org.onosproject.app.ApplicationIdStore;
 import org.onosproject.core.DefaultApplication;
 import org.onosproject.security.Permission;
 import org.slf4j.Logger;

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.core;
-// FIXME: Move to org.onosproject.app package
+package org.onosproject.app;
+
+import org.onosproject.core.ApplicationId;
 
 import java.util.Set;
 
@@ -55,5 +56,4 @@ public interface ApplicationIdStore {
      * @return the application id
      */
     ApplicationId registerApplication(String identifier);
-
 }

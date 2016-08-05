@@ -26,7 +26,7 @@ import org.onosproject.app.ApplicationStoreDelegate;
 import org.onosproject.common.app.ApplicationArchive;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.ApplicationIdStoreAdapter;
+import org.onosproject.app.ApplicationIdStoreAdapter;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.security.AppPermission;
 import org.onosproject.security.Permission;
