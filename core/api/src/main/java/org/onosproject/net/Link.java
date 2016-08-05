@@ -73,7 +73,7 @@ public interface Link extends Annotated, Provided, Projectable, NetworkResource 
         ACTIVE,
 
         /**
-         * Signifies that a link is currently active.
+         * Signifies that a link is currently inactive.
          */
         INACTIVE
     }
