@@ -174,9 +174,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Deactivate
     public void deactivate() {
-        if (!connectedSwitches.isEmpty()) {
-            cleanup();
-        }
+        cleanup();
         cfgService.unregisterProperties(getClass(), false);
     }
 
