@@ -179,6 +179,9 @@ public class NetconfDeviceProvider extends AbstractProvider
         providerRegistry.unregister(this);
         providerService = null;
         cfgService.unregisterConfigFactory(factory);
+        if (poller != null) {
+            poller.cancel(false);
+        }
         executor.shutdown();
         log.info("Stopped");
     }
