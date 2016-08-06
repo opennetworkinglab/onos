@@ -24,5 +24,9 @@
             hwVersion="CSR1000v" swVersion="IOS15.5">
         <behaviour api="org.onosproject.net.behaviour.InterfaceConfig"
                    impl="org.onosproject.drivers.cisco.InterfaceConfigCiscoIosImpl"/>
+        <behaviour api="org.onosproject.net.behaviour.PortDiscovery"
+                   impl="org.onosproject.drivers.cisco.PortGetterCsr1000vImpl"/>
+        <behaviour api="org.onosproject.net.behaviour.PortStatsQuery"
+                   impl="org.onosproject.drivers.cisco.PortStatsQueryCsr1000vImpl"/>
     </driver>
 </drivers>
