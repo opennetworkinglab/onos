@@ -34,6 +34,15 @@ public class PortGetterCsr1000vImpl extends AbstractHandlerBehaviour
         } catch (IOException e) {
             throw new RuntimeException(new NetconfException("Failed to retrieve configuration.", e));
         }
+
+        /*
+         * Interface port numbering is from 1 and up to the number of interfaces supported on CSR1000v.
+         * http://www.cisco.com/c/en/us/td/docs/routers/csr1000/software/configuration/csr1000Vswcfg/csroverview.html
+         *
+         * So GigabitEthernet1 can be seen as port 1. First get name of the interfaces and extract their numbers.
+         * Secondly, extract their speed.
+         */
+
         List<PortDescription> descriptions = new ArrayList<>();
         return descriptions;
     }
@@ -50,10 +59,12 @@ public class PortGetterCsr1000vImpl extends AbstractHandlerBehaviour
         rpc.append("<get>");
         rpc.append("<filter>");
         rpc.append("<config-format-text-block>");
+        /* Use regular expression to extract only name of the interfaces from running-config */
         rpc.append("<text-filter-spec> | include interface </text-filter-spec>");
         rpc.append("</config-format-text-block>");
         rpc.append("<oper-data-format-text-block>");
-        rpc.append("<exec>show interfaces</exec>");
+        /* Use regular expression to extract speed of the interfaces */
+        rpc.append("<exec>show interfaces | include BW [0-9]+ Kbit/sec</exec>");
         rpc.append("</oper-data-format-text-block>");
         rpc.append("</filter>");
         rpc.append("</get>");
