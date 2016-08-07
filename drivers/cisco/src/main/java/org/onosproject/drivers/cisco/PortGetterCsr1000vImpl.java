@@ -84,6 +84,11 @@ public class PortGetterCsr1000vImpl extends AbstractHandlerBehaviour
         return rpc.toString();
     }
 
+    /**
+     * Parses a configuration and returns a set of ports for Cisco CSR1000v.
+     * @param cfg a hierarchical configuration but might not in pure XML format
+     * @return a list of port descriptions
+     */
     private List<PortDescription> parseCsr1000vPorts(HierarchicalConfiguration cfg) {
         List<PortDescription> portDescriptions = Lists.newArrayList();
         List<Object> portNames = cfg.getList("data.cli-config-data.cmd");
@@ -94,7 +99,18 @@ public class PortGetterCsr1000vImpl extends AbstractHandlerBehaviour
             return portDescriptions;
         }
         for (int i = 0; i < numberOfPorts; i++) {
+            /*  Interface port numbering is from 1 on CSR1000v and up to the number of interfaces supported */
             PortNumber portNumber = PortNumber.portNumber(i + 1);
+            /* Example string:
+             *   GigabitEthernet1 is up, line protocol is up
+             *   MTU 1500 bytes, BW 1000000 Kbit/sec, DLY 10 usec,
+             *   GigabitEthernet2 is administratively down, line protocol is down
+             *   MTU 1500 bytes, BW 1000000 Kbit/sec, DLY 10 usec,
+             *
+             * with default delimiter ",", List<Object> portStatus will have size numberOfPorts * 4 + 1.
+             * Link status of port i is on (i * 4)th cell and link speed info of port i is on
+             * (i * 4 + 2)th cell.
+             */
             boolean isEnabled = portStatus.get(i * 4).toString().contains("up");
             long portSpeed = getPortSpeed(portStatus.get(i * 4 + 2).toString());
             DefaultAnnotations annotations = DefaultAnnotations.builder().
