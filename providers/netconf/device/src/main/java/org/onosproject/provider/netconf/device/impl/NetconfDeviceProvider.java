@@ -38,6 +38,7 @@ import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.behaviour.PortDiscovery;
+import org.onosproject.net.behaviour.PortStatsQuery;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -50,6 +51,7 @@ import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.key.DeviceKey;
 import org.onosproject.net.key.DeviceKeyAdminService;
 import org.onosproject.net.key.DeviceKeyId;
@@ -65,6 +67,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -283,11 +286,37 @@ public class NetconfDeviceProvider extends AbstractProvider
         log.debug("Polling device {}...", deviceId);
         if (isReachable(deviceId)) {
             log.debug("Netconf device {} is reachable, updating ports and stats", deviceId);
-            //updatePortsAndStats(deviceId);
+            updatePortsAndStats(deviceId);
         } else {
             log.debug("Netconf device {} is unreachable, disconnecting", deviceId);
-            //disconnectDevice(deviceId);
+            disconnectDevice(deviceId);
         }
+    }
+
+    private void updatePortsAndStats(DeviceId deviceId) {
+        Device device = deviceService.getDevice(deviceId);
+        /* Update port description first */
+        discoverPorts(deviceId);
+        /* If driver has PortStatsQuery feature implemented, query port stats on the device
+         * and push the stats into ONOS core
+         */
+        if (device.is(PortStatsQuery.class)) {
+            PortStatsQuery statsQuery = device.as(PortStatsQuery.class);
+            Collection<PortStatistics> portStats = statsQuery.getPortStatistics(deviceId);
+            if (portStats != null) {
+                providerService.updatePortStatistics(deviceId, portStats);
+            }
+        } else {
+            log.warn("No portStatsQuery behaviour for device {}", deviceId);
+        }
+    }
+
+    private void disconnectDevice(DeviceId deviceId) {
+        Preconditions.checkNotNull(deviceId, ISNULL);
+        log.debug("Netconf device {} removed from Netconf subController", deviceId);
+        deviceKeyAdminService.removeKey(DeviceKeyId.deviceKeyId(deviceId.toString()));
+        controller.disconnectDevice(deviceId, true);
+        providerService.deviceDisconnected(deviceId);
     }
 
     private class InnerNetconfDeviceListener implements NetconfDeviceListener {

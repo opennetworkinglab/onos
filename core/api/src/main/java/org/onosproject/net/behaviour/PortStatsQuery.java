@@ -1,5 +1,6 @@
 package org.onosproject.net.behaviour;
 
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.driver.HandlerBehaviour;
 
@@ -13,7 +14,8 @@ public interface PortStatsQuery extends HandlerBehaviour {
 
     /**
      * Retrieve the set of port stats from a device.
+     * @param deviceId of the device to be queried its port stats
      * @return a set of port stats.
      */
-    Collection<PortStatistics> getPortStatistics();
+    Collection<PortStatistics> getPortStatistics(DeviceId deviceId);
 }
