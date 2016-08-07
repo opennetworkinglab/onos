@@ -1,6 +1,14 @@
 package org.onosproject.drivers.cisco;
 
+import com.google.common.collect.Lists;
+import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.onosproject.drivers.utilities.XmlConfigParser;
+import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.PortDiscovery;
+import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.netconf.NetconfController;
@@ -8,8 +16,8 @@ import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -30,7 +38,8 @@ public class PortGetterCsr1000vImpl extends AbstractHandlerBehaviour
         String reply;
         try {
             reply = session.get(getPortsRequestBuilder());
-            log.info(reply);
+            /* Cisco use '/r/n' as newline character, to correctly log on Linux, we need to remove '\r' */
+            log.info(reply.replaceAll("\r", ""));
         } catch (IOException e) {
             throw new RuntimeException(new NetconfException("Failed to retrieve configuration.", e));
         }
@@ -43,7 +52,9 @@ public class PortGetterCsr1000vImpl extends AbstractHandlerBehaviour
          * Secondly, extract their speed.
          */
 
-        List<PortDescription> descriptions = new ArrayList<>();
+        List<PortDescription> descriptions =
+                parseCsr1000vPorts(XmlConfigParser.
+                        loadXml(new ByteArrayInputStream(reply.getBytes())));
         return descriptions;
     }
 
@@ -58,17 +69,45 @@ public class PortGetterCsr1000vImpl extends AbstractHandlerBehaviour
         rpc.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">");
         rpc.append("<get>");
         rpc.append("<filter>");
-        rpc.append("<config-format-text-block>");
+        rpc.append("<config-format-text-cmd>");
         /* Use regular expression to extract only name of the interfaces from running-config */
         rpc.append("<text-filter-spec> | include interface </text-filter-spec>");
-        rpc.append("</config-format-text-block>");
+        rpc.append("</config-format-text-cmd>");
         rpc.append("<oper-data-format-text-block>");
-        /* Use regular expression to extract speed of the interfaces */
-        rpc.append("<exec>show interfaces | include BW [0-9]+ Kbit/sec</exec>");
+        /* Use regular expression to extract status of the interfaces */
+        rpc.append("<exec>show interfaces | include (line protocol)|(BW [0-9]+ Kbit/sec)</exec>");
         rpc.append("</oper-data-format-text-block>");
         rpc.append("</filter>");
         rpc.append("</get>");
         rpc.append("</rpc>");
+
         return rpc.toString();
+    }
+
+    private List<PortDescription> parseCsr1000vPorts(HierarchicalConfiguration cfg) {
+        List<PortDescription> portDescriptions = Lists.newArrayList();
+        List<Object> portNames = cfg.getList("data.cli-config-data.cmd");
+        List<Object> portStatus = cfg.getList("data.cli-oper-data-block.item.response");
+        int numberOfPorts = portNames.size();
+        if (portStatus.size() != numberOfPorts * 4 + 1) {
+            log.error("Failed to match portStatus against portName");
+            return portDescriptions;
+        }
+        for (int i = 0; i < numberOfPorts; i++) {
+            PortNumber portNumber = PortNumber.portNumber(i + 1);
+            boolean isEnabled = portStatus.get(i * 4).toString().contains("up");
+            long portSpeed = getPortSpeed(portStatus.get(i * 4 + 2).toString());
+            DefaultAnnotations annotations = DefaultAnnotations.builder().
+                    set(AnnotationKeys.PORT_NAME, portNames.get(i).toString().replace("interface ", "")).
+                    build();
+            portDescriptions.add(new DefaultPortDescription(portNumber, isEnabled, Port.Type.COPPER, portSpeed,
+                    annotations));
+        }
+        return portDescriptions;
+    }
+
+    private static long getPortSpeed(String str) {
+        /* Example string: BW 1000000 Kbit/sec */
+        return Long.parseLong(str.split("BW ")[1].split(" Kbit/sec")[0]) / 1000;
     }
 }
