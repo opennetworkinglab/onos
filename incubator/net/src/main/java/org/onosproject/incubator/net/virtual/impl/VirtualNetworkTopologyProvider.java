@@ -87,7 +87,7 @@ public class VirtualNetworkTopologyProvider extends AbstractProvider implements 
     @Deactivate
     public void deactivate() {
         topologyService.removeListener(topologyListener);
-        executor.shutdown();
+        executor.shutdownNow();
         executor = null;
         providerRegistry.unregister(this);
         providerService = null;
