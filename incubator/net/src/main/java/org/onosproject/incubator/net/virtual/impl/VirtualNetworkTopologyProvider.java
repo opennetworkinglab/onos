@@ -42,7 +42,10 @@ import org.slf4j.Logger;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -64,6 +67,8 @@ public class VirtualNetworkTopologyProvider extends AbstractProvider implements 
 
     protected TopologyListener topologyListener = new InternalTopologyListener();
 
+    private ExecutorService executor;
+
     /**
      * Default constructor.
      */
@@ -73,15 +78,17 @@ public class VirtualNetworkTopologyProvider extends AbstractProvider implements 
 
     @Activate
     public void activate() {
+        executor = newSingleThreadExecutor(groupedThreads("onos/vnet", "provider", log));
         providerService = providerRegistry.register(this);
         topologyService.addListener(topologyListener);
-
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
         topologyService.removeListener(topologyListener);
+        executor.shutdown();
+        executor = null;
         providerRegistry.unregister(this);
         providerService = null;
         log.info("Stopped");
@@ -154,27 +161,14 @@ public class VirtualNetworkTopologyProvider extends AbstractProvider implements 
     private class InternalTopologyListener implements TopologyListener {
         @Override
         public void event(TopologyEvent event) {
-            if (!isRelevant(event)) {
-                return;
-            }
-
-            Topology topology = event.subject();
-            providerService.topologyChanged(getConnectPoints(topology));
+            // Perform processing off the listener thread.
+            executor.submit(() -> providerService.topologyChanged(getConnectPoints(event.subject())));
         }
 
         @Override
         public boolean isRelevant(TopologyEvent event) {
-            final boolean[] relevant = {false};
-            if (event.type().equals(TopologyEvent.Type.TOPOLOGY_CHANGED)) {
-                event.reasons().forEach(event1 -> {
-                    // Only LinkEvents are relevant events, ie: DeviceEvents and others are ignored.
-                    if (event1 instanceof LinkEvent) {
-                        relevant[0] = true;
-                        return;
-                    }
-                });
-            }
-            return relevant[0];
+            return event.type() == TopologyEvent.Type.TOPOLOGY_CHANGED &&
+                    event.reasons().stream().anyMatch(reason -> reason instanceof LinkEvent);
         }
     }
 }
