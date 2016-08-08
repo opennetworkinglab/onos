@@ -274,7 +274,7 @@ public class BgpTopologyProviderTest {
         Map<ResourceId, List<Resource>> registeredRes = new HashMap<>();
 
         @Override
-        public boolean register(List<Resource> resources) {
+        public boolean register(List<? extends Resource> resources) {
             for (Resource res : resources) {
                 List<Resource> resource = new LinkedList<>();
                 resource.add(res);
@@ -287,7 +287,7 @@ public class BgpTopologyProviderTest {
         }
 
         @Override
-        public boolean unregister(List<ResourceId> ids) {
+        public boolean unregister(List<? extends ResourceId> ids) {
             for (ResourceId id : ids) {
                 if (registeredRes.containsKey(id)) {
                     registeredRes.remove(id);

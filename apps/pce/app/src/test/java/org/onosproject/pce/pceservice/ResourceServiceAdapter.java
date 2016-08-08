@@ -43,7 +43,7 @@ public class ResourceServiceAdapter implements ResourceService {
     }
 
     @Override
-    public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<Resource> resources) {
+    public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<? extends Resource> resources) {
         // TODO Auto-generated method stub
         return null;
     }

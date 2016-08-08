@@ -192,7 +192,7 @@ public class IntentTestsMocks {
         }
 
         @Override
-        public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<Resource> resources) {
+        public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<? extends Resource> resources) {
             return null;
         }
 
