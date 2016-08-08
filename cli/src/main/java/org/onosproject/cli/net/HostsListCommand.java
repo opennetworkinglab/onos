@@ -24,6 +24,7 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Host;
 import org.onosproject.net.host.HostService;
 import org.onosproject.utils.Comparators;
+import org.onlab.util.Tools;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,7 +39,7 @@ import static com.google.common.collect.Lists.newArrayList;
 public class HostsListCommand extends AbstractShellCommand {
 
     private static final String FMT =
-            "id=%s, mac=%s, location=%s/%s, vlan=%s, ip(s)=%s%s";
+            "id=%s, mac=%s, location=%s/%s, vlan=%s, ip(s)=%s%s, last seen time=%s";
 
     private static final String FMT_SHORT =
             "id=%s, mac=%s, location=%s/%s, vlan=%s, ip(s)=%s";
@@ -93,7 +94,9 @@ public class HostsListCommand extends AbstractShellCommand {
         } else {
             print(FMT, host.id(), host.mac(),
                   host.location().deviceId(), host.location().port(),
-                  host.vlan(), host.ipAddresses(), annotations(host.annotations()));
+                  host.vlan(), host.ipAddresses(), annotations(host.annotations()),
+                  Tools.timeAgo(host.timestamp().unixTimestamp()));
         }
     }
 }
+

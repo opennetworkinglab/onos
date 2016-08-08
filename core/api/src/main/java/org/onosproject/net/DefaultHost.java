@@ -16,6 +16,7 @@
 package org.onosproject.net;
 
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.service.WallClockTimestamp;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -36,6 +37,7 @@ public class DefaultHost extends AbstractElement implements Host {
     private final VlanId vlan;
     private final HostLocation location;
     private final Set<IpAddress> ips;
+    private final WallClockTimestamp timestamp;
 
     /**
      * Creates an end-station host using the supplied information.
@@ -51,10 +53,29 @@ public class DefaultHost extends AbstractElement implements Host {
     public DefaultHost(ProviderId providerId, HostId id, MacAddress mac,
                        VlanId vlan, HostLocation location, Set<IpAddress> ips,
                        Annotations... annotations) {
+        this(providerId, id, mac, vlan, location, ips, new WallClockTimestamp(), annotations);
+    }
+
+    /**
+     * Creates an end-station host using the supplied information.
+     *
+     * @param providerId provider identity
+     * @param id         host identifier
+     * @param mac        host MAC address
+     * @param vlan       host VLAN identifier
+     * @param location   host location
+     * @param ips        host IP addresses
+     * @param timestamp  last host updated time
+     * @param annotations optional key/value annotations
+     */
+    public DefaultHost(ProviderId providerId, HostId id, MacAddress mac,
+                       VlanId vlan, HostLocation location, Set<IpAddress> ips,
+                       WallClockTimestamp timestamp, Annotations... annotations) {
         super(providerId, id, annotations);
         this.mac = mac;
         this.vlan = vlan;
         this.location = location;
+        this.timestamp = timestamp;
         this.ips = new HashSet<>(ips);
     }
 
@@ -81,6 +102,11 @@ public class DefaultHost extends AbstractElement implements Host {
     @Override
     public VlanId vlan() {
         return vlan;
+    }
+
+    @Override
+    public WallClockTimestamp timestamp() {
+        return timestamp;
     }
 
     @Override
@@ -114,6 +140,7 @@ public class DefaultHost extends AbstractElement implements Host {
                 .add("location", location())
                 .add("ipAddresses", ipAddresses())
                 .add("annotations", annotations())
+                .add("timestamp", timestamp())
                 .toString();
     }
 

@@ -21,6 +21,7 @@ import java.util.Set;
 import org.onosproject.net.AbstractDescription;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.SparseAnnotations;
+import org.onosproject.store.service.WallClockTimestamp;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -40,6 +41,7 @@ public class DefaultHostDescription extends AbstractDescription
     private final VlanId vlan;
     private final HostLocation location;
     private final Set<IpAddress> ip;
+    private final WallClockTimestamp timestamp;
 
     /**
      * Creates a host description using the supplied information.
@@ -83,11 +85,28 @@ public class DefaultHostDescription extends AbstractDescription
     public DefaultHostDescription(MacAddress mac, VlanId vlan,
                                   HostLocation location, Set<IpAddress> ip,
                                   SparseAnnotations... annotations) {
+        this(mac, vlan, location, ip, new WallClockTimestamp(), annotations);
+    }
+
+    /**
+     * Creates a host description using the supplied information.
+     *
+     * @param mac         host MAC address
+     * @param vlan        host VLAN identifier
+     * @param location    host location
+     * @param ip          host IP addresses
+     * @param timestamp     host recent updated time
+     * @param annotations optional key/value annotations map
+     */
+    public DefaultHostDescription(MacAddress mac, VlanId vlan,
+                                  HostLocation location, Set<IpAddress> ip,
+                                  WallClockTimestamp timestamp, SparseAnnotations... annotations) {
         super(annotations);
         this.mac = mac;
         this.vlan = vlan;
         this.location = location;
         this.ip = ImmutableSet.copyOf(ip);
+        this.timestamp = timestamp;
     }
 
     @Override
@@ -111,12 +130,18 @@ public class DefaultHostDescription extends AbstractDescription
     }
 
     @Override
+    public WallClockTimestamp timestamp() {
+        return timestamp;
+    }
+
+    @Override
     public String toString() {
         return toStringHelper(this)
                 .add("mac", mac)
                 .add("vlan", vlan)
                 .add("location", location)
                 .add("ipAddress", ip)
+                .add("timestamp", timestamp)
                 .toString();
     }
 
@@ -139,5 +164,4 @@ public class DefaultHostDescription extends AbstractDescription
         }
         return false;
     }
-
 }

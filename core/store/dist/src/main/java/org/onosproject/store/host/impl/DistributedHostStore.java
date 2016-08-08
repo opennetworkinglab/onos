@@ -48,6 +48,7 @@ import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -87,7 +88,8 @@ public class DistributedHostStore
     @Activate
     public void activate() {
         KryoNamespace.Builder hostSerializer = KryoNamespace.newBuilder()
-                .register(KryoNamespaces.API);
+                .register(KryoNamespaces.API)
+                .register(WallClockTimestamp.class);
 
         hostsConsistentMap = storageService.<HostId, DefaultHost>consistentMapBuilder()
                 .withName("onos-hosts")
@@ -122,7 +124,9 @@ public class DistributedHostStore
         if (!Objects.equals(existingHost.providerId(), providerId) ||
                 !Objects.equals(existingHost.mac(), hostDescription.hwAddress()) ||
                 !Objects.equals(existingHost.vlan(), hostDescription.vlan()) ||
-                !Objects.equals(existingHost.location(), hostDescription.location())) {
+                !Objects.equals(existingHost.location(), hostDescription.location()) ||
+                hostDescription.timestamp() == null ||
+                hostDescription.timestamp().isNewerThan(existingHost.timestamp())) {
             return true;
         }
 
@@ -173,13 +177,13 @@ public class DistributedHostStore
                            } else {
                                annotations = hostDescription.annotations();
                            }
-
                            return new DefaultHost(providerId,
                                                   hostId,
                                                   hostDescription.hwAddress(),
                                                   hostDescription.vlan(),
                                                   location,
                                                   addresses,
+                                                  hostDescription.timestamp(),
                                                   annotations);
                        });
         return null;
@@ -302,3 +306,4 @@ public class DistributedHostStore
         }
     }
 }
+
