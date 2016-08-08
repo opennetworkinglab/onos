@@ -320,6 +320,7 @@
     // updateLinks - subfunctions
 
     function linkEntering(d) {
+
         var link = d3.select(this);
         d.el = link;
         api.restyleLinkElement(d);

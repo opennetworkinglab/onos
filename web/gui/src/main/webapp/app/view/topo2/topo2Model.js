@@ -1,23 +1,23 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright 2016-present Open Networking Laboratory
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 /*
- ONOS GUI -- Topology Force Module.
- Visualization of the topology in an SVG layer, using a D3 Force Layout.
- */
+ONOS GUI -- Topology Force Module.
+Visualization of the topology in an SVG layer, using a D3 Force Layout.
+*/
 
 (function () {
     'use strict';
@@ -28,17 +28,86 @@
         this.attributes = {};
 
         attrs = angular.extend({}, attrs);
-        this.set(attrs);
+        this.set(attrs, { silent: true });
+        this.initialize.apply(this, arguments);
     }
 
     Model.prototype = {
+
+        initialize: function () {},
+
+        onChange: function (property, value, options) {},
 
         get: function (attr) {
             return this.attributes[attr];
         },
 
-        set: function(data) {
-            angular.extend(this.attributes, data);
+        set: function(key, val, options) {
+
+            if (!key) {
+                return this;
+            }
+
+            var attributes;
+            if (typeof key === 'object') {
+                attributes = key;
+                options = val;
+            } else {
+                (attributes = {})[key] = val;
+            }
+
+            options || (options = {});
+
+            var unset = options.unset,
+                silent = options.silent,
+                changes = [],
+                changing   = this._changing;
+
+            this._changing = true;
+
+            if (!changing) {
+
+                // NOTE: angular.copy causes issues in chrome
+                this._previousAttributes = Object.create(Object.getPrototypeOf(this.attributes));
+                this.changed = {};
+            }
+
+            var current = this.attributes,
+                changed = this.changed,
+                previous = this._previousAttributes;
+
+            angular.forEach(attributes, function (attribute, index) {
+
+                val = attribute;
+
+                if (!angular.equals(current[index], val)) {
+                    changes.push(index);
+                }
+
+                if (!angular.equals(previous[index], val)) {
+                    changed[index] = val;
+                } else {
+                    delete changed[index];
+                }
+
+                unset ? delete current[index] : current[index] = val;
+            });
+
+            // Trigger all relevant attribute changes.
+            if (!silent) {
+                if (changes.length) {
+                    this._pending = options;
+                }
+                for (var i = 0; i < changes.length; i++) {
+                    this.onChange(changes[i], this, current[changes[i]], options);
+                }
+            }
+
+            this._changing = false;
+            return this;
+        },
+        toJSON: function(options) {
+            return angular.copy(this.attributes)
         },
     };
 
@@ -67,11 +136,11 @@
     };
 
     angular.module('ovTopo2')
-        .factory('Topo2Model',
-        [
-            function () {
-                return Model;
-            }
-        ]);
+    .factory('Topo2Model',
+    [
+        function () {
+            return Model;
+        }
+    ]);
 
 })();

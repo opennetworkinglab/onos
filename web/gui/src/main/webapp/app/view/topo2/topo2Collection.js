@@ -55,8 +55,6 @@
                     _this._byId[d.id] = model;
                 });
             }
-
-//            this.sort();
         },
         get: function (id) {
             if (!id) {
@@ -77,7 +75,10 @@
         _reset: function () {
             this._byId = [];
             this.models = [];
-        }
+        },
+        toJSON: function(options) {
+            return this.models.map(function(model) { return model.toJSON(options); });
+        },
     };
 
     Collection.extend = function (protoProps, staticProps) {

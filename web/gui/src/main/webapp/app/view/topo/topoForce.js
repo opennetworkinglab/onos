@@ -103,6 +103,7 @@
     // === EVENT HANDLERS
 
     function addDevice(data) {
+        console.log(data);
         var id = data.id,
             d;
 
@@ -1044,7 +1045,7 @@
         updateLinks();
         updateNodes();
     }
-    
+
     angular.module('ovTopo')
     .factory('TopoForceService',
         ['$log', '$timeout', 'FnService', 'SvgUtilService',

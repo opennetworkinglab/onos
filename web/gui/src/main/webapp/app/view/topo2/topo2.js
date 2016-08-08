@@ -48,6 +48,7 @@
     // callback invoked when the SVG view has been resized..
     function svgResized(s) {
         $log.debug('topo2 view resized', s);
+        t2fs.newDim([s.width, s.height]);
     }
 
     function setUpKeys(overlayKeys) {
@@ -68,7 +69,7 @@
         ps.setPrefs('topo_zoom', {tx:tr[0], ty:tr[1], sc:sc});
 
         // keep the map lines constant width while zooming
-        mapG.style('stroke-width', (2.0 / sc) + 'px');
+//        mapG.style('stroke-width', (2.0 / sc) + 'px');
     }
 
     function setUpZoom() {
