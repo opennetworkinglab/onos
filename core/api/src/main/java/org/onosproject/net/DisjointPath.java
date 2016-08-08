@@ -43,7 +43,7 @@ public interface DisjointPath extends Path {
     /**
      * Gets secondary path.
      *
-     * @return secondary path
+     * @return secondary path, or null if there is no secondary path available.
      */
     Path backup();
 }
