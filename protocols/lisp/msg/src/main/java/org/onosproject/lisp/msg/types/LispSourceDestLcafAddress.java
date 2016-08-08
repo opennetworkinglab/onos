@@ -21,9 +21,12 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Source/Dest key type LCAF address class.
+ * <p>
  * Source destination key type is defined in draft-ietf-lisp-lcaf-13
  * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-13#page-18
  *
+ * <pre>
+ * {@literal
  *  0                   1                   2                   3
  *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -37,6 +40,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * |              AFI = x          |     Destination-Prefix ...    |
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * }</pre>
  */
 public class LispSourceDestLcafAddress extends LispLcafAddress {
 

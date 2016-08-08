@@ -19,14 +19,14 @@ import java.util.List;
 
 /**
  * LISP map notify message interface.
- *
+ * <p>
  * LISP map notify message format is defined in RFC6830.
  * https://tools.ietf.org/html/rfc6830#page-39
  *
  * <pre>
  * {@literal
- * 0                   1                   2                   3
- * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *  0                   1                   2                   3
+ *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * |Type=4 |              Reserved                 | Record Count  |
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+

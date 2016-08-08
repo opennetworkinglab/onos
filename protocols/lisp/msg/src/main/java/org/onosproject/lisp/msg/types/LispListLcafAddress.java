@@ -22,10 +22,12 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * List type LCAF address class.
- *
+ * <p>
  * List type is defined in draft-ietf-lisp-lcaf-13
  * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-13#page-21
  *
+ * <pre>
+ * {@literal
  *  0                   1                   2                   3
  *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -45,6 +47,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * |                     ...  IPv6 Address                         |
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * }</pre>
  */
 public class LispListLcafAddress extends LispLcafAddress {
 
