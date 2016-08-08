@@ -101,6 +101,9 @@ public class PcePathWebResource extends AbstractWebResource {
         Tunnel tunnel = nullIsNotFound(get(PceService.class).queryPath(TunnelId.valueOf(id)),
                                        PCE_PATH_NOT_FOUND);
         PcePath path = DefaultPcePath.builder().of(tunnel).build();
+        if (path == null) {
+            return Response.status(OK).entity(PCE_SETUP_PATH_FAILED).build();
+        }
         ObjectNode result = mapper().createObjectNode();
         result.set("path", codec(PcePath.class).encode(path, this));
         return ok(result.toString()).build();
@@ -122,6 +125,10 @@ public class PcePathWebResource extends AbstractWebResource {
             JsonNode port = jsonTree.get("path");
             TunnelService tunnelService = get(TunnelService.class);
             PcePath path = codec(PcePath.class).decode((ObjectNode) port, this);
+            if (path == null) {
+                return Response.status(OK).entity(PCE_SETUP_PATH_FAILED).build();
+            }
+
             //Validating tunnel name, duplicated tunnel names not allowed
             Collection<Tunnel> existingTunnels = tunnelService.queryTunnel(Tunnel.Type.MPLS);
             if (existingTunnels != null) {
@@ -171,6 +178,9 @@ public class PcePathWebResource extends AbstractWebResource {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
             JsonNode pathNode = jsonTree.get("path");
             PcePath path = codec(PcePath.class).decode((ObjectNode) pathNode, this);
+            if (path == null) {
+                return Response.status(OK).entity(PCE_SETUP_PATH_FAILED).build();
+            }
             List<Constraint> constrntList = new LinkedList<Constraint>();
             // Assign bandwidth
             if (path.bandwidthConstraint() != null) {
