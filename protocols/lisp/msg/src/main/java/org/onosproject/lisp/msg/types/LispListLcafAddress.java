@@ -15,6 +15,8 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import com.google.common.collect.ImmutableList;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -61,6 +63,7 @@ public class LispListLcafAddress extends LispLcafAddress {
      */
     public LispListLcafAddress(List<LispAfiAddress> addresses) {
         super(LispCanonicalAddressFormatEnum.LIST, LENGTH);
+        this.addresses = addresses;
     }
 
     /**
@@ -69,7 +72,7 @@ public class LispListLcafAddress extends LispLcafAddress {
      * @return a set of AFI addresses
      */
     public List<LispAfiAddress> getAddresses() {
-        return addresses;
+        return ImmutableList.copyOf(addresses);
     }
 
     @Override

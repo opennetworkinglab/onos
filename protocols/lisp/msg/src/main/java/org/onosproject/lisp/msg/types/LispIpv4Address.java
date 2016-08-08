@@ -17,6 +17,8 @@ package org.onosproject.lisp.msg.types;
 
 import org.onlab.packet.IpAddress;
 
+import java.util.Objects;
+
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
@@ -32,5 +34,24 @@ public class LispIpv4Address extends LispIpAddress {
     public LispIpv4Address(IpAddress address) {
         super(address, AddressFamilyIdentifierEnum.IP);
         checkArgument(address.isIp4());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof LispIpv4Address) {
+            final LispIpv4Address other = (LispIpv4Address) obj;
+            return Objects.equals(this.address, other.address) &&
+                    Objects.equals(this.getAfi(), other.getAfi());
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(address, getAfi());
     }
 }

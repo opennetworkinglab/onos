@@ -17,6 +17,8 @@ package org.onosproject.lisp.msg.types;
 
 import org.onlab.packet.MacAddress;
 
+import java.util.Objects;
+
 /**
  * MAC address that is used by LISP Locator.
  */
@@ -50,7 +52,16 @@ public class LispMacAddress extends LispAfiAddress {
 
     @Override
     public boolean equals(Object obj) {
-        return address.equals(obj);
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof LispMacAddress) {
+            final LispMacAddress other = (LispMacAddress) obj;
+            return Objects.equals(this.address, other.address) &&
+                    Objects.equals(this.getAfi(), other.getAfi());
+        }
+        return false;
     }
 
     @Override
