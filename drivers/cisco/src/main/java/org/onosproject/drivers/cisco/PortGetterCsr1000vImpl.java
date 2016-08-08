@@ -39,7 +39,7 @@ public class PortGetterCsr1000vImpl extends AbstractHandlerBehaviour
         try {
             reply = session.get(getPortsRequestBuilder());
             /* Cisco use '/r/n' as newline character, to correctly log on Linux, we need to remove '\r' */
-            log.info(reply.replaceAll("\r", ""));
+            log.debug("Device {} replies {}", handler().data().deviceId(), reply.replaceAll("\r", ""));
         } catch (IOException e) {
             throw new RuntimeException(new NetconfException("Failed to retrieve configuration.", e));
         }
