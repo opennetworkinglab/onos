@@ -348,6 +348,26 @@ public abstract class Tools {
     }
 
     /**
+     * Get Long property from the propertyName
+     * Return null if propertyName is not found.
+     *
+     * @param properties   properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @return value when the propertyName is defined or return null
+     */
+    public static Long getLongProperty(Dictionary<?, ?> properties,
+                                             String propertyName) {
+        Long value;
+        try {
+            String s = get(properties, propertyName);
+            value = Strings.isNullOrEmpty(s) ? null : Long.valueOf(s);
+        } catch (NumberFormatException | ClassCastException e) {
+            value = null;
+        }
+        return value;
+    }
+
+    /**
      * Suspends the current thread for a specified number of millis.
      *
      * @param ms number of millis

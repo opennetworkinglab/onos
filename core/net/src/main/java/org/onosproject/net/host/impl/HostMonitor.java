@@ -149,6 +149,13 @@ public class HostMonitor implements TimerTask {
         hostProviders.put(provider.id(), provider);
     }
 
+    /*
+     * Sets the probe rate.
+     */
+    void setProbeRate(long probeRate) {
+        this.probeRate = probeRate;
+    }
+
     @Override
     public void run(Timeout timeout) throws Exception {
         for (IpAddress ip : monitoredAddresses) {
