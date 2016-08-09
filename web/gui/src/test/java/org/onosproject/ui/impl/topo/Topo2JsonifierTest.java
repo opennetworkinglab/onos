@@ -19,6 +19,8 @@ package org.onosproject.ui.impl.topo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
+import org.onosproject.net.Annotated;
+import org.onosproject.net.Annotations;
 import org.onosproject.ui.impl.AbstractUiImplTest;
 import org.onosproject.ui.model.topo.UiNode;
 
@@ -26,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.onosproject.ui.model.topo.UiNode.LAYER_DEFAULT;
 import static org.onosproject.ui.model.topo.UiNode.LAYER_OPTICAL;
 import static org.onosproject.ui.model.topo.UiNode.LAYER_PACKET;
@@ -144,5 +147,60 @@ public class Topo2JsonifierTest extends AbstractUiImplTest {
         assertEquals("missing node C", true, def.contains(NODE_C));
         assertEquals("missing node B", true, def.contains(NODE_B));
         assertEquals("missing node E", true, def.contains(NODE_E));
+    }
+
+    private static final String K1 = "K1";
+    private static final String K2 = "K2";
+    private static final String K3 = "K3";
+    private static final String K4 = "K4";
+
+    private static final String V1 = "V1";
+    private static final String V2 = "V2";
+    private static final String V3 = "V3";
+
+    private static final Annotations ANNOTS = new Annotations() {
+        @Override
+        public Set<String> keys() {
+            return ImmutableSet.of(K1, K2, K3);
+        }
+
+        @Override
+        public String value(String key) {
+            switch (key) {
+                case K1:
+                    return V1;
+                case K2:
+                    return V2;
+                case K3:
+                    return V3;
+                default:
+                    return null;
+            }
+        }
+    };
+
+    private static final Annotated THING = () -> ANNOTS;
+
+    private void verifyValues(List<String> vals, String... exp) {
+        print(vals);
+        if (exp.length == 0) {
+            // don't expect any results
+            assertNull("huh?", vals);
+        } else {
+            assertEquals("wrong list len", exp.length, vals.size());
+
+            for (int i = 0; i < exp.length; i++) {
+                assertEquals("wrong value " + i, exp[i], vals.get(i));
+            }
+        }
+    }
+
+    @Test
+    public void annotValues() {
+        print("annotValues()");
+        verifyValues(t2.getAnnotValues(THING, K1), V1);
+        verifyValues(t2.getAnnotValues(THING, K3, K1), V3, V1);
+        verifyValues(t2.getAnnotValues(THING, K1, K2, K3), V1, V2, V3);
+        verifyValues(t2.getAnnotValues(THING, K1, K4));
     }
 }

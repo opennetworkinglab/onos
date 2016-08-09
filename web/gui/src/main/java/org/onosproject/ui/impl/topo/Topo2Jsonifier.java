@@ -26,6 +26,9 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.incubator.net.PortStatisticsService;
 import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.Annotated;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.Device;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.host.HostService;
@@ -51,8 +54,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.AnnotationKeys.LATITUDE;
+import static org.onosproject.net.AnnotationKeys.LONGITUDE;
 import static org.onosproject.ui.model.topo.UiNode.LAYER_DEFAULT;
 
 /**
@@ -86,6 +92,11 @@ class Topo2Jsonifier {
     private PortStatisticsService portStatsService;
     private TopologyService topologyService;
     private TunnelService tunnelService;
+
+
+    // NOTE: we'll stick this here for now, but maybe there is a better home?
+    //       (this is not distributed across the cluster)
+    private static Map<String, ObjectNode> metaUi = new ConcurrentHashMap<>();
 
 
     /**
@@ -263,17 +274,73 @@ class Topo2Jsonifier {
                 .put("master", nullIsEmpty(device.master()))
                 .put("layer", device.layer());
 
-        // TODO: complete device details
-//        addLabels(node, device);
-//        addProps(node, device);
-//        addGeoLocation(node, device);
-//        addMetaUi(node, device);
+        Device d = device.backingDevice();
+
+        addProps(node, d);
+        addGeoLocation(node, d);
+        addMetaUi(node, device.idAsString());
 
         return node;
     }
 
-    private void addLabels(ObjectNode node, UiDevice device) {
+    private void addProps(ObjectNode node, Device dev) {
+        Annotations annot = dev.annotations();
+        ObjectNode props = objectNode();
+        if (annot != null) {
+            annot.keys().forEach(k -> props.put(k, annot.value(k)));
+        }
+        node.set("props", props);
+    }
 
+    private void addMetaUi(ObjectNode node, String metaInstanceId) {
+        ObjectNode meta = metaUi.get(metaInstanceId);
+        if (meta != null) {
+            node.set("metaUi", meta);
+        }
+    }
+
+    private void addGeoLocation(ObjectNode node, Annotated a) {
+        List<String> lngLat = getAnnotValues(a, LONGITUDE, LATITUDE);
+        if (lngLat != null) {
+            try {
+                double lng = Double.parseDouble(lngLat.get(0));
+                double lat = Double.parseDouble(lngLat.get(1));
+                ObjectNode loc = objectNode()
+                        .put("type", "lnglat")
+                        .put("lng", lng)
+                        .put("lat", lat);
+                node.set("location", loc);
+
+            } catch (NumberFormatException e) {
+                log.warn("Invalid geo data: longitude={}, latitude={}",
+                        lngLat.get(0), lngLat.get(1));
+            }
+        } else {
+            log.debug("No geo lng/lat for {}", a);
+        }
+    }
+
+    // return list of string values from annotated instance, for given keys
+    // return null if any keys are not present
+    List<String> getAnnotValues(Annotated a, String... annotKeys) {
+        List<String> result = new ArrayList<>(annotKeys.length);
+        for (String k : annotKeys) {
+            String v = a.annotations().value(k);
+            if (v == null) {
+                return null;
+            }
+            result.add(v);
+        }
+        return result;
+    }
+
+    // derive JSON object from annotations
+    private ObjectNode props(Annotations annotations) {
+        ObjectNode p = objectNode();
+        if (annotations != null) {
+            annotations.keys().forEach(k -> p.put(k, annotations.value(k)));
+        }
+        return p;
     }
 
     private ObjectNode json(UiHost host) {

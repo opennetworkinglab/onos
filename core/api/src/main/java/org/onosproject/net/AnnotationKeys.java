@@ -50,7 +50,7 @@ public final class AnnotationKeys {
     public static final String LATITUDE = "latitude";
 
     /**
-     * Annotation key for longitute (e.g. longitude of device).
+     * Annotation key for longitude (e.g. longitude of device).
      */
     public static final String LONGITUDE = "longitude";
 
