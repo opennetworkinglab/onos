@@ -35,6 +35,7 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.slf4j.Logger;
 
+import static org.onlab.util.Tools.toHexWithPrefix;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -162,6 +163,10 @@ public final class EncodeInstructionCodecHelper {
                         (L2ModificationInstruction.ModMplsBosInstruction) l2Instruction;
                 result.put(InstructionCodec.MPLS_BOS, modMplsBosInstruction.mplsBos());
             case MPLS_POP:
+                final L2ModificationInstruction.ModMplsHeaderInstruction popHeaderInstruction =
+                        (L2ModificationInstruction.ModMplsHeaderInstruction) l2Instruction;
+                result.put(InstructionCodec.ETHERNET_TYPE,
+                        toHexWithPrefix(popHeaderInstruction.ethernetType().toShort()));
             case DEC_MPLS_TTL:
                 break;
             default:
@@ -196,6 +201,7 @@ public final class EncodeInstructionCodecHelper {
             case TTL_IN:
             case TTL_OUT:
             case DEC_TTL:
+                // These instructions have no values to be encoded
                 break;
             default:
                 log.info("Cannot convert L3 subtype of {}", l3Instruction.subtype());

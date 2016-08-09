@@ -15,10 +15,12 @@
  */
 package org.onlab.util;
 
-import static java.nio.file.Files.delete;
-import static java.nio.file.Files.walkFileTree;
-import static org.onlab.util.GroupedThreadFactory.groupedThreadFactory;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.primitives.UnsignedLongs;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,13 +53,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.slf4j.Logger;
-
-import com.google.common.base.Charsets;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.primitives.UnsignedLongs;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import static java.nio.file.Files.delete;
+import static java.nio.file.Files.walkFileTree;
+import static org.onlab.util.GroupedThreadFactory.groupedThreadFactory;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Miscellaneous utility methods.
@@ -242,6 +241,17 @@ public abstract class Tools {
      */
     public static String toHex(long value, int width) {
         return Strings.padStart(UnsignedLongs.toString(value, 16), width, '0');
+    }
+
+    /**
+     * Returns a string encoding in hex of the given long value with prefix
+     * '0x'.
+     *
+     * @param value long value to encode as hex string
+     * @return hex string
+     */
+    public static String toHexWithPrefix(long value) {
+        return "0x" + Long.toHexString(value);
     }
 
     /**

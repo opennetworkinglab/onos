@@ -55,6 +55,7 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     protected static final String ICMPV6_CODE = "icmpv6Code";
     protected static final String TARGET_ADDRESS = "targetAddress";
     protected static final String LABEL = "label";
+    protected static final String BOS = "bos";
     protected static final String EXT_HDR_FLAGS = "exthdrFlags";
     protected static final String LAMBDA = "lambda";
     protected static final String GRID_TYPE = "gridType";

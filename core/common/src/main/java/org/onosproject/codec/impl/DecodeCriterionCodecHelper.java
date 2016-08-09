@@ -96,6 +96,7 @@ public final class DecodeCriterionCodecHelper {
         decoderMap.put(Criterion.Type.IPV6_ND_SLL.name(), new V6NDSllDecoder());
         decoderMap.put(Criterion.Type.IPV6_ND_TLL.name(), new V6NDTllDecoder());
         decoderMap.put(Criterion.Type.MPLS_LABEL.name(), new MplsLabelDecoder());
+        decoderMap.put(Criterion.Type.MPLS_BOS.name(), new MplsBosDecoder());
         decoderMap.put(Criterion.Type.IPV6_EXTHDR.name(), new IpV6ExthdrDecoder());
         decoderMap.put(Criterion.Type.OCH_SIGID.name(), new OchSigIdDecoder());
         decoderMap.put(Criterion.Type.OCH_SIGTYPE.name(), new OchSigTypeDecoder());
@@ -407,6 +408,15 @@ public final class DecodeCriterionCodecHelper {
             int label = nullIsIllegal(json.get(CriterionCodec.LABEL),
                     CriterionCodec.LABEL + MISSING_MEMBER_MESSAGE).asInt();
             return Criteria.matchMplsLabel(MplsLabel.mplsLabel(label));
+        }
+    }
+
+    private class MplsBosDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            boolean bos = nullIsIllegal(json.get(CriterionCodec.BOS),
+                    CriterionCodec.BOS + MISSING_MEMBER_MESSAGE).asBoolean();
+            return Criteria.matchMplsBos(bos);
         }
     }
 

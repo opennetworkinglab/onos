@@ -159,6 +159,12 @@ public final class DecodeInstructionCodecHelper {
             int flowLabel = nullIsIllegal(json.get(InstructionCodec.FLOW_LABEL),
                     InstructionCodec.FLOW_LABEL + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt();
             return Instructions.modL3IPv6FlowLabel(flowLabel);
+        } else  if (subType.equals(L3ModificationInstruction.L3SubType.TTL_IN.name())) {
+            return Instructions.copyTtlIn();
+        } else  if (subType.equals(L3ModificationInstruction.L3SubType.TTL_OUT.name())) {
+            return Instructions.copyTtlOut();
+        } else  if (subType.equals(L3ModificationInstruction.L3SubType.DEC_TTL.name())) {
+            return Instructions.decNwTtl();
         }
         throw new IllegalArgumentException("L3 Instruction subtype "
                 + subType + " is not supported");
