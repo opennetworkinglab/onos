@@ -495,6 +495,17 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
                 case INIT:
                 case DEVICE_CREATED:
                 case INCOMPLETE:
+                    eventExecutor.execute(() -> {
+                        if (node.type() == GATEWAY) {
+                            GatewayNode gnode = GatewayNode.builder()
+                                    .gatewayDeviceId(node.intBridge())
+                                    .dataIpAddress(node.dataIp().getIp4Address())
+                                    .uplinkIntf(node.externalPortName().get())
+                                    .build();
+                            gatewayService.deleteGatewayNode(gnode);
+                        }
+                        reloadRoutingRules();
+                    });
                 default:
                     break;
             }
