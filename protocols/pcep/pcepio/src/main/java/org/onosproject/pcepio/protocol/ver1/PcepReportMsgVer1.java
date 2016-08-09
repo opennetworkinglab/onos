@@ -65,8 +65,8 @@ class PcepReportMsgVer1 implements PcepReportMsg {
     protected static final Logger log = LoggerFactory.getLogger(PcepReportMsgVer1.class);
 
     public static final byte PACKET_VERSION = 1;
-    //PACKET_MINIMUM_LENGTH = CommonHeaderLen(4)+LspObjMinLen(8)+EroObjMinLen(4)
-    public static final int PACKET_MINIMUM_LENGTH = 16;
+    //PACKET_MINIMUM_LENGTH = CommonHeaderLen(4)+LspObjMinLen(8)
+    public static final int PACKET_MINIMUM_LENGTH = 12;
     public static final PcepType MSG_TYPE = PcepType.REPORT;
     public static final byte REPORT_OBJ_TYPE = 1;
     //Optional TLV
@@ -164,9 +164,25 @@ class PcepReportMsgVer1 implements PcepReportMsg {
                 lspObj = PcepLspObjectVer1.read(cb);
                 pcestateReq.setLspObject(lspObj);
 
-                //store path
-                PcepStateReport.PcepMsgPath msgPath = new PcepStateReportVer1().new PcepMsgPath().read(cb);
-                pcestateReq.setMsgPath(msgPath);
+                if (cb.readableBytes() > 0) {
+
+                    //mark the reader index to reset
+                    cb.markReaderIndex();
+                    tempObjHeader = PcepObjectHeader.read(cb);
+
+                    yObjectClass = tempObjHeader.getObjClass();
+                    yObjectType = tempObjHeader.getObjType();
+
+                    //reset reader index
+                    cb.resetReaderIndex();
+
+                    if ((PcepEroObjectVer1.ERO_OBJ_CLASS == yObjectClass)
+                            && (PcepEroObjectVer1.ERO_OBJ_TYPE == yObjectType)) {
+                        // store path
+                        PcepStateReport.PcepMsgPath msgPath = new PcepStateReportVer1().new PcepMsgPath().read(cb);
+                        pcestateReq.setMsgPath(msgPath);
+                    }
+                }
 
                 llStateReportList.add(pcestateReq);
             }
