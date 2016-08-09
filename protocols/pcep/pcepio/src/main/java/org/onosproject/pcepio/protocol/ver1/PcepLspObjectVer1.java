@@ -340,7 +340,7 @@ public class PcepLspObjectVer1 implements PcepLspObject {
 
         while (MINIMUM_COMMON_HEADER_LENGTH <= cb.readableBytes()) {
 
-            PcepValueType tlv;
+            PcepValueType tlv = null;
             short hType = cb.readShort();
             short hLength = cb.readShort();
             int iValue = 0;
@@ -364,7 +364,10 @@ public class PcepLspObjectVer1 implements PcepLspObject {
                 tlv = StatefulLspDbVerTlv.read(cb);
                 break;
             default:
-                throw new PcepParseException("Received unsupported TLV type :" + hType);
+                // Skip the unknown TLV.
+                cb.skipBytes(hLength);
+                tlv = null;
+                log.info("Received unsupported TLV type :" + hType + " in LSP object.");
             }
             // Check for the padding
             int pad = hLength % 4;
@@ -375,7 +378,9 @@ public class PcepLspObjectVer1 implements PcepLspObject {
                 }
             }
 
-            llOutOptionalTlv.add(tlv);
+            if (tlv != null) {
+                llOutOptionalTlv.add(tlv);
+            }
         }
 
         if (0 < cb.readableBytes()) {
