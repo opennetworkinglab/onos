@@ -370,6 +370,11 @@ class ONOSCluster( Controller ):
         topo = kwargs.pop( 'topo', None )
         self.nat = kwargs.pop( 'nat', 'nat0' )
         nodeOpts = kwargs.pop( 'nodeOpts', {} )
+        # Pass in kwargs to the ONOSNodes instead of the cluster
+        "alertAction: exception|ignore|warn|exit (exception)"
+        alertAction = kwargs.pop( 'alertAction', None )
+        if alertAction:
+            nodeOpts[ 'alertAction'] = alertAction
         # Default: single switch with 1 ONOS node
         if not topo:
             topo = SingleSwitchTopo
