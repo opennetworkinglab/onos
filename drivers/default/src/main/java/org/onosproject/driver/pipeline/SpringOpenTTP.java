@@ -336,8 +336,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                     buckets = nextObjective
                             .next()
                             .stream()
-                            .map((treatment) -> DefaultGroupBucket
-                                 .createSelectGroupBucket(treatment))
+                            .map(DefaultGroupBucket::createSelectGroupBucket)
                             .collect(Collectors.toList());
                     if (!buckets.isEmpty()) {
                         final GroupKey key = new DefaultGroupKey(
@@ -361,8 +360,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                 buckets = nextObjective
                         .next()
                         .stream()
-                        .map((treatment) -> DefaultGroupBucket
-                                .createAllGroupBucket(treatment))
+                        .map(DefaultGroupBucket::createAllGroupBucket)
                         .collect(Collectors.toList());
                 if (!buckets.isEmpty()) {
                     final GroupKey key = new DefaultGroupKey(
