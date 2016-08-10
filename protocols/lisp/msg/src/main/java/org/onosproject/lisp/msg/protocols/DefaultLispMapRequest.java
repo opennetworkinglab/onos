@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 
 import java.util.List;
@@ -279,6 +280,17 @@ public final class DefaultLispMapRequest implements LispMapRequest {
         public LispMapRequest build() {
             return new DefaultLispMapRequest(nonce, recordCount, sourceEid, itrRlocs,
                     eidRecords, authoritative, mapDataPresent, probe, smr, pitr, smrInvoked);
+        }
+    }
+
+    /**
+     * A private LISP message reader for MapRequest message.
+     */
+    private static class RequestReader implements LispMessageReader<LispMapRequest> {
+
+        @Override
+        public LispMapRequest readFrom(ByteBuf byteBuf) throws LispParseError {
+            return null;
         }
     }
 }

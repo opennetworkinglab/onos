@@ -17,6 +17,7 @@ package org.onosproject.lisp.msg.protocols;
 
 import com.google.common.base.Objects;
 import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
@@ -167,6 +168,17 @@ public final class DefaultLispMapReply implements LispMapReply {
         @Override
         public LispMapReply build() {
             return new DefaultLispMapReply(nonce, recordCount, probe, etr, security);
+        }
+    }
+
+    /**
+     * A private LISP message reader for MapReply message.
+     */
+    private static class ReplyReader implements LispMessageReader<LispMapReply> {
+
+        @Override
+        public LispMapReply readFrom(ByteBuf byteBuf) throws LispParseError {
+            return null;
         }
     }
 }

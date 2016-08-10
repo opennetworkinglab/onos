@@ -16,6 +16,8 @@
 package org.onosproject.lisp.msg.protocols;
 
 import com.google.common.base.Objects;
+import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -183,6 +185,17 @@ public final class DefaultLispMapRecord implements LispMapRecord {
         public LispMapRecord build() {
             return new DefaultLispMapRecord(recordTtl, locatorCount, maskLength,
                     action, authoritative, mapVersionNumber, eidPrefixAfi);
+        }
+    }
+
+    /**
+     * A private LISP message reader for MapRecord portion.
+     */
+    private static class RecordReader implements LispMessageReader<LispMapRecord> {
+
+        @Override
+        public LispMapRecord readFrom(ByteBuf byteBuf) throws LispParseError {
+            return null;
         }
     }
 }

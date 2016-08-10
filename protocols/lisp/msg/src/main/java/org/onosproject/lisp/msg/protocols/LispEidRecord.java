@@ -15,6 +15,8 @@
  */
 package org.onosproject.lisp.msg.protocols;
 
+import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 
 /**
@@ -52,5 +54,16 @@ public final class LispEidRecord {
      */
     public LispAfiAddress getPrefix() {
         return prefix;
+    }
+
+    /**
+     * A private LISP message reader for EidRecord portion.
+     */
+    private static class EidRecordReader implements LispMessageReader<LispEidRecord> {
+
+        @Override
+        public LispEidRecord readFrom(ByteBuf byteBuf) throws LispParseError {
+            return null;
+        }
     }
 }

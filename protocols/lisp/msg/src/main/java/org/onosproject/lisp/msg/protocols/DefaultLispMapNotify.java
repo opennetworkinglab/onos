@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
 
 import java.util.List;
 
@@ -171,6 +172,17 @@ public final class DefaultLispMapNotify implements LispMapNotify {
         public LispMapNotify build() {
             return new DefaultLispMapNotify(nonce, keyId, authenticationData,
                     recordCount, mapRecords);
+        }
+    }
+
+    /**
+     * A private LISP message reader for MapNotify message.
+     */
+    private static class NotifyReader implements LispMessageReader<LispMapNotify> {
+
+        @Override
+        public LispMapNotify readFrom(ByteBuf byteBuf) throws LispParseError {
+            return null;
         }
     }
 }

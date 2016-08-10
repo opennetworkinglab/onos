@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
 
 import java.util.List;
 
@@ -209,6 +210,17 @@ public final class DefaultLispMapRegister implements LispMapRegister {
         public LispMapRegister build() {
             return new DefaultLispMapRegister(nonce, keyId, authenticationData,
                     recordCount, mapRecords, proxyMapReply, wantMapNotify);
+        }
+    }
+
+    /**
+     * A private LISP message reader for MapRegister message.
+     */
+    private static class RegisterReader implements LispMessageReader<LispMapRegister> {
+
+        @Override
+        public LispMapRegister readFrom(ByteBuf byteBuf) throws LispParseError {
+            return null;
         }
     }
 }
