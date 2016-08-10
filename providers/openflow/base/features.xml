@@ -18,7 +18,7 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/openflowj/0.9.4.onos</bundle>
+        <bundle>mvn:org.onosproject/openflowj/0.9.5.onos</bundle>
         <bundle>mvn:${project.groupId}/onos-of-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-of-ctl/${project.version}</bundle>
 
