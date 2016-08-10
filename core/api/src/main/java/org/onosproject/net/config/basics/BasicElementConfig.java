@@ -30,12 +30,13 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
     protected static final String RACK_ADDRESS = "rackAddress";
     protected static final String OWNER = "owner";
 
-    protected static final double DEFAULT_COORD = -1.0;
+    protected static final double ZERO_THRESHOLD = Double.MIN_VALUE * 2.0;
+    private static final double DEFAULT_COORD = 0.0;
 
     /**
      * Returns friendly label for the element.
      *
-     * @return friendly label or element id itself if not set
+     * @return friendly label or element identifier itself if not set
      */
     public String name() {
         return get(NAME, subject.toString());
@@ -51,10 +52,25 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
         return (BasicElementConfig) setOrClear(NAME, name);
     }
 
+    private static boolean doubleIsZero(double value) {
+        return value >= -ZERO_THRESHOLD && value <= ZERO_THRESHOLD;
+    }
+
+    /**
+     * Returns true if the geographical coordinates (latitude and longitude)
+     * are set on this element.
+     *
+     * @return true if geo-coordinates are set
+     */
+    public boolean geoCoordsSet() {
+        return !doubleIsZero(latitude()) || !doubleIsZero(longitude());
+    }
+
     /**
      * Returns element latitude.
      *
-     * @return element latitude; -1 if not set
+     * @return element latitude; 0.0 if (possibly) not set
+     * @see #geoCoordsSet()
      */
     public double latitude() {
         return get(LATITUDE, DEFAULT_COORD);
@@ -71,9 +87,10 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
     }
 
     /**
-     * Returns element latitude.
+     * Returns element longitude.
      *
-     * @return element latitude; -1 if not set
+     * @return element longitude; 0 if (possibly) not set
+     * @see #geoCoordsSet()
      */
     public double longitude() {
         return get(LONGITUDE, DEFAULT_COORD);
