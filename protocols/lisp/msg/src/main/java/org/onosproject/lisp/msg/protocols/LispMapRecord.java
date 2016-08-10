@@ -15,7 +15,10 @@
  */
 package org.onosproject.lisp.msg.protocols;
 
+import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
+
+import java.util.List;
 
 /**
  * LISP record section which is part of LISP map register message.
@@ -70,6 +73,20 @@ public interface LispMapRecord {
      * @return EID prefix
      */
     LispAfiAddress getEidPrefixAfi();
+
+    /**
+     * Obtains a collection of locator records.
+     *
+     * @return a collection of locator records
+     */
+    List<LispLocatorRecord> getLocators();
+
+    /**
+     * Writes LISP message object into communication channel.
+     *
+     * @param byteBuf byte buffer
+     */
+    void writeTo(ByteBuf byteBuf);
 
     /**
      * A builder of LISP map record.
@@ -131,6 +148,14 @@ public interface LispMapRecord {
          * @return MapRecordBuilder object
          */
         MapRecordBuilder withEidPrefixAfi(LispAfiAddress prefix);
+
+        /**
+         * Sets a collection of locator records.
+         *
+         * @param records a collection of locator records
+         * @return MapRecordBuilder object
+         */
+        MapRecordBuilder withLocators(List<LispLocatorRecord> records);
 
         /**
          * Builds map record.

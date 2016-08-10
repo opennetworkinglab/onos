@@ -131,7 +131,7 @@ public final class DefaultLispMapNotify implements LispMapNotify {
         private short keyId;
         private byte[] authenticationData;
         private byte recordCount;
-        private List<LispMapRecord> mapRecords = Lists.newArrayList();
+        private List<LispMapRecord> mapRecords;
 
         @Override
         public LispType getType() {
@@ -163,8 +163,8 @@ public final class DefaultLispMapNotify implements LispMapNotify {
         }
 
         @Override
-        public NotifyBuilder addRecord(LispMapRecord record) {
-            this.mapRecords.add(record);
+        public NotifyBuilder withMapRecords(List<LispMapRecord> mapRecords) {
+            this.mapRecords = ImmutableList.copyOf(mapRecords);
             return this;
         }
 
@@ -180,9 +180,46 @@ public final class DefaultLispMapNotify implements LispMapNotify {
      */
     private static class NotifyReader implements LispMessageReader<LispMapNotify> {
 
+        private static final int RESERVED_SKIP_LENGTH = 3;
+
         @Override
         public LispMapNotify readFrom(ByteBuf byteBuf) throws LispParseError {
-            return null;
+
+            if (byteBuf.readerIndex() != 0) {
+                return null;
+            }
+
+            // skip first three bytes as they represent type and reserved fields
+            byteBuf.skipBytes(RESERVED_SKIP_LENGTH);
+
+            // record count -> 8 bits
+            byte recordCount = (byte) byteBuf.readUnsignedByte();
+
+            // nonce -> 64 bits
+            long nonce = byteBuf.readLong();
+
+            // keyId -> 16 bits
+            short keyId = byteBuf.readShort();
+
+            // authenticationDataLength -> 16 bits
+            short authLength = byteBuf.readShort();
+
+            // authenticationData -> depends on the authenticationDataLength
+            byte[] authData = new byte[authLength];
+            byteBuf.readBytes(authData);
+
+            List<LispMapRecord> mapRecords = Lists.newArrayList();
+            for (int i = 0; i < recordCount; i++) {
+                mapRecords.add(new DefaultLispMapRecord.MapRecordReader().readFrom(byteBuf));
+            }
+
+            return new DefaultNotifyBuilder()
+                        .withRecordCount(recordCount)
+                        .withNonce(nonce)
+                        .withKeyId(keyId)
+                        .withAuthenticationData(authData)
+                        .withMapRecords(mapRecords)
+                        .build();
         }
     }
 }

@@ -210,20 +210,20 @@ public interface LispMapRequest extends LispMessage {
         RequestBuilder withSourceEid(LispAfiAddress sourceEid);
 
         /**
-         * Adds ITR RLOC into RLOC collection.
+         * Sets a collection of ITR RLOCs.
          *
-         * @param itrRloc ITR RLOC
+         * @param itrRlocs a collection of ITR RLOCs
          * @return RequestBuilder object
          */
-        RequestBuilder addItrRloc(LispAfiAddress itrRloc);
+        RequestBuilder withItrRlocs(List<LispAfiAddress> itrRlocs);
 
         /**
-         * Adds EID record into record collection.
+         * Sets a collection of EID records.
          *
-         * @param record EID record
+         * @param records a collection of EID records
          * @return RequestBuilder object
          */
-        RequestBuilder addEidRecord(LispEidRecord record);
+        RequestBuilder withEidRecords(List<LispEidRecord> records);
 
         /**
          * Builds LISP map request message.

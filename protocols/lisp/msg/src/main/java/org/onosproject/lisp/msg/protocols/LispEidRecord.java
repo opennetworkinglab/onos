@@ -61,9 +61,20 @@ public final class LispEidRecord {
      */
     private static class EidRecordReader implements LispMessageReader<LispEidRecord> {
 
+        private static final int RESERVED_SKIP_LENGTH = 1;
+
         @Override
         public LispEidRecord readFrom(ByteBuf byteBuf) throws LispParseError {
-            return null;
+
+            // let's skip the reserved field
+            byteBuf.skipBytes(RESERVED_SKIP_LENGTH);
+
+            short maskLength = (short) byteBuf.readUnsignedShort();
+
+            // TODO: need to de-serialize AFI address
+            LispAfiAddress prefix = null;
+
+            return new LispEidRecord((byte) maskLength, prefix);
         }
     }
 }

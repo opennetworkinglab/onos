@@ -17,6 +17,7 @@ package org.onosproject.lisp.msg.protocols;
 
 import com.google.common.base.Objects;
 import io.netty.buffer.ByteBuf;
+import org.onlab.util.ByteOperator;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -176,9 +177,47 @@ public final class DefaultLispMapReply implements LispMapReply {
      */
     private static class ReplyReader implements LispMessageReader<LispMapReply> {
 
+        private static final int PROBE_INDEX = 3;
+        private static final int ETR_INDEX = 2;
+        private static final int SECURITY_INDEX = 1;
+        private static final int RESERVED_SKIP_LENGTH = 2;
+
         @Override
         public LispMapReply readFrom(ByteBuf byteBuf) throws LispParseError {
-            return null;
+
+            if (byteBuf.readerIndex() != 0) {
+                return null;
+            }
+
+            byte typeWithFlags = byteBuf.readByte();
+
+            // probe -> 1 bit
+            boolean probe = ByteOperator.getBit(typeWithFlags, PROBE_INDEX);
+
+            // etr -> 1bit
+            boolean etr = ByteOperator.getBit(typeWithFlags, ETR_INDEX);
+
+            // security -> 1 bit
+            boolean security = ByteOperator.getBit(typeWithFlags, SECURITY_INDEX);
+
+            // skip two bytes as they represent reserved fields
+            byteBuf.skipBytes(RESERVED_SKIP_LENGTH);
+
+            // record count -> 8 bits
+            byte recordCount = (byte) byteBuf.readUnsignedByte();
+
+            // nonce -> 64 bits
+            long nonce = byteBuf.readLong();
+
+            // TODO: need to de-serialize EID-RLOC records
+
+            return new DefaultReplyBuilder()
+                        .withIsProbe(probe)
+                        .withIsEtr(etr)
+                        .withIsSecurity(security)
+                        .withRecordCount(recordCount)
+                        .withNonce(nonce)
+                        .build();
         }
     }
 }

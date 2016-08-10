@@ -129,12 +129,12 @@ public interface LispMapNotify extends LispMessage {
         NotifyBuilder withAuthenticationData(byte[] authenticationData);
 
         /**
-         * Adds a new record to record list.
+         * Sets a collection of map records.
          *
-         * @param record record
-         * @return NotifyBuilder object
+         * @param mapRecords a collection of map records
+         * @return RegisterBuilder object
          */
-        NotifyBuilder addRecord(LispMapRecord record);
+        NotifyBuilder withMapRecords(List<LispMapRecord> mapRecords);
 
         /**
          * Builds LISP map notify message.

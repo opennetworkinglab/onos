@@ -25,7 +25,7 @@ import static org.hamcrest.Matchers.is;
 /**
  * Unit tests for DefaultLispMapRecord class.
  */
-public class DefaultLispMapRecordTest {
+public final class DefaultLispMapRecordTest {
 
     private LispMapRecord record1;
     private LispMapRecord sameAsRecord1;

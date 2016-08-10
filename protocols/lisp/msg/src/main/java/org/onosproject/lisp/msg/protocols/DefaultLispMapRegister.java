@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
+import org.onlab.util.ByteOperator;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 
@@ -155,7 +156,7 @@ public final class DefaultLispMapRegister implements LispMapRegister {
         private short keyId;
         private byte[] authenticationData;
         private byte recordCount;
-        private final List<LispMapRecord> mapRecords = Lists.newArrayList();
+        private List<LispMapRecord> mapRecords;
         private boolean proxyMapReply;
         private boolean wantMapNotify;
 
@@ -201,8 +202,8 @@ public final class DefaultLispMapRegister implements LispMapRegister {
         }
 
         @Override
-        public RegisterBuilder addRecord(LispMapRecord record) {
-            this.mapRecords.add(record);
+        public RegisterBuilder withMapRecords(List<LispMapRecord> mapRecords) {
+            this.mapRecords = ImmutableList.copyOf(mapRecords);
             return this;
         }
 
@@ -218,9 +219,58 @@ public final class DefaultLispMapRegister implements LispMapRegister {
      */
     private static class RegisterReader implements LispMessageReader<LispMapRegister> {
 
+        private static final int PROXY_MAP_REPLY_INDEX = 3;
+        private static final int WANT_MAP_NOTIFY_INDEX = 0;
+        private static final int RESERVED_SKIP_LENGTH = 1;
+
         @Override
         public LispMapRegister readFrom(ByteBuf byteBuf) throws LispParseError {
-            return null;
+
+            if (byteBuf.readerIndex() != 0) {
+                return null;
+            }
+
+            // proxyMapReply -> 1 bit
+            boolean proxyMapReplyFlag = ByteOperator.getBit(byteBuf.readByte(), PROXY_MAP_REPLY_INDEX);
+
+            // let's skip the reserved field
+            byteBuf.skipBytes(RESERVED_SKIP_LENGTH);
+
+            byte reservedWithFlag = byteBuf.readByte();
+
+            // wantMapReply -> 1 bit
+            boolean wantMapNotifyFlag = ByteOperator.getBit(reservedWithFlag, WANT_MAP_NOTIFY_INDEX);
+
+            // record count -> 8 bits
+            byte recordCount = (byte) byteBuf.readUnsignedByte();
+
+            // nonce -> 64 bits
+            long nonce = byteBuf.readLong();
+
+            // keyId -> 16 bits
+            short keyId = byteBuf.readShort();
+
+            // authenticationDataLength -> 16 bits
+            short authLength = byteBuf.readShort();
+
+            // authenticationData -> depends on the authenticationDataLength
+            byte[] authData = new byte[authLength];
+            byteBuf.readBytes(authData);
+
+            List<LispMapRecord> mapRecords = Lists.newArrayList();
+            for (int i = 0; i < recordCount; i++) {
+                mapRecords.add(new DefaultLispMapRecord.MapRecordReader().readFrom(byteBuf));
+            }
+
+            return new DefaultRegisterBuilder()
+                    .withIsProxyMapReply(proxyMapReplyFlag)
+                    .withIsWantMapNotify(wantMapNotifyFlag)
+                    .withRecordCount(recordCount)
+                    .withNonce(nonce)
+                    .withKeyId(keyId)
+                    .withAuthenticationData(authData)
+                    .withMapRecords(mapRecords)
+                    .build();
         }
     }
 }

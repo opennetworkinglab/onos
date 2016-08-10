@@ -159,12 +159,12 @@ public interface LispMapRegister extends LispMessage {
         RegisterBuilder withAuthenticationData(byte[] authenticationData);
 
         /**
-         * Adds a new record to record list.
+         * Sets a collection of map records.
          *
-         * @param record record
+         * @param mapRecords a collection of map records
          * @return RegisterBuilder object
          */
-        RegisterBuilder addRecord(LispMapRecord record);
+        RegisterBuilder withMapRecords(List<LispMapRecord> mapRecords);
 
         /**
          * Builds LISP map register message.

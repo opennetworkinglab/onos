@@ -25,7 +25,7 @@ import static org.hamcrest.Matchers.is;
 /**
  * Unit tests for DefaultLispMapNotify class.
  */
-public class DefaultLispMapNotifyTest {
+public final class DefaultLispMapNotifyTest {
 
     private LispMapNotify notify1;
     private LispMapNotify sameAsNotify1;

@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
+import org.onlab.util.ByteOperator;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 
@@ -227,7 +228,6 @@ public final class DefaultLispMapRequest implements LispMapRequest {
             return this;
         }
 
-
         @Override
         public RequestBuilder withIsSmr(boolean smr) {
             this.smr = smr;
@@ -265,14 +265,14 @@ public final class DefaultLispMapRequest implements LispMapRequest {
         }
 
         @Override
-        public RequestBuilder addItrRloc(LispAfiAddress itrRloc) {
-            this.itrRlocs.add(itrRloc);
+        public RequestBuilder withItrRlocs(List<LispAfiAddress> itrRlocs) {
+            this.itrRlocs = ImmutableList.copyOf(itrRlocs);
             return this;
         }
 
         @Override
-        public RequestBuilder addEidRecord(LispEidRecord record) {
-            this.eidRecords.add(record);
+        public RequestBuilder withEidRecords(List<LispEidRecord> records) {
+            this.eidRecords = ImmutableList.copyOf(records);
             return this;
         }
 
@@ -288,9 +288,69 @@ public final class DefaultLispMapRequest implements LispMapRequest {
      */
     private static class RequestReader implements LispMessageReader<LispMapRequest> {
 
+        private static final int AUTHORITATIVE_INDEX = 3;
+        private static final int MAP_DATA_PRESENT_INDEX = 2;
+        private static final int PROBE_INDEX = 1;
+        private static final int SMR_INDEX = 0;
+        private static final int PITR_INDEX = 7;
+        private static final int SMR_INVOKED_INDEX = 6;
+
         @Override
         public LispMapRequest readFrom(ByteBuf byteBuf) throws LispParseError {
-            return null;
+
+            if (byteBuf.readerIndex() != 0) {
+                return null;
+            }
+
+            byte typeWithFlags = byteBuf.readByte();
+
+            // authoritative -> 1 bit
+            boolean authoritative = ByteOperator.getBit(typeWithFlags, AUTHORITATIVE_INDEX);
+
+            // mapDataPresent -> 1 bit
+            boolean mapDataPresent = ByteOperator.getBit(typeWithFlags, MAP_DATA_PRESENT_INDEX);
+
+            // probe -> 1 bit
+            boolean probe = ByteOperator.getBit(typeWithFlags, PROBE_INDEX);
+
+            // smr -> 1 bit
+            boolean smr = ByteOperator.getBit(typeWithFlags, SMR_INDEX);
+
+            byte reservedWithFlags = byteBuf.readByte();
+
+            // pitr -> 1 bit
+            boolean pitr = ByteOperator.getBit(reservedWithFlags, PITR_INDEX);
+
+            // smrInvoked -> 1 bit
+            boolean smrInvoked = ByteOperator.getBit(reservedWithFlags, SMR_INVOKED_INDEX);
+
+            // let's skip reserved field, only obtains ITR counter value
+            // assume that first 3 bits are all set as 0,
+            // remain 5 bits represent Itr Rloc Counter (IRC)
+            int irc = byteBuf.readUnsignedShort();
+
+            // record count -> 8 bits
+            int recordCount = byteBuf.readUnsignedShort();
+
+            // nonce -> 64 bits
+            long nonce = byteBuf.readLong();
+
+            // TODO: de-serialize source EID AFI and address
+
+            // TODO: de-serialize ITR-RLOC AFI and address
+
+            // TODO: de-serialize EID-RECORD
+
+            return new DefaultRequestBuilder()
+                        .withIsAuthoritative(authoritative)
+                        .withIsMapDataPresent(mapDataPresent)
+                        .withIsProbe(probe)
+                        .withIsSmr(smr)
+                        .withIsPitr(pitr)
+                        .withIsSmrInvoked(smrInvoked)
+                        .withNonce(nonce)
+                        .withRecordCount((byte) recordCount)
+                        .build();
         }
     }
 }

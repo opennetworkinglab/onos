@@ -16,9 +16,14 @@
 package org.onosproject.lisp.msg.protocols;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
+import org.onlab.util.ByteOperator;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
+
+import java.util.List;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
@@ -34,6 +39,7 @@ public final class DefaultLispMapRecord implements LispMapRecord {
     private final boolean authoritative;
     private final short mapVersionNumber;
     private final LispAfiAddress eidPrefixAfi;
+    private final List<LispLocatorRecord> locatorRecords;
 
     /**
      * A private constructor that protects object instantiation from external.
@@ -48,7 +54,8 @@ public final class DefaultLispMapRecord implements LispMapRecord {
      */
     private DefaultLispMapRecord(int recordTtl, int locatorCount, byte maskLength,
                                  LispMapReplyAction action, boolean authoritative,
-                                 short mapVersionNumber, LispAfiAddress eidPrefixAfi) {
+                                 short mapVersionNumber, LispAfiAddress eidPrefixAfi,
+                                 List<LispLocatorRecord> locatorRecords) {
         this.recordTtl = recordTtl;
         this.locatorCount = locatorCount;
         this.maskLength = maskLength;
@@ -56,6 +63,7 @@ public final class DefaultLispMapRecord implements LispMapRecord {
         this.authoritative = authoritative;
         this.mapVersionNumber = mapVersionNumber;
         this.eidPrefixAfi = eidPrefixAfi;
+        this.locatorRecords = locatorRecords;
     }
 
     @Override
@@ -94,6 +102,16 @@ public final class DefaultLispMapRecord implements LispMapRecord {
     }
 
     @Override
+    public List<LispLocatorRecord> getLocators() {
+        return ImmutableList.copyOf(locatorRecords);
+    }
+
+    @Override
+    public void writeTo(ByteBuf byteBuf) {
+
+    }
+
+    @Override
     public String toString() {
         return toStringHelper(this)
                 .add("record TTL", recordTtl)
@@ -102,7 +120,9 @@ public final class DefaultLispMapRecord implements LispMapRecord {
                 .add("action", action)
                 .add("authoritative", authoritative)
                 .add("mapVersionNumber", mapVersionNumber)
-                .add("EID prefix AFI address", eidPrefixAfi).toString();
+                .add("EID prefix AFI address", eidPrefixAfi)
+                .add("locator records", locatorRecords).toString();
+
     }
 
     @Override
@@ -120,13 +140,14 @@ public final class DefaultLispMapRecord implements LispMapRecord {
                 Objects.equal(action, that.action) &&
                 Objects.equal(authoritative, that.authoritative) &&
                 Objects.equal(mapVersionNumber, that.mapVersionNumber) &&
-                Objects.equal(eidPrefixAfi, that.eidPrefixAfi);
+                Objects.equal(eidPrefixAfi, that.eidPrefixAfi) &&
+                Objects.equal(locatorRecords, that.locatorRecords);
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(recordTtl, locatorCount, maskLength, action,
-                                authoritative, mapVersionNumber, eidPrefixAfi);
+                                authoritative, mapVersionNumber, eidPrefixAfi, locatorRecords);
     }
 
     public static final class DefaultMapRecordBuilder implements MapRecordBuilder {
@@ -138,6 +159,7 @@ public final class DefaultLispMapRecord implements LispMapRecord {
         private boolean authoritative;
         private short mapVersionNumber;
         private LispAfiAddress eidPrefixAfi;
+        private List<LispLocatorRecord> locatorRecords;
 
         @Override
         public MapRecordBuilder withRecordTtl(int recordTtl) {
@@ -182,20 +204,66 @@ public final class DefaultLispMapRecord implements LispMapRecord {
         }
 
         @Override
+        public MapRecordBuilder withLocators(List<LispLocatorRecord> records) {
+            this.locatorRecords = ImmutableList.copyOf(records);
+            return this;
+        }
+
+        @Override
         public LispMapRecord build() {
             return new DefaultLispMapRecord(recordTtl, locatorCount, maskLength,
-                    action, authoritative, mapVersionNumber, eidPrefixAfi);
+                    action, authoritative, mapVersionNumber, eidPrefixAfi, locatorRecords);
         }
     }
 
     /**
-     * A private LISP message reader for MapRecord portion.
+     * A LISP message reader for MapRecord portion.
      */
-    private static class RecordReader implements LispMessageReader<LispMapRecord> {
+    public static final class MapRecordReader implements LispMessageReader<LispMapRecord> {
+
+        private static final int AUTHORITATIVE_INDEX = 4;
+        private static final int RESERVED_SKIP_LENGTH = 1;
 
         @Override
         public LispMapRecord readFrom(ByteBuf byteBuf) throws LispParseError {
-            return null;
+
+            // Record TTL -> 32 bits
+            int recordTtl = byteBuf.readInt();
+
+            // Locator count -> 8 bits
+            int locatorCount = byteBuf.readUnsignedShort();
+
+            // EID mask length -> 8 bits
+            byte maskLength = (byte) byteBuf.readUnsignedByte();
+
+            // TODO: need to de-serialize LispMapReplyAction
+
+            byte actionWithFlag = byteBuf.readByte();
+
+            // authoritative flag -> 1 bit
+            boolean authoritative = ByteOperator.getBit(actionWithFlag, AUTHORITATIVE_INDEX);
+
+            // let's skip the reserved field
+            byteBuf.skipBytes(RESERVED_SKIP_LENGTH);
+
+            // Map version number -> 12 bits, we treat Rsvd field is all zero
+            short mapVersionNumber = (short) byteBuf.readUnsignedShort();
+
+            // TODO: need to de-serialize EID AFI address
+
+            List<LispLocatorRecord> locators = Lists.newArrayList();
+            for (int i = 0; i < locatorCount; i++) {
+                locators.add(new DefaultLispLocatorRecord.LocatorRecordReader().readFrom(byteBuf));
+            }
+
+            return new DefaultMapRecordBuilder()
+                        .withRecordTtl(recordTtl)
+                        .withLocatorCount(locatorCount)
+                        .withMaskLength(maskLength)
+                        .withAuthoritative(authoritative)
+                        .withMapVersionNumber(mapVersionNumber)
+                        .withLocators(locators)
+                        .build();
         }
     }
 }
