@@ -136,21 +136,9 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
             peersPayload.set("peers", t2json.closedNodes(peers));
             sendMessage(PEER_REGIONS, peersPayload);
 
-            // TODO: send breadcrumb message
-
             // finally, tell the UI that we are done : TODO review / delete??
             sendMessage(TOPO_START_DONE, null);
-
-
-            // OLD CODE DID THE FOLLOWING...
-//            addListeners();
-//            sendAllInstances(null);
-//            sendAllDevices();
-//            sendAllLinks();
-//            sendAllHosts();
-//            sendTopoStartDone();
         }
-
 
     }
 

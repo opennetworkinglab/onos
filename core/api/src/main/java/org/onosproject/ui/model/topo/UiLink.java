@@ -96,4 +96,28 @@ public abstract class UiLink extends UiElement {
      * @return end point B identifier
      */
     public abstract String endPointB();
+
+    /**
+     * Returns the port number (as a string) for end-point A, if applicable.
+     * This default implementation returns null, indicating not-applicable.
+     * Subclasses only need to override this method if end-point A has an
+     * associated port.
+     *
+     * @return port number for end-point A
+     */
+    public String endPortA() {
+        return null;
+    }
+
+    /**
+     * Returns the port number (as a string) for end-point B, if applicable.
+     * This default implementation returns null, indicating not-applicable.
+     * Subclasses only need to override this method if end-point B has an
+     * associated port.
+     *
+     * @return port number for end-point B
+     */
+    public String endPortB() {
+        return null;
+    }
 }

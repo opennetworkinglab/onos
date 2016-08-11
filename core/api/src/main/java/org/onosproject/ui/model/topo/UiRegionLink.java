@@ -58,6 +58,8 @@ public class UiRegionLink extends UiLink {
         return regionB.id();
     }
 
+    // no ports for end-points A and B
+
     /**
      * Returns the identity of the first region.
      *

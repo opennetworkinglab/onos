@@ -53,6 +53,13 @@ public class UiEdgeLink extends UiLink {
         return edgeDevice + UiLinkId.ID_PORT_DELIMITER + edgePort;
     }
 
+    // no port for end-point A
+
+    @Override
+    public String endPortB() {
+        return edgePort.toString();
+    }
+
     @Override
     protected void destroy() {
         edgeDevice = null;

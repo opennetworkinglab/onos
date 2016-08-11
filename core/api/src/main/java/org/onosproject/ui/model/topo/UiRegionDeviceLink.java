@@ -63,6 +63,13 @@ public class UiRegionDeviceLink extends UiLink {
         return device + UiLinkId.ID_PORT_DELIMITER + port;
     }
 
+    // no port for end-point A
+
+    @Override
+    public String endPortB() {
+        return port.toString();
+    }
+
     /**
      * Returns the identity of the region.
      *

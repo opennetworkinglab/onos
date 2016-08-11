@@ -281,7 +281,7 @@ class Topo2Jsonifier {
                 .put("id", device.idAsString())
                 .put("nodeType", DEVICE)
                 .put("type", device.type())
-                .put("online", device.isOnline())
+                .put("online", deviceService.isAvailable(device.id()))
                 .put("master", nullIsEmpty(device.master()))
                 .put("layer", device.layer());
 
@@ -364,11 +364,20 @@ class Topo2Jsonifier {
 
     private ObjectNode json(UiSynthLink sLink) {
         UiLink uLink = sLink.link();
-        return objectNode()
+        ObjectNode data = objectNode()
                 .put("id", uLink.idAsString())
                 .put("epA", uLink.endPointA())
                 .put("epB", uLink.endPointB())
                 .put("type", uLink.type());
+        String pA = uLink.endPortA();
+        String pB = uLink.endPortB();
+        if (pA != null) {
+            data.put("portA", pA);
+        }
+        if (pB != null) {
+            data.put("portB", pB);
+        }
+        return data;
     }
 
 

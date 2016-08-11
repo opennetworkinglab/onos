@@ -59,6 +59,16 @@ public class UiDeviceLink extends UiLink {
         return deviceB + UiLinkId.ID_PORT_DELIMITER + portB;
     }
 
+    @Override
+    public String endPortA() {
+        return portA.toString();
+    }
+
+    @Override
+    public String endPortB() {
+        return portB.toString();
+    }
+
 
     @Override
     protected void destroy() {
