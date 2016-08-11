@@ -384,6 +384,10 @@ public class DhcpRelay {
             MacAddress descMac = new MacAddress(dhcpPayload.getClientHardwareAddress());
             Host host = hostService.getHost(HostId.hostId(descMac,
                     VlanId.vlanId(ethPacket.getVlanID())));
+            //handle the concurrent host offline scenario
+            if (host == null) {
+                return;
+            }
             ConnectPoint dhcpRequestor = new ConnectPoint(host.location().elementId(),
                                                     host.location().port());
 
