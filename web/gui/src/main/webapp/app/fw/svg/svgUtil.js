@@ -160,12 +160,12 @@
     // --- Ordinal scales for 7 values.
 
     // Colors per Mojo-Design's color palette..
-    //               blue       lt blue    red        lt red     dk grey    lt grey    steel
-    var lightNorm = ['#5b99d2', '#66cef6', '#d05a55', '#db7773', '#716b6b', '#aeada8', '#7e9aa8'],
-        lightMute = ['#a8cceb', '#a8e9fd', '#f1a7a7', '#f8c9c9', '#b9b5b5', '#d7d6d4', '#bdcdd5'],
+    //               blue       red        dk grey    steel      lt blue    lt red     lt grey
+    var lightNorm = ['#5b99d2', '#d05a55', '#716b6b', '#7e9aa8', '#66cef6', '#db7773', '#aeada8' ],
+        lightMute = ['#a8cceb', '#f1a7a7', '#b9b5b5', '#bdcdd5', '#a8e9fd', '#f8c9c9', '#d7d6d4' ],
         // TODO: dark theme
-        darkNorm = ['#5b99d2', '#66cef6', '#d05a55', '#db7773', '#716b6b', '#aeada8', '#7e9aa8'],
-        darkMute = ['#a8cceb', '#a8e9fd', '#f1a7a7', '#f8c9c9', '#b9b5b5', '#d7d6d4', '#bdcdd5'];
+        darkNorm  = ['#5b99d2', '#d05a55', '#716b6b', '#7e9aa8', '#66cef6', '#db7773', '#aeada8' ],
+        darkMute  = ['#a8cceb', '#f1a7a7', '#b9b5b5', '#bdcdd5', '#a8e9fd', '#f8c9c9', '#d7d6d4' ];
 
     var colors= {
         light: {
