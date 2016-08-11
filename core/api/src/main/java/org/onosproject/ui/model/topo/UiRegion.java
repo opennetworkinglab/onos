@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.net.region.RegionId.regionId;
 
 /**
@@ -36,7 +37,8 @@ import static org.onosproject.net.region.RegionId.regionId;
  */
 public class UiRegion extends UiNode {
 
-    private static final String NULL_NAME = "<null-region>";
+    private static final String NULL_NAME = "(root)";
+    private static final String NO_NAME = "???";
 
     /**
      * The identifier for the null-region. That is, a container for devices,
@@ -270,5 +272,21 @@ public class UiRegion extends UiNode {
      */
     public List<String> layerOrder() {
         return Collections.unmodifiableList(layerOrder);
+    }
+
+    /**
+     * Guarantees to return a string for the name of the specified region.
+     * If region is null, we return the null region name, else we return
+     * the name as configured on the region.
+     *
+     * @param region the region whose name we require
+     * @return the region's name
+     */
+    public static String safeName(Region region) {
+        if (region == null) {
+            return NULL_NAME;
+        }
+        String name = region.name();
+        return isNullOrEmpty(name) ? NO_NAME : name;
     }
 }

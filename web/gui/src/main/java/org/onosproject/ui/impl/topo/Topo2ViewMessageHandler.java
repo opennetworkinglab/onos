@@ -118,7 +118,8 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
 
             // this is the layout that the user has chosen to display
             UiTopoLayout currentLayout = topoSession.currentLayout();
-            sendMessage(CURRENT_LAYOUT, t2json.layout(currentLayout));
+            List<UiTopoLayout> crumbs = topoSession.breadCrumbs();
+            sendMessage(CURRENT_LAYOUT, t2json.layout(currentLayout, crumbs));
 
             // this is the region that is associated with the current layout
             //   this message includes details of the sub-regions, devices,

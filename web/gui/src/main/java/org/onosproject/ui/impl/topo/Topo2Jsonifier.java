@@ -34,7 +34,6 @@ import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkService;
-import org.onosproject.net.region.Region;
 import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.model.topo.UiClusterMember;
@@ -170,21 +169,33 @@ class Topo2Jsonifier {
 
     /**
      * Returns a JSON representation of the layout to use for displaying in
-     * the topology view.
+     * the topology view. The identifiers and names of regions from the
+     * current to the root is included, so that the bread-crumb widget can
+     * be rendered.
      *
      * @param layout the layout to transform
+     * @param crumbs list of layouts in bread-crumb order
      * @return a JSON representation of the data
      */
-    ObjectNode layout(UiTopoLayout layout) {
-        return objectNode()
+    ObjectNode layout(UiTopoLayout layout, List<UiTopoLayout> crumbs) {
+        ObjectNode result = objectNode()
                 .put("id", layout.id().toString())
                 .put("parent", nullIsEmpty(layout.parent()))
                 .put("region", nullIsEmpty(layout.regionId()))
-                .put("regionName", regionName(layout.region()));
+                .put("regionName", UiRegion.safeName(layout.region()));
+        addCrumbs(result, crumbs);
+        return result;
     }
 
-    private String regionName(Region region) {
-        return region == null ? "" : region.name();
+    private void addCrumbs(ObjectNode result, List<UiTopoLayout> crumbs) {
+        ArrayNode trail = arrayNode();
+        crumbs.forEach(c -> {
+            ObjectNode n = objectNode()
+                    .put("id", c.regionId().toString())
+                    .put("name", UiRegion.safeName(c.region()));
+            trail.add(n);
+        });
+        result.set("crumbs", trail);
     }
 
     /**
@@ -364,6 +375,7 @@ class Topo2Jsonifier {
     private ObjectNode jsonClosedRegion(UiRegion region) {
         return objectNode()
                 .put("id", region.idAsString())
+                .put("name", region.name())
                 .put("nodeType", REGION)
                 .put("nDevs", region.deviceCount());
         // TODO: complete closed-region details

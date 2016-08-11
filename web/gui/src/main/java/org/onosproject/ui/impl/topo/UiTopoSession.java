@@ -30,6 +30,7 @@ import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -131,6 +132,25 @@ public class UiTopoSession implements UiModelListener {
      */
     public UiTopoLayout currentLayout() {
         return currentLayout;
+    }
+
+    /**
+     * Returns the breadcrumb trail from current layout to root. That is,
+     * element 0 of the list will be the current layout; the last element
+     * of the list will be the root layout. This list is guaranteed to have
+     * size of at least 1.
+     *
+     * @return breadcrumb trail
+     */
+    public List<UiTopoLayout> breadCrumbs() {
+        UiTopoLayout current = currentLayout;
+        List<UiTopoLayout> crumbs = new ArrayList<>();
+        crumbs.add(current);
+        while (!current.isRoot()) {
+            current = layoutService.getLayout(current.parent());
+            crumbs.add(current);
+        }
+        return crumbs;
     }
 
     /**
