@@ -280,7 +280,7 @@ public class NettyMessagingManager implements MessagingService {
             if (e != null) {
                 callbacks.invalidate(messageId);
             }
-        }).thenCompose(v -> response);
+        }).thenComposeAsync(v -> response, executor);
     }
 
     @Override
