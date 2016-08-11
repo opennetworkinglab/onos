@@ -23,5 +23,5 @@ onos_app (
     category = 'Drivers',
     url = 'http://onosproject.org',
     description = 'ONOS OVSDB Device Drivers application.',
-    required_apps = [ 'org.onosproject.ovsdb' ],
+    required_apps = [ 'org.onosproject.ovsdb-base' ],
 )
