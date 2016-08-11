@@ -51,7 +51,7 @@ public class PceUpdatePathCommand extends AbstractShellCommand {
 
     @Option(name = "-b", aliases = "--bandwidth", description = "The bandwidth attribute of path. "
             + "Data rate unit is in Bps.", required = false, multiValued = false)
-    double bandwidth = 0.0;
+    Double bandwidth = null;
 
     @Override
     protected void execute() {
@@ -61,7 +61,7 @@ public class PceUpdatePathCommand extends AbstractShellCommand {
 
         List<Constraint> constrntList = new LinkedList<>();
         // Assign bandwidth. Data rate unit is in Bps.
-        if (bandwidth != 0.0) {
+        if (bandwidth != null) {
             constrntList.add(BandwidthConstraint.of(Double.valueOf(bandwidth), DataRateUnit.valueOf("BPS")));
         }
 

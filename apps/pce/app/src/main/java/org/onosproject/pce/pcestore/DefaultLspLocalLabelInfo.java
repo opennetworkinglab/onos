@@ -121,11 +121,11 @@ public final class DefaultLspLocalLabelInfo implements LspLocalLabelInfo {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .omitNullValues()
-                .add("DeviceId", deviceId.toString())
-                .add("InLabelId", inLabelId.toString())
-                .add("OutLabelId", outLabelId.toString())
-                .add("InPort", inPort.toString())
-                .add("OutPort", outPort.toString())
+                .add("DeviceId", deviceId)
+                .add("InLabelId", inLabelId)
+                .add("OutLabelId", outLabelId)
+                .add("InPort", inPort)
+                .add("OutPort", outPort)
                 .toString();
     }
 
