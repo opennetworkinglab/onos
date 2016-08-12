@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.flow.impl;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import org.junit.After;
 import org.junit.Before;
@@ -38,6 +37,7 @@ import org.onosproject.store.flow.ReplicaInfoService;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -89,7 +89,7 @@ public class ReplicaInfoManagerTest {
         assertEquals(Collections.emptyList(), info1.backups());
 
         ReplicaInfo info2 = service.getReplicaInfoFor(DID2);
-        assertEquals("There's no master", Optional.absent(), info2.master());
+        assertEquals("There's no master", Optional.empty(), info2.master());
         // backups are always empty for now
         assertEquals(Collections.emptyList(), info2.backups());
     }
@@ -114,9 +114,9 @@ public class ReplicaInfoManagerTest {
 
 
         MasterNodeCheck(CountDownLatch latch, DeviceId did,
-                NodeId nid) {
+                        NodeId nid) {
             this.latch = latch;
-            this.expectedMaster = Optional.fromNullable(nid);
+            this.expectedMaster = Optional.ofNullable(nid);
             this.expectedDevice = did;
         }
 
