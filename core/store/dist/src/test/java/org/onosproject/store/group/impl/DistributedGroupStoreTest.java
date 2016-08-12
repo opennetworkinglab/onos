@@ -60,6 +60,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.did;
 import static org.onosproject.net.group.GroupDescription.Type.*;
@@ -390,7 +391,7 @@ public class DistributedGroupStoreTest {
     public void testUpdateGroupDescription() {
 
         GroupBuckets buckets =
-                new GroupBuckets(ImmutableList.of(failoverGroupBucket));
+                new GroupBuckets(ImmutableList.of(failoverGroupBucket, selectGroupBucket));
 
         groupStore.deviceInitialAuditCompleted(deviceId1, true);
         groupStore.storeGroupDescription(groupDescription1);
@@ -404,6 +405,27 @@ public class DistributedGroupStoreTest {
         Group group1 = groupStore.getGroup(deviceId1, groupId1);
         assertThat(group1.appCookie(), is(newKey));
         assertThat(group1.buckets().buckets(), hasSize(2));
+
+        short weight = 5;
+        GroupBucket selectGroupBucketWithWeight =
+                DefaultGroupBucket.createSelectGroupBucket(treatment, weight);
+        buckets = new GroupBuckets(ImmutableList.of(failoverGroupBucket,
+                selectGroupBucketWithWeight));
+
+        groupStore.updateGroupDescription(deviceId1,
+                newKey,
+                ADD,
+                buckets,
+                newKey);
+
+        group1 = groupStore.getGroup(deviceId1, groupId1);
+        assertThat(group1.appCookie(), is(newKey));
+        assertThat(group1.buckets().buckets(), hasSize(2));
+        for (GroupBucket bucket : group1.buckets().buckets()) {
+            if (bucket.type() == SELECT) {
+                assertEquals(weight, bucket.weight());
+            }
+        }
     }
 
     @Test

@@ -130,6 +130,18 @@ public class SimpleGroupStoreTest {
             } else if (expectedEvent == GroupEvent.Type.GROUP_UPDATE_REQUESTED) {
                 assertEquals(Group.GroupState.PENDING_UPDATE,
                              event.subject().state());
+                for (GroupBucket bucket:event.subject().buckets().buckets()) {
+                    Optional<GroupBucket> matched = createdBuckets.buckets()
+                            .stream()
+                            .filter((expected) -> expected.equals(bucket))
+                            .findFirst();
+                    assertEquals(matched.get().weight(),
+                            bucket.weight());
+                    assertEquals(matched.get().watchGroup(),
+                            bucket.watchGroup());
+                    assertEquals(matched.get().watchPort(),
+                            bucket.watchPort());
+                }
             } else if (expectedEvent == GroupEvent.Type.GROUP_REMOVE_REQUESTED) {
                 assertEquals(Group.GroupState.PENDING_DELETE,
                              event.subject().state());
@@ -338,6 +350,36 @@ public class SimpleGroupStoreTest {
         simpleGroupStore.setDelegate(updateGroupDescDelegate);
         simpleGroupStore.updateGroupDescription(D1,
                                                 currKey,
+                                                UpdateType.ADD,
+                                                toAddGroupBuckets,
+                                                addKey);
+        simpleGroupStore.unsetDelegate(updateGroupDescDelegate);
+
+        short weight = 5;
+        toAddBuckets = new ArrayList<>();
+        for (PortNumber portNumber: newOutPorts) {
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+            tBuilder.setOutput(portNumber)
+                    .setEthDst(MacAddress.valueOf("00:00:00:00:00:03"))
+                    .setEthSrc(MacAddress.valueOf("00:00:00:00:00:01"))
+                    .pushMpls()
+                    .setMpls(MplsLabel.mplsLabel(106));
+            toAddBuckets.add(DefaultGroupBucket.createSelectGroupBucket(
+                    tBuilder.build(), weight));
+        }
+
+        toAddGroupBuckets = new GroupBuckets(toAddBuckets);
+        buckets = new ArrayList<>();
+        buckets.addAll(existingGroup.buckets().buckets());
+        buckets.addAll(toAddBuckets);
+        updatedGroupBuckets = new GroupBuckets(buckets);
+        updateGroupDescDelegate =
+                new InternalGroupStoreDelegate(addKey,
+                                               updatedGroupBuckets,
+                                               GroupEvent.Type.GROUP_UPDATE_REQUESTED);
+        simpleGroupStore.setDelegate(updateGroupDescDelegate);
+        simpleGroupStore.updateGroupDescription(D1,
+                                                addKey,
                                                 UpdateType.ADD,
                                                 toAddGroupBuckets,
                                                 addKey);
