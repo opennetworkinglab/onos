@@ -18,8 +18,6 @@ package org.onosproject.store.cluster.impl;
 import org.junit.After;
 import org.junit.Before;
 
-import static org.junit.Assert.*;
-
 /**
  * Unit test for DistributedClusterStore.
  */
