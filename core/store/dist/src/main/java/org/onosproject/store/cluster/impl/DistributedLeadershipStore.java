@@ -49,7 +49,7 @@ import org.slf4j.Logger;
  * primitive.
  */
 @Service
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 public class DistributedLeadershipStore
     extends AbstractStore<LeadershipEvent, LeadershipStoreDelegate>
     implements LeadershipStore {

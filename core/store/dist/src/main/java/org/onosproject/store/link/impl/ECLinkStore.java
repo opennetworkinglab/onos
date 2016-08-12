@@ -92,7 +92,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Manages the inventory of links using a {@code EventuallyConsistentMap}.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
 public class ECLinkStore
         extends AbstractStore<LinkEvent, LinkStoreDelegate>

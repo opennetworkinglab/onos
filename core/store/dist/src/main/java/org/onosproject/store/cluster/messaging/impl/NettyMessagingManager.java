@@ -90,7 +90,7 @@ import static org.onosproject.security.AppPermission.Type.CLUSTER_WRITE;
 /**
  * Netty based MessagingService.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
 public class NettyMessagingManager implements MessagingService {
 

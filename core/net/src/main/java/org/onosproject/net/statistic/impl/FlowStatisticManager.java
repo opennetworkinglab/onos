@@ -67,7 +67,7 @@ import static org.onosproject.security.AppPermission.Type.*;
 /**
  * Provides an implementation of the Flow Statistic Service.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
 public class FlowStatisticManager implements FlowStatisticService {
     private final Logger log = getLogger(getClass());

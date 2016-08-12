@@ -50,7 +50,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Manages the inventory of created next groups.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
 public class DistributedFlowObjectiveStore
         extends AbstractStore<ObjectiveEvent, FlowObjectiveStoreDelegate>

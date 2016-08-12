@@ -44,7 +44,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Manages inventory of component configurations in a distributed data store
  * that provides strong sequential consistency guarantees.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
 public class DistributedComponentConfigStore
         extends AbstractStore<ComponentConfigEvent, ComponentConfigStoreDelegate>

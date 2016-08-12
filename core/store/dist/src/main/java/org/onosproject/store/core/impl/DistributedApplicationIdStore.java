@@ -48,7 +48,7 @@ import com.google.common.collect.Maps;
  * ApplicationIdStore implementation on top of {@code AtomicCounter}
  * and {@code ConsistentMap} primitives.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
 public class DistributedApplicationIdStore implements ApplicationIdStore {
 

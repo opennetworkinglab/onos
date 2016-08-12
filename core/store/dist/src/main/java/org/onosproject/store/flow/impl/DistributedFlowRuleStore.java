@@ -106,7 +106,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Manages inventory of flow rules using a distributed state management protocol.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
 public class DistributedFlowRuleStore
         extends AbstractStore<FlowRuleBatchEvent, FlowRuleStoreDelegate>

@@ -70,7 +70,7 @@ import com.google.common.collect.Maps;
 /**
  * Implementation of the MastershipStore on top of Leadership Service.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
 public class ConsistentDeviceMastershipStore
     extends AbstractStore<MastershipEvent, MastershipStoreDelegate>

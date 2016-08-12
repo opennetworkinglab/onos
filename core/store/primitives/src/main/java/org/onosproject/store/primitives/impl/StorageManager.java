@@ -66,7 +66,7 @@ import com.google.common.util.concurrent.Futures;
  * Implementation for {@code StorageService} and {@code StorageAdminService}.
  */
 @Service
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 public class StorageManager implements StorageService, StorageAdminService {
 
     private final Logger log = getLogger(getClass());

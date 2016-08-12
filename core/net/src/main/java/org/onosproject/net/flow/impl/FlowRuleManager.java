@@ -91,7 +91,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provides implementation of the flow NB &amp; SB APIs.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
 public class FlowRuleManager
         extends AbstractListenerProviderRegistry<FlowRuleEvent, FlowRuleListener,

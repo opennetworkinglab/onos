@@ -63,7 +63,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 //FIXME we should listen for leadership changes. if the local instance has just
 // ...  become a leader, scan the pending map and process those
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
 public class GossipIntentStore
         extends AbstractStore<IntentEvent, IntentStoreDelegate>
