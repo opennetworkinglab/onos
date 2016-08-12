@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,14 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.onosproject.protocol.rest;
-
-import org.onosproject.protocol.http.HttpSBController;
-
 /**
- * Abstraction of an REST controller. Serves as a one stop shop for obtaining
- * Rest southbound devices and (un)register listeners.
+ * @author onos
+ *
  */
-public interface RestSBController extends HttpSBController {
-}
+package org.onosproject.protocol.http.ctl;

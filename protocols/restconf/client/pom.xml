@@ -19,16 +19,22 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.onosproject</groupId>
-    <artifactId>onos-protocols</artifactId>
+    <artifactId>onos-restconf</artifactId>
     <version>1.8.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
   </parent>
-
-  <artifactId>onos-restconf</artifactId>
+  <artifactId>onos-restconf-client</artifactId>
   <packaging>pom</packaging>
-
+  <dependencies>
+      <dependency>
+          <groupId>org.onosproject</groupId>
+          <artifactId>onos-api</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+  </dependencies>
   <modules>
-    <module>server</module>
-    <module>client</module>
+    <module>api</module>
+    <module>ctl</module>
   </modules>
-
+  <description>RESTCONF Client Module</description>
 </project>

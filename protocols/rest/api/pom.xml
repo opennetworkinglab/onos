@@ -28,6 +28,29 @@
     <artifactId>onos-restsb-api</artifactId>
     <packaging>bundle</packaging>
 
+    <dependencies>
+	    <dependency>
+	        <groupId>org.glassfish.jersey.core</groupId>
+	        <artifactId>jersey-client</artifactId>
+	    </dependency>
+	    <dependency>
+	        <groupId>org.apache.httpcomponents</groupId>
+	        <artifactId>httpclient-osgi</artifactId>
+	        <version>4.5.1</version>
+	    </dependency>
+	    <dependency>
+	        <groupId>commons-io</groupId>
+	        <artifactId>commons-io</artifactId>
+	        <version>2.4</version>
+	    </dependency>
+	    <dependency>
+	      <groupId>junit</groupId>
+	      <artifactId>junit</artifactId>
+	      <version>3.8.1</version>
+	      <scope>test</scope>
+	    </dependency>
+    </dependencies>
+
     <description>ONOS Rest southbound plugin API</description>
 
 
