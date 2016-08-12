@@ -41,7 +41,7 @@ public class DefaultDistributedWorkQueue<E> implements WorkQueue<E> {
                                              .collect(Collectors.toCollection(ArrayList::new)));
     }
 
-    private final Collection<Task<E>> decodeCollection(Collection<Task<byte[]>> tasks) {
+    private Collection<Task<E>> decodeCollection(Collection<Task<byte[]>> tasks) {
         return Collections2.transform(tasks, task -> task.map(serializer::decode));
     }
 
