@@ -52,7 +52,7 @@ public final class PortNumber {
     /**
      * Logical PortNumbers.
      */
-    public static enum Logical {
+    public enum Logical {
         IN_PORT(IN_PORT_NUMBER),
         TABLE(TABLE_NUMBER),
         NORMAL(NORMAL_NUMBER),
