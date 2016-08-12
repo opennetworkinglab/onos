@@ -150,68 +150,65 @@ public class RestSBControllerImpl implements RestSBController {
     }
 
     private Response getResponse(DeviceId device, String request, InputStream payload, String mediaType) {
+        String type = typeOfMediaType(mediaType);
+
         WebTarget wt = getWebTarget(device, request);
 
         Response response = null;
         if (payload != null) {
             try {
-                response = wt.request(mediaType)
-                        .post(Entity.entity(IOUtils.toString(payload, StandardCharsets.UTF_8), mediaType));
+                response = wt.request(type)
+                        .post(Entity.entity(IOUtils.toString(payload, StandardCharsets.UTF_8), type));
             } catch (IOException e) {
                 log.error("Cannot do POST {} request on device {} because can't read payload",
                           request, device);
             }
         } else {
-            response = wt.request(mediaType).post(Entity.entity(null, mediaType));
+            response = wt.request(type).post(Entity.entity(null, type));
         }
         return response;
     }
 
     @Override
     public boolean put(DeviceId device, String request, InputStream payload, String mediaType) {
+        String type = typeOfMediaType(mediaType);
 
         WebTarget wt = getWebTarget(device, request);
+
         Response response = null;
         if (payload != null) {
             try {
-                response = wt.request(mediaType)
-                        .put(Entity.entity(IOUtils.toString(payload, StandardCharsets.UTF_8), mediaType));
+                response = wt.request(type)
+                        .put(Entity.entity(IOUtils.toString(payload, StandardCharsets.UTF_8), type));
             } catch (IOException e) {
                 log.error("Cannot do PUT {} request on device {} because can't read payload",
                           request, device);
             }
         } else {
-            response = wt.request(mediaType).put(Entity.entity(null, mediaType));
+            response = wt.request(type).put(Entity.entity(null, type));
         }
         return checkReply(response);
     }
 
     @Override
     public InputStream get(DeviceId device, String request, String mediaType) {
-        WebTarget wt = getWebTarget(device, request);
-        String type;
-        switch (mediaType) {
-            case XML:
-                type = MediaType.APPLICATION_XML;
-                break;
-            case JSON:
-                type = MediaType.APPLICATION_JSON;
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported media type " + mediaType);
+        String type = typeOfMediaType(mediaType);
 
-        }
+        WebTarget wt = getWebTarget(device, request);
 
         Response s = wt.request(type).get();
+
         if (checkReply(s)) {
-            return new ByteArrayInputStream(wt.request(type)
-                                                    .get(String.class).getBytes(StandardCharsets.UTF_8));
+            return new ByteArrayInputStream(s.readEntity((String.class))
+                    .getBytes(StandardCharsets.UTF_8));
         }
         return null;
     }
 
     @Override
     public boolean patch(DeviceId device, String request, InputStream payload, String mediaType) {
+        String type = typeOfMediaType(mediaType);
+
         try {
             log.debug("Url request {} ", getUrlString(device, request));
             HttpPatch httprequest = new HttpPatch(getUrlString(device, request));
@@ -223,7 +220,7 @@ public class RestSBControllerImpl implements RestSBController {
             }
             if (payload != null) {
                 StringEntity input = new StringEntity(IOUtils.toString(payload, StandardCharsets.UTF_8));
-                input.setContentType(mediaType);
+                input.setContentType(type);
                 httprequest.setEntity(input);
             }
             CloseableHttpClient httpClient;
@@ -246,20 +243,38 @@ public class RestSBControllerImpl implements RestSBController {
 
     @Override
     public boolean delete(DeviceId device, String request, InputStream payload, String mediaType) {
+        String type = typeOfMediaType(mediaType);
+
         WebTarget wt = getWebTarget(device, request);
 
         // FIXME: do we need to delete an entry by enclosing data in DELETE request?
         // wouldn't it be nice to use PUT to implement the similar concept?
-        Response response = wt.request(mediaType).delete();
+        Response response = wt.request(type).delete();
 
         return checkReply(response);
+    }
+
+    private String typeOfMediaType(String mediaType) {
+        String type;
+        switch (mediaType) {
+            case XML:
+                type = MediaType.APPLICATION_XML;
+                break;
+            case JSON:
+                type = MediaType.APPLICATION_JSON;
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported media type " + mediaType);
+
+        }
+        return type;
     }
 
     private void authenticate(Client client, String username, String password) {
         client.register(HttpAuthenticationFeature.basic(username, password));
     }
 
-    private WebTarget getWebTarget(DeviceId device, String request) {
+    protected WebTarget getWebTarget(DeviceId device, String request) {
         log.debug("Sending request to URL {} ", getUrlString(device, request));
         return clientMap.get(device).target(getUrlString(device, request));
     }
