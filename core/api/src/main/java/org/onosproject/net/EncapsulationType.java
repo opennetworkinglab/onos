@@ -25,6 +25,6 @@ public enum EncapsulationType {
      * Indicates a VLAN encapsulation.
      */
     VLAN,
-};
+}
 
 
