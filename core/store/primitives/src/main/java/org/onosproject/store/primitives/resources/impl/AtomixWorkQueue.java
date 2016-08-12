@@ -128,7 +128,7 @@ public class AtomixWorkQueue extends AbstractResource<AtomixWorkQueue>
                                             executor,
                                             completedTaskAccumulator));
         return register().thenCompose(v -> take(parallelism))
-                         .thenAccept(taskProcessor.get()::accept);
+                         .thenAccept(taskProcessor.get());
     }
 
     @Override
