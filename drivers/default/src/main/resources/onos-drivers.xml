@@ -83,7 +83,7 @@
                    impl="org.onosproject.driver.pipeline.OltPipeline"/>
     </driver>
     <driver name="nokia-olt" extends="default"
-            manufacturer="Nokia" hwVersion="" swVersion="">
+            manufacturer="Nokia" hwVersion="SDOLT" swVersion="5.2.1">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OltPipeline"/>
     </driver>
