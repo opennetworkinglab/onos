@@ -1261,17 +1261,14 @@ public class DistributedGroupStore
         log.trace("pushGroupMetrics: Displaying all ({}) southboundGroupEntries for device {}",
                   southboundGroupEntries.size(),
                   deviceId);
-        for (Iterator<Group> it = southboundGroupEntries.iterator(); it.hasNext();) {
-            Group group = it.next();
+        for (Group group : southboundGroupEntries) {
             log.trace("Group {} in device {}", group, deviceId);
         }
 
         log.trace("Displaying all ({}) stored group entries for device {}",
                   storedGroupEntries.size(),
                   deviceId);
-        for (Iterator<StoredGroupEntry> it1 = storedGroupEntries.iterator();
-             it1.hasNext();) {
-            Group group = it1.next();
+        for (StoredGroupEntry group : storedGroupEntries) {
             log.trace("Stored Group {} for device {}", group, deviceId);
         }
 
