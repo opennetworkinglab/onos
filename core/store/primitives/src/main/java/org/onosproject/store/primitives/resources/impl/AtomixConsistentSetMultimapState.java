@@ -27,7 +27,6 @@ import com.google.common.collect.Sets;
 import io.atomix.copycat.server.Commit;
 import io.atomix.copycat.server.Snapshottable;
 import io.atomix.copycat.server.StateMachineExecutor;
-import io.atomix.copycat.server.session.ServerSession;
 import io.atomix.copycat.server.session.SessionListener;
 import io.atomix.copycat.server.storage.snapshot.SnapshotReader;
 import io.atomix.copycat.server.storage.snapshot.SnapshotWriter;
@@ -111,11 +110,6 @@ public class AtomixConsistentSetMultimapState extends ResourceStateMachine
         executor.register(MultiRemove.class, this::multiRemove);
         executor.register(Put.class, this::put);
         executor.register(Replace.class, this::replace);
-    }
-
-    @Override
-    public void delete() {
-        super.delete();
     }
 
     /**
@@ -370,26 +364,6 @@ public class AtomixConsistentSetMultimapState extends ResourceStateMachine
                            new NonTransactionalCommit(1));
         }
         return backingMap.get(commit.operation().key()).addCommit(commit);
-    }
-
-    @Override
-    public void register(ServerSession session) {
-        super.register(session);
-    }
-
-    @Override
-    public void unregister(ServerSession session) {
-        super.unregister(session);
-    }
-
-    @Override
-    public void expire(ServerSession session) {
-        super.expire(session);
-    }
-
-    @Override
-    public void close(ServerSession session) {
-        super.close(session);
     }
 
     private interface MapEntryValue {
