@@ -179,4 +179,9 @@ public interface GroupStore extends Store<GroupEvent, GroupStoreDelegate> {
      * @param groupEntries the group entries as received from southbound
      */
     void pushGroupMetrics(DeviceId deviceId, Collection<Group> groupEntries);
+
+    /**
+     * Indicates failover within a failover group.
+     */
+    void notifyOfFailovers(Collection<Group> failoverGroups);
 }

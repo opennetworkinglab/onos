@@ -56,6 +56,13 @@ public class GroupEvent extends AbstractEvent<GroupEvent.Type, Group> {
          */
         GROUP_UPDATE_FAILED,
 
+        /**
+         * Signifies change in the first live bucket in failover group
+         * (i.e. change in which bucket is in use).
+         * Only to be used with failover Group.
+         */
+        GROUP_BUCKET_FAILOVER,
+
         // internal event between Manager <-> Store
 
         /*

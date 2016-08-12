@@ -1312,6 +1312,17 @@ public class DistributedGroupStore
         }
     }
 
+    @Override
+    public void notifyOfFailovers(Collection<Group> failoverGroups) {
+        List<GroupEvent> failoverEvents = new ArrayList<>();
+        failoverGroups.forEach(group -> {
+            if (group.type() == Group.Type.FAILOVER) {
+                failoverEvents.add(new GroupEvent(GroupEvent.Type.GROUP_BUCKET_FAILOVER, group));
+            }
+        });
+        notifyDelegate(failoverEvents);
+    }
+
     private void garbageCollect(DeviceId deviceId,
                                 Set<Group> southboundGroupEntries,
                                 Set<StoredGroupEntry> storedGroupEntries) {
