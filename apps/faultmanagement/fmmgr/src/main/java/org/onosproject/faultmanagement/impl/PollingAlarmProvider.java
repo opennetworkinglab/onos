@@ -194,7 +194,7 @@ public class PollingAlarmProvider extends AbstractProvider implements AlarmProvi
             providerService.updateAlarmList(device.id(),
                                             device.as(AlarmConsumer.class).consumeAlarms());
         } else {
-            log.info("Device {} does not support alarm consumer behaviour", device.id());
+            log.debug("Device {} does not support alarm consumer behaviour", device.id());
         }
     }
 
