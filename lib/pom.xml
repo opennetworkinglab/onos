@@ -38,7 +38,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <onos-build-conf.version>1.11.0-SNAPSHOT</onos-build-conf.version>
         <netty4.version>4.1.5.Final</netty4.version>
-        <openflowj.version>0.9.8.onos</openflowj.version>
+        <openflowj.version>3.2.0.onos-SNAPSHOT</openflowj.version>
         <onos-maven-plugin.version>1.10</onos-maven-plugin.version>
         <osgi.version>5.0.0</osgi.version>
         <karaf.version>3.0.8</karaf.version>
@@ -46,7 +46,7 @@
         <jetty.version>9.2.21.v20170120</jetty.version>
         <jackson.version>2.8.6</jackson.version>
         <slf4j.version>1.7.21</slf4j.version>
-        <guava.version>19.0</guava.version>
+        <guava.version>20.0</guava.version>
         <commons.io.version>2.4</commons.io.version>
         <!-- TODO argLine was originally added maven-surfire-plugin configuration
                   to fix locale errors for non-US developers. However, it breaks

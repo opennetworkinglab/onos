@@ -34,9 +34,19 @@ public interface FlowRule {
      * Used to check reason parameter in flows.
      */
     enum FlowRemoveReason {
-        NO_REASON,
         IDLE_TIMEOUT,
-        HARD_TIMEOUT;
+        HARD_TIMEOUT,
+        DELETE,
+        GROUP_DELETE,
+        METER_DELETE,
+        EVICTION,
+        NO_REASON;
+
+        /**
+         * Covert short to enum.
+         * @return reason in enum
+         * @param reason remove reason in integer
+         */
         public static FlowRemoveReason parseShort(short reason) {
             switch (reason) {
                 case -1 :
@@ -45,6 +55,14 @@ public interface FlowRule {
                     return IDLE_TIMEOUT;
                 case 1:
                     return HARD_TIMEOUT;
+                case 2 :
+                    return DELETE;
+                case 3:
+                    return GROUP_DELETE;
+                case 4:
+                    return METER_DELETE;
+                case 5:
+                    return EVICTION;
                 default :
                     return NO_REASON;
             }

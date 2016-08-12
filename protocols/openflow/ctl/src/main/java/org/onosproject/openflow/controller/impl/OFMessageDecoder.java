@@ -17,6 +17,8 @@
 package org.onosproject.openflow.controller.impl;
 
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -47,7 +49,15 @@ public class OFMessageDecoder extends FrameDecoder {
         // a list of the parsed messages to the controller.
         // The performance *may or may not* not be as good as before.
         OFMessageReader<OFMessage> reader = OFFactories.getGenericReader();
-        OFMessage message = reader.readFrom(buffer);
+
+        //toByteBuffer is optimized to avoid copying.
+        ByteBuf byteBuf = Unpooled.wrappedBuffer(buffer.toByteBuffer());
+        OFMessage message = reader.readFrom(byteBuf);
+
+        if (message != null) {
+            //set buffer's read index, as it has not been changed.
+            buffer.readerIndex(buffer.readerIndex() + byteBuf.readerIndex());
+        }
 
         return message;
     }

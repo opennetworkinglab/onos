@@ -18,6 +18,7 @@ package org.onosproject.openflow.controller.impl;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import io.netty.buffer.ByteBuf;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.junit.Test;
 import org.onosproject.openflow.OfMessageAdapter;
@@ -45,9 +46,9 @@ public class OFMessageEncoderTest {
         }
 
         @Override
-        public void writeTo(ChannelBuffer channelBuffer) {
+        public void writeTo(ByteBuf byteBuf) {
             String message = "message" + Integer.toString(id) + " ";
-            channelBuffer.writeBytes(message.getBytes(StandardCharsets.UTF_8));
+            byteBuf.writeBytes(message.getBytes(StandardCharsets.UTF_8));
         }
     }
 

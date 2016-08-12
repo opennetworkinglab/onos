@@ -20,8 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.onosproject.drivers.optical.OpticalAdjacencyLinkService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Annotations;
@@ -203,7 +203,7 @@ public class OplinkHandshakerUtil {
                 // |---------------------------------------------------------------------------|
                 // | Header (2 bytes) | ID (4 BITS) | MAC (6 bytes) | Port (4 bytes) | Unused  |
                 // |---------------------------------------------------------------------------|
-                ChannelBuffer buffer = ChannelBuffers.buffer(OPSPEC_BYTES);
+                ByteBuf buffer = Unpooled.buffer(OPSPEC_BYTES);
                 otn.getOpspec().write32Bytes(buffer);
                 long mac = buffer.getLong(OPSPEC_MAC_POS) << OPSPEC_ID_BITS >>> OPSPEC_MAC_BIT_OFF;
                 int port = (int) (buffer.getLong(OPSPEC_PORT_POS) << OPSPEC_ID_BITS >>> OPSPEC_PORT_BIT_OFF);

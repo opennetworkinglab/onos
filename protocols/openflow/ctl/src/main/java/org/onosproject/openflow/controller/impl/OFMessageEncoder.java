@@ -18,6 +18,8 @@ package org.onosproject.openflow.controller.impl;
 
 import java.util.List;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -46,13 +48,16 @@ public class OFMessageEncoder extends OneToOneEncoder {
             size += ofm.getLengthU();
         }*/
 
-        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        ByteBuf bb = Unpooled.buffer();
 
         for (OFMessage ofm : msglist) {
             if (ofm != null) {
-                ofm.writeTo(buf);
+                ofm.writeTo(bb);
             }
         }
+
+        ChannelBuffer buf = ChannelBuffers.wrappedBuffer(bb.nioBuffer());
+
         return buf;
     }
 

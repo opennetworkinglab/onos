@@ -110,6 +110,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Dictionary;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -364,12 +365,14 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         OFPortMod.Builder pmb = sw.factory().buildPortMod();
         OFPort port = OFPort.of((int) portNumber.toLong());
         pmb.setPortNo(port);
-        if (enable) {
-            pmb.setConfig(0x0); // port_down bit 0
-        } else {
-            pmb.setConfig(0x1); // port_down bit 1
+        Set<OFPortConfig> portConfig = EnumSet.noneOf(OFPortConfig.class);
+        if (!enable) {
+            portConfig.add(OFPortConfig.PORT_DOWN);
         }
-        pmb.setMask(0x1);
+        pmb.setConfig(portConfig);
+        Set<OFPortConfig> portMask = EnumSet.noneOf(OFPortConfig.class);
+        portMask.add(OFPortConfig.PORT_DOWN);
+        pmb.setMask(portMask);
         pmb.setAdvertise(0x0);
         for (OFPortDesc pd : sw.getPorts()) {
             if (pd.getPortNo().equals(port)) {

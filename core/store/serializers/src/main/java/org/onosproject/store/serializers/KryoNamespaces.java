@@ -249,7 +249,8 @@ public final class KryoNamespaces {
             .register(new ImmutableListSerializer(),
                       ImmutableList.class,
                       ImmutableList.of(1).getClass(),
-                      ImmutableList.of(1, 2).getClass())
+                      ImmutableList.of(1, 2).getClass(),
+                      ImmutableList.of(1, 2, 3).subList(1, 3).getClass())
             .register(new ImmutableSetSerializer(),
                       ImmutableSet.class,
                       ImmutableSet.of().getClass(),
