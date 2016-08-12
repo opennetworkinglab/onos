@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.protocol.rest;
-
-import org.onosproject.protocol.http.HttpSBController;
-
 /**
- * Abstraction of an REST controller. Serves as a one stop shop for obtaining
- * Rest southbound devices and (un)register listeners.
+ * RESTCONF southbound protocol implementation.
  */
-public interface RestSBController extends HttpSBController {
-}
+package org.onosproject.protocol.restconf.ctl;

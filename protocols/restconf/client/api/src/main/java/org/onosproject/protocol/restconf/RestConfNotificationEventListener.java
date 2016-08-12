@@ -13,14 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.protocol.restconf;
 
-package org.onosproject.protocol.rest;
-
-import org.onosproject.protocol.http.HttpSBController;
+import org.onosproject.net.DeviceId;
 
 /**
- * Abstraction of an REST controller. Serves as a one stop shop for obtaining
- * Rest southbound devices and (un)register listeners.
+ * Notifies providers about incoming RESTCONF notification events.
  */
-public interface RestSBController extends HttpSBController {
+public interface RestConfNotificationEventListener {
+
+    /**
+     * Handles the notification event.
+     *
+     * @param <T>
+     *
+     * @param deviceId of the restconf device
+     * @param eventJsonString the json string representation of the event
+     */
+    <T> void handleNotificationEvent(DeviceId deviceId, T eventJsonString);
+
 }
