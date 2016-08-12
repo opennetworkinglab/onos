@@ -773,8 +773,8 @@ public class GroupManagerTest {
         }
 
         assertEquals(lastDeviceIdProgrammable, expectedDeviceId);
-        assertTrue((this.groupOperations.containsAll(expectedGroupOps) &&
-                expectedGroupOps.containsAll(groupOperations)));
+        assertTrue(groupOperations.containsAll(expectedGroupOps) &&
+                   expectedGroupOps.containsAll(groupOperations));
 
         groupOperations.clear();
         lastDeviceIdProgrammable = null;
