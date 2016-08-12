@@ -602,14 +602,11 @@ public class AtomixConsistentSetMultimapState extends ResourceStateMachine
 
         @Override
         public Supplier<HashMultiset<byte[]>> supplier() {
-            return new Supplier<HashMultiset<byte[]>>() {
-                @Override
-                public HashMultiset<byte[]> get() {
-                    if (multiset == null) {
-                        multiset = HashMultiset.create();
-                    }
-                    return multiset;
+            return () -> {
+                if (multiset == null) {
+                    multiset = HashMultiset.create();
                 }
+                return multiset;
             };
         }
 
@@ -651,14 +648,11 @@ public class AtomixConsistentSetMultimapState extends ResourceStateMachine
 
         @Override
         public Supplier<Set<Map.Entry<String, byte[]>>> supplier() {
-            return new Supplier<Set<Map.Entry<String, byte[]>>>() {
-                @Override
-                public Set<Map.Entry<String, byte[]>> get() {
-                    if (set == null) {
-                        set = Sets.newHashSet();
-                    }
-                    return set;
+            return () -> {
+                if (set == null) {
+                    set = Sets.newHashSet();
                 }
+                return set;
             };
         }
 
