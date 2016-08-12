@@ -32,7 +32,7 @@ public enum ApplicationRole {
      */
     UNSPECIFIED,
 
-    /**
+    /*
      * More useful roles may be defined.
      */
 }

@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-/**
- *
- */
 package org.onosproject.store.trivial;
 
 import static org.junit.Assert.*;
