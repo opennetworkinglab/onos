@@ -304,7 +304,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         Pipeliner pipeliner = handler.behaviour(Pipeliner.class);
         hbTime = now();
         pipeliner.init(deviceId, context);
-        pipeliners.putIfAbsent(deviceId, pipeliner);
+        pipeliners.put(deviceId, pipeliner);
     }
 
     // Triggers driver setup when the local node becomes a device master.
