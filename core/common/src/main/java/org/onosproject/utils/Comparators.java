@@ -144,7 +144,7 @@ public final class Comparators {
     public static final Comparator<DeviceKey> DEVICE_KEY_COMPARATOR = new Comparator<DeviceKey>() {
         @Override
         public int compare(DeviceKey deviceKey1, DeviceKey deviceKey2) {
-            return deviceKey1.deviceKeyId().id().toString().compareTo(deviceKey2.deviceKeyId().id().toString());
+            return deviceKey1.deviceKeyId().id().compareTo(deviceKey2.deviceKeyId().id());
         }
     };
 
@@ -164,7 +164,7 @@ public final class Comparators {
     public static final Comparator<TenantId> TENANT_ID_COMPARATOR = new Comparator<TenantId>() {
         @Override
         public int compare(TenantId tenant1, TenantId tenant2) {
-            return tenant1.id().toString().compareTo(tenant2.id().toString());
+            return tenant1.id().compareTo(tenant2.id());
         }
     };
 
