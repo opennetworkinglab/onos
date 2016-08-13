@@ -153,19 +153,16 @@ public final class DefaultPortStatistics implements PortStatistics {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("device: " + deviceId + ", ");
-
-        sb.append("port: " + this.port + ", ");
-        sb.append("pktRx: " + this.packetsReceived + ", ");
-        sb.append("pktTx: " + this.packetsSent + ", ");
-        sb.append("byteRx: " + this.bytesReceived + ", ");
-        sb.append("byteTx: " + this.bytesSent + ", ");
-        sb.append("pktRxErr: " + this.packetsRxErrors + ", ");
-        sb.append("pktTxErr: " + this.packetsTxErrors + ", ");
-        sb.append("pktRxDrp: " + this.packetsRxDropped + ", ");
-        sb.append("pktTxDrp: " + this.packetsTxDropped);
-
-        return sb.toString();
+        return "device: " + deviceId + ", " +
+                "port: " + this.port + ", " +
+                "pktRx: " + this.packetsReceived + ", " +
+                "pktTx: " + this.packetsSent + ", " +
+                "byteRx: " + this.bytesReceived + ", " +
+                "byteTx: " + this.bytesSent + ", " +
+                "pktRxErr: " + this.packetsRxErrors + ", " +
+                "pktTxErr: " + this.packetsTxErrors + ", " +
+                "pktRxDrp: " + this.packetsRxDropped + ", " +
+                "pktTxDrp: " + this.packetsTxDropped;
     }
 
     public static final class Builder {
