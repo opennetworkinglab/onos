@@ -501,7 +501,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         List<String> pendingNexts = new ArrayList<>();
         for (Integer nextId : pendingForwards.keySet()) {
             Set<PendingNext> pnext = pendingForwards.get(nextId);
-            StringBuffer pend = new StringBuffer();
+            StringBuilder pend = new StringBuilder();
             pend.append("Next Id: ").append(Integer.toString(nextId))
                 .append(" :: ");
             for (PendingNext pn : pnext) {
