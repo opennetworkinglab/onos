@@ -1,0 +1,96 @@
+/*
+ * Copyright 2016 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.onosproject.tetopology.management.api;
+
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
+
+/**
+ * TE Topology identifiers.
+ */
+public class TeTopologyId {
+    private final long providerId;
+    private final long clientId;
+    private final String topologyId;
+
+    /**
+     * Creates an instance of TE topology identifier.
+     *
+     * @param providerId value of provider identifier
+     * @param clientId   value of client identifier
+     * @param topologyId value of topology identifier
+     */
+    public TeTopologyId(long providerId, long clientId, String topologyId) {
+        this.providerId = providerId;
+        this.clientId = clientId;
+        this.topologyId = topologyId;
+    }
+
+    /**
+     * Returns the provider identifier.
+     *
+     * @return provider identifier
+     */
+    public long providerId() {
+        return providerId;
+    }
+
+    /**
+     * Returns the client identifier.
+     *
+     * @return client identifier
+     */
+    public long clientId() {
+        return clientId;
+    }
+
+    /**
+     * Returns the topology identifier.
+     *
+     * @return topology identifier
+     */
+    public String topologyId() {
+        return topologyId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(providerId, clientId, topologyId);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (object instanceof TeTopologyId) {
+            TeTopologyId that = (TeTopologyId) object;
+            return Objects.equal(this.providerId, that.providerId) &&
+                    Objects.equal(this.clientId, that.clientId) &&
+                    Objects.equal(this.topologyId, that.topologyId);
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("providerId", providerId)
+                .add("clientId", clientId)
+                .add("topologyId", topologyId)
+                .toString();
+    }
+}
