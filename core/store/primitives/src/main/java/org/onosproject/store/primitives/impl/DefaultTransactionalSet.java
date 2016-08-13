@@ -32,7 +32,7 @@ public class DefaultTransactionalSet<E> implements TransactionalSet<E> {
     private TransactionalMap<E, Boolean> map;
 
     // dummy value to associate with an Object in the backing map
-    private static final Boolean PRESENT = new Boolean(true);
+    private static final Boolean PRESENT = Boolean.TRUE;
 
     public DefaultTransactionalSet(
             String name,
