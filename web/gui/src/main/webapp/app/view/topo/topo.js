@@ -585,11 +585,11 @@
                 setMap: setMap
             });
 
-            if (params.intentKey && params.intentAppId && params.intentAppName) {
+            if (params.key && params.appId && params.appName) {
                 $scope.intentData = {
-                    key: params.intentKey,
-                    appId: params.intentAppId,
-                    appName: params.intentAppName
+                    key: params.key,
+                    appId: params.appId,
+                    appName: params.appName
                 };
             }
 

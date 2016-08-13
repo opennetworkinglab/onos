@@ -49,6 +49,7 @@ describe('factory: view/topo/topoTraffic.js', function() {
             'requestTrafficForMode',
             'addHostIntent',
             'addMultiSourceIntent',
+            'removeIntent',
         ])).toBeTruthy();
     });
 

@@ -21,11 +21,17 @@
 (function () {
     'use strict';
 
+    var dialogId = 'remove-intent-dialog',
+        dialogOpts = {
+            edge: 'right'
+        };
+
     angular.module('ovIntent', [])
         .controller('OvIntentCtrl',
         ['$log', '$scope', 'TableBuilderService', 'NavService',
+            'TopoTrafficService', 'DialogService',
 
-        function ($log, $scope, tbs, ns) {
+        function ($log, $scope, tbs, ns, tts, ds) {
 
             function selCb($event, row) {
                 $log.debug('Got a click on:', row);
@@ -34,9 +40,9 @@
                     name = m ? m[2] : null;
 
                 $scope.intentData = ($scope.selId && m) ? {
-                    intentAppId: id,
-                    intentAppName: name,
-                    intentKey: row.key
+                    appId: id,
+                    appName: name,
+                    key: row.key
                 } : null;
             }
 
@@ -48,12 +54,42 @@
             });
 
             $scope.topoTip = 'Show selected intent on topology view';
+            $scope.deactivateTip = 'Remove selected intent';
 
             $scope.showIntent = function () {
                 var d = $scope.intentData;
                 d && ns.navTo('topo', d);
             };
 
-            $log.log('OvIntentCtrl has been created');
+            $scope.deactivateIntent = function () {
+                var content = ds.createDiv();
+
+                content.append('p')
+                    .text('Are you sure you want to remove the selected intent?');
+
+                function dOk() {
+                    var d = $scope.intentData;
+                    d && tts.removeIntent(d);
+                }
+
+                function dCancel() {
+                    ds.closeDialog();
+                    $log.debug('Canceling remove-intent action');
+                }
+
+                ds.openDialog(dialogId, dialogOpts)
+                    .setTitle('Confirm Action')
+                    .addContent(content)
+                    .addOk(dOk)
+                    .addCancel(dCancel)
+                    .bindKeys();
+            };
+
+            $scope.$on('$destroy', function () {
+                ds.closeDialog();
+                $log.debug('OvIntentCtrl has been destroyed');
+            });
+
+            $log.debug('OvIntentCtrl has been created');
         }]);
 }());
