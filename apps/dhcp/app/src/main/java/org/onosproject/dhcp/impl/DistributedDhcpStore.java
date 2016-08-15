@@ -76,10 +76,8 @@ public class DistributedDhcpStore implements DhcpStore {
                                 .register(KryoNamespaces.API)
                                 .register(IpAssignment.class,
                                         IpAssignment.AssignmentStatus.class,
-                                        Date.class,
-                                        long.class,
-                                        Ip4Address.class)
-                                .build()))
+                                        Date.class)
+                                .build("dhcp")))
                 .build();
 
         freeIPPool = storageService.<Ip4Address>setBuilder()
