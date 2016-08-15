@@ -30,7 +30,7 @@ public interface DistributedPrimitive {
     /**
      * Type of distributed primitive.
      */
-    public enum Type {
+    enum Type {
         /**
          * Map with strong consistency semantics.
          */
@@ -80,7 +80,7 @@ public interface DistributedPrimitive {
     /**
      * Status of distributed primitive.
      */
-    public enum Status {
+    enum Status {
 
         /**
          * Signifies a state wherein the primitive is operating correctly and is capable of meeting the advertised

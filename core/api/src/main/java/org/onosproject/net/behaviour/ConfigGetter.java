@@ -33,5 +33,5 @@ public interface ConfigGetter extends HandlerBehaviour {
      * @param type the type of configuration to get (i.e. running).
      * @return string representation of the configuration or an error string.
      */
-    public String getConfiguration(String type);
+    String getConfiguration(String type);
 }
