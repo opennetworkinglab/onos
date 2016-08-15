@@ -31,7 +31,7 @@ import org.apache.commons.lang3.concurrent.ConcurrentInitializer;
  * @param <V> ConcurrentHashMap value type
  */
 public final class NewConcurrentHashMap<K, V>
-    implements  ConcurrentInitializer<ConcurrentMap<K, V>> {
+    implements ConcurrentInitializer<ConcurrentMap<K, V>> {
 
     public static final NewConcurrentHashMap<?, ?> INSTANCE = new NewConcurrentHashMap<>();
 
