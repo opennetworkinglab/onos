@@ -1243,18 +1243,20 @@ public class DistributedGroupStore
         Set<Group> extraneousStoredEntries =
                 Sets.newHashSet(getExtraneousGroups(deviceId));
 
-        log.trace("pushGroupMetrics: Displaying all ({}) southboundGroupEntries for device {}",
-                  southboundGroupEntries.size(),
-                  deviceId);
-        for (Group group : southboundGroupEntries) {
-            log.trace("Group {} in device {}", group, deviceId);
-        }
+        if (log.isTraceEnabled()) {
+            log.trace("pushGroupMetrics: Displaying all ({}) southboundGroupEntries for device {}",
+                    southboundGroupEntries.size(),
+                    deviceId);
+            for (Group group : southboundGroupEntries) {
+                log.trace("Group {} in device {}", group, deviceId);
+            }
 
-        log.trace("Displaying all ({}) stored group entries for device {}",
-                  storedGroupEntries.size(),
-                  deviceId);
-        for (StoredGroupEntry group : storedGroupEntries) {
-            log.trace("Stored Group {} for device {}", group, deviceId);
+            log.trace("Displaying all ({}) stored group entries for device {}",
+                    storedGroupEntries.size(),
+                    deviceId);
+            for (StoredGroupEntry group : storedGroupEntries) {
+                log.trace("Stored Group {} for device {}", group, deviceId);
+            }
         }
 
         garbageCollect(deviceId, southboundGroupEntries, storedGroupEntries);

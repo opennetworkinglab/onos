@@ -575,19 +575,21 @@ public class SimpleGroupStore
         Set<Group> extraneousStoredEntries =
                 Sets.newHashSet(getExtraneousGroups(deviceId));
 
-        log.trace("pushGroupMetrics: Displaying all ({}) "
-                + "southboundGroupEntries for device {}",
-                  southboundGroupEntries.size(),
-                  deviceId);
-        for (Group group : southboundGroupEntries) {
-            log.trace("Group {} in device {}", group, deviceId);
-        }
+        if (log.isTraceEnabled()) {
+            log.trace("pushGroupMetrics: Displaying all ({}) "
+                            + "southboundGroupEntries for device {}",
+                    southboundGroupEntries.size(),
+                    deviceId);
+            for (Group group : southboundGroupEntries) {
+                log.trace("Group {} in device {}", group, deviceId);
+            }
 
-        log.trace("Displaying all ({}) stored group entries for device {}",
-                  storedGroupEntries.size(),
-                  deviceId);
-        for (Group group : storedGroupEntries) {
-            log.trace("Stored Group {} for device {}", group, deviceId);
+            log.trace("Displaying all ({}) stored group entries for device {}",
+                    storedGroupEntries.size(),
+                    deviceId);
+            for (Group group : storedGroupEntries) {
+                log.trace("Stored Group {} for device {}", group, deviceId);
+            }
         }
 
         for (Iterator<Group> it2 = southboundGroupEntries.iterator(); it2.hasNext();) {
