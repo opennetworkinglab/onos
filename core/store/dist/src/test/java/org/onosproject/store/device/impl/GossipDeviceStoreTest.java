@@ -133,7 +133,7 @@ public class GossipDeviceStoreTest {
     private static final NodeId NID2 = new NodeId("remote");
     private static final ControllerNode ONOS2 =
             new DefaultControllerNode(NID2, IpAddress.valueOf("127.0.0.2"));
-    private static final List<SparseAnnotations> NO_ANNOTATION = Collections.<SparseAnnotations>emptyList();
+    private static final List<SparseAnnotations> NO_ANNOTATION = Collections.emptyList();
 
     EventuallyConsistentMapBuilder ecMapBuilder;
     EventuallyConsistentMap ecMap;
@@ -492,7 +492,7 @@ public class GossipDeviceStoreTest {
     @Test
     public final void testUpdatePorts() {
         putDevice(DID1, SW1);
-        List<PortDescription> pds = Arrays.<PortDescription>asList(
+        List<PortDescription> pds = Arrays.asList(
                 new DefaultPortDescription(P1, true),
                 new DefaultPortDescription(P2, true)
                 );
@@ -517,7 +517,7 @@ public class GossipDeviceStoreTest {
         assertTrue("Event for all expectedport appeared", expectedPorts.isEmpty());
 
 
-        List<PortDescription> pds2 = Arrays.<PortDescription>asList(
+        List<PortDescription> pds2 = Arrays.asList(
                 new DefaultPortDescription(P1, false),
                 new DefaultPortDescription(P2, true),
                 new DefaultPortDescription(P3, true)
@@ -547,7 +547,7 @@ public class GossipDeviceStoreTest {
             }
         }
 
-        List<PortDescription> pds3 = Arrays.<PortDescription>asList(
+        List<PortDescription> pds3 = Arrays.asList(
                 new DefaultPortDescription(P1, false),
                 new DefaultPortDescription(P2, true)
                 );
@@ -577,7 +577,7 @@ public class GossipDeviceStoreTest {
     @Test
     public final void testUpdatePortStatus() {
         putDevice(DID1, SW1);
-        List<PortDescription> pds = Arrays.<PortDescription>asList(
+        List<PortDescription> pds = Arrays.asList(
                 new DefaultPortDescription(P1, true)
                 );
         deviceStore.updatePorts(PID, DID1, pds);
@@ -602,7 +602,7 @@ public class GossipDeviceStoreTest {
     public final void testUpdatePortStatusAncillary() throws IOException {
         putDeviceAncillary(DID1, SW1);
         putDevice(DID1, SW1);
-        List<PortDescription> pds = Arrays.<PortDescription>asList(
+        List<PortDescription> pds = Arrays.asList(
                 new DefaultPortDescription(P1, true, A1)
                 );
         deviceStore.updatePorts(PID, DID1, pds);
@@ -727,7 +727,7 @@ public class GossipDeviceStoreTest {
     public final void testGetPorts() {
         putDevice(DID1, SW1);
         putDevice(DID2, SW1);
-        List<PortDescription> pds = Arrays.<PortDescription>asList(
+        List<PortDescription> pds = Arrays.asList(
                 new DefaultPortDescription(P1, true),
                 new DefaultPortDescription(P2, true)
                 );
@@ -750,7 +750,7 @@ public class GossipDeviceStoreTest {
     public final void testGetPort() {
         putDevice(DID1, SW1);
         putDevice(DID2, SW1);
-        List<PortDescription> pds = Arrays.<PortDescription>asList(
+        List<PortDescription> pds = Arrays.asList(
                 new DefaultPortDescription(P1, true),
                 new DefaultPortDescription(P2, false)
                 );
@@ -771,7 +771,7 @@ public class GossipDeviceStoreTest {
     @Test
     public final void testRemoveDevice() {
         putDevice(DID1, SW1, A1);
-        List<PortDescription> pds = Arrays.<PortDescription>asList(
+        List<PortDescription> pds = Arrays.asList(
                 new DefaultPortDescription(P1, true, A2)
                 );
         deviceStore.updatePorts(PID, DID1, pds);
@@ -800,7 +800,7 @@ public class GossipDeviceStoreTest {
 
         // putBack Device, Port w/o annotation
         putDevice(DID1, SW1);
-        List<PortDescription> pds2 = Arrays.<PortDescription>asList(
+        List<PortDescription> pds2 = Arrays.asList(
                 new DefaultPortDescription(P1, true)
                 );
         deviceStore.updatePorts(PID, DID1, pds2);

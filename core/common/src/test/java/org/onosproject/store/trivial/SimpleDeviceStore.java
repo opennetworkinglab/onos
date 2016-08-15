@@ -348,7 +348,7 @@ public class SimpleDeviceStore
     // exist, it creates and registers a new one.
     private ConcurrentMap<PortNumber, Port> getPortMap(DeviceId deviceId) {
         return createIfAbsentUnchecked(devicePorts, deviceId,
-                                       NewConcurrentHashMap.<PortNumber, Port>ifNeeded());
+                                       NewConcurrentHashMap.ifNeeded());
     }
 
     private Map<ProviderId, DeviceDescriptions> getOrCreateDeviceDescriptions(

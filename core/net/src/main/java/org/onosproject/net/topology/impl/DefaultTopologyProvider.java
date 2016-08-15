@@ -198,7 +198,7 @@ public class DefaultTopologyProvider extends AbstractProvider
 
     @Override
     public void triggerRecompute() {
-        triggerTopologyBuild(Collections.<Event>emptyList());
+        triggerTopologyBuild(Collections.emptyList());
     }
 
     /**

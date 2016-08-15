@@ -30,7 +30,6 @@ import org.onosproject.common.DefaultTopology;
 import org.onosproject.event.Event;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.DisjointPath;
 import org.onosproject.net.Link;
@@ -96,8 +95,8 @@ public class DistributedTopologyStore
     private volatile DefaultTopology current =
             new DefaultTopology(ProviderId.NONE,
                                 new DefaultGraphDescription(0L, System.currentTimeMillis(),
-                                                            Collections.<Device>emptyList(),
-                                                            Collections.<Link>emptyList()));
+                                                            Collections.emptyList(),
+                                                            Collections.emptyList()));
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;

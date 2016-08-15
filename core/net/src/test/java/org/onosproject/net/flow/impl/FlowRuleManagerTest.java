@@ -554,14 +554,14 @@ public class FlowRuleManagerTest {
             @Override
             public CompletedBatchOperation get()
                     throws InterruptedException, ExecutionException {
-                return new CompletedBatchOperation(true, Collections.<FlowRule>emptySet(), null);
+                return new CompletedBatchOperation(true, Collections.emptySet(), null);
             }
 
             @Override
             public CompletedBatchOperation get(long timeout, TimeUnit unit)
                     throws InterruptedException,
                     ExecutionException, TimeoutException {
-                return new CompletedBatchOperation(true, Collections.<FlowRule>emptySet(), null);
+                return new CompletedBatchOperation(true, Collections.emptySet(), null);
             }
 
             @Override

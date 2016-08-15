@@ -164,7 +164,7 @@ public class SimpleFlowRuleStore
     }
 
     private static NewConcurrentHashMap<FlowId, List<StoredFlowEntry>> lazyEmptyFlowTable() {
-        return NewConcurrentHashMap.<FlowId, List<StoredFlowEntry>>ifNeeded();
+        return NewConcurrentHashMap.ifNeeded();
     }
 
     /**

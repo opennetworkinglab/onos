@@ -101,22 +101,22 @@ public class SimpleGroupStore
 
     private static NewConcurrentHashMap<GroupKey, StoredGroupEntry>
                         lazyEmptyGroupKeyTable() {
-        return NewConcurrentHashMap.<GroupKey, StoredGroupEntry>ifNeeded();
+        return NewConcurrentHashMap.ifNeeded();
     }
 
     private static NewConcurrentHashMap<GroupId, StoredGroupEntry>
                         lazyEmptyGroupIdTable() {
-        return NewConcurrentHashMap.<GroupId, StoredGroupEntry>ifNeeded();
+        return NewConcurrentHashMap.ifNeeded();
     }
 
     private static NewConcurrentHashMap<GroupKey, StoredGroupEntry>
                         lazyEmptyPendingGroupKeyTable() {
-        return NewConcurrentHashMap.<GroupKey, StoredGroupEntry>ifNeeded();
+        return NewConcurrentHashMap.ifNeeded();
     }
 
     private static NewConcurrentHashMap<GroupId, Group>
                         lazyEmptyExtraneousGroupIdTable() {
-        return NewConcurrentHashMap.<GroupId, Group>ifNeeded();
+        return NewConcurrentHashMap.ifNeeded();
     }
 
     /**

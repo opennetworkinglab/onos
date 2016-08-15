@@ -95,7 +95,7 @@ public final class PortNumber {
 
     // lazily populated Logical port number to PortNumber
     static final Supplier<Map<Long, Logical>> LOGICAL = Suppliers.memoize(() -> {
-            Builder<Long, Logical> builder = ImmutableMap.<Long, Logical>builder();
+            Builder<Long, Logical> builder = ImmutableMap.builder();
             for (Logical lp : Logical.values()) {
                 builder.put(lp.number(), lp);
             }
