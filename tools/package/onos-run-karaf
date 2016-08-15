@@ -12,30 +12,38 @@ cd /tmp
 
 set -e
 
-# Blitz previously unrolled onos- directory
-rm -fr onos-*/
+ONOS_DIR=$(tar tf $ONOS_TAR | head -n 1 | cut -d/ -f1)
 
-# Unroll new image from the specified tar file
-[ -f $ONOS_TAR ] && tar zxf $ONOS_TAR
+if [ -d $ONOS_DIR -a "$1" = "clean" ]; then
+    # Blitz previously unrolled onos- directory
+    rm -fr $ONOS_DIR
 
-# Change into the ONOS home directory
-cd onos-*/
-export ONOS_HOME=$PWD
+    # Unroll new image from the specified tar file
+    [ -f $ONOS_TAR ] && tar zxf $ONOS_TAR
 
-# FIXME: for now we're running using the karaf client; later use raw SSH
-unset ONOS_USE_SSH
+    # Change into the ONOS home directory
+    cd $ONOS_DIR
+    export ONOS_HOME=$PWD
 
-# Create config/cluster.json (cluster metadata)
-IP=${ONOS_IP:-127.0.0.1}
-echo "Creating local cluster configs for IP $IP..."
-[ -d $ONOS_HOME/config ] || mkdir -p $ONOS_HOME/config
-cat > $ONOS_HOME/config/cluster.json <<EOF
-{
-  "name": "default",
-  "nodes": [ {"id": "$IP", "ip": "$IP", "port": 9876 } ],
-  "partitions": [ { "id": 1, "members": [ "$IP" ] } ]
-}
+    # FIXME: for now we're running using the karaf client; later use raw SSH
+    unset ONOS_USE_SSH
+
+    # Create config/cluster.json (cluster metadata)
+    IP=${ONOS_IP:-127.0.0.1}
+    echo "Creating local cluster configs for IP $IP..."
+    [ -d $ONOS_HOME/config ] || mkdir -p $ONOS_HOME/config
+    cat > $ONOS_HOME/config/cluster.json <<-EOF
+    {
+      "name": "default",
+      "nodes": [ {"id": "$IP", "ip": "$IP", "port": 9876 } ],
+      "partitions": [ { "id": 1, "members": [ "$IP" ] } ]
+    }
 EOF
+else
+    # Change into the ONOS home directory
+    cd $ONOS_DIR
+    export ONOS_HOME=$PWD
+fi
 
 # Start ONOS as a server, but include any specified options
 ./bin/onos-service server "$@" &>onos.log &
