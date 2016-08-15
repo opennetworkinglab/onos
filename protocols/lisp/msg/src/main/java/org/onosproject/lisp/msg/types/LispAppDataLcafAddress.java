@@ -15,6 +15,11 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
+
+import java.nio.ByteBuffer;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -44,41 +49,35 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * }</pre>
  */
-public class LispAppDataLcafAddress extends LispLcafAddress {
+public final class LispAppDataLcafAddress extends LispLcafAddress {
 
     private final byte protocol;
     private final int ipTos;
-    private final short localPort;
-    private final short remotePort;
+    private final short localPortLow;
+    private final short localPortHigh;
+    private final short remotePortLow;
+    private final short remotePortHigh;
     private LispAfiAddress address;
 
     /**
-     * Initializes application data type LCAF address.
+     * @param protocol       protocol number
+     * @param ipTos          IP type of service
+     * @param localPortLow   low-ranged local port number
+     * @param localPortHigh  high-ranged local port number
+     * @param remotePortLow  low-ranged remote port number
+     * @param remotePortHigh high-ranged remote port number
+     * @param address        address
      */
-    public LispAppDataLcafAddress() {
-        super(LispCanonicalAddressFormatEnum.APPLICATION_DATA);
-        this.protocol = 0;
-        this.ipTos = 0;
-        this.localPort = 0;
-        this.remotePort = 0;
-    }
-
-    /**
-     * Initializes application data type LCAF address.
-     *
-     * @param protocol protocol number
-     * @param ipTos ip type of service
-     * @param localPort local port number
-     * @param remotePort remote port number
-     * @param address address
-     */
-    public LispAppDataLcafAddress(byte protocol, int ipTos, short localPort, short remotePort,
-                                  LispAfiAddress address) {
+    private LispAppDataLcafAddress(byte protocol, int ipTos, short localPortLow,
+                                   short localPortHigh, short remotePortLow,
+                                   short remotePortHigh, LispAfiAddress address) {
         super(LispCanonicalAddressFormatEnum.APPLICATION_DATA);
         this.protocol = protocol;
         this.ipTos = ipTos;
-        this.localPort = localPort;
-        this.remotePort = remotePort;
+        this.localPortLow = localPortLow;
+        this.localPortHigh = localPortHigh;
+        this.remotePortLow = remotePortLow;
+        this.remotePortHigh = remotePortHigh;
         this.address = address;
     }
 
@@ -101,21 +100,39 @@ public class LispAppDataLcafAddress extends LispLcafAddress {
     }
 
     /**
-     * Obtains local port number.
+     * Obtains low-ranged local port number.
      *
-     * @return local port number
+     * @return low-ranged local port number
      */
-    public short getLocalPort() {
-        return localPort;
+    public short getLocalPortLow() {
+        return localPortLow;
     }
 
     /**
-     * Obtains remote port number.
+     * Obtains high-ranged local port number.
      *
-     * @return remote port number
+     * @return high-ranged local port number
      */
-    public short getRemotePort() {
-        return remotePort;
+    public short getLocalPortHigh() {
+        return localPortHigh;
+    }
+
+    /**
+     * Obtains low-ranged remote port number.
+     *
+     * @return low-ranged remote port number
+     */
+    public short getRemotePortLow() {
+        return remotePortLow;
+    }
+
+    /**
+     * Obtains high-ranged remote port number.
+     *
+     * @return high-ranged remote port number
+     */
+    public short getRemotePortHigh() {
+        return remotePortHigh;
     }
 
     /**
@@ -129,7 +146,8 @@ public class LispAppDataLcafAddress extends LispLcafAddress {
 
     @Override
     public int hashCode() {
-        return Objects.hash(address, protocol, ipTos, localPort, remotePort);
+        return Objects.hash(address, protocol, ipTos, localPortLow,
+                localPortHigh, remotePortLow, remotePortHigh);
     }
 
     @Override
@@ -143,8 +161,10 @@ public class LispAppDataLcafAddress extends LispLcafAddress {
             return Objects.equals(this.address, other.address) &&
                     Objects.equals(this.protocol, other.protocol) &&
                     Objects.equals(this.ipTos, other.ipTos) &&
-                    Objects.equals(this.localPort, other.localPort) &&
-                    Objects.equals(this.remotePort, other.remotePort);
+                    Objects.equals(this.localPortLow, other.localPortLow) &&
+                    Objects.equals(this.localPortHigh, other.localPortHigh) &&
+                    Objects.equals(this.remotePortLow, other.remotePortLow) &&
+                    Objects.equals(this.remotePortHigh, other.remotePortHigh);
         }
         return false;
     }
@@ -155,8 +175,154 @@ public class LispAppDataLcafAddress extends LispLcafAddress {
                 .add("address", address)
                 .add("protocol", protocol)
                 .add("ip type of service", ipTos)
-                .add("local port number", localPort)
-                .add("remote port number", remotePort)
+                .add("low-ranged local port number", localPortLow)
+                .add("high-ranged local port number", localPortHigh)
+                .add("low-ranged remote port number", remotePortLow)
+                .add("high-ranged remote port number", remotePortHigh)
                 .toString();
+    }
+
+    public static final class AppDataAddressBuilder {
+        private byte protocol;
+        private int ipTos;
+        private short localPortLow;
+        private short localPortHigh;
+        private short remotePortLow;
+        private short remotePortHigh;
+        private LispAfiAddress address;
+
+        /**
+         * Sets protocol number.
+         *
+         * @param protocol protocol number
+         * @return AppDataAddressBuilder object
+         */
+        AppDataAddressBuilder withProtocol(byte protocol) {
+            this.protocol = protocol;
+            return this;
+        }
+
+        /**
+         * Sets IP type of service.
+         *
+         * @param ipTos IP type of service
+         * @return AppDataAddressBuilder object
+         */
+        AppDataAddressBuilder withIpTos(int ipTos) {
+            this.ipTos = ipTos;
+            return this;
+        }
+
+        /**
+         * Sets low-ranged local port number.
+         *
+         * @param localPortLow low-ranged local port number
+         * @return AppDataAddressBuilder object
+         */
+        AppDataAddressBuilder withLocalPortLow(short localPortLow) {
+            this.localPortLow = localPortLow;
+            return this;
+        }
+
+        /**
+         * Sets high-ranged local port number.
+         *
+         * @param localPortHigh high-ranged local port number
+         * @return AppDataAddressBuilder object
+         */
+        AppDataAddressBuilder withLocalPortHigh(short localPortHigh) {
+            this.localPortHigh = localPortHigh;
+            return this;
+        }
+
+        /**
+         * Sets low-ranged remote port number.
+         *
+         * @param remotePortLow low-ranged remote port number
+         * @return AppDataAddressBuilder object
+         */
+        AppDataAddressBuilder withRemotePortLow(short remotePortLow) {
+            this.remotePortLow = remotePortLow;
+            return this;
+        }
+
+        /**
+         * Sets high-ranged remote port number.
+         *
+         * @param remotePortHigh high-ranged remote port number
+         * @return AppDataAddressBuilder object
+         */
+        AppDataAddressBuilder withRemotePortHigh(short remotePortHigh) {
+            this.remotePortHigh = remotePortHigh;
+            return this;
+        }
+
+        /**
+         * Sets AFI address.
+         *
+         * @param address AFI address
+         * @return AppDataAddressBuilder object
+         */
+        AppDataAddressBuilder withAddress(LispAfiAddress address) {
+            this.address = address;
+            return this;
+        }
+
+        /**
+         * Builds LispAppDataLcafAddress instance.
+         *
+         * @return LispAddDataLcafAddress instance
+         */
+        LispAppDataLcafAddress build() {
+            return new LispAppDataLcafAddress(protocol, ipTos, localPortLow,
+                    localPortHigh, remotePortLow, remotePortHigh, address);
+        }
+    }
+
+    /**
+     * Application data LCAF address reader class.
+     */
+    public static class AppDataLcafAddressReader
+            implements LispAddressReader<LispAppDataLcafAddress> {
+
+        @Override
+        public LispAppDataLcafAddress readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
+
+            byte[] ipTosByte = new byte[3];
+            byteBuf.readBytes(ipTosByte);
+
+            byte protocol = (byte) byteBuf.readUnsignedByte();
+            int ipTos = getPartialInt(ipTosByte);
+            short localPortLow = (short) byteBuf.readUnsignedShort();
+            short localPortHigh = (short) byteBuf.readUnsignedShort();
+            short remotePortLow = (short) byteBuf.readUnsignedShort();
+            short remotePortHigh = (short) byteBuf.readUnsignedShort();
+
+            LispAfiAddress address = new LispIpAddress.IpAddressReader().readFrom(byteBuf);
+
+            return new AppDataAddressBuilder()
+                        .withProtocol(protocol)
+                        .withIpTos(ipTos)
+                        .withLocalPortLow(localPortLow)
+                        .withLocalPortHigh(localPortHigh)
+                        .withRemotePortLow(remotePortLow)
+                        .withRemotePortHigh(remotePortHigh)
+                        .withAddress(address)
+                        .build();
+        }
+
+        /**
+         * A utility function that obtains the partial int value from byte arrays.
+         *
+         * @param bytes an array of bytes
+         * @return converted integer
+         */
+        public static int getPartialInt(byte[] bytes) {
+            ByteBuffer buffer = ByteBuffer.allocate(4);
+            buffer.position(4 - bytes.length);
+            buffer.put(bytes);
+            buffer.position(0);
+            return buffer.getInt();
+        }
     }
 }

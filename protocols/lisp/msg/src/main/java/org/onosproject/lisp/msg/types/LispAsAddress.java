@@ -15,6 +15,10 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
+
 import java.util.Objects;
 
 /**
@@ -72,5 +76,16 @@ public class LispAsAddress extends LispAfiAddress {
     @Override
     public String toString() {
         return String.valueOf(asNum);
+    }
+
+    /**
+     * Autonomous system address reader class.
+     */
+    public static class AsAddressReader implements LispAddressReader<LispAsAddress> {
+
+        @Override
+        public LispAsAddress readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
+            throw new LispReaderException("Unimplemented method");
+        }
     }
 }

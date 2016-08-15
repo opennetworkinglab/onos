@@ -15,7 +15,9 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import io.netty.buffer.ByteBuf;
 import org.onlab.packet.IpAddress;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
 
 import java.util.Objects;
 
@@ -53,5 +55,23 @@ public class LispIpv4Address extends LispIpAddress {
     @Override
     public int hashCode() {
         return Objects.hash(address, getAfi());
+    }
+
+    /**
+     * IPv4 address reader class.
+     */
+    public static class Ipv4AddressReader implements LispAddressReader<LispIpv4Address> {
+
+        private static final int SIZE_OF_IPV4_ADDRESS = 4;
+
+        @Override
+        public LispIpv4Address readFrom(ByteBuf byteBuf) throws LispParseError {
+
+            byte[] ipByte = new byte[SIZE_OF_IPV4_ADDRESS];
+            byteBuf.readBytes(ipByte);
+            IpAddress ipAddress = IpAddress.valueOf(IpAddress.Version.INET, ipByte);
+
+            return new LispIpv4Address(ipAddress);
+        }
     }
 }

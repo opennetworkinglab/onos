@@ -15,7 +15,10 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import io.netty.buffer.ByteBuf;
 import org.onlab.packet.IpAddress;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
 
 /**
  * IP address that is used by LISP Locator.
@@ -57,5 +60,26 @@ public abstract class LispIpAddress extends LispAfiAddress {
     @Override
     public String toString() {
         return address.toString();
+    }
+
+    /**
+     * IP Address reader class.
+     */
+    public static class IpAddressReader implements LispAddressReader<LispIpAddress> {
+
+        @Override
+        public LispIpAddress readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
+
+            // AFI code -> 16 bits
+            short afiCode = (short) byteBuf.readUnsignedShort();
+
+            if (afiCode == 1) {
+                return new LispIpv4Address.Ipv4AddressReader().readFrom(byteBuf);
+            } else if (afiCode == 2) {
+                return new LispIpv6Address.Ipv6AddressReader().readFrom(byteBuf);
+            }
+
+            return null;
+        }
     }
 }

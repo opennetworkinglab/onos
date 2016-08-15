@@ -35,13 +35,35 @@ public class LispSegmentLcafAddressTest {
     @Before
     public void setup() {
 
-        LispIpv4Address ipv4Address1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
-        address1 = new LispSegmentLcafAddress((byte) 0x01, 1, ipv4Address1);
+        LispSegmentLcafAddress.SegmentAddressBuilder builder1 =
+                            new LispSegmentLcafAddress.SegmentAddressBuilder();
 
-        sameAsAddress1 = new LispSegmentLcafAddress((byte) 0x01, 1, ipv4Address1);
+        LispIpv4Address ipv4Address1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
+
+        address1 = builder1
+                        .withIdMaskLength((byte) 0x01)
+                        .withInstanceId(1)
+                        .withAddress(ipv4Address1)
+                        .build();
+
+        LispSegmentLcafAddress.SegmentAddressBuilder builder2 =
+                            new LispSegmentLcafAddress.SegmentAddressBuilder();
+
+        sameAsAddress1 = builder2
+                            .withIdMaskLength((byte) 0x01)
+                            .withInstanceId(1)
+                            .withAddress(ipv4Address1)
+                            .build();
+
+        LispSegmentLcafAddress.SegmentAddressBuilder builder3 =
+                            new LispSegmentLcafAddress.SegmentAddressBuilder();
 
         LispIpv4Address ipv4Address2 = new LispIpv4Address(IpAddress.valueOf("192.168.2.1"));
-        address2 = new LispSegmentLcafAddress((byte) 0x02, 2, ipv4Address2);
+        address2 = builder3
+                        .withIdMaskLength((byte) 0x02)
+                        .withInstanceId(2)
+                        .withAddress(ipv4Address2)
+                        .build();
     }
 
     @Test

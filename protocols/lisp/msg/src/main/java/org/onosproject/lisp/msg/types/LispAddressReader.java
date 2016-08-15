@@ -17,27 +17,19 @@ package org.onosproject.lisp.msg.types;
 
 import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
 
 /**
- * No address.
+ * An interface for de-serializing LISP address.
  */
-public class LispNoAddress extends LispAfiAddress {
+public interface LispAddressReader<T> {
 
     /**
-     * Initializes no address.
+     * Reads from byte buffer and de-serialize the LISP address.
+     *
+     * @param byteBuf byte buffer
+     * @return LISP address type instance
+     * @throws LispParseError LISP address parse error
      */
-    public LispNoAddress() {
-        super(AddressFamilyIdentifierEnum.NO_ADDRESS);
-    }
-
-    /**
-     * LISP no address reader class.
-     */
-    public static class NoAddressReader implements LispAddressReader<LispNoAddress> {
-
-        @Override
-        public LispNoAddress readFrom(ByteBuf byteBuf) throws LispParseError {
-            return new LispNoAddress();
-        }
-    }
+    T readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException;
 }

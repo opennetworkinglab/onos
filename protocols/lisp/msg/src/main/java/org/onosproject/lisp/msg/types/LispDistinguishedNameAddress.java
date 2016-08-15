@@ -15,6 +15,9 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -68,5 +71,25 @@ public class LispDistinguishedNameAddress extends LispAfiAddress {
         return toStringHelper(this)
                 .add("distinguished name", distinguishedName)
                 .toString();
+    }
+
+    /**
+     * Distinguished name address reader class.
+     */
+    public static class DistinguishedNameAddressReader
+                        implements LispAddressReader<LispDistinguishedNameAddress> {
+
+        @Override
+        public LispDistinguishedNameAddress readFrom(ByteBuf byteBuf) throws LispParseError {
+
+            StringBuilder sb = new StringBuilder();
+            byte character = byteBuf.readByte();
+            while (character != 0) {
+                sb.append((char) character);
+                character = byteBuf.readByte();
+            }
+
+            return new LispDistinguishedNameAddress(sb.toString());
+        }
     }
 }

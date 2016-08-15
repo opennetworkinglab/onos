@@ -15,6 +15,10 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
+
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -42,37 +46,27 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * }</pre>
  */
-public class LispSourceDestLcafAddress extends LispLcafAddress {
+public final class LispSourceDestLcafAddress extends LispLcafAddress {
 
-    private LispAfiAddress srcPrefix;
-    private LispAfiAddress dstPrefix;
+    private final LispAfiAddress srcPrefix;
+    private final LispAfiAddress dstPrefix;
     private final byte srcMaskLength;
     private final byte dstMaskLength;
     private final short reserved;
 
     /**
      * Initializes source/dest key type LCAF address.
-     */
-    public LispSourceDestLcafAddress() {
-        super(LispCanonicalAddressFormatEnum.SOURCE_DEST);
-        srcMaskLength = 0;
-        dstMaskLength = 0;
-        reserved = 0;
-    }
-
-    /**
-     * Initializes source/dest key type LCAF address.
      *
-     * @param reserved reserved
+     * @param reserved      reserved
      * @param srcMaskLength source mask length
      * @param dstMaskLength destination mask length
-     * @param srcPrefix source address prefix
-     * @param dstPrefix destination address prefix
+     * @param srcPrefix     source address prefix
+     * @param dstPrefix     destination address prefix
      */
-    public LispSourceDestLcafAddress(short reserved, byte srcMaskLength,
-                                     byte dstMaskLength,
-                                     LispAfiAddress srcPrefix,
-                                     LispAfiAddress dstPrefix) {
+    private LispSourceDestLcafAddress(short reserved, byte srcMaskLength,
+                                      byte dstMaskLength,
+                                      LispAfiAddress srcPrefix,
+                                      LispAfiAddress dstPrefix) {
         super(LispCanonicalAddressFormatEnum.SOURCE_DEST);
         this.reserved = reserved;
         this.srcMaskLength = srcMaskLength;
@@ -140,10 +134,10 @@ public class LispSourceDestLcafAddress extends LispLcafAddress {
         if (obj instanceof LispSourceDestLcafAddress) {
             final LispSourceDestLcafAddress other = (LispSourceDestLcafAddress) obj;
             return Objects.equals(this.srcPrefix, other.srcPrefix) &&
-                   Objects.equals(this.dstPrefix, other.dstPrefix) &&
-                   Objects.equals(this.srcMaskLength, other.srcMaskLength) &&
-                   Objects.equals(this.dstMaskLength, other.dstMaskLength) &&
-                   Objects.equals(this.reserved, other.reserved);
+                    Objects.equals(this.dstPrefix, other.dstPrefix) &&
+                    Objects.equals(this.srcMaskLength, other.srcMaskLength) &&
+                    Objects.equals(this.dstMaskLength, other.dstMaskLength) &&
+                    Objects.equals(this.reserved, other.reserved);
         }
         return false;
     }
@@ -157,5 +151,104 @@ public class LispSourceDestLcafAddress extends LispLcafAddress {
                 .add("destination mask length", dstMaskLength)
                 .add("reserved", reserved)
                 .toString();
+    }
+
+    public static final class SourceDestAddressBuilder {
+        private LispAfiAddress srcPrefix;
+        private LispAfiAddress dstPrefix;
+        private byte srcMaskLength;
+        private byte dstMaskLength;
+        private short reserved;
+
+        /**
+         * Sets source address prefix.
+         *
+         * @param srcPrefix source prefix
+         * @return SourceDestAddressBuilder object
+         */
+        public SourceDestAddressBuilder withSrcPrefix(LispAfiAddress srcPrefix) {
+            this.srcPrefix = srcPrefix;
+            return this;
+        }
+
+        /**
+         * Sets destination address prefix.
+         *
+         * @param dstPrefix
+         * @return SourceDestAddressBuilder object
+         */
+        public SourceDestAddressBuilder withDstPrefix(LispAfiAddress dstPrefix) {
+            this.dstPrefix = dstPrefix;
+            return this;
+        }
+
+        /**
+         * Sets source mask length.
+         *
+         * @param srcMaskLength source mask length
+         * @return SourceDestAddressBuilder object
+         */
+        public SourceDestAddressBuilder withSrcMaskLength(byte srcMaskLength) {
+            this.srcMaskLength = srcMaskLength;
+            return this;
+        }
+
+        /**
+         * Sets destination mask length.
+         *
+         * @param dstMaskLength destination mask length
+         * @return SourceDestAddressBuilder object
+         */
+        public SourceDestAddressBuilder withDstMaskLength(byte dstMaskLength) {
+            this.dstMaskLength = dstMaskLength;
+            return this;
+        }
+
+        /**
+         * Sets reserved value.
+         *
+         * @param reserved reserved field value
+         * @return SourceDestAddressBuilder object
+         */
+        public SourceDestAddressBuilder withReserved(short reserved) {
+            this.reserved = reserved;
+            return this;
+        }
+
+        /**
+         * Builds LispSourceDestLcafAddress instance.
+         *
+         * @return LispSourceDestLcafAddress instance
+         */
+        public LispSourceDestLcafAddress build() {
+            return new LispSourceDestLcafAddress(reserved, srcMaskLength,
+                    dstMaskLength, srcPrefix, dstPrefix);
+        }
+    }
+
+    /**
+     * SourceDest LCAF address reader class.
+     */
+    public static class SourceDestLcafAddressReader
+            implements LispAddressReader<LispSourceDestLcafAddress> {
+
+        @Override
+        public LispSourceDestLcafAddress readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
+
+            short reserved = byteBuf.readShort();
+            byte srcMaskLength = (byte) byteBuf.readUnsignedByte();
+            byte dstMaskLength = (byte) byteBuf.readUnsignedByte();
+
+            LispAfiAddress srcPrefix = new LispIpAddress.IpAddressReader().readFrom(byteBuf);
+            LispAfiAddress dstPrefix = new LispIpAddress.IpAddressReader().readFrom(byteBuf);
+
+            return new SourceDestAddressBuilder()
+                            .withReserved(reserved)
+                            .withSrcMaskLength(srcMaskLength)
+                            .withDstMaskLength(dstMaskLength)
+                            .withSrcPrefix(srcPrefix)
+                            .withDstPrefix(dstPrefix)
+                            .build();
+        }
     }
 }

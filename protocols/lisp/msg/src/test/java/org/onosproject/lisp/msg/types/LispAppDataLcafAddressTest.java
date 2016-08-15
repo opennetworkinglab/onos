@@ -35,13 +35,48 @@ public class LispAppDataLcafAddressTest {
     @Before
     public void setup() {
 
-        LispAfiAddress ipv4Address1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
-        address1 = new LispAppDataLcafAddress((byte) 0x01, 1, (short) 10, (short) 20, ipv4Address1);
+        LispAppDataLcafAddress.AppDataAddressBuilder builder1 =
+                new LispAppDataLcafAddress.AppDataAddressBuilder();
 
-        sameAsAddress1 = new LispAppDataLcafAddress((byte) 0x01, 1, (short) 10, (short) 20, ipv4Address1);
+        LispAfiAddress ipv4Address1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
+
+        address1 = builder1
+                    .withProtocol((byte) 0x01)
+                    .withIpTos((short) 10)
+                    .withLocalPortLow((short) 1)
+                    .withLocalPortHigh((short) 255)
+                    .withRemotePortLow((short) 2)
+                    .withRemotePortHigh((short) 254)
+                    .withAddress(ipv4Address1)
+                    .build();
+
+        LispAppDataLcafAddress.AppDataAddressBuilder builder2 =
+                new LispAppDataLcafAddress.AppDataAddressBuilder();
+
+        sameAsAddress1 = builder2
+                            .withProtocol((byte) 0x01)
+                            .withIpTos((short) 10)
+                            .withLocalPortLow((short) 1)
+                            .withLocalPortHigh((short) 255)
+                            .withRemotePortLow((short) 2)
+                            .withRemotePortHigh((short) 254)
+                            .withAddress(ipv4Address1)
+                            .build();
+
+        LispAppDataLcafAddress.AppDataAddressBuilder builder3 =
+                new LispAppDataLcafAddress.AppDataAddressBuilder();
 
         LispAfiAddress ipv4Address2 = new LispIpv4Address(IpAddress.valueOf("192.168.2.1"));
-        address2 = new LispAppDataLcafAddress((byte) 0x02, 2, (short) 20, (short) 40, ipv4Address2);
+
+        address2 = builder3
+                        .withProtocol((byte) 0x02)
+                        .withIpTos((short) 20)
+                        .withLocalPortLow((short) 1)
+                        .withLocalPortHigh((short) 255)
+                        .withRemotePortLow((short) 2)
+                        .withRemotePortHigh((short) 254)
+                        .withAddress(ipv4Address2)
+                        .build();
     }
 
     @Test
@@ -58,9 +93,11 @@ public class LispAppDataLcafAddressTest {
         LispAfiAddress ipv4Address = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
 
         assertThat(appDataLcafAddress.getProtocol(), is((byte) 0x01));
-        assertThat(appDataLcafAddress.getIpTos(), is(1));
-        assertThat(appDataLcafAddress.getLocalPort(), is((short) 10));
-        assertThat(appDataLcafAddress.getRemotePort(), is((short) 20));
+        assertThat(appDataLcafAddress.getIpTos(), is(10));
+        assertThat(appDataLcafAddress.getLocalPortLow(), is((short) 1));
+        assertThat(appDataLcafAddress.getLocalPortHigh(), is((short) 255));
+        assertThat(appDataLcafAddress.getRemotePortLow(), is((short) 2));
+        assertThat(appDataLcafAddress.getRemotePortHigh(), is((short) 254));
         assertThat(appDataLcafAddress.getAddress(), is(ipv4Address));
     }
 }

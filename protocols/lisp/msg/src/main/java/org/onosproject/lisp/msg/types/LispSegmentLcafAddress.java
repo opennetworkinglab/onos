@@ -15,6 +15,10 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
+
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -40,7 +44,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * }</pre>
  */
-public class LispSegmentLcafAddress extends LispLcafAddress {
+public final class LispSegmentLcafAddress extends LispLcafAddress {
 
     private final LispAfiAddress address;
     private final int instanceId;
@@ -52,7 +56,7 @@ public class LispSegmentLcafAddress extends LispLcafAddress {
      * @param instanceId instance id
      * @param address address
      */
-    public LispSegmentLcafAddress(byte idMaskLength, int instanceId, LispAfiAddress address) {
+    private LispSegmentLcafAddress(byte idMaskLength, int instanceId, LispAfiAddress address) {
         super(LispCanonicalAddressFormatEnum.SEGMENT, idMaskLength);
         this.address = address;
         this.instanceId = instanceId;
@@ -112,5 +116,76 @@ public class LispSegmentLcafAddress extends LispLcafAddress {
                 .add("instanceId", instanceId)
                 .add("idMaskLength", reserved2)
                 .toString();
+    }
+
+    public static final class SegmentAddressBuilder {
+        private byte idMaskLength;
+        private LispAfiAddress address;
+        private int instanceId;
+
+        /**
+         * Sets identifier mask length.
+         *
+         * @param idMaskLength identifier mask length
+         * @return SegmentAddressBuilder object
+         */
+        public SegmentAddressBuilder withIdMaskLength(byte idMaskLength) {
+            this.idMaskLength = idMaskLength;
+            return this;
+        }
+
+        /**
+         * Sets instance identifer.
+         *
+         * @param instanceId instance identifier
+         * @return SegmentAddressBuilder object
+         */
+        public SegmentAddressBuilder withInstanceId(int instanceId) {
+            this.instanceId = instanceId;
+            return this;
+        }
+
+        /**
+         * Sets AFI address.
+         *
+         * @param address AFI address
+         * @return SegmentAddressBuilder object
+         */
+        public SegmentAddressBuilder withAddress(LispAfiAddress address) {
+            this.address = address;
+            return this;
+        }
+
+        /**
+         * Builds LispSegmentLcafAddress instance.
+         *
+         * @return LispSegmentLcafAddress instance
+         */
+        public LispSegmentLcafAddress build() {
+            return new LispSegmentLcafAddress(idMaskLength, instanceId, address);
+        }
+    }
+
+    /**
+     * Segment LCAF address reader class.
+     */
+    public static class SegmentLcafAddressReader
+                        implements LispAddressReader<LispSegmentLcafAddress> {
+
+        @Override
+        public LispSegmentLcafAddress readFrom(ByteBuf byteBuf)
+                                        throws LispParseError, LispReaderException {
+
+            // TODO: need to de-serialize IdMaskLength
+            byte idMaskLength = 0x01;
+            int instanceId = (int) byteBuf.readUnsignedInt();
+            LispAfiAddress address = new LispIpAddress.IpAddressReader().readFrom(byteBuf);
+
+            return new SegmentAddressBuilder()
+                            .withIdMaskLength(idMaskLength)
+                            .withInstanceId(instanceId)
+                            .withAddress(address)
+                            .build();
+        }
     }
 }

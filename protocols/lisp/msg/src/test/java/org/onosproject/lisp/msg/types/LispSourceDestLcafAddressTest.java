@@ -35,20 +35,44 @@ public class LispSourceDestLcafAddressTest {
     @Before
     public void setup() {
 
+        LispSourceDestLcafAddress.SourceDestAddressBuilder builder1 =
+                new LispSourceDestLcafAddress.SourceDestAddressBuilder();
+
         LispIpv4Address srcAddress1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
         LispIpv4Address dstAddress1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.2"));
 
-        address1 = new LispSourceDestLcafAddress((short) 1, (byte) 0x01,
-                                        (byte) 0x01, srcAddress1, dstAddress1);
+        address1 = builder1
+                        .withReserved((short) 1)
+                        .withSrcMaskLength((byte) 0x01)
+                        .withDstMaskLength((byte) 0x01)
+                        .withSrcPrefix(srcAddress1)
+                        .withDstPrefix(dstAddress1)
+                        .build();
 
-        sameAsAddress1 = new LispSourceDestLcafAddress((short) 1, (byte) 0x01,
-                                        (byte) 0x01, srcAddress1, dstAddress1);
+        LispSourceDestLcafAddress.SourceDestAddressBuilder builder2 =
+                new LispSourceDestLcafAddress.SourceDestAddressBuilder();
+
+        sameAsAddress1 = builder2
+                            .withReserved((short) 1)
+                            .withSrcMaskLength((byte) 0x01)
+                            .withDstMaskLength((byte) 0x01)
+                            .withSrcPrefix(srcAddress1)
+                            .withDstPrefix(dstAddress1)
+                            .build();
+
+        LispSourceDestLcafAddress.SourceDestAddressBuilder builder3 =
+                new LispSourceDestLcafAddress.SourceDestAddressBuilder();
 
         LispIpv4Address srcAddress2 = new LispIpv4Address(IpAddress.valueOf("192.168.2.1"));
         LispIpv4Address dstAddress2 = new LispIpv4Address(IpAddress.valueOf("192.168.2.2"));
 
-        address2 = new LispSourceDestLcafAddress((short) 2, (byte) 0x02,
-                                        (byte) 0x02, srcAddress2, dstAddress2);
+        address2 = builder3
+                        .withReserved((short) 2)
+                        .withSrcMaskLength((byte) 0x02)
+                        .withDstMaskLength((byte) 0x02)
+                        .withSrcPrefix(srcAddress2)
+                        .withDstPrefix(dstAddress2)
+                        .build();
     }
 
     @Test

@@ -15,7 +15,9 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import io.netty.buffer.ByteBuf;
 import org.onlab.packet.IpAddress;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
 
 import java.util.Objects;
 
@@ -53,5 +55,23 @@ public class LispIpv6Address extends LispIpAddress {
     @Override
     public int hashCode() {
         return Objects.hash(address, getAfi());
+    }
+
+    /**
+     * IPv6 address reader class.
+     */
+    public static class Ipv6AddressReader implements LispAddressReader<LispIpv6Address> {
+
+        private static final int SIZE_OF_IPV6_ADDRESS = 16;
+
+        @Override
+        public LispIpv6Address readFrom(ByteBuf byteBuf) throws LispParseError {
+
+            byte[] ipByte = new byte[SIZE_OF_IPV6_ADDRESS];
+            byteBuf.readBytes(ipByte);
+            IpAddress ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, ipByte);
+
+            return new LispIpv6Address(ipAddress);
+        }
     }
 }

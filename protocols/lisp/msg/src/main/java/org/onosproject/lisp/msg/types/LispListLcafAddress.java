@@ -16,6 +16,9 @@
 package org.onosproject.lisp.msg.types;
 
 import com.google.common.collect.ImmutableList;
+import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
 
 import java.util.List;
 import java.util.Objects;
@@ -51,7 +54,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * }</pre>
  */
-public class LispListLcafAddress extends LispLcafAddress {
+public final class LispListLcafAddress extends LispLcafAddress {
 
     private static final byte LENGTH = 24;
     List<LispAfiAddress> addresses;
@@ -98,5 +101,21 @@ public class LispListLcafAddress extends LispLcafAddress {
         return toStringHelper(this)
                 .add("addresses", addresses)
                 .toString();
+    }
+
+    /**
+     * List LCAF address reader class.
+     */
+    public static class ListLcafAddressReader implements LispAddressReader<LispListLcafAddress> {
+
+        @Override
+        public LispListLcafAddress readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
+
+
+            LispAfiAddress ipv4 = new LispIpAddress.IpAddressReader().readFrom(byteBuf);
+            LispAfiAddress ipv6 = new LispIpAddress.IpAddressReader().readFrom(byteBuf);
+
+            return new LispListLcafAddress(ImmutableList.of(ipv4, ipv6));
+        }
     }
 }
