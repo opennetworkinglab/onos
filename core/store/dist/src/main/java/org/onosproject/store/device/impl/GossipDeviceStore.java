@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
@@ -43,7 +44,6 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.ChassisId;
 import org.onlab.util.KryoNamespace;
-import org.onlab.util.NewConcurrentHashMap;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -106,7 +106,6 @@ import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Verify.verify;
 import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onlab.util.Tools.minPriority;
 import static org.onosproject.cluster.ControllerNodeToNodeId.toNodeId;
@@ -541,6 +540,7 @@ public class GossipDeviceStore
         }
     }
 
+    @Override
     public boolean markOnline(DeviceId deviceId) {
         if (devices.containsKey(deviceId)) {
             final Timestamp timestamp = deviceClockService.getTimestamp(deviceId);
@@ -782,8 +782,7 @@ public class GossipDeviceStore
     // Gets the map of ports for the specified device; if one does not already
     // exist, it creates and registers a new one.
     private ConcurrentMap<PortNumber, Port> getPortMap(DeviceId deviceId) {
-        return createIfAbsentUnchecked(devicePorts, deviceId,
-                                       NewConcurrentHashMap.ifNeeded());
+        return devicePorts.computeIfAbsent(deviceId, k -> new ConcurrentHashMap<>());
     }
 
     private Map<ProviderId, DeviceDescriptions> getOrCreateDeviceDescriptionsMap(

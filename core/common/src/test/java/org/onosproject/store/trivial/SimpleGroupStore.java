@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.trivial;
 
-import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
@@ -34,7 +33,6 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.NewConcurrentHashMap;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
@@ -99,26 +97,6 @@ public class SimpleGroupStore
         log.info("Stopped");
     }
 
-    private static NewConcurrentHashMap<GroupKey, StoredGroupEntry>
-                        lazyEmptyGroupKeyTable() {
-        return NewConcurrentHashMap.ifNeeded();
-    }
-
-    private static NewConcurrentHashMap<GroupId, StoredGroupEntry>
-                        lazyEmptyGroupIdTable() {
-        return NewConcurrentHashMap.ifNeeded();
-    }
-
-    private static NewConcurrentHashMap<GroupKey, StoredGroupEntry>
-                        lazyEmptyPendingGroupKeyTable() {
-        return NewConcurrentHashMap.ifNeeded();
-    }
-
-    private static NewConcurrentHashMap<GroupId, Group>
-                        lazyEmptyExtraneousGroupIdTable() {
-        return NewConcurrentHashMap.ifNeeded();
-    }
-
     /**
      * Returns the group key table for specified device.
      *
@@ -126,8 +104,7 @@ public class SimpleGroupStore
      * @return Map representing group key table of given device.
      */
     private ConcurrentMap<GroupKey, StoredGroupEntry> getGroupKeyTable(DeviceId deviceId) {
-        return createIfAbsentUnchecked(groupEntriesByKey,
-                                       deviceId, lazyEmptyGroupKeyTable());
+        return groupEntriesByKey.computeIfAbsent(deviceId, k -> new ConcurrentHashMap<>());
     }
 
     /**
@@ -137,8 +114,7 @@ public class SimpleGroupStore
      * @return Map representing group key table of given device.
      */
     private ConcurrentMap<GroupId, StoredGroupEntry> getGroupIdTable(DeviceId deviceId) {
-        return createIfAbsentUnchecked(groupEntriesById,
-                                       deviceId, lazyEmptyGroupIdTable());
+        return groupEntriesById.computeIfAbsent(deviceId, k -> new ConcurrentHashMap<>());
     }
 
     /**
@@ -149,8 +125,7 @@ public class SimpleGroupStore
      */
     private ConcurrentMap<GroupKey, StoredGroupEntry>
                     getPendingGroupKeyTable(DeviceId deviceId) {
-        return createIfAbsentUnchecked(pendingGroupEntriesByKey,
-                                       deviceId, lazyEmptyPendingGroupKeyTable());
+        return pendingGroupEntriesByKey.computeIfAbsent(deviceId, k -> new ConcurrentHashMap<>());
     }
 
     /**
@@ -161,9 +136,7 @@ public class SimpleGroupStore
      */
     private ConcurrentMap<GroupId, Group>
                 getExtraneousGroupIdTable(DeviceId deviceId) {
-        return createIfAbsentUnchecked(extraneousGroupEntriesById,
-                                       deviceId,
-                                       lazyEmptyExtraneousGroupIdTable());
+        return extraneousGroupEntriesById.computeIfAbsent(deviceId, k -> new ConcurrentHashMap<>());
     }
 
     /**

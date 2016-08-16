@@ -28,7 +28,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
-import org.onlab.util.NewConcurrentHashMap;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
@@ -89,7 +88,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -239,16 +237,6 @@ public class DistributedGroupStore
         }
     }
 
-    private static NewConcurrentHashMap<GroupId, Group>
-    lazyEmptyExtraneousGroupIdTable() {
-        return NewConcurrentHashMap.ifNeeded();
-    }
-
-    private static NewConcurrentHashMap<GroupId, StoredGroupEntry>
-    lazyEmptyGroupIdTable() {
-        return NewConcurrentHashMap.ifNeeded();
-    }
-
     /**
      * Returns the group store eventual consistent key map.
      *
@@ -266,8 +254,7 @@ public class DistributedGroupStore
      * @return Map representing group key table of given device.
      */
     private ConcurrentMap<GroupId, StoredGroupEntry> getGroupIdTable(DeviceId deviceId) {
-        return createIfAbsentUnchecked(groupEntriesById,
-                                       deviceId, lazyEmptyGroupIdTable());
+        return groupEntriesById.computeIfAbsent(deviceId, k -> new ConcurrentHashMap<>());
     }
 
     /**
@@ -288,9 +275,7 @@ public class DistributedGroupStore
      */
     private ConcurrentMap<GroupId, Group>
     getExtraneousGroupIdTable(DeviceId deviceId) {
-        return createIfAbsentUnchecked(extraneousGroupEntriesById,
-                                       deviceId,
-                                       lazyEmptyExtraneousGroupIdTable());
+        return extraneousGroupEntriesById.computeIfAbsent(deviceId, k -> new ConcurrentHashMap<>());
     }
 
     /**

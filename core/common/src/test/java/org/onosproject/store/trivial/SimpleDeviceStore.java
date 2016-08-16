@@ -46,7 +46,6 @@ import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
 import org.onlab.packet.ChassisId;
-import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -73,7 +72,6 @@ import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Verify.verify;
 import static org.onosproject.net.device.DeviceEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
 import static org.onosproject.net.DefaultAnnotations.union;
 import static org.onosproject.net.DefaultAnnotations.merge;
 
@@ -347,8 +345,7 @@ public class SimpleDeviceStore
     // Gets the map of ports for the specified device; if one does not already
     // exist, it creates and registers a new one.
     private ConcurrentMap<PortNumber, Port> getPortMap(DeviceId deviceId) {
-        return createIfAbsentUnchecked(devicePorts, deviceId,
-                                       NewConcurrentHashMap.ifNeeded());
+        return devicePorts.computeIfAbsent(deviceId, k -> new ConcurrentHashMap<>());
     }
 
     private Map<ProviderId, DeviceDescriptions> getOrCreateDeviceDescriptions(
