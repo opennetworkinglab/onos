@@ -45,6 +45,16 @@ public class DefaultDisjointPath extends DefaultPath implements DisjointPath {
         this.path2 = path2;
     }
 
+    /**
+     * Creates a disjoint path pair from single default paths.
+     *
+     * @param providerId provider identity
+     * @param path1      primary path
+     */
+    public DefaultDisjointPath(ProviderId providerId, DefaultPath path1) {
+        this(providerId, path1, null);
+    }
+
     @Override
     public List<Link> links() {
         if (usingPath1) {

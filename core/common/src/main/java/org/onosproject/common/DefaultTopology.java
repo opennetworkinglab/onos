@@ -485,8 +485,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
         if (!path.hasBackup()) {
             // There was no secondary path available.
             return new DefaultDisjointPath(CORE_PROVIDER_ID,
-                                           (DefaultPath) networkPath(path.primary()),
-                                           null);
+                                           (DefaultPath) networkPath(path.primary()));
         }
         return new DefaultDisjointPath(CORE_PROVIDER_ID,
                                        (DefaultPath) networkPath(path.primary()),

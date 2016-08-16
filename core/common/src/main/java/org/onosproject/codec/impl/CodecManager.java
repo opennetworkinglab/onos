@@ -42,6 +42,7 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Path;
+import org.onosproject.net.DisjointPath;
 import org.onosproject.net.Port;
 import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.driver.Driver;
@@ -120,6 +121,7 @@ public class CodecManager implements CodecService {
         registerCodec(Topology.class, new TopologyCodec());
         registerCodec(TopologyCluster.class, new TopologyClusterCodec());
         registerCodec(Path.class, new PathCodec());
+        registerCodec(DisjointPath.class, new DisjointPathCodec());
         registerCodec(Group.class, new GroupCodec());
         registerCodec(Driver.class, new DriverCodec());
         registerCodec(GroupBucket.class, new GroupBucketCodec());

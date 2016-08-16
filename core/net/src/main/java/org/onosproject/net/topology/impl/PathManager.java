@@ -292,6 +292,9 @@ public class PathManager implements PathService {
             primary = path.primary();
             backup = path.backup();
         }
+        if (backup == null) {
+            return new DefaultDisjointPath(PID, (DefaultPath) edgeToEdgePath(srcLink, dstLink, primary));
+        }
         return new DefaultDisjointPath(PID, (DefaultPath) edgeToEdgePath(srcLink, dstLink, primary),
                                        (DefaultPath) edgeToEdgePath(srcLink, dstLink, backup));
     }
