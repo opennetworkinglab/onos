@@ -850,11 +850,12 @@ public class PceManager implements PceService {
             return;
         }
 
-        if (pceStore.getTunnelInfo(tunnel.tunnelId()) == null) {
+        PceccTunnelInfo tunnelInfo = pceStore.getTunnelInfo(tunnel.tunnelId());
+        if (tunnelInfo == null || tunnelInfo.tunnelConsumerId() == null) {
             //If bandwidth for old tunnel is not allocated i,e 0 then no need to release
             return;
         }
-        resourceService.release(pceStore.getTunnelInfo(tunnel.tunnelId()).tunnelConsumerId());
+        resourceService.release(tunnelInfo.tunnelConsumerId());
         return;
 
         /*
@@ -873,12 +874,13 @@ public class PceManager implements PceService {
         resourceService.release(pceStore.getTunnelInfo(oldTunnel.tunnelId()).tunnelConsumerId());
 
         // 2. Release new tunnel's bandwidth, if new tunnel bandwidth is allocated
-        if (pceStore.getTunnelInfo(newTunnel.tunnelId()) == null) {
+        PceccTunnelInfo tunnelInfo = pceStore.getTunnelInfo(newTunnel.tunnelId());
+        if (tunnelInfo == null || tunnelInfo.tunnelConsumerId() == null) {
             //If bandwidth for new tunnel is not allocated i,e 0 then no need to allocate
             return;
         }
 
-        ResourceConsumer consumer = pceStore.getTunnelInfo(newTunnel.tunnelId()).tunnelConsumerId();
+        ResourceConsumer consumer = tunnelInfo.tunnelConsumerId();
         resourceService.release(consumer);
 
         // 3. Allocate new tunnel's complete bandwidth.
