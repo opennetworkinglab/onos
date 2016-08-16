@@ -241,6 +241,7 @@ public class PathIntent extends ConnectivityIntent {
     }
 
     // for path protection purposes
+    @Beta
     public enum ProtectionType {
         /**
          * Intent within primary path.
