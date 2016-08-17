@@ -214,10 +214,15 @@ public class SimpleGroupStoreTest {
         // Testing removeGroupEntry operation from southbound
         testRemoveGroupFromSB(currKey);
 
-        // Testing removing all groups on the given device
+        // Testing removing all groups on the given device by deviceid
         newKey = new DefaultGroupKey("group1".getBytes());
         testStoreAndGetGroup(newKey);
         testDeleteGroupOnDevice(newKey);
+
+        // Testing removing all groups on the given device
+        newKey = new DefaultGroupKey("group1".getBytes());
+        testStoreAndGetGroup(newKey);
+        testPurgeGroupEntries();
     }
 
     // Testing storeGroup operation
@@ -429,6 +434,13 @@ public class SimpleGroupStoreTest {
     private void testDeleteGroupOnDevice(GroupKey currKey) {
         assertThat(simpleGroupStore.getGroupCount(D1), is(1));
         simpleGroupStore.purgeGroupEntry(D1);
+        assertThat(simpleGroupStore.getGroupCount(D1), is(0));
+    }
+
+    // Testing purgeGroupEntries
+    private void testPurgeGroupEntries() {
+        assertThat(simpleGroupStore.getGroupCount(D1), is(1));
+        simpleGroupStore.purgeGroupEntries();
         assertThat(simpleGroupStore.getGroupCount(D1), is(0));
     }
 

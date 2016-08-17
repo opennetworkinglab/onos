@@ -230,6 +230,11 @@ public class GroupManager
         store.purgeGroupEntry(deviceId);
     }
 
+    @Override
+    public void purgeGroupEntries() {
+        checkPermission(GROUP_WRITE);
+        store.purgeGroupEntries();
+    }
 
     /**
      * Delete a group associated to an application cookie.

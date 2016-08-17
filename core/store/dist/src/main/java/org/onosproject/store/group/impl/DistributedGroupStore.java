@@ -931,19 +931,27 @@ public class DistributedGroupStore
         }
     }
 
+    private void purgeGroupEntries(Set<Entry<GroupStoreKeyMapKey, StoredGroupEntry>> entries) {
+        entries.forEach(entry -> {
+            groupStoreEntriesByKey.remove(entry.getKey());
+        });
+    }
+
     @Override
     public void purgeGroupEntry(DeviceId deviceId) {
-        Set<Entry<GroupStoreKeyMapKey, StoredGroupEntry>> entryPendingRemove =
+        Set<Entry<GroupStoreKeyMapKey, StoredGroupEntry>> entriesPendingRemove =
                 new HashSet<>();
 
         getGroupStoreKeyMap().entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(deviceId))
-                .forEach(entryPendingRemove::add);
+                .forEach(entriesPendingRemove::add);
 
-        entryPendingRemove.forEach(entry -> {
-            groupStoreEntriesByKey.remove(entry.getKey());
-            notifyDelegate(new GroupEvent(Type.GROUP_REMOVED, entry.getValue()));
-        });
+        purgeGroupEntries(entriesPendingRemove);
+    }
+
+    @Override
+    public void purgeGroupEntries() {
+        purgeGroupEntries(getGroupStoreKeyMap().entrySet());
     }
 
     @Override

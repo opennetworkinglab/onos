@@ -236,6 +236,10 @@ public class DistributedGroupStoreTest {
         groupStore.purgeGroupEntry(deviceId2);
         assertThat(groupStore.getGroupCount(deviceId1), is(1));
         assertThat(groupStore.getGroupCount(deviceId2), is(0));
+
+        groupStore.purgeGroupEntries();
+        assertThat(groupStore.getGroupCount(deviceId1), is(0));
+        assertThat(groupStore.getGroupCount(deviceId2), is(0));
     }
 
     /**
