@@ -63,6 +63,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.easymock.EasyMock.anyObject;
@@ -182,7 +183,7 @@ public class FlowsResourceTest extends ResourceTest {
 
         @Override
         public short appId() {
-            return 2;
+            return (short) Objects.hash("foo");
         }
 
         @Override
@@ -961,4 +962,28 @@ public class FlowsResourceTest extends ResourceTest {
         assertThat(deleteResponse.getStatus(),
                 is(HttpURLConnection.HTTP_NO_CONTENT));
     }
+
+    /**
+     * Tests the result of a rest api DELETE for application Id, device id and flow id.
+     */
+    @Test
+    public void testRemoveFlowByAppIdDeviceIdAndFlowId() {
+        setupMockFlows();
+        expect(mockApplicationService.getId(anyObject())).andReturn(APP_ID).anyTimes();
+        replay(mockApplicationService);
+        mockFlowService.removeFlowRules(anyObject());
+        expectLastCall();
+        replay(mockFlowService);
+
+        WebTarget wt = target();
+
+        String location = "/flows/4/1/155";
+
+        Response deleteResponse = wt.path(location)
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .delete();
+        assertThat(deleteResponse.getStatus(),
+                is(HttpURLConnection.HTTP_NO_CONTENT));
+    }
+
 }
