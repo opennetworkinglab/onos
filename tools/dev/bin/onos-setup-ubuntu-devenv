@@ -14,8 +14,9 @@ export JAVA_HOME=/usr/lib/jvm/java-8-oracle
 
 cd; mkdir Downloads Applications
 cd Downloads
-wget http://download.nextag.com/apache/karaf/3.0.5/apache-karaf-3.0.5.tar.gz
+KARAF_VERSION=${KARAF_VERSION:-3.0.5}
+wget https://downloads.onosproject.org/third-party/apache-karaf-$KARAF_VERSION.tar.gz
 wget http://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
-tar -zxvf apache-karaf-3.0.5.tar.gz -C ../Applications/
+tar -zxvf apache-karaf-$KARAF_VERSION.tar.gz -C ../Applications/
 tar -zxvf apache-maven-3.3.9-bin.tar.gz -C ../Applications/
 
