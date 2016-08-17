@@ -110,4 +110,15 @@ public interface StorageService {
      * @return WorkQueue instance
      */
     <E> WorkQueue<E> getWorkQueue(String name, Serializer serializer);
+
+    /**
+     * Returns an instance of {@code Topic} with specified name.
+     *
+     * @param <E> topic message type
+     * @param name topic name
+     * @param serializer serializer
+     *
+     * @return Topic instance
+     */
+    <T> Topic<T> getTopic(String name, Serializer serializer);
 }

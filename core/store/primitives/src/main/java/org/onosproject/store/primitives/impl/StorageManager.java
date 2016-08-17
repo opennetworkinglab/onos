@@ -41,6 +41,7 @@ import org.onosproject.store.primitives.PartitionAdminService;
 import org.onosproject.store.primitives.PartitionService;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AtomicCounterBuilder;
 import org.onosproject.store.service.AtomicValueBuilder;
@@ -54,6 +55,7 @@ import org.onosproject.store.service.PartitionInfo;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageAdminService;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.Topic;
 import org.onosproject.store.service.TransactionContextBuilder;
 import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.WorkQueueStats;
@@ -216,5 +218,14 @@ public class StorageManager implements StorageService, StorageAdminService {
                                              .asConsistentMap();
                     return new MapInfo(name, map.size());
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public <T> Topic<T> getTopic(String name, Serializer serializer) {
+        AsyncAtomicValue<T> atomicValue = this.<T>atomicValueBuilder()
+                                              .withName("topic-" + name)
+                                              .withSerializer(serializer)
+                                              .build();
+        return new DefaultDistributedTopic<>(atomicValue);
     }
 }

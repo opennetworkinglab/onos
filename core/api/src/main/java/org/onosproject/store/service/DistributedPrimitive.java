@@ -67,6 +67,11 @@ public interface DistributedPrimitive {
         WORK_QUEUE,
 
         /**
+         * Distributed topic.
+         */
+        TOPIC,
+
+        /**
          * Leader elector.
          */
         LEADER_ELECTOR,

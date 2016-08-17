@@ -58,4 +58,9 @@ public class StorageServiceAdapter implements StorageService {
     public <E> WorkQueue<E> getWorkQueue(String name, Serializer serializer) {
         return null;
     }
+
+    @Override
+    public <T> Topic<T> getTopic(String name, Serializer serializer) {
+        return null;
+    }
 }
