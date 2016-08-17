@@ -29,6 +29,12 @@ import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
+import org.onosproject.net.Device;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.DefaultPort;
+import org.onosproject.net.Port;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.ClusterId;
 import org.onosproject.net.topology.DefaultTopologyCluster;
@@ -37,17 +43,17 @@ import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyCluster;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.net.topology.TopologyServiceAdapter;
-
 import javax.ws.rs.client.WebTarget;
 import java.util.Set;
-
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.onosproject.net.NetTestTools.device;
 import static org.onosproject.net.NetTestTools.did;
 import static org.onosproject.net.NetTestTools.link;
+import static org.onosproject.net.PortNumber.portNumber;
 
 /**
  * Unit tests for Topology REST APIs.
@@ -144,17 +150,37 @@ public class TopologyResourceTest extends ResourceTest {
 
     }
 
+    private static class MockDeviceService extends DeviceServiceAdapter {
+
+        @Override
+        public Device getDevice(DeviceId deviceId) {
+            String deviceId1 = "dev2";
+            Device device = device(deviceId1);
+            return device;
+        }
+
+        @Override
+        public Port getPort(DeviceId deviceId, PortNumber portNumber) {
+            String deviceIdString = "dev2";
+            Device device = device(deviceIdString);
+            Port port = new DefaultPort(device, portNumber(1), true);
+            return port;
+        }
+    }
+
     /**
      * Initializes the test harness.
      */
     @Before
     public void setUpTest() {
         TopologyService topologyService =  new MockTopologyService();
+        DeviceService mockDeviceService = new MockDeviceService();
         CodecManager codecService =  new CodecManager();
         codecService.activate();
 
         ServiceDirectory testDirectory =
                 new TestServiceDirectory()
+                        .add(DeviceService.class, mockDeviceService)
                         .add(TopologyService.class, topologyService)
                         .add(CodecService.class, codecService);
         BaseResource.setServiceDirectory(testDirectory);
@@ -275,7 +301,6 @@ public class TopologyResourceTest extends ResourceTest {
         String response = wt.path("topology/infrastructure/dev2:1").request().get(String.class);
         JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
-
         assertThat(result.get("infrastructure").asBoolean(), is(true));
     }
 }
