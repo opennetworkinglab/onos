@@ -41,7 +41,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-
 import org.apache.commons.pool.KeyedPoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericKeyedObjectPool;
 import org.apache.felix.scr.annotations.Activate;
@@ -383,7 +382,7 @@ public class NettyMessagingManager implements MessagingService {
             }
             // Start the client.
             CompletableFuture<Channel> retFuture = new CompletableFuture<>();
-            ChannelFuture f = bootstrap.connect(ep.host().toString(), ep.port());
+            ChannelFuture f = bootstrap.connect(ep.host().toInetAddress(), ep.port());
 
             f.addListener(future -> {
                 if (future.isSuccess()) {
@@ -491,10 +490,13 @@ public class NettyMessagingManager implements MessagingService {
     }
 
     @ChannelHandler.Sharable
-    private class InboundMessageDispatcher extends SimpleChannelInboundHandler<InternalMessage> {
+    private class InboundMessageDispatcher extends SimpleChannelInboundHandler<Object> {
+     // Effectively SimpleChannelInboundHandler<InternalMessage>,
+     // had to specify <Object> to avoid Class Loader not being able to find some classes.
 
         @Override
-        protected void channelRead0(ChannelHandlerContext ctx, InternalMessage message) throws Exception {
+        protected void channelRead0(ChannelHandlerContext ctx, Object rawMessage) throws Exception {
+            InternalMessage message = (InternalMessage) rawMessage;
             try {
                 dispatchLocally(message);
             } catch (RejectedExecutionException e) {
@@ -507,7 +509,21 @@ public class NettyMessagingManager implements MessagingService {
             log.error("Exception inside channel handling pipeline.", cause);
             context.close();
         }
+
+        /**
+         * Returns true if the given message should be handled.
+         *
+         * @param msg inbound message
+         * @return true if {@code msg} is {@link InternalMessage} instance.
+         *
+         * @see SimpleChannelInboundHandler#acceptInboundMessage(Object)
+         */
+        @Override
+        public final boolean acceptInboundMessage(Object msg) {
+            return msg instanceof InternalMessage;
+        }
     }
+
     private void dispatchLocally(InternalMessage message) throws IOException {
         if (message.preamble() != preamble) {
             log.debug("Received {} with invalid preamble from {}", message.type(), message.sender());

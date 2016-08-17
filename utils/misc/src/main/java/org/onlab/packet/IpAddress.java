@@ -16,6 +16,7 @@
 package org.onlab.packet;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.nio.ByteBuffer;
@@ -139,6 +140,20 @@ public class IpAddress implements Comparable<IpAddress> {
      */
     public byte[] toOctets() {
         return Arrays.copyOf(octets, octets.length);
+    }
+
+    /**
+     * Returns the IP address as InetAddress.
+     *
+     * @return InetAddress
+     */
+    public InetAddress toInetAddress() {
+        try {
+            return InetAddress.getByAddress(octets);
+        } catch (UnknownHostException e) {
+            // Should never reach here
+            return null;
+        }
     }
 
     /**

@@ -23,5 +23,4 @@ osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
     visibility = ['PUBLIC'],
-    dynamicimport_packages = 'io.netty.*',
 )
