@@ -492,6 +492,18 @@ public class SimpleGroupStore
     }
 
     @Override
+    public void purgeGroupEntries() {
+        groupEntriesById.values().forEach(groupEntries -> {
+            groupEntries.entrySet().forEach(entry -> {
+                notifyDelegate(new GroupEvent(Type.GROUP_REMOVED, entry.getValue()));
+            });
+        });
+
+        groupEntriesById.clear();
+        groupEntriesByKey.clear();
+    }
+
+    @Override
     public void deviceInitialAuditCompleted(DeviceId deviceId,
                                             boolean completed) {
         synchronized (deviceAuditStatus) {
