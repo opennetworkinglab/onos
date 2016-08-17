@@ -16,7 +16,9 @@
 package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -24,14 +26,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
@@ -47,13 +43,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Compiler to produce flow objectives from link collections.
  */
 @Component(immediate = true)
-public class LinkCollectionIntentFlowObjectivesCompiler implements IntentCompiler<LinkCollectionIntent> {
+public class LinkCollectionIntentFlowObjectiveCompiler
+        extends LinkCollectionCompiler<Objective>
+        implements IntentCompiler<LinkCollectionIntent> {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentConfigurableRegistrator registrator;
@@ -79,21 +76,11 @@ public class LinkCollectionIntentFlowObjectivesCompiler implements IntentCompile
 
     @Override
     public List<Intent> compile(LinkCollectionIntent intent, List<Intent> installable) {
+
         SetMultimap<DeviceId, PortNumber> inputPorts = HashMultimap.create();
         SetMultimap<DeviceId, PortNumber> outputPorts = HashMultimap.create();
 
-        for (Link link : intent.links()) {
-            inputPorts.put(link.dst().deviceId(), link.dst().port());
-            outputPorts.put(link.src().deviceId(), link.src().port());
-        }
-
-        for (ConnectPoint ingressPoint : intent.ingressPoints()) {
-            inputPorts.put(ingressPoint.deviceId(), ingressPoint.port());
-        }
-
-        for (ConnectPoint egressPoint : intent.egressPoints()) {
-            outputPorts.put(egressPoint.deviceId(), egressPoint.port());
-        }
+        computePorts(intent, inputPorts, outputPorts);
 
         List<Objective> objectives = new ArrayList<>();
         List<DeviceId> devices = new ArrayList<>();
@@ -112,49 +99,46 @@ public class LinkCollectionIntentFlowObjectivesCompiler implements IntentCompile
                 new FlowObjectiveIntent(appId, devices, objectives, intent.resources()));
     }
 
-    private List<Objective> createRules(LinkCollectionIntent intent, DeviceId deviceId,
+    @Override
+    protected List<Objective> createRules(LinkCollectionIntent intent, DeviceId deviceId,
                                        Set<PortNumber> inPorts, Set<PortNumber> outPorts) {
-        Set<PortNumber> ingressPorts = intent.ingressPoints().stream()
-                .filter(point -> point.deviceId().equals(deviceId))
-                .map(ConnectPoint::port)
-                .collect(Collectors.toSet());
 
-        TrafficTreatment.Builder defaultTreatmentBuilder = DefaultTrafficTreatment.builder();
-        outPorts.forEach(defaultTreatmentBuilder::setOutput);
-        TrafficTreatment defaultTreatment = defaultTreatmentBuilder.build();
+        Set<PortNumber> ingressPorts = Sets.newHashSet();
+        Set<PortNumber> egressPorts = Sets.newHashSet();
 
-        TrafficTreatment.Builder ingressTreatmentBuilder = DefaultTrafficTreatment.builder(intent.treatment());
-        outPorts.forEach(ingressTreatmentBuilder::setOutput);
-        TrafficTreatment ingressTreatment = ingressTreatmentBuilder.build();
+        computePorts(intent, deviceId, ingressPorts, egressPorts);
 
         List<Objective> objectives = new ArrayList<>(inPorts.size());
-        for (PortNumber inPort: inPorts) {
-            TrafficSelector selector = DefaultTrafficSelector.builder(intent.selector()).matchInPort(inPort).build();
-            TrafficTreatment treatment;
-            if (ingressPorts.contains(inPort)) {
-                treatment = ingressTreatment;
-            } else {
-                treatment = defaultTreatment;
-            }
+        Set<PortNumber> copyIngressPorts = ImmutableSet.copyOf(ingressPorts);
+        Set<PortNumber> copyEgressPorts = ImmutableSet.copyOf(egressPorts);
+
+        inPorts.forEach(inport -> {
+            ForwardingInstructions instructions = this.createForwardingInstructions(intent,
+                                                                                    inport,
+                                                                                    outPorts,
+                                                                                    copyIngressPorts,
+                                                                                    copyEgressPorts);
 
             NextObjective nextObjective = DefaultNextObjective.builder()
                     .withId(flowObjectiveService.allocateNextId())
-                    .addTreatment(treatment)
+                    .addTreatment(instructions.treatment())
                     .withType(NextObjective.Type.SIMPLE)
                     .fromApp(appId)
                     .makePermanent().add();
             objectives.add(nextObjective);
 
             objectives.add(DefaultForwardingObjective.builder()
-                    .withSelector(selector)
+                    .withSelector(instructions.selector())
                     .nextStep(nextObjective.id())
                     .withPriority(intent.priority())
                     .fromApp(appId)
                     .makePermanent()
                     .withFlag(ForwardingObjective.Flag.SPECIFIC)
                     .add());
-        }
+            }
+        );
 
         return objectives;
     }
+
 }
