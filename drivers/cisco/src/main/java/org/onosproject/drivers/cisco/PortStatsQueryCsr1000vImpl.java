@@ -36,7 +36,7 @@ public class PortStatsQueryCsr1000vImpl extends AbstractHandlerBehaviour
         String reply;
         try {
             reply = session.get(getPortStatsRequestBuilder());
-            /* Cisco use '/r/n' as newline character, to correctly log on Linux, we need to remove '\r' */
+            /* Cisco use '\r\n' as newline character, to correctly log on Linux, we need to remove '\r' */
             log.debug("Device {} replies {}", deviceId, reply.replaceAll("\r", ""));
         } catch (IOException e) {
             throw new RuntimeException(new NetconfException("Failed to retrieve port stats info", e));
