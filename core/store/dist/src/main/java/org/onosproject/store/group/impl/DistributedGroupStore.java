@@ -201,6 +201,7 @@ public class DistributedGroupStore
         groupStoreEntriesByKey.addListener(new GroupStoreKeyMapListener());
         log.debug("Current size of groupstorekeymap:{}",
                   groupStoreEntriesByKey.size());
+        synchronizeGroupStoreEntries();
 
         log.debug("Creating Consistent map pendinggroupkeymap");
 
@@ -245,6 +246,18 @@ public class DistributedGroupStore
     private static NewConcurrentHashMap<GroupId, StoredGroupEntry>
     lazyEmptyGroupIdTable() {
         return NewConcurrentHashMap.<GroupId, StoredGroupEntry>ifNeeded();
+    }
+
+
+    private void synchronizeGroupStoreEntries() {
+        Map<GroupStoreKeyMapKey, StoredGroupEntry> groupEntryMap = groupStoreEntriesByKey.asJavaMap();
+        for (Entry<GroupStoreKeyMapKey, StoredGroupEntry> entry : groupEntryMap.entrySet()) {
+            GroupStoreKeyMapKey key = entry.getKey();
+            StoredGroupEntry value = entry.getValue();
+
+            ConcurrentMap<GroupId, StoredGroupEntry> groupIdTable = getGroupIdTable(value.deviceId());
+            groupIdTable.put(value.id(), value);
+        }
     }
 
     /**
