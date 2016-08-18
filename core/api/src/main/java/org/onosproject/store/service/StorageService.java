@@ -114,7 +114,7 @@ public interface StorageService {
     /**
      * Returns an instance of {@code Topic} with specified name.
      *
-     * @param <E> topic message type
+     * @param <T> topic message type
      * @param name topic name
      * @param serializer serializer
      *
