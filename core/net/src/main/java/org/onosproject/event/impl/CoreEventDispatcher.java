@@ -69,7 +69,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
 
     // Means to detect long-running sinks
     private TimerTask watchdog;
-    private EventSink lastSink;
+    private volatile EventSink lastSink;
     private final AtomicLong lastStart = new AtomicLong(0);
     private volatile Future<?> dispatchFuture;
 
@@ -164,11 +164,12 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
             long delta = System.currentTimeMillis() - lastStartLocal;
             if (lastStartLocal > 0 && delta > maxProcessMillis) {
                 lastStart.set(0);
+                EventSink lastSinkLocal = lastSink;
                 log.warn("Event sink {} exceeded execution time limit: {} ms; spawning new dispatch loop",
-                          lastSink.getClass().getName(), delta);
+                          lastSinkLocal.getClass().getName(), delta);
 
                 // Notify the sink that it has exceeded its time limit.
-                lastSink.onProcessLimit();
+                lastSinkLocal.onProcessLimit();
 
                 // Cancel the old dispatch loop and submit a new one.
                 dispatchLoop.stop();
