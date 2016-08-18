@@ -75,7 +75,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
     private TimerTask watchdog;
     private EventSink lastSink;
     private final Stopwatch stopwatch = Stopwatch.createUnstarted();
-    private Future<?> dispatchFuture;
+    private volatile Future<?> dispatchFuture;
 
     @Override
     public void post(Event event) {
