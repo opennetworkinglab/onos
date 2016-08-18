@@ -128,6 +128,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -841,7 +842,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
      */
     private String getPcepTunnelKey(TunnelId tunnelId) {
         for (String key : tunnelMap.keySet()) {
-            if (tunnelMap.get(key).id() == tunnelId.id()) {
+            if (Objects.equals(tunnelMap.get(key).id(), tunnelId.id())) {
                 return key;
             }
         }
