@@ -73,7 +73,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
 
     // Means to detect long-running sinks
     private TimerTask watchdog;
-    private EventSink lastSink;
+    private volatile EventSink lastSink;
     private final Stopwatch stopwatch = Stopwatch.createUnstarted();
     private volatile Future<?> dispatchFuture;
 
