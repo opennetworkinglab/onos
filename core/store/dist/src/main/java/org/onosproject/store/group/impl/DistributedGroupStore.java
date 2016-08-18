@@ -62,6 +62,7 @@ import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.MultiValuedTimestamp;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.Topic;
 import org.onosproject.store.service.Versioned;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -145,6 +146,8 @@ public class DistributedGroupStore
 
     private KryoNamespace clusterMsgSerializer;
 
+    private static Topic<GroupStoreMessage> groupTopic;
+
     @Property(name = "garbageCollect", boolValue = GARBAGE_COLLECT,
             label = "Enable group garbage collection")
     private boolean garbageCollect = GARBAGE_COLLECT;
@@ -210,6 +213,9 @@ public class DistributedGroupStore
         log.debug("Current size of pendinggroupkeymap:{}",
                   auditPendingReqQueue.size());
 
+        groupTopic = getOrCreateGroupTopic(serializer);
+        groupTopic.subscribe(this::processGroupMessage);
+
         log.info("Started");
     }
 
@@ -236,6 +242,14 @@ public class DistributedGroupStore
             garbageCollect = GARBAGE_COLLECT;
         }
     }
+
+    private Topic<GroupStoreMessage> getOrCreateGroupTopic(Serializer serializer) {
+        if (groupTopic == null) {
+            return storageService.getTopic("group-failover-notif", serializer);
+        } else {
+            return groupTopic;
+        }
+    };
 
     /**
      * Returns the group store eventual consistent key map.
@@ -1109,6 +1123,16 @@ public class DistributedGroupStore
         }
     }
 
+    private void processGroupMessage(GroupStoreMessage message) {
+        if (message.type() == GroupStoreMessage.Type.FAILOVER) {
+            // FIXME: groupStoreEntriesByKey inaccessible here
+            getGroupIdTable(message.deviceId()).values()
+                    .stream()
+                    .filter((storedGroup) -> (storedGroup.appCookie().equals(message.appCookie())))
+                    .findFirst().ifPresent(group -> notifyDelegate(new GroupEvent(Type.GROUP_BUCKET_FAILOVER, group)));
+        }
+    }
+
     private void process(GroupStoreMessage groupOp) {
         log.debug("Received remote group operation {} request for device {}",
                   groupOp.type(),
@@ -1314,13 +1338,12 @@ public class DistributedGroupStore
 
     @Override
     public void notifyOfFailovers(Collection<Group> failoverGroups) {
-        List<GroupEvent> failoverEvents = new ArrayList<>();
         failoverGroups.forEach(group -> {
             if (group.type() == Group.Type.FAILOVER) {
-                failoverEvents.add(new GroupEvent(GroupEvent.Type.GROUP_BUCKET_FAILOVER, group));
+                groupTopic.publish(GroupStoreMessage.createGroupFailoverMsg(
+                        group.deviceId(), group));
             }
         });
-        notifyDelegate(failoverEvents);
     }
 
     private void garbageCollect(DeviceId deviceId,

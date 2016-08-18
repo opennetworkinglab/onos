@@ -47,4 +47,9 @@ public class TestStorageService extends StorageServiceAdapter {
     public TransactionContextBuilder transactionContextBuilder() {
         throw new UnsupportedOperationException("transactionContextBuilder");
     }
+
+    @Override
+    public <T> Topic<T> getTopic(String name, Serializer serializer) {
+        return new TestTopic(name);
+    }
 }
