@@ -212,6 +212,7 @@ public class DistributedGroupStore
         groupStoreEntriesByKey.addListener(mapListener);
         log.debug("Current size of groupstorekeymap:{}",
                   groupStoreEntriesByKey.size());
+        synchronizeGroupStoreEntries();
 
         log.debug("Creating GroupStoreId Map From GroupStoreKey Map");
         matchGroupEntries();
@@ -281,6 +282,18 @@ public class DistributedGroupStore
         for (Entry<GroupStoreKeyMapKey, StoredGroupEntry> entry : groupStoreEntriesByKey.asJavaMap().entrySet()) {
             StoredGroupEntry group = entry.getValue();
             getGroupIdTable(entry.getKey().deviceId()).put(group.id(), group);
+        }
+    }
+
+
+    private void synchronizeGroupStoreEntries() {
+        Map<GroupStoreKeyMapKey, StoredGroupEntry> groupEntryMap = groupStoreEntriesByKey.asJavaMap();
+        for (Entry<GroupStoreKeyMapKey, StoredGroupEntry> entry : groupEntryMap.entrySet()) {
+            GroupStoreKeyMapKey key = entry.getKey();
+            StoredGroupEntry value = entry.getValue();
+
+            ConcurrentMap<GroupId, StoredGroupEntry> groupIdTable = getGroupIdTable(value.deviceId());
+            groupIdTable.put(value.id(), value);
         }
     }
 
