@@ -44,6 +44,7 @@
             },
             device: {
                 switch: 'pkt',
+                router: 'pkt',
                 roadm: 'opt',
                 otn: 'opt'
             },
