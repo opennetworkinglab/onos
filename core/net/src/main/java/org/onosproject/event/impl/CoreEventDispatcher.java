@@ -71,7 +71,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
     private TimerTask watchdog;
     private EventSink lastSink;
     private final AtomicLong lastStart = new AtomicLong(0);
-    private Future<?> dispatchFuture;
+    private volatile Future<?> dispatchFuture;
 
     @Override
     public void post(Event event) {
