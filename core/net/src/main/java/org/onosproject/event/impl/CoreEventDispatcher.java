@@ -32,6 +32,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -69,7 +70,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
     // Means to detect long-running sinks
     private TimerTask watchdog;
     private EventSink lastSink;
-    private long lastStart = 0;
+    private final AtomicLong lastStart = new AtomicLong(0);
     private Future<?> dispatchFuture;
 
     @Override
@@ -141,9 +142,9 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
             EventSink sink = getSink(event.getClass());
             if (sink != null) {
                 lastSink = sink;
-                lastStart = System.currentTimeMillis();
+                lastStart.set(System.currentTimeMillis());
                 sink.process(event);
-                lastStart = 0;
+                lastStart.set(0);
             } else {
                 log.warn("No sink registered for event class {}",
                          event.getClass().getName());
@@ -159,9 +160,10 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
     private class Watchdog extends TimerTask {
         @Override
         public void run() {
-            long delta = System.currentTimeMillis() - lastStart;
-            if (lastStart > 0 && delta > maxProcessMillis) {
-                lastStart = 0;
+            long lastStartLocal = lastStart.get();
+            long delta = System.currentTimeMillis() - lastStartLocal;
+            if (lastStartLocal > 0 && delta > maxProcessMillis) {
+                lastStart.set(0);
                 log.warn("Event sink {} exceeded execution time limit: {} ms; spawning new dispatch loop",
                           lastSink.getClass().getName(), delta);
 
