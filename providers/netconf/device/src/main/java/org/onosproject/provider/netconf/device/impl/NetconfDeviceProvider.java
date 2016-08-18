@@ -147,7 +147,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     private ApplicationId appId;
     private boolean active;
 
-    private static final int POLL_PERIOD = 5_000; // milliseconds
+    private static final int POLL_PERIOD = 1_000; // milliseconds
     private final ScheduledExecutorService scheduledExecutorService = SharedScheduledExecutors.getPoolThreadExecutor();
     private ScheduledFuture<?> poller;
 
