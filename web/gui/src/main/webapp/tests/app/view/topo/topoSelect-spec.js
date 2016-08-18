@@ -43,7 +43,7 @@ describe('factory: view/topo/topoSelect.js', function() {
             'deselectAll', 'updateDetail',
             'hovered', 'selectOrder',
             'somethingSelected',
-            'clickConsumed', 'selectionContext'
+            'clickConsumed', 'selectionContext', 'reselect'
         ])).toBeTruthy();
     });
 
