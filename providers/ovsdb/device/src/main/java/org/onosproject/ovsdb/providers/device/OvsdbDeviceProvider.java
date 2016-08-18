@@ -94,7 +94,6 @@ public class OvsdbDeviceProvider extends AbstractProvider
         if (!isReachable(deviceId)) {
             log.error("Failed to probe device {}", deviceId);
             providerService.deviceDisconnected(deviceId);
-            return;
         } else {
             log.trace("Confirmed device {} connection", deviceId);
         }

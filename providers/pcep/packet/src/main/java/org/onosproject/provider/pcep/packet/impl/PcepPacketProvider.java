@@ -113,14 +113,11 @@ public class PcepPacketProvider extends AbstractProvider implements PacketProvid
         @Override
         public void send() {
             // We don't send anything out.
-            return;
         }
     }
 
     @Override
     public void emit(OutboundPacket packet) {
         // Nothing to emit
-        return;
-
     }
 }

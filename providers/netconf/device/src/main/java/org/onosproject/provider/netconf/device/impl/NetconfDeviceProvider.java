@@ -410,8 +410,6 @@ public class NetconfDeviceProvider extends AbstractProvider
             if (isReachable(deviceId)) {
                 controller.connectDevice(deviceId);
                 providerService.receivedRoleReply(deviceId, newRole, MastershipRole.MASTER);
-            } else {
-                return;
             }
         } catch (Exception e) {
             if (deviceService.getDevice(deviceId) != null) {
