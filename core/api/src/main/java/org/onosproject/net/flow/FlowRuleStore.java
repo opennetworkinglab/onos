@@ -111,7 +111,12 @@ public interface FlowRuleStore extends Store<FlowRuleBatchEvent, FlowRuleStoreDe
      *
      * @param deviceId device id
      */
-    void purgeFlowRule(DeviceId deviceId);
+    default void purgeFlowRule(DeviceId deviceId) {}
+
+    /**
+     * Removes all flow entries from store.
+     */
+    void purgeFlowRules();
 
     /**
      * Updates the flow table statistics of the specified device using
