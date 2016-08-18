@@ -42,16 +42,11 @@ public class OnosEvent extends AbstractEvent<OnosEvent.Type, GeneratedMessageV3>
         /**
          * Signifies Device events.
          */
-        DEVICE("DEVICE"),
+        DEVICE,
 
         /**
          * Signifies Link events.
          */
-        LINK("LINK");
-        public String typeName;
-
-        Type(String name) {
-            typeName = name;
-        }
+        LINK;
     }
 }
