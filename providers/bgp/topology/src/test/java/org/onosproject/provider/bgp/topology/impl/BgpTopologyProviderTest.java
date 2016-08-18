@@ -107,7 +107,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 public class BgpTopologyProviderTest {
     private static final DeviceId DID2 = DeviceId.deviceId("l3:rd=0::routinguniverse=0:asn=10");
-    private static final String UNKNOWN = new String("unknown");
+    private static final String UNKNOWN = "unknown";
     public static ProviderId providerId = new ProviderId("l3", "foo");
     private static final NodeId NODE1 = new NodeId("Master1");
 

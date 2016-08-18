@@ -66,7 +66,7 @@ import static org.hamcrest.core.IsNull.nullValue;
  * Test for PCEP topology provider.
  */
 public class PcepTopologyProviderTest {
-    private static final String UNKNOWN = new String("unknown");
+    private static final String UNKNOWN = "unknown";
     public static ProviderId providerId = new ProviderId("l3", "foo");
     private final PcepClientControllerAdapter clientController = new PcepClientControllerAdapter();
     private final PcepTopologyProvider provider = new PcepTopologyProvider();
