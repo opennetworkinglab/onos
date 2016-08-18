@@ -280,9 +280,9 @@ public class GroupsResourceTest extends ResourceTest {
 
             // check application id
             final String jsonAppId = jsonGroup.get("appId").asString();
-            final String appId = group.appId().toString();
+            final String appId = group.appId().name();
             if (!jsonAppId.equals(appId)) {
-                reason = "appId " + group.appId().toString();
+                reason = "appId " + group.appId().name();
                 return false;
             }
 

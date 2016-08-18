@@ -62,7 +62,7 @@
     "appId": {
       "type": "string",
       "description": "application identifier",
-      "example": "1"
+      "example": "org.onosproject.rest"
     },
     "appCookie": {
       "type": "string",
