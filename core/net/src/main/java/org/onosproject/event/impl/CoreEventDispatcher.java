@@ -68,7 +68,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
     private static final Event KILL_PILL = new AbstractEvent(null, 0) {
     };
 
-    private DispatchLoop dispatchLoop;
+    private volatile DispatchLoop dispatchLoop;
     private long maxProcessMillis = DEFAULT_EXECUTE_MS;
 
     // Means to detect long-running sinks
