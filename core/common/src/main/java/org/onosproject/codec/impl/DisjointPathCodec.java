@@ -39,7 +39,7 @@ public final class DisjointPathCodec extends AnnotatedCodec<DisjointPath> {
                 .createObjectNode()
                 .put("cost", disjointPath.primary().cost());
 
-        result.set("Primary", primary);
+        result.set("primary", primary);
         ArrayNode jsonLinks = primary.putArray("links");
         for (Link link : disjointPath.primary().links()) {
                jsonLinks.add(codec.encode(link, context));
@@ -48,7 +48,7 @@ public final class DisjointPathCodec extends AnnotatedCodec<DisjointPath> {
             ObjectNode backup = context.mapper()
                 .createObjectNode()
                 .put("cost", disjointPath.backup().cost());
-            result.set("Backup", backup);
+            result.set("backup", backup);
             ArrayNode jsonLinks1 = backup.putArray("links");
             for (Link link1 : disjointPath.backup().links()) {
                        jsonLinks1.add(codec.encode(link1, context));
