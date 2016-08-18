@@ -222,7 +222,9 @@ public class OpenFlowRuleProvider extends AbstractProvider
     }
 
     private void createCollector(OpenFlowSwitch sw) {
-        checkNotNull(sw, "Null switch");
+        if (sw == null) {
+            return;
+        }
         if (adaptiveFlowSampling) {
             // NewAdaptiveFlowStatsCollector Constructor
             NewAdaptiveFlowStatsCollector fsc =
