@@ -129,7 +129,7 @@ public class NetworkConfigLinksProvider
         super(new ProviderId("lldp", PROVIDER_NAME));
     }
 
-    private final String buildSrcMac() {
+    private String buildSrcMac() {
         String srcMac = ProbedLinkProvider.fingerprintMac(metadataService.getClusterMetadata());
         String defMac = ProbedLinkProvider.defaultMac();
         if (srcMac.equals(defMac)) {

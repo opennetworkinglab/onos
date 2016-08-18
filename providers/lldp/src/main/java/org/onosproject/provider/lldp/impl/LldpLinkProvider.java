@@ -229,7 +229,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
         super(new ProviderId("lldp", PROVIDER_NAME));
     }
 
-    private final String buildSrcMac() {
+    private String buildSrcMac() {
         String srcMac = ProbedLinkProvider.fingerprintMac(clusterMetadataService.getClusterMetadata());
         String defMac = ProbedLinkProvider.defaultMac();
         if (srcMac.equals(defMac)) {
