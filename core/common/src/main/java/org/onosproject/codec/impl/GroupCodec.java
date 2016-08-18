@@ -82,7 +82,7 @@ public final class GroupCodec extends JsonCodec<Group> {
                 .put(DEVICE_ID, group.deviceId().toString());
 
         if (group.appId() != null) {
-            result.put(APP_ID, group.appId().toString());
+            result.put(APP_ID, group.appId().name());
         }
 
         if (group.appCookie() != null) {
