@@ -430,7 +430,7 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
         Tunnel tunnel = tunnelService.queryTunnel(tunnelId);
 
         PcepLabelObject labelObj = pc.factory().buildLabelObject()
-                                   .setOFlag(labelType == OUT_LABEL_TYPE ? true : false)
+                                   .setOFlag(labelType == OUT_LABEL_TYPE)
                                    .setOptionalTlv(optionalTlv)
                                    .setLabel((int) labelId.labelId())
                                    .build();

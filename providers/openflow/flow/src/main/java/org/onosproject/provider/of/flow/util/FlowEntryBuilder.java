@@ -487,7 +487,7 @@ public class FlowEntryBuilder {
         case MPLS_BOS:
             @SuppressWarnings("unchecked")
             OFOxm<U8> mplsBos = (OFOxm<U8>) oxm;
-            builder.setMplsBos(mplsBos.getValue() == U8.ZERO ? false : true);
+            builder.setMplsBos(mplsBos.getValue() != U8.ZERO);
             break;
         case TUNNEL_ID:
             @SuppressWarnings("unchecked")
