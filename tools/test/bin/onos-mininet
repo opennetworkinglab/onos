@@ -68,6 +68,6 @@ stop)
     ;;
 cleanup)
     ssh -t -t $remote sudo mn -c
-    ssh -t -t $remote "ps -ef | grep 'tail -n1 screenlog.0' | grep -v grep | cut -c10-15 | xargs kill -9"
+    ssh -t -t $remote "screen -list | grep mininet | cut -d. -f1 | tr -d '\t' | xargs kill -9; screen -wipe; exit 0"
     ;;
 esac
