@@ -28,6 +28,16 @@ import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.incubator.net.dpi.DpiStatInfo;
+import org.onosproject.incubator.net.dpi.DpiStatInfoCodec;
+import org.onosproject.incubator.net.dpi.DpiStatistics;
+import org.onosproject.incubator.net.dpi.DpiStatisticsCodec;
+import org.onosproject.incubator.net.dpi.FlowStatInfo;
+import org.onosproject.incubator.net.dpi.FlowStatInfoCodec;
+import org.onosproject.incubator.net.dpi.ProtocolStatInfo;
+import org.onosproject.incubator.net.dpi.ProtocolStatInfoCodec;
+import org.onosproject.incubator.net.dpi.TrafficStatInfo;
+import org.onosproject.incubator.net.dpi.TrafficStatInfoCodec;
 import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
 import org.onosproject.incubator.net.virtual.VirtualHost;
@@ -150,6 +160,11 @@ public class CodecManager implements CodecService {
         registerCodec(MastershipTerm.class, new MastershipTermCodec());
         registerCodec(MastershipRole.class, new MastershipRoleCodec());
         registerCodec(RoleInfo.class, new RoleInfoCodec());
+        registerCodec(DpiStatistics.class, new DpiStatisticsCodec());
+        registerCodec(DpiStatInfo.class, new DpiStatInfoCodec());
+        registerCodec(TrafficStatInfo.class, new TrafficStatInfoCodec());
+        registerCodec(ProtocolStatInfo.class, new ProtocolStatInfoCodec());
+        registerCodec(FlowStatInfo.class, new FlowStatInfoCodec());
         log.info("Started");
     }
 

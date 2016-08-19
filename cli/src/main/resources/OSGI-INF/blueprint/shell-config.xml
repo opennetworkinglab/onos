@@ -711,6 +711,9 @@
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualNetworkIntentRemoveCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.cli.net.DpisListCommand"/>
+        </command>
     </command-bundle>
 
     <bean id="reviewAppNameCompleter" class="org.onosproject.cli.security.ReviewApplicationNameCompleter"/>

@@ -1,0 +1,93 @@
+{
+  "type": "object",
+  "title": "dpiStatistics",
+  "required": [
+    "receivedTime",
+    "dpiStatInfo"
+  ],
+  "properties": {
+    "receivedTime": {
+      "type": "string",
+      "example": "2016-06-12 04:05:05"
+    },
+    "dpiStatInfo": {
+      "type": "object",
+      "title": "dpiStatInfo",
+      "required": [
+        "knownFlows"
+      ],
+      "properties": {
+        "knownFlows": {
+          "type": "array",
+          "xml": {
+            "name": "knownFlows",
+            "wrapped": true
+          },
+          "items": {
+            "type": "object",
+            "title": "knownFlows",
+            "required": [
+              "protocol",
+              "hostAName",
+              "hostAPort",
+              "hostBName",
+              "hostBPort",
+              "detectedProtocol",
+              "detectedProtocolName",
+              "packets",
+              "bytes",
+              "hostServerName"
+            ],
+            "properties": {
+              "protocol": {
+                "type": "string",
+                "example": "TCP"
+              },
+              "hostAName": {
+                "type": "string",
+                "example": "10.0.20.50"
+              },
+              "hostAPort": {
+                "type": "integer",
+                "format": "int32",
+                "example": 9889
+              },
+              "hostBName": {
+                "type": "string",
+                "example": "10.0.20.10"
+              },
+              "hostBPort": {
+                "type": "integer",
+                "format": "int32",
+                "example": 8181
+              },
+              "detectedProtocol": {
+                "type": "integer",
+                "format": "int32",
+                "example": 80
+              },
+              "detectedProtocolName": {
+                "type": "string",
+                "example": "HTTP"
+              },
+              "packets": {
+                "type": "integer",
+                "format": "int64",
+                "example": 69889
+              },
+              "bytes": {
+                "type": "integer",
+                "format": "int64",
+                "example": 69889
+              },
+              "hostSeverName": {
+                "type": "string",
+                "example": "raptor"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

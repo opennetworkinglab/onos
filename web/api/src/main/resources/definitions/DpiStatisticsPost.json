@@ -1,0 +1,307 @@
+{
+  "type": "object",
+  "title": "dpiStatistics",
+  "required": [
+    "receivedTime",
+    "dpiStatInfo"
+  ],
+  "properties": {
+    "receivedTime": {
+      "type": "string",
+      "example": "2016-06-12 04:05:05"
+    },
+    "dpiStatInfo": {
+      "type": "object",
+      "title": "dpiStatInfo",
+      "required": [
+        "trafficStatistics",
+        "detectedProtos",
+        "knownFlows",
+        "unknownFlow"
+      ],
+      "properties": {
+        "trafficStatistics": {
+          "type": "object",
+          "title": "trafficStatistics",
+          "required": [
+            "ethernetBytes",
+            "discardedBytes",
+            "ipPackets",
+            "totalPackets",
+            "ipBytes",
+            "avgPktSize",
+            "uniqueFlows",
+            "tcpPackets",
+            "udpPackets",
+            "dpiThroughputPps",
+            "dpiThroughputBps",
+            "trafficThroughputPps",
+            "trafficThroughputBps",
+            "trafficDurationSec",
+            "guessedFlowProtos"
+          ],
+          "properties": {
+            "ethernetBytes": {
+              "type": "integer",
+              "format": "int64",
+              "example": 69889
+            },
+            "discardedBytes": {
+              "type": "integer",
+              "format": "int64",
+              "example": 69889
+            },
+            "ipPackets": {
+              "type": "integer",
+              "format": "int64",
+              "example": 69889
+            },
+            "totalPackets": {
+              "type": "integer",
+              "format": "int64",
+              "example": 69889
+            },
+            "ipBytes": {
+              "type": "integer",
+              "format": "int64",
+              "example": 69889
+            },
+            "avgPktSize": {
+              "type": "integer",
+              "format": "int32",
+              "example": 9889
+            },
+            "uniqueFlows": {
+              "type": "integer",
+              "format": "int32",
+              "example": 9889
+            },
+            "tcpPackets": {
+              "type": "integer",
+              "format": "int64",
+              "example": 69889
+            },
+            "udpPackets": {
+              "type": "integer",
+              "format": "int64",
+              "example": 69889
+            },
+            "dpiThroughputPps": {
+              "type": "number",
+              "format": "double",
+              "example": 69889.12
+            },
+            "dpiThroughputBps": {
+              "type": "number",
+              "format": "double",
+              "example": 69889.12
+            },
+            "trafficThroughputPps": {
+              "type": "number",
+              "format": "double",
+              "example": 69889.12
+            },
+            "trafficThroughputBps": {
+              "type": "number",
+              "format": "double",
+              "example": 69889.12
+            },
+            "trafficDurationSec": {
+              "type": "number",
+              "format": "double",
+              "example": 69889.12
+            },
+            "guessedFlowProtos": {
+              "type": "integer",
+              "format": "int32",
+              "example": 9889
+            }
+          },
+          "detectedProtos": {
+            "type": "array",
+            "xml": {
+              "name": "detectedProtos",
+              "wrapped": true
+            },
+            "items": {
+              "type": "object",
+              "title": "protos",
+              "required": [
+                "name",
+                "breed",
+                "packets",
+                "bytes",
+                "flows"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "example": "TCP"
+                },
+                "breed": {
+                  "type": "string",
+                  "example": "Acceptable"
+                },
+                "packets": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 69889
+                },
+                "bytes": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 69889
+                },
+                "flows": {
+                  "type": "integer",
+                  "format": "int32",
+                  "example": 9889
+                }
+              }
+            }
+          },
+          "knownFlows": {
+            "type": "array",
+            "xml": {
+              "name": "knownFlows",
+              "wrapped": true
+            },
+            "items": {
+              "type": "object",
+              "title": "knownFlows",
+              "required": [
+                "protocol",
+                "hostAName",
+                "hostAPort",
+                "hostBName",
+                "hostBPort",
+                "detectedProtocol",
+                "detectedProtocolName",
+                "packets",
+                "bytes",
+                "hostServerName"
+              ],
+              "properties": {
+                "protocol": {
+                  "type": "string",
+                  "example": "TCP"
+                },
+                "hostAName": {
+                  "type": "string",
+                  "example": "10.0.20.50"
+                },
+                "hostAPort": {
+                  "type": "integer",
+                  "format": "int32",
+                  "example": 9889
+                },
+                "hostBName": {
+                  "type": "string",
+                  "example": "10.0.20.10"
+                },
+                "hostBPort": {
+                  "type": "integer",
+                  "format": "int32",
+                  "example": 8181
+                },
+                "detectedProtocol": {
+                  "type": "integer",
+                  "format": "int32",
+                  "example": 80
+                },
+                "detectedProtocolName": {
+                  "type": "string",
+                  "example": "HTTP"
+                },
+                "packets": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 69889
+                },
+                "bytes": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 69889
+                },
+                "hostSeverName": {
+                  "type": "string",
+                  "example": "raptor"
+                }
+              }
+            }
+          },
+          "unknownFlows": {
+            "type": "array",
+            "xml": {
+              "name": "unknownFlows",
+              "wrapped": true
+            },
+            "items": {
+              "type": "object",
+              "title": "unknownFlows",
+              "required": [
+                "protocol",
+                "hostAName",
+                "hostAPort",
+                "hostBName",
+                "hostBPort",
+                "detectedProtocol",
+                "detectedProtocolName",
+                "packets",
+                "bytes",
+                "hostServerName"
+              ],
+              "properties": {
+                "protocol": {
+                  "type": "string",
+                  "example": "TCP"
+                },
+                "hostAName": {
+                  "type": "string",
+                  "example": "10.0.20.50"
+                },
+                "hostAPort": {
+                  "type": "integer",
+                  "format": "int32",
+                  "example": 9889
+                },
+                "hostBName": {
+                  "type": "string",
+                  "example": "10.0.20.10"
+                },
+                "hostBPort": {
+                  "type": "integer",
+                  "format": "int32",
+                  "example": 8181
+                },
+                "detectedProtocol": {
+                  "type": "integer",
+                  "format": "int32",
+                  "example": 80
+                },
+                "detectedProtocolName": {
+                  "type": "string",
+                  "example": "HTTP"
+                },
+                "packets": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 69889
+                },
+                "bytes": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 69889
+                },
+                "hostSeverName": {
+                  "type": "string",
+                  "example": "raptor"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

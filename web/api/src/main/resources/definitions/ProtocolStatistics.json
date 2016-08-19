@@ -1,0 +1,66 @@
+{
+  "type": "object",
+  "title": "protocolStatistics",
+  "required": [
+    "receivedTime",
+    "dpiStatInfo"
+  ],
+  "properties": {
+    "receivedTime": {
+      "type": "string",
+      "example": "2016-06-12 04:05:05"
+    },
+    "dpiStatInfo": {
+      "type": "object",
+      "title": "dpiStatInfo",
+      "required": [
+        "detectedProtos"
+      ],
+      "properties": {
+        "detectedProtos": {
+          "type": "array",
+          "xml": {
+            "name": "detectedProtos",
+            "wrapped": true
+          },
+          "items": {
+            "type": "object",
+            "title": "protos",
+            "required": [
+              "name",
+              "breed",
+              "packets",
+              "bytes",
+              "flows"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "example": "TCP"
+              },
+              "breed": {
+                "type": "string",
+                "example": "Acceptable"
+              },
+              "packets": {
+                "type": "integer",
+                "format": "int64",
+                "example": 69889
+              },
+              "bytes": {
+                "type": "integer",
+                "format": "int64",
+                "example": 69889
+              },
+              "flows": {
+                "type": "integer",
+                "format": "int32",
+                "example": 9889
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
