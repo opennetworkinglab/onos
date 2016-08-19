@@ -30,7 +30,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.Tools;
 import org.onosproject.app.ApplicationDescription;
 import org.onosproject.app.ApplicationEvent;
 import org.onosproject.app.ApplicationException;
@@ -49,6 +48,9 @@ import org.onosproject.security.Permission;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.AtomicValue;
+import org.onosproject.store.service.AtomicValueEvent;
+import org.onosproject.store.service.AtomicValueEventListener;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
@@ -119,6 +121,7 @@ public class DistributedApplicationStore extends ApplicationArchive
     private ExecutorService messageHandlingExecutor;
 
     private ConsistentMap<ApplicationId, InternalApplicationHolder> apps;
+    private AtomicValue<Application> nextAppToActivate;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterCommunicationService clusterCommunicator;
@@ -133,6 +136,7 @@ public class DistributedApplicationStore extends ApplicationArchive
     protected ApplicationIdStore idStore;
 
     private final InternalAppsListener appsListener = new InternalAppsListener();
+    private final NextAppToActivateValueListener nextAppToActivateListener = new NextAppToActivateValueListener();
 
     private Consumer<Status> statusChangeListener;
 
@@ -167,6 +171,14 @@ public class DistributedApplicationStore extends ApplicationArchive
                                                  InternalApplicationHolder.class,
                                                  InternalState.class))
                 .build();
+
+        nextAppToActivate = storageService.<Application>atomicValueBuilder()
+                .withName("onos-apps-activation-order-value")
+                .withSerializer(Serializer.using(KryoNamespaces.API))
+                .build()
+                .asAtomicValue();
+
+        nextAppToActivate.addListener(nextAppToActivateListener);
 
         executor = newSingleThreadScheduledExecutor(groupedThreads("onos/app", "store", log));
         statusChangeListener = status -> {
@@ -248,6 +260,7 @@ public class DistributedApplicationStore extends ApplicationArchive
         clusterCommunicator.removeSubscriber(APP_BITS_REQUEST);
         apps.removeStatusChangeListener(statusChangeListener);
         apps.removeListener(appsListener);
+        nextAppToActivate.removeListener(nextAppToActivateListener);
         messageHandlingExecutor.shutdown();
         executor.shutdown();
         log.info("Stopped");
@@ -346,15 +359,10 @@ public class DistributedApplicationStore extends ApplicationArchive
             }
             activateRequiredApps(vAppHolder.value().app());
 
-            // FIXME: Take a breath before the post-order operation to allow required app
-            // activation events to fully propagate. There appears to be an out-of-order
-            // event delivery issue that needs to be fixed.
-            Tools.delay(FIXME_ACTIVATION_DELAY);
-
             apps.computeIf(appId, v -> v != null && v.state() != ACTIVATED,
                     (k, v) -> new InternalApplicationHolder(
                             v.app(), ACTIVATED, v.permissions()));
-
+            nextAppToActivate.set(vAppHolder.value().app());
         }
     }
 
@@ -427,6 +435,20 @@ public class DistributedApplicationStore extends ApplicationArchive
         }
     }
 
+    private class NextAppToActivateValueListener implements AtomicValueEventListener<Application> {
+
+        @Override
+        public void event(AtomicValueEvent<Application> event) {
+            messageHandlingExecutor.execute(() -> {
+                Application app = event.newValue();
+                String appName = app.id().name();
+                installAppIfNeeded(app);
+                setActive(appName);
+                delegate.notify(new ApplicationEvent(APP_ACTIVATED, app));
+            });
+        }
+    }
+
     /**
      * Listener to application state distributed map changes.
      */
@@ -454,13 +476,10 @@ public class DistributedApplicationStore extends ApplicationArchive
     }
 
     private void setupApplicationAndNotify(ApplicationId appId, Application app, InternalState state) {
+        // ACTIVATED state is handled separately in NextAppToActivateValueListener
         if (state == INSTALLED) {
             fetchBitsIfNeeded(app);
             delegate.notify(new ApplicationEvent(APP_INSTALLED, app));
-        } else if (state == ACTIVATED) {
-            installAppIfNeeded(app);
-            setActive(appId.name());
-            delegate.notify(new ApplicationEvent(APP_ACTIVATED, app));
         } else if (state == DEACTIVATED) {
             clearActive(appId.name());
             delegate.notify(new ApplicationEvent(APP_DEACTIVATED, app));
