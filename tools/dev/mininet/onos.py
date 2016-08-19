@@ -117,7 +117,8 @@ def updateNodeIPs( env, nodes ):
     for index, node in enumerate( nodes, 1 ):
         var = 'OC%d' % index
         env[ var ] = node.IP()
-    env[ 'OCI' ] = env[ 'OCN' ] = env[ 'OC1' ]
+    if nodes:
+        env[ 'OCI' ] = env[ 'OCN' ] = env[ 'OC1' ]
     env[ 'ONOS_INSTANCES' ] = '\n'.join(
         node.IP() for node in nodes )
     environ.update( env )
@@ -242,6 +243,7 @@ class ONOSNode( Controller ):
         self.ONOS_HOME = '/tmp'
         self.cmd( 'rm -rf', self.dir )
         self.ONOS_HOME = unpackONOS( self.dir, run=self.ucmd )
+        self.ONOS_ROOT = ONOS_ROOT
 
     # pylint: disable=arguments-differ
 
