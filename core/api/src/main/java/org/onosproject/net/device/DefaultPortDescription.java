@@ -69,7 +69,7 @@ public class DefaultPortDescription extends AbstractDescription
     }
 
     // Default constructor for serialization
-    private DefaultPortDescription() {
+    protected DefaultPortDescription() {
         this.number = null;
         this.isEnabled = false;
         this.portSpeed = DEFAULT_SPEED;
