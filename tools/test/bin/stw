@@ -24,7 +24,7 @@ fi
 
 let run=1
 while [ $count -le 0 -o $run -le $count ]; do
-    printf "\033]0;%s\007" "STC Run #$run"
+    export stcTitle="STC Run #$run; "
     printf "Starting run %d...\n" $run
     for scenario in "${@:-smoke}"; do
         printf "Running scenario %s...\n" $scenario
