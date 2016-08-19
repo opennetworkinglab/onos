@@ -43,6 +43,18 @@
         <behaviour api="org.onosproject.net.behaviour.MplsQuery"
                    impl="org.onosproject.driver.query.FullMplsAvailable" />
     </driver>
+
+    <!-- Lagopus software OpenFlow 1.3 switch
+           http://www.lagopus.org/ -->
+    <driver name="lagopus" extends="default"
+            manufacturer="Lagopus project"
+            hwVersion=".*" swVersion=".*">
+        <behaviour api="org.onosproject.net.behaviour.VlanQuery"
+                   impl="org.onosproject.driver.query.FullVlanAvailable" />
+        <behaviour api="org.onosproject.net.behaviour.MplsQuery"
+                   impl="org.onosproject.driver.query.FullMplsAvailable" />
+    </driver>
+
     <!--  Emulation of the spring-open pipeline using a CPqD OF 1.3 software switch.
        ~  This driver is the default driver assigned to the CPqD switch.
       -->
