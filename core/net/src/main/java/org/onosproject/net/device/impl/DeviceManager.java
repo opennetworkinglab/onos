@@ -228,6 +228,22 @@ public class DeviceManager
     }
 
     @Override
+    public PortStatistics getStatisticsForPort(DeviceId deviceId, PortNumber portNumber) {
+        checkPermission(DEVICE_READ);
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        checkNotNull(portNumber, PORT_NUMBER_NULL);
+        return store.getStatisticsForPort(deviceId, portNumber);
+    }
+
+    @Override
+    public PortStatistics getDeltaStatisticsForPort(DeviceId deviceId, PortNumber portNumber) {
+        checkPermission(DEVICE_READ);
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        checkNotNull(portNumber, PORT_NUMBER_NULL);
+        return store.getDeltaStatisticsForPort(deviceId, portNumber);
+    }
+
+    @Override
     public Port getPort(DeviceId deviceId, PortNumber portNumber) {
         checkPermission(DEVICE_READ);
         checkNotNull(deviceId, DEVICE_ID_NULL);

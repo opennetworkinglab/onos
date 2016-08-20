@@ -113,6 +113,28 @@ public interface DeviceService
     List<PortStatistics> getPortDeltaStatistics(DeviceId deviceId);
 
     /**
+     * Returns the port specific port statistics associated with the device and port.
+     *
+     * @param deviceId device identifier
+     * @param portNumber port identifier
+     * @return port statistics of specified port
+     */
+    default PortStatistics getStatisticsForPort(DeviceId deviceId, PortNumber portNumber) {
+        return null;
+    }
+
+    /**
+     * Returns the port specific port delta statistics associated with the device and port.
+     *
+     * @param deviceId device identifier
+     * @param portNumber port identifier
+     * @return port delta statistics of specified port
+     */
+    default PortStatistics getDeltaStatisticsForPort(DeviceId deviceId, PortNumber portNumber) {
+        return null;
+    }
+
+    /**
      * Returns the port with the specified number and hosted by the given device.
      *
      * @param deviceId   device identifier

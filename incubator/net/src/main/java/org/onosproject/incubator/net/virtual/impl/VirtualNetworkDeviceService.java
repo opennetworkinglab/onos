@@ -47,6 +47,7 @@ public class VirtualNetworkDeviceService extends AbstractListenerManager<DeviceE
     private static final String NETWORK_NULL = "Network ID cannot be null";
     private static final String TYPE_NULL = "Type cannot be null";
     private static final String DEVICE_NULL = "Device cannot be null";
+    private static final String PORT_NUMBER_NULL = "PortNumber cannot be null";
 
     private final VirtualNetwork network;
     private final VirtualNetworkService manager;
@@ -132,6 +133,22 @@ public class VirtualNetworkDeviceService extends AbstractListenerManager<DeviceE
         checkNotNull(deviceId, DEVICE_NULL);
         // TODO not supported at the moment.
         return ImmutableList.of();
+    }
+
+    @Override
+    public PortStatistics getStatisticsForPort(DeviceId deviceId, PortNumber portNumber) {
+        checkNotNull(deviceId, DEVICE_NULL);
+        checkNotNull(deviceId, PORT_NUMBER_NULL);
+        // TODO not supported at the moment.
+        return null;
+    }
+
+    @Override
+    public PortStatistics getDeltaStatisticsForPort(DeviceId deviceId, PortNumber portNumber) {
+        checkNotNull(deviceId, DEVICE_NULL);
+        checkNotNull(deviceId, PORT_NUMBER_NULL);
+        // TODO not supported at the moment.
+        return null;
     }
 
     @Override

@@ -101,7 +101,17 @@ public class DeviceStoreAdapter implements DeviceStore {
     }
 
     @Override
+    public PortStatistics getStatisticsForPort(DeviceId deviceId, PortNumber portNumber) {
+        return null;
+    }
+
+    @Override
     public List<PortStatistics> getPortDeltaStatistics(DeviceId deviceId) {
+        return null;
+    }
+
+    @Override
+    public PortStatistics getDeltaStatisticsForPort(DeviceId deviceId, PortNumber portNumber) {
         return null;
     }
 
