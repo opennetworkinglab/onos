@@ -60,6 +60,8 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
     private LispAfiAddress address;
 
     /**
+     * Initializes application data type LCAF address.
+     *
      * @param protocol       protocol number
      * @param ipTos          IP type of service
      * @param localPortLow   low-ranged local port number
@@ -72,6 +74,35 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
                                    short localPortHigh, short remotePortLow,
                                    short remotePortHigh, LispAfiAddress address) {
         super(LispCanonicalAddressFormatEnum.APPLICATION_DATA);
+        this.protocol = protocol;
+        this.ipTos = ipTos;
+        this.localPortLow = localPortLow;
+        this.localPortHigh = localPortHigh;
+        this.remotePortLow = remotePortLow;
+        this.remotePortHigh = remotePortHigh;
+        this.address = address;
+    }
+
+    /**
+     * Initializes application data type LCAF address.
+     *
+     * @param reserved1      reserved1
+     * @param reserved2      reserved2
+     * @param flag           flag
+     * @param length         length
+     * @param protocol       protocol number
+     * @param ipTos          IP type of service
+     * @param localPortLow   low-ranged local port number
+     * @param localPortHigh  high-ranged local port number
+     * @param remotePortLow  low-ranged remote port number
+     * @param remotePortHigh high-ranged remote port number
+     * @param address        address
+     */
+    private LispAppDataLcafAddress(byte reserved1, byte reserved2, byte flag, short length,
+                                   byte protocol, int ipTos, short localPortLow,
+                                   short localPortHigh, short remotePortLow,
+                                   short remotePortHigh, LispAfiAddress address) {
+        super(LispCanonicalAddressFormatEnum.APPLICATION_DATA, reserved1, reserved2, flag, length);
         this.protocol = protocol;
         this.ipTos = ipTos;
         this.localPortLow = localPortLow;
@@ -182,7 +213,8 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
                 .toString();
     }
 
-    public static final class AppDataAddressBuilder {
+    public static final class AppDataAddressBuilder
+            extends LcafAddressBuilder<AppDataAddressBuilder> {
         private byte protocol;
         private int ipTos;
         private short localPortLow;
@@ -197,7 +229,7 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
          * @param protocol protocol number
          * @return AppDataAddressBuilder object
          */
-        AppDataAddressBuilder withProtocol(byte protocol) {
+        public AppDataAddressBuilder withProtocol(byte protocol) {
             this.protocol = protocol;
             return this;
         }
@@ -208,7 +240,7 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
          * @param ipTos IP type of service
          * @return AppDataAddressBuilder object
          */
-        AppDataAddressBuilder withIpTos(int ipTos) {
+        public AppDataAddressBuilder withIpTos(int ipTos) {
             this.ipTos = ipTos;
             return this;
         }
@@ -219,7 +251,7 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
          * @param localPortLow low-ranged local port number
          * @return AppDataAddressBuilder object
          */
-        AppDataAddressBuilder withLocalPortLow(short localPortLow) {
+        public AppDataAddressBuilder withLocalPortLow(short localPortLow) {
             this.localPortLow = localPortLow;
             return this;
         }
@@ -230,7 +262,7 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
          * @param localPortHigh high-ranged local port number
          * @return AppDataAddressBuilder object
          */
-        AppDataAddressBuilder withLocalPortHigh(short localPortHigh) {
+        public AppDataAddressBuilder withLocalPortHigh(short localPortHigh) {
             this.localPortHigh = localPortHigh;
             return this;
         }
@@ -241,7 +273,7 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
          * @param remotePortLow low-ranged remote port number
          * @return AppDataAddressBuilder object
          */
-        AppDataAddressBuilder withRemotePortLow(short remotePortLow) {
+        public AppDataAddressBuilder withRemotePortLow(short remotePortLow) {
             this.remotePortLow = remotePortLow;
             return this;
         }
@@ -252,7 +284,7 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
          * @param remotePortHigh high-ranged remote port number
          * @return AppDataAddressBuilder object
          */
-        AppDataAddressBuilder withRemotePortHigh(short remotePortHigh) {
+        public AppDataAddressBuilder withRemotePortHigh(short remotePortHigh) {
             this.remotePortHigh = remotePortHigh;
             return this;
         }
@@ -263,7 +295,7 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
          * @param address AFI address
          * @return AppDataAddressBuilder object
          */
-        AppDataAddressBuilder withAddress(LispAfiAddress address) {
+        public AppDataAddressBuilder withAddress(LispAfiAddress address) {
             this.address = address;
             return this;
         }
@@ -273,9 +305,10 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
          *
          * @return LispAddDataLcafAddress instance
          */
-        LispAppDataLcafAddress build() {
-            return new LispAppDataLcafAddress(protocol, ipTos, localPortLow,
-                    localPortHigh, remotePortLow, remotePortHigh, address);
+        public LispAppDataLcafAddress build() {
+            return new LispAppDataLcafAddress(reserved1, reserved2, flag, length,
+                    protocol, ipTos, localPortLow, localPortHigh, remotePortLow,
+                    remotePortHigh, address);
         }
     }
 
@@ -288,6 +321,8 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
         @Override
         public LispAppDataLcafAddress readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
 
+            LispLcafAddress lcafAddress = LispLcafAddress.deserializeCommon(byteBuf);
+
             byte[] ipTosByte = new byte[3];
             byteBuf.readBytes(ipTosByte);
 
@@ -298,17 +333,21 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
             short remotePortLow = (short) byteBuf.readUnsignedShort();
             short remotePortHigh = (short) byteBuf.readUnsignedShort();
 
-            LispAfiAddress address = new LispIpAddress.IpAddressReader().readFrom(byteBuf);
+            LispAfiAddress address = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
 
             return new AppDataAddressBuilder()
-                        .withProtocol(protocol)
-                        .withIpTos(ipTos)
-                        .withLocalPortLow(localPortLow)
-                        .withLocalPortHigh(localPortHigh)
-                        .withRemotePortLow(remotePortLow)
-                        .withRemotePortHigh(remotePortHigh)
-                        .withAddress(address)
-                        .build();
+                    .withReserved1(lcafAddress.getReserved1())
+                    .withReserved2(lcafAddress.getReserved2())
+                    .withFlag(lcafAddress.getFlag())
+                    .withLength(lcafAddress.getLength())
+                    .withProtocol(protocol)
+                    .withIpTos(ipTos)
+                    .withLocalPortLow(localPortLow)
+                    .withLocalPortHigh(localPortHigh)
+                    .withRemotePortLow(remotePortLow)
+                    .withRemotePortHigh(remotePortHigh)
+                    .withAddress(address)
+                    .build();
         }
 
         /**

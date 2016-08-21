@@ -17,6 +17,7 @@ package org.onosproject.lisp.msg.protocols;
 
 import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 
 /**
@@ -59,20 +60,19 @@ public final class LispEidRecord {
     /**
      * A private LISP message reader for EidRecord portion.
      */
-    private static class EidRecordReader implements LispMessageReader<LispEidRecord> {
+    public static class EidRecordReader implements LispMessageReader<LispEidRecord> {
 
         private static final int RESERVED_SKIP_LENGTH = 1;
 
         @Override
-        public LispEidRecord readFrom(ByteBuf byteBuf) throws LispParseError {
+        public LispEidRecord readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
 
             // let's skip the reserved field
             byteBuf.skipBytes(RESERVED_SKIP_LENGTH);
 
             short maskLength = (short) byteBuf.readUnsignedShort();
 
-            // TODO: need to de-serialize AFI address
-            LispAfiAddress prefix = null;
+            LispAfiAddress prefix = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
 
             return new LispEidRecord((byte) maskLength, prefix);
         }

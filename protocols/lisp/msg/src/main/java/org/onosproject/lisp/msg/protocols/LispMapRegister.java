@@ -103,7 +103,7 @@ public interface LispMapRegister extends LispMessage {
      *
      * @return a collection of records
      */
-    List<LispMapRecord> getLispRecords();
+    List<LispMapRecord> getMapRecords();
 
     /**
      * A builder of LISP map register message.

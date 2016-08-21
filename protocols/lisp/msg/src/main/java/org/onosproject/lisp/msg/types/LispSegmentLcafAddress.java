@@ -53,11 +53,28 @@ public final class LispSegmentLcafAddress extends LispLcafAddress {
      * Initializes segment type LCAF address.
      *
      * @param idMaskLength Id mask length
-     * @param instanceId instance id
-     * @param address address
+     * @param instanceId   instance id
+     * @param address      address
      */
     private LispSegmentLcafAddress(byte idMaskLength, int instanceId, LispAfiAddress address) {
         super(LispCanonicalAddressFormatEnum.SEGMENT, idMaskLength);
+        this.address = address;
+        this.instanceId = instanceId;
+    }
+
+    /**
+     * Initializes segment type LCAF address.
+     *
+     * @param reserved1    reserved1
+     * @param idMaskLength ID mask length
+     * @param flag         flag
+     * @param length       length
+     * @param instanceId   instance id
+     * @param address      address
+     */
+    private LispSegmentLcafAddress(byte reserved1, byte idMaskLength, byte flag, short length,
+                                   int instanceId, LispAfiAddress address) {
+        super(LispCanonicalAddressFormatEnum.SEGMENT, reserved1, idMaskLength, flag, length);
         this.address = address;
         this.instanceId = instanceId;
     }
@@ -86,12 +103,12 @@ public final class LispSegmentLcafAddress extends LispLcafAddress {
      * @return id mask length
      */
     public byte getIdMaskLength() {
-        return reserved2;
+        return getReserved2();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(address, instanceId, reserved2);
+        return Objects.hash(address, instanceId, getReserved2());
     }
 
     @Override
@@ -103,8 +120,8 @@ public final class LispSegmentLcafAddress extends LispLcafAddress {
         if (obj instanceof LispSegmentLcafAddress) {
             final LispSegmentLcafAddress other = (LispSegmentLcafAddress) obj;
             return Objects.equals(this.address, other.address) &&
-                   Objects.equals(this.instanceId, other.instanceId) &&
-                   Objects.equals(this.reserved2, other.reserved2);
+                    Objects.equals(this.instanceId, other.instanceId) &&
+                    Objects.equals(this.getReserved2(), other.getReserved2());
         }
         return false;
     }
@@ -114,11 +131,12 @@ public final class LispSegmentLcafAddress extends LispLcafAddress {
         return toStringHelper(this)
                 .add("address", address)
                 .add("instanceId", instanceId)
-                .add("idMaskLength", reserved2)
+                .add("idMaskLength", getReserved2())
                 .toString();
     }
 
-    public static final class SegmentAddressBuilder {
+    public static final class SegmentAddressBuilder
+                              extends LcafAddressBuilder<SegmentAddressBuilder> {
         private byte idMaskLength;
         private LispAfiAddress address;
         private int instanceId;
@@ -162,7 +180,8 @@ public final class LispSegmentLcafAddress extends LispLcafAddress {
          * @return LispSegmentLcafAddress instance
          */
         public LispSegmentLcafAddress build() {
-            return new LispSegmentLcafAddress(idMaskLength, instanceId, address);
+            return new LispSegmentLcafAddress(reserved1, idMaskLength, flag,
+                                              length, instanceId, address);
         }
     }
 
@@ -170,22 +189,27 @@ public final class LispSegmentLcafAddress extends LispLcafAddress {
      * Segment LCAF address reader class.
      */
     public static class SegmentLcafAddressReader
-                        implements LispAddressReader<LispSegmentLcafAddress> {
+            implements LispAddressReader<LispSegmentLcafAddress> {
 
         @Override
         public LispSegmentLcafAddress readFrom(ByteBuf byteBuf)
-                                        throws LispParseError, LispReaderException {
+                throws LispParseError, LispReaderException {
 
-            // TODO: need to de-serialize IdMaskLength
-            byte idMaskLength = 0x01;
+            LispLcafAddress lcafAddress = LispLcafAddress.deserializeCommon(byteBuf);
+
+            byte idMaskLength = lcafAddress.getReserved2();
+
             int instanceId = (int) byteBuf.readUnsignedInt();
-            LispAfiAddress address = new LispIpAddress.IpAddressReader().readFrom(byteBuf);
+            LispAfiAddress address = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
 
             return new SegmentAddressBuilder()
-                            .withIdMaskLength(idMaskLength)
-                            .withInstanceId(instanceId)
-                            .withAddress(address)
-                            .build();
+                    .withReserved1(lcafAddress.getReserved1())
+                    .withFlag(lcafAddress.getFlag())
+                    .withLength(lcafAddress.getLength())
+                    .withIdMaskLength(idMaskLength)
+                    .withInstanceId(instanceId)
+                    .withAddress(address)
+                    .build();
         }
     }
 }

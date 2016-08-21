@@ -15,7 +15,13 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
+
 import java.util.Objects;
+
+import static org.onosproject.lisp.msg.types.AddressFamilyIdentifierEnum.*;
 
 /**
  * LISP Locator address typed by Address Family Identifier (AFI).
@@ -66,5 +72,46 @@ public abstract class LispAfiAddress {
             return false;
         }
         return true;
+    }
+
+    public static class AfiAddressReader implements LispAddressReader<LispAfiAddress> {
+
+        @Override
+        public LispAfiAddress readFrom(ByteBuf byteBuf)
+                                    throws LispParseError, LispReaderException {
+
+            int index = byteBuf.readerIndex();
+
+            // AFI code -> 16 bits
+            short afiCode = (short) byteBuf.getUnsignedShort(index);
+
+            // handle IPv4 and IPv6 address
+            if (afiCode == IP.getIanaCode() ||
+                afiCode == IP6.getIanaCode()) {
+                return new LispIpAddress.IpAddressReader().readFrom(byteBuf);
+            }
+
+            // handle distinguished name address
+            if (afiCode == DISTINGUISHED_NAME.getIanaCode()) {
+                return new LispDistinguishedNameAddress.DistinguishedNameAddressReader().readFrom(byteBuf);
+            }
+
+            // handle MAC address
+            if (afiCode == MAC.getIanaCode()) {
+                return new LispMacAddress.MacAddressReader().readFrom(byteBuf);
+            }
+
+            // handle LCAF address
+            if (afiCode == LCAF.getIanaCode()) {
+                return new LispLcafAddress.LcafAddressReader().readFrom(byteBuf);
+            }
+
+            // handle autonomous system address
+            if (afiCode == AS.getIanaCode()) {
+                return new LispAsAddress.AsAddressReader().readFrom(byteBuf);
+            }
+
+            return null;
+        }
     }
 }

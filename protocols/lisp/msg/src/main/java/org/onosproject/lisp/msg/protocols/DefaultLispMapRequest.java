@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import org.onlab.util.ByteOperator;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 
 import java.util.List;
@@ -296,7 +297,7 @@ public final class DefaultLispMapRequest implements LispMapRequest {
         private static final int SMR_INVOKED_INDEX = 6;
 
         @Override
-        public LispMapRequest readFrom(ByteBuf byteBuf) throws LispParseError {
+        public LispMapRequest readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
 
             if (byteBuf.readerIndex() != 0) {
                 return null;
@@ -335,11 +336,19 @@ public final class DefaultLispMapRequest implements LispMapRequest {
             // nonce -> 64 bits
             long nonce = byteBuf.readLong();
 
-            // TODO: de-serialize source EID AFI and address
+            LispAfiAddress sourceEid = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
 
-            // TODO: de-serialize ITR-RLOC AFI and address
+            // deserialize a collection of RLOC addresses
+            List<LispAfiAddress> itrRlocs = Lists.newArrayList();
+            for (int i = 0; i < irc; i++) {
+                itrRlocs.add(new LispAfiAddress.AfiAddressReader().readFrom(byteBuf));
+            }
 
-            // TODO: de-serialize EID-RECORD
+            // deserialize a collection of EID records
+            List<LispEidRecord> eidRecords = Lists.newArrayList();
+            for (int i = 0; i < recordCount; i++) {
+                eidRecords.add(new LispEidRecord.EidRecordReader().readFrom(byteBuf));
+            }
 
             return new DefaultRequestBuilder()
                         .withIsAuthoritative(authoritative)
@@ -350,6 +359,9 @@ public final class DefaultLispMapRequest implements LispMapRequest {
                         .withIsSmrInvoked(smrInvoked)
                         .withNonce(nonce)
                         .withRecordCount((byte) recordCount)
+                        .withSourceEid(sourceEid)
+                        .withEidRecords(eidRecords)
+                        .withItrRlocs(itrRlocs)
                         .build();
         }
     }

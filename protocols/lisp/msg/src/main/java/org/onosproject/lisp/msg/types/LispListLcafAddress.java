@@ -56,7 +56,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public final class LispListLcafAddress extends LispLcafAddress {
 
-    private static final byte LENGTH = 24;
+    private static final short LENGTH = 24;
     List<LispAfiAddress> addresses;
 
     /**
@@ -66,6 +66,20 @@ public final class LispListLcafAddress extends LispLcafAddress {
      */
     public LispListLcafAddress(List<LispAfiAddress> addresses) {
         super(LispCanonicalAddressFormatEnum.LIST, LENGTH);
+        this.addresses = addresses;
+    }
+
+    /**
+     * Initializes list type LCAF address.
+     *
+     * @param reserved1 reserved1 field
+     * @param flag flag
+     * @param reserved2 reserved2 field
+     * @param addresses a set of IPv4 and IPv6 addresses
+     */
+    public LispListLcafAddress(byte reserved1, byte reserved2, byte flag,
+                               List<LispAfiAddress> addresses) {
+        super(LispCanonicalAddressFormatEnum.LIST, reserved1, flag, reserved2, LENGTH);
         this.addresses = addresses;
     }
 
@@ -111,11 +125,13 @@ public final class LispListLcafAddress extends LispLcafAddress {
         @Override
         public LispListLcafAddress readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
 
+            LispLcafAddress lcafAddress = LispLcafAddress.deserializeCommon(byteBuf);
 
-            LispAfiAddress ipv4 = new LispIpAddress.IpAddressReader().readFrom(byteBuf);
-            LispAfiAddress ipv6 = new LispIpAddress.IpAddressReader().readFrom(byteBuf);
+            LispAfiAddress ipv4 = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
+            LispAfiAddress ipv6 = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
 
-            return new LispListLcafAddress(ImmutableList.of(ipv4, ipv6));
+            return new LispListLcafAddress(lcafAddress.getReserved1(), lcafAddress.getReserved2(),
+                                           lcafAddress.getFlag(), ImmutableList.of(ipv4, ipv6));
         }
     }
 }

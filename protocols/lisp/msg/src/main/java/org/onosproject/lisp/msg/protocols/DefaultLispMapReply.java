@@ -16,9 +16,14 @@
 package org.onosproject.lisp.msg.protocols;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import org.onlab.util.ByteOperator;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
+
+import java.util.List;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
@@ -32,6 +37,7 @@ public final class DefaultLispMapReply implements LispMapReply {
     private final boolean probe;
     private final boolean etr;
     private final boolean security;
+    private final List<LispMapRecord> mapRecords;
 
     /**
      * A private constructor that protects object instantiation from external.
@@ -43,12 +49,13 @@ public final class DefaultLispMapReply implements LispMapReply {
      * @param security    security flag
      */
     private DefaultLispMapReply(long nonce, byte recordCount, boolean probe,
-                                boolean etr, boolean security) {
+                                boolean etr, boolean security, List<LispMapRecord> mapRecords) {
         this.nonce = nonce;
         this.recordCount = recordCount;
         this.probe = probe;
         this.etr = etr;
         this.security = security;
+        this.mapRecords = mapRecords;
     }
 
     @Override
@@ -92,6 +99,11 @@ public final class DefaultLispMapReply implements LispMapReply {
     }
 
     @Override
+    public List<LispMapRecord> getMapRecords() {
+        return ImmutableList.copyOf(mapRecords);
+    }
+
+    @Override
     public String toString() {
         return toStringHelper(this)
                 .add("type", getType())
@@ -99,7 +111,8 @@ public final class DefaultLispMapReply implements LispMapReply {
                 .add("recordCount", recordCount)
                 .add("probe", probe)
                 .add("etr", etr)
-                .add("security", security).toString();
+                .add("security", security)
+                .add("map records", mapRecords).toString();
     }
 
     @Override
@@ -115,12 +128,13 @@ public final class DefaultLispMapReply implements LispMapReply {
                 Objects.equal(recordCount, that.recordCount) &&
                 Objects.equal(probe, that.probe) &&
                 Objects.equal(etr, that.etr) &&
-                Objects.equal(security, that.security);
+                Objects.equal(security, that.security) &&
+                Objects.equal(mapRecords, that.mapRecords);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(nonce, recordCount, probe, etr, security);
+        return Objects.hashCode(nonce, recordCount, probe, etr, security, mapRecords);
     }
 
     public static final class DefaultReplyBuilder implements ReplyBuilder {
@@ -130,6 +144,7 @@ public final class DefaultLispMapReply implements LispMapReply {
         private boolean probe;
         private boolean etr;
         private boolean security;
+        private List<LispMapRecord> mapRecords;
 
         @Override
         public LispType getType() {
@@ -167,8 +182,14 @@ public final class DefaultLispMapReply implements LispMapReply {
         }
 
         @Override
+        public ReplyBuilder withMapRecords(List<LispMapRecord> mapRecords) {
+            this.mapRecords = ImmutableList.copyOf(mapRecords);
+            return this;
+        }
+
+        @Override
         public LispMapReply build() {
-            return new DefaultLispMapReply(nonce, recordCount, probe, etr, security);
+            return new DefaultLispMapReply(nonce, recordCount, probe, etr, security, mapRecords);
         }
     }
 
@@ -183,7 +204,7 @@ public final class DefaultLispMapReply implements LispMapReply {
         private static final int RESERVED_SKIP_LENGTH = 2;
 
         @Override
-        public LispMapReply readFrom(ByteBuf byteBuf) throws LispParseError {
+        public LispMapReply readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
 
             if (byteBuf.readerIndex() != 0) {
                 return null;
@@ -209,7 +230,10 @@ public final class DefaultLispMapReply implements LispMapReply {
             // nonce -> 64 bits
             long nonce = byteBuf.readLong();
 
-            // TODO: need to de-serialize EID-RLOC records
+            List<LispMapRecord> mapRecords = Lists.newArrayList();
+            for (int i = 0; i < recordCount; i++) {
+                mapRecords.add(new DefaultLispMapRecord.MapRecordReader().readFrom(byteBuf));
+            }
 
             return new DefaultReplyBuilder()
                         .withIsProbe(probe)

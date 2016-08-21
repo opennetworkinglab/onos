@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
 
 import java.util.List;
 
@@ -183,7 +184,7 @@ public final class DefaultLispMapNotify implements LispMapNotify {
         private static final int RESERVED_SKIP_LENGTH = 3;
 
         @Override
-        public LispMapNotify readFrom(ByteBuf byteBuf) throws LispParseError {
+        public LispMapNotify readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
 
             if (byteBuf.readerIndex() != 0) {
                 return null;

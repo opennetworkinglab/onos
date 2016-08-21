@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import io.netty.buffer.ByteBuf;
 import org.onlab.util.ByteOperator;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -222,7 +223,7 @@ public final class DefaultLispLocatorRecord implements LispLocatorRecord {
         private static final int ROUTED_INDEX = 0;
 
         @Override
-        public LispLocatorRecord readFrom(ByteBuf byteBuf) throws LispParseError {
+        public LispLocatorRecord readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
 
             // priority -> 8 bits
             byte priority = (byte) byteBuf.readUnsignedByte();
@@ -250,7 +251,7 @@ public final class DefaultLispLocatorRecord implements LispLocatorRecord {
             // routed flag -> 1 bit
             boolean routed = ByteOperator.getBit(flags, ROUTED_INDEX);
 
-            // TODO: de-serialize ITR-RLOC AFI and address
+            LispAfiAddress address = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
 
             return new DefaultLocatorRecordBuilder()
                         .withPriority(priority)
@@ -260,6 +261,7 @@ public final class DefaultLispLocatorRecord implements LispLocatorRecord {
                         .withLocalLocator(localLocator)
                         .withRlocProbed(rlocProbed)
                         .withRouted(routed)
+                        .withLocatorAfi(address)
                         .build();
         }
     }

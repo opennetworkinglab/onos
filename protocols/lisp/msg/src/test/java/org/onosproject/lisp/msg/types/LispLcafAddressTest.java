@@ -57,6 +57,6 @@ public class LispLcafAddressTest {
         assertThat(lcafAddress.getReserved1(), is((byte) 0x01));
         assertThat(lcafAddress.getReserved2(), is((byte) 0x01));
         assertThat(lcafAddress.getFlag(), is((byte) 0x01));
-        assertThat(lcafAddress.getLength(), is((byte) 0x01));
+        assertThat(lcafAddress.getLength(), is((short) 1));
     }
 }

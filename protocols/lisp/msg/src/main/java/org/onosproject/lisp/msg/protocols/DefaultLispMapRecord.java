@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import org.onlab.util.ByteOperator;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 
 import java.util.List;
@@ -225,7 +226,7 @@ public final class DefaultLispMapRecord implements LispMapRecord {
         private static final int RESERVED_SKIP_LENGTH = 1;
 
         @Override
-        public LispMapRecord readFrom(ByteBuf byteBuf) throws LispParseError {
+        public LispMapRecord readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
 
             // Record TTL -> 32 bits
             int recordTtl = byteBuf.readInt();
@@ -249,7 +250,7 @@ public final class DefaultLispMapRecord implements LispMapRecord {
             // Map version number -> 12 bits, we treat Rsvd field is all zero
             short mapVersionNumber = (short) byteBuf.readUnsignedShort();
 
-            // TODO: need to de-serialize EID AFI address
+            LispAfiAddress eidPrefixAfi = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
 
             List<LispLocatorRecord> locators = Lists.newArrayList();
             for (int i = 0; i < locatorCount; i++) {
@@ -263,6 +264,7 @@ public final class DefaultLispMapRecord implements LispMapRecord {
                         .withAuthoritative(authoritative)
                         .withMapVersionNumber(mapVersionNumber)
                         .withLocators(locators)
+                        .withEidPrefixAfi(eidPrefixAfi)
                         .build();
         }
     }

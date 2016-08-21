@@ -17,6 +17,7 @@ package org.onosproject.lisp.msg.protocols;
 
 import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
 
 /**
  * An interface for de-serializing LISP control message.
@@ -30,5 +31,5 @@ public interface LispMessageReader<T> {
      * @return LISP message instance
      * @throws LispParseError LISP control message parse error
      */
-    T readFrom(ByteBuf byteBuf) throws LispParseError;
+    T readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException;
 }

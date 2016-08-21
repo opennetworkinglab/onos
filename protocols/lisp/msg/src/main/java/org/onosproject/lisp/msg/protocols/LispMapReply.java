@@ -15,6 +15,8 @@
  */
 package org.onosproject.lisp.msg.protocols;
 
+import java.util.List;
+
 /**
  * LISP map reply message interface.
  * <p>
@@ -86,6 +88,13 @@ public interface LispMapReply extends LispMessage {
     long getNonce();
 
     /**
+     * Obtains map records.
+     *
+     * @return map records
+     */
+    List<LispMapRecord> getMapRecords();
+
+    /**
      * A builder of LISP map reply message.
      */
     interface ReplyBuilder extends Builder {
@@ -129,6 +138,14 @@ public interface LispMapReply extends LispMessage {
          * @return ReplyBuilder object
          */
         ReplyBuilder withNonce(long nonce);
+
+        /**
+         * Sets a collection of map records.
+         *
+         * @param mapRecords a collection of map records
+         * @return ReplyBuilder object
+         */
+        ReplyBuilder withMapRecords(List<LispMapRecord> mapRecords);
 
         /**
          * Builds LISP map reply message.
