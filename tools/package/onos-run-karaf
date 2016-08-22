@@ -14,7 +14,7 @@ set -e
 
 ONOS_DIR=$(tar tf $ONOS_TAR | head -n 1 | cut -d/ -f1)
 
-if [ -d $ONOS_DIR -a "$1" = "clean" ]; then
+if [ -d $ONOS_DIR -a "$1" = "clean" -o ! -d $ONOS_DIR ]; then
     # Blitz previously unrolled onos- directory
     rm -fr $ONOS_DIR
 
