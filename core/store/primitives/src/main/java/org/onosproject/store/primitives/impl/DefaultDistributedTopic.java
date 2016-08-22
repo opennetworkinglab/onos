@@ -17,6 +17,7 @@ package org.onosproject.store.primitives.impl;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 import org.onosproject.store.service.AsyncAtomicValue;
@@ -61,8 +62,9 @@ public class DefaultDistributedTopic<T> implements Topic<T> {
     }
 
     @Override
-    public CompletableFuture<Void> subscribe(Consumer<T> callback) {
-        AtomicValueEventListener<T> valueListener = event -> callback.accept(event.newValue());
+    public CompletableFuture<Void> subscribe(Consumer<T> callback, Executor executor) {
+        AtomicValueEventListener<T> valueListener =
+                event -> executor.execute(() -> callback.accept(event.newValue()));
         if (callbacks.putIfAbsent(callback, valueListener) == null) {
             return atomicValue.addListener(valueListener);
         }

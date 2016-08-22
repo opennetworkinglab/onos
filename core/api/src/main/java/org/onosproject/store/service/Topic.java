@@ -16,7 +16,10 @@
 package org.onosproject.store.service;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+
+import com.google.common.util.concurrent.MoreExecutors;
 
 /**
  * A distributed publish subscribe primitive.
@@ -49,9 +52,19 @@ public interface Topic<T> extends DistributedPrimitive {
     /**
      * Subscribes to messages published to this topic.
      * @param callback callback that will invoked when a message published to the topic is received.
+     * @param executor executor for running the callback
      * @return a future that is completed when subscription request is completed.
      */
-    CompletableFuture<Void> subscribe(Consumer<T> callback);
+    CompletableFuture<Void> subscribe(Consumer<T> callback, Executor executor);
+
+    /**
+     * Subscribes to messages published to this topic.
+     * @param callback callback that will invoked when a message published to the topic is received.
+     * @return a future that is completed when subscription request is completed.
+     */
+    default CompletableFuture<Void> subscribe(Consumer<T> callback) {
+        return subscribe(callback, MoreExecutors.directExecutor());
+    }
 
     /**
      * Unsubscribes from this topic.
