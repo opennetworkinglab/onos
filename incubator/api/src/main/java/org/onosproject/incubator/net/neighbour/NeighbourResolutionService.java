@@ -45,4 +45,20 @@ public interface NeighbourResolutionService {
      */
     void registerNeighbourHandler(Interface intf, NeighbourMessageHandler handler);
 
+    /**
+     * Unregisters a neighbour message handler that was assigned to a connect
+     * point.
+     *
+     * @param connectPoint connect point
+     * @param handler neighbour message handler
+     */
+    void unregisterNeighbourHandler(ConnectPoint connectPoint, NeighbourMessageHandler handler);
+
+    /**
+     * Unregisters a neighbour message handler that was assigned to an interface.
+     *
+     * @param intf interface
+     * @param handler neighbour message handler
+     */
+    void unregisterNeighbourHandler(Interface intf, NeighbourMessageHandler handler);
 }
