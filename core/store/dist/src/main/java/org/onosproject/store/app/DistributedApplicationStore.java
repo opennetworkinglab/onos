@@ -48,15 +48,13 @@ import org.onosproject.security.Permission;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.AtomicValue;
-import org.onosproject.store.service.AtomicValueEvent;
-import org.onosproject.store.service.AtomicValueEventListener;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageException;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.Topic;
 import org.onosproject.store.service.Versioned;
 import org.onosproject.store.service.DistributedPrimitive.Status;
 import org.slf4j.Logger;
@@ -121,7 +119,7 @@ public class DistributedApplicationStore extends ApplicationArchive
     private ExecutorService messageHandlingExecutor;
 
     private ConsistentMap<ApplicationId, InternalApplicationHolder> apps;
-    private AtomicValue<Application> nextAppToActivate;
+    private Topic<Application> appActivationTopic;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterCommunicationService clusterCommunicator;
@@ -136,7 +134,7 @@ public class DistributedApplicationStore extends ApplicationArchive
     protected ApplicationIdStore idStore;
 
     private final InternalAppsListener appsListener = new InternalAppsListener();
-    private final NextAppToActivateValueListener nextAppToActivateListener = new NextAppToActivateValueListener();
+    private final Consumer<Application> appActivator = new AppActivator();
 
     private Consumer<Status> statusChangeListener;
 
@@ -172,13 +170,10 @@ public class DistributedApplicationStore extends ApplicationArchive
                                                  InternalState.class))
                 .build();
 
-        nextAppToActivate = storageService.<Application>atomicValueBuilder()
-                .withName("onos-apps-activation-order-value")
-                .withSerializer(Serializer.using(KryoNamespaces.API))
-                .build()
-                .asAtomicValue();
+        appActivationTopic = storageService.getTopic("onos-apps-activation-topic",
+                                                     Serializer.using(KryoNamespaces.API));
 
-        nextAppToActivate.addListener(nextAppToActivateListener);
+        appActivationTopic.subscribe(appActivator, messageHandlingExecutor);
 
         executor = newSingleThreadScheduledExecutor(groupedThreads("onos/app", "store", log));
         statusChangeListener = status -> {
@@ -260,7 +255,7 @@ public class DistributedApplicationStore extends ApplicationArchive
         clusterCommunicator.removeSubscriber(APP_BITS_REQUEST);
         apps.removeStatusChangeListener(statusChangeListener);
         apps.removeListener(appsListener);
-        nextAppToActivate.removeListener(nextAppToActivateListener);
+        appActivationTopic.unsubscribe(appActivator);
         messageHandlingExecutor.shutdown();
         executor.shutdown();
         log.info("Stopped");
@@ -362,7 +357,7 @@ public class DistributedApplicationStore extends ApplicationArchive
             apps.computeIf(appId, v -> v != null && v.state() != ACTIVATED,
                     (k, v) -> new InternalApplicationHolder(
                             v.app(), ACTIVATED, v.permissions()));
-            nextAppToActivate.set(vAppHolder.value().app());
+            appActivationTopic.publish(vAppHolder.value().app());
         }
     }
 
@@ -435,17 +430,13 @@ public class DistributedApplicationStore extends ApplicationArchive
         }
     }
 
-    private class NextAppToActivateValueListener implements AtomicValueEventListener<Application> {
-
+    private class AppActivator implements Consumer<Application> {
         @Override
-        public void event(AtomicValueEvent<Application> event) {
-            messageHandlingExecutor.execute(() -> {
-                Application app = event.newValue();
-                String appName = app.id().name();
-                installAppIfNeeded(app);
-                setActive(appName);
-                delegate.notify(new ApplicationEvent(APP_ACTIVATED, app));
-            });
+        public void accept(Application app) {
+            String appName = app.id().name();
+            installAppIfNeeded(app);
+            setActive(appName);
+            delegate.notify(new ApplicationEvent(APP_ACTIVATED, app));
         }
     }
 
