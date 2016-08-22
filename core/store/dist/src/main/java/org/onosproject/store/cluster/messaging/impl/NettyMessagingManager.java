@@ -248,7 +248,9 @@ public class NettyMessagingManager implements MessagingService {
                 connection = channels.borrowObject(ep);
                 connection.send(message, future);
             } finally {
-                channels.returnObject(ep, connection);
+                if (connection != null) {
+                    channels.returnObject(ep, connection);
+                }
             }
         } catch (Exception e) {
             future.completeExceptionally(e);
@@ -322,11 +324,11 @@ public class NettyMessagingManager implements MessagingService {
 
     private void startAcceptingConnections() throws InterruptedException {
         ServerBootstrap b = new ServerBootstrap();
-        b.option(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024);
-        b.option(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024);
+        b.childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024);
+        b.childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024);
         b.option(ChannelOption.SO_RCVBUF, 1048576);
         b.option(ChannelOption.TCP_NODELAY, true);
-        b.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+        b.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
         b.group(serverGroup, clientGroup);
         b.channel(serverChannelClass);
         if (enableNettyTls) {
