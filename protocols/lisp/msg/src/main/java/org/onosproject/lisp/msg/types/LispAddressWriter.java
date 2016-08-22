@@ -16,21 +16,20 @@
 package org.onosproject.lisp.msg.types;
 
 import io.netty.buffer.ByteBuf;
-import org.onosproject.lisp.msg.exceptions.LispParseError;
-import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 /**
- * An interface for de-serializing LISP address.
+ * An interface for serializing LISP address.
  */
-public interface LispAddressReader<T> {
+public interface LispAddressWriter<T> {
 
     /**
-     * Reads from byte buffer and de-serialize the LISP address.
+     * Writes from LISP address object and serialize to byte buffer.
      *
      * @param byteBuf byte buffer
-     * @return LISP address type instance
-     * @throws LispParseError LISP address parse error
-     * @throws LispReaderException LISP reader exception
+     * @param address LISP address type instance
+     * @throws LispWriterException Lisp writer exception
      */
-    T readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException;
+    void writeTo(ByteBuf byteBuf, T address) throws LispWriterException;
+
 }

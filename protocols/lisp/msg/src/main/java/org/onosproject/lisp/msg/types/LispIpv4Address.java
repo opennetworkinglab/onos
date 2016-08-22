@@ -18,6 +18,7 @@ package org.onosproject.lisp.msg.types;
 import io.netty.buffer.ByteBuf;
 import org.onlab.packet.IpAddress;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 import java.util.Objects;
 
@@ -72,6 +73,18 @@ public class LispIpv4Address extends LispIpAddress {
             IpAddress ipAddress = IpAddress.valueOf(IpAddress.Version.INET, ipByte);
 
             return new LispIpv4Address(ipAddress);
+        }
+    }
+
+    /**
+     * IPv4 address writer class.
+     */
+    public static class Ipv4AddressWriter implements LispAddressWriter<LispIpv4Address> {
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispIpv4Address address) throws LispWriterException {
+            byte[] ipByte = address.getAddress().getIp4Address().toOctets();
+            byteBuf.writeBytes(ipByte);
         }
     }
 }

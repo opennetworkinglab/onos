@@ -18,6 +18,7 @@ package org.onosproject.lisp.msg.types;
 import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 import java.util.Objects;
 
@@ -200,7 +201,7 @@ public final class LispSourceDestLcafAddress extends LispLcafAddress {
         /**
          * Sets destination address prefix.
          *
-         * @param dstPrefix
+         * @param dstPrefix destination prefix
          * @return SourceDestAddressBuilder object
          */
         public SourceDestAddressBuilder withDstPrefix(LispAfiAddress dstPrefix) {
@@ -281,6 +282,27 @@ public final class LispSourceDestLcafAddress extends LispLcafAddress {
                     .withSrcPrefix(srcPrefix)
                     .withDstPrefix(dstPrefix)
                     .build();
+        }
+    }
+
+    /**
+     * SourceDest LCAF address writer class.
+     */
+    public static class SourceDestLcafAddressWriter
+            implements LispAddressWriter<LispSourceDestLcafAddress> {
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispSourceDestLcafAddress address)
+                throws LispWriterException {
+
+            LispLcafAddress.serializeCommon(byteBuf, address);
+
+            byteBuf.writeShort(address.getReserved());
+            byteBuf.writeByte(address.getSrcMaskLength());
+            byteBuf.writeByte(address.getDstMaskLength());
+            AfiAddressWriter writer = new LispAfiAddress.AfiAddressWriter();
+            writer.writeTo(byteBuf, address.getSrcPrefix());
+            writer.writeTo(byteBuf, address.getDstPrefix());
         }
     }
 }

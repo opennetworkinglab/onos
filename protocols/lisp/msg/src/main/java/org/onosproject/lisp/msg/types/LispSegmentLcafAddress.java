@@ -18,6 +18,7 @@ package org.onosproject.lisp.msg.types;
 import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 import java.util.Objects;
 
@@ -210,6 +211,23 @@ public final class LispSegmentLcafAddress extends LispLcafAddress {
                     .withInstanceId(instanceId)
                     .withAddress(address)
                     .build();
+        }
+    }
+
+    /**
+     * Segment LCAF address writer class.
+     */
+    public static class SegmentLcafAddressWriter
+            implements LispAddressWriter<LispSegmentLcafAddress> {
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispSegmentLcafAddress address)
+                throws LispWriterException {
+
+            LispLcafAddress.serializeCommon(byteBuf, address);
+
+            byteBuf.writeInt(address.getInstanceId());
+            new LispIpAddress.IpAddressWriter().writeTo(byteBuf, (LispIpAddress) address.getAddress());
         }
     }
 }

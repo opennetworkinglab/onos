@@ -18,6 +18,7 @@ package org.onosproject.lisp.msg.types;
 import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 import java.util.Objects;
 
@@ -74,6 +75,9 @@ public abstract class LispAfiAddress {
         return true;
     }
 
+    /**
+     * AFI address reader class.
+     */
     public static class AfiAddressReader implements LispAddressReader<LispAfiAddress> {
 
         @Override
@@ -112,6 +116,38 @@ public abstract class LispAfiAddress {
             }
 
             return null;
+        }
+    }
+
+    /**
+     * AFI address writer class.
+     */
+    public static class AfiAddressWriter implements LispAddressWriter<LispAfiAddress> {
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispAfiAddress address) throws LispWriterException {
+            switch (address.getAfi()) {
+                case IP:
+                    new LispIpAddress.IpAddressWriter().writeTo(byteBuf, (LispIpv4Address) address);
+                    break;
+                case IP6:
+                    new LispIpAddress.IpAddressWriter().writeTo(byteBuf, (LispIpv6Address) address);
+                    break;
+                case DISTINGUISHED_NAME:
+                    new LispDistinguishedNameAddress.DistinguishedNameAddressWriter().writeTo(byteBuf,
+                            (LispDistinguishedNameAddress) address);
+                    break;
+                case MAC:
+                    new LispMacAddress.MacAddressWriter().writeTo(byteBuf, (LispMacAddress) address);
+                    break;
+                case LCAF:
+                    new LispLcafAddress.LcafAddressWriter().writeTo(byteBuf, (LispLcafAddress) address);
+                    break;
+                case AS:
+                    new LispAsAddress.AsAddressWriter().writeTo(byteBuf, (LispAsAddress) address);
+                    break;
+                default: break; // TODO: need log warning message
+            }
         }
     }
 }

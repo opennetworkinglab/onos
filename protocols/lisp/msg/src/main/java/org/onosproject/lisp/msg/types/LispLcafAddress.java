@@ -18,6 +18,7 @@ package org.onosproject.lisp.msg.types;
 import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 import java.util.Objects;
 
@@ -216,6 +217,20 @@ public class LispLcafAddress extends LispAfiAddress {
                                     reserved1, reserved2, flag, length);
     }
 
+    /**
+     * Serializes common fields to byte buffer.
+     *
+     * @param byteBuf byte buffer
+     * @param address LISP LCAF address instance
+     */
+    public static void serializeCommon(ByteBuf byteBuf, LispLcafAddress address) {
+        byteBuf.writeByte(address.getReserved1());
+        byteBuf.writeByte(address.getFlag());
+        byteBuf.writeByte(address.getType().getLispCode());
+        byteBuf.writeByte(address.getReserved2());
+        byteBuf.writeShort(address.getLength());
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(lcafType, reserved1, reserved2, flag, length);
@@ -323,6 +338,9 @@ public class LispLcafAddress extends LispAfiAddress {
         }
     }
 
+    /**
+     * LISP LCAF reader class.
+     */
     public static class LcafAddressReader implements LispAddressReader<LispLcafAddress> {
 
         private static final int LCAF_TYPE_FIELD_INDEX = 4;
@@ -352,6 +370,35 @@ public class LispLcafAddress extends LispAfiAddress {
             }
 
             return null;
+        }
+    }
+
+    /**
+     * LISP LCAF address writer class.
+     */
+    public static class LcafAddressWriter implements LispAddressWriter<LispLcafAddress> {
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispLcafAddress address) throws LispWriterException {
+            switch (address.getType()) {
+                case APPLICATION_DATA:
+                    new LispAppDataLcafAddress.AppDataLcafAddressWriter().writeTo(byteBuf,
+                            (LispAppDataLcafAddress) address);
+                    break;
+                case LIST:
+                    new LispListLcafAddress.ListLcafAddressWriter().writeTo(byteBuf,
+                            (LispListLcafAddress) address);
+                    break;
+                case SEGMENT:
+                    new LispSegmentLcafAddress.SegmentLcafAddressWriter().writeTo(byteBuf,
+                            (LispSegmentLcafAddress) address);
+                    break;
+                case SOURCE_DEST:
+                    new LispSourceDestLcafAddress.SourceDestLcafAddressWriter().writeTo(byteBuf,
+                            (LispSourceDestLcafAddress) address);
+                    break;
+                default: break; // TODO: need to log warning message
+            }
         }
     }
 }

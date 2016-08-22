@@ -18,6 +18,7 @@ package org.onosproject.lisp.msg.types;
 import io.netty.buffer.ByteBuf;
 import org.onlab.packet.MacAddress;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 import java.util.Objects;
 
@@ -86,6 +87,18 @@ public class LispMacAddress extends LispAfiAddress {
             MacAddress macAddress = MacAddress.valueOf(macByte);
 
             return new LispMacAddress(macAddress);
+        }
+    }
+
+    /**
+     * MAC address writer class.
+     */
+    public static class MacAddressWriter implements LispAddressWriter<LispMacAddress> {
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispMacAddress address) throws LispWriterException {
+            byte[] macByte = address.getAddress().toBytes();
+            byteBuf.writeBytes(macByte);
         }
     }
 }

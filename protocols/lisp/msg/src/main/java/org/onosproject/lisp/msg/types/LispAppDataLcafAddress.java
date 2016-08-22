@@ -18,6 +18,7 @@ package org.onosproject.lisp.msg.types;
 import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
@@ -362,6 +363,31 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
             buffer.put(bytes);
             buffer.position(0);
             return buffer.getInt();
+        }
+    }
+
+    /**
+     * Application data LCAF address writer class.
+     */
+    public static class AppDataLcafAddressWriter
+            implements LispAddressWriter<LispAppDataLcafAddress> {
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispAppDataLcafAddress address)
+                throws LispWriterException {
+
+            LispLcafAddress.serializeCommon(byteBuf, address);
+
+            // TODO: need to handle TOS
+
+            byteBuf.writeByte(address.getProtocol());
+            byteBuf.writeShort(address.getLocalPortLow());
+            byteBuf.writeShort(address.getLocalPortHigh());
+            byteBuf.writeShort(address.getRemotePortLow());
+            byteBuf.writeShort(address.getRemotePortHigh());
+
+            AfiAddressWriter writer = new LispAfiAddress.AfiAddressWriter();
+            writer.writeTo(byteBuf, address.getAddress());
         }
     }
 }

@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 import java.util.List;
 import java.util.Objects;
@@ -132,6 +133,24 @@ public final class LispListLcafAddress extends LispLcafAddress {
 
             return new LispListLcafAddress(lcafAddress.getReserved1(), lcafAddress.getReserved2(),
                                            lcafAddress.getFlag(), ImmutableList.of(ipv4, ipv6));
+        }
+    }
+
+    /**
+     * List LCAF address writer class.
+     */
+    public static class ListLcafAddressWriter implements LispAddressWriter<LispListLcafAddress> {
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispListLcafAddress address) throws LispWriterException {
+
+            LispLcafAddress.serializeCommon(byteBuf, address);
+
+            LispIpv4Address.Ipv4AddressWriter v4Writer = new LispIpv4Address.Ipv4AddressWriter();
+            LispIpv6Address.Ipv6AddressWriter v6Writer = new LispIpv6Address.Ipv6AddressWriter();
+
+            v4Writer.writeTo(byteBuf, (LispIpv4Address) address.getAddresses().get(0));
+            v6Writer.writeTo(byteBuf, (LispIpv6Address) address.getAddresses().get(1));
         }
     }
 }

@@ -17,6 +17,7 @@ package org.onosproject.lisp.msg.types;
 
 import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 import java.util.Objects;
 
@@ -90,6 +91,22 @@ public class LispDistinguishedNameAddress extends LispAfiAddress {
             }
 
             return new LispDistinguishedNameAddress(sb.toString());
+        }
+    }
+
+    /**
+     * Distinguished name address writer class.
+     */
+    public static class DistinguishedNameAddressWriter
+                        implements LispAddressWriter<LispDistinguishedNameAddress> {
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispDistinguishedNameAddress address) throws LispWriterException {
+            String distinguishedName = address.getDistinguishedName();
+            byte[] nameBytes = distinguishedName.getBytes();
+            for (int i = 0; i < nameBytes.length; i++) {
+                byteBuf.writeChar(nameBytes[i]);
+            }
         }
     }
 }
