@@ -16,10 +16,11 @@
 
 package org.onosproject.store.service;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 /**
@@ -27,7 +28,7 @@ import java.util.function.Consumer;
  */
 public class TestTopic<T> implements Topic<T> {
     private final String name;
-    private final Set<Consumer<T>> callbacks = Sets.newConcurrentHashSet();
+    private final Map<Consumer<T>, Executor> callbacks = Maps.newIdentityHashMap();
 
     public TestTopic(String name) {
         this.name = name;
@@ -35,13 +36,17 @@ public class TestTopic<T> implements Topic<T> {
 
     @Override
     public CompletableFuture<Void> publish(T message) {
-        callbacks.forEach(c -> c.accept(message));
+        callbacks.forEach((k, v) -> {
+            v.execute(() -> {
+                k.accept(message);
+            });
+        });
         return CompletableFuture.completedFuture(null);
     }
 
     @Override
-    public CompletableFuture<Void> subscribe(Consumer<T> callback) {
-        callbacks.add(callback);
+    public CompletableFuture<Void> subscribe(Consumer<T> callback, Executor executor) {
+        callbacks.put(callback, executor);
         return CompletableFuture.completedFuture(null);
     }
 
