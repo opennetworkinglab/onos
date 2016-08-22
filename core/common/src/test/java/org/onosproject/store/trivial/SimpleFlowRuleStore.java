@@ -322,6 +322,11 @@ public class SimpleFlowRuleStore
     }
 
     @Override
+    public void purgeFlowRules() {
+        flowEntries.clear();
+    }
+
+    @Override
     public void storeBatch(
             FlowRuleBatchOperation operation) {
         List<FlowRuleBatchEntry> toAdd = new ArrayList<>();

@@ -615,6 +615,11 @@ public class DistributedFlowRuleStore
     }
 
     @Override
+    public void purgeFlowRules() {
+        flowTable.purgeFlowRules();
+    }
+
+    @Override
     public void batchOperationComplete(FlowRuleBatchEvent event) {
         //FIXME: need a per device pending response
         NodeId nodeId = pendingResponses.remove(event.subject().batchId());
@@ -837,6 +842,10 @@ public class DistributedFlowRuleStore
 
         public void purgeFlowRule(DeviceId deviceId) {
             flowEntries.remove(deviceId);
+        }
+
+        public void purgeFlowRules() {
+            flowEntries.clear();
         }
 
         private NodeId getBackupNode(DeviceId deviceId) {
