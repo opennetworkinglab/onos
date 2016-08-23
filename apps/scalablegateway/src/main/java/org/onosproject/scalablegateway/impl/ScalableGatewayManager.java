@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
@@ -29,7 +28,6 @@ import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -50,11 +48,6 @@ import org.onosproject.net.group.GroupService;
 import org.onosproject.scalablegateway.api.GatewayNode;
 import org.onosproject.scalablegateway.api.GatewayNodeConfig;
 import org.onosproject.scalablegateway.api.ScalableGatewayService;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
@@ -62,6 +55,10 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
@@ -210,11 +207,16 @@ public class ScalableGatewayManager implements ScalableGatewayService {
 
     @Override
     public synchronized boolean addGatewayNode(GatewayNode gatewayNode) {
-        Versioned<GatewayNode> existingNode = gatewayNodeMap.putIfAbsent(
-                gatewayNode.getGatewayDeviceId(), gatewayNode);
+        Versioned<GatewayNode> existingNode = gatewayNodeMap.put(gatewayNode.getGatewayDeviceId(),
+                gatewayNode);
         if (existingNode == null) {
             updateGatewayGroup(gatewayNode, true);
-            log.info("Added {} to gateway pool", gatewayNode);
+            log.info("Gateway {} is added to Gateway pool", gatewayNode);
+            return true;
+        } else if (!existingNode.value().equals(gatewayNode)) {
+            updateGatewayGroup(existingNode.value(), false);
+            updateGatewayGroup(gatewayNode, true);
+            log.info("Gateway {} is updated", gatewayNode);
             return true;
         } else {
             return false;
