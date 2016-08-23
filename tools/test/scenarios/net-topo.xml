@@ -68,7 +68,7 @@
               exec="test '${infra2Infrastructure}' == 'True'"/>
 
         <step name="Net-Topo.Query-Cluster0-Infra3"
-              exec="find-topo-infrastructure.py ${OC1} infra3 of:0000000000000012:8"/>
+              exec="find-topo-infrastructure.py ${OC1} infra3 of:0000000000000012:1"/>
         <step name="Net-Topo.Verify-Cluster0-Infra3" requires="Net-Topo.Query-Cluster0-Infra3"
               exec="test '${infra3Infrastructure}' == 'False'"/>
 
