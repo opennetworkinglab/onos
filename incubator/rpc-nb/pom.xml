@@ -35,7 +35,7 @@
         <onos.app.name>org.onosproject.incubator.rpc-nb</onos.app.name>
         <onos.app.title>ONOS gRPC Northbound API</onos.app.title>
         <onos.app.requires>org.onosproject.incubator.grpc</onos.app.requires>
-        <grpc.version>1.0.0-pre2</grpc.version>
+        <grpc.version>1.0.0</grpc.version>
     </properties>
 
     <dependencies>

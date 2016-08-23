@@ -32,7 +32,7 @@
         <onos.app.name>org.onosproject.incubator.grpc</onos.app.name>
         <onos.app.title>gRPC dependency package</onos.app.title>
         <protobuf.version>3.0.0</protobuf.version>
-        <grpc.version>1.0.0-pre2</grpc.version>
+        <grpc.version>1.0.0</grpc.version>
         <grpc.package.version>1.0.0</grpc.package.version>
         <grpc.netty.version>4.1.3.Final</grpc.netty.version>
         <grpc.netty.package.version>4.1.3</grpc.netty.package.version>

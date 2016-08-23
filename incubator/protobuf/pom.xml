@@ -31,7 +31,6 @@
     <properties>
         <onos.app.name>org.onosproject.incubator.protobuf</onos.app.name>
         <onos.app.title>ONOS Protocol Buffers models</onos.app.title>
-        <!-- Note: update feature.xml when updating -->
         <protobuf.version>3.0.0</protobuf.version>
     </properties>
 

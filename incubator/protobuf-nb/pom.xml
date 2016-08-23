@@ -30,7 +30,7 @@
 
     <properties>
         <protobuf.version>3.0.0</protobuf.version>
-        <grpc.version>1.0.0-pre2</grpc.version>
+        <grpc.version>1.0.0</grpc.version>
     </properties>
 
     <dependencies>
