@@ -426,7 +426,7 @@ public class DistributedApplicationStore extends ApplicationArchive
                 return new InternalApplicationHolder(v.app(), v.state(), ImmutableSet.copyOf(permissions));
             });
         if (permissionsChanged.get()) {
-            delegate.notify(new ApplicationEvent(APP_PERMISSIONS_CHANGED, appHolder.value().app()));
+            notifyDelegate(new ApplicationEvent(APP_PERMISSIONS_CHANGED, appHolder.value().app()));
         }
     }
 
@@ -436,7 +436,7 @@ public class DistributedApplicationStore extends ApplicationArchive
             String appName = app.id().name();
             installAppIfNeeded(app);
             setActive(appName);
-            delegate.notify(new ApplicationEvent(APP_ACTIVATED, app));
+            notifyDelegate(new ApplicationEvent(APP_ACTIVATED, app));
         }
     }
 
@@ -460,7 +460,7 @@ public class DistributedApplicationStore extends ApplicationArchive
                 }
                 setupApplicationAndNotify(appId, newApp.app(), newApp.state());
             } else if (event.type() == MapEvent.Type.REMOVE) {
-                delegate.notify(new ApplicationEvent(APP_UNINSTALLED, oldApp.app()));
+                notifyDelegate(new ApplicationEvent(APP_UNINSTALLED, oldApp.app()));
                 purgeApplication(appId.name());
             }
         }
@@ -470,10 +470,10 @@ public class DistributedApplicationStore extends ApplicationArchive
         // ACTIVATED state is handled separately in NextAppToActivateValueListener
         if (state == INSTALLED) {
             fetchBitsIfNeeded(app);
-            delegate.notify(new ApplicationEvent(APP_INSTALLED, app));
+            notifyDelegate(new ApplicationEvent(APP_INSTALLED, app));
         } else if (state == DEACTIVATED) {
             clearActive(appId.name());
-            delegate.notify(new ApplicationEvent(APP_DEACTIVATED, app));
+            notifyDelegate(new ApplicationEvent(APP_DEACTIVATED, app));
         }
     }
 
@@ -504,7 +504,7 @@ public class DistributedApplicationStore extends ApplicationArchive
     private void installAppIfNeeded(Application app) {
         if (!appBitsAvailable(app)) {
             fetchBits(app);
-            delegate.notify(new ApplicationEvent(APP_INSTALLED, app));
+            notifyDelegate(new ApplicationEvent(APP_INSTALLED, app));
         }
     }
 
