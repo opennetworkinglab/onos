@@ -34,7 +34,9 @@
         'xcjvte',
         'bgvest',
         'sevlr',
-        'ias'
+        'ias',
+        'jweeidkpizn'
+        // Add more beans...
     ];
 
     function pickBean() {
