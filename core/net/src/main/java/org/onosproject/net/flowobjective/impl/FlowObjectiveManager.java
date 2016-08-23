@@ -269,11 +269,6 @@ public class FlowObjectiveManager implements FlowObjectiveService {
      */
     private Pipeliner initPipelineHandler(DeviceId deviceId) {
         start = now();
-        // ?? We never use defaultDriverService, do we still need this check?
-        if (defaultDriverService == null) {
-            // We're not ready to go to work yet.
-            return null;
-        }
 
         // Attempt to lookup the handler in the cache
         DriverHandler handler = driverHandlers.get(deviceId);
@@ -323,18 +318,21 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                         getDevicePipeliner(event.subject().id());
                     } else {
                         log.debug("Device is no longer available {}", event.subject().id());
-                        // evict Pipeliner cache.
-                        // User might restart Device to assign new Driver/Pipeliner
-                        // loaded afterwards.
-                        pipeliners.remove(event.subject().id());
                     }
                     break;
                 case DEVICE_UPDATED:
                     break;
                 case DEVICE_REMOVED:
-                case DEVICE_SUSPENDED:
-                    // evict Pipeliner cache.
+                    // evict Pipeliner and Handler cache, when
+                    // the Device was administratively removed.
+                    //
+                    // System expect the user to clear all existing flows,
+                    // before removing device, especially if they intend to
+                    // replace driver/pipeliner assigned to the device.
+                    driverHandlers.remove(event.subject().id());
                     pipeliners.remove(event.subject().id());
+                    break;
+                case DEVICE_SUSPENDED:
                     break;
                 case PORT_ADDED:
                     break;
