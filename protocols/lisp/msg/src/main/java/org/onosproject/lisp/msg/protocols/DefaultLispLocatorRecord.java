@@ -20,9 +20,11 @@ import io.netty.buffer.ByteBuf;
 import org.onlab.util.ByteOperator;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 
 /**
  * Default implementation of LispLocatorRecord.
@@ -263,6 +265,61 @@ public final class DefaultLispLocatorRecord implements LispLocatorRecord {
                         .withRouted(routed)
                         .withLocatorAfi(address)
                         .build();
+        }
+    }
+
+    /**
+     * A LISP message writer for LocatorRecord portion.
+     */
+    public static final class LocatorRecordWriter implements LispMessageWriter<LispLocatorRecord> {
+
+        private static final int LOCAL_LOCATOR_SHIFT_BIT = 2;
+        private static final int PROBED_SHIFT_BIT = 1;
+
+        private static final int ENABLE_BIT = 1;
+        private static final int DISABLE_BIT = 0;
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispLocatorRecord message) throws LispWriterException {
+
+            // priority
+            byteBuf.writeByte(message.getPriority());
+
+            // weight
+            byteBuf.writeByte(message.getWeight());
+
+            // multicast priority
+            byteBuf.writeByte(message.getMulticastPriority());
+
+            // multicast weight
+            byteBuf.writeByte(message.getMulticastWeight());
+
+            // unused flags
+            byteBuf.writeByte((short) 0);
+
+            // localLocator flag
+            short localLocator = DISABLE_BIT;
+            if (message.isLocalLocator()) {
+                localLocator = (byte) (ENABLE_BIT << LOCAL_LOCATOR_SHIFT_BIT);
+            }
+
+            // rlocProbed flag
+            short probed = DISABLE_BIT;
+            if (message.isRlocProbed()) {
+                probed = (byte) (ENABLE_BIT << PROBED_SHIFT_BIT);
+            }
+
+            // routed flag
+            short routed = DISABLE_BIT;
+            if (message.isRouted()) {
+                routed = (byte) ENABLE_BIT;
+            }
+
+            byteBuf.writeByte((byte) (localLocator + probed + routed));
+
+            // EID prefix AFI with EID prefix
+            AfiAddressWriter afiAddressWriter = new AfiAddressWriter();
+            afiAddressWriter.writeTo(byteBuf, message.getLocatorAfi());
         }
     }
 }

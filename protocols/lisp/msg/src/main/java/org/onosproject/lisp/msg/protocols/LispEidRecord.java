@@ -18,7 +18,10 @@ package org.onosproject.lisp.msg.protocols;
 import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
+
+import static org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 
 /**
  * LISP EID record section which is part of LISP map request message.
@@ -58,9 +61,9 @@ public final class LispEidRecord {
     }
 
     /**
-     * A private LISP message reader for EidRecord portion.
+     * A LISP message reader for EidRecord portion.
      */
-    public static class EidRecordReader implements LispMessageReader<LispEidRecord> {
+    public static final class EidRecordReader implements LispMessageReader<LispEidRecord> {
 
         private static final int RESERVED_SKIP_LENGTH = 1;
 
@@ -75,6 +78,28 @@ public final class LispEidRecord {
             LispAfiAddress prefix = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
 
             return new LispEidRecord((byte) maskLength, prefix);
+        }
+    }
+
+    /**
+     * A LISP message writer for EidRecord portion.
+     */
+    public static final class EidRecordWriter implements LispMessageWriter<LispEidRecord> {
+
+        private static final int UNUSED_ZERO = 0;
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispEidRecord message) throws LispWriterException {
+
+            // fill zero into reserved field
+            byteBuf.writeByte((short) UNUSED_ZERO);
+
+            // mask length
+            byteBuf.writeByte(message.getMaskLength());
+
+            // EID prefix AFI with EID prefix
+            AfiAddressWriter afiAddressWriter = new AfiAddressWriter();
+            afiAddressWriter.writeTo(byteBuf, message.getPrefix());
         }
     }
 }

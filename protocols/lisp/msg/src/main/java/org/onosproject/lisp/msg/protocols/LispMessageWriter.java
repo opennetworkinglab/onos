@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp.msg.types;
+package org.onosproject.lisp.msg.protocols;
 
 import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 /**
- * An interface for serializing LISP address.
+ * An interface for serializing LISP control message.
  */
-public interface LispAddressWriter<T> {
+public interface LispMessageWriter<T> {
 
     /**
-     * Serializes LISP address object and writes to byte buffer.
+     * Serializes LISP control message object and writes to byte buffer.
      *
      * @param byteBuf byte buffer
-     * @param address LISP address type instance
+     * @param message LISP address type instance
      * @throws LispWriterException LISP writer exception
      */
-    void writeTo(ByteBuf byteBuf, T address) throws LispWriterException;
-
+    void writeTo(ByteBuf byteBuf, T message) throws LispWriterException;
 }

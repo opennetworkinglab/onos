@@ -22,10 +22,12 @@ import io.netty.buffer.ByteBuf;
 import org.onlab.util.ByteOperator;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 import java.util.List;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordWriter;
 
 /**
  * Default LISP map reply message class.
@@ -75,27 +77,27 @@ public final class DefaultLispMapReply implements LispMapReply {
 
     @Override
     public boolean isProbe() {
-        return this.probe;
+        return probe;
     }
 
     @Override
     public boolean isEtr() {
-        return this.etr;
+        return etr;
     }
 
     @Override
     public boolean isSecurity() {
-        return this.security;
+        return security;
     }
 
     @Override
     public byte getRecordCount() {
-        return this.recordCount;
+        return recordCount;
     }
 
     @Override
     public long getNonce() {
-        return this.nonce;
+        return nonce;
     }
 
     @Override
@@ -194,9 +196,9 @@ public final class DefaultLispMapReply implements LispMapReply {
     }
 
     /**
-     * A private LISP message reader for MapReply message.
+     * A LISP message reader for MapReply message.
      */
-    private static class ReplyReader implements LispMessageReader<LispMapReply> {
+    public static final class ReplyReader implements LispMessageReader<LispMapReply> {
 
         private static final int PROBE_INDEX = 3;
         private static final int ETR_INDEX = 2;
@@ -242,6 +244,68 @@ public final class DefaultLispMapReply implements LispMapReply {
                         .withRecordCount(recordCount)
                         .withNonce(nonce)
                         .build();
+        }
+    }
+
+    /**
+     * A LISP message writer for MapReply message.
+     */
+    public static final class ReplyWriter implements LispMessageWriter<LispMapReply> {
+
+        private static final int REPLY_MSG_TYPE = 2;
+        private static final int REPLY_SHIFT_BIT = 4;
+
+        private static final int PROBE_FLAG_SHIFT_BIT = 3;
+        private static final int ETR_FLAG_SHIFT_BIT = 2;
+        private static final int SECURITY_FLAG_SHIFT_BIT = 1;
+
+        private static final int ENABLE_BIT = 1;
+        private static final int DISABLE_BIT = 0;
+
+        private static final int UNUSED_ZERO = 0;
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispMapReply message) throws LispWriterException {
+
+            // specify LISP message type
+            byte msgType = (byte) (REPLY_MSG_TYPE << REPLY_SHIFT_BIT);
+
+            // probe flag
+            byte probe = DISABLE_BIT;
+            if (message.isProbe()) {
+                probe = (byte) (ENABLE_BIT << PROBE_FLAG_SHIFT_BIT);
+            }
+
+            // etr flag
+            byte etr = DISABLE_BIT;
+            if (message.isEtr()) {
+                etr = (byte) (ENABLE_BIT << ETR_FLAG_SHIFT_BIT);
+            }
+
+            // security flag
+            byte security = DISABLE_BIT;
+            if (message.isSecurity()) {
+                security = (byte) (ENABLE_BIT << SECURITY_FLAG_SHIFT_BIT);
+            }
+
+            byteBuf.writeByte((byte) (msgType + probe + etr + security));
+
+            // reserved field
+            byteBuf.writeShort((short) UNUSED_ZERO);
+
+            // record count
+            byteBuf.writeByte(message.getRecordCount());
+
+            // nonce
+            byteBuf.writeLong(message.getNonce());
+
+            // serialize map records
+            MapRecordWriter writer = new MapRecordWriter();
+            List<LispMapRecord> records = message.getMapRecords();
+
+            for (int i = 0; i < records.size(); i++) {
+                writer.writeTo(byteBuf, records.get(i));
+            }
         }
     }
 }

@@ -22,11 +22,14 @@ import io.netty.buffer.ByteBuf;
 import org.onlab.util.ByteOperator;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 
 import java.util.List;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
+import static org.onosproject.lisp.msg.protocols.DefaultLispLocatorRecord.LocatorRecordWriter;
 
 /**
  * Default implementation of LispMapRecord.
@@ -266,6 +269,60 @@ public final class DefaultLispMapRecord implements LispMapRecord {
                         .withLocators(locators)
                         .withEidPrefixAfi(eidPrefixAfi)
                         .build();
+        }
+    }
+
+    /**
+     * A LISP message writer for MapRecord portion.
+     */
+    public static final class MapRecordWriter implements LispMessageWriter<LispMapRecord> {
+
+        private static final int REPLY_ACTION_SHIFT_BIT = 5;
+        private static final int AUTHORITATIVE_FLAG_SHIFT_BIT = 4;
+
+        private static final int ENABLE_BIT = 1;
+        private static final int DISABLE_BIT = 0;
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispMapRecord message) throws LispWriterException {
+
+            // record TTL
+            byteBuf.writeInt(message.getRecordTtl());
+
+            // locator count
+            byteBuf.writeByte((byte) message.getLocatorCount());
+
+            // EID mask length
+            byteBuf.writeByte(message.getMaskLength());
+
+            // reply action
+            byte action = (byte) (message.getAction().getAction() << REPLY_ACTION_SHIFT_BIT);
+
+            // authoritative bit
+            byte authoritative = DISABLE_BIT;
+            if (message.isAuthoritative()) {
+                authoritative = ENABLE_BIT;
+            }
+            authoritative = (byte) (authoritative << AUTHORITATIVE_FLAG_SHIFT_BIT);
+
+            byteBuf.writeByte((byte) (action + authoritative));
+
+            // fill zero into reserved field
+            byteBuf.writeByte((short) 0);
+
+            // map version number
+            byteBuf.writeShort(message.getMapVersionNumber());
+
+            // EID prefix AFI with EID prefix
+            AfiAddressWriter afiAddressWriter = new AfiAddressWriter();
+            afiAddressWriter.writeTo(byteBuf, message.getEidPrefixAfi());
+
+            // serialize locator
+            LocatorRecordWriter recordWriter = new LocatorRecordWriter();
+            List<LispLocatorRecord> locators = message.getLocators();
+            for (int i = 0; i < locators.size(); i++) {
+                recordWriter.writeTo(byteBuf, locators.get(i));
+            }
         }
     }
 }

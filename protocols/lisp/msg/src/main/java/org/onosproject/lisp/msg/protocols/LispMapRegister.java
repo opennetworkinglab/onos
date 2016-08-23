@@ -92,6 +92,13 @@ public interface LispMapRegister extends LispMessage {
     short getKeyId();
 
     /**
+     * Obtains authentication data length.
+     *
+     * @return authentication data length
+     */
+    short getAuthDataLength();
+
+    /**
      * Obtains authentication data.
      *
      * @return authentication data
@@ -141,6 +148,14 @@ public interface LispMapRegister extends LispMessage {
          * @return RegisterBuilder object
          */
         RegisterBuilder withNonce(long nonce);
+
+        /**
+         * Sets authentication data length.
+         *
+         * @param authDataLength authentication data length
+         * @return RegisterBuilder object
+         */
+        RegisterBuilder withAuthDataLength(short authDataLength);
 
         /**
          * Sets key identifier.
