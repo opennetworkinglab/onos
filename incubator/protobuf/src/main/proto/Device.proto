@@ -12,6 +12,7 @@ message DeviceDescription {
   string serial_number = 6;
   string chassis_id = 7;
   map<string, string> annotations = 8;
+  bool is_default_available = 9;
 }
 
 enum MastershipRole {
@@ -47,4 +48,4 @@ message DeviceCore {
   string serial_number = 6;
   string chassis_id = 7;
   map<string, string> annotations = 8;
-} 
+}

@@ -8,7 +8,7 @@ enum LinkType {
   DIRECT = 0;
 
   // Signifies that this link is potentially comprised from multiple
-  //underlying segments or hops, and as such should be used to tag
+  // underlying segments or hops, and as such should be used to tag
   // links traversing optical paths, tunnels or intervening 'dark'
   // switches.
   INDIRECT = 1;
