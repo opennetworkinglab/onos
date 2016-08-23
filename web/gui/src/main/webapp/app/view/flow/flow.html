@@ -13,6 +13,22 @@
 
             <div class="separator"></div>
 
+            <span ng-if="brief">
+            <div class="active"
+                 icon icon-id="plus" icon-size="42"
+                 tooltip tt-msg="detailTip"
+                 ng-click="briefToggle()"> </div>
+            </span>
+
+            <span ng-if="!brief">
+            <div class="active"
+                 icon icon-id="minus" icon-size="42"
+                 tooltip tt-msg="briefTip"
+                 ng-click="briefToggle()"> </div>
+            </span>
+
+            <div class="separator"></div>
+
             <div class="active"
                  icon icon-id="deviceTable" icon-size="42"
                  tooltip tt-msg="deviceTip"
@@ -35,6 +51,7 @@
                  icon icon-id="meterTable" icon-size="42"
                  tooltip tt-msg="meterTip"
                  ng-click="nav('meter')"></div>
+
         </div>
     </div>
 
@@ -77,10 +94,10 @@
                     <td class="right">{{flow.packets}}</td>
                     <td class="right">{{flow.bytes}}</td>
                 </tr>
-                <tr row-id="{{flow.id}}">
-                    <td class="selector" colspan="10">{{flow.selector}}</td>
+                <tr row-id="{{flow.id}}" ng-hide="brief">
+                    <td class="selector" colspan="10" >{{flow.selector}} </td>
                 </tr>
-                <tr row-id="{{flow.id}}" ng-repeat-end>
+                <tr row-id="{{flow.id}}" ng-repeat-end ng-hide="brief">
                     <td class="treatment" colspan="10">{{flow.treatment}}</td>
                 </tr>
             </table>
