@@ -35,5 +35,5 @@ scenario=${1:-smoke}
 
 # Run stc
 [ -z "$stcDebug" ] && DEBUG_OPTS=""
-stcColor=${stcColor:-$interactive} stcDumpLogs=${stcDumpLogs:-$notInteractive} \
+stcTitle=${stcTitle:-} stcColor=${stcColor:-$interactive} stcDumpLogs=${stcDumpLogs:-$notInteractive} \
     java $DEBUG_OPTS -jar $JAR $scenario "$@"
