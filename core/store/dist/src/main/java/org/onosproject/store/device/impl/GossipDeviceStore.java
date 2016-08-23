@@ -1823,7 +1823,7 @@ public class GossipDeviceStore
             if (event.type() == PUT) {
                 Device device = devices.get(event.key());
                 if (device != null) {
-                    delegate.notify(new DeviceEvent(PORT_STATS_UPDATED, device));
+                    notifyDelegate(new DeviceEvent(PORT_STATS_UPDATED, device));
                 }
             }
         }

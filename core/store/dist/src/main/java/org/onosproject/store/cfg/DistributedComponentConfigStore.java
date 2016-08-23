@@ -101,9 +101,9 @@ public class DistributedComponentConfigStore
             String[] keys = event.key().split(SEP);
             if (event.type() == INSERT || event.type() == UPDATE) {
                 String value = event.newValue().value();
-                delegate.notify(new ComponentConfigEvent(PROPERTY_SET, keys[0], keys[1], value));
+                notifyDelegate(new ComponentConfigEvent(PROPERTY_SET, keys[0], keys[1], value));
             } else if (event.type() == REMOVE) {
-                delegate.notify(new ComponentConfigEvent(PROPERTY_UNSET, keys[0], keys[1], null));
+                notifyDelegate(new ComponentConfigEvent(PROPERTY_UNSET, keys[0], keys[1], null));
             }
         }
     }
