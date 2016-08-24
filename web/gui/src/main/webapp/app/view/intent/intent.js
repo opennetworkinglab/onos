@@ -26,7 +26,9 @@
         ['$log', '$scope', 'TableBuilderService', 'NavService',
 
         function ($log, $scope, tbs, ns) {
-
+            $scope.briefTip = 'Switch to brief view';
+            $scope.detailTip = 'Switch to detailed view';
+            $scope.brief = true;
             function selCb($event, row) {
                 $log.debug('Got a click on:', row);
                 var m = /(\d+)\s:\s(.*)/.exec(row.appId),
@@ -52,6 +54,10 @@
             $scope.showIntent = function () {
                 var d = $scope.intentData;
                 d && ns.navTo('topo', d);
+            };
+
+            $scope.briefToggle = function () {
+                $scope.brief = !$scope.brief;
             };
 
             $log.log('OvIntentCtrl has been created');
