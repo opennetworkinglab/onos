@@ -32,6 +32,9 @@
             'TopoTrafficService', 'DialogService',
 
         function ($log, $scope, tbs, ns, tts, ds) {
+            $scope.briefTip = 'Switch to brief view';
+            $scope.detailTip = 'Switch to detailed view';
+            $scope.brief = true;
 
             function selCb($event, row) {
                 $log.debug('Got a click on:', row);
@@ -83,6 +86,10 @@
                     .addOk(dOk)
                     .addCancel(dCancel)
                     .bindKeys();
+            };
+
+            $scope.briefToggle = function () {
+                $scope.brief = !$scope.brief;
             };
 
             $scope.$on('$destroy', function () {

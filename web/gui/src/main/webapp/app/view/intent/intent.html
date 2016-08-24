@@ -8,6 +8,23 @@
                  tooltip tt-msg="autoRefreshTip"
                  ng-click="toggleRefresh()"></div>
 
+
+            <div class="separator"></div>
+
+            <span ng-if="brief">
+            <div class="active"
+                 icon icon-id="plus" icon-size="42"
+                 tooltip tt-msg="detailTip"
+                 ng-click="briefToggle()"> </div>
+            </span>
+
+            <span ng-if="!brief">
+            <div class="active"
+                 icon icon-id="minus" icon-size="42"
+                 tooltip tt-msg="briefTip"
+                 ng-click="briefToggle()"> </div>
+            </span>
+
             <div class="separator"></div>
 
             <div ng-class="{active: !!selId}"
@@ -57,12 +74,12 @@
                 </tr>
                 <tr ng-click="selectCallback($event, intent)"
                     ng-class="{selected: intent.key === selId}"
-                    row-id="{{intent.key}}">
+                    row-id="{{intent.key}}" ng-hide="brief" >
                     <td class="resources" colspan="5">{{intent.resources}}</td>
                 </tr>
                 <tr ng-click="selectCallback($event, intent)"
                     ng-class="{selected: intent.key === selId}"
-                    row-id="{{intent.key}}" ng-repeat-end>
+                    row-id="{{intent.key}}" ng-hide="brief" ng-repeat-end>
                     <td class="details" colspan="5">{{intent.details}}</td>
                 </tr>
             </table>
