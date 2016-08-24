@@ -1,0 +1,31 @@
+---
+#
+# Adds sdn-ip tutorial specific configurations
+#
+- name: Installing Prerequisites
+  apt:
+    name: "{{ item }}"
+    force: yes
+    update_cache: yes
+  with_items: "{{ tutorials.sdnip.packages }}"
+
+- name: Copying sdnip tutorial files
+  copy:
+    src: "/home/ubuntu/onos/tools/tutorials/sdnip"
+    dest: "/home/{{ tutorials.sdnip.user }}"
+    owner: "{{ tutorials.sdnip.user }}"
+    group: "{{ tutorials.sdnip.user }}"
+
+- name: Copying sdnip config files
+  copy:
+    src: "/home/{{ tutorials.sdnip.user }}/sdnip/configs"
+    dest: "/home/{{ tutorials.sdnip.user }}"
+    owner: "{{ tutorials.sdnip.user }}"
+    group: "{{ tutorials.sdnip.user }}"
+
+- name: Adding iptables rule for BGP-ONOS communication
+  lineinfile:
+    dest: "/home/{{ tutorials.sdnip.user }}/.xprofile"
+    line: "sudo iptables -A PREROUTING -t nat -i root-eth0 -p tcp --dport 2000 -j DNAT --to {{ lxc.lxc_one.ip }}:2000"
+    state: present
+    create: yes

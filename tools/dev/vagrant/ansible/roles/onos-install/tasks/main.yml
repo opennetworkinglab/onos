@@ -1,0 +1,116 @@
+---
+#
+# Installs ONOS and downloads the related dependencies. It then compiles the code.
+#
+- name: Installing Maven
+  apt:
+    name: maven
+    force: yes
+  tags: [common]
+
+- name: Creating Application folder
+  file:
+    path: "{{ app_dir }}"
+    state: directory
+    mode: 0777
+
+- name: Creating Download folder
+  file:
+    path: "{{ download_dir }}"
+    state: directory
+    mode: 0777
+
+- name: Downloading Apache Karaf
+  get_url:
+    url: "http://archive.apache.org/dist/karaf/{{ karaf_version }}/apache-karaf-{{ karaf_version }}.tar.gz"
+    dest: "{{ download_dir }}"
+    mode: 0777
+
+- name: Copying Apache Karaf in the Application directory
+  copy:
+    src: "/home/ubuntu/{{ download_dir }}/apache-karaf-{{ karaf_version }}.tar.gz"
+    dest: "/home/ubuntu/{{ app_dir }}/apache-karaf-{{ karaf_version }}.tar.gz"
+    mode: 0777
+
+- name: Extracting Apache Karaf
+  unarchive:
+    src: "/home/ubuntu/{{ download_dir }}/apache-karaf-{{ karaf_version }}.tar.gz"
+    dest: "/home/ubuntu/{{ app_dir }}"
+    mode: 0777
+
+- name: Cloning ONOS repository
+  git:
+    repo: "{{ onos_repo_url }}"
+    dest: onos
+    version: onos-"{{ onos_version }}"
+  become: true
+  become_user: ubuntu
+
+- name: Changing ONOS repository permissions
+  file:
+    path: "/home/ubuntu/onos"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: 0777
+
+- name: Exporting ONOS variables
+  lineinfile:
+    dest: /home/ubuntu/.bashrc
+    line: "{{ item }}"
+  with_items: "{{ onos_variables }}"
+
+- name: Compiling ONOS
+  shell: "{{ item }}"
+  args:
+    chdir: "/home/ubuntu/onos"
+  with_items:
+    - mvn clean install
+  become: true
+  become_user: ubuntu
+
+- name: Changing .m2 repository permissions
+  file:
+    path: "/home/ubuntu/.m2"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: 0777
+
+- name: Creating 1 node ONOS cell
+  template:
+    src: templates/one_node_cell.j2
+    dest: "{{ cell_files[0] }}"
+    owner: ubuntu
+    group: ubuntu
+    mode: 0777
+
+- name: Creating 3 node ONOS cell
+  template:
+    src: templates/three_node_cell.j2
+    dest: "{{ cell_files[1] }}"
+    owner: ubuntu
+    group: ubuntu
+    mode: 0777
+
+- name: Creating ONOS deployment script
+  template:
+    src: templates/onos_deploy.j2
+    dest: "/home/ubuntu/onos_deploy.sh"
+    owner: ubuntu
+    group: ubuntu
+    mode: 0777
+
+- name: Deploying ONOS
+  shell: "/home/ubuntu/onos_deploy.sh"
+  environment:
+    ONOS_ROOT: /home/ubuntu/onos
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: ubuntu
+
+- name: Adding ONOS to startup
+  become: yes
+  shell: "lxc-attach --name {{ item.value.name }} -- systemctl enable onos"
+  with_dict: "{{ lxc }}"

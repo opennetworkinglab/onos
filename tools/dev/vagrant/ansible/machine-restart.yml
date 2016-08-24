@@ -1,0 +1,12 @@
+---
+#
+# Restarts the target machine
+#
+- name: Restarting the machine
+  hosts: localhost
+  tasks:
+  - shell: sleep 2 && shutdown -r now "Ansible updates triggered"
+    async: 1
+    poll: 0
+    sudo: true
+    ignore_errors: true

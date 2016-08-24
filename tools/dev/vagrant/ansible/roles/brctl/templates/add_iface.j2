@@ -6,10 +6,10 @@ if [ $# -gt 0 ]; then
 fi
 CHANGED='false'
 
-FOUND=$(brctl show | grep "^{{ interfaces.hostonly }}" | wc -l)
+FOUND=$(brctl show | grep "^{{ bridge.phy_interface }}" | wc -l)
 if [ $FOUND -eq 0 ]; then
     CHANGED='true'
-    brctl addif {{ networks.bridge_name }} {{ interfaces.hostonly }}
+    brctl addif {{ bridge.name }} {{ bridge.phy_interface }}
 fi
 
 if [ $REPORT_CHANGED -ne 0 ]; then

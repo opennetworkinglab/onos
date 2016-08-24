@@ -1,37 +1,54 @@
-- name: Bridge onosbr0 is present
+---
+#
+# Configures networking and Linux brdiges 
+#
+- name: Creating ONOS bridge
   become: yes
   template:
     src: templates/create_bridge.j2
-    dest: /etc/network/if-pre-up.d/create_bridge_{{ networks.bridge_name }}
+    dest: "/etc/network/if-pre-up.d/create_bridge_{{ bridge.name }}"
     owner: root
     group: root
     mode: 0755
 
-- name: eth1 is in onosbr0
+- name: Adding second NIC to ONOS bridge
   become: yes
   template:
     src: templates/add_iface.j2
-    dest: /etc/network/if-pre-up.d/add_iface_{{ interfaces.hostonly }}
+    dest: "/etc/network/if-pre-up.d/add_iface_{{ bridge.phy_interface }}"
     owner: root
     group: root
     mode: 0755
 
-- name: Activate onos bridge
+- name: Activating ONOS bridge
   become: yes
-  command: /etc/network/if-pre-up.d/create_bridge_{{ networks.bridge_name }} report-changed
+  command: /etc/network/if-pre-up.d/create_bridge_{{ bridge.name }} report-changed
   register: bridge_changed
   changed_when: bridge_changed.stdout == 'true'
 
-- name: Activate eth1 in bridge
+- name: Adding physical interface to the bridge
   become: yes
-  command: /etc/network/if-pre-up.d/add_iface_{{ interfaces.hostonly }} report-changed
+  command: /etc/network/if-pre-up.d/add_iface_{{ bridge.phy_interface }} report-changed
   register: bridge_iface_changed
   changed_when: bridge_iface_changed == 'true'
 
-- name: Flush ip of eth1
+- name: Moving the IP and starting bridge automatically at startup
   become: yes
-  command: /sbin/ip addr flush {{ interfaces.hostonly }}
+  template:
+    src: templates/post_ifup.j2
+    dest: "/etc/network/if-up.d/bring_up_{{ bridge.name }}"
+    owner: root
+    group: root
+    mode: 0755
+  
+- name: Removing IP from the second NIC
+  become: yes
+  command: "/sbin/ip addr flush {{ bridge.phy_interface }}"
 
-- name: bring onosbr0 up
+- name: Configuring the IP on the bridge
   become: yes
-  command: /sbin/ifconfig onosbr0 up
+  command: "/sbin/ifconfig {{ bridge.name }} inet {{ bridge.ip }}"
+
+- name: Bringing up ONOS bridge
+  become: yes
+  command: "/sbin/ifconfig {{ bridge.name }} up"

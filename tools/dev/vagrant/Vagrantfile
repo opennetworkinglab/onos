@@ -9,24 +9,51 @@ Vagrant.configure(2) do |config|
     config.vm.synced_folder ".", "/vagrant"
   end
 
+  config.vm.provider "virtualbox" do |v|
+    v.customize ["modifyvm", :id, "--vram", "32"]
+  end
+
+  config.vm.define "onostutorial" do |d|
+    d.vm.box = "ubuntu/xenial64"
+    d.vm.hostname = "onostutorial"
+    d.vm.network "private_network", ip: "10.100.198.200"
+    d.vm.provision :shell, path: "scripts/bootstrap_ansible.sh"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/basic.yml -c local"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/onos-dev-clean.yml -c local"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/mn.yml -c local"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/onos-install.yml -c local"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/gui.yml -c local"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/ide-install.yml -c local"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/onos-tutorials.yml -c local"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/machine-restart.yml -c local"
+    d.vm.provider "virtualbox" do |v|
+      v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+      v.memory = 4096
+      v.cpus = 2
+    end
+  end
+
   config.vm.define "onosdev" do |d|
-    d.vm.box = "ubuntu/trusty64"
+    d.vm.box = "ubuntu/xenial64"
     d.vm.hostname = "onosdev"
     d.vm.network "private_network", ip: "10.100.198.200"
     d.vm.provision :shell, path: "scripts/bootstrap_ansible.sh"
-    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/onosdev.yml -c local"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/basic.yml -c local"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/mn.yml -c local"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/onos-dev-clean.yml -c local"
     d.vm.provider "virtualbox" do |v|
       v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
-      v.memory = 8192
+      v.memory = 4096
       v.cpus = 2
     end
   end
 
   config.vm.define "mn" do |d|
-    d.vm.box = "ubuntu/trusty64"
+    d.vm.box = "ubuntu/xenial64"
     d.vm.hostname = "mn"
     d.vm.network "private_network", ip: "10.100.198.100"
     d.vm.provision :shell, path: "scripts/bootstrap_ansible.sh"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/basic.yml -c local"
     d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/mn.yml -c local"
     d.vm.provider "virtualbox" do |v|
       v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]

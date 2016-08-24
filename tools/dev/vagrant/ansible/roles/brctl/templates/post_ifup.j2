@@ -1,0 +1,5 @@
+#!/bin/bash
+
+ip addr flush {{ bridge.phy_interface }}
+ifconfig {{ bridge.name }} inet {{ bridge.ip }}
+ifconfig {{ bridge.name }} up

@@ -6,10 +6,10 @@ if [ $# -gt 0 ]; then
 fi
 CHANGED='false'
 
-FOUND=$(brctl show | grep "^{{ networks.bridge_name }}" | wc -l)
+FOUND=$(brctl show | grep "^{{ bridge.name }}" | wc -l)
 if [ $FOUND -eq 0 ]; then
     CHANGED='true'
-    brctl addbr {{ networks.bridge_name }}
+    brctl addbr {{ bridge.name }}
 fi
 
 if [ $REPORT_CHANGED -ne 0 ]; then

@@ -1,6 +1,6 @@
 ---
 #
-# Installs Mininet, Wireshark and the latest openflow.lua dissector plugin (Loxi version)
+# Installs Java, configures ONOS bridges and LXC
 #
 - name: Include vars
   hosts: localhost
@@ -11,5 +11,6 @@
   remote_user: vagrant
   serial: 1
   roles:
-    - mininet
-    - wireshark-custom
+    - brctl
+    - java8-oracle
+    - lxc

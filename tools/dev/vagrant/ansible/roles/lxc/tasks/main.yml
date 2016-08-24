@@ -1,55 +1,66 @@
-- name: Remove lxc default config
+- name: Removing lxc default config
   become: yes
-  file: path=/etc/lxc/default.conf state=absent
+  file:
+    path: /etc/lxc/default.conf
+    state: absent
 
-- name: Copy default lxc file
+- name: Copying default lxc file
   become: yes
   copy:
     src: files/default.conf
     dest: /etc/lxc/default.conf
     mode: 644
 
-- name: Create onos1 container
+- name: Creating lxc containers
   lxc_container:
-    name: onos1
+    name: "{{ item.value.name }}"
     container_log: true
     template: ubuntu
     state: started
-    template_options: --release trusty
+    template_options: --release "{{ item.value.release }}"
     container_config:
-      - "lxc.network.ipv4=10.100.198.201/24"
+      - "lxc.network.ipv4={{ item.value.ip }}/24"
     container_command: |
       ln -s /usr/lib/jvm/java/bin/java /usr/bin/java
       apt-get update
       apt-get install -y openssh-server
+      useradd -s /bin/bash -m -p sakA7pjBdhIsE sdn
+      useradd sdn sudo
+      mkdir /home/sdn/.ssh
+      chown sdn.sdn /home/sdn/.ssh
       echo "ubuntu ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-onos-sudoers
+      echo "sdn ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-onos-sudoers
+  with_dict: "{{ lxc }}"
 
-- name: Create onos2 container
-  lxc_container:
-    name: onos2
-    container_log: true
-    template: ubuntu
-    state: started
-    template_options: --release trusty
-    container_config:
-      - "lxc.network.ipv4=10.100.198.202/24"
-    container_command: |
-      ln -s /usr/lib/jvm/java/bin/java /usr/bin/java
-      apt-get update
-      apt-get install -y openssh-server
-      echo "ubuntu ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-onos-sudoers
+- name: Copying public key to containers
+  become: yes
+  copy:
+    src: "/home/ubuntu/.ssh/id_rsa.pub"
+    dest: "/var/lib/lxc/{{ item.value.name }}/rootfs/home/sdn/.ssh/authorized_keys"
+    mode: 600
+  with_dict: "{{ lxc }}"
 
-- name: Create onos3 container
-  lxc_container:
-    name: onos3
-    container_log: true
-    template: ubuntu
-    state: started
-    template_options: --release trusty
-    container_config:
-      - "lxc.network.ipv4=10.100.198.203/24"
-    container_command: |
-      ln -s /usr/lib/jvm/java/bin/java /usr/bin/java
-      apt-get update
-      apt-get install -y openssh-server
-      echo "ubuntu ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-onos-sudoers
+- name: Setting owner and group on authorized key files
+  become: yes
+  shell: "lxc-attach --name {{ item.value.name }} -- chown sdn:sdn /home/sdn/.ssh/authorized_keys"
+  with_dict: "{{ lxc }}"
+
+- name: Setting permissions on authorized key files
+  become: yes
+  shell: "lxc-attach --name {{ item.value.name }} -- chmod 600 /home/sdn/.ssh/authorized_keys"
+  with_dict: "{{ lxc }}"
+
+- name: Disabling ssh strict host key checking
+  blockinfile:
+    dest: "/etc/ssh/ssh_config"
+    block: |
+      Host *
+        StrictHostKeyChecking no
+
+- name: Adding containers hostname to hosts file
+  lineinfile:
+    dest: /etc/hosts
+    regexp: "^{{ item.value.ip }}"
+    line: "{{ item.value.ip }} {{ item.value.name }}"
+  with_dict: "{{ lxc }}"
+  tags: [common]

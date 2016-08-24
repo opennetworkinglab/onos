@@ -1,0 +1,107 @@
+---
+#
+# Adds optical tutorial specific configurations
+#
+- name: Installing Prerequisites
+  apt:
+    name: "{{ item }}"
+    force: yes
+    update_cache: yes
+  with_items: "{{ tutorials.optical.packages }}"
+
+- name: Downloading ERLANG package
+  get_url:
+    url: "{{ tutorials.optical.erlang.package_url }}"
+    dest: "{{ app_dir }}"
+
+- name: Extracting ERLANG package
+  unarchive:
+    src: "/home/ubuntu/{{ app_dir }}/otp_src_{{ tutorials.optical.erlang.version }}.tar.gz"
+    dest: "/home/ubuntu/{{ app_dir }}"
+    mode: 0777
+
+- name: Configuring ERLANG installation
+  shell: "{{ item }}"
+  args:
+    chdir: "/home/ubuntu/{{ app_dir }}/otp_src_{{ tutorials.optical.erlang.version }}"
+  with_items:
+    - ./configure
+
+- name: Installing ERLANG
+  become: yes
+  make:
+    chdir: "/home/ubuntu/{{ app_dir }}/otp_src_{{ tutorials.optical.erlang.version }}"
+    target: install
+
+- name: Removing ERLANG tar.gz
+  file:
+    path: "/home/ubuntu/{{ app_dir }}/otp_src_{{ tutorials.optical.erlang.version }}.tar.gz"
+    state: absent
+
+- name: Removing ERLANG directory
+  file:
+    path: "/home/ubuntu/{{ app_dir }}/otp_src_{{ tutorials.optical.erlang.version }}"
+    state: absent
+
+- name: Cloning LINC-OE repositories
+  git:
+    repo: "{{ item.value.url }}"
+    dest: "{{ item.value.dest }}"
+  with_dict: "{{ tutorials.optical.linc_oe }}"
+
+- name: Setting LINC-OE directory permissions
+  file:
+    path: "/home/ubuntu/{{ item.value.dest }}"
+    state: directory
+    mode: 0777
+  with_dict: "{{ tutorials.optical.linc_oe }}"
+
+- name: Configuring LINC-OE traffic generator
+  copy:
+    src: "/home/ubuntu/{{ tutorials.optical.linc_oe.config_generator.dest }}/priv/{{ item }}"
+    dest: "/home/ubuntu/{{ tutorials.optical.linc_oe.config_generator.dest }}/"
+    mode: 0777
+  with_items:
+    - "json_example.json"
+    - "sys.config.template"
+
+- name: Configuring LINC-OE switch
+  replace:
+    dest: "/home/ubuntu/{{ tutorials.optical.linc_oe.switch.dest }}/rel/files/vm.args"
+    regexp: 'ERL_MAX_ETS_TABLES 3000'
+    replace: 'ERL_MAX_ETS_TABLES 300000'
+
+- name: Applying LINC-OE switch config
+  copy:
+    src: "/home/ubuntu/{{ tutorials.optical.linc_oe.switch.dest }}/rel/files/sys.config.orig"
+    dest: "/home/ubuntu/{{ tutorials.optical.linc_oe.switch.dest }}/rel/files/sys.config"
+    mode: 0777
+
+- name: Compiling LINC-OE
+  make:
+    chdir: "/home/ubuntu/{{ item.value.dest }}"
+  with_dict: "{{ tutorials.optical.linc_oe }}"
+
+- name: Setting LINC-OE directory permissions
+  file:
+    path: "/home/ubuntu/{{ item.value.dest }}"
+    state: directory
+    mode: 0777
+  with_dict: "{{ tutorials.optical.linc_oe }}"
+
+- name: Creating LINC-OE Desktop icons
+  blockinfile:
+    dest: "/home/{{ tutorials.optical.user }}/Desktop/LINC-OE.desktop"
+    create: yes
+    owner: "{{ tutorials.optical.user }}"
+    group: "{{ tutorials.optical.user }}"
+    mode: 0777
+    block: |
+      [Desktop Entry]
+      Encoding=UTF-8
+      Type=Application
+      Name=LINC-OE
+      Name[en_US]=LINC-OE
+      Icon=konsole
+      Exec=gnome-terminal -x bash -c "{{ tutorials.optical.lincoe_exec  }}; exec $SHELL"
+      Comment[en_US]=

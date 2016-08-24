@@ -1,0 +1,285 @@
+---
+#
+# Installs basic tutorial packages and configures common tutorial settings
+#
+- name: Downloading repo key
+  apt_key:
+    url: "{{ google_chrome_key_url }}"
+    state: present
+
+- name: Installing Google Chrome repo
+  apt_repository:
+    repo: "{{ google_chrome_repo }}"
+    state: present
+    filename: "google-chrome"
+
+- name: Installing Google Chrome
+  apt:
+    name: google-chrome-stable
+    force: yes
+    update_cache: yes
+
+- name: Creating reset scripts for 1 node cell
+  template:
+    src: templates/reset_one_node.j2
+    dest: "{{ reset_files[0] }}"
+    owner: ubuntu
+    group: ubuntu
+    mode: 0777
+
+- name: Creating reset scripts for 3 node cell
+  template:
+    src: templates/reset_three_node.j2
+    dest: "{{ reset_files[1] }}"
+    owner: ubuntu
+    group: ubuntu
+    mode: 0777
+
+- name: Creating tutorial users
+  user:
+    name: "{{ item.value.user }}"
+    groups: "wireshark"
+    append: yes
+    password: "{{ item.value.pass }}"
+  with_dict: "{{ tutorials }}"
+
+- name: Adding tutorial users to sudoers
+  lineinfile:
+    dest: "/etc/sudoers.d/{{ item.value.user }}"
+    line: "{{ item.value.user }} ALL=(ALL) NOPASSWD:ALL"
+    state: present
+    create: yes
+  with_dict: "{{ tutorials }}"
+
+- name: Creating .ssh folders
+  file:
+    path: "/home/{{ item.value.user }}/.ssh"
+    state: directory
+    owner: "{{ item.value.user }}"
+    group: "{{ item.value.user }}"
+    mode: 0700
+  with_dict: "{{ tutorials }}"
+
+- name: Copying .ssh keys
+  copy:
+    src: "/home/ubuntu/.ssh/id_rsa"
+    dest: "/home/{{ item.value.user }}/.ssh/id_rsa"
+    owner: "{{ item.value.user }}"
+    group: "{{ item.value.user }}"
+    mode: 0600
+  with_dict: "{{ tutorials }}"
+
+- name: Setting ONOS variables
+  blockinfile:
+    dest: "/home/{{ item.value.user }}/.bashrc"
+    create: yes
+    block: |
+      export ONOS_ROOT=/home/ubuntu/onos
+      export KARAF_ROOT=/home/ubuntu/Applications/apache-karaf-{{ karaf_version }}
+      export KARAF_TAR=/home/ubuntu/Applications/apache-karaf-{{ karaf_version }}.tar.gz
+      export M2_REPO=/home/ubuntu/.m2/repository
+      . /home/ubuntu/onos/tools/dev/bash_profile
+      cell {{ item.value.cell }} > /dev/null
+  with_dict: "{{ tutorials }}"
+
+- name: Creating .wireshark folders
+  file:
+    path: "/home/{{ item.value.user }}/{{ wireshark.plugins_dir }}"
+    state: directory
+    owner: "{{ item.value.user }}"
+    group: "{{ item.value.user }}"
+    mode: 0755
+  with_dict: "{{ tutorials }}"
+
+- name: Copying openflow.lua Wireshark plugin
+  copy:
+    src: "/home/ubuntu/openflow.lua"
+    dest: "/home/{{ item.value.user }}/{{ wireshark.plugins_dir }}"
+    owner: "{{ item.value.user }}"
+    group: "{{ item.value.user }}"
+  with_dict: "{{ tutorials }}"
+
+- name: Creating run_onos.sh script
+  template:
+    src: templates/run_onos.j2
+    dest: /home/ubuntu/run_onos.sh
+    owner: ubuntu
+    group: ubuntu
+    mode: 0777
+
+- name: Creating config Desktop folder
+  file:
+    path: "/home/{{ item.value.user }}/.config/pcmanfm/lubuntu/"
+    state: directory
+    owner: "{{ item.value.user }}"
+    group: "{{ item.value.user }}"
+    mode: 0777
+  with_dict: "{{ tutorials }}"
+  
+- name: Loading ONOS Desktop background
+  template:
+    src: templates/gui_custom.j2
+    dest: "/home/{{ item.value.user }}/.config/pcmanfm/lubuntu/desktop-items-0.conf"
+    owner: "{{ item.value.user }}"
+    group: "{{ item.value.user }}"
+    mode: 0777
+  with_dict: "{{ tutorials }}"
+
+- name: Creating Desktop folders
+  file:
+    path: "/home/{{ item.value.user }}/Desktop"
+    state: directory
+    mode: 0755
+  with_dict: "{{ tutorials }}"
+
+- name: Creating ONOS CLI Desktop icons
+  blockinfile:
+    dest: "/home/{{ item.value.user }}/Desktop/ONOS CLI.desktop"
+    create: yes
+    owner: "{{ item.value.user }}"
+    group: "{{ item.value.user }}"
+    mode: 0777
+    block: |
+      [Desktop Entry]
+      Encoding=UTF-8
+      Type=Application
+      Name=ONOS
+      Name[en_US]=ONOS
+      Icon=konsole
+      Exec=/home/ubuntu/run_onos.sh
+      Comment[en_US]=
+      Terminal=true
+      X-KeepTerminal=true
+  with_dict: "{{ tutorials }}"
+
+- name: Creating Mininet Desktop icon
+  blockinfile:
+    dest: "/home/{{ item.value.user }}/Desktop/Mininet.desktop"
+    create: yes
+    owner: "{{ item.value.user }}"
+    group: "{{ item.value.user }}"
+    mode: 0777
+    block: |
+      [Desktop Entry]
+      Encoding=UTF-8
+      Type=Application
+      Name=Mininet
+      Name[en_US]=Mininet
+      Icon=konsole
+      Exec={{ item.value.mininet_exec  }}
+      Comment[en_US]=
+      Terminal=true
+      X-KeepTerminal=true
+  with_dict: "{{ tutorials }}"
+
+- name: Creating Tutorial Desktop icons
+  blockinfile:
+    dest: "/home/{{ item.value.user }}/Desktop/Tutorial.desktop"
+    create: yes
+    owner: "{{ item.value.user }}"
+    group: "{{ item.value.user }}"
+    mode: 0777
+    block: |
+      [Desktop Entry]
+      Encoding=UTF-8
+      Type=Application
+      Name=ONOS Tutorial
+      Name[en_US]=ONOS Tutorial
+      Icon=internet-web-browser
+      Exec=/usr/bin/google-chrome-stable {{ item.value.url }}
+      Comment[en_US]=
+  with_dict: "{{ tutorials }}"
+
+- name: Creating GUI Desktop icons
+  blockinfile:
+    dest: "/home/{{ item.value.user }}/Desktop/ONOS GUI.desktop"
+    create: yes
+    owner: "{{ item.value.user }}"
+    group: "{{ item.value.user }}"
+    mode: 0777
+    block: |
+      [Desktop Entry]
+      Encoding=UTF-8
+      Type=Application
+      Name=ONOS GUI
+      Name[en_US]=ONOS GUI
+      Icon=internet-web-browser
+      Exec=/usr/bin/google-chrome-stable http://{{ lxc.lxc_one.ip }}:8181/onos/ui/index.html#topo
+      Comment[en_US]=
+  with_dict: "{{ tutorials }}"
+
+- name: Creating IntelliJ Desktop icons
+  blockinfile:
+    dest: "/home/{{ item.value.user }}/Desktop/IntelliJ.desktop"
+    create: yes
+    owner: "{{ item.value.user }}"
+    group: "{{ item.value.user }}"
+    mode: 0777
+    block: |
+      [Desktop Entry]
+      Encoding=UTF-8
+      Type=Application
+      Name=IntelliJ
+      Name[en_US]=IntelliJ
+      Icon=/home/ubuntu/{{ app_dir }}/{{ intellij.dir_name }}/bin/idea.png
+      Exec=/home/ubuntu/{{ app_dir }}/{{ intellij.dir_name }}/bin/idea.sh
+      Comment[en_US]=
+  with_dict: "{{ tutorials }}"
+
+- name: Creating Wireshark Desktop icons
+  blockinfile:
+    dest: "/home/{{ item.value.user }}/Desktop/Wireshark.desktop"
+    create: yes
+    owner: "{{ item.value.user }}"
+    group: "{{ item.value.user }}"
+    mode: 0777
+    block: |
+      [Desktop Entry]
+      Encoding=UTF-8
+      Type=Application
+      Name=Wireshark
+      Name[en_US]=Wireshark
+      Icon=wireshark
+      Exec=/usr/bin/wireshark
+      Comment[en_US]=
+  with_dict: "{{ tutorials }}"
+
+- name: Creating Terminal Desktop icon
+  blockinfile:
+    dest: "/home/{{ item.value.user }}/Desktop/Terminal.desktop"
+    create: yes
+    owner: "{{ item.value.user }}"
+    group: "{{ item.value.user }}"
+    mode: 0777
+    block: |
+      [Desktop Entry]
+      Encoding=UTF-8
+      Type=Application
+      Name=Terminal
+      Name[en_US]=Terminal
+      Icon=konsole
+      Exec=/bin/bash
+      Comment[en_US]=
+      Terminal=true
+      X-KeepTerminal=true
+  with_dict: "{{ tutorials }}"
+
+- name: Creating Reset Desktop icon
+  blockinfile:
+    dest: "/home/{{ item.value.user }}/Desktop/Reset.desktop"
+    create: yes
+    owner: "{{ item.value.user }}"
+    group: "{{ item.value.user }}"
+    mode: 0777
+    block: |
+      [Desktop Entry]
+      Encoding=UTF-8
+      Type=Application
+      Name=Reset
+      Name[en_US]=Reset
+      Icon=konsole
+      Exec={{ item.value.reset_exec }}
+      Comment[en_US]=
+      Terminal=true
+      X-KeepTerminal=true
+  with_dict: "{{ tutorials }}"

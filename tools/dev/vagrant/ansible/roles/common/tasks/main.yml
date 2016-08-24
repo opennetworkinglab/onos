@@ -1,42 +1,26 @@
-- name: bridge-utils is present
-  apt:
-    name: bridge-utils
-    force: yes
+---
+#
+# Performs basic tasks to prepare the dev environment, such as managing the default user
+# credentials, installing the basic packages, assigning host names.
+#
+- name: Setting password ubuntu and ssh key for user ubuntu
+  user:
+    name: ubuntu
+    password: $6$rounds=656000$UcEQn7gcdsZCqt6m$HifWVYa6XXX5rpbAqkGj2mJfrIm9iT2AN2fbQbJNLcRr10SwhQgTQVnVqY8UGSQsD14WlFCdNCmJDay3CPlUR0
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
   tags: [common]
 
-- name: lxc is present
+- name: Installing basic packages
   apt:
-    name: lxc
+    name: "{{ item }}"
     force: yes
+  with_items: "{{ basic_packages }}"
   tags: [common]
 
-- name: python-dev is present
-  apt:
-    name: python-dev
-    force: yes
-  tags: [common]
-
-- name: lxc-dev is present
-  apt:
-    name: lxc-dev
-    force: yes
-  tags: [common]
-
-- name: python-pip is present
-  apt:
-    name: python-pip
-    force: yes
-  tags: [common]
-
-- name: python3-lxc is present
+- name: Installing python3-lxc
   pip:
     name: lxc-python2
     state: present
-  tags: [common]
-- name: Host is present
-  lineinfile:
-    dest: /etc/hosts
-    regexp: "^{{ item.host_ip }}"
-    line: "{{ item.host_ip }} {{ item.host_name }}"
-  with_items: hosts
   tags: [common]

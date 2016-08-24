@@ -1,6 +1,6 @@
 ---
 #
-# Installs Mininet, Wireshark and the latest openflow.lua dissector plugin (Loxi version)
+# Installs the GUI and does customizations, such as changing the background.
 #
 - name: Include vars
   hosts: localhost
@@ -11,5 +11,5 @@
   remote_user: vagrant
   serial: 1
   roles:
-    - mininet
-    - wireshark-custom
+    - gui
+    - gui-customization

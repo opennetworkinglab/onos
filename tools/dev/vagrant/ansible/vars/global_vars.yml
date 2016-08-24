@@ -1,0 +1,133 @@
+---
+###########################################################################
+# This file contains the global vars used to configured VM and containers #
+###########################################################################
+#
+# IP Addresses and host names
+dev_host:
+  ip: "10.100.198.200"
+  name: "onos-dev"
+  release: "xenial"
+
+lxc:
+  lxc_one:
+    ip: "10.100.198.201"
+    name: "onos1"
+    release: "xenial"
+
+  lxc_two:
+    ip: "10.100.198.202"
+    name: "onos2"
+    release: "xenial"
+
+  lxc_three:
+    ip: "10.100.198.203"
+    name: "onos3"
+    release: "xenial"
+
+# Networking and bridge configuration
+bridge:
+  phy_interface: "enp0s8"
+  name: "onosbr0"
+  ip: "{{ dev_host.ip }}/24"
+
+# ONOS Applications and Downloads folders
+app_dir: "Applications"
+download_dir: "Downloads"
+
+# Basic packages to be installed
+basic_packages:
+  - "bridge-utils"
+  - "git"
+  - "git-review"
+  - "lxc"
+  - "lxc-dev"
+  - "python-dev"
+  - "python-pip"
+
+# ONOS
+onos_repo_url: "https://gerrit.onosproject.org/onos"
+onos_version: "1.6"
+onos_nic: "10.100.198.*"
+onos_variables:
+  - "export ONOS_ROOT=~/onos"
+  - "source $ONOS_ROOT/tools/dev/bash_profile"
+
+# Karaf
+karaf_version: "3.0.5"
+
+# Tutorial reset files
+reset_files:
+  - "/home/ubuntu/reset-to-1.sh"
+  - "/home/ubuntu/reset-to-3.sh"
+
+# Tutorial cell files
+cell_files:
+  - "/home/ubuntu/onos/tools/test/cells/1node"
+  - "/home/ubuntu/onos/tools/test/cells/3node"
+
+# URL where the ONOS Desktop background is downloaded from
+onos_background_url: "https://gerrit.onosproject.org/gitweb?p=onos-vm.git;a=blob_plain;f=onos.png;hb=refs/heads/master"
+
+# Wireshark
+wireshark:
+  plugins_dir: ".config/wireshark/plugins"
+  of_lua_url: "https://raw.githubusercontent.com/floodlight/loxigen-artifacts/master/wireshark/openflow.lua"
+
+# Google Chrome repo
+google_chrome_key_url: "https://ftp-master.debian.org/keys/archive-key-6.0.asc"
+google_chrome_repo: "deb http://dl.google.com/linux/chrome/deb/ stable main"
+
+# IDEs configuration
+intellij:
+  dir_name: "idea-IC-162.1628.40"
+  url: "https://download.jetbrains.com/idea/ideaIC-2016.2.2.tar.gz"
+
+# Tutorials configuration
+tutorials:
+  basic:
+    user: "tutorial1"
+    pass: $6$rounds=656000$LB/idnMb2Yy9UqSj$28Tb6R.JU3E3O.IHNWp1cQCDlWO.niFjdInKkZz0hck7eAUII.2TywPL.3PVAIPnlSjTEcUz/qjPGas4vnS56/
+    mininet_exec: sudo mn --custom /home/ubuntu/onos/tools/test/topos/tower.py --topo tower --controller remote,{{ lxc.lxc_one.ip }} --mac
+    cell: "1node"
+    reset_exec: /home/ubuntu/reset-to-1.sh
+    url: "https://wiki.onosproject.org/display/ONOS/Basic+ONOS+Tutorial"
+
+  sdnip:
+    user: "sdnip"
+    pass: $6$rounds=656000$PFDQnzQR8r0zusoI$kM.LQFdDkAMLm7rHRh94K.VqtmTVj9fb8jwaFm2jZsF9SUGJTuMxt6IUdPp445seAOcmnVpzwk3v85bPHZtLL/
+    cell: "1node"
+    mininet_exec: sudo mn --custom /home/sdnip/sdnip/tutorial.py --topo sdnip --controller remote,{{ lxc.lxc_one.ip }} --nolistenport
+    reset_exec: /home/ubuntu/reset-to-1.sh
+    url: "https://wiki.onosproject.org/display/ONOS/SDN-IP+Tutorial"
+    packages: [ "quagga" ]
+
+  optical:
+    user: "optical"
+    pass: $6$rounds=656000$Fdw89xOiuYlJAKpi$dK6wqIVaJpn96XBxZbcwZbg2mAuPdGbNEUfJaLV1dqC/SFtdrNIWXjxCobIefy3AVMdgobZl9D3OACtt8LkTz/
+    cell: "1node"
+    mininet_exec: sudo -E python /home/ubuntu/onos/tools/test/topos/opticalTest.py {{ lxc.lxc_one.ip }}
+    lincoe_exec: sudo /home/ubuntu/linc-oe/rel/linc/bin/linc attach
+    reset_exec: /home/ubuntu/reset-to-1.sh proxyarp,optical
+    url: "https://wiki.onosproject.org/display/ONOS/Packet+Optical+Tutorial"
+    packages: [ "make", "libncurses5-dev" ]
+    erlang:
+      version: "17.5"
+      package_url: "http://erlang.org/download/otp_src_17.5.tar.gz"
+    linc_oe:
+      config_generator:
+        url: "https://github.com/FlowForwarding/LINC-config-generator.git"
+        dest: "LINC-config-generator"
+      switch:
+        url: "https://github.com/FlowForwarding/LINC-Switch.git"
+        dest: "linc-oe"
+
+  distributed:
+    user: "distributed"
+    pass: $6$rounds=656000$OR9O9v15WVPqoXyu$eaBtzH9xhqi9E10U2kSlT2ltFzgpPU81yRBE6mCY.Ln9YzIYDnNys5gnPtflw1OJqa8L.8h6mPB.sIETd.oTm0
+    cell: "3node"
+    mininet_exec: cd /home/distributed/onos-byon/ && ./startmn.sh
+    reset_exec: /home/ubuntu/reset-to-3.sh
+    url: "https://wiki.onosproject.org/display/ONOS/Distributed+ONOS+Tutorial"
+    byon_app_repo_url: "https://github.com/bocon13/onos-byon.git"
+    byon_app_version: "starter-{{ onos_version }}.0"

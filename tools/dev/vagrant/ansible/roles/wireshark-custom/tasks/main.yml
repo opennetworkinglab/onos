@@ -1,0 +1,13 @@
+- name: Enabling non-root wireshark 1/2 (Set debconf)
+  become: yes
+  debconf: name='wireshark-common' question='wireshark-common/install-setuid' value='true' vtype='boolean'
+
+- name: Enabling non-root wireshark 2/2 (reconfiguring wireshark-common package)
+  become: yes
+  command: dpkg-reconfigure -f noninteractive wireshark-common
+
+- name: Downloading most recent openflow.lua wireshark plugin
+  get_url:
+    url: "{{ wireshark.of_lua_url }}"
+    dest: /home/ubuntu
+    mode: 0777

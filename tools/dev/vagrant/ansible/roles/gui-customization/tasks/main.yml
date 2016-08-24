@@ -1,0 +1,25 @@
+---
+#
+# Customizes the machine GUI
+#
+- name: Creating folder for background images
+  become: yes
+  file:
+    path: /usr/share/backgrounds
+    state: directory
+
+- name: Downloading ONOS background
+  become: yes
+  get_url:
+    url: "{{ onos_background_url }}"
+    dest: /usr/share/lubuntu/wallpapers/onos.png
+
+- name: Disabling user selection at login
+  blockinfile:
+    dest: "/etc/lightdm/lightdm.conf"
+    create: yes
+    block: |
+     [SeatDefaults]
+     greeter-show-manual-login = true
+     greeter-hide-users = true
+     allow-guest = false

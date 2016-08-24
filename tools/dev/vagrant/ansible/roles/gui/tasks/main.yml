@@ -1,0 +1,27 @@
+---
+#
+# Installs the Ubuntu GUI Unity and makes sure the machine doesn't start in text mode.
+# The machine is restarted at the end of the process.
+#
+- name: Installing GUI dependencies
+  become: yes
+  apt:
+    name: lubuntu-desktop
+
+- name: Editing grub GRUB_CMDLINE_LINUX_DEFAULT
+  become: yes
+  replace:
+    dest: /etc/default/grub
+    regexp: 'GRUB_CMDLINE_LINUX_DEFAULT="console=tty1 console=ttyS0"'
+    replace: 'GRUB_CMDLINE_LINUX_DEFAULT="nomodeset"'
+
+- name: Removing text mode from GRUB
+  become: yes
+  replace:
+    dest: /etc/default/grub
+    regexp: 'text'
+    replace: ''
+
+- name: Updating GRUB
+  become: yes
+  command: update-grub

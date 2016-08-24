@@ -1,0 +1,25 @@
+---
+#
+# Installs the IntelliJ IDE
+#
+- name: Making sure Application folder is present
+  file:
+    path: "{{ app_dir }}"
+    state: directory
+    mode: 0777
+
+- name: Downloading IntelliJ
+  get_url:
+    url: "{{ intellij.url }}"
+    dest: "{{ app_dir }}/intellij.tar.gz"
+
+- name: Extracting IntelliJ
+  unarchive:
+    src: "/home/ubuntu/{{ app_dir }}/intellij.tar.gz"
+    dest: "/home/ubuntu/{{ app_dir }}"
+    mode: 0777
+
+- name: Removing IntelliJ tar.gz archive
+  file:
+    path: "{{ app_dir }}/intellij.tar.gz"
+    state: absent

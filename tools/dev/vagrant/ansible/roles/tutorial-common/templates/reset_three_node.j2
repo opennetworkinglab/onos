@@ -1,0 +1,22 @@
+#!/bin/bash
+
+sudo rm -rf /tmp/*
+
+export ONOS_ROOT=/home/ubuntu/onos
+export M2_REPO=/home/ubuntu/.m2/repository
+export KARAF_TAR=/home/ubuntu/{{ app_dir }}/apache-karaf-{{ karaf_version }}.tar.gz
+export KARAF_ROOT=/home/ubuntu/{{ app_dir }}/apache-karaf-{{ karaf_version }}
+source ${ONOS_ROOT}/tools/dev/bash_profile
+
+sudo mn -c
+
+sudo chmod -R 777 /home/ubuntu/onos
+sudo chmod -R 777 /home/ubuntu/.m2
+
+cell 3node
+
+if [ -n "$1" ]; then
+    export ONOS_APPS=$ONOS_APPS,$1
+fi
+
+onos-test

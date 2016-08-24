@@ -1,0 +1,9 @@
+---
+#
+# Adds distributed tutorial specific configurations
+#
+- name: Cloning byon app repo
+  git:
+    repo: "{{ tutorials.distributed.byon_app_repo_url }}"
+    dest: "/home/{{ tutorials.distributed.user }}/onos-byon"
+    version: "{{ tutorials.distributed.byon_app_version }}"

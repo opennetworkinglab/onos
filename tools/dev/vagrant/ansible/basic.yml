@@ -1,6 +1,6 @@
 ---
 #
-# Installs Mininet, Wireshark and the latest openflow.lua dissector plugin (Loxi version)
+# Installs a clean dev environment. Hostnames, bride, some utils
 #
 - name: Include vars
   hosts: localhost
@@ -11,5 +11,4 @@
   remote_user: vagrant
   serial: 1
   roles:
-    - mininet
-    - wireshark-custom
+    - common
