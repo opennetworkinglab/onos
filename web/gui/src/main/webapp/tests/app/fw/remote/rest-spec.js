@@ -18,21 +18,24 @@
  ONOS GUI -- Remote -- REST Service - Unit Tests
  */
 describe('factory: fw/remote/rest.js', function() {
-    var $log, $httpBackend, fs, rs, promise;
+    var $log, $httpBackend, fs, rs;
 
     beforeEach(module('onosUtil', 'onosRemote'));
 
     beforeEach(module(function($provide) {
-        $provide.factory('$location', function (){
+        $provide.factory('$location', function () {
             return {
                 protocol: function () { return 'http'; },
                 host: function () { return 'foo'; },
                 port: function () { return '80'; },
                 search: function() {
                     return {debug: 'true'};
+                },
+                absUrl: function () {
+                    return 'http://foo:123/onos/ui/rs/path';
                 }
             };
-        })
+        });
     }));
 
     beforeEach(inject(function (_$log_, _$httpBackend_, FnService, RestService) {
