@@ -210,13 +210,19 @@ public class SingleSwitchFibInstaller {
 
     //remove filtering objectives and routes before deactivate.
     private void cleanUp() {
+        //remove the route listener
+        routeService.removeListener(routeListener);
+
         //clean up the routes.
         for (Map.Entry<IpPrefix, IpAddress> routes: prefixToNextHop.entrySet()) {
             deleteRoute(new ResolvedRoute(routes.getKey(), null, null));
         }
+
         //clean up the filtering objective for interfaces.
         Set<Interface> intfs = getInterfaces();
-        processIntfFilters(false, intfs);
+        if (!intfs.isEmpty()) {
+            processIntfFilters(false, intfs);
+        }
     }
 
     private void updateConfig() {
@@ -237,8 +243,34 @@ public class SingleSwitchFibInstaller {
         log.info("Using interfaces: {}", interfaces.isEmpty() ? "all" : interfaces);
 
         routeService.addListener(routeListener);
-
         updateDevice();
+    }
+
+    //remove the filtering objective for interfaces which are no longer part of vRouter config.
+    private void removeFilteringObjectives(NetworkConfigEvent event) {
+        RouterConfig prevRouterConfig = (RouterConfig) event.prevConfig().get();
+        List<String> prevInterfaces = prevRouterConfig.getInterfaces();
+
+        Set<Interface> previntfs = filterInterfaces(prevInterfaces);
+        //if previous interface list is empty it means filtering objectives are
+        //installed for all the interfaces.
+        if (previntfs.isEmpty() && !interfaces.isEmpty()) {
+            Set<Interface> allIntfs = interfaceService.getInterfaces();
+            for (Interface allIntf : allIntfs) {
+                if (!interfaces.contains(allIntf.name())) {
+                    processIntfFilter(false, allIntf);
+                }
+            }
+            return;
+        }
+
+        //remove the filtering objective for the interfaces which are not
+        //part of updated interfaces list.
+        for (Interface prevIntf : previntfs) {
+            if (!interfaces.contains(prevIntf.name())) {
+                processIntfFilter(false, prevIntf);
+            }
+        }
     }
 
     private void updateDevice() {
@@ -254,11 +286,16 @@ public class SingleSwitchFibInstaller {
             intfs = interfaceService.getInterfaces();
         } else {
             // TODO need to fix by making interface names globally unique
-            intfs = interfaceService.getInterfaces().stream()
-                    .filter(intf -> intf.connectPoint().deviceId().equals(deviceId))
-                    .filter(intf -> interfaces.contains(intf.name()))
-                    .collect(Collectors.toSet());
+            intfs = filterInterfaces(interfaces);
         }
+        return intfs;
+    }
+
+    private Set<Interface> filterInterfaces(List<String> interfaces) {
+        Set<Interface> intfs = interfaceService.getInterfaces().stream()
+                .filter(intf -> intf.connectPoint().deviceId().equals(deviceId))
+                .filter(intf -> interfaces.contains(intf.name()))
+                .collect(Collectors.toSet());
         return intfs;
     }
 
@@ -420,6 +457,9 @@ public class SingleSwitchFibInstaller {
             // Ignore interfaces if they are not on the router switch
             return;
         }
+        if (!interfaces.contains(intf.name()) && install) {
+            return;
+        }
 
         createFilteringObjective(install, intf);
         createMcastFilteringObjective(install, intf);
@@ -557,10 +597,17 @@ public class SingleSwitchFibInstaller {
                 case CONFIG_ADDED:
                 case CONFIG_UPDATED:
                     updateConfig();
+                    if (event.prevConfig().isPresent()) {
+                        removeFilteringObjectives(event);
+                    }
                     break;
                 case CONFIG_REGISTERED:
+                    break;
                 case CONFIG_UNREGISTERED:
+                    break;
                 case CONFIG_REMOVED:
+                    cleanUp();
+                    break;
                 default:
                     break;
                 }
