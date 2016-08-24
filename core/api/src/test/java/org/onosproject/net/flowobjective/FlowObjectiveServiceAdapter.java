@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.sfc.util;
 
-import java.util.List;
-
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.flowobjective.FilteringObjective;
-import org.onosproject.net.flowobjective.FlowObjectiveService;
-import org.onosproject.net.flowobjective.ForwardingObjective;
-import org.onosproject.net.flowobjective.NextObjective;
+package org.onosproject.net.flowobjective;
 
 import com.google.common.collect.ImmutableList;
+import org.onosproject.net.DeviceId;
+
+import java.util.List;
 
 /**
  * Testing version of implementation on FlowObjectiveService.
  */
-public class FlowObjectiveAdapter implements FlowObjectiveService {
+public class FlowObjectiveServiceAdapter implements FlowObjectiveService {
 
     private ForwardingObjective forwardingObjective;
     @Override
