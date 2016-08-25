@@ -60,7 +60,7 @@
         linkLabel,
         node;
 
-    var $log, wss, t2is, t2rs, t2ls, t2vs;
+    var $log, wss, t2is, t2rs, t2ls, t2vs, t2bcs;
     var svg, forceG, uplink, dim, opts;
 
     // ========================== Helper Functions
@@ -155,6 +155,7 @@
 
     function currentLayout(data) {
         $log.debug('>> topo2CurrentLayout event:', data);
+        t2bcs.addBreadcrumb(data.crumbs);
     }
 
     function currentRegion(data) {
@@ -232,8 +233,8 @@
     angular.module('ovTopo2')
     .factory('Topo2ForceService',
         ['$log', 'WebSocketService', 'Topo2InstanceService', 'Topo2RegionService',
-        'Topo2LayoutService', 'Topo2ViewService',
-        function (_$log_, _wss_, _t2is_, _t2rs_, _t2ls_, _t2vs_) {
+        'Topo2LayoutService', 'Topo2ViewService', 'Topo2BreadcrumbService',
+        function (_$log_, _wss_, _t2is_, _t2rs_, _t2ls_, _t2vs_, _t2bcs_) {
 
             $log = _$log_;
             wss = _wss_;
@@ -241,6 +242,7 @@
             t2rs = _t2rs_;
             t2ls = _t2ls_;
             t2vs = _t2vs_;
+            t2bcs = _t2bcs_;
 
             return {
 

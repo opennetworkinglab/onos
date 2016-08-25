@@ -50,3 +50,19 @@
     text-decoration: underline;
     cursor: pointer;
 }
+
+#breadcrumbs {
+    position: absolute;
+    padding: 10px 30px;
+    top: 54px;
+    width: 100%;
+}
+
+#breadcrumbs .breadcrumb {
+    display: inline-block;
+    margin-right: 20px;
+}
+
+.floatpanel {
+    top: 104px;
+}

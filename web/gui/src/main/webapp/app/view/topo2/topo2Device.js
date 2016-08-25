@@ -107,7 +107,7 @@
             id = "127.0.0.1", // TODO: This should be from node.master
             otag = o ? 'online' : 'offline';
         return o ? sus.cat7().getColor(id, 0, ts.theme())
-                 : dColTheme[ts.theme()][otag];
+                 : '#ff0000';
     }
 
     function setDeviceColor() {

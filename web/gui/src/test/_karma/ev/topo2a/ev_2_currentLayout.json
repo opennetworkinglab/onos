@@ -4,6 +4,20 @@
     "id": "_default_",
     "parent": "",
     "region": "",
-    "regionName": ""
+    "regionName": "",
+    "crumbs": [
+      {
+        "id": "(root)",
+        "name": "(root)"
+      },
+      {
+        "id": "r1",
+        "name": "Region-One"
+      },
+      {
+        "id": "r3",
+        "name": "Region-Three"
+      }
+    ]
   }
 }
