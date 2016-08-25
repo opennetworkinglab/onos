@@ -74,6 +74,16 @@ import org.onosproject.store.service.Versioned;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
+
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
@@ -83,14 +93,6 @@ import static org.onosproject.net.behaviour.TunnelDescription.Type.VXLAN;
 import static org.onosproject.openstacknode.Constants.*;
 import static org.onosproject.openstacknode.OpenstackNodeEvent.NodeState.*;
 import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Dictionary;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
 
 /**
  * Initializes devices in compute/gateway nodes according to there type.
@@ -161,6 +163,7 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
     private final BridgeHandler bridgeHandler = new BridgeHandler();
 
     private ConsistentMap<String, OpenstackNode> nodeStore;
+
     private ApplicationId appId;
     private NodeId localNodeId;
 
@@ -654,7 +657,13 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
             log.debug("No configuration found");
             return;
         }
-        config.openstackNodes().forEach(this::addOrUpdateNode);
+
+        Map<String, OpenstackNode> prevNodeMap = new HashMap(nodeStore.asJavaMap());
+        config.openstackNodes().forEach(node -> {
+            prevNodeMap.remove(node.hostname());
+            addOrUpdateNode(node);
+        });
+        prevNodeMap.values().stream().forEach(this::deleteNode);
     }
 
     private class InternalConfigListener implements NetworkConfigListener {
