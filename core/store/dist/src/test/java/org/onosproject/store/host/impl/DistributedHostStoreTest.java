@@ -15,6 +15,11 @@
  */
 package org.onosproject.store.host.impl;
 
+import java.util.Dictionary;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Set;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,10 +36,7 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.service.TestStorageService;
 
-import java.util.Dictionary;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Set;
+import com.google.common.collect.Sets;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertFalse;
@@ -47,6 +49,7 @@ public class DistributedHostStoreTest {
     private DistributedHostStore ecXHostStore;
 
     private static final HostId HOSTID = HostId.hostId(MacAddress.valueOf("1a:1a:1a:1a:1a:1a"));
+    private static final HostId HOSTID1 = HostId.hostId(MacAddress.valueOf("1a:1a:1a:1a:1a:1b"));
 
     private static final IpAddress IP1 = IpAddress.valueOf("10.2.0.2");
     private static final IpAddress IP2 = IpAddress.valueOf("10.2.0.3");
@@ -85,10 +88,7 @@ public class DistributedHostStoreTest {
         ips.add(IP1);
         ips.add(IP2);
 
-        HostDescription description = new DefaultHostDescription(HOSTID.mac(),
-                                                                    HOSTID.vlanId(),
-                                                                    HostLocation.NONE,
-                                                                    ips);
+        HostDescription description = createHostDesc(HOSTID, ips);
         ecXHostStore.createOrUpdateHost(PID, HOSTID, description, false);
         ecXHostStore.removeIp(HOSTID, IP1);
         Host host = ecXHostStore.getHost(HOSTID);
@@ -104,14 +104,56 @@ public class DistributedHostStoreTest {
         ips.add(IP2);
 
         HostDescription description = new DefaultHostDescription(HOSTID.mac(),
-                HOSTID.vlanId(),
-                HostLocation.NONE,
-                ips);
+                                                                 HOSTID.vlanId(),
+                                                                 HostLocation.NONE,
+                                                                 ips);
         ecXHostStore.createOrUpdateHost(PID, HOSTID, description, false);
         Timestamp timestamp = ecXHostStore.getHostLastseenTime(HOSTID);
 
         assertFalse(timestamp == null);
         assertTrue(timestamp != null);
+    }
+
+    @Test
+    public void testAddHostByIp() {
+        Set<IpAddress> ips = new HashSet<>();
+        ips.add(IP1);
+        ips.add(IP2);
+        HostDescription description = createHostDesc(HOSTID, ips);
+        ecXHostStore.createOrUpdateHost(PID, HOSTID, description, false);
+
+        Set<Host> hosts = ecXHostStore.getHosts(IP1);
+
+        assertFalse(hosts.size() > 1);
+        assertTrue(hosts.size() == 1);
+
+        HostDescription description1 = createHostDesc(HOSTID1, Sets.newHashSet(IP2));
+        ecXHostStore.createOrUpdateHost(PID, HOSTID1, description1, false);
+
+        Set<Host> hosts1 = ecXHostStore.getHosts(IP2);
+
+        assertFalse(hosts1.size() < 1);
+        assertTrue(hosts1.size() == 2);
+    }
+
+    @Test
+    public void testRemoveHostByIp() {
+        Set<IpAddress> ips = new HashSet<>();
+        ips.add(IP1);
+        ips.add(IP2);
+
+        HostDescription description = createHostDesc(HOSTID, ips);
+        ecXHostStore.createOrUpdateHost(PID, HOSTID, description, false);
+        ecXHostStore.removeIp(HOSTID, IP1);
+        Set<Host> hosts = ecXHostStore.getHosts(IP1);
+        assertTrue(hosts.size() == 0);
+    }
+
+    private HostDescription createHostDesc(HostId hostId, Set<IpAddress> ips) {
+        return new DefaultHostDescription(hostId.mac(),
+                                          hostId.vlanId(),
+                                          HostLocation.NONE,
+                                          ips);
     }
 
 }
