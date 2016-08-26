@@ -193,7 +193,8 @@
             .transition()
             .attr('opacity', 1);
 
-        entering.filter('.device').each(t2d3.deviceEnter);
+        entering.filter('.device').each(t2d3.nodeEnter);
+        entering.filter('.sub-region').each(t2d3.nodeEnter);
         entering.filter('.host').each(t2d3.hostEnter);
 
         // operate on both existing and new nodes:

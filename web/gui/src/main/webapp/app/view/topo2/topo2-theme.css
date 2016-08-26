@@ -171,6 +171,15 @@
     fill: #454545;
 }
 
+#ov-topo2 svg .node.sub-region rect {
+    fill: #ffffff;
+}
+
+#ov-topo2 svg .node.sub-region use {
+    /* NOTE: this gets overridden programatically */
+    fill: #454545;
+}
+
 
 #ov-topo2 svg .node.device.selected rect {
     stroke-width: 2.0;

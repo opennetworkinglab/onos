@@ -29,6 +29,11 @@
     var defaultLinkType = 'direct',
         nearDist = 15;
 
+    var devIconDim = 36,
+        labelPad = 10,
+        halfDevIcon = devIconDim / 2,
+        nodeLabelIndex = 1;
+
     function positionNode(node, forUpdate) {
 
         var meta = node.metaUi,
@@ -112,6 +117,36 @@
             return Model.extend({
                 initialize: function () {
                     this.node = this.createNode();
+                },
+                label: function () {
+
+                    var props = this.get('props'),
+                        id = this.get('id'),
+                        friendlyName = props ? props.name : id,
+                        labels = ['', friendlyName, id],
+                        idx = (nodeLabelIndex < labels.length) ? nodeLabelIndex : 0;
+
+                    return labels[idx];
+                },
+                trimLabel: function(label) {
+                    return (label && label.trim()) || '';
+                },
+                computeLabelWidth: function(el) {
+                    var text = el.select('text'),
+                    box = text.node().getBBox();
+                    return box.width + labelPad * 2;
+                },
+                addLabelElements: function(label) {
+                    var rect = this.el.append('rect');
+                    var text = this.el.append('text').text(label)
+                        .attr('text-anchor', 'left')
+                        .attr('y', '0.3em')
+                        .attr('x', halfDevIcon + labelPad);
+
+                    return {
+                        rect: rect,
+                        text: text
+                    }
                 },
                 svgClassName: function () {
                     return fn.classNames('node', this.nodeType, this.get('type'), {

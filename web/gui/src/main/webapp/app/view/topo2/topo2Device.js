@@ -30,7 +30,6 @@
 
     // configuration
     var devIconDim = 36,
-        labelPad = 10,
         hostRadius = 14,
         badgeConfig = {
             radius: 12,
@@ -44,8 +43,7 @@
             i: 'badgeInfo',
             w: 'badgeWarn',
             e: 'badgeError'
-        },
-        deviceLabelIndex = 0;
+        };
 
     function createDeviceCollection(data, region) {
 
@@ -74,24 +72,6 @@
         return remappedDeviceTypes[type] || type || 'unknown';
     }
 
-    function deviceLabel(d) {
-        //TODO: Device Json is missing labels array
-        return "";
-        var labels = this.get('labels'),
-            idx = (deviceLabelIndex < labels.length) ? deviceLabelIndex : 0;
-        return labels[idx];
-    }
-
-    function trimLabel(label) {
-        return (label && label.trim()) || '';
-    }
-
-    function computeLabelWidth() {
-        var text = this.select('text'),
-        box = text.node().getBBox();
-        return box.width + labelPad * 2;
-    }
-
     function iconBox(dim, labelWidth) {
         return {
             x: -dim / 2,
@@ -104,7 +84,7 @@
     function deviceGlyphColor(d) {
 
         var o = this.node.online,
-            id = "127.0.0.1", // TODO: This should be from node.master
+            id = this.node.master, // TODO: This should be from node.master
             otag = o ? 'online' : 'offline';
         return o ? sus.cat7().getColor(id, 0, ts.theme())
                  : '#ff0000';
@@ -134,32 +114,25 @@
                         this.constructor.__super__.initialize.apply(this, arguments);
                     },
                     nodeType: 'device',
-                    deviceLabel: deviceLabel,
                     deviceGlyphColor: deviceGlyphColor,
                     mapDeviceTypeToGlyph: mapDeviceTypeToGlyph,
-                    trimLabel: trimLabel,
                     setDeviceColor: setDeviceColor,
                     onEnter: function (el) {
 
                         var node = d3.select(el),
                             glyphId = mapDeviceTypeToGlyph(this.get('type')),
-                            label = trimLabel(this.deviceLabel()),
-                            rect, text, glyph, labelWidth;
+                            label = this.trimLabel(this.label()),
+                            glyph, labelWidth;
 
                         this.el = node;
 
-                        rect = node.append('rect');
+                        // Label
+                        var labelElements = this.addLabelElements(label);
+                        labelWidth = label ? this.computeLabelWidth(node) : 0;
+                        labelElements.rect.attr(iconBox(devIconDim, labelWidth));
 
-                        text = node.append('text').text(label)
-                            .attr('text-anchor', 'left')
-                            .attr('y', '0.3em')
-                            .attr('x', halfDevIcon + labelPad);
-
+                        // Icon
                         glyph = is.addDeviceIcon(node, glyphId, devIconDim);
-
-                        labelWidth = label ? computeLabelWidth(node) : 0;
-
-                        rect.attr(iconBox(devIconDim, labelWidth));
                         glyph.attr(iconBox(devIconDim, 0));
 
                         node.attr('transform', sus.translate(-halfDevIcon, -halfDevIcon));

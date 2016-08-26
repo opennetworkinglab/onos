@@ -111,8 +111,8 @@ Module that contains the d3.force.layout logic
         }
     }
 
-    function deviceEnter(device) {
-        device.onEnter(this, device);
+    function nodeEnter(node) {
+        node.onEnter(this, node);
     }
 
     function hostLabel(d) {
@@ -153,7 +153,7 @@ Module that contains the d3.force.layout logic
 
             return {
                 init: init,
-                deviceEnter: deviceEnter,
+                nodeEnter: nodeEnter,
                 hostEnter: hostEnter,
                 linkEntering: linkEntering
             }

@@ -22,6 +22,7 @@
 (function () {
     'use strict';
 
+    var $log;
     var Collection, Model, region, ts;
 
     var widthRatio = 1.4,
@@ -55,7 +56,6 @@
     function createLink() {
 
         var linkPoints = this.linkEndPoints(this.get('epA'), this.get('epB'));
-        console.log(this);
 
         var attrs = angular.extend({}, linkPoints, {
             key: this.get('id'),
@@ -78,19 +78,14 @@
 
     function linkEndPoints(srcId, dstId) {
 
-        var sourceNode = this.region.get('devices').get(srcId.substring(0, srcId.length -2));
-        var targetNode = this.region.get('devices').get(dstId.substring(0, dstId.length -2));
+        var sourceNode = this.region.findNodeById(srcId)
+        var targetNode = this.region.findNodeById(dstId)
 
-//        var srcNode = lu[srcId],
-//            dstNode = lu[dstId],
-//            sMiss = !srcNode ? missMsg('src', srcId) : '',
-//            dMiss = !dstNode ? missMsg('dst', dstId) : '';
-//
-//        if (sMiss || dMiss) {
-//            $log.error('Node(s) not on map for link:' + sMiss + dMiss);
-//            //logicError('Node(s) not on map for link:\n' + sMiss + dMiss);
-//            return null;
-//        }
+        if (!sourceNode || !targetNode) {
+            $log.error('Node(s) not on map for link:' + srcId + ':' + dstId);
+            //logicError('Node(s) not on map for link:\n' + sMiss + dMiss);
+            return null;
+        }
 
         this.source = sourceNode.toJSON();
         this.target = targetNode.toJSON();
@@ -118,30 +113,16 @@
                 return true;
                 return both && (s && s.online) && (t && t.online);
             },
-            linkWidth: function () {
-                var s = this.get('fromSource'),
-                    t = this.get('fromTarget'),
-                    ws = (s && s.linkWidth) || 0,
-                    wt = (t && t.linkWidth) || 0;
-
-                    // console.log(s);
-                // TODO: Current json is missing linkWidth
-                return 1.2;
-                return this.get('position').multiLink ? 5 : Math.max(ws, wt);
-            },
-
             restyleLinkElement: function (immediate) {
                 // this fn's job is to look at raw links and decide what svg classes
                 // need to be applied to the line element in the DOM
                 var th = ts.theme(),
                     el = this.el,
                     type = this.get('type'),
-                    lw = this.linkWidth(),
                     online = this.online(),
                     modeCls = this.expected() ? 'inactive' : 'not-permitted',
+                    lw = 1.2,
                     delay = immediate ? 0 : 1000;
-
-                console.log(type);
 
                 // NOTE: understand why el is sometimes undefined on addLink events...
                 // Investigated:
@@ -185,10 +166,11 @@
 
     angular.module('ovTopo2')
     .factory('Topo2LinkService',
-        ['Topo2Collection', 'Topo2Model', 'ThemeService',
+        ['$log', 'Topo2Collection', 'Topo2Model', 'ThemeService',
 
-            function (_Collection_, _Model_, _ts_) {
+            function (_$log_, _Collection_, _Model_, _ts_) {
 
+                $log = _$log_;
                 ts = _ts_;
                 Collection = _Collection_;
                 Model = _Model_;

@@ -22,14 +22,11 @@
 (function () {
     'use strict';
 
-    var $log,
-        wss,
-        Model,
-        t2sr,
-        t2ds,
-        t2hs,
-        t2ls;
+    // Injected Services
+    var $log, wss, t2sr, t2ds, t2hs, t2ls;
+    var Collection, Model;
 
+    //Internal
     var region;
 
     function init() {
@@ -38,9 +35,13 @@
 
     function addRegion(data) {
 
-        region = new Model({
+        var RegionModel = Model.extend({
+            findNodeById: findNodeById
+        })
+
+        region = new RegionModel({
             id: data.id,
-            layerOrder: data.layerOrder
+            layerOrder: data.layerOrder,
         });
 
         region.set({
@@ -50,8 +51,6 @@
             links: t2ls.createLinkCollection(data.links, region),
         });
 
-        region.set('test', 2);
-
         angular.forEach(region.get('links').models, function (link) {
             link.createLink();
         });
@@ -60,9 +59,23 @@
     }
 
     function regionNodes() {
-        return [].concat(region.get('devices').models, region.get('hosts').models);
+        return [].concat(
+            region.get('devices').models,
+            region.get('hosts').models,
+            region.get('subregions').models
+        );
     }
 
+    function findNodeById(id) {
+
+        // Remove /{port} from id if needed
+        var regex = new RegExp('^[^\/]*');
+        id = regex.exec(id)[0];
+
+        return region.get('devices').get(id) ||
+            region.get('hosts').get(id) ||
+            region.get('subregions').get(id);
+    }
 
     function regionLinks() {
         return region.get('links').models;
@@ -71,9 +84,9 @@
     angular.module('ovTopo2')
     .factory('Topo2RegionService',
         ['$log', 'WebSocketService', 'Topo2Model', 'Topo2SubRegionService', 'Topo2DeviceService',
-        'Topo2HostService', 'Topo2LinkService',
+        'Topo2HostService', 'Topo2LinkService', 'Topo2Collection',
 
-        function (_$log_, _wss_, _Model_, _t2sr_, _t2ds_, _t2hs_, _t2ls_) {
+        function (_$log_, _wss_, _Model_, _t2sr_, _t2ds_, _t2hs_, _t2ls_, _Collection_) {
 
             $log = _$log_;
             wss = _wss_;
@@ -82,6 +95,7 @@
             t2ds = _t2ds_;
             t2hs = _t2hs_;
             t2ls = _t2ls_;
+            Collection = _Collection_;
 
             return {
                 init: init,
