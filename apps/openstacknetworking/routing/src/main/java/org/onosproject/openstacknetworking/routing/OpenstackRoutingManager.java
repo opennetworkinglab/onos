@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -157,6 +158,8 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
             return;
         }
 
+        setGatewayIcmp(Ip4Address.valueOf(openstackService.subnet(routerIface.subnetId()).gatewayIp()));
+
         setRoutes(osRouter, Optional.empty());
         if (osRouter.gatewayExternalInfo().externalFixedIps().size() > 0) {
             String subnetId = osPort.fixedIps().keySet().stream().findFirst().get();
@@ -176,13 +179,66 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
         OpenstackSubnet osSubnet = openstackService.subnet(routerIface.subnetId());
         OpenstackNetwork osNet = openstackService.network(osSubnet.networkId());
 
+        unsetGatewayIcmp(Ip4Address.valueOf(openstackService.subnet(routerIface.subnetId()).gatewayIp()));
+
         unsetRoutes(osRouter, osSubnet);
+
         if (osRouter.gatewayExternalInfo().externalFixedIps().size() > 0) {
             unsetExternalConnection(osRouter, osNet.id());
         }
         log.info("Disconnected {} from router {}", osSubnet.cidr(), osRouter.name());
     }
 
+    private void setGatewayIcmp(Ip4Address gatewayIp) {
+        if (gatewayIp == null) {
+            return;
+        }
+        gatewayService.getGatewayDeviceIds().stream().forEach(deviceId -> {
+            populateGatewayIcmpRule(gatewayIp, deviceId);
+        });
+    }
+
+    private void populateGatewayIcmpRule(Ip4Address gatewayIp, DeviceId deviceId) {
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+
+        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPProtocol(IPv4.PROTOCOL_ICMP)
+                .matchIPDst(gatewayIp.toIpPrefix());
+
+        tBuilder.setOutput(PortNumber.CONTROLLER);
+
+        ForwardingObjective fo = DefaultForwardingObjective.builder()
+                .withSelector(sBuilder.build())
+                .withTreatment(tBuilder.build())
+                .withPriority(GATEWAY_ICMP_PRIORITY)
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .fromApp(appId)
+                .add();
+
+        flowObjectiveService.forward(deviceId, fo);
+    }
+
+    private void unsetGatewayIcmp(Ip4Address gatewayIp) {
+        if (gatewayIp == null) {
+            return;
+        }
+        gatewayService.getGatewayDeviceIds().forEach(deviceId -> {
+            removeGatewayIcmpRule(gatewayIp, deviceId);
+        });
+    }
+
+    private void removeGatewayIcmpRule(Ip4Address gatewayIp, DeviceId deviceId) {
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+
+        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPProtocol(IPv4.PROTOCOL_ICMP)
+                .matchIPDst(gatewayIp.toIpPrefix());
+
+        RulePopulatorUtil.removeRule(flowObjectiveService, appId, deviceId, sBuilder.build(),
+                ForwardingObjective.Flag.VERSATILE, GATEWAY_ICMP_PRIORITY);
+
+    }
     private void setExternalConnection(OpenstackRouter osRouter, String osSubNetId) {
         if (!osRouter.gatewayExternalInfo().isEnablePnat()) {
             log.debug("Source NAT is disabled");
@@ -462,6 +518,10 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
                 .filter(osPort -> osPort.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE))
                 .forEach(osPort -> {
                     OpenstackRouter osRouter = openstackRouter(osPort.deviceId());
+
+                    setGatewayIcmp(Ip4Address.valueOf(openstackService
+                            .subnet(osPort.fixedIps().keySet().stream().findAny().get()).gatewayIp()));
+
                     setRoutes(osRouter, Optional.empty());
                     if (osRouter.gatewayExternalInfo().externalFixedIps().size() > 0) {
                         String subnetId = osPort.fixedIps().keySet().stream().findFirst().get();
