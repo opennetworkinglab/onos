@@ -114,7 +114,7 @@ public class WipeOutCommand extends ClustersListCommand {
                     hostAdminService.removeHost(host.id());
                 }
             } catch (Exception e) {
-                log.warn("Unable to wipe-out hosts", e);
+                log.info("Unable to wipe-out hosts", e);
             }
         }
     }
@@ -128,7 +128,7 @@ public class WipeOutCommand extends ClustersListCommand {
                     deviceAdminService.removeDevice(device.id());
                 }
             } catch (Exception e) {
-                log.warn("Unable to wipe-out devices", e);
+                log.info("Unable to wipe-out devices", e);
             }
         }
     }
@@ -143,7 +143,7 @@ public class WipeOutCommand extends ClustersListCommand {
                     linkAdminService.removeLinks(link.dst());
                 }
             } catch (Exception e) {
-                log.warn("Unable to wipe-out links", e);
+                log.info("Unable to wipe-out links", e);
             }
         }
     }
