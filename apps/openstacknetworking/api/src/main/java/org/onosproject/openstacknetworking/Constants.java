@@ -58,7 +58,7 @@ public final class Constants {
     public static final int SWITCHING_RULE_PRIORITY = 30000;
     public static final int TUNNELTAG_RULE_PRIORITY = 30000;
     public static final int ACL_RULE_PRIORITY = 30000;
-
+    public static final int EW_ROUTING_RULE_PRIORITY = 28000;
     public static final int ROUTING_RULE_PRIORITY = 25000;
     public static final int FLOATING_RULE_PRIORITY = 42000;
     public static final int PNAT_RULE_PRIORITY = 26000;

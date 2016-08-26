@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.util.Tools;
 import org.onosproject.core.ApplicationId;
@@ -58,6 +59,8 @@ import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -121,7 +124,10 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
             openstackService.ports().stream()
                     .filter(osPort -> osPort.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE) &&
                             osPort.deviceId().equals(osRouter.id()))
-                    .forEach(osPort -> setExternalConnection(osRouter, osPort.networkId()));
+                    .forEach(osPort -> {
+                        String subnetId = osPort.fixedIps().keySet().stream().findFirst().get();
+                        setExternalConnection(osRouter, subnetId);
+                    });
 
             log.info("Connected external gateway {} to router {}",
                      osRouter.gatewayExternalInfo().externalFixedIps(),
@@ -153,7 +159,8 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
 
         setRoutes(osRouter, Optional.empty());
         if (osRouter.gatewayExternalInfo().externalFixedIps().size() > 0) {
-            setExternalConnection(osRouter, osPort.networkId());
+            String subnetId = osPort.fixedIps().keySet().stream().findFirst().get();
+            setExternalConnection(osRouter, subnetId);
         }
         log.info("Connected {} to router {}", osPort.fixedIps(), osRouter.name());
     }
@@ -169,22 +176,22 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
         OpenstackSubnet osSubnet = openstackService.subnet(routerIface.subnetId());
         OpenstackNetwork osNet = openstackService.network(osSubnet.networkId());
 
-        unsetRoutes(osRouter, osNet);
+        unsetRoutes(osRouter, osSubnet);
         if (osRouter.gatewayExternalInfo().externalFixedIps().size() > 0) {
             unsetExternalConnection(osRouter, osNet.id());
         }
         log.info("Disconnected {} from router {}", osSubnet.cidr(), osRouter.name());
     }
 
-    private void setExternalConnection(OpenstackRouter osRouter, String osNetId) {
+    private void setExternalConnection(OpenstackRouter osRouter, String osSubNetId) {
         if (!osRouter.gatewayExternalInfo().isEnablePnat()) {
             log.debug("Source NAT is disabled");
             return;
         }
 
-        // FIXME router interface is subnet specific, not network
-        OpenstackNetwork osNet = openstackService.network(osNetId);
-        populateExternalRules(osNet);
+        OpenstackSubnet osSubNet = openstackService.subnet(osSubNetId);
+        OpenstackNetwork osNet = openstackService.network(osSubNet.networkId());
+        populateExternalRules(osNet, osSubNet);
     }
 
     private void unsetExternalConnection(OpenstackRouter osRouter, String osNetId) {
@@ -199,40 +206,39 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
     }
 
     private void setRoutes(OpenstackRouter osRouter, Optional<Host> host) {
-        Set<OpenstackNetwork> routableNets = routableNetworks(osRouter.id());
-        if (routableNets.size() < 2) {
+        Set<OpenstackSubnet> routableSubNets = routableSubNets(osRouter.id());
+        if (routableSubNets.size() < 2) {
             // no other subnet interface is connected to this router, do nothing
             return;
         }
 
-        // FIXME router interface is subnet specific, not network
-        Set<String> routableNetIds = routableNets.stream()
-                .map(OpenstackNetwork::id)
+        Set<String> routableSubNetIds = routableSubNets.stream()
+                .map(OpenstackSubnet::id)
                 .collect(Collectors.toSet());
+
 
         Set<Host> hosts = host.isPresent() ? ImmutableSet.of(host.get()) :
                 Tools.stream(hostService.getHosts())
-                        .filter(h -> routableNetIds.contains(h.annotations().value(NETWORK_ID)))
+                        .filter(h -> routableSubNetIds.contains(h.annotations().value(SUBNET_ID)))
                         .collect(Collectors.toSet());
 
-        hosts.forEach(h -> populateRoutingRules(h, routableNets));
+        hosts.forEach(h -> populateRoutingRules(h, routableSubNets));
     }
 
-    private void unsetRoutes(OpenstackRouter osRouter, OpenstackNetwork osNet) {
-        // FIXME router interface is subnet specific, not network
-        Set<OpenstackNetwork> routableNets = routableNetworks(osRouter.id());
+    private void unsetRoutes(OpenstackRouter osRouter, OpenstackSubnet osSubNet) {
+        Set<OpenstackSubnet> routableSubNets = routableSubNets(osRouter.id());
         Tools.stream(hostService.getHosts())
                 .filter(h -> Objects.equals(
-                        h.annotations().value(NETWORK_ID), osNet.id()))
-                .forEach(h -> removeRoutingRules(h, routableNets));
+                        h.annotations().value(NETWORK_ID), osSubNet.id()))
+                .forEach(h -> removeRoutingRules(h, routableSubNets));
 
-        routableNets.forEach(n -> {
+        routableSubNets.forEach(n -> {
             Tools.stream(hostService.getHosts())
                     .filter(h -> Objects.equals(
-                            h.annotations().value(NETWORK_ID),
+                            h.annotations().value(SUBNET_ID),
                             n.id()))
-                    .forEach(h -> removeRoutingRules(h, ImmutableSet.of(osNet)));
-            log.debug("Removed between {} to {}", n.name(), osNet.name());
+                    .forEach(h -> removeRoutingRules(h, ImmutableSet.of(osSubNet)));
+            log.debug("Removed between {} to {}", n.name(), osSubNet.name());
         });
     }
 
@@ -249,18 +255,17 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
                 .findAny();
     }
 
-    private Set<OpenstackNetwork> routableNetworks(String osRouterId) {
-        // FIXME router interface is subnet specific, not network
+    private Set<OpenstackSubnet> routableSubNets(String osRouterId) {
         return openstackService.ports().stream()
                 .filter(p -> p.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE) &&
                         p.deviceId().equals(osRouterId))
-                .map(p -> openstackService.network(p.networkId()))
+                .map(p -> openstackService.subnet(p.fixedIps().keySet().stream().findFirst().get()))
                 .collect(Collectors.toSet());
     }
 
-    private void populateExternalRules(OpenstackNetwork osNet) {
-        populateCnodeToGateway(Long.valueOf(osNet.segmentId()));
-        populateGatewayToController(Long.valueOf(osNet.segmentId()));
+    private void populateExternalRules(OpenstackNetwork osNet, OpenstackSubnet osSubNet) {
+        populateCnodeToGateway(Long.valueOf(osNet.segmentId()), osSubNet.cidr());
+        populateGatewayToController(Long.valueOf(osNet.segmentId()), osSubNet.cidr());
     }
 
     private void removeExternalRules(OpenstackNetwork osNet) {
@@ -284,9 +289,9 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
         });
     }
 
-    private void populateRoutingRules(Host host, Set<OpenstackNetwork> osNets) {
-        String osNetId = host.annotations().value(NETWORK_ID);
-        if (osNetId == null) {
+    private void populateRoutingRules(Host host, Set<OpenstackSubnet> osSubNets) {
+        String osSubNetId = host.annotations().value(SUBNET_ID);
+        if (osSubNetId == null) {
             return;
         }
 
@@ -297,37 +302,46 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
             return;
         }
 
+        Map<String, String> vniMap = new HashMap<>();
+        openstackService.networks().stream().forEach(n -> vniMap.put(n.id(), n.segmentId()));
+
         // TODO improve pipeline, do we have to install access rules between networks
         // for every single VMs?
-        osNets.stream().filter(osNet -> !osNet.id().equals(osNetId)).forEach(osNet -> {
+        osSubNets.stream().filter(osSubNet -> !osSubNet.id().equals(osSubNetId)).forEach(osSubNet -> {
             populateRoutingRulestoSameNode(
                     host.ipAddresses().stream().findFirst().get().getIp4Address(),
                     host.mac(),
                     localPort, localDevice,
-                    Long.valueOf(osNet.segmentId()));
+                    Long.valueOf(vniMap.get(osSubNet.networkId())),
+                    osSubNet.cidr());
 
             nodeService.completeNodes().stream()
                     .filter(node -> node.type().equals(COMPUTE))
                     .filter(node -> !node.intBridge().equals(localDevice))
                     .forEach(node -> populateRoutingRulestoDifferentNode(
                             host.ipAddresses().stream().findFirst().get().getIp4Address(),
-                            Long.valueOf(osNet.segmentId()),
+                            Long.valueOf(vniMap.get(osSubNet.networkId())),
                             node.intBridge(),
-                            nodeService.dataIp(localDevice).get().getIp4Address()));
+                            nodeService.dataIp(localDevice).get().getIp4Address(),
+                            osSubNet.cidr()));
         });
     }
 
-    private void removeRoutingRules(Host host, Set<OpenstackNetwork> osNets) {
-        String osNetId = host.annotations().value(NETWORK_ID);
-        if (osNetId == null) {
+    private void removeRoutingRules(Host host, Set<OpenstackSubnet> osSubNets) {
+        String osSubNetId = host.annotations().value(SUBNET_ID);
+        if (osSubNetId == null) {
             return;
         }
 
-        osNets.stream().filter(osNet -> !osNet.id().equals(osNetId)).forEach(osNet -> {
+        Map<String, String> vniMap = new HashMap<>();
+        openstackService.networks().stream().forEach(n -> vniMap.put(n.id(), n.segmentId()));
+
+        osSubNets.stream().filter(osSubNet -> !osSubNet.id().equals(osSubNetId)).forEach(osSubNet -> {
             TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
             sBuilder.matchEthType(Ethernet.TYPE_IPV4)
                     .matchIPDst(host.ipAddresses().stream().findFirst().get().toIpPrefix())
-                    .matchTunnelId(Long.valueOf(osNet.segmentId()));
+                    .matchIPSrc(IpPrefix.valueOf(osSubNet.cidr()))
+                    .matchTunnelId(Long.valueOf(vniMap.get(osSubNet.networkId())));
 
             nodeService.completeNodes().stream()
                     .filter(node -> node.type().equals(COMPUTE))
@@ -339,15 +353,16 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
                             ForwardingObjective.Flag.SPECIFIC,
                             ROUTING_RULE_PRIORITY));
         });
-        log.debug("Removed routing rule from {} to {}", host, osNets);
+        log.debug("Removed routing rule from {} to {}", host, osSubNets);
     }
 
-    private void populateGatewayToController(long vni) {
+    private void populateGatewayToController(long vni, String subNetCidr) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
         sBuilder.matchEthType(Ethernet.TYPE_IPV4)
                 .matchTunnelId(vni)
+                .matchIPSrc(IpPrefix.valueOf(subNetCidr))
                 .matchEthDst(Constants.DEFAULT_GATEWAY_MAC);
         tBuilder.setOutput(PortNumber.CONTROLLER);
 
@@ -362,21 +377,22 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
         gatewayService.getGatewayDeviceIds().forEach(deviceId -> flowObjectiveService.forward(deviceId, fo));
     }
 
-    private void populateCnodeToGateway(long vni) {
+    private void populateCnodeToGateway(long vni, String subnetCidr) {
         nodeService.completeNodes().stream()
                 .filter(node -> node.type().equals(COMPUTE))
                 .forEach(node -> populateRuleToGateway(
                         node.intBridge(),
                         gatewayService.getGatewayGroupId(node.intBridge()),
-                        vni));
+                        vni, subnetCidr));
     }
 
-    private void populateRuleToGateway(DeviceId deviceId, GroupId groupId, long vni) {
+    private void populateRuleToGateway(DeviceId deviceId, GroupId groupId, long vni, String cidr) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
         sBuilder.matchEthType(Ethernet.TYPE_IPV4)
                 .matchTunnelId(vni)
+                .matchIPSrc(IpPrefix.valueOf(cidr))
                 .matchEthDst(Constants.DEFAULT_GATEWAY_MAC);
 
         tBuilder.group(groupId);
@@ -392,12 +408,14 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
     }
 
     private void populateRoutingRulestoDifferentNode(Ip4Address vmIp, long vni,
-                                                     DeviceId deviceId, Ip4Address hostIp) {
+                                                     DeviceId deviceId, Ip4Address hostIp,
+                                                     String cidr) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
         sBuilder.matchEthType(Ethernet.TYPE_IPV4)
                 .matchTunnelId(vni)
+                .matchIPSrc(IpPrefix.valueOf(cidr))
                 .matchIPDst(vmIp.toIpPrefix());
         tBuilder.extension(buildExtension(deviceService, deviceId, hostIp), deviceId)
                 .setOutput(nodeService.tunnelPort(deviceId).get());
@@ -405,7 +423,7 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
         ForwardingObjective fo = DefaultForwardingObjective.builder()
                 .withSelector(sBuilder.build())
                 .withTreatment(tBuilder.build())
-                .withPriority(ROUTING_RULE_PRIORITY)
+                .withPriority(EW_ROUTING_RULE_PRIORITY)
                 .withFlag(ForwardingObjective.Flag.SPECIFIC)
                 .fromApp(appId)
                 .add();
@@ -414,12 +432,15 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
     }
 
     private void populateRoutingRulestoSameNode(Ip4Address vmIp, MacAddress vmMac,
-                                                PortNumber port, DeviceId deviceId, long vni) {
+                                                PortNumber port, DeviceId deviceId, long vni,
+                                                String cidr) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
+        // FIXME: we need to check the VNI of the dest IP also just in case...
         sBuilder.matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(vmIp.toIpPrefix())
+                .matchIPSrc(IpPrefix.valueOf(cidr))
                 .matchTunnelId(vni);
 
         tBuilder.setEthDst(vmMac)
@@ -428,7 +449,7 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
         ForwardingObjective fo = DefaultForwardingObjective.builder()
                 .withSelector(sBuilder.build())
                 .withTreatment(tBuilder.build())
-                .withPriority(ROUTING_RULE_PRIORITY)
+                .withPriority(EW_ROUTING_RULE_PRIORITY)
                 .withFlag(ForwardingObjective.Flag.SPECIFIC)
                 .fromApp(appId)
                 .add();
@@ -443,7 +464,8 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
                     OpenstackRouter osRouter = openstackRouter(osPort.deviceId());
                     setRoutes(osRouter, Optional.empty());
                     if (osRouter.gatewayExternalInfo().externalFixedIps().size() > 0) {
-                        setExternalConnection(osRouter, osPort.networkId());
+                        String subnetId = osPort.fixedIps().keySet().stream().findFirst().get();
+                        setExternalConnection(osRouter, subnetId);
                     }
                 }));
     }
@@ -467,8 +489,8 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
         if (!routerIface.isPresent()) {
             return;
         }
-        Set<OpenstackNetwork> routableNets = routableNetworks(routerIface.get().deviceId());
-        eventExecutor.execute(() -> removeRoutingRules(host, routableNets));
+        Set<OpenstackSubnet> routableSubNets = routableSubNets(routerIface.get().deviceId());
+        eventExecutor.execute(() -> removeRoutingRules(host, routableSubNets));
     }
 
     private class InternalNodeListener implements OpenstackNodeListener {
