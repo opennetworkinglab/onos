@@ -98,6 +98,7 @@ public class LinkCollectionIntentCompiler
         inPorts.forEach(inport -> {
                 ForwardingInstructions instructions = this.createForwardingInstructions(intent,
                                                                                         inport,
+                                                                                        deviceId,
                                                                                         outPorts,
                                                                                         copyIngressPorts,
                                                                                         copyEgressPorts);

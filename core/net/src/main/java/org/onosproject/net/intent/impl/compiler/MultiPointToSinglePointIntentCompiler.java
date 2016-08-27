@@ -124,6 +124,7 @@ public class MultiPointToSinglePointIntentCompiler
                 .links(Sets.newHashSet(links.values()))
                 .ingressPoints(intent.ingressPoints())
                 .egressPoints(ImmutableSet.of(intent.egressPoint()))
+                .ingressSelectors(intent.ingressSelectors())
                 .priority(intent.priority())
                 .constraints(intent.constraints())
                 .build();

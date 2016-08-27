@@ -48,6 +48,7 @@ import org.onosproject.net.intent.IntentCompilationException;
 import org.onosproject.net.intent.LinkCollectionIntent;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -155,12 +156,15 @@ public class LinkCollectionCompiler<T> {
      *
      * @param intent the intent to compile
      * @param inPort the input port
+     * @param deviceId the current device
      * @param outPorts the output ports
      * @param ingressPorts the ingress ports
      * @param egressPorts the egress ports
      * @return the forwarding instruction object which encapsulates treatment and selector
      */
-    protected ForwardingInstructions createForwardingInstructions(LinkCollectionIntent intent, PortNumber inPort,
+    protected ForwardingInstructions createForwardingInstructions(LinkCollectionIntent intent,
+                                                                  PortNumber inPort,
+                                                                  DeviceId deviceId,
                                                                   Set<PortNumber> outPorts,
                                                                   Set<PortNumber> ingressPorts,
                                                                   Set<PortNumber> egressPorts) {
@@ -178,8 +182,27 @@ public class LinkCollectionCompiler<T> {
             intentTreatment = ingressTreatmentBuilder.build();
 
             if (ingressPorts.contains(inPort)) {
-                selectorBuilder = DefaultTrafficSelector.builder(intent.selector());
-                treatment = intentTreatment;
+                if (intent.ingressSelectors() != null && !intent.ingressSelectors().isEmpty()) {
+                    /**
+                     * We iterate on the ingress points looking for the connect point
+                     * associated to inPort.
+                     */
+                    Optional<ConnectPoint> connectPoint = intent.ingressPoints()
+                            .stream()
+                            .filter(ingressPoint -> ingressPoint.port().equals(inPort)
+                                    && ingressPoint.deviceId().equals(deviceId))
+                            .findFirst();
+                    if (connectPoint.isPresent()) {
+                        selectorBuilder = DefaultTrafficSelector
+                                .builder(intent.ingressSelectors().get(connectPoint.get()));
+                    } else {
+                        throw new IntentCompilationException("Looking for connect point associated to the selector." +
+                                                                     "inPort not in IngressPoints");
+                    }
+                } else {
+                    selectorBuilder = DefaultTrafficSelector.builder(intent.selector());
+                }
+                treatment = this.updateBuilder(ingressTreatmentBuilder, selectorBuilder.build()).build();
             } else {
                 selectorBuilder = this.createSelectorFromFwdInstructions(
                         new ForwardingInstructions(intentTreatment, intent.selector())
@@ -204,6 +227,18 @@ public class LinkCollectionCompiler<T> {
 
         return new ForwardingInstructions(treatment, selector);
 
+    }
+
+    /**
+     * Update the original builder with the necessary operations
+     * to have a correct forwarding given an ingress selector.
+     *
+     * @param treatmentBuilder the builder to modify
+     * @return the new treatment created
+     */
+    private TrafficTreatment.Builder updateBuilder(TrafficTreatment.Builder treatmentBuilder,
+                                                   TrafficSelector intentSelector) {
+        return treatmentBuilder;
     }
 
     /**
