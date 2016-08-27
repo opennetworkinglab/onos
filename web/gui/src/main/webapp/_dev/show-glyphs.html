@@ -16,37 +16,26 @@
   -->
 
 <!--
-  ONOS -- Displaying icons with Angular test page
+  ONOS -- Displaying All core glyphs.
   -->
 
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>Show Icons Angular</title>
+    <title>ONOS Core Glyphs</title>
 
     <script type="text/javascript" src="../tp/angular.js"></script>
-    <script type="text/javascript" src="../tp/angular-route.js"></script>
-
     <script type="text/javascript" src="../tp/d3.js"></script>
 
     <script type="text/javascript" src="../app/fw/util/util.js"></script>
     <script type="text/javascript" src="../app/fw/util/fn.js"></script>
-    <script type="text/javascript" src="../app/fw/util/theme.js"></script>
-    <script type="text/javascript" src="../app/fw/util/keys.js"></script>
 
     <script type="text/javascript" src="../app/fw/svg/svg.js"></script>
     <script type="text/javascript" src="../app/fw/svg/svgUtil.js"></script>
     <script type="text/javascript" src="../app/fw/svg/glyph.js"></script>
     <script type="text/javascript" src="../app/fw/svg/glyphData.js"></script>
-    <script type="text/javascript" src="../app/fw/svg/icon.js"></script>
-    <script type="text/javascript" src="../app/fw/svg/geodata.js"></script>
-    <script type="text/javascript" src="../app/fw/svg/map.js"></script>
-    <script type="text/javascript" src="../app/fw/svg/zoom.js"></script>
 
-    <script type="text/javascript" src="show-icons-test.js"></script>
-
-    <link rel="stylesheet" href="../app/common.css">
-    <link rel="stylesheet" href="../app/fw/svg/icon.css">
+    <script type="text/javascript" src="show-glyphs.js"></script>
 
     <style>
         html,
@@ -56,13 +45,24 @@
             font-size: 9pt;
         }
 
+        #IconLibDefs {
+            display: none;
+        }
+
         h2 {
             color: darkred;
+            display: inline-block;
+        }
+
+        h2#tag {
+            float: right;
+            padding-right: 20px;
+            color: midnightblue;
         }
 
         svg .glyph {
             stroke: none;
-            fill: #123456;
+            fill: midnightblue;
             fill-rule: evenodd;
         }
 
@@ -70,23 +70,39 @@
             fill: #fff
         }
 
+        #showGlyphs {
+            overflow-y: scroll;
+            width: 400px;
+            border: 1px solid green;
+            display: inline-block;
+            padding-left: 4px;
+            background-color: #bbd;
+        }
+        #zoomed {
+            /*border: 1px solid green;*/
+            display: inline-block;
+        }
+
+        #zoomed svg {
+            background-color: #eef;
+            position: absolute;
+        }
+
     </style>
 
 </head>
-<!-- outline for using a controller in Angular -->
-<body class="light" ng-app="showIconsTest" ng-controller="OvShowIconsTest as ctrl">
-    <h2>Displaying Icons and Glyphs with Angular</h2>
-    <div id="showIcons">
-        <p>Show all icons in icon library:<br></p>
-    </div>
-    <hr>
-    <div id="showGlyphs">
-        <p>Show all glyphs in glyph library:</p>
-        <p>(Displays checkMark and xMark too, because icons are built on top
-            of glyphs.)</p>
+<body class="light" ng-app="showGlyphs" ng-controller="OvShowGlyphs as ctrl">
+
+    <h2>ONOS Core Glyphs</h2>
+    <h2 id="tag"></h2>
+    <div id="container">
+        <div id="showGlyphs" class="half vscroll"></div>
+        <div id="zoomed" class="half">
+        </div>
     </div>
 
-
-
+    <svg id="IconLibDefs">
+        <defs></defs>
+    </svg>
 </body>
 </html>
