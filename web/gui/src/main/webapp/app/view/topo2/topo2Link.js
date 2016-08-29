@@ -23,7 +23,9 @@
     'use strict';
 
     var $log;
-    var Collection, Model, region, ts;
+    var Collection, Model, region, ts, sus;
+
+    var linkLabelOffset = '0.35em';
 
     var widthRatio = 1.4,
         linkScale = d3.scale.linear()
@@ -70,10 +72,24 @@
                 y2: 0
             }
             // functions to aggregate dual link state
-//            extra: link.extra
+            // extra: link.extra
         });
 
         this.set(attrs);
+    }
+
+    function rectAroundText(el) {
+        var text = el.select('text'),
+            box = text.node().getBBox();
+
+        // translate the bbox so that it is centered on [x,y]
+        box.x = -box.width / 2;
+        box.y = -box.height / 2;
+
+        // add padding
+        box.x -= 4;
+        box.width += 8;
+        return box;
     }
 
     function linkEndPoints(srcId, dstId) {
@@ -106,12 +122,70 @@
                 return this.get('type');
             },
             expected: function () {
-                //TODO: original code is: (s && s.expected) && (t && t.expected);
+                // TODO: original code is: (s && s.expected) && (t && t.expected);
                 return true;
             },
             online: function () {
+                // TODO: remove next line
                 return true;
+
                 return both && (s && s.online) && (t && t.online);
+            },
+            enhance: function () {
+                var data = [],
+                    point;
+
+                angular.forEach(this.collection.models, function (link) {
+                    link.unenhance();
+                });
+
+                this.el.classed('enhanced', true);
+                point = this.locatePortLabel();
+                angular.extend(point, {
+                    id: 'topo-port-tgt',
+                    num: this.get('portB')
+                });
+                data.push(point);
+
+                var entering = d3.select('#topo-portLabels').selectAll('.portLabel')
+                    .data(data).enter().append('g')
+                    .classed('portLabel', true)
+                    .attr('id', function (d) { return d.id; });
+
+                entering.each(function (d) {
+                    var el = d3.select(this),
+                        rect = el.append('rect'),
+                        text = el.append('text').text(d.num);
+
+                    rect.attr(rectAroundText(el))
+                        .attr('rx', 2)
+                        .attr('ry', 2);
+
+                    text.attr('dy', linkLabelOffset)
+                        .attr('text-anchor', 'middle');
+
+                    el.attr('transform', sus.translate(d.x, d.y));
+                });
+            },
+            unenhance: function () {
+                this.el.classed('enhanced', false);
+                d3.select('#topo-portLabels').selectAll('.portLabel').remove();
+            },
+            locatePortLabel: function (link, src) {
+                var offset = 32,
+                    pos = this.get('position'),
+                    nearX = src ? pos.x1 : pos.x2,
+                    nearY = src ? pos.y1 : pos.y2,
+                    farX = src ? pos.x2 : pos.x1,
+                    farY = src ? pos.y2 : pos.y1;
+
+                function dist(x, y) { return Math.sqrt(x*x + y*y); }
+
+                var dx = farX - nearX,
+                    dy = farY - nearY,
+                    k = offset / dist(dx, dy);
+
+                return {x: k * dx + nearX, y: k * dy + nearY};
             },
             restyleLinkElement: function (immediate) {
                 // this fn's job is to look at raw links and decide what svg classes
@@ -144,9 +218,10 @@
                         .attr('stroke', linkConfig[th].baseColor);
                 }
             },
-
             onEnter: function (el) {
-                var link = d3.select(el);
+                var _this = this,
+                    link = d3.select(el);
+
                 this.el = link;
 
                 this.restyleLinkElement();
@@ -166,12 +241,13 @@
 
     angular.module('ovTopo2')
     .factory('Topo2LinkService',
-        ['$log', 'Topo2Collection', 'Topo2Model', 'ThemeService',
+        ['$log', 'Topo2Collection', 'Topo2Model', 'ThemeService', 'SvgUtilService',
 
-            function (_$log_, _Collection_, _Model_, _ts_) {
+            function (_$log_, _Collection_, _Model_, _ts_, _sus_) {
 
                 $log = _$log_;
                 ts = _ts_;
+                sus = _sus_;
                 Collection = _Collection_;
                 Model = _Model_;
 

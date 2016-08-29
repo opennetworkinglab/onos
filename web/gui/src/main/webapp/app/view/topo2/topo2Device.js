@@ -30,6 +30,7 @@
 
     // configuration
     var devIconDim = 36,
+        labelPad = 10,
         hostRadius = 14,
         badgeConfig = {
             radius: 12,
@@ -43,7 +44,8 @@
             i: 'badgeInfo',
             w: 'badgeWarn',
             e: 'badgeError'
-        };
+        },
+        deviceLabelIndex = 0;
 
     function createDeviceCollection(data, region) {
 
@@ -81,13 +83,25 @@
         }
     }
 
-    function deviceGlyphColor(d) {
+    // note: these are the device icon colors without affinity (no master)
+    var dColTheme = {
+        light: {
+            online: '#444444',
+            offline: '#cccccc'
+        },
+        dark: {
+            // TODO: theme
+            online: '#444444',
+            offline: '#cccccc'
+        }
+    };
 
+    function deviceGlyphColor(d) {
         var o = this.node.online,
             id = this.node.master, // TODO: This should be from node.master
             otag = o ? 'online' : 'offline';
         return o ? sus.cat7().getColor(id, 0, ts.theme())
-                 : '#ff0000';
+                 : dColTheme[ts.theme()][otag];
     }
 
     function setDeviceColor() {

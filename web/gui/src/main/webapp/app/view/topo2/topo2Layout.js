@@ -22,12 +22,12 @@
 (function () {
     'use strict';
 
-    var $log, sus, t2rs, t2d3, t2vs;
+    var $log, sus, t2rs, t2d3, t2vs, t2ss;
 
-    var linkG, linkLabelG, numLinkLabelsG, nodeG, portLabelG;
+    var uplink, linkG, linkLabelG, numLinkLabelsG, nodeG, portLabelG;
     var link, linkLabel, node;
 
-    var nodes, links;
+    var nodes, links, highlightedLink;
 
     var force;
 
@@ -124,7 +124,7 @@
     function init(_svg_, forceG, _uplink_, _dim_, opts) {
 
         $log.debug("Initialising Topology Layout");
-
+        uplink = _uplink_;
         settings = angular.extend({}, defaultSettings, opts);
 
         linkG = forceG.append('g').attr('id', 'topo-links');
@@ -147,6 +147,35 @@
             .linkDistance(settings.linkDistance._def_)
             .linkStrength(settings.linkStrength._def_)
             .on('tick', tick);
+
+            drag = sus.createDragBehavior(force,
+                t2ss.selectObject, atDragEnd, dragEnabled, clickEnabled);
+
+            _svg_.on('mousemove', mouseMoveHandler)
+    }
+
+    function zoomingOrPanning(ev) {
+        return ev.metaKey || ev.altKey;
+    }
+
+    function atDragEnd(d) {
+        // once we've finished moving, pin the node in position
+        d.fixed = true;
+        d3.select(this).classed('fixed', true);
+        // TODO: sendUpdateMeta(d);
+        t2ss.clickConsumed(true);
+    }
+
+    // predicate that indicates when dragging is active
+    function dragEnabled() {
+        var ev = d3.event.sourceEvent;
+        // nodeLock means we aren't allowing nodes to be dragged...
+        return !nodeLock && !zoomingOrPanning(ev);
+    }
+
+    // predicate that indicates when clicking is active
+    function clickEnabled() {
+        return true;
     }
 
     function tick() {
@@ -188,6 +217,7 @@
                 },
                 opacity: 0
             })
+            .call(drag)
             // .on('mouseover', tss.nodeMouseOver)
             // .on('mouseout', tss.nodeMouseOut)
             .transition()
@@ -308,18 +338,140 @@
         force.start();
     }
 
+    // Mouse Events
+    function mouseMoveHandler() {
+        var mp = getLogicalMousePosition(this),
+            link = computeNearestLink(mp);
+
+
+        if (highlightedLink) {
+            highlightedLink.unenhance();
+            highlightedLink = null;
+        }
+
+        if (link) {
+            link.enhance();
+            highlightedLink = link;
+        }
+    }
+
+    // ======== ALGORITHM TO FIND LINK CLOSEST TO MOUSE ========
+
+    function getLogicalMousePosition(container) {
+        var m = d3.mouse(container),
+            sc = uplink.zoomer().scale(),
+            tr = uplink.zoomer().translate(),
+            mx = (m[0] - tr[0]) / sc,
+            my = (m[1] - tr[1]) / sc;
+        return {x: mx, y: my};
+    }
+
+
+    function sq(x) { return x * x; }
+
+    function mdist(p, m) {
+        return Math.sqrt(sq(p.x - m.x) + sq(p.y - m.y));
+    }
+
+    function prox(dist) {
+        return dist / uplink.zoomer().scale();
+    }
+
+    function computeNearestNode(mouse) {
+        var proximity = prox(30),
+            nearest = null,
+            minDist,
+            regionNodes = t2rs.regionNodes();
+
+        if (regionNodes.length) {
+            minDist = proximity * 2;
+
+            regionNodes.forEach(function (d) {
+                var dist;
+
+                if (!api.showHosts() && d.class === 'host') {
+                    return; // skip hidden hosts
+                }
+
+                dist = mdist({x: d.x, y: d.y}, mouse);
+                if (dist < minDist && dist < proximity) {
+                    minDist = dist;
+                    nearest = d;
+                }
+            });
+        }
+        return nearest;
+    }
+
+
+    function computeNearestLink(mouse) {
+        var proximity = prox(30),
+            nearest = null,
+            minDist,
+            regionLinks = t2rs.regionLinks();
+
+        function pdrop(line, mouse) {
+
+            var x1 = line.x1,
+                y1 = line.y1,
+                x2 = line.x2,
+                y2 = line.y2,
+                x3 = mouse.x,
+                y3 = mouse.y,
+                k = ((y2-y1) * (x3-x1) - (x2-x1) * (y3-y1)) /
+                    (sq(y2-y1) + sq(x2-x1)),
+                x4 = x3 - k * (y2-y1),
+                y4 = y3 + k * (x2-x1);
+            return {x:x4, y:y4};
+        }
+
+        function lineHit(line, p, m) {
+            if (p.x < line.x1 && p.x < line.x2) return false;
+            if (p.x > line.x1 && p.x > line.x2) return false;
+            if (p.y < line.y1 && p.y < line.y2) return false;
+            if (p.y > line.y1 && p.y > line.y2) return false;
+            // line intersects, but are we close enough?
+            return mdist(p, m) <= proximity;
+        }
+
+        if (regionLinks.length) {
+            minDist = proximity * 2;
+
+            regionLinks.forEach(function (d) {
+                // if (!api.showHosts() && d.type() === 'hostLink') {
+                //     return; // skip hidden host links
+                // }
+
+                var line = d.get('position'),
+                    point = pdrop(line, mouse),
+                    hit = lineHit(line, point, mouse),
+                    dist;
+
+                if (hit) {
+                    dist = mdist(point, mouse);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearest = d;
+                    }
+                }
+            });
+        }
+        return nearest;
+    }
+
     angular.module('ovTopo2')
     .factory('Topo2LayoutService',
         [
             '$log', 'SvgUtilService', 'Topo2RegionService',
-            'Topo2D3Service', 'Topo2ViewService',
+            'Topo2D3Service', 'Topo2ViewService', 'Topo2SelectService',
 
-            function (_$log_, _sus_, _t2rs_, _t2d3_, _t2vs_) {
+            function (_$log_, _sus_, _t2rs_, _t2d3_, _t2vs_, _t2ss_) {
 
                 $log = _$log_;
                 t2rs = _t2rs_;
                 t2d3 = _t2d3_;
                 t2vs = _t2vs_;
+                t2ss = _t2ss_;
                 sus = _sus_;
 
                 return {

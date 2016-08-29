@@ -69,7 +69,7 @@
         ps.setPrefs('topo_zoom', {tx:tr[0], ty:tr[1], sc:sc});
 
         // keep the map lines constant width while zooming
-//        mapG.style('stroke-width', (2.0 / sc) + 'px');
+        mapG.style('stroke-width', (2.0 / sc) + 'px');
     }
 
     function setUpZoom() {
@@ -108,8 +108,8 @@
                     // provides function calls back into this space
                     // showNoDevs: showNoDevs,
                     // projection: function () { return projection; },
-                    // zoomLayer: function () { return zoomLayer; },
-                    // zoomer: function () { return zoomer; },
+                    zoomLayer: function () { return zoomLayer; },
+                    zoomer: function () { return zoomer; },
                     // opacifyMap: opacifyMap,
                     // topoStartDone: topoStartDone
                 };

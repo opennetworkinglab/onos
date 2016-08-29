@@ -22,7 +22,8 @@
 (function () {
     'use strict';
 
-    var Collection, Model, is, sus, ts, t2vs;
+    var wss, is, sus, ts, t2vs;
+    var Collection, Model;
 
     var remappedDeviceTypes = {
         virtual: 'cord'
@@ -71,11 +72,12 @@
 
     angular.module('ovTopo2')
     .factory('Topo2SubRegionService',
-        ['Topo2Collection', 'Topo2NodeModel', 'IconService', 'SvgUtilService',
+        ['WebSocketService', 'Topo2Collection', 'Topo2NodeModel', 'IconService', 'SvgUtilService',
         'ThemeService', 'Topo2ViewService',
 
-            function (_Collection_, _NodeModel_, _is_, _sus_, _ts_, classnames, _t2vs_) {
+            function (_wss_, _Collection_, _NodeModel_, _is_, _sus_, _ts_, classnames, _t2vs_) {
 
+                wss = _wss_;
                 t2vs = _t2vs_;
                 is = _is_;
                 sus = _sus_;
@@ -89,6 +91,12 @@
                     },
                     nodeType: 'sub-region',
                     mapDeviceTypeToGlyph: mapDeviceTypeToGlyph,
+                    onClick: function () {
+                        wss.sendEvent('topo2navRegion', {
+                            dir: 'down',
+                            rid: this.get('id')
+                        });
+                    },
                     onEnter: function (el) {
 
                         var node = d3.select(el),
@@ -97,6 +105,7 @@
                             glyph, labelWidth;
 
                         this.el = node;
+                        this.el.on('click', this.onClick.bind(this));
 
                         // Label
                         var labelElements = this.addLabelElements(label);

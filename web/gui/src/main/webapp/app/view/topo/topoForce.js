@@ -103,7 +103,6 @@
     // === EVENT HANDLERS
 
     function addDevice(data) {
-        console.log(data);
         var id = data.id,
             d;
 
