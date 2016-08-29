@@ -210,6 +210,25 @@ def RenamedTopo( topo, *args, **kwargs ):
     return RenamedTopoCls( *args, **kwargs )
 
 
+# We accept objects that "claim" to be a particular class,
+# since the class definitions can be both execed (--custom) and
+# imported (in another custom file), which breaks isinstance().
+# In order for this to work properly, a class should not be
+# renamed so as to inappropriately omit or include the class
+# name text. Note that mininet.util.specialClass renames classes
+# by adding the specialized parameter names and values.
+
+def isONOSNode( obj ):
+    "Does obj claim to be some kind of ONOSNode?"
+    return ( isinstance( obj, ONOSNode) or
+             'ONOSNode' in type( obj ).__name__ )
+
+def isONOSCluster( obj ):
+    "Does obj claim to be some kind of ONOSCluster?"
+    return ( isinstance( obj, ONOSCluster ) or
+             'ONOSCluster' in type( obj ).__name__ )
+
+
 class ONOSNode( Controller ):
     "ONOS cluster node"
 
@@ -448,7 +467,7 @@ class ONOSCluster( Controller ):
 
     def nodes( self ):
         "Return list of ONOS nodes"
-        return [ h for h in self.net.hosts if isinstance( h, ONOSNode ) ]
+        return [ h for h in self.net.hosts if isONOSNode( h ) ]
 
     def configPortForwarding( self, ports=[], action='A' ):
         """Start or stop port forwarding (any intf) for all nodes
@@ -471,7 +490,7 @@ class ONOSSwitchMixin( object ):
         "Connect to ONOSCluster"
         self.controllers = controllers
         assert ( len( controllers ) is 1 and
-                 isinstance( controllers[ 0 ], ONOSCluster ) )
+                 isONOSCluster( controllers[ 0 ] ) )
         clist = controllers[ 0 ].nodes()
         return super( ONOSSwitchMixin, self ).start( clist )
 
@@ -517,7 +536,7 @@ class ONOSCLI( OldCLI ):
 
     def __init__( self, net, **kwargs ):
         c0 = net.controllers[ 0 ]
-        if isinstance( c0, ONOSCluster ):
+        if isONOSCluster( c0 ):
             net = MininetFacade( net, cnet=c0.net )
         OldCLI.__init__( self, net, **kwargs )
 
@@ -528,7 +547,7 @@ class ONOSCLI( OldCLI ):
     def do_onos( self, line ):
         "Send command to ONOS CLI"
         c0 = self.mn.controllers[ 0 ]
-        if isinstance( c0, ONOSCluster ):
+        if isONOSCluster( c0 ):
             # cmdLoop strips off command name 'onos'
             if line.startswith( ':' ):
                 line = 'onos' + line
@@ -556,9 +575,9 @@ class ONOSCLI( OldCLI ):
     def do_status( self, line ):
         "Return status of ONOS cluster(s)"
         for c in self.mn.controllers:
-            if isinstance( c, ONOSCluster ):
+            if isONOSCluster( c ):
                 for node in c.net.hosts:
-                    if isinstance( node, ONOSNode ):
+                    if isONOSNode( node ):
                         errors, warnings = node.checkLog()
                         running = ( 'Running' if node.isRunning()
                                    else 'Exited' )
