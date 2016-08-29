@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.meter.Band;
+import org.onosproject.net.meter.Band.Builder;
 import org.onosproject.net.meter.DefaultBand;
 import org.slf4j.Logger;
 
@@ -65,38 +66,38 @@ public final class MeterBandCodec extends JsonCodec<Band> {
             return null;
         }
 
+        Builder builder = DefaultBand.builder();
+
         // parse rate
         long rate = nullIsIllegal(json.get(RATE), RATE + MISSING_MEMBER_MESSAGE).asLong();
+        builder.withRate(rate);
 
         // parse burst size
         long burstSize = nullIsIllegal(json.get(BURST_SIZE), BURST_SIZE + MISSING_MEMBER_MESSAGE).asLong();
+        builder.burstSize(burstSize);
 
         // parse precedence
         Short precedence = null;
 
         // parse band type
         String typeStr = nullIsIllegal(json.get(TYPE), TYPE + MISSING_MEMBER_MESSAGE).asText();
-        Band.Type type;
+        Band.Type type = null;
         switch (typeStr) {
             case "DROP":
                 type = Band.Type.DROP;
+                builder.ofType(type);
                 break;
             case "REMARK":
                 type = Band.Type.REMARK;
                 precedence = (short) nullIsIllegal(json.get(PREC), PREC + MISSING_MEMBER_MESSAGE).asInt();
+                builder.ofType(type);
+                builder.dropPrecedence(precedence);
                 break;
             default:
-                log.warn("The requested type {} is not defined for band.", typeStr);
-                return null;
+                nullIsIllegal(type, "The requested type " + typeStr + " is not defined for band.");
         }
 
-        Band band = DefaultBand.builder()
-                .ofType(type)
-                .burstSize(burstSize)
-                .withRate(rate)
-                .dropPrecedence(precedence)
-                .build();
-
+        Band band = builder.build();
         return band;
     }
 }
