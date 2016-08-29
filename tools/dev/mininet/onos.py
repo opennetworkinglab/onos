@@ -369,19 +369,27 @@ class ONOSNode( Controller ):
 
 class ONOSCluster( Controller ):
     "ONOS Cluster"
+    # Offset for port forwarding
+    portOffset = 0
     def __init__( self, *args, **kwargs ):
         """name: (first parameter)
            *args: topology class parameters
            ipBase: IP range for ONOS nodes
-           forward: default port forwarding list,
+           forward: default port forwarding list
+           portOffset: offset to port base (optional)
            topo: topology class or instance
            nodeOpts: ONOSNode options
-           **kwargs: additional topology parameters"""
+           **kwargs: additional topology parameters
+        By default, multiple ONOSClusters will increment
+        the portOffset automatically; alternately, it can
+        be specified explicitly.
+        """
         args = list( args )
         name = args.pop( 0 )
         topo = kwargs.pop( 'topo', None )
         self.nat = kwargs.pop( 'nat', 'nat0' )
         nodeOpts = kwargs.pop( 'nodeOpts', {} )
+        self.portOffset = kwargs.pop( 'portOffset', ONOSCluster.portOffset )
         # Pass in kwargs to the ONOSNodes instead of the cluster
         "alertAction: exception|ignore|warn|exit (exception)"
         alertAction = kwargs.pop( 'alertAction', None )
@@ -408,6 +416,8 @@ class ONOSCluster( Controller ):
             self.net.addNAT( self.nat ).configDefault()
         updateNodeIPs( self.env, self.nodes() )
         self._remoteControllers = []
+        # Update port offset for more ONOS clusters
+        ONOSCluster.portOffset += len( self.nodes() )
 
     def start( self ):
         "Start up ONOS cluster"
@@ -448,13 +458,13 @@ class ONOSCluster( Controller ):
                   '-j ACCEPT' )
         for port in ports:
             for index, node in enumerate( self.nodes() ):
-                ip, inport = node.IP(), port + index
+                ip, inport = node.IP(), port + self.portOffset + index
                 # Configure a destination NAT rule
                 self.cmd( 'iptables -t nat -' + action,
                           'PREROUTING -t nat -p tcp --dport', inport,
                           '-j DNAT --to-destination %s:%s' % ( ip, port ) )
 
-                    
+
 class ONOSSwitchMixin( object ):
     "Mixin for switches that connect to an ONOSCluster"
     def start( self, controllers ):
