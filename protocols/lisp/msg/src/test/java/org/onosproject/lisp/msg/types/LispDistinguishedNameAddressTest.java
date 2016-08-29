@@ -16,11 +16,17 @@
 package org.onosproject.lisp.msg.types;
 
 import com.google.common.testing.EqualsTester;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+
+import static org.onosproject.lisp.msg.types.LispDistinguishedNameAddress.*;
 
 /**
  * Unit tests for LispDistinguishedNameAddress class.
@@ -51,5 +57,19 @@ public class LispDistinguishedNameAddressTest {
         LispDistinguishedNameAddress distinguishedNameAddress = address1;
 
         assertThat(distinguishedNameAddress.getDistinguishedName(), is("distAddress1"));
+    }
+
+    @Test
+    public void testSerialization() throws LispWriterException, LispParseError {
+        ByteBuf byteBuf = Unpooled.buffer();
+
+        DistinguishedNameAddressWriter writer = new DistinguishedNameAddressWriter();
+        writer.writeTo(byteBuf, address1);
+
+        DistinguishedNameAddressReader reader = new DistinguishedNameAddressReader();
+        LispDistinguishedNameAddress deserialized = reader.readFrom(byteBuf);
+
+        new EqualsTester()
+                .addEqualityGroup(address1, deserialized).testEquals();
     }
 }

@@ -126,6 +126,10 @@ public abstract class LispAfiAddress {
 
         @Override
         public void writeTo(ByteBuf byteBuf, LispAfiAddress address) throws LispWriterException {
+
+            // AFI code
+            byteBuf.writeShort(address.getAfi().getIanaCode());
+
             switch (address.getAfi()) {
                 case IP:
                     new LispIpAddress.IpAddressWriter().writeTo(byteBuf, (LispIpv4Address) address);

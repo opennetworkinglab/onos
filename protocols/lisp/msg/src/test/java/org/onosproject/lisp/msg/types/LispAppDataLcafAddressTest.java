@@ -16,12 +16,20 @@
 package org.onosproject.lisp.msg.types;
 
 import com.google.common.testing.EqualsTester;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.types.LispAppDataLcafAddress.AppDataLcafAddressWriter;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.onosproject.lisp.msg.types.LispAppDataLcafAddress.AppDataAddressBuilder;
+import static org.onosproject.lisp.msg.types.LispAppDataLcafAddress.AppDataLcafAddressReader;
 
 /**
  * Unit tests for LispAppDataLcafAddress class.
@@ -35,8 +43,8 @@ public class LispAppDataLcafAddressTest {
     @Before
     public void setup() {
 
-        LispAppDataLcafAddress.AppDataAddressBuilder builder1 =
-                new LispAppDataLcafAddress.AppDataAddressBuilder();
+        AppDataAddressBuilder builder1 =
+                new AppDataAddressBuilder();
 
         LispAfiAddress ipv4Address1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
 
@@ -50,8 +58,8 @@ public class LispAppDataLcafAddressTest {
                     .withAddress(ipv4Address1)
                     .build();
 
-        LispAppDataLcafAddress.AppDataAddressBuilder builder2 =
-                new LispAppDataLcafAddress.AppDataAddressBuilder();
+        AppDataAddressBuilder builder2 =
+                new AppDataAddressBuilder();
 
         sameAsAddress1 = builder2
                             .withProtocol((byte) 0x01)
@@ -63,8 +71,8 @@ public class LispAppDataLcafAddressTest {
                             .withAddress(ipv4Address1)
                             .build();
 
-        LispAppDataLcafAddress.AppDataAddressBuilder builder3 =
-                new LispAppDataLcafAddress.AppDataAddressBuilder();
+        AppDataAddressBuilder builder3 =
+                new AppDataAddressBuilder();
 
         LispAfiAddress ipv4Address2 = new LispIpv4Address(IpAddress.valueOf("192.168.2.1"));
 
@@ -99,5 +107,19 @@ public class LispAppDataLcafAddressTest {
         assertThat(appDataLcafAddress.getRemotePortLow(), is((short) 2));
         assertThat(appDataLcafAddress.getRemotePortHigh(), is((short) 254));
         assertThat(appDataLcafAddress.getAddress(), is(ipv4Address));
+    }
+
+    @Test
+    public void testSerialization() throws LispWriterException, LispParseError, LispReaderException {
+        ByteBuf byteBuf = Unpooled.buffer();
+
+        AppDataLcafAddressWriter writer = new AppDataLcafAddressWriter();
+        writer.writeTo(byteBuf, address1);
+
+        AppDataLcafAddressReader reader = new AppDataLcafAddressReader();
+        LispAppDataLcafAddress deserialized = reader.readFrom(byteBuf);
+
+        new EqualsTester()
+                .addEqualityGroup(address1, deserialized).testEquals();
     }
 }

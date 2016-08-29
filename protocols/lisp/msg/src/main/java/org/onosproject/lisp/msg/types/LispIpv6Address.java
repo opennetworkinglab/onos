@@ -35,7 +35,7 @@ public class LispIpv6Address extends LispIpAddress {
      * @param address IP address
      */
     public LispIpv6Address(IpAddress address) {
-        super(address, AddressFamilyIdentifierEnum.IP);
+        super(address, AddressFamilyIdentifierEnum.IP6);
         checkArgument(address.isIp6());
     }
 

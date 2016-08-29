@@ -21,6 +21,7 @@ import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -352,7 +353,7 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
         }
 
         /**
-         * A utility function that obtains the partial int value from byte arrays.
+         * An utility function that obtains the partial int value from byte arrays.
          *
          * @param bytes an array of bytes
          * @return converted integer
@@ -378,8 +379,8 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
 
             LispLcafAddress.serializeCommon(byteBuf, address);
 
-            // TODO: need to handle TOS
-
+            byte[] tos = getPartialByteArray(address.getIpTos());
+            byteBuf.writeBytes(tos);
             byteBuf.writeByte(address.getProtocol());
             byteBuf.writeShort(address.getLocalPortLow());
             byteBuf.writeShort(address.getLocalPortHigh());
@@ -388,6 +389,18 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
 
             AfiAddressWriter writer = new LispAfiAddress.AfiAddressWriter();
             writer.writeTo(byteBuf, address.getAddress());
+        }
+
+        /**
+         * An utility function that obtains byte array from partial int value.
+         *
+         * @param value integer value
+         * @return an array of bytes
+         */
+        public static byte[] getPartialByteArray(int value) {
+            ByteBuffer buffer = ByteBuffer.allocate(4);
+            byte[] array = buffer.putInt(value).array();
+            return Arrays.copyOfRange(array, 1, 4);
         }
     }
 }

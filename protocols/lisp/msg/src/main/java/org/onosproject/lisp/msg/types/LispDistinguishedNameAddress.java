@@ -84,10 +84,10 @@ public class LispDistinguishedNameAddress extends LispAfiAddress {
         public LispDistinguishedNameAddress readFrom(ByteBuf byteBuf) throws LispParseError {
 
             StringBuilder sb = new StringBuilder();
-            byte character = byteBuf.readByte();
-            while (character != 0) {
-                sb.append((char) character);
+            byte character;
+            while (byteBuf.readerIndex() < byteBuf.writerIndex()) {
                 character = byteBuf.readByte();
+                sb.append((char) character);
             }
 
             return new LispDistinguishedNameAddress(sb.toString());
@@ -105,7 +105,7 @@ public class LispDistinguishedNameAddress extends LispAfiAddress {
             String distinguishedName = address.getDistinguishedName();
             byte[] nameBytes = distinguishedName.getBytes();
             for (int i = 0; i < nameBytes.length; i++) {
-                byteBuf.writeChar(nameBytes[i]);
+                byteBuf.writeByte(nameBytes[i]);
             }
         }
     }

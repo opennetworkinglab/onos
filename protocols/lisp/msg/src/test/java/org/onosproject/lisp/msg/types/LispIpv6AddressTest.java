@@ -16,12 +16,19 @@
 package org.onosproject.lisp.msg.types;
 
 import com.google.common.testing.EqualsTester;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.onosproject.lisp.msg.types.LispIpv6Address.Ipv6AddressReader;
+import static org.onosproject.lisp.msg.types.LispIpv6Address.Ipv6AddressWriter;
+
 
 /**
  * Unit tests for LispIpv6Address class.
@@ -51,5 +58,19 @@ public class LispIpv6AddressTest {
     public void testConstruction() {
         LispIpv6Address ipv6Address = address1;
         assertThat(ipv6Address.getAddress(), is(IpAddress.valueOf("1111:2222:3333:4444:5555:6666:7777:8885")));
+    }
+
+    @Test
+    public void testSerialization() throws LispWriterException, LispParseError {
+        ByteBuf byteBuf = Unpooled.buffer();
+
+        Ipv6AddressWriter writer = new Ipv6AddressWriter();
+        writer.writeTo(byteBuf, address1);
+
+        Ipv6AddressReader reader = new Ipv6AddressReader();
+        LispIpv6Address deserialized = reader.readFrom(byteBuf);
+
+        new EqualsTester()
+                .addEqualityGroup(address1, deserialized).testEquals();
     }
 }

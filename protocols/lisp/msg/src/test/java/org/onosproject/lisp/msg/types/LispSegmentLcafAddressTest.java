@@ -16,12 +16,19 @@
 package org.onosproject.lisp.msg.types;
 
 import com.google.common.testing.EqualsTester;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.onosproject.lisp.msg.types.LispSegmentLcafAddress.SegmentLcafAddressReader;
+import static org.onosproject.lisp.msg.types.LispSegmentLcafAddress.SegmentLcafAddressWriter;
 
 /**
  * Unit tests for LispSegmentLcafAddress class.
@@ -82,5 +89,19 @@ public class LispSegmentLcafAddressTest {
         assertThat(segmentLcafAddress.getIdMaskLength(), is((byte) 0x01));
         assertThat(segmentLcafAddress.getInstanceId(), is(1));
         assertThat(segmentLcafAddress.getAddress(), is(ipv4Address));
+    }
+
+    @Test
+    public void testSerialization() throws LispWriterException, LispParseError, LispReaderException {
+        ByteBuf byteBuf = Unpooled.buffer();
+
+        SegmentLcafAddressWriter writer = new SegmentLcafAddressWriter();
+        writer.writeTo(byteBuf, address1);
+
+        SegmentLcafAddressReader reader = new SegmentLcafAddressReader();
+        LispSegmentLcafAddress deserialized = reader.readFrom(byteBuf);
+
+        new EqualsTester()
+                .addEqualityGroup(address1, deserialized).testEquals();
     }
 }

@@ -128,8 +128,10 @@ public final class LispListLcafAddress extends LispLcafAddress {
 
             LispLcafAddress lcafAddress = LispLcafAddress.deserializeCommon(byteBuf);
 
-            LispAfiAddress ipv4 = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
-            LispAfiAddress ipv6 = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
+            AfiAddressReader reader = new AfiAddressReader();
+
+            LispAfiAddress ipv4 = reader.readFrom(byteBuf);
+            LispAfiAddress ipv6 = reader.readFrom(byteBuf);
 
             return new LispListLcafAddress(lcafAddress.getReserved1(), lcafAddress.getReserved2(),
                                            lcafAddress.getFlag(), ImmutableList.of(ipv4, ipv6));
@@ -141,6 +143,9 @@ public final class LispListLcafAddress extends LispLcafAddress {
      */
     public static class ListLcafAddressWriter implements LispAddressWriter<LispListLcafAddress> {
 
+        private static final int IPV4_ADDRESS_INDEX = 0;
+        private static final int IPV6_ADDRESS_INDEX = 1;
+
         @Override
         public void writeTo(ByteBuf byteBuf, LispListLcafAddress address) throws LispWriterException {
 
@@ -149,8 +154,16 @@ public final class LispListLcafAddress extends LispLcafAddress {
             LispIpv4Address.Ipv4AddressWriter v4Writer = new LispIpv4Address.Ipv4AddressWriter();
             LispIpv6Address.Ipv6AddressWriter v6Writer = new LispIpv6Address.Ipv6AddressWriter();
 
-            v4Writer.writeTo(byteBuf, (LispIpv4Address) address.getAddresses().get(0));
-            v6Writer.writeTo(byteBuf, (LispIpv6Address) address.getAddresses().get(1));
+            LispAfiAddress ipv4 = address.getAddresses().get(IPV4_ADDRESS_INDEX);
+            LispAfiAddress ipv6 = address.getAddresses().get(IPV6_ADDRESS_INDEX);
+
+            // IPv4 address
+            byteBuf.writeShort(ipv4.getAfi().getIanaCode());
+            v4Writer.writeTo(byteBuf, (LispIpv4Address) ipv4);
+
+            // IPv6 address
+            byteBuf.writeShort(ipv6.getAfi().getIanaCode());
+            v6Writer.writeTo(byteBuf, (LispIpv6Address) ipv6);
         }
     }
 }

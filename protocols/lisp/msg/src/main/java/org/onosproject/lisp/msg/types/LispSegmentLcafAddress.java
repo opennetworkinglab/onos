@@ -227,7 +227,8 @@ public final class LispSegmentLcafAddress extends LispLcafAddress {
             LispLcafAddress.serializeCommon(byteBuf, address);
 
             byteBuf.writeInt(address.getInstanceId());
-            new LispIpAddress.IpAddressWriter().writeTo(byteBuf, (LispIpAddress) address.getAddress());
+
+            new LispAfiAddress.AfiAddressWriter().writeTo(byteBuf, address.getAddress());
         }
     }
 }

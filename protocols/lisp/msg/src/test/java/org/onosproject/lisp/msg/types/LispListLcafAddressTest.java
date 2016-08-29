@@ -17,14 +17,21 @@ package org.onosproject.lisp.msg.types;
 
 import com.google.common.collect.Lists;
 import com.google.common.testing.EqualsTester;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.onosproject.lisp.msg.types.LispListLcafAddress.ListLcafAddressReader;
+import static org.onosproject.lisp.msg.types.LispListLcafAddress.ListLcafAddressWriter;
 
 /**
  * Unit tests for LispListLcafAddress class.
@@ -78,5 +85,19 @@ public class LispListLcafAddressTest {
         afiAddresses1.add(ipv6Address1);
 
         assertThat(listLcafAddress.getAddresses(), is(afiAddresses1));
+    }
+
+    @Test
+    public void testSerialization() throws LispWriterException, LispParseError, LispReaderException {
+        ByteBuf byteBuf = Unpooled.buffer();
+
+        ListLcafAddressWriter writer = new ListLcafAddressWriter();
+        writer.writeTo(byteBuf, address1);
+
+        ListLcafAddressReader reader = new ListLcafAddressReader();
+        LispListLcafAddress deserialized = reader.readFrom(byteBuf);
+
+        new EqualsTester()
+                .addEqualityGroup(address1, deserialized).testEquals();
     }
 }
