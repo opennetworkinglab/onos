@@ -16,8 +16,15 @@
 package org.onosproject.lisp.msg.protocols;
 
 import com.google.common.testing.EqualsTester;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapReply.ReplyReader;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapReply.ReplyWriter;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -42,7 +49,7 @@ public final class DefaultLispMapReplyTest {
                         .withIsProbe(false)
                         .withIsSecurity(true)
                         .withNonce(1L)
-                        .withRecordCount((byte) 0x01)
+                        .withRecordCount((byte) 0)
                         .build();
 
         LispMapReply.ReplyBuilder builder2 =
@@ -53,7 +60,7 @@ public final class DefaultLispMapReplyTest {
                         .withIsProbe(false)
                         .withIsSecurity(true)
                         .withNonce(1L)
-                        .withRecordCount((byte) 0x01)
+                        .withRecordCount((byte) 0)
                         .build();
 
         LispMapReply.ReplyBuilder builder3 =
@@ -82,6 +89,19 @@ public final class DefaultLispMapReplyTest {
         assertThat(reply.isProbe(), is(false));
         assertThat(reply.isSecurity(), is(true));
         assertThat(reply.getNonce(), is(1L));
-        assertThat(reply.getRecordCount(), is((byte) 0x01));
+        assertThat(reply.getRecordCount(), is((byte) 0));
+    }
+
+    @Test
+    public void testSerialization() throws LispReaderException, LispWriterException, LispParseError {
+        ByteBuf byteBuf = Unpooled.buffer();
+        ReplyWriter writer = new ReplyWriter();
+        writer.writeTo(byteBuf, reply1);
+
+        ReplyReader reader = new ReplyReader();
+        LispMapReply deserialized = reader.readFrom(byteBuf);
+
+        new EqualsTester()
+                .addEqualityGroup(reply1, deserialized).testEquals();
     }
 }

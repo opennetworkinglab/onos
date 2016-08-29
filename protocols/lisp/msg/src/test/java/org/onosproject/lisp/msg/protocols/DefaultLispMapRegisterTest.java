@@ -16,8 +16,15 @@
 package org.onosproject.lisp.msg.protocols;
 
 import com.google.common.testing.EqualsTester;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapRegister.RegisterReader;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapRegister.RegisterWriter;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -42,7 +49,7 @@ public final class DefaultLispMapRegisterTest {
                         .withIsWantMapNotify(false)
                         .withKeyId((short) 1)
                         .withNonce(1L)
-                        .withRecordCount((byte) 0x01)
+                        .withRecordCount((byte) 0)
                         .build();
 
         LispMapRegister.RegisterBuilder builder2 =
@@ -53,7 +60,7 @@ public final class DefaultLispMapRegisterTest {
                         .withIsWantMapNotify(false)
                         .withKeyId((short) 1)
                         .withNonce(1L)
-                        .withRecordCount((byte) 0x01)
+                        .withRecordCount((byte) 0)
                         .build();
 
         LispMapRegister.RegisterBuilder builder3 =
@@ -83,6 +90,20 @@ public final class DefaultLispMapRegisterTest {
         assertThat(register.isWantMapNotify(), is(false));
         assertThat(register.getKeyId(), is((short) 1));
         assertThat(register.getNonce(), is(1L));
-        assertThat(register.getRecordCount(), is((byte) 0x01));
+        assertThat(register.getRecordCount(), is((byte) 0));
+    }
+
+    @Test
+    public void testSerialization() throws LispReaderException, LispWriterException, LispParseError {
+        ByteBuf byteBuf = Unpooled.buffer();
+
+        RegisterWriter writer = new RegisterWriter();
+        writer.writeTo(byteBuf, register1);
+
+        RegisterReader reader = new RegisterReader();
+        LispMapRegister deserialized = reader.readFrom(byteBuf);
+
+        new EqualsTester()
+                .addEqualityGroup(register1, deserialized).testEquals();
     }
 }

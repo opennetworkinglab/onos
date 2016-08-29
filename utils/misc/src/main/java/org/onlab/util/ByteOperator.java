@@ -61,7 +61,7 @@ public final class ByteOperator {
      * @param decimal decimal formatted integer
      * @return hex formatted integer
      */
-    private static int getHex(int decimal) {
+    public static int getHex(int decimal) {
         return Integer.valueOf(String.valueOf(decimal), 16);
     }
 }

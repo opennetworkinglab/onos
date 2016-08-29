@@ -29,6 +29,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordReader;
+import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordWriter;
 
 
 /**
@@ -117,7 +119,11 @@ public final class DefaultLispMapRegister implements LispMapRegister {
 
     @Override
     public byte[] getAuthenticationData() {
-        return ImmutableByteSequence.copyFrom(this.authenticationData).asArray();
+        if (authenticationData != null && authenticationData.length != 0) {
+            return ImmutableByteSequence.copyFrom(authenticationData).asArray();
+        } else {
+            return new byte[0];
+        }
     }
 
     @Override
@@ -153,7 +159,7 @@ public final class DefaultLispMapRegister implements LispMapRegister {
                 Objects.equal(recordCount, that.recordCount) &&
                 Objects.equal(keyId, that.keyId) &&
                 Objects.equal(authDataLength, that.authDataLength) &&
-                Objects.equal(authenticationData, that.authenticationData) &&
+                Arrays.equals(authenticationData, that.authenticationData) &&
                 Objects.equal(proxyMapReply, that.proxyMapReply) &&
                 Objects.equal(wantMapNotify, that.wantMapNotify);
     }
@@ -161,7 +167,7 @@ public final class DefaultLispMapRegister implements LispMapRegister {
     @Override
     public int hashCode() {
         return Objects.hashCode(nonce, recordCount, keyId, authDataLength,
-                authenticationData, proxyMapReply, wantMapNotify);
+                proxyMapReply, wantMapNotify) + Arrays.hashCode(authenticationData);
     }
 
     public static final class DefaultRegisterBuilder implements RegisterBuilder {
@@ -218,18 +224,34 @@ public final class DefaultLispMapRegister implements LispMapRegister {
 
         @Override
         public RegisterBuilder withAuthenticationData(byte[] authenticationData) {
-            this.authenticationData = authenticationData;
+            if (authenticationData != null) {
+                this.authenticationData = authenticationData;
+            } else {
+                this.authenticationData = new byte[0];
+            }
             return this;
         }
 
         @Override
         public RegisterBuilder withMapRecords(List<LispMapRecord> mapRecords) {
-            this.mapRecords = ImmutableList.copyOf(mapRecords);
+            if (mapRecords != null) {
+                this.mapRecords = ImmutableList.copyOf(mapRecords);
+            } else {
+                this.mapRecords = Lists.newArrayList();
+            }
             return this;
         }
 
         @Override
         public LispMapRegister build() {
+            if (authenticationData == null) {
+                authenticationData = new byte[0];
+            }
+
+            if (mapRecords == null) {
+                mapRecords = Lists.newArrayList();
+            }
+
             return new DefaultLispMapRegister(nonce, keyId, authDataLength,
                     authenticationData, recordCount, mapRecords, proxyMapReply, wantMapNotify);
         }
@@ -280,7 +302,7 @@ public final class DefaultLispMapRegister implements LispMapRegister {
 
             List<LispMapRecord> mapRecords = Lists.newArrayList();
             for (int i = 0; i < recordCount; i++) {
-                mapRecords.add(new DefaultLispMapRecord.MapRecordReader().readFrom(byteBuf));
+                mapRecords.add(new MapRecordReader().readFrom(byteBuf));
             }
 
             return new DefaultRegisterBuilder()
@@ -360,7 +382,7 @@ public final class DefaultLispMapRegister implements LispMapRegister {
             // TODO: need to implement MAC authentication mechanism
 
             // serialize map records
-            DefaultLispMapRecord.MapRecordWriter writer = new DefaultLispMapRecord.MapRecordWriter();
+            MapRecordWriter writer = new MapRecordWriter();
             List<LispMapRecord> records = message.getMapRecords();
 
             for (int i = 0; i < records.size(); i++) {

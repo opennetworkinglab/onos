@@ -209,12 +209,21 @@ public final class DefaultLispMapRecord implements LispMapRecord {
 
         @Override
         public MapRecordBuilder withLocators(List<LispLocatorRecord> records) {
-            this.locatorRecords = ImmutableList.copyOf(records);
+            if (records != null) {
+                this.locatorRecords = ImmutableList.copyOf(records);
+            } else {
+                this.locatorRecords = Lists.newArrayList();
+            }
             return this;
         }
 
         @Override
         public LispMapRecord build() {
+
+            if (locatorRecords == null) {
+                locatorRecords = Lists.newArrayList();
+            }
+
             return new DefaultLispMapRecord(recordTtl, locatorCount, maskLength,
                     action, authoritative, mapVersionNumber, eidPrefixAfi, locatorRecords);
         }
@@ -228,6 +237,8 @@ public final class DefaultLispMapRecord implements LispMapRecord {
         private static final int AUTHORITATIVE_INDEX = 4;
         private static final int RESERVED_SKIP_LENGTH = 1;
 
+        private static final int REPLY_ACTION_SHIFT_BIT = 5;
+
         @Override
         public LispMapRecord readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
 
@@ -235,17 +246,22 @@ public final class DefaultLispMapRecord implements LispMapRecord {
             int recordTtl = byteBuf.readInt();
 
             // Locator count -> 8 bits
-            int locatorCount = byteBuf.readUnsignedShort();
+            int locatorCount = byteBuf.readUnsignedByte();
 
             // EID mask length -> 8 bits
             byte maskLength = (byte) byteBuf.readUnsignedByte();
 
-            // TODO: need to de-serialize LispMapReplyAction
+            byte actionWithFlag = (byte) byteBuf.readUnsignedByte();
 
-            byte actionWithFlag = byteBuf.readByte();
+            // action -> 3 bit
+            int actionByte = actionWithFlag >> REPLY_ACTION_SHIFT_BIT;
+            LispMapReplyAction action = LispMapReplyAction.valueOf(actionByte);
+            if (action == null) {
+                action = LispMapReplyAction.NoAction;
+            }
 
             // authoritative flag -> 1 bit
-            boolean authoritative = ByteOperator.getBit(actionWithFlag, AUTHORITATIVE_INDEX);
+            boolean authoritative = ByteOperator.getBit((byte) (actionWithFlag >> AUTHORITATIVE_INDEX), 0);
 
             // let's skip the reserved field
             byteBuf.skipBytes(RESERVED_SKIP_LENGTH);
@@ -264,6 +280,7 @@ public final class DefaultLispMapRecord implements LispMapRecord {
                         .withRecordTtl(recordTtl)
                         .withLocatorCount(locatorCount)
                         .withMaskLength(maskLength)
+                        .withAction(action)
                         .withAuthoritative(authoritative)
                         .withMapVersionNumber(mapVersionNumber)
                         .withLocators(locators)
@@ -301,9 +318,8 @@ public final class DefaultLispMapRecord implements LispMapRecord {
             // authoritative bit
             byte authoritative = DISABLE_BIT;
             if (message.isAuthoritative()) {
-                authoritative = ENABLE_BIT;
+                authoritative = ENABLE_BIT << AUTHORITATIVE_FLAG_SHIFT_BIT;
             }
-            authoritative = (byte) (authoritative << AUTHORITATIVE_FLAG_SHIFT_BIT);
 
             byteBuf.writeByte((byte) (action + authoritative));
 

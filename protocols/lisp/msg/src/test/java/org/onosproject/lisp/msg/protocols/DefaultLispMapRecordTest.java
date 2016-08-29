@@ -16,11 +16,19 @@
 package org.onosproject.lisp.msg.protocols;
 
 import com.google.common.testing.EqualsTester;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.IpAddress;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.types.LispIpv4Address;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.*;
 
 /**
  * Unit tests for DefaultLispMapRecord class.
@@ -35,29 +43,37 @@ public final class DefaultLispMapRecordTest {
     public void setup() {
 
         LispMapRecord.MapRecordBuilder builder1 =
-                        new DefaultLispMapRecord.DefaultMapRecordBuilder();
+                        new DefaultMapRecordBuilder();
+
+        LispIpv4Address ipv4Locator1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
 
         record1 = builder1
                         .withRecordTtl(100)
                         .withAuthoritative(true)
-                        .withLocatorCount(100)
+                        .withLocatorCount(0)
                         .withMapVersionNumber((short) 1)
                         .withMaskLength((byte) 0x01)
+                        .withAction(LispMapReplyAction.NativelyForward)
+                        .withEidPrefixAfi(ipv4Locator1)
                         .build();
 
         LispMapRecord.MapRecordBuilder builder2 =
-                        new DefaultLispMapRecord.DefaultMapRecordBuilder();
+                        new DefaultMapRecordBuilder();
 
         sameAsRecord1 = builder2
                         .withRecordTtl(100)
                         .withAuthoritative(true)
-                        .withLocatorCount(100)
+                        .withLocatorCount(0)
                         .withMapVersionNumber((short) 1)
                         .withMaskLength((byte) 0x01)
+                        .withAction(LispMapReplyAction.NativelyForward)
+                        .withEidPrefixAfi(ipv4Locator1)
                         .build();
 
         LispMapRecord.MapRecordBuilder builder3 =
-                        new DefaultLispMapRecord.DefaultMapRecordBuilder();
+                        new DefaultMapRecordBuilder();
+
+        LispIpv4Address ipv4Locator2 = new LispIpv4Address(IpAddress.valueOf("192.168.1.2"));
 
         record2 = builder3
                         .withRecordTtl(200)
@@ -65,6 +81,8 @@ public final class DefaultLispMapRecordTest {
                         .withLocatorCount(200)
                         .withMapVersionNumber((short) 2)
                         .withMaskLength((byte) 0x02)
+                        .withAction(LispMapReplyAction.Drop)
+                        .withEidPrefixAfi(ipv4Locator2)
                         .build();
     }
 
@@ -79,10 +97,28 @@ public final class DefaultLispMapRecordTest {
     public void testConstruction() {
         DefaultLispMapRecord record = (DefaultLispMapRecord) record1;
 
+        LispIpv4Address ipv4Locator = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
+
         assertThat(record.getRecordTtl(), is(100));
         assertThat(record.isAuthoritative(), is(true));
-        assertThat(record.getLocatorCount(), is(100));
+        assertThat(record.getLocatorCount(), is(0));
         assertThat(record.getMapVersionNumber(), is((short) 1));
         assertThat(record.getMaskLength(), is((byte) 0x01));
+        assertThat(record.getAction(), is(LispMapReplyAction.NativelyForward));
+        assertThat(record.getEidPrefixAfi(), is(ipv4Locator));
+    }
+
+    @Test
+    public void testSerialization() throws LispReaderException, LispWriterException, LispParseError {
+        ByteBuf byteBuf = Unpooled.buffer();
+
+        MapRecordWriter writer = new MapRecordWriter();
+        writer.writeTo(byteBuf, record1);
+
+        MapRecordReader reader = new MapRecordReader();
+        LispMapRecord deserialized = reader.readFrom(byteBuf);
+
+        new EqualsTester()
+                .addEqualityGroup(record1, deserialized).testEquals();
     }
 }

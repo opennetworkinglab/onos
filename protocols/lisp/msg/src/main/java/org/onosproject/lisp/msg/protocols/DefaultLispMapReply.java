@@ -185,12 +185,22 @@ public final class DefaultLispMapReply implements LispMapReply {
 
         @Override
         public ReplyBuilder withMapRecords(List<LispMapRecord> mapRecords) {
-            this.mapRecords = ImmutableList.copyOf(mapRecords);
+
+            if (this.mapRecords != null) {
+                this.mapRecords = ImmutableList.copyOf(mapRecords);
+            } else {
+                this.mapRecords = Lists.newArrayList();
+            }
             return this;
         }
 
         @Override
         public LispMapReply build() {
+
+            if (mapRecords == null) {
+                mapRecords = Lists.newArrayList();
+            }
+
             return new DefaultLispMapReply(nonce, recordCount, probe, etr, security, mapRecords);
         }
     }

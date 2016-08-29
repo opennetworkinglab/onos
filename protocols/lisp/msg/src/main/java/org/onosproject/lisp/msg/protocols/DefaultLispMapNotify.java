@@ -99,7 +99,11 @@ public final class DefaultLispMapNotify implements LispMapNotify {
 
     @Override
     public byte[] getAuthenticationData() {
-        return ImmutableByteSequence.copyFrom(authenticationData).asArray();
+        if (authenticationData != null && authenticationData.length != 0) {
+            return ImmutableByteSequence.copyFrom(authenticationData).asArray();
+        } else {
+            return new byte[0];
+        }
     }
 
     @Override
@@ -132,12 +136,13 @@ public final class DefaultLispMapNotify implements LispMapNotify {
                 Objects.equal(recordCount, that.recordCount) &&
                 Objects.equal(keyId, that.keyId) &&
                 Objects.equal(authDataLength, that.authDataLength) &&
-                Objects.equal(authenticationData, that.authenticationData);
+                Arrays.equals(authenticationData, that.authenticationData);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(nonce, recordCount, keyId, authDataLength, authenticationData);
+        return Objects.hashCode(nonce, recordCount, keyId, authDataLength) +
+                Arrays.hashCode(authenticationData);
     }
 
     public static final class DefaultNotifyBuilder implements NotifyBuilder {
@@ -180,18 +185,35 @@ public final class DefaultLispMapNotify implements LispMapNotify {
 
         @Override
         public NotifyBuilder withAuthenticationData(byte[] authenticationData) {
-            this.authenticationData = authenticationData;
+            if (authenticationData != null) {
+                this.authenticationData = authenticationData;
+            } else {
+                this.authenticationData = new byte[0];
+            }
             return this;
         }
 
         @Override
         public NotifyBuilder withMapRecords(List<LispMapRecord> mapRecords) {
-            this.mapRecords = ImmutableList.copyOf(mapRecords);
+            if (mapRecords != null) {
+                this.mapRecords = ImmutableList.copyOf(mapRecords);
+            } else {
+                this.mapRecords = Lists.newArrayList();
+            }
             return this;
         }
 
         @Override
         public LispMapNotify build() {
+
+            if (authenticationData == null) {
+                authenticationData = new byte[0];
+            }
+
+            if (mapRecords == null) {
+                mapRecords = Lists.newArrayList();
+            }
+
             return new DefaultLispMapNotify(nonce, keyId, authDataLength,
                     authenticationData, recordCount, mapRecords);
         }

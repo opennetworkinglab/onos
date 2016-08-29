@@ -16,11 +16,17 @@
 package org.onosproject.lisp.msg.protocols;
 
 import com.google.common.testing.EqualsTester;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.onosproject.lisp.msg.protocols.DefaultLispMapNotify.*;
 
 /**
  * Unit tests for DefaultLispMapNotify class.
@@ -35,25 +41,25 @@ public final class DefaultLispMapNotifyTest {
     public void setup() {
 
         LispMapNotify.NotifyBuilder builder1 =
-                        new DefaultLispMapNotify.DefaultNotifyBuilder();
+                        new DefaultNotifyBuilder();
 
         notify1 = builder1
                         .withKeyId((short) 1)
                         .withNonce(1L)
-                        .withRecordCount((byte) 0x01)
+                        .withRecordCount((byte) 0)
                         .build();
 
         LispMapNotify.NotifyBuilder builder2 =
-                        new DefaultLispMapNotify.DefaultNotifyBuilder();
+                        new DefaultNotifyBuilder();
 
         sameAsNotify1 = builder2
                         .withKeyId((short) 1)
                         .withNonce(1L)
-                        .withRecordCount((byte) 0x01)
+                        .withRecordCount((byte) 0)
                         .build();
 
         LispMapNotify.NotifyBuilder builder3 =
-                        new DefaultLispMapNotify.DefaultNotifyBuilder();
+                        new DefaultNotifyBuilder();
 
         notify2 = builder3
                         .withKeyId((short) 2)
@@ -75,6 +81,20 @@ public final class DefaultLispMapNotifyTest {
 
         assertThat(notify.getKeyId(), is((short) 1));
         assertThat(notify.getNonce(), is(1L));
-        assertThat(notify.getRecordCount(), is((byte) 0x01));
+        assertThat(notify.getRecordCount(), is((byte) 0));
+    }
+
+    @Test
+    public void testSerialization() throws LispReaderException, LispWriterException, LispParseError {
+        ByteBuf byteBuf = Unpooled.buffer();
+
+        NotifyWriter writer = new NotifyWriter();
+        writer.writeTo(byteBuf, notify1);
+
+        NotifyReader reader = new NotifyReader();
+        LispMapNotify deserialized = reader.readFrom(byteBuf);
+
+        new EqualsTester()
+                .addEqualityGroup(notify1, deserialized).testEquals();
     }
 }

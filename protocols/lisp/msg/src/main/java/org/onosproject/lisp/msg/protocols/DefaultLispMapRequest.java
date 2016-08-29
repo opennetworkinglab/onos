@@ -28,6 +28,8 @@ import org.onosproject.lisp.msg.types.LispAfiAddress;
 import java.util.List;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 import static org.onosproject.lisp.msg.protocols.LispEidRecord.EidRecordWriter;
 
@@ -179,8 +181,6 @@ public final class DefaultLispMapRequest implements LispMapRequest {
         return Objects.equal(nonce, that.nonce) &&
                 Objects.equal(recordCount, that.recordCount) &&
                 Objects.equal(sourceEid, that.sourceEid) &&
-                Objects.equal(itrRlocs, that.itrRlocs) &&
-                Objects.equal(eidRecords, that.eidRecords) &&
                 Objects.equal(authoritative, that.authoritative) &&
                 Objects.equal(mapDataPresent, that.mapDataPresent) &&
                 Objects.equal(probe, that.probe) &&
@@ -191,8 +191,8 @@ public final class DefaultLispMapRequest implements LispMapRequest {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(nonce, recordCount, sourceEid, itrRlocs, eidRecords,
-                authoritative, mapDataPresent, probe, smr, pitr, smrInvoked);
+        return Objects.hashCode(nonce, recordCount, sourceEid, authoritative,
+                mapDataPresent, probe, smr, pitr, smrInvoked);
     }
 
     public static final class DefaultRequestBuilder implements RequestBuilder {
@@ -270,18 +270,33 @@ public final class DefaultLispMapRequest implements LispMapRequest {
 
         @Override
         public RequestBuilder withItrRlocs(List<LispAfiAddress> itrRlocs) {
-            this.itrRlocs = ImmutableList.copyOf(itrRlocs);
+
+            if (itrRlocs != null) {
+                this.itrRlocs = ImmutableList.copyOf(itrRlocs);
+            } else {
+                this.itrRlocs = Lists.newArrayList();
+            }
+
             return this;
         }
 
         @Override
         public RequestBuilder withEidRecords(List<LispEidRecord> records) {
-            this.eidRecords = ImmutableList.copyOf(records);
+
+            if (records != null) {
+                this.eidRecords = ImmutableList.copyOf(records);
+            } else {
+                this.eidRecords = Lists.newArrayList();
+            }
             return this;
         }
 
         @Override
         public LispMapRequest build() {
+
+            checkNotNull(sourceEid, "Must have a source EID");
+            checkArgument((itrRlocs != null) && (itrRlocs.size() > 0), "Must have an ITR RLOC entry");
+
             return new DefaultLispMapRequest(nonce, recordCount, sourceEid, itrRlocs,
                     eidRecords, authoritative, mapDataPresent, probe, smr, pitr, smrInvoked);
         }
@@ -331,10 +346,10 @@ public final class DefaultLispMapRequest implements LispMapRequest {
             // let's skip reserved field, only obtains ITR counter value
             // assume that first 3 bits are all set as 0,
             // remain 5 bits represent Itr Rloc Counter (IRC)
-            int irc = byteBuf.readUnsignedShort();
+            int irc = byteBuf.readUnsignedByte();
 
             // record count -> 8 bits
-            int recordCount = byteBuf.readUnsignedShort();
+            int recordCount = byteBuf.readUnsignedByte();
 
             // nonce -> 64 bits
             long nonce = byteBuf.readLong();
@@ -387,8 +402,6 @@ public final class DefaultLispMapRequest implements LispMapRequest {
         private static final int ENABLE_BIT = 1;
         private static final int DISABLE_BIT = 0;
 
-        private static final int UNUSED_ZERO = 0;
-
         @Override
         public void writeTo(ByteBuf byteBuf, LispMapRequest message) throws LispWriterException {
 
@@ -435,8 +448,8 @@ public final class DefaultLispMapRequest implements LispMapRequest {
 
             byteBuf.writeByte((byte) (pitr + smrInvoked));
 
-            // TODO: ITR RLOC count
-            byteBuf.writeByte((byte) UNUSED_ZERO);
+            // ITR Rloc count
+            byteBuf.writeByte((byte) message.getItrRlocs().size());
 
             // record count
             byteBuf.writeByte(message.getRecordCount());
