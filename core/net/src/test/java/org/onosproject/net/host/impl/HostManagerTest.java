@@ -98,14 +98,12 @@ public class HostManagerTest {
     protected TestHostProvider provider;
     protected HostProviderService providerService;
 
-    private static final ComponentContextAdapter REMOVE_DUPS_MONITOR =
+    private static final ComponentContextAdapter REMOVE_DUPS =
             new ComponentContextAdapter() {
                 @Override
                 public Dictionary getProperties() {
                     Hashtable<String, String> props = new Hashtable<>();
                     props.put("allowDuplicateIps", "true");
-                    props.put("monitorHosts", "true");
-                    props.put("probeRate", "40000");
                     return props;
                 }
             };
@@ -118,27 +116,28 @@ public class HostManagerTest {
         registry = mgr;
         mgr.networkConfigService = new TestNetworkConfigService();
         mgr.cfgService = new ComponentConfigAdapter();
-
-        mgr.activate(REMOVE_DUPS_MONITOR);
-
+        mgr.activate(REMOVE_DUPS);
         mgr.addListener(listener);
 
         provider = new TestHostProvider();
         providerService = registry.register(provider);
-        assertTrue("provider should be registered", registry.getProviders().contains(provider.id()));
+        assertTrue("provider should be registered",
+                   registry.getProviders().contains(provider.id()));
     }
 
     @After
     public void tearDown() {
         registry.unregister(provider);
-        assertFalse("provider should not be registered", registry.getProviders().contains(provider.id()));
+        assertFalse("provider should not be registered",
+                    registry.getProviders().contains(provider.id()));
 
         mgr.removeListener(listener);
         mgr.deactivate();
         injectEventDispatcher(mgr, null);
     }
 
-    private void detect(HostId hid, MacAddress mac, VlanId vlan, HostLocation loc, IpAddress ip) {
+    private void detect(HostId hid, MacAddress mac, VlanId vlan,
+                        HostLocation loc, IpAddress ip) {
         HostDescription descr = new DefaultHostDescription(mac, vlan, loc, ip);
         providerService.hostDetected(hid, descr, false);
         assertNotNull("host should be found", mgr.getHost(hid));
@@ -218,7 +217,8 @@ public class HostManagerTest {
         assertNull("host should have been removed", mgr.getHost(HID3));
     }
 
-    private void validateHosts(String msg, Iterable<Host> hosts, HostId... ids) {
+    private void validateHosts(
+            String msg, Iterable<Host> hosts, HostId... ids) {
         Set<HostId> hids = Sets.newHashSet(ids);
         for (Host h : hosts) {
             assertTrue(msg, hids.remove(h.id()));
@@ -252,7 +252,8 @@ public class HostManagerTest {
         assertTrue("incorrect host location", mgr.getConnectedHosts(DID2).isEmpty());
     }
 
-    private static class TestHostProvider extends AbstractProvider implements HostProvider {
+    private static class TestHostProvider extends AbstractProvider
+            implements HostProvider {
 
         protected TestHostProvider() {
             super(PID);
@@ -283,4 +284,3 @@ public class HostManagerTest {
     private class TestNetworkConfigService extends NetworkConfigServiceAdapter {
     }
 }
-

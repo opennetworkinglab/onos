@@ -22,7 +22,6 @@ import org.onosproject.net.HostLocation;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onosproject.store.service.WallClockTimestamp;
 
 /**
  * Information describing host and its location.
@@ -56,12 +55,4 @@ public interface HostDescription extends Description {
      * @return host IP address
      */
     Set<IpAddress> ipAddress();
-
-    /**
-     * Returns the host recent updated Time.
-     * @return host last updated time.
-     */
-    default WallClockTimestamp timestamp() {
-        return null;
-    }
 }

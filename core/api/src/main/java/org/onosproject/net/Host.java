@@ -18,7 +18,6 @@ package org.onosproject.net;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onosproject.store.service.WallClockTimestamp;
 
 import java.util.Set;
 
@@ -64,14 +63,6 @@ public interface Host extends Element {
      */
     HostLocation location();
 
-    /**
-     * Returns the host recent time.
-     * @return host last updated time
-     */
-    default WallClockTimestamp timestamp() {
-        return null;
-    }
     // TODO: explore capturing list of recent locations to aid in mobility
 
 }
-
