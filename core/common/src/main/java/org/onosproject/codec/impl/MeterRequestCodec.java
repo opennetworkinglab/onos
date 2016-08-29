@@ -74,7 +74,7 @@ public final class MeterRequestCodec extends JsonCodec<MeterRequest> {
 
         // parse unit type
         String unit = nullIsIllegal(json.get(UNIT), UNIT + MISSING_MEMBER_MESSAGE).asText();
-        Meter.Unit meterUnit;
+        Meter.Unit meterUnit = null;
 
         switch (unit) {
             case "KB_PER_SEC":
@@ -84,8 +84,7 @@ public final class MeterRequestCodec extends JsonCodec<MeterRequest> {
                 meterUnit = Meter.Unit.PKTS_PER_SEC;
                 break;
             default:
-                log.warn("The requested unit {} is not defined for meter.", unit);
-                return null;
+                nullIsIllegal(meterUnit, "The requested unit " + unit + " is not defined for meter.");
         }
 
         // parse meter bands
