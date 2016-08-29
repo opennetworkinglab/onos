@@ -21,11 +21,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestTools;
-import org.onlab.osgi.ComponentContextAdapter;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.event.Event;
 import org.onosproject.net.DeviceId;
@@ -45,8 +43,6 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.trivial.SimpleHostStore;
 
-import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
@@ -91,16 +87,6 @@ public class HostManagerTest {
     private static final HostLocation LOC1 = new HostLocation(DID1, P1, 123L);
     private static final HostLocation LOC2 = new HostLocation(DID1, P2, 123L);
 
-    public static final ComponentContextAdapter CTX_FOR_MONITOR = new ComponentContextAdapter() {
-        @Override
-        public Dictionary getProperties() {
-            Hashtable<String, String> props = new Hashtable<String, String>();
-            props.put("monitorHosts", "true");
-            props.put("probeRate", "40000");
-            return props;
-        }
-    };
-
     private HostManager mgr;
 
     protected TestListener listener = new TestListener();
@@ -115,27 +101,29 @@ public class HostManagerTest {
         injectEventDispatcher(mgr, new TestEventDispatcher());
         registry = mgr;
         mgr.networkConfigService = new TestNetworkConfigService();
-        mgr.cfgService = new ComponentConfigAdapter();
-        mgr.activate(CTX_FOR_MONITOR);
+        mgr.activate();
 
         mgr.addListener(listener);
 
         provider = new TestHostProvider();
         providerService = registry.register(provider);
-        assertTrue("provider should be registered", registry.getProviders().contains(provider.id()));
+        assertTrue("provider should be registered",
+                   registry.getProviders().contains(provider.id()));
     }
 
     @After
     public void tearDown() {
         registry.unregister(provider);
-        assertFalse("provider should not be registered", registry.getProviders().contains(provider.id()));
+        assertFalse("provider should not be registered",
+                    registry.getProviders().contains(provider.id()));
 
         mgr.removeListener(listener);
         mgr.deactivate();
         injectEventDispatcher(mgr, null);
     }
 
-    private void detect(HostId hid, MacAddress mac, VlanId vlan, HostLocation loc, IpAddress ip) {
+    private void detect(HostId hid, MacAddress mac, VlanId vlan,
+                        HostLocation loc, IpAddress ip) {
         HostDescription descr = new DefaultHostDescription(mac, vlan, loc, ip);
         providerService.hostDetected(hid, descr, false);
         assertNotNull("host should be found", mgr.getHost(hid));
@@ -215,7 +203,8 @@ public class HostManagerTest {
         assertNull("host should have been removed", mgr.getHost(HID3));
     }
 
-    private void validateHosts(String msg, Iterable<Host> hosts, HostId... ids) {
+    private void validateHosts(
+            String msg, Iterable<Host> hosts, HostId... ids) {
         Set<HostId> hids = Sets.newHashSet(ids);
         for (Host h : hosts) {
             assertTrue(msg, hids.remove(h.id()));
@@ -249,7 +238,8 @@ public class HostManagerTest {
         assertTrue("incorrect host location", mgr.getConnectedHosts(DID2).isEmpty());
     }
 
-    private static class TestHostProvider extends AbstractProvider implements HostProvider {
+    private static class TestHostProvider extends AbstractProvider
+            implements HostProvider {
 
         protected TestHostProvider() {
             super(PID);
@@ -280,4 +270,3 @@ public class HostManagerTest {
     private class TestNetworkConfigService extends NetworkConfigServiceAdapter {
     }
 }
-
