@@ -28,6 +28,7 @@ import org.onosproject.lisp.msg.types.LispAfiAddress;
 import java.util.List;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 import static org.onosproject.lisp.msg.protocols.DefaultLispLocatorRecord.LocatorRecordWriter;
 
@@ -163,7 +164,7 @@ public final class DefaultLispMapRecord implements LispMapRecord {
         private boolean authoritative;
         private short mapVersionNumber;
         private LispAfiAddress eidPrefixAfi;
-        private List<LispLocatorRecord> locatorRecords;
+        private List<LispLocatorRecord> locatorRecords = Lists.newArrayList();
 
         @Override
         public MapRecordBuilder withRecordTtl(int recordTtl) {
@@ -211,8 +212,6 @@ public final class DefaultLispMapRecord implements LispMapRecord {
         public MapRecordBuilder withLocators(List<LispLocatorRecord> records) {
             if (records != null) {
                 this.locatorRecords = ImmutableList.copyOf(records);
-            } else {
-                this.locatorRecords = Lists.newArrayList();
             }
             return this;
         }
@@ -220,9 +219,7 @@ public final class DefaultLispMapRecord implements LispMapRecord {
         @Override
         public LispMapRecord build() {
 
-            if (locatorRecords == null) {
-                locatorRecords = Lists.newArrayList();
-            }
+            checkNotNull(eidPrefixAfi, "Must specify an EID prefix");
 
             return new DefaultLispMapRecord(recordTtl, locatorCount, maskLength,
                     action, authoritative, mapVersionNumber, eidPrefixAfi, locatorRecords);

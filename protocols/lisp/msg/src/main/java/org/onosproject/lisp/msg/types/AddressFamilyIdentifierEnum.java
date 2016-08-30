@@ -26,7 +26,7 @@ package org.onosproject.lisp.msg.types;
 public enum AddressFamilyIdentifierEnum {
 
     NO_ADDRESS(0),              // Reserved
-    IP(1),                      // IP (IP version 4)
+    IP4(1),                     // IP4 (IP version 4)
     IP6(2),                     // IP6 (IP version 6)
     DNS(16),                    // Domain Name System
     DISTINGUISHED_NAME(17),     // Distinguished Name

@@ -23,6 +23,7 @@ import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Source/Dest key type LCAF address class.
@@ -248,6 +249,10 @@ public final class LispSourceDestLcafAddress extends LispLcafAddress {
          * @return LispSourceDestLcafAddress instance
          */
         public LispSourceDestLcafAddress build() {
+
+            checkNotNull(srcPrefix, "Must specify a source address prefix");
+            checkNotNull(dstPrefix, "Must specify a destination address prefix");
+
             return new LispSourceDestLcafAddress(reserved1, reserved2, flag, length,
                     reserved, srcMaskLength, dstMaskLength, srcPrefix, dstPrefix);
         }

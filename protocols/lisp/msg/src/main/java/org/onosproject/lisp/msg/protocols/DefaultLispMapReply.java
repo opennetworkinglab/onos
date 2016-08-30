@@ -146,7 +146,7 @@ public final class DefaultLispMapReply implements LispMapReply {
         private boolean probe;
         private boolean etr;
         private boolean security;
-        private List<LispMapRecord> mapRecords;
+        private List<LispMapRecord> mapRecords = Lists.newArrayList();
 
         @Override
         public LispType getType() {
@@ -185,22 +185,14 @@ public final class DefaultLispMapReply implements LispMapReply {
 
         @Override
         public ReplyBuilder withMapRecords(List<LispMapRecord> mapRecords) {
-
             if (this.mapRecords != null) {
                 this.mapRecords = ImmutableList.copyOf(mapRecords);
-            } else {
-                this.mapRecords = Lists.newArrayList();
             }
             return this;
         }
 
         @Override
         public LispMapReply build() {
-
-            if (mapRecords == null) {
-                mapRecords = Lists.newArrayList();
-            }
-
             return new DefaultLispMapReply(nonce, recordCount, probe, etr, security, mapRecords);
         }
     }

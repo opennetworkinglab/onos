@@ -24,6 +24,7 @@ import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 
 /**
@@ -209,6 +210,9 @@ public final class DefaultLispLocatorRecord implements LispLocatorRecord {
 
         @Override
         public LispLocatorRecord build() {
+
+            checkNotNull(locatorAfi, "Must specify a locator address");
+
             return new DefaultLispLocatorRecord(priority, weight, multicastPriority,
                     multicastWeight, localLocator, rlocProbed, routed, locatorAfi);
         }

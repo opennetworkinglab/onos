@@ -152,7 +152,7 @@ public final class DefaultLispMapNotify implements LispMapNotify {
         private short authDataLength;
         private byte[] authenticationData;
         private byte recordCount;
-        private List<LispMapRecord> mapRecords;
+        private List<LispMapRecord> mapRecords = Lists.newArrayList();
 
         @Override
         public LispType getType() {
@@ -197,8 +197,6 @@ public final class DefaultLispMapNotify implements LispMapNotify {
         public NotifyBuilder withMapRecords(List<LispMapRecord> mapRecords) {
             if (mapRecords != null) {
                 this.mapRecords = ImmutableList.copyOf(mapRecords);
-            } else {
-                this.mapRecords = Lists.newArrayList();
             }
             return this;
         }
@@ -208,10 +206,6 @@ public final class DefaultLispMapNotify implements LispMapNotify {
 
             if (authenticationData == null) {
                 authenticationData = new byte[0];
-            }
-
-            if (mapRecords == null) {
-                mapRecords = Lists.newArrayList();
             }
 
             return new DefaultLispMapNotify(nonce, keyId, authDataLength,

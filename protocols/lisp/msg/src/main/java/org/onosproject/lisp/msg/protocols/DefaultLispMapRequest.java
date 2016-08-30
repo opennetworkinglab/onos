@@ -270,23 +270,16 @@ public final class DefaultLispMapRequest implements LispMapRequest {
 
         @Override
         public RequestBuilder withItrRlocs(List<LispAfiAddress> itrRlocs) {
-
             if (itrRlocs != null) {
                 this.itrRlocs = ImmutableList.copyOf(itrRlocs);
-            } else {
-                this.itrRlocs = Lists.newArrayList();
             }
-
             return this;
         }
 
         @Override
         public RequestBuilder withEidRecords(List<LispEidRecord> records) {
-
             if (records != null) {
                 this.eidRecords = ImmutableList.copyOf(records);
-            } else {
-                this.eidRecords = Lists.newArrayList();
             }
             return this;
         }

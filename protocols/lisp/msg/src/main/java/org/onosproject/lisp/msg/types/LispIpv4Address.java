@@ -35,7 +35,7 @@ public class LispIpv4Address extends LispIpAddress {
      * @param address IP address
      */
     public LispIpv4Address(IpAddress address) {
-        super(address, AddressFamilyIdentifierEnum.IP);
+        super(address, AddressFamilyIdentifierEnum.IP4);
         checkArgument(address.isIp4());
     }
 

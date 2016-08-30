@@ -90,7 +90,7 @@ public abstract class LispAfiAddress {
             short afiCode = (short) byteBuf.getUnsignedShort(index);
 
             // handle IPv4 and IPv6 address
-            if (afiCode == IP.getIanaCode() ||
+            if (afiCode == IP4.getIanaCode() ||
                 afiCode == IP6.getIanaCode()) {
                 return new LispIpAddress.IpAddressReader().readFrom(byteBuf);
             }
@@ -131,7 +131,7 @@ public abstract class LispAfiAddress {
             byteBuf.writeShort(address.getAfi().getIanaCode());
 
             switch (address.getAfi()) {
-                case IP:
+                case IP4:
                     new LispIpAddress.IpAddressWriter().writeTo(byteBuf, (LispIpv4Address) address);
                     break;
                 case IP6:

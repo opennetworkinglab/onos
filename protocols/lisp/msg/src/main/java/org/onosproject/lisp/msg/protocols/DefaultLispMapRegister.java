@@ -175,9 +175,9 @@ public final class DefaultLispMapRegister implements LispMapRegister {
         private long nonce;
         private short keyId;
         private short authDataLength;
-        private byte[] authenticationData;
+        private byte[] authenticationData = new byte[0];
         private byte recordCount;
-        private List<LispMapRecord> mapRecords;
+        private List<LispMapRecord> mapRecords = Lists.newArrayList();
         private boolean proxyMapReply;
         private boolean wantMapNotify;
 
@@ -226,8 +226,6 @@ public final class DefaultLispMapRegister implements LispMapRegister {
         public RegisterBuilder withAuthenticationData(byte[] authenticationData) {
             if (authenticationData != null) {
                 this.authenticationData = authenticationData;
-            } else {
-                this.authenticationData = new byte[0];
             }
             return this;
         }
@@ -236,22 +234,12 @@ public final class DefaultLispMapRegister implements LispMapRegister {
         public RegisterBuilder withMapRecords(List<LispMapRecord> mapRecords) {
             if (mapRecords != null) {
                 this.mapRecords = ImmutableList.copyOf(mapRecords);
-            } else {
-                this.mapRecords = Lists.newArrayList();
             }
             return this;
         }
 
         @Override
         public LispMapRegister build() {
-            if (authenticationData == null) {
-                authenticationData = new byte[0];
-            }
-
-            if (mapRecords == null) {
-                mapRecords = Lists.newArrayList();
-            }
-
             return new DefaultLispMapRegister(nonce, keyId, authDataLength,
                     authenticationData, recordCount, mapRecords, proxyMapReply, wantMapNotify);
         }

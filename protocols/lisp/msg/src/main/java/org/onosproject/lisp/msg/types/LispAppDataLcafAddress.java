@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Application data type LCAF address class.
@@ -308,6 +309,9 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
          * @return LispAddDataLcafAddress instance
          */
         public LispAppDataLcafAddress build() {
+
+            checkNotNull(address, "Must specify an address");
+
             return new LispAppDataLcafAddress(reserved1, reserved2, flag, length,
                     protocol, ipTos, localPortLow, localPortHigh, remotePortLow,
                     remotePortHigh, address);

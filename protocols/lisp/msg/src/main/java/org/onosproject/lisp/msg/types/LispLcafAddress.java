@@ -19,6 +19,8 @@ import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
@@ -40,6 +42,8 @@ import static org.onosproject.lisp.msg.types.LispCanonicalAddressFormatEnum.*;
  * }</pre>
  */
 public class LispLcafAddress extends LispAfiAddress {
+
+    private static final Logger log = LoggerFactory.getLogger(LispLcafAddress.class);
 
     private final LispCanonicalAddressFormatEnum lcafType;
     private final byte reserved1;
@@ -369,6 +373,8 @@ public class LispLcafAddress extends LispAfiAddress {
                 return new LispSourceDestLcafAddress.SourceDestLcafAddressReader().readFrom(byteBuf);
             }
 
+            log.warn("Unsupported LCAF type, please specify a correct LCAF type");
+
             return null;
         }
     }
@@ -397,7 +403,9 @@ public class LispLcafAddress extends LispAfiAddress {
                     new LispSourceDestLcafAddress.SourceDestLcafAddressWriter().writeTo(byteBuf,
                             (LispSourceDestLcafAddress) address);
                     break;
-                default: break; // TODO: need to log warning message
+                default:
+                    log.warn("Unsupported LCAF type, please specify a correct LCAF type");
+                    break;
             }
         }
     }

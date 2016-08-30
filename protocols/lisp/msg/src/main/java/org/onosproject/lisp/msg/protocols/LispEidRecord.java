@@ -21,6 +21,7 @@ import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 
 /**
@@ -39,6 +40,9 @@ public final class LispEidRecord {
      */
     public LispEidRecord(byte maskLength, LispAfiAddress prefix) {
         this.maskLength = maskLength;
+
+        checkNotNull(prefix, "Must specify an address prefix");
+
         this.prefix = prefix;
     }
 
