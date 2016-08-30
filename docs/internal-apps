@@ -52,3 +52,4 @@ org.onosproject.kafkaintegration*
 org.onosproject.gangliametrics*
 org.onosproject.graphitemetrics*
 org.onosproject.influxdbmetrics*
+org.onosproject.yms*

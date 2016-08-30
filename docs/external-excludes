@@ -98,3 +98,4 @@ org.onosproject.ospf*
 org.onosproject.routing.*
 org.onosproject.yangutils.parser.antlrgencode
 org.onosproject.yangutils.*
+org.onosproject.yms*
