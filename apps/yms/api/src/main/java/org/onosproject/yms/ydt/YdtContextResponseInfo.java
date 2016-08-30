@@ -22,5 +22,11 @@ package org.onosproject.yms.ydt;
  * operation result etc.
  */
 public interface YdtContextResponseInfo {
-    //TODO
+
+    /**
+     * Retrieve the context specific error information.
+     *
+     * @return context specific error information
+     */
+    YdtErrorInfo getYdtErrorInfo();
 }

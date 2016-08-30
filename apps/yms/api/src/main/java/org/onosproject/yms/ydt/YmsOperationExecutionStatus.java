@@ -26,9 +26,22 @@ package org.onosproject.yms.ydt;
  * YANG management system is responsible to split the protocol operation
  * across application(s) which needs to participate, and collate the
  * response(s) from application(s) and return an effective result of the
- * operation request. The result of the operation request is returned in
- * YMS operation result.
+ * operation request. The status of the operation execution is returned.
  */
-public interface YmsOperationExecutionStatus {
-    // TODO
+public enum YmsOperationExecutionStatus {
+
+    /**
+     * Successful execution of the operation.
+     */
+    EXECUTION_SUCCESS,
+
+    /**
+     * Exception in execution of the operation.
+     */
+    EXECUTION_EXCEPTION,
+
+    /**
+     * Error in execution of the operation.
+     */
+    ERROR_EXCEPTION
 }

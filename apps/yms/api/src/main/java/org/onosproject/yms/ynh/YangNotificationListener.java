@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.yms.ynh;
+
+import org.onosproject.event.EventListener;
 
 /**
- * Provides interfaces to YANG notification handler. YNH handles notification
- * from the application and provide it to the protocols.
- *
- * NBI Protocols which can support notification delivery for application(s)
- * need to add themselves as a listeners with YANG notification service.
- *
- * Also protocols can use YANG notification service to check if a received
- * notification should be filtered against any of their protocol specific
- * filtering mechanism.
+ * Abstraction of listener for YANG notification handler events.
+ * NBI protocols/interfaces supporting YANG notification needs to implement
+ * YANG notification listener and add themselves as a listener to YANG
+ * notification event.
  */
-package org.onosproject.yms.ynh;
+public interface YangNotificationListener
+        extends EventListener<YangNotificationEvent> {
+}

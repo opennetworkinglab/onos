@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yms.ymsm;
+package org.onosproject.yms.ydt;
 
 /**
  * Represents type of root level operation for the request.
@@ -59,23 +59,43 @@ public enum YmsOperationType {
      * The YANG based request is to edit a config node / subtree in the data
      * store.
      */
-    EDIT_CONFIG,
+    EDIT_CONFIG_REQUEST,
 
     /**
      * The YANG based request is to query a config node / subtree in the data
      * store.
      */
-    QUERY_CONFIG,
+    QUERY_CONFIG_REQUEST,
 
     /**
      * The YANG based request is to query a node / subtree in the data store.
      */
-    QUERY,
+    QUERY_REQUEST,
 
     /**
      * The YANG based request is to execute an RPC defined in YANG.
      */
-    RPC,
+    RPC_REQUEST,
+
+    /**
+     * The YANG based response is for edit operation.
+     */
+    EDIT_CONFIG_REPLY,
+
+    /**
+     * The YANG based response is for query config operation.
+     */
+    QUERY_CONFIG_REPLY,
+
+    /**
+     * The YANG based response is for query operation.
+     */
+    QUERY_REPLY,
+
+    /**
+     * The YANG based response is for a RPC operation.
+     */
+    RPC_REPLY,
 
     /**
      * The YANG based request is to execute an RPC defined in YANG.

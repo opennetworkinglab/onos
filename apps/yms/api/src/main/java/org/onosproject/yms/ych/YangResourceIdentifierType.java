@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
+package org.onosproject.yms.ych;
+
 /**
- * Provides interfaces to YANG notification handler. YNH handles notification
- * from the application and provide it to the protocols.
- *
- * NBI Protocols which can support notification delivery for application(s)
- * need to add themselves as a listeners with YANG notification service.
- *
- * Also protocols can use YANG notification service to check if a received
- * notification should be filtered against any of their protocol specific
- * filtering mechanism.
+ * Represents the protocol data representation.
  */
-package org.onosproject.yms.ynh;
+public enum YangResourceIdentifierType {
+    /**
+     * Uniform Resource Identifier.
+     */
+    URI
+}

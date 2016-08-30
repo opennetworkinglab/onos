@@ -16,8 +16,6 @@
 
 package org.onosproject.yms.ydt;
 
-import org.onosproject.yms.ymsm.YmsOperationType;
-
 /**
  * Abstraction of an entity which represent YANG data tree. This is used
  * for exchanging information between YANG management system and NBI protocol.

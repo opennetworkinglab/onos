@@ -15,14 +15,9 @@
  */
 
 /**
- * Provides interfaces to YANG notification handler. YNH handles notification
- * from the application and provide it to the protocols.
- *
- * NBI Protocols which can support notification delivery for application(s)
- * need to add themselves as a listeners with YANG notification service.
- *
- * Also protocols can use YANG notification service to check if a received
- * notification should be filtered against any of their protocol specific
- * filtering mechanism.
+ * YANG schema registry (YSR) is responsible to maintain all the applications
+ * schemas defined in YANG. The YANG data tree builder depends on the schema
+ * registry to validate the tree building according to schema.
+ * YANG codec handler using the schema registry to maintain device schema.
  */
-package org.onosproject.yms.ynh;
+package org.onosproject.yms.ysr;

@@ -19,10 +19,14 @@ package org.onosproject.yms.ymsm;
 import java.util.List;
 
 import org.onosproject.yms.ych.YangCodecHandler;
+import org.onosproject.yms.ych.YangDataTreeCodec;
+import org.onosproject.yms.ych.YangProtocolEncodingFormat;
 import org.onosproject.yms.ydt.YdtBuilder;
 import org.onosproject.yms.ydt.YdtResponse;
 import org.onosproject.yms.ydt.YdtWalker;
+import org.onosproject.yms.ydt.YmsOperationType;
 import org.onosproject.yms.ynh.YangNotificationService;
+import org.onosproject.yms.ysr.YangModuleLibrary;
 
 /**
  * Abstraction of an entity which provides interfaces to YANG management
@@ -178,13 +182,6 @@ public interface YmsService {
      * Depending on the operation type set in the YANG builder tree, the
      * application(s) get / set / operation interface is invoked.
      * These interface are part to the YANG modelled service interface.
-     *
-     * @param operationRequest operation request that was constructed
-     *                         by NBI protocol using YANG data tree
-     *                         builder. This operation request contains
-     *                         operation request that needs to be
-     *                         executed on the applicable application(s)
-     * @return returns the result of the operation execution.
      * Depending on the operation type, the YANG response data tree can have
      * the following information.
      *
@@ -213,10 +210,18 @@ public interface YmsService {
      * will contain the application's RPC reply schema specific .
      * NBI protocol to use a Yang data tree walker to construct the
      * protocol specific reply.
+     *
+     * @param operationRequest operation request that was constructed
+     *                         by NBI protocol using YANG data tree
+     *                         builder. This operation request contains
+     *                         operation request that needs to be
+     *                         executed on the applicable application(s)
+     * @return returns the result of the operation execution.
      */
     YdtResponse executeOperation(YdtBuilder operationRequest);
 
-    // TODO execute operation which directly take data format string as input.
+    /* TODO add execute operation which directly take data format string as
+     input.*/
 
     /**
      * Returns YANG notification service.
@@ -287,6 +292,46 @@ public interface YmsService {
     void unRegisterService(Object appManager, Class<?> yangService);
 
     /**
+     * Protocols like RESTCONF, share the list of YANG modules it support.
+     * using ietf-yang-library
+     *
+     * Retrieves the YANG module library supported by the server.
+     *
+     * @return YANG module library supported by the server
+     */
+    YangModuleLibrary getYangModuleLibrary();
+
+    /**
+     * Protocols like RESTCONF, use the definitions within the YANG modules
+     * advertised by the server are used to construct an RPC operation or
+     * data resource identifier.
+     *
+     * Schema Resource:
+     * The server can optionally support retrieval of the YANG modules it
+     * supports.
+     *
+     * @param moduleName      YANG module name.
+     * @param moduleNamespace namespace in which the module is defined.
+     * @return YANG file contents of the requested YANG module.
+     */
+    String getYangFile(String moduleName, String moduleNamespace);
+
+    /**
+     * Register protocol specific default CODEC. This is can be used by 1st
+     * protocol
+     * to support a protocol format CODEC. This CODEC will be used in both
+     * NBI and SBI.
+     *
+     * @param defaultCodec default codec to be used for a particular protocol
+     *                     data format
+     * @param dataFormat   data format to which encoding to be done.
+     *                     Currently XML and
+     *                     JSON formats are supported.
+     */
+    void registerDefaultCodec(YangDataTreeCodec defaultCodec,
+                              YangProtocolEncodingFormat dataFormat);
+
+    /**
      * Returns YANG codec handler utility.
      *
      * In SBI, the provider or driver uses YANG management system as a CODEC
@@ -294,11 +339,14 @@ public interface YmsService {
      * the device schema. YANG utils is used to generate the java files
      * corresponding to the device schema. Provider or driver use these classes
      * to seamlessly manage the device as java objects. While sending the
-     * request to device, drivers use the utility to translate the objects to
-     * protocol specific data representation and then send to the device.
+     * request
+     * to device, drivers use the utility to translate the objects to protocol
+     * specific data representation and then send to the device.
      * Protocol or driver use the same instance of the codec utility across
-     * multiple translation request. Protocol or driver should not use the same
-     * instance of utility concurrently.
+     * multiple
+     * translation request.
+     * Protocol or driver should not use the same instance of utility
+     * concurrently.
      *
      * @return YANG codec utility
      */

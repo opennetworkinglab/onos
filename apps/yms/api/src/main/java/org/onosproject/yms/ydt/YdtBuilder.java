@@ -183,14 +183,26 @@ public interface YdtBuilder
     void addLeaf(String name, String namespace, Set<String> valueSet);
 
     /**
-     * Adds YANG list's keys value in the order defined in list's key statement.
-     * All the keys must be present any missing key or invalid key will result
-     * in exception.
+     * Adds an instance of a child list node, or adds a child leaf list with
+     * multiple instance.
+     * In case the name and namespace identifies the child list node, then
+     * the values for all the key leaves must be passed in the same order of
+     * schema. Then the effective YANG data tree will be like adding a  list
+     * node, followed by adding the key leaves as the child to the list node.
+     * After this operation, the call to getCurNode will return the list node.
+     * In case the name and namespace identifies the child leaf-list, then
+     * the values identifies the instance of leaf list.
+     * After this operation, the call to getCurNode will return the leaf-list
+     * node.
      *
-     * @param keysValueList values of the keys in URI in the same order
-     *                      as defined in YANG file
+     * @param name      name of child to be added
+     * @param namespace namespace of child to be added, if it's null, parent's
+     *                  namespace will be applied to child
+     * @param valueList values of the keys in URI in the same order
+     *                  as defined in YANG file
      */
-    void addKeyLeafs(List<String> keysValueList);
+    void addMultiInstanceChild(String name, String namespace,
+                               List<String> valueList);
 
     /**
      * Traverses up in YANG data tree to the parent node, it is to be used when

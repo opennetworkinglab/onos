@@ -14,15 +14,26 @@
  * limitations under the License.
  */
 
+package org.onosproject.yms.ydt;
+
 /**
- * Provides interfaces to YANG notification handler. YNH handles notification
- * from the application and provide it to the protocols.
- *
- * NBI Protocols which can support notification delivery for application(s)
- * need to add themselves as a listeners with YANG notification service.
- *
- * Also protocols can use YANG notification service to check if a received
- * notification should be filtered against any of their protocol specific
- * filtering mechanism.
+ * Abstraction of an entity which contains context specific error info.
  */
-package org.onosproject.yms.ynh;
+public interface YdtErrorInfo {
+    /**
+     * Retrieves the application specific error tag corresponding to the
+     * error context in operation.
+     *
+     * @return application specific error tag corresponding to the error
+     * context in operation
+     */
+    String getErrorAppTag();
+
+    /**
+     * Retrieves the error message corresponding to the error context in
+     * operation.
+     *
+     * @return the error message corresponding to the error context in operation
+     */
+    String getErrorMessage();
+}
