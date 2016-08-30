@@ -79,7 +79,7 @@ import static org.onosproject.net.packet.PacketPriority.CONTROL;
  * Manages handlers for neighbour messages.
  */
 @Service
-@Component(immediate = true)
+@Component(immediate = true, enabled = false)
 public class NeighbourPacketManager implements NeighbourResolutionService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
