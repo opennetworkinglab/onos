@@ -578,13 +578,12 @@ public class FlowRuleManager
         private final FlowRuleOperations fops;
         private final AtomicBoolean hasFailed = new AtomicBoolean(false);
 
-        private Set<DeviceId> pendingDevices;
+        private final Set<DeviceId> pendingDevices = Sets.newConcurrentHashSet();
 
         public FlowOperationsProcessor(FlowRuleOperations ops) {
             this.stages = Lists.newArrayList(ops.stages());
             this.context = ops.callback();
             this.fops = ops;
-            pendingDevices = Sets.newConcurrentHashSet();
         }
 
         @Override
