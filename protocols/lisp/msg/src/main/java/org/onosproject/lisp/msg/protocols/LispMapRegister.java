@@ -75,7 +75,7 @@ public interface LispMapRegister extends LispMessage {
      *
      * @return record count value
      */
-    byte getRecordCount();
+    int getRecordCount();
 
     /**
      * Obtains nonce value.
@@ -132,14 +132,6 @@ public interface LispMapRegister extends LispMessage {
          * @return RegisterBuilder object
          */
         RegisterBuilder withIsWantMapNotify(boolean isWantMapNotify);
-
-        /**
-         * Sets record count.
-         *
-         * @param recordCount record count
-         * @return RegisterBuilder object
-         */
-        RegisterBuilder withRecordCount(byte recordCount);
 
         /**
          * Sets nonce value.

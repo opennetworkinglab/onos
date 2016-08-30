@@ -46,7 +46,6 @@ public final class DefaultLispMapNotifyTest {
         notify1 = builder1
                         .withKeyId((short) 1)
                         .withNonce(1L)
-                        .withRecordCount((byte) 0)
                         .build();
 
         LispMapNotify.NotifyBuilder builder2 =
@@ -55,7 +54,6 @@ public final class DefaultLispMapNotifyTest {
         sameAsNotify1 = builder2
                         .withKeyId((short) 1)
                         .withNonce(1L)
-                        .withRecordCount((byte) 0)
                         .build();
 
         LispMapNotify.NotifyBuilder builder3 =
@@ -64,7 +62,6 @@ public final class DefaultLispMapNotifyTest {
         notify2 = builder3
                         .withKeyId((short) 2)
                         .withNonce(2L)
-                        .withRecordCount((byte) 0x02)
                         .build();
     }
 
@@ -81,7 +78,6 @@ public final class DefaultLispMapNotifyTest {
 
         assertThat(notify.getKeyId(), is((short) 1));
         assertThat(notify.getNonce(), is(1L));
-        assertThat(notify.getRecordCount(), is((byte) 0));
     }
 
     @Test

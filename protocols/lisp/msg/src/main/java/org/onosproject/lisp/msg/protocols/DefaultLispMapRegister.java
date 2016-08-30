@@ -42,7 +42,6 @@ public final class DefaultLispMapRegister implements LispMapRegister {
     private final short keyId;
     private final short authDataLength;
     private final byte[] authenticationData;
-    private final byte recordCount;
     private final List<LispMapRecord> mapRecords;
     private final boolean proxyMapReply;
     private final boolean wantMapNotify;
@@ -53,20 +52,17 @@ public final class DefaultLispMapRegister implements LispMapRegister {
      * @param nonce              nonce
      * @param keyId              key identifier
      * @param authenticationData authentication data
-     * @param recordCount        record count number
      * @param mapRecords         a collection of map records
      * @param proxyMapReply      proxy map reply flag
      * @param wantMapNotify      want map notify flag
      */
     private DefaultLispMapRegister(long nonce, short keyId, short authDataLength,
-                                   byte[] authenticationData, byte recordCount,
-                                   List<LispMapRecord> mapRecords,
+                                   byte[] authenticationData, List<LispMapRecord> mapRecords,
                                    boolean proxyMapReply, boolean wantMapNotify) {
         this.nonce = nonce;
         this.keyId = keyId;
         this.authDataLength = authDataLength;
         this.authenticationData = authenticationData;
-        this.recordCount = recordCount;
         this.mapRecords = mapRecords;
         this.proxyMapReply = proxyMapReply;
         this.wantMapNotify = wantMapNotify;
@@ -98,8 +94,8 @@ public final class DefaultLispMapRegister implements LispMapRegister {
     }
 
     @Override
-    public byte getRecordCount() {
-        return recordCount;
+    public int getRecordCount() {
+        return mapRecords.size();
     }
 
     @Override
@@ -136,7 +132,6 @@ public final class DefaultLispMapRegister implements LispMapRegister {
         return toStringHelper(this)
                 .add("type", getType())
                 .add("nonce", nonce)
-                .add("recordCount", recordCount)
                 .add("keyId", keyId)
                 .add("authentication data length", authDataLength)
                 .add("authentication data", authenticationData)
@@ -156,7 +151,6 @@ public final class DefaultLispMapRegister implements LispMapRegister {
 
         DefaultLispMapRegister that = (DefaultLispMapRegister) o;
         return Objects.equal(nonce, that.nonce) &&
-                Objects.equal(recordCount, that.recordCount) &&
                 Objects.equal(keyId, that.keyId) &&
                 Objects.equal(authDataLength, that.authDataLength) &&
                 Arrays.equals(authenticationData, that.authenticationData) &&
@@ -166,7 +160,7 @@ public final class DefaultLispMapRegister implements LispMapRegister {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(nonce, recordCount, keyId, authDataLength,
+        return Objects.hashCode(nonce, keyId, authDataLength,
                 proxyMapReply, wantMapNotify) + Arrays.hashCode(authenticationData);
     }
 
@@ -176,7 +170,6 @@ public final class DefaultLispMapRegister implements LispMapRegister {
         private short keyId;
         private short authDataLength;
         private byte[] authenticationData = new byte[0];
-        private byte recordCount;
         private List<LispMapRecord> mapRecords = Lists.newArrayList();
         private boolean proxyMapReply;
         private boolean wantMapNotify;
@@ -195,12 +188,6 @@ public final class DefaultLispMapRegister implements LispMapRegister {
         @Override
         public RegisterBuilder withIsWantMapNotify(boolean wantMapNotify) {
             this.wantMapNotify = wantMapNotify;
-            return this;
-        }
-
-        @Override
-        public RegisterBuilder withRecordCount(byte recordCount) {
-            this.recordCount = recordCount;
             return this;
         }
 
@@ -241,7 +228,7 @@ public final class DefaultLispMapRegister implements LispMapRegister {
         @Override
         public LispMapRegister build() {
             return new DefaultLispMapRegister(nonce, keyId, authDataLength,
-                    authenticationData, recordCount, mapRecords, proxyMapReply, wantMapNotify);
+                    authenticationData, mapRecords, proxyMapReply, wantMapNotify);
         }
     }
 
@@ -296,7 +283,6 @@ public final class DefaultLispMapRegister implements LispMapRegister {
             return new DefaultRegisterBuilder()
                     .withIsProxyMapReply(proxyMapReplyFlag)
                     .withIsWantMapNotify(wantMapNotifyFlag)
-                    .withRecordCount(recordCount)
                     .withNonce(nonce)
                     .withKeyId(keyId)
                     .withAuthenticationData(authData)
@@ -346,7 +332,7 @@ public final class DefaultLispMapRegister implements LispMapRegister {
             byteBuf.writeByte(wantMapNotify);
 
             // record count
-            byteBuf.writeByte(message.getRecordCount());
+            byteBuf.writeByte(message.getMapRecords().size());
 
             // nonce
             byteBuf.writeLong(message.getNonce());

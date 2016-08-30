@@ -49,7 +49,6 @@ public final class DefaultLispMapRegisterTest {
                         .withIsWantMapNotify(false)
                         .withKeyId((short) 1)
                         .withNonce(1L)
-                        .withRecordCount((byte) 0)
                         .build();
 
         LispMapRegister.RegisterBuilder builder2 =
@@ -60,7 +59,6 @@ public final class DefaultLispMapRegisterTest {
                         .withIsWantMapNotify(false)
                         .withKeyId((short) 1)
                         .withNonce(1L)
-                        .withRecordCount((byte) 0)
                         .build();
 
         LispMapRegister.RegisterBuilder builder3 =
@@ -71,7 +69,6 @@ public final class DefaultLispMapRegisterTest {
                         .withIsWantMapNotify(false)
                         .withKeyId((short) 2)
                         .withNonce(2L)
-                        .withRecordCount((byte) 0x02)
                         .build();
     }
 
@@ -90,7 +87,6 @@ public final class DefaultLispMapRegisterTest {
         assertThat(register.isWantMapNotify(), is(false));
         assertThat(register.getKeyId(), is((short) 1));
         assertThat(register.getNonce(), is(1L));
-        assertThat(register.getRecordCount(), is((byte) 0));
     }
 
     @Test

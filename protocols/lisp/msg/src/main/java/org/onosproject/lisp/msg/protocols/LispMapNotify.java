@@ -68,7 +68,7 @@ public interface LispMapNotify extends LispMessage {
      *
      * @return record count value
      */
-    byte getRecordCount();
+    int getRecordCount();
 
     /**
      * Obtains key identifier.
@@ -110,14 +110,6 @@ public interface LispMapNotify extends LispMessage {
          * @return NotifyBuilder object
          */
         NotifyBuilder withNonce(long nonce);
-
-        /**
-         * Sets record count.
-         *
-         * @param recordCount record count
-         * @return NotifyBuilder object
-         */
-        NotifyBuilder withRecordCount(byte recordCount);
 
         /**
          * Sets key identitifer.

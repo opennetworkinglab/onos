@@ -39,7 +39,6 @@ import static org.onosproject.lisp.msg.protocols.LispEidRecord.EidRecordWriter;
 public final class DefaultLispMapRequest implements LispMapRequest {
 
     private final long nonce;
-    private final byte recordCount;
     private final LispAfiAddress sourceEid;
     private final List<LispAfiAddress> itrRlocs;
     private final List<LispEidRecord> eidRecords;
@@ -54,7 +53,6 @@ public final class DefaultLispMapRequest implements LispMapRequest {
      * A private constructor that protects object instantiation from external.
      *
      * @param nonce          nonce
-     * @param recordCount    record count number
      * @param sourceEid      source EID address
      * @param itrRlocs       a collection of ITR RLOCs
      * @param eidRecords     a collection of EID records
@@ -65,12 +63,11 @@ public final class DefaultLispMapRequest implements LispMapRequest {
      * @param pitr           pitr flag
      * @param smrInvoked     smrInvoked flag
      */
-    private DefaultLispMapRequest(long nonce, byte recordCount, LispAfiAddress sourceEid,
+    private DefaultLispMapRequest(long nonce, LispAfiAddress sourceEid,
                                   List<LispAfiAddress> itrRlocs, List<LispEidRecord> eidRecords,
                                   boolean authoritative, boolean mapDataPresent, boolean probe,
                                   boolean smr, boolean pitr, boolean smrInvoked) {
         this.nonce = nonce;
-        this.recordCount = recordCount;
         this.sourceEid = sourceEid;
         this.itrRlocs = itrRlocs;
         this.eidRecords = eidRecords;
@@ -128,8 +125,8 @@ public final class DefaultLispMapRequest implements LispMapRequest {
     }
 
     @Override
-    public byte getRecordCount() {
-        return recordCount;
+    public int getRecordCount() {
+        return eidRecords.size();
     }
 
     @Override
@@ -157,7 +154,6 @@ public final class DefaultLispMapRequest implements LispMapRequest {
         return toStringHelper(this)
                 .add("type", getType())
                 .add("nonce", nonce)
-                .add("recordCount", recordCount)
                 .add("source EID", sourceEid)
                 .add("ITR rlocs", itrRlocs)
                 .add("EID records", eidRecords)
@@ -179,7 +175,6 @@ public final class DefaultLispMapRequest implements LispMapRequest {
         }
         DefaultLispMapRequest that = (DefaultLispMapRequest) o;
         return Objects.equal(nonce, that.nonce) &&
-                Objects.equal(recordCount, that.recordCount) &&
                 Objects.equal(sourceEid, that.sourceEid) &&
                 Objects.equal(authoritative, that.authoritative) &&
                 Objects.equal(mapDataPresent, that.mapDataPresent) &&
@@ -191,14 +186,13 @@ public final class DefaultLispMapRequest implements LispMapRequest {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(nonce, recordCount, sourceEid, authoritative,
+        return Objects.hashCode(nonce, sourceEid, authoritative,
                 mapDataPresent, probe, smr, pitr, smrInvoked);
     }
 
     public static final class DefaultRequestBuilder implements RequestBuilder {
 
         private long nonce;
-        private byte recordCount;
         private LispAfiAddress sourceEid;
         private List<LispAfiAddress> itrRlocs = Lists.newArrayList();
         private List<LispEidRecord> eidRecords = Lists.newArrayList();
@@ -251,12 +245,6 @@ public final class DefaultLispMapRequest implements LispMapRequest {
         }
 
         @Override
-        public RequestBuilder withRecordCount(byte recordCount) {
-            this.recordCount = recordCount;
-            return this;
-        }
-
-        @Override
         public RequestBuilder withNonce(long nonce) {
             this.nonce = nonce;
             return this;
@@ -290,8 +278,8 @@ public final class DefaultLispMapRequest implements LispMapRequest {
             checkNotNull(sourceEid, "Must have a source EID");
             checkArgument((itrRlocs != null) && (itrRlocs.size() > 0), "Must have an ITR RLOC entry");
 
-            return new DefaultLispMapRequest(nonce, recordCount, sourceEid, itrRlocs,
-                    eidRecords, authoritative, mapDataPresent, probe, smr, pitr, smrInvoked);
+            return new DefaultLispMapRequest(nonce, sourceEid, itrRlocs, eidRecords,
+                    authoritative, mapDataPresent, probe, smr, pitr, smrInvoked);
         }
     }
 
@@ -369,7 +357,6 @@ public final class DefaultLispMapRequest implements LispMapRequest {
                         .withIsPitr(pitr)
                         .withIsSmrInvoked(smrInvoked)
                         .withNonce(nonce)
-                        .withRecordCount((byte) recordCount)
                         .withSourceEid(sourceEid)
                         .withEidRecords(eidRecords)
                         .withItrRlocs(itrRlocs)
@@ -445,7 +432,7 @@ public final class DefaultLispMapRequest implements LispMapRequest {
             byteBuf.writeByte((byte) message.getItrRlocs().size());
 
             // record count
-            byteBuf.writeByte(message.getRecordCount());
+            byteBuf.writeByte(message.getEids().size());
 
             // nonce
             byteBuf.writeLong(message.getNonce());

@@ -50,7 +50,6 @@ public final class DefaultLispMapRecordTest {
         record1 = builder1
                         .withRecordTtl(100)
                         .withAuthoritative(true)
-                        .withLocatorCount(0)
                         .withMapVersionNumber((short) 1)
                         .withMaskLength((byte) 0x01)
                         .withAction(LispMapReplyAction.NativelyForward)
@@ -63,7 +62,6 @@ public final class DefaultLispMapRecordTest {
         sameAsRecord1 = builder2
                         .withRecordTtl(100)
                         .withAuthoritative(true)
-                        .withLocatorCount(0)
                         .withMapVersionNumber((short) 1)
                         .withMaskLength((byte) 0x01)
                         .withAction(LispMapReplyAction.NativelyForward)
@@ -78,7 +76,6 @@ public final class DefaultLispMapRecordTest {
         record2 = builder3
                         .withRecordTtl(200)
                         .withAuthoritative(false)
-                        .withLocatorCount(200)
                         .withMapVersionNumber((short) 2)
                         .withMaskLength((byte) 0x02)
                         .withAction(LispMapReplyAction.Drop)
@@ -101,7 +98,6 @@ public final class DefaultLispMapRecordTest {
 
         assertThat(record.getRecordTtl(), is(100));
         assertThat(record.isAuthoritative(), is(true));
-        assertThat(record.getLocatorCount(), is(0));
         assertThat(record.getMapVersionNumber(), is((short) 1));
         assertThat(record.getMaskLength(), is((byte) 0x01));
         assertThat(record.getAction(), is(LispMapReplyAction.NativelyForward));

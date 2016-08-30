@@ -102,7 +102,7 @@ public interface LispMapRequest extends LispMessage {
      *
      * @return record count value
      */
-    byte getRecordCount();
+    int getRecordCount();
 
     /**
      * Obtains nonce value.
@@ -184,14 +184,6 @@ public interface LispMapRequest extends LispMessage {
          * @return RequestBuilder object
          */
         RequestBuilder withIsSmrInvoked(boolean smrInvoked);
-
-        /**
-         * Sets record count.
-         *
-         * @param recordCount record count
-         * @return RequestBuilder object
-         */
-        RequestBuilder withRecordCount(byte recordCount);
 
         /**
          * Sets nonce value.

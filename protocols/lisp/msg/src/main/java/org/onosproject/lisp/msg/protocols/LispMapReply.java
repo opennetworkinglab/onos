@@ -78,7 +78,7 @@ public interface LispMapReply extends LispMessage {
      *
      * @return record count value
      */
-    byte getRecordCount();
+    int getRecordCount();
 
     /**
      * Obtains nonce value.
@@ -122,14 +122,6 @@ public interface LispMapReply extends LispMessage {
          * @return ReplyBuilder object
          */
         ReplyBuilder withIsSecurity(boolean security);
-
-        /**
-         * Sets record count.
-         *
-         * @param recordCount record count
-         * @return ReplyBuilder object
-         */
-        ReplyBuilder withRecordCount(byte recordCount);
 
         /**
          * Sets nonce value.

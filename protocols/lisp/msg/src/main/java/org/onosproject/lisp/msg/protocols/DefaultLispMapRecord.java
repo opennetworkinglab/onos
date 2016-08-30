@@ -38,7 +38,6 @@ import static org.onosproject.lisp.msg.protocols.DefaultLispLocatorRecord.Locato
 public final class DefaultLispMapRecord implements LispMapRecord {
 
     private final int recordTtl;
-    private final int locatorCount;
     private final byte maskLength;
     private final LispMapReplyAction action;
     private final boolean authoritative;
@@ -50,19 +49,17 @@ public final class DefaultLispMapRecord implements LispMapRecord {
      * A private constructor that protects object instantiation from external.
      *
      * @param recordTtl        record time-to-live value
-     * @param locatorCount     locator's count number
      * @param maskLength       mask length
      * @param action           lisp map reply action
      * @param authoritative    authoritative flag
      * @param mapVersionNumber map version number
      * @param eidPrefixAfi     EID prefix AFI address
      */
-    private DefaultLispMapRecord(int recordTtl, int locatorCount, byte maskLength,
+    private DefaultLispMapRecord(int recordTtl, byte maskLength,
                                  LispMapReplyAction action, boolean authoritative,
                                  short mapVersionNumber, LispAfiAddress eidPrefixAfi,
                                  List<LispLocatorRecord> locatorRecords) {
         this.recordTtl = recordTtl;
-        this.locatorCount = locatorCount;
         this.maskLength = maskLength;
         this.action = action;
         this.authoritative = authoritative;
@@ -78,7 +75,7 @@ public final class DefaultLispMapRecord implements LispMapRecord {
 
     @Override
     public int getLocatorCount() {
-        return locatorCount;
+        return locatorRecords.size();
     }
 
     @Override
@@ -120,7 +117,6 @@ public final class DefaultLispMapRecord implements LispMapRecord {
     public String toString() {
         return toStringHelper(this)
                 .add("record TTL", recordTtl)
-                .add("locatorCount", locatorCount)
                 .add("maskLength", maskLength)
                 .add("action", action)
                 .add("authoritative", authoritative)
@@ -140,7 +136,6 @@ public final class DefaultLispMapRecord implements LispMapRecord {
         }
         DefaultLispMapRecord that = (DefaultLispMapRecord) o;
         return Objects.equal(recordTtl, that.recordTtl) &&
-                Objects.equal(locatorCount, that.locatorCount) &&
                 Objects.equal(maskLength, that.maskLength) &&
                 Objects.equal(action, that.action) &&
                 Objects.equal(authoritative, that.authoritative) &&
@@ -151,14 +146,13 @@ public final class DefaultLispMapRecord implements LispMapRecord {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(recordTtl, locatorCount, maskLength, action,
+        return Objects.hashCode(recordTtl, maskLength, action,
                                 authoritative, mapVersionNumber, eidPrefixAfi, locatorRecords);
     }
 
     public static final class DefaultMapRecordBuilder implements MapRecordBuilder {
 
         private int recordTtl;
-        private int locatorCount;
         private byte maskLength;
         private LispMapReplyAction action;
         private boolean authoritative;
@@ -169,12 +163,6 @@ public final class DefaultLispMapRecord implements LispMapRecord {
         @Override
         public MapRecordBuilder withRecordTtl(int recordTtl) {
             this.recordTtl = recordTtl;
-            return this;
-        }
-
-        @Override
-        public MapRecordBuilder withLocatorCount(int locatorCount) {
-            this.locatorCount = locatorCount;
             return this;
         }
 
@@ -221,8 +209,8 @@ public final class DefaultLispMapRecord implements LispMapRecord {
 
             checkNotNull(eidPrefixAfi, "Must specify an EID prefix");
 
-            return new DefaultLispMapRecord(recordTtl, locatorCount, maskLength,
-                    action, authoritative, mapVersionNumber, eidPrefixAfi, locatorRecords);
+            return new DefaultLispMapRecord(recordTtl, maskLength, action,
+                    authoritative, mapVersionNumber, eidPrefixAfi, locatorRecords);
         }
     }
 
@@ -275,7 +263,6 @@ public final class DefaultLispMapRecord implements LispMapRecord {
 
             return new DefaultMapRecordBuilder()
                         .withRecordTtl(recordTtl)
-                        .withLocatorCount(locatorCount)
                         .withMaskLength(maskLength)
                         .withAction(action)
                         .withAuthoritative(authoritative)
@@ -304,7 +291,7 @@ public final class DefaultLispMapRecord implements LispMapRecord {
             byteBuf.writeInt(message.getRecordTtl());
 
             // locator count
-            byteBuf.writeByte((byte) message.getLocatorCount());
+            byteBuf.writeByte((byte) message.getLocators().size());
 
             // EID mask length
             byteBuf.writeByte(message.getMaskLength());

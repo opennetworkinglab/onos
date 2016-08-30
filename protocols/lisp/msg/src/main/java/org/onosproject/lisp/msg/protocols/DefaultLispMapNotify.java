@@ -39,7 +39,6 @@ public final class DefaultLispMapNotify implements LispMapNotify {
     private final short keyId;
     private final short authDataLength;
     private final byte[] authenticationData;
-    private final byte recordCount;
     private final List<LispMapRecord> mapRecords;
 
     /**
@@ -48,17 +47,14 @@ public final class DefaultLispMapNotify implements LispMapNotify {
      * @param nonce              nonce
      * @param keyId              key identifier
      * @param authenticationData authentication data
-     * @param recordCount        record count number
      * @param mapRecords         a collection of map records
      */
     private DefaultLispMapNotify(long nonce, short keyId, short authDataLength,
-                                 byte[] authenticationData, byte recordCount,
-                                 List<LispMapRecord> mapRecords) {
+                                 byte[] authenticationData, List<LispMapRecord> mapRecords) {
         this.nonce = nonce;
         this.keyId = keyId;
         this.authDataLength = authDataLength;
         this.authenticationData = authenticationData;
-        this.recordCount = recordCount;
         this.mapRecords = mapRecords;
     }
 
@@ -83,8 +79,8 @@ public final class DefaultLispMapNotify implements LispMapNotify {
     }
 
     @Override
-    public byte getRecordCount() {
-        return recordCount;
+    public int getRecordCount() {
+        return mapRecords.size();
     }
 
     @Override
@@ -116,7 +112,6 @@ public final class DefaultLispMapNotify implements LispMapNotify {
         return toStringHelper(this)
                 .add("type", getType())
                 .add("nonce", nonce)
-                .add("recordCount", recordCount)
                 .add("keyId", keyId)
                 .add("authentication data length", authDataLength)
                 .add("authentication data", authenticationData)
@@ -133,7 +128,6 @@ public final class DefaultLispMapNotify implements LispMapNotify {
         }
         DefaultLispMapNotify that = (DefaultLispMapNotify) o;
         return Objects.equal(nonce, that.nonce) &&
-                Objects.equal(recordCount, that.recordCount) &&
                 Objects.equal(keyId, that.keyId) &&
                 Objects.equal(authDataLength, that.authDataLength) &&
                 Arrays.equals(authenticationData, that.authenticationData);
@@ -141,7 +135,7 @@ public final class DefaultLispMapNotify implements LispMapNotify {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(nonce, recordCount, keyId, authDataLength) +
+        return Objects.hashCode(nonce, keyId, authDataLength) +
                 Arrays.hashCode(authenticationData);
     }
 
@@ -151,7 +145,6 @@ public final class DefaultLispMapNotify implements LispMapNotify {
         private short keyId;
         private short authDataLength;
         private byte[] authenticationData;
-        private byte recordCount;
         private List<LispMapRecord> mapRecords = Lists.newArrayList();
 
         @Override
@@ -162,12 +155,6 @@ public final class DefaultLispMapNotify implements LispMapNotify {
         @Override
         public NotifyBuilder withNonce(long nonce) {
             this.nonce = nonce;
-            return this;
-        }
-
-        @Override
-        public NotifyBuilder withRecordCount(byte recordCount) {
-            this.recordCount = recordCount;
             return this;
         }
 
@@ -209,7 +196,7 @@ public final class DefaultLispMapNotify implements LispMapNotify {
             }
 
             return new DefaultLispMapNotify(nonce, keyId, authDataLength,
-                    authenticationData, recordCount, mapRecords);
+                    authenticationData, mapRecords);
         }
     }
 
@@ -252,7 +239,6 @@ public final class DefaultLispMapNotify implements LispMapNotify {
             }
 
             return new DefaultNotifyBuilder()
-                        .withRecordCount(recordCount)
                         .withNonce(nonce)
                         .withKeyId(keyId)
                         .withAuthDataLength(authLength)
@@ -283,7 +269,7 @@ public final class DefaultLispMapNotify implements LispMapNotify {
             byteBuf.writeShort((short) UNUSED_ZERO);
 
             // record count
-            byteBuf.writeByte(message.getRecordCount());
+            byteBuf.writeByte(message.getMapRecords().size());
 
             // nonce
             byteBuf.writeLong(message.getNonce());

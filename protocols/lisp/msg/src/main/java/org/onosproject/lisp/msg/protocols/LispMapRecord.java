@@ -102,14 +102,6 @@ public interface LispMapRecord {
         MapRecordBuilder withRecordTtl(int recordTtl);
 
         /**
-         * Sets locator count.
-         *
-         * @param locatorCount locator count
-         * @return MapRecordBuilder object
-         */
-        MapRecordBuilder withLocatorCount(int locatorCount);
-
-        /**
          * Sets mask length.
          *
          * @param maskLength mask length

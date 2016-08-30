@@ -49,7 +49,6 @@ public final class DefaultLispMapReplyTest {
                         .withIsProbe(false)
                         .withIsSecurity(true)
                         .withNonce(1L)
-                        .withRecordCount((byte) 0)
                         .build();
 
         LispMapReply.ReplyBuilder builder2 =
@@ -60,7 +59,6 @@ public final class DefaultLispMapReplyTest {
                         .withIsProbe(false)
                         .withIsSecurity(true)
                         .withNonce(1L)
-                        .withRecordCount((byte) 0)
                         .build();
 
         LispMapReply.ReplyBuilder builder3 =
@@ -70,7 +68,6 @@ public final class DefaultLispMapReplyTest {
                         .withIsProbe(true)
                         .withIsSecurity(false)
                         .withNonce(2L)
-                        .withRecordCount((byte) 0x02)
                         .build();
     }
 
@@ -89,7 +86,6 @@ public final class DefaultLispMapReplyTest {
         assertThat(reply.isProbe(), is(false));
         assertThat(reply.isSecurity(), is(true));
         assertThat(reply.getNonce(), is(1L));
-        assertThat(reply.getRecordCount(), is((byte) 0));
     }
 
     @Test

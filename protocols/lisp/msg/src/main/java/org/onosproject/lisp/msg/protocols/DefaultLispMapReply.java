@@ -35,7 +35,6 @@ import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordW
 public final class DefaultLispMapReply implements LispMapReply {
 
     private final long nonce;
-    private final byte recordCount;
     private final boolean probe;
     private final boolean etr;
     private final boolean security;
@@ -45,15 +44,13 @@ public final class DefaultLispMapReply implements LispMapReply {
      * A private constructor that protects object instantiation from external.
      *
      * @param nonce       nonce
-     * @param recordCount record count number
      * @param probe       probe flag
      * @param etr         etr flag
      * @param security    security flag
      */
-    private DefaultLispMapReply(long nonce, byte recordCount, boolean probe,
-                                boolean etr, boolean security, List<LispMapRecord> mapRecords) {
+    private DefaultLispMapReply(long nonce, boolean probe, boolean etr,
+                                boolean security, List<LispMapRecord> mapRecords) {
         this.nonce = nonce;
-        this.recordCount = recordCount;
         this.probe = probe;
         this.etr = etr;
         this.security = security;
@@ -91,8 +88,8 @@ public final class DefaultLispMapReply implements LispMapReply {
     }
 
     @Override
-    public byte getRecordCount() {
-        return recordCount;
+    public int getRecordCount() {
+        return mapRecords.size();
     }
 
     @Override
@@ -110,7 +107,6 @@ public final class DefaultLispMapReply implements LispMapReply {
         return toStringHelper(this)
                 .add("type", getType())
                 .add("nonce", nonce)
-                .add("recordCount", recordCount)
                 .add("probe", probe)
                 .add("etr", etr)
                 .add("security", security)
@@ -127,7 +123,6 @@ public final class DefaultLispMapReply implements LispMapReply {
         }
         DefaultLispMapReply that = (DefaultLispMapReply) o;
         return Objects.equal(nonce, that.nonce) &&
-                Objects.equal(recordCount, that.recordCount) &&
                 Objects.equal(probe, that.probe) &&
                 Objects.equal(etr, that.etr) &&
                 Objects.equal(security, that.security) &&
@@ -136,13 +131,12 @@ public final class DefaultLispMapReply implements LispMapReply {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(nonce, recordCount, probe, etr, security, mapRecords);
+        return Objects.hashCode(nonce, probe, etr, security, mapRecords);
     }
 
     public static final class DefaultReplyBuilder implements ReplyBuilder {
 
         private long nonce;
-        private byte recordCount;
         private boolean probe;
         private boolean etr;
         private boolean security;
@@ -172,12 +166,6 @@ public final class DefaultLispMapReply implements LispMapReply {
         }
 
         @Override
-        public ReplyBuilder withRecordCount(byte recordCount) {
-            this.recordCount = recordCount;
-            return this;
-        }
-
-        @Override
         public ReplyBuilder withNonce(long nonce) {
             this.nonce = nonce;
             return this;
@@ -193,7 +181,7 @@ public final class DefaultLispMapReply implements LispMapReply {
 
         @Override
         public LispMapReply build() {
-            return new DefaultLispMapReply(nonce, recordCount, probe, etr, security, mapRecords);
+            return new DefaultLispMapReply(nonce, probe, etr, security, mapRecords);
         }
     }
 
@@ -243,7 +231,6 @@ public final class DefaultLispMapReply implements LispMapReply {
                         .withIsProbe(probe)
                         .withIsEtr(etr)
                         .withIsSecurity(security)
-                        .withRecordCount(recordCount)
                         .withNonce(nonce)
                         .build();
         }
@@ -296,7 +283,7 @@ public final class DefaultLispMapReply implements LispMapReply {
             byteBuf.writeShort((short) UNUSED_ZERO);
 
             // record count
-            byteBuf.writeByte(message.getRecordCount());
+            byteBuf.writeByte(message.getMapRecords().size());
 
             // nonce
             byteBuf.writeLong(message.getNonce());
