@@ -201,6 +201,7 @@ public class DistributedGroupStore
         groupStoreEntriesByKey.addListener(new GroupStoreKeyMapListener());
         log.debug("Current size of groupstorekeymap:{}",
                   groupStoreEntriesByKey.size());
+        synchronizeGroupStoreEntries();
 
         log.debug("Creating Consistent map pendinggroupkeymap");
 
@@ -245,6 +246,18 @@ public class DistributedGroupStore
     private static NewConcurrentHashMap<GroupId, StoredGroupEntry>
     lazyEmptyGroupIdTable() {
         return NewConcurrentHashMap.<GroupId, StoredGroupEntry>ifNeeded();
+    }
+
+
+    private void synchronizeGroupStoreEntries() {
+        Map<GroupStoreKeyMapKey, StoredGroupEntry> groupEntryMap = groupStoreEntriesByKey.asJavaMap();
+        for (Entry<GroupStoreKeyMapKey, StoredGroupEntry> entry : groupEntryMap.entrySet()) {
+            GroupStoreKeyMapKey key = entry.getKey();
+            StoredGroupEntry value = entry.getValue();
+
+            ConcurrentMap<GroupId, StoredGroupEntry> groupIdTable = getGroupIdTable(value.deviceId());
+            groupIdTable.put(value.id(), value);
+        }
     }
 
     /**
@@ -718,32 +731,50 @@ public class DistributedGroupStore
     private List<GroupBucket> getUpdatedBucketList(Group oldGroup,
                                                    UpdateType type,
                                                    GroupBuckets buckets) {
-        GroupBuckets oldBuckets = oldGroup.buckets();
-        List<GroupBucket> newBucketList = new ArrayList<>(oldBuckets.buckets());
+        List<GroupBucket> oldBuckets = oldGroup.buckets().buckets();
+        List<GroupBucket> updatedBucketList = new ArrayList<>();
         boolean groupDescUpdated = false;
 
         if (type == UpdateType.ADD) {
-            // Check if the any of the new buckets are part of
-            // the old bucket list
-            for (GroupBucket addBucket : buckets.buckets()) {
-                if (!newBucketList.contains(addBucket)) {
-                    newBucketList.add(addBucket);
-                    groupDescUpdated = true;
+            List<GroupBucket> newBuckets = buckets.buckets();
+
+            // Add old buckets that will not be updated and check if any will be updated.
+            for (GroupBucket oldBucket : oldBuckets) {
+                int newBucketIndex = newBuckets.indexOf(oldBucket);
+
+                if (newBucketIndex != -1) {
+                    GroupBucket newBucket = newBuckets.get(newBucketIndex);
+                    if (!newBucket.hasSameParameters(oldBucket)) {
+                        // Bucket will be updated
+                        groupDescUpdated = true;
+                    }
+                } else {
+                    // Old bucket will remain the same - add it.
+                    updatedBucketList.add(oldBucket);
                 }
             }
+
+            // Add all new buckets
+            updatedBucketList.addAll(newBuckets);
+            if (!oldBuckets.containsAll(newBuckets)) {
+                groupDescUpdated = true;
+            }
+
         } else if (type == UpdateType.REMOVE) {
-            // Check if the to be removed buckets are part of the
-            // old bucket list
-            for (GroupBucket removeBucket : buckets.buckets()) {
-                if (newBucketList.contains(removeBucket)) {
-                    newBucketList.remove(removeBucket);
+            List<GroupBucket> bucketsToRemove = buckets.buckets();
+
+            // Check which old buckets should remain
+            for (GroupBucket oldBucket : oldBuckets) {
+                if (!bucketsToRemove.contains(oldBucket)) {
+                    updatedBucketList.add(oldBucket);
+                } else {
                     groupDescUpdated = true;
                 }
             }
         }
 
         if (groupDescUpdated) {
-            return newBucketList;
+            return updatedBucketList;
         } else {
             return null;
         }
@@ -912,19 +943,28 @@ public class DistributedGroupStore
         }
     }
 
+    private void purgeGroupEntries(Set<Entry<GroupStoreKeyMapKey, StoredGroupEntry>> entries) {
+        entries.forEach(entry -> {
+            groupStoreEntriesByKey.remove(entry.getKey());
+            notifyDelegate(new GroupEvent(Type.GROUP_REMOVED, entry.getValue()));
+        });
+    }
+
     @Override
     public void purgeGroupEntry(DeviceId deviceId) {
-        Set<Entry<GroupStoreKeyMapKey, StoredGroupEntry>> entryPendingRemove =
+        Set<Entry<GroupStoreKeyMapKey, StoredGroupEntry>> entriesPendingRemove =
                 new HashSet<>();
 
         getGroupStoreKeyMap().entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(deviceId))
-                .forEach(entryPendingRemove::add);
+                .forEach(entriesPendingRemove::add);
 
-        entryPendingRemove.forEach(entry -> {
-            groupStoreEntriesByKey.remove(entry.getKey());
-            notifyDelegate(new GroupEvent(Type.GROUP_REMOVED, entry.getValue()));
-        });
+        purgeGroupEntries(entriesPendingRemove);
+    }
+
+    @Override
+    public void purgeGroupEntries() {
+        purgeGroupEntries(getGroupStoreKeyMap().entrySet());
     }
 
     @Override

@@ -235,6 +235,13 @@ public final class DefaultGroupBucket implements GroupBucket, StoredGroupBucketE
     }
 
     @Override
+    public boolean hasSameParameters(GroupBucket other) {
+        return weight == other.weight() &&
+               Objects.equals(watchPort, other.watchPort()) &&
+               Objects.equals(watchGroup, other.watchGroup());
+    }
+
+    @Override
     public String toString() {
         return toStringHelper(this)
                 .add("type", type)

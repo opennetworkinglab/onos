@@ -125,6 +125,11 @@ public interface GroupStore extends Store<GroupEvent, GroupStoreDelegate> {
     void purgeGroupEntry(DeviceId deviceId);
 
     /**
+     * Removes all group entries from store.
+     */
+    void purgeGroupEntries();
+
+    /**
      * A group entry that is present in switch but not in the store.
      *
      * @param group group entry
