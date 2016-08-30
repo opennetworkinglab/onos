@@ -67,6 +67,7 @@ import org.slf4j.Logger;
 
 import java.util.Collections;
 import java.util.Dictionary;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -578,7 +579,7 @@ public class FlowRuleManager
         private final FlowRuleOperations fops;
         private final AtomicBoolean hasFailed = new AtomicBoolean(false);
 
-        private final Set<DeviceId> pendingDevices = Sets.newConcurrentHashSet();
+        private final Set<DeviceId> pendingDevices = new HashSet<>();
 
         FlowOperationsProcessor(FlowRuleOperations ops) {
             this.stages = Lists.newArrayList(ops.stages());
