@@ -91,22 +91,23 @@ public class HostManagerTest {
     private static final HostLocation LOC1 = new HostLocation(DID1, P1, 123L);
     private static final HostLocation LOC2 = new HostLocation(DID1, P2, 123L);
 
+    public static final ComponentContextAdapter REMOVE_DUPS_MONITOR = new ComponentContextAdapter() {
+        @Override
+        public Dictionary getProperties() {
+            Hashtable<String, String> props = new Hashtable<String, String>();
+            props.put("allowDuplicateIps", "true");
+            props.put("monitorHosts", "true");
+            props.put("probeRate", "40000");
+            return props;
+        }
+    };
+
     private HostManager mgr;
 
     protected TestListener listener = new TestListener();
     protected HostProviderRegistry registry;
     protected TestHostProvider provider;
     protected HostProviderService providerService;
-
-    private static final ComponentContextAdapter REMOVE_DUPS =
-            new ComponentContextAdapter() {
-                @Override
-                public Dictionary getProperties() {
-                    Hashtable<String, String> props = new Hashtable<>();
-                    props.put("allowDuplicateIps", "true");
-                    return props;
-                }
-            };
 
     @Before
     public void setUp() {
@@ -116,7 +117,9 @@ public class HostManagerTest {
         registry = mgr;
         mgr.networkConfigService = new TestNetworkConfigService();
         mgr.cfgService = new ComponentConfigAdapter();
-        mgr.activate(REMOVE_DUPS);
+
+        mgr.activate(REMOVE_DUPS_MONITOR);
+
         mgr.addListener(listener);
 
         provider = new TestHostProvider();

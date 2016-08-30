@@ -140,6 +140,13 @@ public class HostMonitor implements TimerTask {
         }
     }
 
+    /*
+     * Sets the probe rate.
+     */
+    void setProbeRate(long probeRate) {
+        this.probeRate = probeRate;
+    }
+
     /**
      * Registers a host provider with the host monitor. The monitor can use the
      * provider to probe hosts.

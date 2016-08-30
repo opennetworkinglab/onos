@@ -106,6 +106,15 @@ public class HostManager
             label = "Enable removal of duplicate ip address")
 
     private boolean allowDuplicateIps = true;
+
+    @Property(name = "monitorHosts", boolValue = false,
+            label = "Enable/Disable monitoring of hosts")
+    private boolean monitorHosts = false;
+
+    @Property(name = "probeRate", longValue = 30000,
+            label = "Set the probe Rate in milli seconds")
+    private long probeRate = 30000;
+
     private HostMonitor monitor;
 
 
@@ -114,17 +123,71 @@ public class HostManager
         store.setDelegate(delegate);
         eventDispatcher.addSink(HostEvent.class, listenerRegistry);
         cfgService.registerProperties(getClass());
-        modified(context);
         networkConfigService.addListener(networkConfigListener);
         monitor = new HostMonitor(packetService, this, interfaceService, edgePortService);
+        monitor.setProbeRate(probeRate);
         monitor.start();
+        modified(context);
+        cfgService.registerProperties(getClass());
         log.info("Started");
     }
 
+    @Deactivate
+    public void deactivate() {
+        store.unsetDelegate(delegate);
+        eventDispatcher.removeSink(HostEvent.class);
+        networkConfigService.removeListener(networkConfigListener);
+        cfgService.unregisterProperties(getClass(), false);
+        monitor.shutdown();
+        log.info("Stopped");
+    }
+
     @Modified
-    public void modified(ComponentContext context) {
+     public void modified(ComponentContext context) {
+        boolean oldValue = monitorHosts;
+        readComponentConfiguration(context);
+        if (probeRate > 0) {
+            monitor.setProbeRate(probeRate);
+        } else {
+            log.warn("probeRate cannot be lessthan 0");
+        }
+
+        if (oldValue != monitorHosts) {
+            if (monitorHosts) {
+                startMonitoring();
+            } else {
+                stopMonitoring();
+            }
+        }
+    }
+
+    /**
+     * Extracts properties from the component configuration context.
+     *
+     * @param context the component context
+     */
+    private void readComponentConfiguration(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
         Boolean flag;
+
+        flag = Tools.isPropertyEnabled(properties, "monitorHosts");
+        if (flag == null) {
+            log.info("monitorHosts is not enabled " +
+                             "using current value of {}", monitorHosts);
+        } else {
+            monitorHosts = flag;
+            log.info("Configured. monitorHosts {}",
+            monitorHosts ? "enabled" : "disabled");
+        }
+
+        Long longValue = Tools.getLongProperty(properties, "probeRate");
+        if (longValue == null || longValue == 0) {
+            log.info("probeRate is not set sing default value of {}", probeRate);
+        } else {
+            probeRate = longValue;
+            log.info("Configured. probeRate {}", probeRate);
+        }
+
         flag = Tools.isPropertyEnabled(properties, "allowDuplicateIps");
         if (flag == null) {
             log.info("Removal of duplicate ip address is not configured");
@@ -133,14 +196,31 @@ public class HostManager
             log.info("Removal of duplicate ip address is {}",
                      allowDuplicateIps ? "disabled" : "enabled");
         }
+
     }
 
-    @Deactivate
-    public void deactivate() {
-        store.unsetDelegate(delegate);
-        eventDispatcher.removeSink(HostEvent.class);
-        networkConfigService.removeListener(networkConfigListener);
-        log.info("Stopped");
+    /**
+     * Starts monitoring the hosts by IP Address.
+     *
+     */
+    private void startMonitoring() {
+        store.getHosts().forEach(host -> {
+                    host.ipAddresses().forEach(ip -> {
+                           monitor.addMonitoringFor(ip);
+            });
+        });
+    }
+
+    /**
+     * Stops monitoring the hosts by IP Address.
+     *
+     */
+    private void stopMonitoring() {
+        store.getHosts().forEach(host -> {
+                    host.ipAddresses().forEach(ip -> {
+                           monitor.stopMonitoring(ip);
+            });
+        });
     }
 
     @Override
@@ -244,6 +324,12 @@ public class HostManager
             }
             store.createOrUpdateHost(provider().id(), hostId,
                                      hostDescription, replaceIps);
+
+            if (monitorHosts) {
+                hostDescription.ipAddress().forEach(ip -> {
+                    monitor.addMonitoringFor(ip);
+                });
+            }
         }
 
         // When a new IP is detected, remove that IP on other hosts if it exists
@@ -276,6 +362,12 @@ public class HostManager
         public void hostVanished(HostId hostId) {
             checkNotNull(hostId, HOST_ID_NULL);
             checkValidity();
+            Host host = store.getHost(hostId);
+            if (monitorHosts) {
+                host.ipAddresses().forEach(ip -> {
+                    monitor.stopMonitoring(ip);
+                });
+            }
             store.removeHost(hostId);
         }
 
