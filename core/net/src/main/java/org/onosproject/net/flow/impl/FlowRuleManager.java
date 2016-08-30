@@ -609,7 +609,7 @@ public class FlowRuleManager
         }
 
         @Override
-        public void run() {
+        public synchronized void run() {
             if (stages.size() > 0) {
                 process(stages.remove(0));
             } else if (!hasFailed.get() && context != null) {
@@ -654,7 +654,7 @@ public class FlowRuleManager
             }
         }
 
-        void satisfy(DeviceId devId) {
+        synchronized void satisfy(DeviceId devId) {
             pendingDevices.remove(devId);
             if (pendingDevices.isEmpty()) {
                 operationsService.execute(this);
@@ -663,7 +663,7 @@ public class FlowRuleManager
 
 
 
-        void fail(DeviceId devId, Set<? extends FlowRule> failures) {
+        synchronized void fail(DeviceId devId, Set<? extends FlowRule> failures) {
             hasFailed.set(true);
             pendingDevices.remove(devId);
             if (pendingDevices.isEmpty()) {
