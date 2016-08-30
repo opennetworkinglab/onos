@@ -63,6 +63,14 @@ public interface Host extends Element {
      */
     HostLocation location();
 
+    /**
+     * Returns true if configured by NetworkConfiguration.
+     * @return configured/learnt dynamically
+     */
+    default boolean configured() {
+        return false;
+    }
     // TODO: explore capturing list of recent locations to aid in mobility
 
 }
+

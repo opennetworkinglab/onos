@@ -39,7 +39,8 @@ public final class HostCodec extends AnnotatedCodec<Host> {
         final ObjectNode result = context.mapper().createObjectNode()
                 .put("id", host.id().toString())
                 .put("mac", host.mac().toString())
-                .put("vlan", host.vlan().toString());
+                .put("vlan", host.vlan().toString())
+                .put("configured", host.configured());
 
         final ArrayNode jsonIpAddresses = result.putArray("ipAddresses");
         for (final IpAddress ipAddress : host.ipAddresses()) {
