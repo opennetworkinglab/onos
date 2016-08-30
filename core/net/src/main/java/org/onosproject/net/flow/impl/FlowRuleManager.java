@@ -601,7 +601,7 @@ public class FlowRuleManager
 
         private Set<DeviceId> pendingDevices;
 
-        public FlowOperationsProcessor(FlowRuleOperations ops) {
+        FlowOperationsProcessor(FlowRuleOperations ops) {
             this.stages = Lists.newArrayList(ops.stages());
             this.context = ops.callback();
             this.fops = ops;
@@ -654,7 +654,7 @@ public class FlowRuleManager
             }
         }
 
-        public void satisfy(DeviceId devId) {
+        void satisfy(DeviceId devId) {
             pendingDevices.remove(devId);
             if (pendingDevices.isEmpty()) {
                 operationsService.execute(this);
@@ -663,7 +663,7 @@ public class FlowRuleManager
 
 
 
-        public void fail(DeviceId devId, Set<? extends FlowRule> failures) {
+        void fail(DeviceId devId, Set<? extends FlowRule> failures) {
             hasFailed.set(true);
             pendingDevices.remove(devId);
             if (pendingDevices.isEmpty()) {
