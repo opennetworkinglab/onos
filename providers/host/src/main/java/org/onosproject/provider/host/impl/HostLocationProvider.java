@@ -44,17 +44,22 @@ import org.onosproject.net.Device;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostProvider;
 import org.onosproject.net.host.HostProviderRegistry;
 import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.packet.DefaultOutboundPacket;
+import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
@@ -66,6 +71,7 @@ import org.onosproject.net.topology.TopologyService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import java.nio.ByteBuffer;
 import java.util.Dictionary;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -125,6 +131,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     private boolean requestInterceptsEnabled = true;
 
     protected ExecutorService eventHandler;
+
+    private static final byte[] SENDER_ADDRESS = IpAddress.valueOf("0.0.0.0").toOctets();
 
     /**
      * Creates an OpenFlow host provider.
@@ -261,7 +269,60 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
     @Override
     public void triggerProbe(Host host) {
-        log.info("Triggering probe on device {}", host);
+        log.info("Triggering probe on device {} ", host);
+        MastershipRole role = deviceService.getRole(host.location().deviceId());
+        if (role.equals(MastershipRole.MASTER)) {
+            host.ipAddresses().forEach(ip -> {
+                sendProbe(host, ip);
+            });
+        } else {
+            log.info("not the master, master will probe {}");
+        }
+    }
+
+    private void sendProbe(Host host, IpAddress targetIp) {
+        Ethernet probePacket = null;
+        if (targetIp.isIp4()) {
+            // IPv4: Use ARP
+            probePacket = buildArpRequest(targetIp, host);
+        } else {
+            // IPv6: Use Neighbor Discovery
+            //FIX ME need to implement ndp probe
+            log.info("Triggering probe on device {} ", host);
+        }
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder().setOutput(host.location().port()).build();
+
+        OutboundPacket outboundPacket = new DefaultOutboundPacket(host.location().deviceId(), treatment,
+                ByteBuffer.wrap(probePacket.serialize()));
+
+        packetService.emit(outboundPacket);
+    }
+
+    /*
+     * This method is using source ip as 0.0.0.0 , to receive the reply even from the sub net hosts.
+     */
+    private Ethernet buildArpRequest(IpAddress targetIp, Host host) {
+
+        ARP arp = new ARP();
+        arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
+           .setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH)
+           .setProtocolType(ARP.PROTO_TYPE_IP)
+           .setProtocolAddressLength((byte) IpAddress.INET_BYTE_LENGTH)
+           .setOpCode(ARP.OP_REQUEST);
+
+        arp.setSenderHardwareAddress(MacAddress.BROADCAST.toBytes())
+                .setSenderProtocolAddress(SENDER_ADDRESS)
+                .setTargetHardwareAddress(MacAddress.BROADCAST.toBytes())
+                .setTargetProtocolAddress(targetIp.toOctets());
+
+        Ethernet ethernet = new Ethernet();
+        ethernet.setEtherType(Ethernet.TYPE_ARP)
+                .setDestinationMACAddress(MacAddress.BROADCAST)
+                .setSourceMACAddress(MacAddress.BROADCAST).setPayload(arp);
+
+        ethernet.setPad(true);
+        return ethernet;
     }
 
     private class InternalHostProvider implements PacketProcessor {

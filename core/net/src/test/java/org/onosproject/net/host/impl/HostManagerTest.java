@@ -21,9 +21,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestTools;
+import org.onlab.osgi.ComponentContextAdapter;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.event.Event;
 import org.onosproject.net.DeviceId;
@@ -43,6 +45,8 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.trivial.SimpleHostStore;
 
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
@@ -87,6 +91,16 @@ public class HostManagerTest {
     private static final HostLocation LOC1 = new HostLocation(DID1, P1, 123L);
     private static final HostLocation LOC2 = new HostLocation(DID1, P2, 123L);
 
+    public static final ComponentContextAdapter CTX_FOR_MONITOR = new ComponentContextAdapter() {
+        @Override
+        public Dictionary getProperties() {
+            Hashtable<String, String> props = new Hashtable<String, String>();
+            props.put("monitorHosts", "true");
+            props.put("probeRate", "40000");
+            return props;
+        }
+    };
+
     private HostManager mgr;
 
     protected TestListener listener = new TestListener();
@@ -101,7 +115,8 @@ public class HostManagerTest {
         injectEventDispatcher(mgr, new TestEventDispatcher());
         registry = mgr;
         mgr.networkConfigService = new TestNetworkConfigService();
-        mgr.activate();
+        mgr.cfgService = new ComponentConfigAdapter();
+        mgr.activate(CTX_FOR_MONITOR);
 
         mgr.addListener(listener);
 
