@@ -13,7 +13,7 @@ state=$3
 for attempt in {1..30}; do
     onos ${node:-$OCI} scr:list  | grep $component > $aux
 
-    if grep -q $state $aux; then
+    if grep $state $aux; then
         exit 0
     else
         sleep 1
