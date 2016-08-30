@@ -64,6 +64,9 @@
     fill: #c0242b;
 }
 
+#toolbar-topo-tbar .tbar-row.right {
+    color: #aaa;
+}
 
 /* --- Topo Instance Panel --- */
 

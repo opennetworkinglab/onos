@@ -32,19 +32,19 @@ public final class TopoConstants {
     public static final class Glyphs {
         public static final String BIRD = "bird";
 
-        public static final String UNKNOWN = "unknown";
+        public static final String UNKNOWN = "m_unknown";
         public static final String QUERY = "query";
         public static final String NODE = "node";
 
-        public static final String SWITCH = "switch";
+        public static final String SWITCH = "m_switch";
         public static final String ROUTER = "router";
-        public static final String ROADM = "roadm";
+        public static final String ROADM = "m_roadm";
         public static final String OTN = "otn";
         public static final String ROADM_OTN = "roadm_otn";
         public static final String FIBER_SWITCH = "fiber_switch";
         public static final String MICROWAVE = "microwave";
 
-        public static final String ENDSTATION = "endstation";
+        public static final String ENDSTATION = "m_endstation";
         public static final String BGP_SPEAKER = "bgpSpeaker";
 
         public static final String CHAIN = "chain";
@@ -59,25 +59,25 @@ public final class TopoConstants {
         public static final String GROUP_TABLE = "groupTable";
         public static final String METER_TABLE = "meterTable";
 
-        public static final String SUMMARY = "summary";
-        public static final String DETAILS = "details";
-        public static final String PORTS = "ports";
-        public static final String MAP = "map";
-        public static final String CYCLE_LABELS = "cycleLabels";
-        public static final String OBLIQUE = "oblique";
-        public static final String FILTERS = "filters";
-        public static final String RESET_ZOOM = "resetZoom";
-        public static final String RELATED_INTENTS = "relatedIntents";
-        public static final String NEXT_INTENT = "nextIntent";
-        public static final String PREV_INTENT = "prevIntent";
-        public static final String INTENT_TRAFFIC = "intentTraffic";
-        public static final String ALL_TRAFFIC = "allTraffic";
-        public static final String FLOWS = "flows";
-        public static final String EQ_MASTER = "eqMaster";
+        public static final String SUMMARY = "m_summary";
+        public static final String DETAILS = "m_details";
+        public static final String PORTS = "m_ports";
+        public static final String MAP = "m_map";
+        public static final String CYCLE_LABELS = "m_cycleLabels";
+        public static final String OBLIQUE = "m_oblique";
+        public static final String FILTERS = "m_filters";
+        public static final String RESET_ZOOM = "m_resetZoom";
+        public static final String RELATED_INTENTS = "m_relatedIntents";
+        public static final String NEXT = "m_next";
+        public static final String PREV = "m_prev";
+        public static final String INTENT_TRAFFIC = "m_intentTraffic";
+        public static final String ALL_TRAFFIC = "m_allTraffic";
+        public static final String FLOWS = "m_flows";
+        public static final String EQ_MASTER = "m_eqMaster";
 
-        public static final String UI_ATTACHED = "uiAttached";
+        public static final String UI_ATTACHED = "m_uiAttached";
         public static final String CHECK_MARK = "checkMark";
-        public static final String X_MARK = "xMark";
+        public static final String X_MARK = "m_xMark";
         public static final String TRIANGLE_UP = "triangleUp";
         public static final String TRIANGLE_DOWN = "triangleDown";
         public static final String PLUS = "plus";
@@ -85,7 +85,7 @@ public final class TopoConstants {
         public static final String PLAY = "play";
         public static final String STOP = "stop";
 
-        public static final String CLOUD = "cloud";
+        public static final String CLOUD = "m_cloud";
     }
 
     /**

@@ -35,7 +35,7 @@
     // traffic overlay definition
     var overlay = {
         overlayId: 'traffic',
-        glyphId: 'allTraffic',
+        glyphId: 'm_allTraffic',
         tooltip: 'Traffic Overlay',
 
         // NOTE: Traffic glyphs already installed as part of the base ONOS set.
@@ -53,13 +53,13 @@
         // (keys match button identifiers, also defined in TrafficOverlay.java)
         buttons: {
             showDeviceFlows: {
-                gid: 'flows',
+                gid: 'm_flows',
                 tt: 'Show Device Flows',
                 cb: function (data) { tts.showDeviceLinkFlows(); }
             },
 
             showRelatedTraffic: {
-                gid: 'relatedIntents',
+                gid: 'm_relatedIntents',
                 tt: 'Show Related Traffic',
                 cb: function (data) { tts.showRelatedIntents(); }
             }
@@ -71,43 +71,43 @@
             0: {
                 cb: function () { tts.cancelTraffic(true); },
                 tt: 'Cancel traffic monitoring',
-                gid: 'xMark'
+                gid: 'm_xMark'
             },
 
             A: {
                 cb: function () { tts.showAllFlowTraffic(); },
                 tt: 'Monitor all traffic using flow stats',
-                gid: 'allTraffic'
+                gid: 'm_allTraffic'
             },
             Q: {
                 cb: function () { tts.showAllPortTraffic(); },
                 tt: 'Monitor all traffic using port stats',
-                gid: 'allTraffic'
+                gid: 'm_allTraffic'
             },
             F: {
                 cb: function () { tts.showDeviceLinkFlows(); },
                 tt: 'Show device link flows',
-                gid: 'flows'
+                gid: 'm_flows'
             },
             V: {
                 cb: function () { tts.showRelatedIntents(); },
                 tt: 'Show all related intents',
-                gid: 'relatedIntents'
+                gid: 'm_relatedIntents'
             },
             leftArrow: {
                 cb: function () { tts.showPrevIntent(); },
                 tt: 'Show previous related intent',
-                gid: 'prevIntent'
+                gid: 'm_prev'
             },
             rightArrow: {
                 cb: function () { tts.showNextIntent(); },
                 tt: 'Show next related intent',
-                gid: 'nextIntent'
+                gid: 'm_next'
             },
             W: {
                 cb: function () { tts.showSelectedIntentTraffic(); },
                 tt: 'Monitor traffic of selected intent',
-                gid: 'intentTraffic'
+                gid: 'm_intentTraffic'
             },
 
             _keyOrder: [
