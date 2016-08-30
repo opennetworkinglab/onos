@@ -43,6 +43,7 @@ public abstract class ConnectivityIntentTest extends IntentTest {
     public static final TrafficSelector MATCH = DefaultTrafficSelector.emptySelector();
     public static final TrafficTreatment NOP = DefaultTrafficTreatment.emptyTreatment();
     public static final Map<ConnectPoint, TrafficSelector> MATCHES = Collections.emptyMap();
+    public static final Map<ConnectPoint, TrafficTreatment> TREATMENTS = Collections.emptyMap();
 
     public static final ConnectPoint P1 = new ConnectPoint(DeviceId.deviceId("111"), PortNumber.portNumber(0x1));
     public static final ConnectPoint P2 = new ConnectPoint(DeviceId.deviceId("222"), PortNumber.portNumber(0x2));
@@ -62,6 +63,19 @@ public abstract class ConnectivityIntentTest extends IntentTest {
     static {
         VLANMATCHES.put(P1, VLANMATCH1);
         VLANMATCHES.put(P2, VLANMATCH2);
+    }
+
+    public static final TrafficTreatment VLANACTION1 = DefaultTrafficTreatment.builder()
+            .setVlanId(VlanId.vlanId("2"))
+            .build();
+    public static final TrafficTreatment VLANACTION2 = DefaultTrafficTreatment.builder()
+            .setVlanId(VlanId.vlanId("3"))
+            .build();
+
+    public static final Map<ConnectPoint, TrafficTreatment> VLANACTIONS = Maps.newHashMap();
+    static {
+        VLANACTIONS.put(P1, VLANACTION1);
+        VLANACTIONS.put(P2, VLANACTION2);
     }
 
 }

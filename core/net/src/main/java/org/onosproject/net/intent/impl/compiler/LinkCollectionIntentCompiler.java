@@ -34,6 +34,8 @@ import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.LinkCollectionIntent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,6 +49,9 @@ import java.util.Set;
 public class LinkCollectionIntentCompiler
         extends LinkCollectionCompiler<FlowRule>
         implements IntentCompiler<LinkCollectionIntent> {
+
+    private static Logger log = LoggerFactory.getLogger(LinkCollectionIntentCompiler.class);
+
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentConfigurableRegistrator registrator;

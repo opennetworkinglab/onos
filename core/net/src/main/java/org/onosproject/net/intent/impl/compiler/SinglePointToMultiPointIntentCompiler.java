@@ -77,6 +77,7 @@ public class SinglePointToMultiPointIntentCompiler
                 .priority(intent.priority())
                 .applyTreatmentOnEgress(true)
                 .constraints(intent.constraints())
+                .egressTreatments(intent.egressTreatments())
                 .build();
 
         return Collections.singletonList(result);

@@ -27,6 +27,7 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 import org.onosproject.net.flow.instructions.L1ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
@@ -211,10 +212,29 @@ public class LinkCollectionCompiler<T> {
             }
         } else {
             if (outPorts.stream().allMatch(egressPorts::contains)) {
-                TrafficTreatment.Builder egressTreatmentBuilder =
-                        DefaultTrafficTreatment.builder(intent.treatment());
-                outPorts.forEach(egressTreatmentBuilder::setOutput);
-
+                TrafficTreatment.Builder egressTreatmentBuilder = DefaultTrafficTreatment.builder();
+                if (intent.egressTreatments() != null && !intent.egressTreatments().isEmpty()) {
+                    for (PortNumber outPort : outPorts) {
+                        Optional<ConnectPoint> connectPoint = intent.egressPoints()
+                                .stream()
+                                .filter(egressPoint -> egressPoint.port().equals(outPort)
+                                        && egressPoint.deviceId().equals(deviceId))
+                                .findFirst();
+                        if (connectPoint.isPresent()) {
+                            TrafficTreatment egressTreatment = intent.egressTreatments().get(connectPoint.get());
+                            this.addTreatment(egressTreatmentBuilder, egressTreatment);
+                            egressTreatmentBuilder = this.updateBuilder(egressTreatmentBuilder, intent.selector());
+                            egressTreatmentBuilder.setOutput(outPort);
+                        } else {
+                            throw new IntentCompilationException("Looking for connect point associated to " +
+                                                                         "the treatment. outPort not in egressPoints");
+                        }
+                    }
+                } else {
+                    egressTreatmentBuilder = this
+                            .updateBuilder(DefaultTrafficTreatment.builder(intent.treatment()), intent.selector());
+                    outPorts.forEach(egressTreatmentBuilder::setOutput);
+                }
                 selectorBuilder = DefaultTrafficSelector.builder(intent.selector());
                 treatment = egressTreatmentBuilder.build();
             } else {
@@ -230,10 +250,34 @@ public class LinkCollectionCompiler<T> {
     }
 
     /**
+     * Update a builder using a treatment.
+     * @param builder the builder to update
+     * @param treatment the treatment to add
+     * @return the new builder
+     */
+    private TrafficTreatment.Builder addTreatment(TrafficTreatment.Builder builder, TrafficTreatment treatment) {
+        builder.deferred();
+        for (Instruction instruction : treatment.deferred()) {
+            builder.add(instruction);
+        }
+        builder.immediate();
+        for (Instruction instruction : treatment.immediate()) {
+            builder.add(instruction);
+        }
+        return builder;
+    }
+
+    /**
      * Update the original builder with the necessary operations
      * to have a correct forwarding given an ingress selector.
+     * TODO
+     * This means that if the ingress selectors match on different vlanids and
+     * the egress treatment rewrite the vlanid the forwarding works
+     * but if we need to push for example an mpls label at the egress
+     * we need to implement properly this method.
      *
      * @param treatmentBuilder the builder to modify
+     * @param intentSelector the intent selector to use as input
      * @return the new treatment created
      */
     private TrafficTreatment.Builder updateBuilder(TrafficTreatment.Builder treatmentBuilder,
