@@ -20,6 +20,11 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.provider.ProviderId;
 
+/**
+ * Remnant of ConfigProvider.
+ * @deprecated in Hummingbird(1.7.0)
+ */
+@Deprecated
 public class DeviceInjectedEvent {
     private final ProviderId providerId;
     private final DeviceId deviceId;

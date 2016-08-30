@@ -22,6 +22,11 @@ import org.onosproject.net.provider.ProviderId;
 
 import java.util.List;
 
+/**
+ * Remnant of ConfigProvider.
+ * @deprecated in Hummingbird(1.7.0)
+ */
+@Deprecated
 public class PortInjectedEvent {
 
     private ProviderId providerId;
