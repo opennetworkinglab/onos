@@ -535,9 +535,9 @@ class ONOSCLI( OldCLI ):
     prompt = 'mininet-onos> '
 
     def __init__( self, net, **kwargs ):
-        c0 = net.controllers[ 0 ]
-        if isONOSCluster( c0 ):
-            net = MininetFacade( net, cnet=c0.net )
+        clusters = [ c.net for c in net.controllers
+                     if isONOSCluster( c ) ]
+        net = MininetFacade( net, *clusters )
         OldCLI.__init__( self, net, **kwargs )
 
     def onos1( self ):
