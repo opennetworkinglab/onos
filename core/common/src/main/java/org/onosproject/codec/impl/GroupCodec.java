@@ -23,7 +23,6 @@ import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.group.DefaultGroup;
@@ -72,7 +71,7 @@ public final class GroupCodec extends JsonCodec<Group> {
     public ObjectNode encode(Group group, CodecContext context) {
         checkNotNull(group, "Group cannot be null");
         ObjectNode result = context.mapper().createObjectNode()
-                .put(ID, group.id().toString())
+                .put(ID, group.id().id().toString())
                 .put(STATE, group.state().toString())
                 .put(LIFE, group.life())
                 .put(PACKETS, group.packets())
@@ -90,7 +89,7 @@ public final class GroupCodec extends JsonCodec<Group> {
         }
 
         if (group.givenGroupId() != null) {
-            result.put(GIVEN_GROUP_ID, group.givenGroupId());
+            result.put(GIVEN_GROUP_ID, group.givenGroupId().toString());
         }
 
         ArrayNode buckets = context.mapper().createArrayNode();
@@ -114,7 +113,7 @@ public final class GroupCodec extends JsonCodec<Group> {
         // parse group id
         int groupIdInt = nullIsIllegal(json.get(GROUP_ID),
                 GROUP_ID + MISSING_MEMBER_MESSAGE).asInt();
-        GroupId groupId = new DefaultGroupId(groupIdInt);
+        GroupId groupId = new GroupId(groupIdInt);
 
         // parse group key (appCookie)
         String groupKeyStr = nullIsIllegal(json.get(APP_COOKIE),
