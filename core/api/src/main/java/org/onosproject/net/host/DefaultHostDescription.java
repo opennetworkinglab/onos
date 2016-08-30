@@ -40,6 +40,7 @@ public class DefaultHostDescription extends AbstractDescription
     private final VlanId vlan;
     private final HostLocation location;
     private final Set<IpAddress> ip;
+    private final boolean configured;
 
     /**
      * Creates a host description using the supplied information.
@@ -83,11 +84,46 @@ public class DefaultHostDescription extends AbstractDescription
     public DefaultHostDescription(MacAddress mac, VlanId vlan,
                                   HostLocation location, Set<IpAddress> ip,
                                   SparseAnnotations... annotations) {
+        this(mac, vlan, location, ip, false, annotations);
+    }
+
+    /**
+     * Creates a host description using the supplied information.
+     *
+     * @param mac          host MAC address
+     * @param vlan         host VLAN identifier
+     * @param location     host location
+     * @param configured   true if configured via NetworkConfiguration
+     * @param annotations  optional key/value annotations map
+     */
+    public DefaultHostDescription(MacAddress mac, VlanId vlan,
+                                  HostLocation location,
+                                  boolean configured,
+                                  SparseAnnotations... annotations) {
+        this(mac, vlan, location, Collections.<IpAddress>emptySet(),
+             configured, annotations);
+    }
+
+    /**
+     * Creates a host description using the supplied information.
+     *
+     * @param mac          host MAC address
+     * @param vlan         host VLAN identifier
+     * @param location     host location
+     * @param ip           host IP address
+     * @param configured   true if configured via NetworkConfiguration
+     * @param annotations  optional key/value annotations map
+     */
+    public DefaultHostDescription(MacAddress mac, VlanId vlan,
+                                  HostLocation location, Set<IpAddress> ip,
+                                  boolean configured,
+                                  SparseAnnotations... annotations) {
         super(annotations);
         this.mac = mac;
         this.vlan = vlan;
         this.location = location;
         this.ip = ImmutableSet.copyOf(ip);
+        this.configured = configured;
     }
 
     @Override
@@ -111,12 +147,18 @@ public class DefaultHostDescription extends AbstractDescription
     }
 
     @Override
+    public boolean configured() {
+        return configured;
+    }
+
+    @Override
     public String toString() {
         return toStringHelper(this)
                 .add("mac", mac)
                 .add("vlan", vlan)
                 .add("location", location)
                 .add("ipAddress", ip)
+                .add("configured", configured)
                 .toString();
     }
 
@@ -139,5 +181,4 @@ public class DefaultHostDescription extends AbstractDescription
         }
         return false;
     }
-
 }

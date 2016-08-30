@@ -198,7 +198,7 @@ public class HostResourceTest extends ResourceTest {
         @Override
         public boolean matchesSafely(JsonArray json) {
             boolean hostFound = false;
-            final int expectedAttributes = 5;
+            final int expectedAttributes = 6;
             for (int jsonHostIndex = 0; jsonHostIndex < json.size();
                  jsonHostIndex++) {
 
