@@ -232,6 +232,7 @@ public final class DefaultLispMapReply implements LispMapReply {
                         .withIsEtr(etr)
                         .withIsSecurity(security)
                         .withNonce(nonce)
+                        .withMapRecords(mapRecords)
                         .build();
         }
     }

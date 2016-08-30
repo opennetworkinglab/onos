@@ -15,19 +15,28 @@
  */
 package org.onosproject.lisp.msg.protocols;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.testing.EqualsTester;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.IpAddress;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapReply.ReplyReader;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapReply.ReplyWriter;
+import org.onosproject.lisp.msg.types.LispIpv4Address;
+
+import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.DefaultMapRecordBuilder;
+import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordBuilder;
+import static org.onosproject.lisp.msg.protocols.DefaultLispMapReply.DefaultReplyBuilder;
+import static org.onosproject.lisp.msg.protocols.DefaultLispMapReply.ReplyBuilder;
 
 /**
  * Unit tests for DefaultLispMapReply class.
@@ -41,34 +50,53 @@ public final class DefaultLispMapReplyTest {
     @Before
     public void setup() {
 
-        LispMapReply.ReplyBuilder builder1 =
-                        new DefaultLispMapReply.DefaultReplyBuilder();
+        ReplyBuilder builder1 = new DefaultReplyBuilder();
+
+        List<LispMapRecord> records1 = ImmutableList.of(getMapRecord(), getMapRecord());
 
         reply1 = builder1
                         .withIsEtr(true)
                         .withIsProbe(false)
                         .withIsSecurity(true)
                         .withNonce(1L)
+                        .withMapRecords(records1)
                         .build();
 
-        LispMapReply.ReplyBuilder builder2 =
-                        new DefaultLispMapReply.DefaultReplyBuilder();
+        ReplyBuilder builder2 = new DefaultReplyBuilder();
+
+        List<LispMapRecord> records2 = ImmutableList.of(getMapRecord(), getMapRecord());
 
         sameAsReply1 = builder2
                         .withIsEtr(true)
                         .withIsProbe(false)
                         .withIsSecurity(true)
                         .withNonce(1L)
+                        .withMapRecords(records2)
                         .build();
 
-        LispMapReply.ReplyBuilder builder3 =
-                        new DefaultLispMapReply.DefaultReplyBuilder();
+        ReplyBuilder builder3 = new DefaultReplyBuilder();
+
         reply2 = builder3
                         .withIsEtr(false)
                         .withIsProbe(true)
                         .withIsSecurity(false)
                         .withNonce(2L)
                         .build();
+    }
+
+    private LispMapRecord getMapRecord() {
+        MapRecordBuilder builder1 = new DefaultMapRecordBuilder();
+
+        LispIpv4Address ipv4Locator1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
+
+        return builder1
+                .withRecordTtl(100)
+                .withAuthoritative(true)
+                .withMapVersionNumber((short) 1)
+                .withMaskLength((byte) 0x01)
+                .withAction(LispMapReplyAction.NativelyForward)
+                .withEidPrefixAfi(ipv4Locator1)
+                .build();
     }
 
     @Test
@@ -86,6 +114,7 @@ public final class DefaultLispMapReplyTest {
         assertThat(reply.isProbe(), is(false));
         assertThat(reply.isSecurity(), is(true));
         assertThat(reply.getNonce(), is(1L));
+        assertThat(reply.getRecordCount(), is(2));
     }
 
     @Test

@@ -42,8 +42,7 @@ public final class DefaultLispMapRecordTest {
     @Before
     public void setup() {
 
-        LispMapRecord.MapRecordBuilder builder1 =
-                        new DefaultMapRecordBuilder();
+        MapRecordBuilder builder1 = new DefaultMapRecordBuilder();
 
         LispIpv4Address ipv4Locator1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
 
@@ -56,8 +55,7 @@ public final class DefaultLispMapRecordTest {
                         .withEidPrefixAfi(ipv4Locator1)
                         .build();
 
-        LispMapRecord.MapRecordBuilder builder2 =
-                        new DefaultMapRecordBuilder();
+        MapRecordBuilder builder2 = new DefaultMapRecordBuilder();
 
         sameAsRecord1 = builder2
                         .withRecordTtl(100)
@@ -68,8 +66,7 @@ public final class DefaultLispMapRecordTest {
                         .withEidPrefixAfi(ipv4Locator1)
                         .build();
 
-        LispMapRecord.MapRecordBuilder builder3 =
-                        new DefaultMapRecordBuilder();
+        MapRecordBuilder builder3 = new DefaultMapRecordBuilder();
 
         LispIpv4Address ipv4Locator2 = new LispIpv4Address(IpAddress.valueOf("192.168.1.2"));
 

@@ -54,6 +54,7 @@ public final class DefaultLispMapRequestTest {
         LispIpv4Address ipv4Rloc2 = new LispIpv4Address(IpAddress.valueOf("10.1.1.2"));
 
         List<LispAfiAddress> rlocs1 = ImmutableList.of(ipv4Rloc1, ipv4Rloc2);
+        List<LispEidRecord> records1 = ImmutableList.of(getEidRecord(), getEidRecord());
 
         request1 = builder1
                         .withIsAuthoritative(true)
@@ -64,10 +65,12 @@ public final class DefaultLispMapRequestTest {
                         .withIsSmrInvoked(false)
                         .withSourceEid(ipv4Eid1)
                         .withItrRlocs(rlocs1)
+                        .withEidRecords(records1)
                         .withNonce(1L)
                         .build();
 
         RequestBuilder builder2 = new DefaultRequestBuilder();
+        List<LispEidRecord> records2 = ImmutableList.of(getEidRecord(), getEidRecord());
 
         sameAsRequest1 = builder2
                         .withIsAuthoritative(true)
@@ -78,6 +81,7 @@ public final class DefaultLispMapRequestTest {
                         .withIsSmrInvoked(false)
                         .withSourceEid(ipv4Eid1)
                         .withItrRlocs(rlocs1)
+                        .withEidRecords(records2)
                         .withNonce(1L)
                         .build();
 
@@ -85,8 +89,8 @@ public final class DefaultLispMapRequestTest {
 
         LispIpv4Address ipv4Eid2 = new LispIpv4Address(IpAddress.valueOf("192.168.1.2"));
 
-        LispIpv4Address ipv4Rloc3 = new LispIpv4Address(IpAddress.valueOf("10.1.1.1"));
-        LispIpv4Address ipv4Rloc4 = new LispIpv4Address(IpAddress.valueOf("10.1.1.2"));
+        LispIpv4Address ipv4Rloc3 = new LispIpv4Address(IpAddress.valueOf("20.1.1.1"));
+        LispIpv4Address ipv4Rloc4 = new LispIpv4Address(IpAddress.valueOf("20.1.1.2"));
 
         List<LispAfiAddress> rlocs2 = ImmutableList.of(ipv4Rloc3, ipv4Rloc4);
 
@@ -101,6 +105,11 @@ public final class DefaultLispMapRequestTest {
                         .withItrRlocs(rlocs2)
                         .withNonce(2L)
                         .build();
+    }
+
+    private LispEidRecord getEidRecord() {
+        LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf("20.1.1.1"));
+        return new LispEidRecord((byte) 24, eid);
     }
 
     @Test
@@ -121,6 +130,7 @@ public final class DefaultLispMapRequestTest {
         assertThat(request.isSmr(), is(true));
         assertThat(request.isSmrInvoked(), is(false));
         assertThat(request.getNonce(), is(1L));
+        assertThat(request.getRecordCount(), is(2));
     }
 
     @Test

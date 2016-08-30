@@ -77,7 +77,8 @@ public final class LispEidRecord {
             // let's skip the reserved field
             byteBuf.skipBytes(RESERVED_SKIP_LENGTH);
 
-            short maskLength = (short) byteBuf.readUnsignedShort();
+            // mask length -> 8 bits
+            short maskLength = byteBuf.readUnsignedByte();
 
             LispAfiAddress prefix = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
 

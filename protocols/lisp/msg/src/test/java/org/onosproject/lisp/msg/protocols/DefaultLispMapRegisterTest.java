@@ -15,19 +15,28 @@
  */
 package org.onosproject.lisp.msg.protocols;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.testing.EqualsTester;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.IpAddress;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapRegister.RegisterReader;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapRegister.RegisterWriter;
+import org.onosproject.lisp.msg.protocols.LispMapRecord.MapRecordBuilder;
+import org.onosproject.lisp.msg.protocols.LispMapRegister.RegisterBuilder;
+import org.onosproject.lisp.msg.types.LispIpv4Address;
+
+import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.DefaultMapRecordBuilder;
+import static org.onosproject.lisp.msg.protocols.DefaultLispMapRegister.DefaultRegisterBuilder;
 
 /**
  * Unit tests for DefaultLispMapRegister class.
@@ -41,28 +50,31 @@ public final class DefaultLispMapRegisterTest {
     @Before
     public void setup() {
 
-        LispMapRegister.RegisterBuilder builder1 =
-                        new DefaultLispMapRegister.DefaultRegisterBuilder();
+        RegisterBuilder builder1 = new DefaultRegisterBuilder();
+
+        List<LispMapRecord> records1 = ImmutableList.of(getMapRecord(), getMapRecord());
 
         register1 = builder1
                         .withIsProxyMapReply(true)
                         .withIsWantMapNotify(false)
                         .withKeyId((short) 1)
                         .withNonce(1L)
+                        .withMapRecords(records1)
                         .build();
 
-        LispMapRegister.RegisterBuilder builder2 =
-                        new DefaultLispMapRegister.DefaultRegisterBuilder();
+        RegisterBuilder builder2 = new DefaultRegisterBuilder();
+
+        List<LispMapRecord> records2 = ImmutableList.of(getMapRecord(), getMapRecord());
 
         sameAsRegister1 = builder2
                         .withIsProxyMapReply(true)
                         .withIsWantMapNotify(false)
                         .withKeyId((short) 1)
                         .withNonce(1L)
+                        .withMapRecords(records2)
                         .build();
 
-        LispMapRegister.RegisterBuilder builder3 =
-                        new DefaultLispMapRegister.DefaultRegisterBuilder();
+        RegisterBuilder builder3 = new DefaultRegisterBuilder();
 
         register2 = builder3
                         .withIsProxyMapReply(true)
@@ -70,6 +82,21 @@ public final class DefaultLispMapRegisterTest {
                         .withKeyId((short) 2)
                         .withNonce(2L)
                         .build();
+    }
+
+    private LispMapRecord getMapRecord() {
+        MapRecordBuilder builder1 = new DefaultMapRecordBuilder();
+
+        LispIpv4Address ipv4Locator1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
+
+        return builder1
+                .withRecordTtl(100)
+                .withAuthoritative(true)
+                .withMapVersionNumber((short) 1)
+                .withMaskLength((byte) 0x01)
+                .withAction(LispMapReplyAction.NativelyForward)
+                .withEidPrefixAfi(ipv4Locator1)
+                .build();
     }
 
     @Test
@@ -87,6 +114,7 @@ public final class DefaultLispMapRegisterTest {
         assertThat(register.isWantMapNotify(), is(false));
         assertThat(register.getKeyId(), is((short) 1));
         assertThat(register.getNonce(), is(1L));
+        assertThat(register.getRecordCount(), is(2));
     }
 
     @Test
