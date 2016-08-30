@@ -112,8 +112,8 @@ public class NetworkConfigHostProvider extends AbstractProvider implements HostP
     protected void addHost(MacAddress mac, VlanId vlan, HostLocation hloc, Set<IpAddress> ips) {
         HostId hid = HostId.hostId(mac, vlan);
         HostDescription desc = (ips != null) ?
-                new DefaultHostDescription(mac, vlan, hloc, ips) :
-                new DefaultHostDescription(mac, vlan, hloc);
+                new DefaultHostDescription(mac, vlan, hloc, ips, true) :
+                new DefaultHostDescription(mac, vlan, hloc, true);
         providerService.hostDetected(hid, desc, false);
     }
 
@@ -128,7 +128,7 @@ public class NetworkConfigHostProvider extends AbstractProvider implements HostP
      */
     protected void updateHost(MacAddress mac, VlanId vlan, HostLocation hloc, Set<IpAddress> ips) {
         HostId hid = HostId.hostId(mac, vlan);
-        HostDescription desc = new DefaultHostDescription(mac, vlan, hloc, ips);
+        HostDescription desc = new DefaultHostDescription(mac, vlan, hloc, ips, true);
         providerService.hostDetected(hid, desc, true);
     }
 

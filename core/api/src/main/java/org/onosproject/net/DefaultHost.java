@@ -36,6 +36,7 @@ public class DefaultHost extends AbstractElement implements Host {
     private final VlanId vlan;
     private final HostLocation location;
     private final Set<IpAddress> ips;
+    private final boolean configured;
 
     /**
      * Creates an end-station host using the supplied information.
@@ -51,11 +52,30 @@ public class DefaultHost extends AbstractElement implements Host {
     public DefaultHost(ProviderId providerId, HostId id, MacAddress mac,
                        VlanId vlan, HostLocation location, Set<IpAddress> ips,
                        Annotations... annotations) {
+        this(providerId, id, mac, vlan, location, ips, false, annotations);
+    }
+
+    /**
+     * Creates an end-station host using the supplied information.
+     *
+     * @param providerId  provider identity
+     * @param id          host identifier
+     * @param mac         host MAC address
+     * @param vlan        host VLAN identifier
+     * @param location    host location
+     * @param ips         host IP addresses
+     * @param configured  true if configured via NetworkConfiguration
+     * @param annotations optional key/value annotations
+     */
+    public DefaultHost(ProviderId providerId, HostId id, MacAddress mac,
+                       VlanId vlan, HostLocation location, Set<IpAddress> ips,
+                       boolean configured, Annotations... annotations) {
         super(providerId, id, annotations);
         this.mac = mac;
         this.vlan = vlan;
         this.location = location;
         this.ips = new HashSet<>(ips);
+        this.configured = configured;
     }
 
     @Override
@@ -81,6 +101,11 @@ public class DefaultHost extends AbstractElement implements Host {
     @Override
     public VlanId vlan() {
         return vlan;
+    }
+
+    @Override
+    public boolean configured() {
+        return configured;
     }
 
     @Override
@@ -114,6 +139,7 @@ public class DefaultHost extends AbstractElement implements Host {
                 .add("location", location())
                 .add("ipAddresses", ipAddresses())
                 .add("annotations", annotations())
+                .add("configured", configured())
                 .toString();
     }
 

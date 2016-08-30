@@ -55,4 +55,12 @@ public interface HostDescription extends Description {
      * @return host IP address
      */
     Set<IpAddress> ipAddress();
+
+    /**
+     * Returns true if configured by NetworkConfiguration.
+     * @return configured/learnt dynamically
+     */
+    default boolean configured() {
+        return false;
+    }
 }

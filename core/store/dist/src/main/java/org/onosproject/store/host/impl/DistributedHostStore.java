@@ -167,11 +167,14 @@ public class DistributedHostStore
                            }
 
                            final Annotations annotations;
+                           final boolean configured;
                            if (existingHost != null) {
                                annotations = merge((DefaultAnnotations) existingHost.annotations(),
                                        hostDescription.annotations());
+                               configured = existingHost.configured();
                            } else {
                                annotations = hostDescription.annotations();
+                               configured = hostDescription.configured();
                            }
 
                            return new DefaultHost(providerId,
@@ -180,6 +183,7 @@ public class DistributedHostStore
                                                   hostDescription.vlan(),
                                                   location,
                                                   addresses,
+                                                  configured,
                                                   annotations);
                        });
         return null;
