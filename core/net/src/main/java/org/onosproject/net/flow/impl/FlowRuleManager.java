@@ -74,7 +74,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -598,7 +597,7 @@ public class FlowRuleManager
         private final List<Set<FlowRuleOperation>> stages;
         private final FlowRuleOperationsContext context;
         private final FlowRuleOperations fops;
-        private final AtomicBoolean hasFailed = new AtomicBoolean(false);
+        private boolean hasFailed = false;
 
         private final Set<DeviceId> pendingDevices = new HashSet<>();
 
@@ -612,7 +611,7 @@ public class FlowRuleManager
         public synchronized void run() {
             if (stages.size() > 0) {
                 process(stages.remove(0));
-            } else if (!hasFailed.get() && context != null) {
+            } else if (!hasFailed && context != null) {
                 context.onSuccess(fops);
             }
         }
@@ -664,7 +663,7 @@ public class FlowRuleManager
 
 
         synchronized void fail(DeviceId devId, Set<? extends FlowRule> failures) {
-            hasFailed.set(true);
+            hasFailed = true;
             pendingDevices.remove(devId);
             if (pendingDevices.isEmpty()) {
                 operationsService.execute(this);
