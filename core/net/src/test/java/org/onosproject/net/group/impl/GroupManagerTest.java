@@ -361,8 +361,8 @@ public class GroupManagerTest {
         GroupKey key = new DefaultGroupKey("group1BeforeAudit".getBytes());
         Group createdGroup = groupService.getGroup(deviceId, key);
         int createdGroupId = createdGroup.id().id();
-        assertNotEquals(gId1.id(), createdGroupId);
-        assertNotEquals(gId2.id(), createdGroupId);
+        assertNotEquals(gId1.id().intValue(), createdGroupId);
+        assertNotEquals(gId2.id().intValue(), createdGroupId);
 
         List<GroupOperation> expectedGroupOps = Arrays.asList(
                 GroupOperation.createDeleteGroupOperation(gId1,

@@ -272,9 +272,9 @@ public class GroupsResourceTest extends ResourceTest {
         public boolean matchesSafely(JsonObject jsonGroup) {
             // check id
             final String jsonId = jsonGroup.get("id").asString();
-            final String groupId = group.id().toString();
+            final String groupId = group.id().id().toString();
             if (!jsonId.equals(groupId)) {
-                reason = "id " + group.id().toString();
+                reason = "id " + group.id().id().toString();
                 return false;
             }
 
@@ -356,7 +356,7 @@ public class GroupsResourceTest extends ResourceTest {
 
                 final JsonObject jsonGroup = json.get(jsonGroupIndex).asObject();
 
-                final String groupId = group.id().toString();
+                final String groupId = group.id().id().toString();
                 final String jsonGroupId = jsonGroup.get("id").asString();
                 if (jsonGroupId.equals(groupId)) {
                     groupFound = true;
@@ -366,7 +366,7 @@ public class GroupsResourceTest extends ResourceTest {
                 }
             }
             if (!groupFound) {
-                reason = "Group with id " + group.id().toString() + " not found";
+                reason = "Group with id " + group.id().id().toString() + " not found";
                 return false;
             } else {
                 return true;

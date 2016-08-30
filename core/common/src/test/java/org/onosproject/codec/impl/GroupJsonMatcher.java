@@ -38,7 +38,7 @@ public final class GroupJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode> 
     public boolean matchesSafely(JsonNode jsonGroup, Description description) {
         // check id
         String jsonGroupId = jsonGroup.get("id").asText();
-        String groupId = group.id().toString();
+        String groupId = group.id().id().toString();
         if (!jsonGroupId.equals(groupId)) {
             description.appendText("group id was " + jsonGroupId);
             return false;
