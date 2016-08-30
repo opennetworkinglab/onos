@@ -54,7 +54,7 @@ public abstract class ConsistentTreeMapBuilder<V>
      * to this builder.
      *
      * @return new distributed tree map
-     * @throw java.lang.RuntimeException if a mandatory parameter is missing
+     * @throws java.lang.RuntimeException if a mandatory parameter is missing
      */
     public abstract AsyncConsistentTreeMap<V> buildTreeMap();
 
