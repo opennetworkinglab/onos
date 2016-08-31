@@ -38,7 +38,12 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
- * Created by admin on 8/3/16.
+ * An {@code AsyncConsistentTreeMap} that maps its operations to operations on
+ * a differently typed {@code AsyncConsistentTreeMap} by transcoding operation
+ * inputs and outputs.
+ *
+ * @param <V2> value type of other map
+ * @param <V1> value type of this map
  */
 public class TranscodingAsyncConsistentTreeMap<V1, V2>
         implements AsyncConsistentTreeMap<V1> {
@@ -79,7 +84,8 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
                         entry ->
                                 Maps.immutableEntry(
                                         entry.getKey(),
-                                        entry.getValue().map(valueDecoder)));
+                                        versionedValueTransform
+                                                .apply(entry.getValue())));
     }
 
     @Override
@@ -90,7 +96,8 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
                         entry ->
                                 Maps.immutableEntry(
                                         entry.getKey(),
-                                        entry.getValue().map(valueDecoder)));
+                                        versionedValueTransform
+                                                .apply(entry.getValue())));
     }
 
     @Override
@@ -99,19 +106,21 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
         return backingMap
                 .higherEntry(key)
                 .thenApply(entry ->
-                               Maps.immutableEntry(
-                                       entry.getKey(),
-                                       entry.getValue().map(valueDecoder)));
-}
+                                   Maps.immutableEntry(
+                                           entry.getKey(),
+                                           versionedValueTransform
+                                                   .apply(entry.getValue())));
+    }
 
     @Override
     public CompletableFuture<Map.Entry<String, Versioned<V1>>>
     lowerEntry(String key) {
         return backingMap.lowerEntry(key).thenApply(
                 entry ->
-                    Maps.immutableEntry(
-                            entry.getKey(),
-                            entry.getValue().map(valueDecoder)));
+                        Maps.immutableEntry(
+                                entry.getKey(),
+                                versionedValueTransform
+                                        .apply(entry.getValue())));
     }
 
     @Override
@@ -120,8 +129,9 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
         return backingMap.firstEntry()
                 .thenApply(entry ->
                                    Maps.immutableEntry(
-                                       entry.getKey(),
-                                       entry.getValue().map(valueDecoder)));
+                                           entry.getKey(),
+                                           versionedValueTransform
+                                                   .apply(entry.getValue())));
     }
 
     @Override
@@ -131,7 +141,8 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
                 .thenApply(
                         entry -> Maps.immutableEntry(
                                 entry.getKey(),
-                                entry.getValue().map(valueDecoder)));
+                                versionedValueTransform
+                                        .apply(entry.getValue())));
     }
 
     @Override
@@ -141,7 +152,8 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
                 .thenApply(
                         entry -> Maps.immutableEntry(
                                 entry.getKey(),
-                                entry.getValue().map(valueDecoder)));
+                                versionedValueTransform
+                                        .apply(entry.getValue())));
     }
 
     @Override
@@ -150,7 +162,7 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
         return backingMap.pollLastEntry()
                 .thenApply(entry -> Maps.immutableEntry(
                         entry.getKey(),
-                        entry.getValue().map(valueDecoder)));
+                        versionedValueTransform.apply(entry.getValue())));
     }
 
     @Override
@@ -210,7 +222,7 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
 
     @Override
     public CompletableFuture<Versioned<V1>> get(String key) {
-        return backingMap.get(key).thenApply(value -> value.map(valueDecoder));
+        return backingMap.get(key).thenApply(versionedValueTransform);
     }
 
     @Override
@@ -237,18 +249,18 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
     @Override
     public CompletableFuture<Versioned<V1>> put(String key, V1 value) {
         return backingMap.put(key, valueEncoder.apply(value))
-                .thenApply(v -> v.map(valueDecoder));
+                .thenApply(versionedValueTransform);
     }
 
     @Override
     public CompletableFuture<Versioned<V1>> putAndGet(String key, V1 value) {
         return backingMap.putAndGet(key, valueEncoder.apply(value))
-                .thenApply(v -> v.map(valueDecoder));
+                .thenApply(versionedValueTransform);
     }
 
     @Override
     public CompletableFuture<Versioned<V1>> remove(String key) {
-        return backingMap.remove(key).thenApply(v -> v.map(valueDecoder));
+        return backingMap.remove(key).thenApply(versionedValueTransform);
     }
 
     @Override
@@ -264,7 +276,7 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
     @Override
     public CompletableFuture<Collection<Versioned<V1>>> values() {
         return backingMap.values().thenApply(valueSet -> valueSet.stream()
-                .map(v -> v.map(valueDecoder)).collect(Collectors.toSet()));
+                .map(versionedValueTransform).collect(Collectors.toSet()));
     }
 
     @Override
@@ -272,19 +284,21 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
     entrySet() {
         return backingMap.entrySet()
                 .thenApply(
-                    entries -> entries
-                        .stream()
-                        .map(entry ->
-                             Maps.immutableEntry(entry.getKey(),
-                                                 entry.getValue()
-                                                     .map(valueDecoder)))
-                            .collect(Collectors.toSet()));
-        }
+                        entries -> entries
+                                .stream()
+                                .map(entry ->
+                                             Maps.immutableEntry(
+                                                 entry.getKey(),
+                                                 versionedValueTransform
+                                                     .apply(entry.getValue())
+                                             ))
+                                .collect(Collectors.toSet()));
+    }
 
     @Override
     public CompletableFuture<Versioned<V1>> putIfAbsent(String key, V1 value) {
         return backingMap.putIfAbsent(key, valueEncoder.apply(value))
-                .thenApply(v -> v.map(valueDecoder));
+                .thenApply(versionedValueTransform);
     }
 
     @Override
@@ -300,7 +314,7 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
     @Override
     public CompletableFuture<Versioned<V1>> replace(String key, V1 value) {
         return backingMap.replace(key, valueEncoder.apply(value))
-                .thenApply(v -> v.map(valueDecoder));
+                .thenApply(versionedValueTransform);
     }
 
     @Override
