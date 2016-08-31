@@ -312,13 +312,15 @@ public class DeviceManager
         log.debug("Checking mastership");
         for (Device device : getDevices()) {
             final DeviceId deviceId = device.id();
-            log.trace("Checking device {}", deviceId);
-
+            MastershipRole myRole = mastershipService.getLocalRole(deviceId);
+            log.trace("Checking device {}. Current role is {}", deviceId, myRole);
             if (!isReachable(deviceId)) {
-                if (mastershipService.getLocalRole(deviceId) != NONE) {
+                if (myRole != NONE) {
                     // can't be master if device is not reachable
                     try {
-                        post(store.markOffline(deviceId));
+                        if (myRole == MASTER) {
+                            post(store.markOffline(deviceId));
+                        }
                         //relinquish master role and ability to be backup.
                         mastershipService.relinquishMastership(deviceId).get();
                     } catch (InterruptedException e) {
@@ -331,7 +333,7 @@ public class DeviceManager
                 continue;
             }
 
-            if (mastershipService.getLocalRole(deviceId) != NONE) {
+            if (myRole != NONE) {
                 continue;
             }
 
