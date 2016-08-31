@@ -626,10 +626,9 @@ public class FlowRuleManager
         private void process(Set<FlowRuleOperation> ops) {
             Multimap<DeviceId, FlowRuleBatchEntry> perDeviceBatches = ArrayListMultimap.create();
 
-            for (FlowRuleOperation flowRuleOperation : ops) {
-                FlowRuleBatchEntry fbe =
-                        new FlowRuleBatchEntry(mapOperationType(flowRuleOperation.type()), flowRuleOperation.rule());
-                perDeviceBatches.put(flowRuleOperation.rule().deviceId(), fbe);
+            for (FlowRuleOperation op : ops) {
+                perDeviceBatches.put(op.rule().deviceId(),
+                        new FlowRuleBatchEntry(mapOperationType(op.type()), op.rule()));
             }
             pendingDevices.addAll(perDeviceBatches.keySet());
 
