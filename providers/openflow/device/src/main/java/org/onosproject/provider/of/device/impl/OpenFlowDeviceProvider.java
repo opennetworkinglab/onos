@@ -121,6 +121,7 @@ import org.projectfloodlight.openflow.types.PortSpeed;
 import org.slf4j.Logger;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -313,7 +314,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     private void pushPortMetrics(Dpid dpid, List<OFPortStatsEntry> portStatsEntries) {
         DeviceId deviceId = DeviceId.deviceId(Dpid.uri(dpid));
-        Collection<PortStatistics> stats = buildPortStatistics(deviceId, portStatsEntries);
+        Collection<PortStatistics> stats =
+                buildPortStatistics(deviceId, ImmutableList.copyOf(portStatsEntries));
         providerService.updatePortStatistics(deviceId, stats);
     }
 
