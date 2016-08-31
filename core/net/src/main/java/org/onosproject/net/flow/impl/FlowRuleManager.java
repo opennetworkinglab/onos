@@ -629,9 +629,9 @@ public class FlowRuleManager
             for (FlowRuleOperation flowRuleOperation : ops) {
                 FlowRuleBatchEntry fbe =
                         new FlowRuleBatchEntry(mapOperationType(flowRuleOperation.type()), flowRuleOperation.rule());
-                pendingDevices.add(flowRuleOperation.rule().deviceId());
                 perDeviceBatches.put(flowRuleOperation.rule().deviceId(), fbe);
             }
+            pendingDevices.addAll(perDeviceBatches.keySet());
 
             for (DeviceId deviceId : perDeviceBatches.keySet()) {
                 long id = idGenerator.getNewId();
