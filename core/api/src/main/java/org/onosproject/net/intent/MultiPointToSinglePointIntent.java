@@ -25,7 +25,6 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,7 +73,7 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
                                           int priority,
                                           Map<ConnectPoint, TrafficSelector> ingressSelectors
                                           ) {
-        super(appId, key, Collections.emptyList(), selector, treatment, constraints,
+        super(appId, key, ImmutableSet.of(), selector, treatment, constraints,
                 priority);
 
         checkNotNull(ingressPoints);
@@ -127,7 +126,7 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
     public static final class Builder extends ConnectivityIntent.Builder {
         Set<ConnectPoint> ingressPoints;
         ConnectPoint egressPoint;
-        Map<ConnectPoint, TrafficSelector> ingressSelectors = Collections.emptyMap();
+        Map<ConnectPoint, TrafficSelector> ingressSelectors = ImmutableMap.of();
 
         private Builder() {
             // Hide constructor

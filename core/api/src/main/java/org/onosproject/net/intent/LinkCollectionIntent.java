@@ -16,21 +16,19 @@
 
 package org.onosproject.net.intent;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.google.common.annotations.Beta;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Abstraction of a connectivity intent that is implemented by a set of path
@@ -118,7 +116,7 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
         Set<Link> links;
         Set<ConnectPoint> ingressPoints;
         Set<ConnectPoint> egressPoints;
-        Map<ConnectPoint, TrafficSelector> ingressSelectors = Collections.emptyMap();
+        Map<ConnectPoint, TrafficSelector> ingressSelectors = ImmutableMap.of();
         boolean egressTreatmentFlag;
 
         private Builder() {
