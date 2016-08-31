@@ -396,6 +396,9 @@
             <action class="org.onosproject.cli.net.TransactionsCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.CounterCommand"/>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.ClusterDevicesCommand"/>
             <completers>
                 <ref component-id="clusterIdCompleter"/>
