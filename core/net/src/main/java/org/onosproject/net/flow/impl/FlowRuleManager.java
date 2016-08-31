@@ -571,6 +571,19 @@ public class FlowRuleManager
         }
     }
 
+    private static FlowRuleBatchEntry.FlowRuleOperation mapOperationType(FlowRuleOperation.Type input) {
+        switch (input) {
+            case ADD:
+                return FlowRuleBatchEntry.FlowRuleOperation.ADD;
+            case MODIFY:
+                return FlowRuleBatchEntry.FlowRuleOperation.MODIFY;
+            case REMOVE:
+                return FlowRuleBatchEntry.FlowRuleOperation.REMOVE;
+            default:
+                throw new UnsupportedOperationException("Unknown flow rule type " + input);
+        }
+    }
+
     private class FlowOperationsProcessor implements Runnable {
 
         private final List<Set<FlowRuleOperation>> stages;
@@ -599,25 +612,9 @@ public class FlowRuleManager
             Multimap<DeviceId, FlowRuleBatchEntry> perDeviceBatches =
                     ArrayListMultimap.create();
 
-            FlowRuleBatchEntry fbe;
             for (FlowRuleOperation flowRuleOperation : ops) {
-                switch (flowRuleOperation.type()) {
-                    // FIXME: Brian needs imagination when creating class names.
-                    case ADD:
-                        fbe = new FlowRuleBatchEntry(
-                                FlowRuleBatchEntry.FlowRuleOperation.ADD, flowRuleOperation.rule());
-                        break;
-                    case MODIFY:
-                        fbe = new FlowRuleBatchEntry(
-                                FlowRuleBatchEntry.FlowRuleOperation.MODIFY, flowRuleOperation.rule());
-                        break;
-                    case REMOVE:
-                        fbe = new FlowRuleBatchEntry(
-                                FlowRuleBatchEntry.FlowRuleOperation.REMOVE, flowRuleOperation.rule());
-                        break;
-                    default:
-                        throw new UnsupportedOperationException("Unknown flow rule type " + flowRuleOperation.type());
-                }
+                FlowRuleBatchEntry fbe =
+                        new FlowRuleBatchEntry(mapOperationType(flowRuleOperation.type()), flowRuleOperation.rule());
                 pendingDevices.add(flowRuleOperation.rule().deviceId());
                 perDeviceBatches.put(flowRuleOperation.rule().deviceId(), fbe);
             }
