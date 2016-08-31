@@ -521,14 +521,11 @@ public class FlowRuleManager
                 request.ops().stream().forEach(
                         op -> {
                             switch (op.operator()) {
-
                                 case ADD:
-                                    post(new FlowRuleEvent(RULE_ADD_REQUESTED,
-                                                           op.target()));
+                                    post(new FlowRuleEvent(RULE_ADD_REQUESTED, op.target()));
                                     break;
                                 case REMOVE:
-                                    post(new FlowRuleEvent(RULE_REMOVE_REQUESTED,
-                                                           op.target()));
+                                    post(new FlowRuleEvent(RULE_REMOVE_REQUESTED, op.target()));
                                     break;
                                 case MODIFY:
                                     //TODO: do something here when the time comes.
@@ -540,10 +537,7 @@ public class FlowRuleManager
                 );
 
                 DeviceId deviceId = event.deviceId();
-
-                FlowRuleBatchOperation batchOperation =
-                        request.asBatchOperation(deviceId);
-
+                FlowRuleBatchOperation batchOperation = request.asBatchOperation(deviceId);
                 FlowRuleProvider flowRuleProvider = getProvider(deviceId);
                 if (flowRuleProvider != null) {
                     flowRuleProvider.executeBatch(batchOperation);
@@ -609,8 +603,7 @@ public class FlowRuleManager
         }
 
         private void process(Set<FlowRuleOperation> ops) {
-            Multimap<DeviceId, FlowRuleBatchEntry> perDeviceBatches =
-                    ArrayListMultimap.create();
+            Multimap<DeviceId, FlowRuleBatchEntry> perDeviceBatches = ArrayListMultimap.create();
 
             for (FlowRuleOperation flowRuleOperation : ops) {
                 FlowRuleBatchEntry fbe =
@@ -618,7 +611,6 @@ public class FlowRuleManager
                 pendingDevices.add(flowRuleOperation.rule().deviceId());
                 perDeviceBatches.put(flowRuleOperation.rule().deviceId(), fbe);
             }
-
 
             for (DeviceId deviceId : perDeviceBatches.keySet()) {
                 long id = idGenerator.getNewId();
@@ -636,8 +628,6 @@ public class FlowRuleManager
             }
         }
 
-
-
         synchronized void fail(DeviceId devId, Set<? extends FlowRule> failures) {
             hasFailed = true;
             pendingDevices.remove(devId);
@@ -653,7 +643,6 @@ public class FlowRuleManager
                 context.onError(failedOpsBuilder.build());
             }
         }
-
     }
 
     @Override
