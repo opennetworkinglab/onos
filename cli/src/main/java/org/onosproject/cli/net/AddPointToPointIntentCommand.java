@@ -46,7 +46,8 @@ public class AddPointToPointIntentCommand extends ConnectivityIntentCommand {
               required = true, multiValued = false)
     String egressDeviceString = null;
 
-    @Option(name = "-p", aliases = "--protect",
+    // -p already defined in ConnectivityIntentCommand
+    @Option(name = "-r", aliases = "--protect",
             description = "Utilize path protection",
             required = false, multiValued = false)
     private boolean backup = false;
