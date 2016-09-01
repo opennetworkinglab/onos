@@ -66,12 +66,12 @@
         <group name="Query3" requires="Netcfg.Delete">
             <parallel var="${OC#}" starts="Netcfg.Query-3-${#}">
                 <!-- Check that the values were deleted for the config for the DHCP server -->
-                <step name="Netcfg.QueryDhcp-31-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} ttl=21"/>
-                <step name="Netcfg.QueryDhcp-32-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} lease=22"/>
-                <step name="Netcfg.QueryDhcp-33-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} renew=23"/>
-                <step name="Netcfg.QueryDhcp-34-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} rebind=24"/>
-                <step name="Netcfg.QueryDhcp-35-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} delay=25"/>
-                <step name="Netcfg.QueryDhcp-36-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} timeout=26"/>
+                <step name="Netcfg.QueryDhcp-31-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} ttl=21" delay="2"/>
+                <step name="Netcfg.QueryDhcp-32-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} lease=22" delay="2"/>
+                <step name="Netcfg.QueryDhcp-33-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} renew=23" delay="2"/>
+                <step name="Netcfg.QueryDhcp-34-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} rebind=24" delay="2"/>
+                <step name="Netcfg.QueryDhcp-35-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} delay=25" delay="2"/>
+                <step name="Netcfg.QueryDhcp-36-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} timeout=26" delay="2"/>
             </parallel>
         </group>
 
