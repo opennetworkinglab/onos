@@ -177,15 +177,14 @@ public class Vpls {
         VlanId vlanId = e.getKey();
         ConnectPoint cp = e.getValue();
         Set<Host> connectedHosts = hostService.getConnectedHosts(cp);
-        if (!connectedHosts.isEmpty()) {
-            connectedHosts.forEach(host -> {
-                if (host.vlan().equals(vlanId)) {
-                    confHostPresentCPoint.put(vlanId, Pair.of(cp, host.mac()));
-                } else {
-                    confHostPresentCPoint.put(vlanId, Pair.of(cp, null));
-                }
-            });
-        } else {
+        connectedHosts.forEach(host -> {
+            if (host.vlan().equals(vlanId)) {
+                confHostPresentCPoint.put(vlanId, Pair.of(cp, host.mac()));
+            } else {
+                confHostPresentCPoint.put(vlanId, Pair.of(cp, null));
+            }
+        });
+        if (connectedHosts.isEmpty()) {
             confHostPresentCPoint.put(vlanId, Pair.of(cp, null));
         }
     }
