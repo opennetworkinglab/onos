@@ -362,7 +362,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     public Response delete(@PathParam("subjectClassKey") String subjectClassKey,
                            @PathParam("subjectKey") String subjectKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
-        service.removeConfig(subjectKey);
+        service.removeConfig(service.getSubjectFactory(subjectClassKey).createSubject(subjectKey));
         return Response.noContent().build();
     }
 
