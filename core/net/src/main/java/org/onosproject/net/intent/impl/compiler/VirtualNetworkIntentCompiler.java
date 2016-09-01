@@ -202,7 +202,7 @@ public class VirtualNetworkIntentCompiler
         for (VirtualPort port : ports) {
             if (port.element().id().equals(virtualCp.elementId()) &&
                     port.number().equals(virtualCp.port())) {
-                return new ConnectPoint(port.realizedBy().element().id(), port.realizedBy().number());
+                return new ConnectPoint(port.realizedBy().deviceId(), port.realizedBy().port());
             }
         }
         return null;

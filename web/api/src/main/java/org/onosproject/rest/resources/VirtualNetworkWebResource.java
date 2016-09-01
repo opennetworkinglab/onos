@@ -27,12 +27,8 @@ import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualPort;
-import org.onosproject.net.DefaultAnnotations;
-import org.onosproject.net.DefaultDevice;
-import org.onosproject.net.DefaultPort;
-import org.onosproject.net.Device;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.rest.AbstractWebResource;
 
@@ -269,11 +265,9 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
             JsonNode specifiedPhysPortNum = jsonTree.get("physPortNum");
             final NetworkId nid = NetworkId.networkId(networkId);
             DeviceId vdevId = DeviceId.deviceId(virtDeviceId);
-            DefaultAnnotations annotations = DefaultAnnotations.builder().build();
-            Device physDevice = new DefaultDevice(null, DeviceId.deviceId(specifiedPhysDeviceId.asText()),
-                                                  null, null, null, null, null, null, annotations);
-            Port realizedBy = new DefaultPort(physDevice,
-                                              PortNumber.portNumber(specifiedPhysPortNum.asText()), true);
+
+            ConnectPoint realizedBy = new ConnectPoint(DeviceId.deviceId(specifiedPhysDeviceId.asText()),
+                                              PortNumber.portNumber(specifiedPhysPortNum.asText()));
             VirtualPort vport = vnetAdminService.createVirtualPort(nid, vdevId,
                                     PortNumber.portNumber(specifiedPortNum.asText()), realizedBy);
             UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()

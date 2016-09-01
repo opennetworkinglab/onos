@@ -42,11 +42,9 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkProviderService;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.incubator.store.virtual.impl.DistributedVirtualNetworkStore;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DefaultPort;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
-import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.TestDeviceParams;
 import org.onosproject.net.intent.FakeIntentManager;
@@ -321,11 +319,11 @@ public class VirtualNetworkManagerTest extends TestDeviceParams {
                 manager.createVirtualDevice(virtualNetwork1.id(), DID2);
         ConnectPoint src = new ConnectPoint(srcVirtualDevice.id(), PortNumber.portNumber(1));
         manager.createVirtualPort(virtualNetwork1.id(), src.deviceId(), src.port(),
-                                  new DefaultPort(srcVirtualDevice, src.port(), true));
+                                  new ConnectPoint(srcVirtualDevice.id(), src.port()));
 
         ConnectPoint dst = new ConnectPoint(dstVirtualDevice.id(), PortNumber.portNumber(2));
         manager.createVirtualPort(virtualNetwork1.id(), dst.deviceId(), dst.port(),
-                                  new DefaultPort(dstVirtualDevice, dst.port(), true));
+                                  new ConnectPoint(dstVirtualDevice.id(), dst.port()));
 
         manager.createVirtualLink(virtualNetwork1.id(), src, dst);
         manager.createVirtualLink(virtualNetwork1.id(), dst, src);
@@ -362,11 +360,11 @@ public class VirtualNetworkManagerTest extends TestDeviceParams {
                 manager.createVirtualDevice(virtualNetwork1.id(), DID2);
         ConnectPoint src = new ConnectPoint(srcVirtualDevice.id(), PortNumber.portNumber(1));
         manager.createVirtualPort(virtualNetwork1.id(), src.deviceId(), src.port(),
-                                  new DefaultPort(srcVirtualDevice, src.port(), true));
+                                  new ConnectPoint(srcVirtualDevice.id(), src.port()));
 
         ConnectPoint dst = new ConnectPoint(dstVirtualDevice.id(), PortNumber.portNumber(2));
         manager.createVirtualPort(virtualNetwork1.id(), dst.deviceId(), dst.port(),
-                                  new DefaultPort(dstVirtualDevice, dst.port(), true));
+                                  new ConnectPoint(dstVirtualDevice.id(), dst.port()));
 
         manager.createVirtualLink(virtualNetwork1.id(), src, dst);
         manager.createVirtualLink(virtualNetwork1.id(), src, dst);
@@ -381,15 +379,14 @@ public class VirtualNetworkManagerTest extends TestDeviceParams {
         VirtualNetwork virtualNetwork1 = manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
         VirtualDevice virtualDevice =
                 manager.createVirtualDevice(virtualNetwork1.id(), DID1);
-        Port port = new DefaultPort(virtualDevice, PortNumber.portNumber(1), true);
+        ConnectPoint cp = new ConnectPoint(virtualDevice.id(), PortNumber.portNumber(1));
 
-        manager.createVirtualPort(virtualNetwork1.id(), virtualDevice.id(), PortNumber.portNumber(1), port);
-        manager.createVirtualPort(virtualNetwork1.id(), virtualDevice.id(), PortNumber.portNumber(2), port);
+        manager.createVirtualPort(virtualNetwork1.id(), virtualDevice.id(), PortNumber.portNumber(1), cp);
+        manager.createVirtualPort(virtualNetwork1.id(), virtualDevice.id(), PortNumber.portNumber(2), cp);
 
         Set<VirtualPort> virtualPorts = manager.getVirtualPorts(virtualNetwork1.id(), virtualDevice.id());
         assertNotNull("The virtual port set should not be null", virtualPorts);
         assertEquals("The virtual port set size did not match.", 2, virtualPorts.size());
-
 
         for (VirtualPort virtualPort : virtualPorts) {
             manager.removeVirtualPort(virtualNetwork1.id(),
@@ -403,7 +400,7 @@ public class VirtualNetworkManagerTest extends TestDeviceParams {
 
         // Add/remove the virtual port again.
         VirtualPort virtualPort = manager.createVirtualPort(virtualNetwork1.id(), virtualDevice.id(),
-                                                            PortNumber.portNumber(1), port);
+                                                            PortNumber.portNumber(1), cp);
         manager.removeVirtualPort(virtualNetwork1.id(), (DeviceId) virtualPort.element().id(), virtualPort.number());
         virtualPorts = manager.getVirtualPorts(virtualNetwork1.id(), virtualDevice.id());
         assertTrue("The virtual port set should be empty.", virtualPorts.isEmpty());
@@ -519,48 +516,39 @@ public class VirtualNetworkManagerTest extends TestDeviceParams {
 
         ConnectPoint cp1 = new ConnectPoint(virtualDevice1.id(), PortNumber.portNumber(1));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice1.id(),
-                                  PortNumber.portNumber(1),
-                                  new DefaultPort(virtualDevice1, PortNumber.portNumber(1), true));
+                                  PortNumber.portNumber(1), cp1);
 
         ConnectPoint cp2 = new ConnectPoint(virtualDevice1.id(), PortNumber.portNumber(2));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice1.id(),
-                                  PortNumber.portNumber(2),
-                                  new DefaultPort(virtualDevice1, PortNumber.portNumber(2), true));
+                                  PortNumber.portNumber(2), cp2);
 
         ConnectPoint cp3 = new ConnectPoint(virtualDevice2.id(), PortNumber.portNumber(3));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice2.id(),
-                                  PortNumber.portNumber(3),
-                                  new DefaultPort(virtualDevice2, PortNumber.portNumber(3), true));
+                                  PortNumber.portNumber(3), cp3);
 
         ConnectPoint cp4 = new ConnectPoint(virtualDevice2.id(), PortNumber.portNumber(4));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice2.id(),
-                                  PortNumber.portNumber(4),
-                                  new DefaultPort(virtualDevice2, PortNumber.portNumber(4), true));
+                                  PortNumber.portNumber(4), cp4);
 
         ConnectPoint cp5 = new ConnectPoint(virtualDevice3.id(), PortNumber.portNumber(5));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice3.id(),
-                                  PortNumber.portNumber(5),
-                                  new DefaultPort(virtualDevice3, PortNumber.portNumber(5), true));
+                                  PortNumber.portNumber(5), cp5);
 
         cp6 = new ConnectPoint(virtualDevice3.id(), PortNumber.portNumber(6));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice3.id(),
-                                  PortNumber.portNumber(6),
-                                  new DefaultPort(virtualDevice3, PortNumber.portNumber(6), true));
+                                  PortNumber.portNumber(6), cp6);
 
         cp7 = new ConnectPoint(virtualDevice4.id(), PortNumber.portNumber(7));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice4.id(),
-                                  PortNumber.portNumber(7),
-                                  new DefaultPort(virtualDevice4, PortNumber.portNumber(7), true));
+                                  PortNumber.portNumber(7), cp7);
 
         ConnectPoint cp8 = new ConnectPoint(virtualDevice4.id(), PortNumber.portNumber(8));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice4.id(),
-                                  PortNumber.portNumber(8),
-                                  new DefaultPort(virtualDevice4, PortNumber.portNumber(8), true));
+                                  PortNumber.portNumber(8), cp8);
 
         ConnectPoint cp9 = new ConnectPoint(virtualDevice5.id(), PortNumber.portNumber(9));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice5.id(),
-                                  PortNumber.portNumber(9),
-                                  new DefaultPort(virtualDevice5, PortNumber.portNumber(9), true));
+                                  PortNumber.portNumber(9), cp9);
 
         VirtualLink link1 = manager.createVirtualLink(virtualNetwork.id(), cp1, cp3);
         virtualNetworkManagerStore.updateLink(link1, link1.tunnelId(), Link.State.ACTIVE);

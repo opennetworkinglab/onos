@@ -24,7 +24,6 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
-import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
@@ -156,7 +155,18 @@ public interface VirtualNetworkStore
      * @return the virtual port
      */
     VirtualPort addPort(NetworkId networkId, DeviceId deviceId,
-                        PortNumber portNumber, Port realizedBy);
+                        PortNumber portNumber, ConnectPoint realizedBy);
+
+    /**
+     * Binds an existing virtual port to the network.
+     *
+     * @param networkId  network identifier
+     * @param deviceId   device identifier
+     * @param portNumber port number
+     * @param realizedBy underlying port which realizes the virtual port
+     */
+     void bindPort(NetworkId networkId, DeviceId deviceId,
+                        PortNumber portNumber, ConnectPoint realizedBy);
 
     /**
      * Removes the specified port from the given device and network.

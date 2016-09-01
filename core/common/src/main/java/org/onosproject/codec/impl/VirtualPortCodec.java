@@ -23,12 +23,8 @@ import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualPort;
-import org.onosproject.net.DefaultAnnotations;
-import org.onosproject.net.DefaultDevice;
-import org.onosproject.net.DefaultPort;
-import org.onosproject.net.Device;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 
 import java.util.Set;
@@ -60,8 +56,8 @@ public class VirtualPortCodec extends JsonCodec<VirtualPort> {
                 .put(NETWORK_ID, vPort.networkId().toString())
                 .put(DEVICE_ID, vPort.element().id().toString())
                 .put(PORT_NUM, vPort.number().toString())
-                .put(PHYS_DEVICE_ID, vPort.realizedBy().element().id().toString())
-                .put(PHYS_PORT_NUM, vPort.realizedBy().number().toString());
+                .put(PHYS_DEVICE_ID, vPort.realizedBy().deviceId().toString())
+                .put(PHYS_PORT_NUM, vPort.realizedBy().port().toString());
 
         return result;
     }
@@ -86,10 +82,7 @@ public class VirtualPortCodec extends JsonCodec<VirtualPort> {
         DeviceId physDId = DeviceId.deviceId(extractMember(PHYS_DEVICE_ID, json));
         PortNumber physPortNum = PortNumber.portNumber(extractMember(PHYS_PORT_NUM, json));
 
-        DefaultAnnotations annotations = DefaultAnnotations.builder().build();
-        Device physDevice = new DefaultDevice(null, physDId,
-                null, null, null, null, null, null, annotations);
-        Port realizedBy = new DefaultPort(physDevice, physPortNum, true);
+        ConnectPoint realizedBy = new ConnectPoint(physDId, physPortNum);
         return new DefaultVirtualPort(nId, vDev, portNum, realizedBy);
     }
 

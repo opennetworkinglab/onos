@@ -53,13 +53,11 @@ import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
-import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.NetTestTools;
-import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 
 import javax.ws.rs.BadRequestException;
@@ -77,16 +75,8 @@ import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.easymock.EasyMock.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -136,13 +126,13 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
     private final Device dev2 = NetTestTools.device("dev2");
     private final Device dev22 = NetTestTools.device("dev22");
 
-    private final Port port1 = new DefaultPort(dev1, portNumber(1), true);
-    private final Port port2 = new DefaultPort(dev2, portNumber(2), true);
+    private final ConnectPoint cp1 = new ConnectPoint(dev1.id(), portNumber(1));
+    private final ConnectPoint cp2 = new ConnectPoint(dev2.id(), portNumber(2));
 
     private final VirtualPort vport22 = new DefaultVirtualPort(networkId3,
-                                                               dev22, portNumber(22), port1);
+                                                               dev22, portNumber(22), cp1);
     private final VirtualPort vport23 = new DefaultVirtualPort(networkId3,
-                                                               dev22, portNumber(23), port2);
+                                                               dev22, portNumber(23), cp2);
 
     private final ConnectPoint cp11 = NetTestTools.connectPoint(devId1.toString(), 21);
     private final ConnectPoint cp21 = NetTestTools.connectPoint(devId2.toString(), 22);
@@ -766,8 +756,8 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
                   (vport, s) -> s.equals(ID) ? vport.networkId().toString()
                           : s.equals(DEVICE_ID) ? vport.element().id().toString()
                           : s.equals(PORT_NUM) ? vport.number().toString()
-                          : s.equals(PHYS_DEVICE_ID) ? vport.realizedBy().element().id().toString()
-                          : s.equals(PHYS_PORT_NUM) ? vport.realizedBy().number().toString()
+                          : s.equals(PHYS_DEVICE_ID) ? vport.realizedBy().deviceId().toString()
+                          : s.equals(PHYS_PORT_NUM) ? vport.realizedBy().port().toString()
                           : null
             );
         }
@@ -793,8 +783,8 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
         DefaultAnnotations annotations = DefaultAnnotations.builder().build();
         Device physDevice = new DefaultDevice(null, DeviceId.deviceId("dev1"),
                                               null, null, null, null, null, null, annotations);
-        Port port1 = new DefaultPort(physDevice, portNumber(1), true);
-        expect(mockVnetAdminService.createVirtualPort(networkId, deviceId, portNumber(22), port1))
+        ConnectPoint cp1 = new ConnectPoint(physDevice.id(), portNumber(1));
+        expect(mockVnetAdminService.createVirtualPort(networkId, deviceId, portNumber(22), cp1))
                 .andReturn(vport22);
 
         replay(mockVnetAdminService);

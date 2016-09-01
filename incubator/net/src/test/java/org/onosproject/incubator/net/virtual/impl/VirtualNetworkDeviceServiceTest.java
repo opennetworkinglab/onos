@@ -30,11 +30,10 @@ import org.onosproject.incubator.net.virtual.VirtualDevice;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.incubator.store.virtual.impl.DistributedVirtualNetworkStore;
-import org.onosproject.net.DefaultPort;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.NetTestTools;
-import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.TestDeviceParams;
 import org.onosproject.net.device.DeviceService;
@@ -232,10 +231,10 @@ public class VirtualNetworkDeviceServiceTest extends TestDeviceParams {
 
         DeviceService deviceService = manager.get(virtualNetwork.id(), DeviceService.class);
 
-        Port port = new DefaultPort(virtualDevice, PortNumber.portNumber(1), true);
+        ConnectPoint cp = new ConnectPoint(virtualDevice.id(), PortNumber.portNumber(1));
 
-        manager.createVirtualPort(virtualNetwork.id(), virtualDevice.id(), PortNumber.portNumber(1), port);
-        manager.createVirtualPort(virtualNetwork.id(), virtualDevice.id(), PortNumber.portNumber(2), port);
+        manager.createVirtualPort(virtualNetwork.id(), virtualDevice.id(), PortNumber.portNumber(1), cp);
+        manager.createVirtualPort(virtualNetwork.id(), virtualDevice.id(), PortNumber.portNumber(2), cp);
 
         // test the getPorts() method
         assertEquals("The port set size did not match.", 2,
@@ -256,11 +255,11 @@ public class VirtualNetworkDeviceServiceTest extends TestDeviceParams {
 
         DeviceService deviceService = manager.get(virtualNetwork.id(), DeviceService.class);
 
-        Port port = new DefaultPort(virtualDevice, PortNumber.portNumber(1), true);
+        ConnectPoint cp = new ConnectPoint(virtualDevice.id(), PortNumber.portNumber(1));
 
         VirtualPort virtualPort1 = manager.createVirtualPort(virtualNetwork.id(), virtualDevice.id(),
-                                                             PortNumber.portNumber(1), port);
-        manager.createVirtualPort(virtualNetwork.id(), virtualDevice.id(), PortNumber.portNumber(2), port);
+                                                             PortNumber.portNumber(1), cp);
+        manager.createVirtualPort(virtualNetwork.id(), virtualDevice.id(), PortNumber.portNumber(2), cp);
 
         // test the getPort() method
         assertEquals("The port did not match as expected.", virtualPort1,

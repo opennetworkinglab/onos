@@ -23,7 +23,6 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
-import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 
 import java.util.Set;
@@ -154,7 +153,19 @@ public interface VirtualNetworkAdminService extends VirtualNetworkService {
      * @throws org.onlab.util.ItemNotFoundException if no such network or device is found
      */
     VirtualPort createVirtualPort(NetworkId networkId, DeviceId deviceId,
-                                  PortNumber portNumber, Port realizedBy);
+                                  PortNumber portNumber, ConnectPoint realizedBy);
+
+    /**
+     * Binds an existing virtual port on the specified device.
+     *
+     * @param networkId  network identifier
+     * @param deviceId   virtual device identifier
+     * @param portNumber virtual port number
+     * @param realizedBy underlying physical port using which this virtual port is realized
+     * @throws org.onlab.util.ItemNotFoundException if no such network or device is found
+     */
+    void bindVirtualPort(NetworkId networkId, DeviceId deviceId,
+                                  PortNumber portNumber, ConnectPoint realizedBy);
 
     /**
      * Removes the specified virtual port.

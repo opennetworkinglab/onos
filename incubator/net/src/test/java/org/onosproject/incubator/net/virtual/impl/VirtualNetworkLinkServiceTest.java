@@ -31,7 +31,6 @@ import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.store.virtual.impl.DistributedVirtualNetworkStore;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.PortNumber;
@@ -99,11 +98,11 @@ public class VirtualNetworkLinkServiceTest extends TestDeviceParams {
                 manager.createVirtualDevice(virtualNetwork.id(), DID2);
         ConnectPoint src = new ConnectPoint(srcVirtualDevice.id(), PortNumber.portNumber(1));
         manager.createVirtualPort(virtualNetwork.id(), src.deviceId(), src.port(),
-                                  new DefaultPort(srcVirtualDevice, src.port(), true));
+                                  new ConnectPoint(srcVirtualDevice.id(), src.port()));
 
         ConnectPoint dst = new ConnectPoint(dstVirtualDevice.id(), PortNumber.portNumber(2));
         manager.createVirtualPort(virtualNetwork.id(), dst.deviceId(), dst.port(),
-                                  new DefaultPort(dstVirtualDevice, dst.port(), true));
+                                  new ConnectPoint(dstVirtualDevice.id(), dst.port()));
 
         VirtualLink link1 = manager.createVirtualLink(virtualNetwork.id(), src, dst);
         VirtualLink link2 = manager.createVirtualLink(virtualNetwork.id(), dst, src);

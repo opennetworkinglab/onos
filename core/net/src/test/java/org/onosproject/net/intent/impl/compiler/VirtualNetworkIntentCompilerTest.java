@@ -153,28 +153,28 @@ public class VirtualNetworkIntentCompilerTest extends TestDeviceParams {
                 manager.createVirtualDevice(virtualNetwork.id(), DID4);
 
         Port port1 = new DefaultPort(virtualDevice1, PortNumber.portNumber(1), true);
-        manager.createVirtualPort(virtualNetwork.id(), virtualDevice1.id(), port1.number(), port1);
         cp1 = new ConnectPoint(virtualDevice1.id(), port1.number());
+        manager.createVirtualPort(virtualNetwork.id(), virtualDevice1.id(), port1.number(), cp1);
 
         Port port2 = new DefaultPort(virtualDevice1, PortNumber.portNumber(2), true);
-        manager.createVirtualPort(virtualNetwork.id(), virtualDevice1.id(), port2.number(), port2);
         cp2 = new ConnectPoint(virtualDevice1.id(), port2.number());
+        manager.createVirtualPort(virtualNetwork.id(), virtualDevice1.id(), port2.number(), cp2);
 
         Port port3 = new DefaultPort(virtualDevice2, PortNumber.portNumber(3), true);
-        manager.createVirtualPort(virtualNetwork.id(), virtualDevice2.id(), port3.number(), port3);
         cp3 = new ConnectPoint(virtualDevice2.id(), port3.number());
+        manager.createVirtualPort(virtualNetwork.id(), virtualDevice2.id(), port3.number(), cp3);
 
         Port port4 = new DefaultPort(virtualDevice2, PortNumber.portNumber(4), true);
-        manager.createVirtualPort(virtualNetwork.id(), virtualDevice2.id(), port4.number(), port4);
         cp4 = new ConnectPoint(virtualDevice2.id(), port4.number());
+        manager.createVirtualPort(virtualNetwork.id(), virtualDevice2.id(), port4.number(), cp4);
 
         Port port5 = new DefaultPort(virtualDevice3, PortNumber.portNumber(5), true);
-        manager.createVirtualPort(virtualNetwork.id(), virtualDevice3.id(), port5.number(), port5);
         cp5 = new ConnectPoint(virtualDevice3.id(), port5.number());
+        manager.createVirtualPort(virtualNetwork.id(), virtualDevice3.id(), port5.number(), cp5);
 
         Port port6 = new DefaultPort(virtualDevice3, PortNumber.portNumber(6), true);
-        manager.createVirtualPort(virtualNetwork.id(), virtualDevice3.id(), port6.number(), port6);
         cp6 = new ConnectPoint(virtualDevice3.id(), port6.number());
+        manager.createVirtualPort(virtualNetwork.id(), virtualDevice3.id(), port6.number(), cp6);
 
         link1 = manager.createVirtualLink(virtualNetwork.id(), cp1, cp3);
         virtualNetworkManagerStore.updateLink(link1, link1.tunnelId(), Link.State.ACTIVE);

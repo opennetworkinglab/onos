@@ -18,8 +18,7 @@ package org.onosproject.incubator.net.virtual;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
-import org.onosproject.net.DefaultPort;
-import org.onosproject.net.Port;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.TestDeviceParams;
 
@@ -29,7 +28,6 @@ import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
  * Test of the default virtual port model entity.
  */
 public class DefaultVirtualPortTest extends TestDeviceParams {
-
     /**
      * Checks that the DefaultVirtualPort class is immutable.
      */
@@ -45,18 +43,22 @@ public class DefaultVirtualPortTest extends TestDeviceParams {
         DefaultVirtualDevice device2 =
                 new DefaultVirtualDevice(NetworkId.networkId(0), DID2);
 
-        Port portA = new DefaultPort(device1, PortNumber.portNumber(1), true);
-        Port portB = new DefaultPort(device1, PortNumber.portNumber(2), true);
-        Port portC = new DefaultPort(device2, PortNumber.portNumber(2), true);
+        ConnectPoint cpA = new ConnectPoint(device1.id(), PortNumber.portNumber(1));
+        ConnectPoint cpB = new ConnectPoint(device1.id(), PortNumber.portNumber(2));
+        ConnectPoint cpC = new ConnectPoint(device2.id(), PortNumber.portNumber(2));
 
         DefaultVirtualPort port1 =
-                new DefaultVirtualPort(NetworkId.networkId(0), device1, PortNumber.portNumber(1), portA);
+                new DefaultVirtualPort(NetworkId.networkId(0), device1,
+                                       PortNumber.portNumber(1), cpA);
         DefaultVirtualPort port2 =
-                new DefaultVirtualPort(NetworkId.networkId(0), device1, PortNumber.portNumber(1), portA);
+                new DefaultVirtualPort(NetworkId.networkId(0), device1,
+                                       PortNumber.portNumber(1), cpA);
         DefaultVirtualPort port3 =
-                new DefaultVirtualPort(NetworkId.networkId(0), device1, PortNumber.portNumber(2), portB);
+                new DefaultVirtualPort(NetworkId.networkId(0), device1,
+                                       PortNumber.portNumber(2), cpB);
         DefaultVirtualPort port4 =
-                new DefaultVirtualPort(NetworkId.networkId(1), device2, PortNumber.portNumber(2), portC);
+                new DefaultVirtualPort(NetworkId.networkId(1), device2,
+                                       PortNumber.portNumber(2), cpC);
 
 
         new EqualsTester().addEqualityGroup(port1, port2).addEqualityGroup(port3)

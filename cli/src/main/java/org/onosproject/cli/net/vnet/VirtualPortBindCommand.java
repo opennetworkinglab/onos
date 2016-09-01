@@ -20,9 +20,9 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
-import org.onosproject.incubator.net.virtual.VirtualDevice;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
+import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -33,12 +33,11 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Creates a new virtual port.
+ * Binds an existing virtual port with a physical port.
  */
-@Command(scope = "onos", name = "vnet-create-port",
-        description = "Creates a new virtual port in a network.")
-public class VirtualPortCreateCommand extends AbstractShellCommand {
-
+@Command(scope = "onos", name = "vnet-bind-port",
+        description = "Binds an existing virtual port with a physical port.")
+public class VirtualPortBindCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "networkId", description = "Network ID",
             required = true, multiValued = false)
     Long networkId = null;
@@ -52,11 +51,11 @@ public class VirtualPortCreateCommand extends AbstractShellCommand {
     Integer portNum = null;
 
     @Argument(index = 3, name = "physDeviceId", description = "Physical Device ID",
-            required = false, multiValued = false)
+            required = true, multiValued = false)
     String physDeviceId = null;
 
     @Argument(index = 4, name = "physPortNum", description = "Physical device port number",
-            required = false, multiValued = false)
+            required = true, multiValued = false)
     Integer physPortNum = null;
 
     @Override
@@ -64,38 +63,27 @@ public class VirtualPortCreateCommand extends AbstractShellCommand {
         VirtualNetworkAdminService service = get(VirtualNetworkAdminService.class);
         DeviceService deviceService = get(DeviceService.class);
 
-        VirtualDevice virtualDevice = getVirtualDevice(DeviceId.deviceId(deviceId));
-        checkNotNull(virtualDevice, "The virtual device does not exist.");
+        VirtualPort vPort = getVirtualPort(PortNumber.portNumber(portNum));
+        checkNotNull(vPort, "The virtual Port does not exist");
 
-        ConnectPoint realizedBy = null;
-        if (physDeviceId != null && physPortNum != null) {
-            checkNotNull(physPortNum, "The physical port does not specified.");
-            realizedBy = new ConnectPoint(DeviceId.deviceId(physDeviceId),
-                                               PortNumber.portNumber(physPortNum));
-            checkNotNull(realizedBy, "The physical port does not exist.");
-        }
-
-        service.createVirtualPort(NetworkId.networkId(networkId), DeviceId.deviceId(deviceId),
+        ConnectPoint realizedBy = new ConnectPoint(DeviceId.deviceId(physDeviceId),
+                                      PortNumber.portNumber(physPortNum));
+        service.bindVirtualPort(NetworkId.networkId(networkId), DeviceId.deviceId(deviceId),
                                   PortNumber.portNumber(portNum), realizedBy);
-        print("Virtual port successfully created.");
+        print("Virtual port is successfully bound.");
     }
 
     /**
-     * Returns the virtual device matching the device identifier.
+     * Returns the virtual port matching the device and port identifier.
      *
-     * @param aDeviceId device identifier
-     * @return matching virtual device, or null.
+     * @param aPortNumber port identifier
+     * @return matching virtual port, or null.
      */
-    private VirtualDevice getVirtualDevice(DeviceId aDeviceId) {
+    private VirtualPort getVirtualPort(PortNumber aPortNumber) {
         VirtualNetworkService service = get(VirtualNetworkService.class);
-
-        Set<VirtualDevice> virtualDevices = service.getVirtualDevices(NetworkId.networkId(networkId));
-
-        for (VirtualDevice virtualDevice : virtualDevices) {
-            if (virtualDevice.id().equals(aDeviceId)) {
-                return virtualDevice;
-            }
-        }
-        return null;
+        Set<VirtualPort> ports = service.getVirtualPorts(NetworkId.networkId(networkId),
+                                                    DeviceId.deviceId(deviceId));
+        return ports.stream().filter(p->p.number().equals(aPortNumber))
+                .findFirst().get();
     }
 }

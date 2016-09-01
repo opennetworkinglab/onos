@@ -36,7 +36,6 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkProviderRegistry;
 import org.onosproject.incubator.net.virtual.VirtualNetworkProviderService;
 import org.onosproject.incubator.store.virtual.impl.DistributedVirtualNetworkStore;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.PortNumber;
@@ -152,48 +151,39 @@ public class VirtualNetworkTopologyProviderTest extends TestDeviceParams {
 
         cp1 = new ConnectPoint(virtualDevice1.id(), PortNumber.portNumber(1));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice1.id(),
-                                  PortNumber.portNumber(1),
-                                  new DefaultPort(virtualDevice1, PortNumber.portNumber(1), true));
+                                  PortNumber.portNumber(1), cp1);
 
         cp2 = new ConnectPoint(virtualDevice1.id(), PortNumber.portNumber(2));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice1.id(),
-                                  PortNumber.portNumber(2),
-                                  new DefaultPort(virtualDevice1, PortNumber.portNumber(2), true));
+                                  PortNumber.portNumber(2), cp2);
 
         cp3 = new ConnectPoint(virtualDevice2.id(), PortNumber.portNumber(3));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice2.id(),
-                                  PortNumber.portNumber(3),
-                                  new DefaultPort(virtualDevice2, PortNumber.portNumber(3), true));
+                                  PortNumber.portNumber(3), cp3);
 
         cp4 = new ConnectPoint(virtualDevice2.id(), PortNumber.portNumber(4));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice2.id(),
-                                  PortNumber.portNumber(4),
-                                  new DefaultPort(virtualDevice2, PortNumber.portNumber(4), true));
+                                  PortNumber.portNumber(4), cp4);
 
         cp5 = new ConnectPoint(virtualDevice3.id(), PortNumber.portNumber(5));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice3.id(),
-                                  PortNumber.portNumber(5),
-                                  new DefaultPort(virtualDevice3, PortNumber.portNumber(5), true));
+                                  PortNumber.portNumber(5), cp5);
 
         cp6 = new ConnectPoint(virtualDevice3.id(), PortNumber.portNumber(6));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice3.id(),
-                                  PortNumber.portNumber(6),
-                                  new DefaultPort(virtualDevice3, PortNumber.portNumber(6), true));
+                                  PortNumber.portNumber(6), cp6);
 
         cp7 = new ConnectPoint(virtualDevice4.id(), PortNumber.portNumber(7));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice4.id(),
-                                  PortNumber.portNumber(7),
-                                  new DefaultPort(virtualDevice4, PortNumber.portNumber(7), true));
+                                  PortNumber.portNumber(7), cp7);
 
         cp8 = new ConnectPoint(virtualDevice4.id(), PortNumber.portNumber(8));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice4.id(),
-                                  PortNumber.portNumber(8),
-                                  new DefaultPort(virtualDevice4, PortNumber.portNumber(8), true));
+                                  PortNumber.portNumber(8), cp8);
 
         cp9 = new ConnectPoint(virtualDevice5.id(), PortNumber.portNumber(9));
         manager.createVirtualPort(virtualNetwork.id(), virtualDevice5.id(),
-                                  PortNumber.portNumber(9),
-                                  new DefaultPort(virtualDevice5, PortNumber.portNumber(9), true));
+                                  PortNumber.portNumber(9), cp9);
 
         VirtualLink link1 = manager.createVirtualLink(virtualNetwork.id(), cp1, cp3);
         virtualNetworkManagerStore.updateLink(link1, link1.tunnelId(), Link.State.ACTIVE);

@@ -28,7 +28,6 @@ import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.store.virtual.impl.DistributedVirtualNetworkStore;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DefaultPort;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.DisjointPath;
 import org.onosproject.net.ElementId;
@@ -141,7 +140,7 @@ public class VirtualNetworkPathServiceTest extends TestDeviceParams {
             VirtualNetwork vnet, VirtualDevice vDev, long portNumber) {
         ConnectPoint cp = new ConnectPoint(vDev.id(), PortNumber.portNumber(portNumber));
         manager.createVirtualPort(vnet.id(), cp.deviceId(), cp.port(),
-                                  new DefaultPort(vDev, cp.port(), true));
+                                  new ConnectPoint(vDev.id(), cp.port()));
         return cp;
     }
 

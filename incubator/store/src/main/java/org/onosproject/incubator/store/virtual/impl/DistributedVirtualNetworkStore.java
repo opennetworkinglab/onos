@@ -53,7 +53,6 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
-import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
@@ -517,18 +516,50 @@ public class DistributedVirtualNetworkStore
     }
 
     @Override
-    public VirtualPort addPort(NetworkId networkId, DeviceId deviceId, PortNumber portNumber, Port realizedBy) {
+    public VirtualPort addPort(NetworkId networkId, DeviceId deviceId,
+                               PortNumber portNumber, ConnectPoint realizedBy) {
         checkState(networkExists(networkId), "The network has not been added.");
         Set<VirtualPort> virtualPortSet = networkIdVirtualPortSetMap.get(networkId);
+
         if (virtualPortSet == null) {
             virtualPortSet = new HashSet<>();
         }
+
         Device device = deviceIdVirtualDeviceMap.get(deviceId);
         checkNotNull(device, "The device has not been created for deviceId: " + deviceId);
-        VirtualPort virtualPort = new DefaultVirtualPort(networkId, device, portNumber, realizedBy);
+
+        boolean exist = virtualPortSet.stream().anyMatch(
+                p -> p.element().id().equals(deviceId) &&
+                        p.number().equals(portNumber));
+        checkState(!exist, "The requested Port Number is already in use");
+
+        VirtualPort virtualPort = new DefaultVirtualPort(networkId, device,
+                                                         portNumber, realizedBy);
         virtualPortSet.add(virtualPort);
         networkIdVirtualPortSetMap.put(networkId, virtualPortSet);
         return virtualPort;
+    }
+
+    @Override
+    public void bindPort(NetworkId networkId, DeviceId deviceId,
+                         PortNumber portNumber, ConnectPoint realizedBy) {
+
+        Set<VirtualPort> virtualPortSet = networkIdVirtualPortSetMap
+                .get(networkId);
+
+        VirtualPort vPort = virtualPortSet.stream().filter(
+                p -> p.element().id().equals(deviceId) &&
+                        p.number().equals(portNumber)).findFirst().get();
+        checkNotNull(vPort, "The virtual port has not been added.");
+
+        Device device = deviceIdVirtualDeviceMap.get(deviceId);
+        checkNotNull(device, "The device has not been created for deviceId: "
+                + deviceId);
+
+        virtualPortSet.remove(vPort);
+        vPort = new DefaultVirtualPort(networkId, device, portNumber, realizedBy);
+        virtualPortSet.add(vPort);
+        networkIdVirtualPortSetMap.put(networkId, virtualPortSet);
     }
 
     @Override

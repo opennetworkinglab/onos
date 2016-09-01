@@ -62,7 +62,8 @@ public class VirtualPortListCommand extends AbstractShellCommand {
         VirtualNetworkService service = get(VirtualNetworkService.class);
 
         List<VirtualPort> virtualPorts = new ArrayList<>();
-        virtualPorts.addAll(service.getVirtualPorts(NetworkId.networkId(networkId), DeviceId.deviceId(deviceId)));
+        virtualPorts.addAll(service.getVirtualPorts(NetworkId.networkId(networkId),
+                                                    DeviceId.deviceId(deviceId)));
         Collections.sort(virtualPorts, Comparators.VIRTUAL_PORT_COMPARATOR);
         return virtualPorts;
     }
@@ -73,7 +74,12 @@ public class VirtualPortListCommand extends AbstractShellCommand {
      * @param virtualPort virtual port
      */
     private void printVirtualPort(VirtualPort virtualPort) {
-        print(FMT_VIRTUAL_PORT, virtualPort.number(),
-              virtualPort.realizedBy().element().id(), virtualPort.realizedBy().number());
+        if (virtualPort.realizedBy() == null) {
+            print(FMT_VIRTUAL_PORT, virtualPort.number(), "None", "None");
+        } else {
+            print(FMT_VIRTUAL_PORT, virtualPort.number(),
+                  virtualPort.realizedBy().deviceId(),
+                  virtualPort.realizedBy().port());
+        }
     }
 }

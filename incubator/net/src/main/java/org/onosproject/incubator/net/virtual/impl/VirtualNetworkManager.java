@@ -50,7 +50,6 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
-import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.host.HostService;
@@ -225,7 +224,8 @@ public class VirtualNetworkManager
         Set<VirtualPort> ports = store.getPorts(networkId, virtualCp.deviceId());
         for (VirtualPort port : ports) {
             if (port.number().equals(virtualCp.port())) {
-                return new ConnectPoint(port.realizedBy().element().id(), port.realizedBy().number());
+                return new ConnectPoint(port.realizedBy().deviceId(),
+                                        port.realizedBy().port());
             }
         }
         return null;
@@ -242,8 +242,8 @@ public class VirtualNetworkManager
                                                     ConnectPoint physicalCp) {
         Set<VirtualPort> ports = store.getPorts(networkId, null);
         for (VirtualPort port : ports) {
-            if (port.realizedBy().element().id().equals(physicalCp.elementId()) &&
-                    port.realizedBy().number().equals(physicalCp.port())) {
+            if (port.realizedBy().deviceId().equals(physicalCp.elementId()) &&
+                    port.realizedBy().port().equals(physicalCp.port())) {
                 return new ConnectPoint(port.element().id(), port.number());
             }
         }
@@ -260,11 +260,22 @@ public class VirtualNetworkManager
 
     @Override
     public VirtualPort createVirtualPort(NetworkId networkId, DeviceId deviceId,
-                                         PortNumber portNumber, Port realizedBy) {
+                                         PortNumber portNumber, ConnectPoint realizedBy) {
         checkNotNull(networkId, NETWORK_NULL);
         checkNotNull(deviceId, DEVICE_NULL);
         checkNotNull(portNumber, "Port description cannot be null");
         return store.addPort(networkId, deviceId, portNumber, realizedBy);
+    }
+
+    @Override
+    public void bindVirtualPort(NetworkId networkId, DeviceId deviceId,
+                PortNumber portNumber, ConnectPoint realizedBy) {
+        checkNotNull(networkId, NETWORK_NULL);
+        checkNotNull(deviceId, DEVICE_NULL);
+        checkNotNull(portNumber, "Port description cannot be null");
+        checkNotNull(realizedBy, "Physical port description cannot be null");
+
+        store.bindPort(networkId, deviceId, portNumber, realizedBy);
     }
 
     @Override

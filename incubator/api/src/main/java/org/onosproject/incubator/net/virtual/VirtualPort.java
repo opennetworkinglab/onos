@@ -16,6 +16,7 @@
 package org.onosproject.incubator.net.virtual;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Port;
 
 /**
@@ -29,6 +30,5 @@ public interface VirtualPort extends VirtualElement, Port {
      *
      * @return underlying port which realizes this virtual port
      */
-    Port realizedBy();
-
+    ConnectPoint realizedBy();
 }

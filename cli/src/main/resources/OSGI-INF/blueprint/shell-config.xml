@@ -694,6 +694,9 @@
             <action class="org.onosproject.cli.net.vnet.VirtualPortCreateCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualPortBindCommand"/>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.vnet.VirtualPortRemoveCommand"/>
         </command>
         <command>
