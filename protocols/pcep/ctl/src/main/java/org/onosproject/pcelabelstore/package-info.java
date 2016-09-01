@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 /**
- *Provider that uses PCEP controller as a means to send packets.
+ * PCE store application.
  */
-package org.onosproject.provider.pcep.packet.impl;
+package org.onosproject.pcelabelstore;

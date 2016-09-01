@@ -13,10 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.pce.pcestore;
-
-import java.util.LinkedList;
-import java.util.List;
+package org.onosproject.pcelabelstore;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -27,25 +24,19 @@ import org.junit.Test;
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.resource.ResourceConsumer;
-import org.onosproject.pce.pceservice.TunnelConsumerId;
-import org.onosproject.pce.pcestore.api.LspLocalLabelInfo;
+import org.onosproject.pcelabelstore.api.LspLocalLabelInfo;
 
 /**
- * Unit tests for PceccTunnelInfo class.
+ * Unit tests for DefaultLspLocalLabelInfo class.
  */
-public class PceccTunnelInfoTest {
+public class DefaultLspLocalLabelInfoTest {
 
-   /**
+    /**
      * Checks the operation of equals() methods.
      */
     @Test
     public void testEquals() {
         // create same two objects.
-        List<LspLocalLabelInfo> lspLocalLabelList1 = new LinkedList<>();
-        ResourceConsumer tunnelConsumerId1 = TunnelConsumerId.valueOf(10);
-
-        // create object of DefaultLspLocalLabelInfo
         DeviceId deviceId1 = DeviceId.deviceId("foo");
         LabelResourceId inLabelId1 = LabelResourceId.labelResourceId(1);
         LabelResourceId outLabelId1 = LabelResourceId.labelResourceId(2);
@@ -59,18 +50,17 @@ public class PceccTunnelInfoTest {
                 .inPort(inPort1)
                 .outPort(outPort1)
                 .build();
-        lspLocalLabelList1.add(lspLocalLabel1);
 
-        PceccTunnelInfo pceccTunnelInfo1 = new PceccTunnelInfo(lspLocalLabelList1, tunnelConsumerId1);
-
-        // create same as above object
-        PceccTunnelInfo samePceccTunnelInfo1 = new PceccTunnelInfo(lspLocalLabelList1, tunnelConsumerId1);
+        // create same object as above object
+        LspLocalLabelInfo sameLocalLabel1 = DefaultLspLocalLabelInfo.builder()
+                .deviceId(deviceId1)
+                .inLabelId(inLabelId1)
+                .outLabelId(outLabelId1)
+                .inPort(inPort1)
+                .outPort(outPort1)
+                .build();
 
         // Create different object.
-        List<LspLocalLabelInfo> lspLocalLabelInfoList2 = new LinkedList<>();
-        ResourceConsumer tunnelConsumerId2 = TunnelConsumerId.valueOf(20);
-
-        // create object of DefaultLspLocalLabelInfo
         DeviceId deviceId2 = DeviceId.deviceId("goo");
         LabelResourceId inLabelId2 = LabelResourceId.labelResourceId(3);
         LabelResourceId outLabelId2 = LabelResourceId.labelResourceId(4);
@@ -84,41 +74,35 @@ public class PceccTunnelInfoTest {
                 .inPort(inPort2)
                 .outPort(outPort2)
                 .build();
-        lspLocalLabelInfoList2.add(lspLocalLabel2);
 
-        PceccTunnelInfo pceccTunnelInfo2 = new PceccTunnelInfo(lspLocalLabelInfoList2, tunnelConsumerId2);
-
-        new EqualsTester().addEqualityGroup(pceccTunnelInfo1, samePceccTunnelInfo1)
-                          .addEqualityGroup(pceccTunnelInfo2)
+        new EqualsTester().addEqualityGroup(lspLocalLabel1, sameLocalLabel1)
+                          .addEqualityGroup(lspLocalLabel2)
                           .testEquals();
     }
 
     /**
-     * Checks the construction of a PceccTunnelInfo object.
+     * Checks the construction of a DefaultLspLocalLabelInfo object.
      */
     @Test
     public void testConstruction() {
-        List<LspLocalLabelInfo> lspLocalLabelInfoList = new LinkedList<>();
-        ResourceConsumer tunnelConsumerId = TunnelConsumerId.valueOf(10);
-
-        // create object of DefaultLspLocalLabelInfo
         DeviceId deviceId = DeviceId.deviceId("foo");
         LabelResourceId inLabelId = LabelResourceId.labelResourceId(1);
         LabelResourceId outLabelId = LabelResourceId.labelResourceId(2);
         PortNumber inPort = PortNumber.portNumber(5122);
         PortNumber outPort = PortNumber.portNumber(5123);
 
-        LspLocalLabelInfo lspLocalLabelInfo = DefaultLspLocalLabelInfo.builder()
+        LspLocalLabelInfo lspLocalLabel = DefaultLspLocalLabelInfo.builder()
                 .deviceId(deviceId)
                 .inLabelId(inLabelId)
                 .outLabelId(outLabelId)
                 .inPort(inPort)
                 .outPort(outPort)
                 .build();
-        lspLocalLabelInfoList.add(lspLocalLabelInfo);
 
-        PceccTunnelInfo pceccTunnelInfo = new PceccTunnelInfo(lspLocalLabelInfoList, tunnelConsumerId);
-
-        assertThat(lspLocalLabelInfoList, is(pceccTunnelInfo.lspLocalLabelInfoList()));
+        assertThat(deviceId, is(lspLocalLabel.deviceId()));
+        assertThat(inLabelId, is(lspLocalLabel.inLabelId()));
+        assertThat(outLabelId, is(lspLocalLabel.outLabelId()));
+        assertThat(inPort, is(lspLocalLabel.inPort()));
+        assertThat(outPort, is(lspLocalLabel.outPort()));
     }
 }

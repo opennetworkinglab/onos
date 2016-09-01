@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.pce.pceservice;
+package org.onosproject.pcep.controller.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.pcep.controller.PcepSyncStatus.IN_SYNC;
+import static org.onosproject.pcep.controller.PcepSyncStatus.SYNCED;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -26,9 +28,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MplsLabel;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.resource.label.DefaultLabelResource;
 import org.onosproject.incubator.net.resource.label.LabelResource;
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
@@ -37,20 +36,24 @@ import org.onosproject.incubator.net.resource.label.LabelResourceService;
 import org.onosproject.incubator.net.tunnel.DefaultLabelStack;
 import org.onosproject.incubator.net.tunnel.LabelStack;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.pcelabelstore.PcepLabelOp;
+import org.onosproject.pcelabelstore.api.PceLabelStore;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
-import org.onosproject.pce.pcestore.api.PceStore;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flowobjective.DefaultForwardingObjective;
-import org.onosproject.net.flowobjective.FlowObjectiveService;
-import org.onosproject.net.flowobjective.ForwardingObjective;
-import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.pcep.controller.PccId;
+import org.onosproject.pcep.controller.PcepClient;
+import org.onosproject.pcep.controller.PcepClientController;
+import org.onosproject.pcep.controller.SrpIdGenerators;
+import org.onosproject.pcepio.exceptions.PcepParseException;
+import org.onosproject.pcepio.protocol.PcepFecObjectIPv4;
+import org.onosproject.pcepio.protocol.PcepFecObjectIPv4Adjacency;
+import org.onosproject.pcepio.protocol.PcepLabelObject;
+import org.onosproject.pcepio.protocol.PcepLabelUpdate;
+import org.onosproject.pcepio.protocol.PcepLabelUpdateMsg;
+import org.onosproject.pcepio.protocol.PcepSrpObject;
+import org.onosproject.pcepio.types.PcepLabelMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,14 +78,12 @@ public final class PceccSrTeBeHandler {
     private static final String LINK_NULL = "Link cannot be null";
     private static final String PATH_NULL = "Path cannot be null";
     private static final String LSR_ID = "lsrId";
-    private static final int PREFIX_LENGTH = 32;
     private static PceccSrTeBeHandler srTeHandlerInstance = null;
     private LabelResourceAdminService labelRsrcAdminService;
     private LabelResourceService labelRsrcService;
-    private FlowObjectiveService flowObjectiveService;
     private DeviceService deviceService;
-    private PceStore pceStore;
-    private ApplicationId appId;
+    private PcepClientController clientController;
+    private PceLabelStore pceStore;
 
     /**
      * Initializes default values.
@@ -107,19 +108,18 @@ public final class PceccSrTeBeHandler {
      *
      * @param labelRsrcAdminService label resource admin service
      * @param labelRsrcService label resource service
-     * @param flowObjectiveService flow objective service to push device label information
-     * @param appId application id
      * @param pceStore PCE label store
      * @param deviceService device service
      */
-    public void initialize(LabelResourceAdminService labelRsrcAdminService, LabelResourceService labelRsrcService,
-                           FlowObjectiveService flowObjectiveService, ApplicationId appId, PceStore pceStore,
+    public void initialize(LabelResourceAdminService labelRsrcAdminService,
+                           LabelResourceService labelRsrcService,
+                           PcepClientController clientController,
+                           PceLabelStore pceStore,
                            DeviceService deviceService) {
         this.labelRsrcAdminService = labelRsrcAdminService;
         this.labelRsrcService = labelRsrcService;
-        this.flowObjectiveService = flowObjectiveService;
+        this.clientController = clientController;
         this.pceStore = pceStore;
-        this.appId = appId;
         this.deviceService = deviceService;
     }
 
@@ -208,14 +208,20 @@ public final class PceccSrTeBeHandler {
         pceStore.addGlobalNodeLabel(specificDeviceId, specificLabelId);
 
         // Push its label information into specificDeviceId
-        advertiseNodeLabelRule(specificDeviceId, specificLabelId,
-                               IpPrefix.valueOf(IpAddress.valueOf(specificLsrId), PREFIX_LENGTH),
-                               Objective.Operation.ADD, false);
+        PcepClient pcc = getPcepClient(specificDeviceId);
+        try {
+            pushGlobalNodeLabel(pcc,
+                                specificLabelId,
+                                IpAddress.valueOf(specificLsrId).getIp4Address().toInt(),
+                                PcepLabelOp.ADD,
+                                false);
+        } catch (PcepParseException e) {
+            log.error("Failed to push global node label for LSR {}.", specificLsrId.toString());
+        }
 
         // Configure (node-label, lsr-id) mapping of each devices into specific device and vice versa.
         for (Map.Entry<DeviceId, LabelResourceId> element : pceStore.getGlobalNodeLabels().entrySet()) {
             DeviceId otherDevId = element.getKey();
-            LabelResourceId otherLabelId = element.getValue();
 
             // Get lsr-id of a device
             String otherLsrId = getLsrId(otherDevId);
@@ -228,16 +234,23 @@ public final class PceccSrTeBeHandler {
             // Push to device
             // Push label information of specificDeviceId to otherDevId in list and vice versa.
             if (!otherDevId.equals(specificDeviceId)) {
-                advertiseNodeLabelRule(otherDevId, specificLabelId,
-                                       IpPrefix.valueOf(IpAddress.valueOf(specificLsrId), PREFIX_LENGTH),
-                                       Objective.Operation.ADD, false);
+                try {
+                    pushGlobalNodeLabel(getPcepClient(otherDevId),
+                                        specificLabelId,
+                                        IpAddress.valueOf(specificLsrId).getIp4Address().toInt(),
+                                        PcepLabelOp.ADD,
+                                        false);
 
-                advertiseNodeLabelRule(specificDeviceId, otherLabelId,
-                                       IpPrefix.valueOf(IpAddress.valueOf(otherLsrId), PREFIX_LENGTH),
-                                       Objective.Operation.ADD, false);
+                    pushGlobalNodeLabel(pcc, specificLabelId,
+                                        IpAddress.valueOf(otherLsrId).getIp4Address().toInt(),
+                                        PcepLabelOp.ADD,
+                                        false);
+                } catch (PcepParseException e) {
+                    log.error("Failed to push global node label for LSR {} or LSR {}.", specificLsrId.toString(),
+                              otherLsrId.toString());
+                }
             }
         }
-
         return true;
     }
 
@@ -271,9 +284,15 @@ public final class PceccSrTeBeHandler {
             // Remove this specific device label information from all other nodes except
             // this specific node where connection already lost.
             if (!specificDeviceId.equals(otherDevId)) {
-                advertiseNodeLabelRule(otherDevId, labelId,
-                                       IpPrefix.valueOf(IpAddress.valueOf(specificLsrId), PREFIX_LENGTH),
-                                       Objective.Operation.REMOVE, false);
+                try {
+                    pushGlobalNodeLabel(getPcepClient(otherDevId),
+                                        labelId,
+                                        IpAddress.valueOf(specificLsrId).getIp4Address().toInt(),
+                                        PcepLabelOp.REMOVE,
+                                        false);
+                } catch (PcepParseException e) {
+                    log.error("Failed to push global node label for LSR {}.", specificLsrId.toString());
+                }
             }
         }
 
@@ -290,7 +309,6 @@ public final class PceccSrTeBeHandler {
             log.error("Unable to remove global node label id {} from store.", labelId.toString());
             retValue = false;
         }
-
         return retValue;
     }
 
@@ -335,7 +353,13 @@ public final class PceccSrTeBeHandler {
         log.debug("Allocated adjacency label {} to a link {}.", labelId.toString(), link.toString());
 
         // Push adjacency label to device
-        installAdjLabelRule(srcDeviceId, labelId, link.src().port(), link.dst().port(), Objective.Operation.ADD);
+        try {
+            pushAdjacencyLabel(getPcepClient(srcDeviceId), labelId, (int) link.src().port().toLong(),
+                               (int) link.dst().port().toLong(), PcepLabelOp.ADD);
+        } catch (PcepParseException e) {
+            log.error("Failed to push adjacency label for link {}-{}.", (int) link.src().port().toLong(),
+                      (int) link.dst().port().toLong());
+        }
 
         // Save in store
         pceStore.addAdjLabel(link, labelId);
@@ -365,7 +389,14 @@ public final class PceccSrTeBeHandler {
         DeviceId srcDeviceId = link.src().deviceId();
 
         // Release adjacency label from device
-        installAdjLabelRule(srcDeviceId, labelId, link.src().port(), link.dst().port(), Objective.Operation.REMOVE);
+        try {
+            pushAdjacencyLabel(getPcepClient(srcDeviceId), labelId, (int) link.src().port().toLong(),
+                               (int) link.dst().port().toLong(), PcepLabelOp.REMOVE);
+        } catch (PcepParseException e) {
+            log.error("Failed to push adjacency label for link {}-{}.", (int) link.src().port().toLong(),
+                      (int) link.dst().port().toLong());
+        }
+
 
         // Release link label from label manager
         Multimap<DeviceId, LabelResource> release = ArrayListMultimap.create();
@@ -429,98 +460,125 @@ public final class PceccSrTeBeHandler {
         return new DefaultLabelStack(labelStack);
     }
 
-    /**
-     * Install a rule for pushing unique global labels to the device.
-     *
-     * @param deviceId device to which flow should be pushed
-     * @param labelId label for the device
-     * @param type type of operation
-     */
-    private void installNodeLabelRule(DeviceId deviceId, LabelResourceId labelId, Objective.Operation type) {
-        checkNotNull(flowObjectiveService);
-        checkNotNull(appId);
-        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+    //Pushes node labels to the specified device.
+    void pushGlobalNodeLabel(PcepClient pc, LabelResourceId labelId,
+            int labelForNode, PcepLabelOp type, boolean isBos) throws PcepParseException {
 
-        selectorBuilder.matchMplsLabel(MplsLabel.mplsLabel(labelId.id().intValue()));
+        checkNotNull(pc);
+        checkNotNull(labelId);
+        checkNotNull(type);
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
+        LinkedList<PcepLabelUpdate> labelUpdateList = new LinkedList<>();
+        PcepFecObjectIPv4 fecObject = pc.factory().buildFecObjectIpv4()
+                                      .setNodeID(labelForNode)
+                                      .build();
 
-        ForwardingObjective.Builder forwardingObjective = DefaultForwardingObjective.builder()
-                .withSelector(selectorBuilder.build()).withTreatment(treatment)
-                .withFlag(ForwardingObjective.Flag.VERSATILE).fromApp(appId).makePermanent();
+        boolean bSFlag = false;
+        if (pc.labelDbSyncStatus() == IN_SYNC && !isBos) {
+            // Need to set sync flag in all messages till sync completes.
+            bSFlag = true;
+        }
 
-        if (type.equals(Objective.Operation.ADD)) {
+        PcepSrpObject srpObj = getSrpObject(pc, type, bSFlag);
 
-            flowObjectiveService.forward(deviceId, forwardingObjective.add());
-        } else {
-            flowObjectiveService.forward(deviceId, forwardingObjective.remove());
+        //Global NODE-SID as label object
+        PcepLabelObject labelObject = pc.factory().buildLabelObject()
+                                      .setLabel((int) labelId.labelId())
+                                      .build();
+
+        PcepLabelMap labelMap = new PcepLabelMap();
+        labelMap.setFecObject(fecObject);
+        labelMap.setLabelObject(labelObject);
+        labelMap.setSrpObject(srpObj);
+
+        labelUpdateList.add(pc.factory().buildPcepLabelUpdateObject()
+                            .setLabelMap(labelMap)
+                            .build());
+
+        PcepLabelUpdateMsg labelMsg = pc.factory().buildPcepLabelUpdateMsg()
+                                      .setPcLabelUpdateList(labelUpdateList)
+                                      .build();
+        pc.sendMessage(labelMsg);
+
+        if (isBos) {
+            // Sync is completed.
+            pc.setLabelDbSyncStatus(SYNCED);
         }
     }
 
-    /**
-     * Install a rule for pushing node labels to the device of other nodes.
-     *
-     * @param deviceId device to which flow should be pushed
-     * @param labelId label for the device
-     * @param ipPrefix device for which label is pushed
-     * @param type type of operation
-     * @param bBos is this the end of sync push
-     */
-    public void advertiseNodeLabelRule(DeviceId deviceId, LabelResourceId labelId, IpPrefix ipPrefix,
-                                       Objective.Operation type, boolean bBos) {
-        checkNotNull(flowObjectiveService);
-        checkNotNull(appId);
-        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+    //Pushes adjacency labels to the specified device.
+    void pushAdjacencyLabel(PcepClient pc, LabelResourceId labelId, int srcPortNo,
+                                    int dstPortNo, PcepLabelOp type)
+            throws PcepParseException {
 
-        selectorBuilder.matchMplsLabel(MplsLabel.mplsLabel(labelId.id().intValue()));
-        selectorBuilder.matchIPSrc(ipPrefix);
+        checkNotNull(pc);
+        checkNotNull(labelId);
+        checkNotNull(type);
 
-        if (bBos) {
-            selectorBuilder.matchMplsBos(bBos);
+        LinkedList<PcepLabelUpdate> labelUpdateList = new LinkedList<>();
+        PcepFecObjectIPv4Adjacency fecAdjObject = pc.factory().buildFecIpv4Adjacency()
+                                                  .seRemoteIPv4Address(dstPortNo)
+                                                  .seLocalIPv4Address(srcPortNo)
+                                                  .build();
+
+        boolean bSFlag = false;
+        if (pc.labelDbSyncStatus() == IN_SYNC) {
+            // Need to set sync flag in all messages till sync completes.
+            bSFlag = true;
         }
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
+        PcepSrpObject srpObj = getSrpObject(pc, type, bSFlag);
 
-        ForwardingObjective.Builder forwardingObjective = DefaultForwardingObjective.builder()
-                .withSelector(selectorBuilder.build()).withTreatment(treatment)
-                .withFlag(ForwardingObjective.Flag.VERSATILE).fromApp(appId).makePermanent();
+        //Adjacency label object
+        PcepLabelObject labelObject = pc.factory().buildLabelObject()
+                                      .setLabel((int) labelId.labelId())
+                                      .build();
 
-        if (type.equals(Objective.Operation.ADD)) {
-            flowObjectiveService.forward(deviceId, forwardingObjective.add());
-        } else {
-            flowObjectiveService.forward(deviceId, forwardingObjective.remove());
+        PcepLabelMap labelMap = new PcepLabelMap();
+        labelMap.setFecObject(fecAdjObject);
+        labelMap.setLabelObject(labelObject);
+        labelMap.setSrpObject(srpObj);
+
+        labelUpdateList.add(pc.factory().buildPcepLabelUpdateObject()
+                            .setLabelMap(labelMap)
+                            .build());
+
+        PcepLabelUpdateMsg labelMsg = pc.factory().buildPcepLabelUpdateMsg()
+                                      .setPcLabelUpdateList(labelUpdateList)
+                                      .build();
+        pc.sendMessage(labelMsg);
+    }
+
+    private PcepSrpObject getSrpObject(PcepClient pc, PcepLabelOp type, boolean bSFlag)
+            throws PcepParseException {
+        PcepSrpObject srpObj;
+        boolean bRFlag = false;
+
+        if (!type.equals(PcepLabelOp.ADD)) {
+            // To cleanup labels, R bit is set
+            bRFlag = true;
         }
+
+        srpObj = pc.factory().buildSrpObject()
+                .setRFlag(bRFlag)
+                .setSFlag(bSFlag)
+                .setSrpID(SrpIdGenerators.create())
+                .build();
+
+        return srpObj;
     }
 
     /**
-     * Install a rule for pushing Adjacency labels to the device.
+     * Returns PCEP client.
      *
-     * @param deviceId device to which flow should be pushed
-     * @param labelId label for the adjacency
-     * @param srcPortNum local port of the adjacency
-     * @param dstPortNum remote port of the adjacency
-     * @param type type of operation
+     * @return PCEP client
      */
-    public void installAdjLabelRule(DeviceId deviceId, LabelResourceId labelId, PortNumber srcPortNum,
-                                    PortNumber dstPortNum, Objective.Operation type) {
-        checkNotNull(flowObjectiveService);
-        checkNotNull(appId);
-        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+    private PcepClient getPcepClient(DeviceId deviceId) {
+        Device device = deviceService.getDevice(deviceId);
 
-        selectorBuilder.matchMplsLabel(MplsLabel.mplsLabel(labelId.id().intValue()));
-        selectorBuilder.matchIPSrc(IpPrefix.valueOf((int) srcPortNum.toLong(), 32));
-        selectorBuilder.matchIPDst(IpPrefix.valueOf((int) dstPortNum.toLong(), 32));
-
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
-
-        ForwardingObjective.Builder forwardingObjective = DefaultForwardingObjective.builder()
-                .withSelector(selectorBuilder.build()).withTreatment(treatment)
-                .withFlag(ForwardingObjective.Flag.VERSATILE).fromApp(appId).makePermanent();
-
-        if (type.equals(Objective.Operation.ADD)) {
-            flowObjectiveService.forward(deviceId, forwardingObjective.add());
-        } else {
-            flowObjectiveService.forward(deviceId, forwardingObjective.remove());
-        }
+        // In future projections instead of annotations will be used to fetch LSR ID.
+        String lsrId = device.annotations().value(LSR_ID);
+        PcepClient pcc = clientController.getClient(PccId.pccId(IpAddress.valueOf(lsrId)));
+        return pcc;
     }
 }

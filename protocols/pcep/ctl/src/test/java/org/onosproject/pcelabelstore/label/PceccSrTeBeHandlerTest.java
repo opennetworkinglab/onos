@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.pce.pceservice;
+package org.onosproject.pcelabelstore.label;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.onosproject.net.Link.Type.DIRECT;
-import static org.onosproject.pce.pceservice.PathComputationTest.D1;
-import static org.onosproject.pce.pceservice.PathComputationTest.D2;
-import static org.onosproject.pce.pceservice.PathComputationTest.D3;
-import static org.onosproject.pce.pceservice.PathComputationTest.D4;
-import static org.onosproject.pce.pceservice.PathComputationTest.D5;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.LinkedList;
@@ -33,9 +27,8 @@ import java.util.LinkedList;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.IpAddress;
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
 import org.onosproject.incubator.net.resource.label.LabelResourceService;
 import org.onosproject.incubator.net.tunnel.LabelStack;
@@ -48,15 +41,19 @@ import org.onosproject.net.DefaultPath;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.Path;
-import org.onosproject.pce.pceservice.PathComputationTest.MockNetConfigRegistryAdapter;
-import org.onosproject.pce.pcestore.api.PceStore;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.pce.util.LabelResourceAdapter;
-import org.onosproject.pce.util.PceStoreAdapter;
-import org.onosproject.pce.util.MockDeviceService;
+import org.onosproject.pcelabelstore.api.PceLabelStore;
+import org.onosproject.pcelabelstore.util.LabelResourceAdapter;
+import org.onosproject.pcelabelstore.util.MockDeviceService;
+import org.onosproject.pcelabelstore.util.MockNetConfigRegistryAdapter;
+import org.onosproject.pcelabelstore.util.MockPcepClientController;
+import org.onosproject.pcelabelstore.util.PceLabelStoreAdapter;
+import org.onosproject.pcelabelstore.util.PcepClientAdapter;
 import org.onosproject.pcep.api.DeviceCapability;
+import org.onosproject.pcep.controller.PccId;
+import org.onosproject.pcep.controller.impl.PceccSrTeBeHandler;
+import org.onosproject.pcepio.protocol.PcepVersion;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.Link;
 
@@ -71,15 +68,14 @@ public class PceccSrTeBeHandlerTest {
     private static final String LSRID = "lsrId";
 
     private PceccSrTeBeHandler srTeHandler;
-    private CoreService coreService;
     private LabelResourceAdminService labelRsrcAdminService;
     private LabelResourceService labelRsrcService;
-    private PceStore pceStore;
+    private PceLabelStore pceStore;
     private MockDeviceService deviceService;
-    private FlowObjectiveService flowObjectiveService;
-    private MockNetConfigRegistryAdapter netCfgService = new PathComputationTest.MockNetConfigRegistryAdapter();
-    private ApplicationId appId;
+    private MockNetConfigRegistryAdapter netCfgService = new MockNetConfigRegistryAdapter();
+    private MockPcepClientController clientController = new MockPcepClientController();
     private ProviderId providerId;
+    private DeviceId deviceId1, deviceId2, deviceId3, deviceId4, deviceId5;
     private Device deviceD1;
     private Device deviceD2;
     private Device deviceD3;
@@ -103,17 +99,51 @@ public class PceccSrTeBeHandlerTest {
         srTeHandler = PceccSrTeBeHandler.getInstance();
         labelRsrcService = new LabelResourceAdapter();
         labelRsrcAdminService = new LabelResourceAdapter();
-        flowObjectiveService = new PceManagerTest.MockFlowObjService();
-        coreService = new PceManagerTest.MockCoreService();
-        appId = coreService.registerApplication("org.onosproject.pce");
-        pceStore = new PceStoreAdapter();
+        pceStore = new PceLabelStoreAdapter();
         deviceService = new MockDeviceService();
-        srTeHandler.initialize(labelRsrcAdminService, labelRsrcService, flowObjectiveService, appId, pceStore,
+
+        srTeHandler.initialize(labelRsrcAdminService,
+                               labelRsrcService,
+                               clientController,
+                               pceStore,
                                deviceService);
 
         // Creates path
         // Creates list of links
         providerId = new ProviderId("of", "foo");
+
+        PccId pccId1 = PccId.pccId(IpAddress.valueOf("11.1.1.1"));
+        PccId pccId2 = PccId.pccId(IpAddress.valueOf("12.1.1.1"));
+        PccId pccId3 = PccId.pccId(IpAddress.valueOf("13.1.1.1"));
+        PccId pccId4 = PccId.pccId(IpAddress.valueOf("14.1.1.1"));
+        PccId pccId5 = PccId.pccId(IpAddress.valueOf("15.1.1.1"));
+
+        PcepClientAdapter pc1 = new PcepClientAdapter();
+        pc1.init(pccId1, PcepVersion.PCEP_1);
+
+        PcepClientAdapter pc2 = new PcepClientAdapter();
+        pc2.init(pccId2, PcepVersion.PCEP_1);
+
+        PcepClientAdapter pc3 = new PcepClientAdapter();
+        pc3.init(pccId3, PcepVersion.PCEP_1);
+
+        PcepClientAdapter pc4 = new PcepClientAdapter();
+        pc4.init(pccId4, PcepVersion.PCEP_1);
+
+        PcepClientAdapter pc5 = new PcepClientAdapter();
+        pc5.init(pccId5, PcepVersion.PCEP_1);
+
+        clientController.addClient(pccId1, pc1);
+        clientController.addClient(pccId2, pc2);
+        clientController.addClient(pccId3, pc3);
+        clientController.addClient(pccId4, pc4);
+        clientController.addClient(pccId5, pc5);
+
+        deviceId1 = DeviceId.deviceId("11.1.1.1");
+        deviceId2 = DeviceId.deviceId("12.1.1.1");
+        deviceId3 = DeviceId.deviceId("13.1.1.1");
+        deviceId4 = DeviceId.deviceId("14.1.1.1");
+        deviceId5 = DeviceId.deviceId("15.1.1.1");
 
         // Devices
         DefaultAnnotations.Builder builderDev1 = DefaultAnnotations.builder();
@@ -123,25 +153,25 @@ public class PceccSrTeBeHandlerTest {
         DefaultAnnotations.Builder builderDev5 = DefaultAnnotations.builder();
 
         builderDev1.set(AnnotationKeys.TYPE, L3);
-        builderDev1.set(LSRID, "1.1.1.1");
+        builderDev1.set(LSRID, "11.1.1.1");
 
         builderDev2.set(AnnotationKeys.TYPE, L3);
-        builderDev2.set(LSRID, "2.2.2.2");
+        builderDev2.set(LSRID, "12.1.1.1");
 
         builderDev3.set(AnnotationKeys.TYPE, L3);
-        builderDev3.set(LSRID, "3.3.3.3");
+        builderDev3.set(LSRID, "13.1.1.1");
 
         builderDev4.set(AnnotationKeys.TYPE, L3);
-        builderDev4.set(LSRID, "4.4.4.4");
+        builderDev4.set(LSRID, "14.1.1.1");
 
         builderDev5.set(AnnotationKeys.TYPE, L3);
-        builderDev5.set(LSRID, "5.5.5.5");
+        builderDev5.set(LSRID, "15.1.1.1");
 
-        deviceD1 = new MockDevice(D1.deviceId(), builderDev1.build());
-        deviceD2 = new MockDevice(D2.deviceId(), builderDev2.build());
-        deviceD3 = new MockDevice(D3.deviceId(), builderDev3.build());
-        deviceD4 = new MockDevice(D4.deviceId(), builderDev4.build());
-        deviceD5 = new MockDevice(D5.deviceId(), builderDev5.build());
+        deviceD1 = new MockDevice(deviceId1, builderDev1.build());
+        deviceD2 = new MockDevice(deviceId2, builderDev2.build());
+        deviceD3 = new MockDevice(deviceId3, builderDev3.build());
+        deviceD4 = new MockDevice(deviceId4, builderDev4.build());
+        deviceD5 = new MockDevice(deviceId5, builderDev5.build());
 
         deviceService.addDevice(deviceD1);
         deviceService.addDevice(deviceD2);
@@ -149,19 +179,19 @@ public class PceccSrTeBeHandlerTest {
         deviceService.addDevice(deviceD4);
         deviceService.addDevice(deviceD5);
 
-        DeviceCapability device1Cap = netCfgService.addConfig(DeviceId.deviceId("1.1.1.1"), DeviceCapability.class);
+        DeviceCapability device1Cap = netCfgService.addConfig(deviceId1, DeviceCapability.class);
         device1Cap.setLabelStackCap(true).setLocalLabelCap(false).setSrCap(true).apply();
 
-        DeviceCapability device2Cap = netCfgService.addConfig(DeviceId.deviceId("2.2.2.2"), DeviceCapability.class);
+        DeviceCapability device2Cap = netCfgService.addConfig(deviceId2, DeviceCapability.class);
         device2Cap.setLabelStackCap(true).setLocalLabelCap(false).setSrCap(true).apply();
 
-        DeviceCapability device3Cap = netCfgService.addConfig(DeviceId.deviceId("3.3.3.3"), DeviceCapability.class);
+        DeviceCapability device3Cap = netCfgService.addConfig(deviceId3, DeviceCapability.class);
         device3Cap.setLabelStackCap(true).setLocalLabelCap(false).setSrCap(true).apply();
 
-        DeviceCapability device4Cap = netCfgService.addConfig(DeviceId.deviceId("4.4.4.4"), DeviceCapability.class);
+        DeviceCapability device4Cap = netCfgService.addConfig(deviceId4, DeviceCapability.class);
         device4Cap.setLabelStackCap(true).setLocalLabelCap(false).setSrCap(true).apply();
 
-        DeviceCapability device5Cap = netCfgService.addConfig(DeviceId.deviceId("5.5.5.5"), DeviceCapability.class);
+        DeviceCapability device5Cap = netCfgService.addConfig(deviceId5, DeviceCapability.class);
         device5Cap.setLabelStackCap(true).setLocalLabelCap(false).setSrCap(true).apply();
 
         // Port Numbers
@@ -199,7 +229,6 @@ public class PceccSrTeBeHandlerTest {
 
     @After
     public void tearDown() throws Exception {
-        PceManagerTest.flowsDownloaded = 0;
     }
 
     /**
@@ -228,45 +257,45 @@ public class PceccSrTeBeHandlerTest {
         //device 1
         String lsrId1 = "11.1.1.1";
         // Allocate node label for specific device D1deviceId
-        assertThat(srTeHandler.allocateNodeLabel(D1.deviceId(), lsrId1), is(true));
+        assertThat(srTeHandler.allocateNodeLabel(deviceId1, lsrId1), is(true));
         // Retrieve label from store
-        LabelResourceId labelId = pceStore.getGlobalNodeLabel(D1.deviceId());
+        LabelResourceId labelId = pceStore.getGlobalNodeLabel(deviceId1);
         // Check whether label is generated for this device D1.deviceId()
         assertThat(labelId, is(notNullValue()));
 
         // device 2
         String lsrId2 = "12.1.1.1";
         // Allocate node label for specific device D2.deviceId()
-        assertThat(srTeHandler.allocateNodeLabel(D2.deviceId(), lsrId2), is(true));
+        assertThat(srTeHandler.allocateNodeLabel(deviceId2, lsrId2), is(true));
         // Retrieve label from store
-        labelId = pceStore.getGlobalNodeLabel(D2.deviceId());
+        labelId = pceStore.getGlobalNodeLabel(deviceId2);
         // Check whether label is generated for this device D2.deviceId()
         assertThat(labelId, is(notNullValue()));
 
         // device 3
         String lsrId3 = "13.1.1.1";
         // Allocate node label for specific device D3.deviceId()
-        assertThat(srTeHandler.allocateNodeLabel(D3.deviceId(), lsrId3), is(true));
+        assertThat(srTeHandler.allocateNodeLabel(deviceId3, lsrId3), is(true));
         // Retrieve label from store
-        labelId = pceStore.getGlobalNodeLabel(D3.deviceId());
+        labelId = pceStore.getGlobalNodeLabel(deviceId3);
         // Check whether label is generated for this device D3.deviceId()
         assertThat(labelId, is(notNullValue()));
 
         // device 4
         String lsrId4 = "14.1.1.1";
         // Allocate node label for specific device D4.deviceId()
-        assertThat(srTeHandler.allocateNodeLabel(D4.deviceId(), lsrId4), is(true));
+        assertThat(srTeHandler.allocateNodeLabel(deviceId4, lsrId4), is(true));
         // Retrieve label from store
-        labelId = pceStore.getGlobalNodeLabel(D4.deviceId());
+        labelId = pceStore.getGlobalNodeLabel(deviceId4);
         // Check whether label is generated for this device D4.deviceId()
         assertThat(labelId, is(notNullValue()));
 
         // device 5
         String lsrId5 = "15.1.1.1";
         // Allocate node label for specific device D5.deviceId()
-        assertThat(srTeHandler.allocateNodeLabel(D5.deviceId(), lsrId5), is(true));
+        assertThat(srTeHandler.allocateNodeLabel(deviceId5, lsrId5), is(true));
         // Retrieve label from store
-        labelId = pceStore.getGlobalNodeLabel(D5.deviceId());
+        labelId = pceStore.getGlobalNodeLabel(deviceId5);
         // Check whether label is generated for this device D5.deviceId()
         assertThat(labelId, is(notNullValue()));
     }
@@ -282,41 +311,41 @@ public class PceccSrTeBeHandlerTest {
         //device 1
         String lsrId1 = "11.1.1.1";
         // Check whether successfully released node label
-        assertThat(srTeHandler.releaseNodeLabel(D1.deviceId(), lsrId1), is(true));
+        assertThat(srTeHandler.releaseNodeLabel(deviceId1, lsrId1), is(true));
         // Check whether successfully removed label from store
-        LabelResourceId labelId = pceStore.getGlobalNodeLabel(D1.deviceId());
+        LabelResourceId labelId = pceStore.getGlobalNodeLabel(deviceId1);
         assertThat(labelId, is(nullValue()));
 
         //device 2
         String lsrId2 = "12.1.1.1";
         // Check whether successfully released node label
-        assertThat(srTeHandler.releaseNodeLabel(D2.deviceId(), lsrId2), is(true));
+        assertThat(srTeHandler.releaseNodeLabel(deviceId2, lsrId2), is(true));
         // Check whether successfully removed label from store
-        labelId = pceStore.getGlobalNodeLabel(D2.deviceId());
+        labelId = pceStore.getGlobalNodeLabel(deviceId2);
         assertThat(labelId, is(nullValue()));
 
         //device 3
         String lsrId3 = "13.1.1.1";
         // Check whether successfully released node label
-        assertThat(srTeHandler.releaseNodeLabel(D3.deviceId(), lsrId3), is(true));
+        assertThat(srTeHandler.releaseNodeLabel(deviceId3, lsrId3), is(true));
         // Check whether successfully removed label from store
-        labelId = pceStore.getGlobalNodeLabel(D3.deviceId());
+        labelId = pceStore.getGlobalNodeLabel(deviceId3);
         assertThat(labelId, is(nullValue()));
 
         //device 4
         String lsrId4 = "14.1.1.1";
         // Check whether successfully released node label
-        assertThat(srTeHandler.releaseNodeLabel(D4.deviceId(), lsrId4), is(true));
+        assertThat(srTeHandler.releaseNodeLabel(deviceId4, lsrId4), is(true));
         // Check whether successfully removed label from store
-        labelId = pceStore.getGlobalNodeLabel(D4.deviceId());
+        labelId = pceStore.getGlobalNodeLabel(deviceId4);
         assertThat(labelId, is(nullValue()));
 
         //device 5
         String lsrId5 = "15.1.1.1";
         // Check whether successfully released node label
-        assertThat(srTeHandler.releaseNodeLabel(D5.deviceId(), lsrId5), is(true));
+        assertThat(srTeHandler.releaseNodeLabel(deviceId5, lsrId5), is(true));
         // Check whether successfully removed label from store
-        labelId = pceStore.getGlobalNodeLabel(D5.deviceId());
+        labelId = pceStore.getGlobalNodeLabel(deviceId5);
         assertThat(labelId, is(nullValue()));
     }
 
@@ -394,15 +423,15 @@ public class PceccSrTeBeHandlerTest {
     public void testComputeLabelStack() {
         // Allocate node labels to each devices
         labelId = LabelResourceId.labelResourceId(4097);
-        pceStore.addGlobalNodeLabel(D1.deviceId(), labelId);
+        pceStore.addGlobalNodeLabel(deviceId1, labelId);
         labelId = LabelResourceId.labelResourceId(4098);
-        pceStore.addGlobalNodeLabel(D2.deviceId(), labelId);
+        pceStore.addGlobalNodeLabel(deviceId2, labelId);
         labelId = LabelResourceId.labelResourceId(4099);
-        pceStore.addGlobalNodeLabel(D3.deviceId(), labelId);
+        pceStore.addGlobalNodeLabel(deviceId3, labelId);
         labelId = LabelResourceId.labelResourceId(4100);
-        pceStore.addGlobalNodeLabel(D4.deviceId(), labelId);
+        pceStore.addGlobalNodeLabel(deviceId4, labelId);
         labelId = LabelResourceId.labelResourceId(4101);
-        pceStore.addGlobalNodeLabel(D5.deviceId(), labelId);
+        pceStore.addGlobalNodeLabel(deviceId5, labelId);
 
         // Allocate adjacency labels to each devices
         labelId = LabelResourceId.labelResourceId(5122);

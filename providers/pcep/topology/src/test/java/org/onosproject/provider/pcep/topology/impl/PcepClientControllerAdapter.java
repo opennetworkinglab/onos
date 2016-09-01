@@ -25,6 +25,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.onlab.packet.IpAddress;
+import org.onosproject.incubator.net.tunnel.DefaultLabelStack;
+import org.onosproject.incubator.net.tunnel.LabelStack;
+import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.net.Path;
 import org.onosproject.pcep.controller.ClientCapability;
 import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcep.controller.PcepClient;
@@ -32,7 +36,6 @@ import org.onosproject.pcep.controller.PcepClientController;
 import org.onosproject.pcep.controller.PcepClientListener;
 import org.onosproject.pcep.controller.PcepEventListener;
 import org.onosproject.pcep.controller.PcepNodeListener;
-import org.onosproject.pcep.controller.PcepPacketListener;
 import org.onosproject.pcep.controller.driver.PcepAgent;
 import org.onosproject.pcepio.protocol.PcepError;
 import org.onosproject.pcepio.protocol.PcepErrorInfo;
@@ -41,6 +44,7 @@ import org.onosproject.pcepio.protocol.PcepErrorObject;
 import org.onosproject.pcepio.protocol.PcepFactory;
 import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.protocol.PcepVersion;
+import org.onosproject.pcepio.types.PcepValueType;
 
 import com.google.common.collect.Sets;
 
@@ -290,14 +294,20 @@ public class PcepClientControllerAdapter implements PcepClientController {
     }
 
     @Override
-    public void addPacketListener(PcepPacketListener listener) {
+    public LabelStack computeLabelStack(Path path) {
         // TODO Auto-generated method stub
-
+        return null;
     }
 
     @Override
-    public void removePacketListener(PcepPacketListener listener) {
+    public LinkedList<PcepValueType> createPcepLabelStack(DefaultLabelStack labelStack, Path path) {
         // TODO Auto-generated method stub
+        return null;
+    }
 
+    @Override
+    public boolean allocateLocalLabel(Tunnel tunnel) {
+        // TODO Auto-generated method stub
+        return false;
     }
 }

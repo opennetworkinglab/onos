@@ -31,7 +31,6 @@
         <bundle>mvn:${project.groupId}/onos-pcep-provider-tunnel/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-pce/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-pceweb/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-pcep-provider-packet/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-bgpcep-provider-flow/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-pcerest/${project.version}</bundle>
     </feature>

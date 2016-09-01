@@ -1,8 +1,9 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api',
     '//protocols/pcep/pcepio:onos-protocols-pcep-pcepio',
     '//protocols/pcep/api:onos-protocols-pcep-api',
-    '//incubator/api:onos-incubator-api',
+    '//core/store/serializers:onos-core-serializers',
     '//apps/pcep-api:onos-apps-pcep-api',
 ]
 

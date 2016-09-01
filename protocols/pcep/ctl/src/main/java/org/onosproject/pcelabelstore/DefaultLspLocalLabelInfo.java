@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.pce.pcestore;
+package org.onosproject.pcelabelstore;
 
 import com.google.common.base.MoreObjects;
 
@@ -21,8 +21,8 @@ import java.util.Objects;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.pcelabelstore.api.LspLocalLabelInfo;
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
-import org.onosproject.pce.pcestore.api.LspLocalLabelInfo;
 
 /**
  * Local node details including IN and OUT labels as well as IN and OUT port details.
@@ -30,13 +30,9 @@ import org.onosproject.pce.pcestore.api.LspLocalLabelInfo;
 public final class DefaultLspLocalLabelInfo implements LspLocalLabelInfo {
 
     private final DeviceId deviceId;
-
     private final LabelResourceId inLabelId;
-
     private final LabelResourceId outLabelId;
-
     private final PortNumber inPort;
-
     private final PortNumber outPort;
 
     /**
@@ -152,15 +148,10 @@ public final class DefaultLspLocalLabelInfo implements LspLocalLabelInfo {
      * Builder.
      */
     public static final class Builder implements LspLocalLabelInfo.Builder {
-
         private DeviceId deviceId;
-
         private LabelResourceId inLabelId;
-
         private LabelResourceId outLabelId;
-
         private PortNumber inPort;
-
         private PortNumber outPort;
 
         /**

@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.pce.pceservice;
+package org.onosproject.pcelabelstore.label;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.onosproject.net.Link.Type.DIRECT;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.LinkedList;
@@ -29,8 +28,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
@@ -40,19 +37,24 @@ import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
 import org.onosproject.incubator.net.resource.label.LabelResourceService;
+import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.DefaultPath;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.Path;
-import org.onosproject.pce.pcestore.api.LspLocalLabelInfo;
-import org.onosproject.pce.pcestore.api.PceStore;
-import org.onosproject.pce.pcestore.PceccTunnelInfo;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.pce.util.LabelResourceAdapter;
-import org.onosproject.pce.util.PceStoreAdapter;
+import org.onosproject.pcelabelstore.api.LspLocalLabelInfo;
+import org.onosproject.pcelabelstore.api.PceLabelStore;
+import org.onosproject.pcelabelstore.util.LabelResourceAdapter;
+import org.onosproject.pcelabelstore.util.MockDeviceService;
+import org.onosproject.pcelabelstore.util.PceLabelStoreAdapter;
+import org.onosproject.pcep.controller.impl.BasicPceccHandler;
+import org.onosproject.pcep.controller.impl.PcepClientControllerImpl;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.Link;
 
@@ -63,13 +65,13 @@ public class BasicPceccHandlerTest {
 
     public static final long LOCAL_LABEL_SPACE_MIN = 5122;
     public static final long LOCAL_LABEL_SPACE_MAX = 9217;
+    private static final String L3 = "L3";
+    private static final String LSRID = "lsrId";
 
     private BasicPceccHandler pceccHandler;
     protected LabelResourceService labelRsrcService;
-    protected PceStore pceStore;
-    private FlowObjectiveService flowObjectiveService;
-    private CoreService coreService;
-    private ApplicationId appId;
+    protected MockDeviceService deviceService;
+    protected PceLabelStore pceStore;
     private TunnelEndPoint src = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(23423));
     private TunnelEndPoint dst = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(32421));
     private DefaultGroupId groupId = new DefaultGroupId(92034);
@@ -78,7 +80,8 @@ public class BasicPceccHandlerTest {
     private ProviderId producerName = new ProviderId("producer1", "13");
     private Path path;
     private Tunnel tunnel;
-    private PceccTunnelInfo pceccTunnelInfo;
+    List<LspLocalLabelInfo> lspLocalLabelInfoList;
+    private Device deviceD1, deviceD2, deviceD3, deviceD4, deviceD5;
     private DeviceId deviceId1;
     private DeviceId deviceId2;
     private DeviceId deviceId3;
@@ -94,13 +97,14 @@ public class BasicPceccHandlerTest {
     public void setUp() throws Exception {
        pceccHandler = BasicPceccHandler.getInstance();
        labelRsrcService = new LabelResourceAdapter();
-       pceStore = new PceStoreAdapter();
-       flowObjectiveService = new PceManagerTest.MockFlowObjService();
-       coreService = new PceManagerTest.MockCoreService();
-       appId = coreService.registerApplication("org.onosproject.pce");
-       pceccHandler.initialize(labelRsrcService, flowObjectiveService, appId, pceStore);
+       pceStore = new PceLabelStoreAdapter();
+       deviceService = new MockDeviceService();
+       pceccHandler.initialize(labelRsrcService,
+                              deviceService,
+                              pceStore,
+                              new PcepClientControllerImpl());
 
-       // Cretae tunnel test
+       // Create tunnel test
        // Link
        ProviderId providerId = new ProviderId("of", "foo");
        deviceId1 = DeviceId.deviceId("of:A");
@@ -114,6 +118,41 @@ public class BasicPceccHandlerTest {
        port4 = PortNumber.portNumber(4);
        port5 = PortNumber.portNumber(5);
        List<Link> linkList = new LinkedList<>();
+
+       // Making L3 devices
+       DefaultAnnotations.Builder builderDev1 = DefaultAnnotations.builder();
+       builderDev1.set(AnnotationKeys.TYPE, L3);
+       builderDev1.set(LSRID, "1.1.1.1");
+       deviceD1 = new MockDevice(deviceId1, builderDev1.build());
+       deviceService.addDevice(deviceD1);
+
+       // Making L3 devices
+       DefaultAnnotations.Builder builderDev2 = DefaultAnnotations.builder();
+       builderDev2.set(AnnotationKeys.TYPE, L3);
+       builderDev2.set(LSRID, "2.2.2.2");
+       deviceD2 = new MockDevice(deviceId2, builderDev2.build());
+       deviceService.addDevice(deviceD2);
+
+       // Making L3 devices
+       DefaultAnnotations.Builder builderDev3 = DefaultAnnotations.builder();
+       builderDev3.set(AnnotationKeys.TYPE, L3);
+       builderDev3.set(LSRID, "3.3.3.3");
+       deviceD3 = new MockDevice(deviceId3, builderDev3.build());
+       deviceService.addDevice(deviceD3);
+
+       // Making L3 devices
+       DefaultAnnotations.Builder builderDev4 = DefaultAnnotations.builder();
+       builderDev4.set(AnnotationKeys.TYPE, L3);
+       builderDev4.set(LSRID, "4.4.4.4");
+       deviceD4 = new MockDevice(deviceId4, builderDev4.build());
+       deviceService.addDevice(deviceD4);
+
+       // Making L3 devices
+       DefaultAnnotations.Builder builderDev5 = DefaultAnnotations.builder();
+       builderDev5.set(AnnotationKeys.TYPE, L3);
+       builderDev5.set(LSRID, "5.5.5.5");
+       deviceD5 = new MockDevice(deviceId5, builderDev5.build());
+       deviceService.addDevice(deviceD5);
 
        Link l1 = DefaultLink.builder()
                             .providerId(providerId)
@@ -163,7 +202,6 @@ public class BasicPceccHandlerTest {
 
     @After
     public void tearDown() throws Exception {
-        PceManagerTest.flowsDownloaded = 0;
     }
 
     /**
@@ -179,7 +217,6 @@ public class BasicPceccHandlerTest {
      */
     @Test
     public void testAllocateLabel() {
-       List<LspLocalLabelInfo> lspLocalLabelInfoList;
        Iterator<LspLocalLabelInfo> iterator;
        LspLocalLabelInfo lspLocalLabelInfo;
        DeviceId deviceId;
@@ -192,8 +229,7 @@ public class BasicPceccHandlerTest {
        assertThat(pceccHandler.allocateLabel(tunnel), is(true));
 
        // Check list of devices with IN and OUT labels whether stored properly in store
-       pceccTunnelInfo = pceStore.getTunnelInfo(tunnel.tunnelId());
-       lspLocalLabelInfoList = pceccTunnelInfo.lspLocalLabelInfoList();
+       lspLocalLabelInfoList = pceStore.getTunnelInfo(tunnel.tunnelId());
        iterator = lspLocalLabelInfoList.iterator();
 
        // Retrieve values and check device5
@@ -281,7 +317,13 @@ public class BasicPceccHandlerTest {
        pceccHandler.releaseLabel(tunnel);
 
        // Retrieve from store. Store should not contain this tunnel info.
-       pceccTunnelInfo = pceStore.getTunnelInfo(tunnel.tunnelId());
-       assertThat(pceccTunnelInfo, is(nullValue()));
+       lspLocalLabelInfoList = pceStore.getTunnelInfo(tunnel.tunnelId());
+       assertThat(lspLocalLabelInfoList, is(nullValue()));
+    }
+
+    private class MockDevice extends DefaultDevice {
+        MockDevice(DeviceId id, Annotations annotations) {
+            super(null, id, null, null, null, null, null, null, annotations);
+        }
     }
 }

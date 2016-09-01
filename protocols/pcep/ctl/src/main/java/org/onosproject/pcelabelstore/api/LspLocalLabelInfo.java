@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.pce.pcestore.api;
+package org.onosproject.pcelabelstore.api;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;

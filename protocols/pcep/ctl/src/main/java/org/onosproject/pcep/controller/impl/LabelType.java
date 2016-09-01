@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.pce.pceservice;
+package org.onosproject.pcep.controller.impl;
 
 /**
  * Describes about Label type.

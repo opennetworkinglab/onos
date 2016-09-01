@@ -10,7 +10,6 @@ BUNDLES = [
   '//protocols/pcep/ctl:onos-protocols-pcep-ctl',
   '//providers/pcep/topology:onos-providers-pcep-topology',
   '//providers/pcep/tunnel:onos-providers-pcep-tunnel',
-  '//providers/pcep/packet:onos-providers-pcep-packet',
   '//providers/bgpcep/flow:onos-providers-bgpcep-flow',
   '//apps/pce/app:onos-apps-pce-app',
   '//apps/pce/pceweb:onos-apps-pce-pceweb',

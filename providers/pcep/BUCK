@@ -5,7 +5,6 @@ BUNDLES = [
     '//protocols/pcep/pcepio:onos-protocols-pcep-pcepio',
     '//protocols/pcep/ctl:onos-protocols-pcep-ctl',
     '//apps/pcep-api:onos-apps-pcep-api',
-    '//providers/pcep/packet:onos-providers-pcep-packet',
 ]
 
 onos_app (
