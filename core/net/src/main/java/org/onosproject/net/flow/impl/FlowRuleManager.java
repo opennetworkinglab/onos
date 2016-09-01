@@ -129,8 +129,7 @@ public class FlowRuleManager
 
     private IdGenerator idGenerator;
 
-    private Map<Long, FlowOperationsProcessor> pendingFlowOperations
-            = new ConcurrentHashMap<>();
+    private final Map<Long, FlowOperationsProcessor> pendingFlowOperations = new ConcurrentHashMap<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleStore store;
