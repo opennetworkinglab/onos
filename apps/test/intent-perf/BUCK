@@ -12,6 +12,7 @@ osgi_jar_with_tests (
 )
 
 onos_app (
+    app_name = 'org.onosproject.intentperf',
     title = 'Intent Performance Test App',
     category = 'Test',
     url = 'http://onosproject.org',
