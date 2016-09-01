@@ -29,6 +29,8 @@ import org.onosproject.net.intent.ResourceContext;
  */
 @Beta
 public class ProtectionConstraint implements Constraint {
+    private static final ProtectionConstraint PROTECTION_CONSTRAINT = new ProtectionConstraint();
+
     // doesn't use LinkResourceService
     @Override
     public double cost(Link link, ResourceContext context) {
@@ -54,5 +56,22 @@ public class ProtectionConstraint implements Constraint {
                     .anyMatch(p -> p instanceof ProtectionConstraint);
         }
         return false;
+    }
+
+    /**
+     * Returns protection constraint.
+     *
+     * @return
+     */
+    public static ProtectionConstraint protection() {
+        return PROTECTION_CONSTRAINT;
+    }
+
+    protected  ProtectionConstraint() {
+    }
+
+    @Override
+    public String toString() {
+        return "Protection";
     }
 }
