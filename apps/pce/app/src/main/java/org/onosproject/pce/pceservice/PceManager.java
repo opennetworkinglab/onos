@@ -844,16 +844,17 @@ public class PceManager implements PceService {
             }
         }
 
-        if (isLinkShared) {
-            releaseSharedBandwidth(newTunnel, tunnel);
-            return;
-        }
-
         PceccTunnelInfo tunnelInfo = pceStore.getTunnelInfo(tunnel.tunnelId());
         if (tunnelInfo == null || tunnelInfo.tunnelConsumerId() == null) {
             //If bandwidth for old tunnel is not allocated i,e 0 then no need to release
             return;
         }
+
+        if (isLinkShared) {
+            releaseSharedBandwidth(newTunnel, tunnel);
+            return;
+        }
+
         resourceService.release(tunnelInfo.tunnelConsumerId());
         return;
 

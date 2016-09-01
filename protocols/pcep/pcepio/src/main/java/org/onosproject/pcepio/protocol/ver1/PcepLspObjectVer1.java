@@ -366,7 +366,6 @@ public class PcepLspObjectVer1 implements PcepLspObject {
             default:
                 // Skip the unknown TLV.
                 cb.skipBytes(hLength);
-                tlv = null;
                 log.info("Received unsupported TLV type :" + hType + " in LSP object.");
             }
             // Check for the padding

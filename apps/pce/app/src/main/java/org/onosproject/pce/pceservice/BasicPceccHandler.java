@@ -286,15 +286,15 @@ public final class BasicPceccHandler {
                    PortNumber inPort = lspLocalLabelInfo.inPort();
                    PortNumber outPort = lspLocalLabelInfo.outPort();
 
+                   if ((outLabelId != null) && (outPort != null)) {
+                       installLocalLabelRule(deviceId, outLabelId, outPort, tunnel.tunnelId(), false,
+                                             Long.valueOf(LabelType.OUT_LABEL.value), Objective.Operation.REMOVE);
+                   }
+
                    // Push into device
                    if ((inLabelId != null) && (inPort != null)) {
                        installLocalLabelRule(deviceId, inLabelId, inPort, tunnel.tunnelId(), false,
                                              Long.valueOf(LabelType.IN_LABEL.value), Objective.Operation.REMOVE);
-                   }
-
-                   if ((outLabelId != null) && (outPort != null)) {
-                       installLocalLabelRule(deviceId, outLabelId, outPort, tunnel.tunnelId(), false,
-                                             Long.valueOf(LabelType.OUT_LABEL.value), Objective.Operation.REMOVE);
                    }
 
                    // List is stored from egress to ingress. So, using IN label id to release.

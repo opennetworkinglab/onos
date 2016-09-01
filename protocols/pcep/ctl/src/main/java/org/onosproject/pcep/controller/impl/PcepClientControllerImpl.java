@@ -479,7 +479,7 @@ public class PcepClientControllerImpl implements PcepClientController {
                 } else if (pathNameTlv != null) {
                     tunnel = preSyncLspDbByName.get(Arrays.toString(pathNameTlv.getValue()));
                     if (tunnel != null) {
-                        preSyncLspDbByName.remove(tunnel.tunnelName());
+                        preSyncLspDbByName.remove(tunnel.tunnelName().value());
                     }
                 }
 
