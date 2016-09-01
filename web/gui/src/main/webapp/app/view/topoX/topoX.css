@@ -26,7 +26,12 @@
     -webkit-user-select: none;
 }
 
-/* -- TEMPORARY CSS (to be deleted) -- */
+#topoXtmp {
+    height: 600px;
+    width: 98%;
+    overflow-y: scroll;
+}
+
 #topoXtmp div {
     padding: 8px 24px;
     margin: 8px;
