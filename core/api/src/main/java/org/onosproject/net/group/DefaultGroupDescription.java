@@ -203,6 +203,7 @@ public class DefaultGroupDescription implements GroupDescription {
                 .add("type", type)
                 .add("buckets", buckets)
                 .add("appId", appId)
+                .add("appCookie", appCookie)
                 .add("givenGroupId", givenGroupId)
                 .toString();
     }

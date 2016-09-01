@@ -189,6 +189,7 @@ import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
+import org.onosproject.net.intent.constraint.ProtectionConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.meter.MeterId;
@@ -550,6 +551,7 @@ public final class KryoNamespaces {
             .register(DiscreteResourceCodec.class)
             .register(new ImmutableByteSequenceSerializer(), ImmutableByteSequence.class)
             .register(PathIntent.ProtectionType.class)
+            .register(ProtectionConstraint.class)
             .build("API");
 
     /**

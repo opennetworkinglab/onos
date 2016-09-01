@@ -46,9 +46,11 @@ import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupKey;
+import org.onosproject.net.group.GroupListener;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentCompilationException;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
@@ -56,6 +58,7 @@ import org.onosproject.net.intent.constraint.ProtectionConstraint;
 import org.onosproject.net.intent.impl.PathNotFoundException;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.provider.ProviderId;
+import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -63,9 +66,14 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static java.util.Arrays.asList;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * An intent compiler for {@link org.onosproject.net.intent.PointToPointIntent}.
@@ -79,7 +87,13 @@ public class PointToPointIntentCompiler
             new ProviderId("core", "org.onosproject.core", true);
     // TODO: consider whether the default cost is appropriate or not
     public static final int DEFAULT_COST = 1;
+
     protected static final int PRIORITY = Intent.DEFAULT_INTENT_PRIORITY;
+
+    private static final int GROUP_TIMEOUT = 5;
+
+    private final Logger log = getLogger(getClass());
+
     protected boolean erasePrimary = false;
     protected boolean eraseBackup = false;
 
@@ -104,7 +118,7 @@ public class PointToPointIntentCompiler
 
     @Override
     public List<Intent> compile(PointToPointIntent intent, List<Intent> installable) {
-
+        log.trace("compiling {} {}", intent, installable);
         ConnectPoint ingressPoint = intent.ingressPoint();
         ConnectPoint egressPoint = intent.egressPoint();
 
@@ -121,6 +135,7 @@ public class PointToPointIntentCompiler
             // attempt to compute and implement backup path
             return createProtectedIntent(ingressPoint, egressPoint, intent, installable);
         } catch (PathNotFoundException e) {
+            log.warn("Could not find disjoint Path for {}", intent);
             // no disjoint path extant -- maximum one path exists between devices
             return createSinglePathIntent(ingressPoint, egressPoint, intent, installable);
         }
@@ -155,6 +170,7 @@ public class PointToPointIntentCompiler
                                                ConnectPoint egressPoint,
                                                PointToPointIntent intent,
                                                List<Intent> installable) {
+        log.trace("createProtectedIntent");
         DisjointPath path = getDisjointPath(intent, ingressPoint.deviceId(),
                                             egressPoint.deviceId());
 
@@ -208,10 +224,12 @@ public class PointToPointIntentCompiler
             }
         }
 
-        intentList.add(createPathIntent(new DefaultPath(PID, links, path.cost(), path.annotations()),
+        intentList.add(createPathIntent(new DefaultPath(PID, links, path.cost(),
+                                                        path.annotations()),
                                         intent, PathIntent.ProtectionType.PRIMARY));
         intentList.add(createPathIntent(new DefaultPath(PID, backupLinks, path.backup().cost(),
-                                        path.backup().annotations()), intent, PathIntent.ProtectionType.BACKUP));
+                                                        path.backup().annotations()),
+                                        intent, PathIntent.ProtectionType.BACKUP));
 
         // Create fast failover flow rule intent or, if it already exists,
         // add contents appropriately.
@@ -354,6 +372,7 @@ public class PointToPointIntentCompiler
 
         GroupDescription groupDesc = new DefaultGroupDescription(src.deviceId(), Group.Type.FAILOVER,
                                          groupBuckets, makeGroupKey(intent.id()), null, intent.appId());
+        log.trace("adding failover group {}", groupDesc);
         groupService.addGroup(groupDesc);
     }
 
@@ -387,9 +406,75 @@ public class PointToPointIntentCompiler
         return flowRules;
     }
 
+
+    /**
+     * Waits for specified group to appear maximum of {@value #GROUP_TIMEOUT} seconds.
+     *
+     * @param deviceId {@link DeviceId}
+     * @param groupKey {@link GroupKey} to wait for.
+     * @return {@link Group}
+     * @throws IntentCompilationException on any error.
+     */
+    private Group waitForGroup(DeviceId deviceId, GroupKey groupKey) {
+        return waitForGroup(deviceId, groupKey, GROUP_TIMEOUT, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Waits for specified group to appear until timeout.
+     *
+     * @param deviceId {@link DeviceId}
+     * @param groupKey {@link GroupKey} to wait for.
+     * @param timeout timeout
+     * @param unit unit of timeout
+     * @return {@link Group}
+     * @throws IntentCompilationException on any error.
+     */
+    private Group waitForGroup(DeviceId deviceId, GroupKey groupKey, long timeout, TimeUnit unit) {
+        Group group = groupService.getGroup(deviceId, groupKey);
+        if (group != null) {
+            return group;
+        }
+
+        final CompletableFuture<Group> future = new CompletableFuture<>();
+        final GroupListener listener = event -> {
+            if (event.subject().deviceId() == deviceId &&
+                event.subject().appCookie().equals(groupKey)) {
+                future.complete(event.subject());
+                return;
+            }
+        };
+
+        groupService.addListener(listener);
+        try {
+            group = groupService.getGroup(deviceId, groupKey);
+            if (group != null) {
+                return group;
+            }
+            return future.get(timeout, unit);
+        } catch (InterruptedException e) {
+            log.debug("Interrupted", e);
+            Thread.currentThread().interrupt();
+            throw new IntentCompilationException("Interrupted", e);
+        } catch (ExecutionException e) {
+            log.debug("ExecutionException", e);
+            throw new IntentCompilationException("ExecutionException caught", e);
+        } catch (TimeoutException e) {
+            // one last try
+            group = groupService.getGroup(deviceId, groupKey);
+            if (group != null) {
+                return group;
+            } else {
+                log.debug("Timeout", e);
+                throw new IntentCompilationException("Timeout", e);
+            }
+        } finally {
+            groupService.removeListener(listener);
+        }
+    }
+
     private TrafficTreatment buildFailoverTreatment(DeviceId srcDevice,
                                                     GroupKey groupKey) {
-        Group group = groupService.getGroup(srcDevice, groupKey);
+        Group group = waitForGroup(srcDevice, groupKey);
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
         TrafficTreatment trafficTreatment = tBuilder.group(group.id()).build();
         return trafficTreatment;
@@ -509,7 +594,7 @@ public class PointToPointIntentCompiler
     private void updateFailoverGroup(PointToPointIntent pointIntent) {
         DeviceId deviceId = pointIntent.ingressPoint().deviceId();
         GroupKey groupKey = makeGroupKey(pointIntent.id());
-        Group group = groupService.getGroup(deviceId, groupKey);
+        Group group = waitForGroup(deviceId, groupKey);
         Iterator<GroupBucket> groupIterator = group.buckets().buckets().iterator();
         while (groupIterator.hasNext()) {
             GroupBucket bucket = groupIterator.next();
