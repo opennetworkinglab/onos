@@ -593,7 +593,7 @@ public class FlowRuleManager
         public synchronized void run() {
             if (stages.size() > 0) {
                 process(stages.remove(0));
-            } else if (!hasFailed && fops.callback() != null) {
+            } else if (!hasFailed) {
                 fops.callback().onSuccess(fops);
             }
         }
@@ -630,13 +630,10 @@ public class FlowRuleManager
                 operationsService.execute(this);
             }
 
-            if (fops.callback() != null) {
-                final FlowRuleOperations.Builder failedOpsBuilder =
-                    FlowRuleOperations.builder();
-                failures.stream().forEach(failedOpsBuilder::add);
+            FlowRuleOperations.Builder failedOpsBuilder = FlowRuleOperations.builder();
+            failures.stream().forEach(failedOpsBuilder::add);
 
-                fops.callback().onError(failedOpsBuilder.build());
-            }
+            fops.callback().onError(failedOpsBuilder.build());
         }
     }
 
