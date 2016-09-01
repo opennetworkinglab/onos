@@ -250,4 +250,18 @@ public class UiTopoSession implements UiModelListener {
     public void refreshModel() {
         sharedModel.refresh();
     }
+
+    /**
+     * Navigates to the specified region by setting the associated layout as
+     * current.
+     *
+     * @param regionId region identifier
+     */
+    public void navToRegion(String regionId) {
+        // 1. find the layout corresponding to the region ID
+        // 2. set this layout to be "current"
+        RegionId r = RegionId.regionId(regionId);
+        UiTopoLayout layout = layoutService.getLayout(r);
+        setCurrentLayout(layout);
+    }
 }

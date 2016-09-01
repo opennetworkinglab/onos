@@ -27,18 +27,23 @@
 }
 
 #topoXtmp {
-    height: 600px;
+    height: 700px;
     width: 98%;
     overflow-y: scroll;
 }
 
 #topoXtmp div {
-    padding: 8px 24px;
-    margin: 8px;
+    padding: 2px 24px;
+    margin: 6px;
     background-color: #ddddff;
 }
 #topoXtmp div div {
-    padding: 4px 10px;
+    padding: 0 10px;
+}
+#topoXtmp div div span {
+    color: purple;
+    font-style: italic;
+    font-weight: bold;
 }
 
 #topoXtmp h4 {
@@ -54,4 +59,9 @@
     font-weight: bold;
     text-decoration: underline;
     cursor: pointer;
+    color: blue;
+}
+
+.subRegions div p {
+    width: 40px;
 }

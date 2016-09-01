@@ -94,6 +94,26 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
     // ==================================================================
 
 
+    private ObjectNode mkLayoutMessage(UiTopoLayout currentLayout) {
+        List<UiTopoLayout> crumbs = topoSession.breadCrumbs();
+        return t2json.layout(currentLayout, crumbs);
+    }
+
+    private ObjectNode mkRegionMessage(UiTopoLayout currentLayout) {
+        UiRegion region = topoSession.getRegion(currentLayout);
+        Set<UiRegion> kids = topoSession.getSubRegions(currentLayout);
+        List<UiSynthLink> links = topoSession.getLinks(currentLayout);
+        return t2json.region(region, kids, links);
+    }
+
+    private ObjectNode mkPeersMessage(UiTopoLayout currentLayout) {
+        Set<UiNode> peers = topoSession.getPeerNodes(currentLayout);
+        ObjectNode peersPayload = objectNode();
+        peersPayload.set("peers", t2json.closedNodes(peers));
+        return peersPayload;
+    }
+
+
     private final class Topo2Start extends RequestHandler {
         private Topo2Start() {
             super(START);
@@ -112,34 +132,26 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
             //  correctly
             topoSession.refreshModel();
 
-            // this is the list of ONOS cluster members
+            // start with the list of ONOS cluster members
             List<UiClusterMember> instances = topoSession.getAllInstances();
             sendMessage(ALL_INSTANCES, t2json.instances(instances));
 
+
+            // Send layout, region, peers data...
+
             // this is the layout that the user has chosen to display
             UiTopoLayout currentLayout = topoSession.currentLayout();
-            List<UiTopoLayout> crumbs = topoSession.breadCrumbs();
-            sendMessage(CURRENT_LAYOUT, t2json.layout(currentLayout, crumbs));
+            sendMessage(CURRENT_LAYOUT, mkLayoutMessage(currentLayout));
 
             // this is the region that is associated with the current layout
             //   this message includes details of the sub-regions, devices,
             //   hosts, and links within the region
             //   (as well as layer-order hints)
-            UiRegion region = topoSession.getRegion(currentLayout);
-            Set<UiRegion> kids = topoSession.getSubRegions(currentLayout);
-            List<UiSynthLink> links = topoSession.getLinks(currentLayout);
-            sendMessage(CURRENT_REGION, t2json.region(region, kids, links));
+            sendMessage(CURRENT_REGION, mkRegionMessage(currentLayout));
 
             // these are the regions/devices that are siblings to this region
-            Set<UiNode> peers = topoSession.getPeerNodes(currentLayout);
-            ObjectNode peersPayload = objectNode();
-            peersPayload.set("peers", t2json.closedNodes(peers));
-            sendMessage(PEER_REGIONS, peersPayload);
-
-            // finally, tell the UI that we are done : TODO review / delete??
-            sendMessage(TOPO_START_DONE, null);
+            sendMessage(PEER_REGIONS, mkPeersMessage(currentLayout));
         }
-
     }
 
     private final class Topo2NavRegion extends RequestHandler {
@@ -149,9 +161,19 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            String dir = string(payload, "dir");
             String rid = string(payload, "rid");
-            log.debug("NavRegion: dir={}, rid={}", dir, rid);
+            log.debug("topo2navRegion: rid={}", rid);
+
+            // NOTE: we are NOT re-issuing information about the cluster nodes
+
+            // switch to the selected region...
+            topoSession.navToRegion(rid);
+
+            // re-send layout, region, peers data...
+            UiTopoLayout currentLayout = topoSession.currentLayout();
+            sendMessage(CURRENT_LAYOUT, mkLayoutMessage(currentLayout));
+            sendMessage(CURRENT_REGION, mkRegionMessage(currentLayout));
+            sendMessage(PEER_REGIONS, mkPeersMessage(currentLayout));
         }
     }
 

@@ -25,9 +25,13 @@
     // injected refs
     var $log, wss;
 
+    // selected DOM refs
+    var topdiv;
+
     // ========================== Helper Functions
 
     function init() {
+        topdiv = d3.select('#topoXtmp');
         $log.debug('Initialize topo force layout');
     }
 
@@ -35,44 +39,82 @@
         $log.debug('Destroy topo force layout');
     }
 
-    // ========================== Temporary Code (to be deleted later)
+    function rmP(div) {
+        div.selectAll('p').remove();
+    }
 
-    function request(dir, rid) {
+    function navRequest(rid) {
         wss.sendEvent('topo2navRegion', {
-            dir: dir,
             rid: rid
         });
     }
 
+    function doTmpInstances(data) {
+        var idiv = topdiv.select('.instances').select('div');
+        data.members.forEach(function (m) {
+            idiv.append('div').text(m.id);
+        });
+    }
+
     function doTmpCurrentLayout(data) {
-        var topdiv = d3.select('#topoXtmp');
-        var parentRegion = data.parent;
-        var span = topdiv.select('.parentRegion').select('span');
-        span.text(parentRegion || '[no parent]');
-        span.classed('nav-me', !!parentRegion);
+        var ldDiv = topdiv.select('.layoutData'),
+            bcs = ldDiv.select('.l_crumbs');
+
+        function setSpan(v, val) {
+            var cls = '.l_' + v,
+                span = ldDiv.select(cls).select('span'),
+                value = val || data[v];
+            span.html(value);
+        }
+
+        setSpan('id');
+        setSpan('parent');
+        setSpan('region');
+        setSpan('regionName');
+
+        addCrumbNav(bcs, data.crumbs, data.region);
+    }
+
+    function addCrumbNav(span, array, id) {
+        var rev = [];
+
+        span.selectAll('span').remove();
+
+        array.forEach(function (a) {
+            rev.unshift(a.id);
+        });
+
+        rev.forEach(function (rid, idx) {
+            if (idx) {
+                span.append('span').text(' +++ ');
+            }
+            if (rid != id) {
+                addNavigable(span, 'span', rid);
+            } else {
+                span.append('span').text(rid);
+            }
+        });
+    }
+
+    function addNavigable(span, what, rid) {
+        span.append(what).classed('nav-me', true)
+            .text(rid)
+            .on('click', function () { navRequest(rid); });
     }
 
     function doTmpCurrentRegion(data) {
-        var topdiv = d3.select('#topoXtmp');
         var span = topdiv.select('.thisRegion').select('span');
         var div;
-
         span.text(data.id);
 
         div = topdiv.select('.subRegions').select('div');
+        rmP(div);
         data.subregions.forEach(function (r) {
-
-            function nav() {
-                request('down', r.id);
-            }
-
-            div.append('p')
-                .classed('nav-me', true)
-                .text(r.id)
-                .on('click', nav);
+            addNavigable(div, 'p', r.id);
         });
 
         div = topdiv.select('.devices').select('div');
+        rmP(div);
         data.layerOrder.forEach(function (tag, idx) {
             var devs = data.devices[idx];
             devs.forEach(function (d) {
@@ -83,6 +125,7 @@
         });
 
         div = topdiv.select('.hosts').select('div');
+        rmP(div);
         data.layerOrder.forEach(function (tag, idx) {
             var hosts = data.hosts[idx];
             hosts.forEach(function (h) {
@@ -92,8 +135,8 @@
         });
 
         div = topdiv.select('.links').select('div');
-        var links = data.links;
-        links.forEach(function (lnk) {
+        rmP(div);
+        data.links.forEach(function (lnk) {
             div.append('p')
                 .text(lnk.id);
         });
@@ -106,26 +149,27 @@
     // ========================== Event Handlers
 
     function allInstances(data) {
-        $log.debug('>> topo2AllInstances event:', data)
-        doTmpCurrentLayout(data);
+        $log.debug('>> topo2AllInstances event:', data);
+        doTmpInstances(data);
     }
 
     function currentLayout(data) {
-        $log.debug('>> topo2CurrentLayout event:', data)
+        $log.debug('>> topo2CurrentLayout event:', data);
+        doTmpCurrentLayout(data);
     }
 
     function currentRegion(data) {
-        $log.debug('>> topo2CurrentRegion event:', data)
+        $log.debug('>> topo2CurrentRegion event:', data);
         doTmpCurrentRegion(data);
     }
 
     function peerRegions(data) {
-        $log.debug('>> topo2PeerRegions event:', data)
+        $log.debug('>> topo2PeerRegions event:', data);
         doTmpPeerRegions(data);
     }
 
     function startDone(data) {
-        $log.debug('>> topo2StartDone event:', data)
+        $log.debug('>> topo2StartDone event:', data);
     }
     
     // ========================== Main Service Definition
