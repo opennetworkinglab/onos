@@ -75,7 +75,7 @@ public class IntentInstaller {
 
     /**
      * Formats the requests for creating and submit intents.
-     * Single Points to Multi Point intents are created for all the conigured
+     * Single Points to Multi Point intents are created for all the configured
      * Connect Points. Multi Point to Single Point intents are created for
      * Connect Points configured that have hosts attached.
      *
