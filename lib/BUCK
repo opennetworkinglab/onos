@@ -33,6 +33,8 @@ osgi_feature_group(
     ':org.apache.karaf.features.core',
     ':org.apache.karaf.system.core',
     ':jsr305',
+    ':amqp-client',
+    ':gson',
   ],
 )
 
@@ -1099,6 +1101,24 @@ remote_jar (
   url = 'mvn:org.pacesys.openstack4j.connectors:openstack4j-httpclient:jar:2.11',
   sha1 = 'd050e21295959a4ce2c07ca193ccbe28d8bfa3c1',
   maven_coords = 'org.pacesys.openstack4j.connectors:openstack4j-httpclient:2.11',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_jar (
+  name = 'amqp-client',
+  out = 'amqp-client-3.6.1.jar',
+  url = 'mvn:com.rabbitmq:amqp-client:jar:3.6.1',
+  sha1 = '089be4acfa8a0fa48a775a82d20632f90aecf10b',
+  maven_coords = 'com.rabbitmq:amqp-client:3.6.1',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_jar (
+  name = 'gson',
+  out = 'gson-2.6.2.jar',
+  url = 'mvn:com.google.code.gson:gson:jar:2.6.2',
+  sha1 = 'f1bc476cc167b18e66c297df599b2377131a8947',
+  maven_coords = 'com.google.code.gson:gson:2.6.2',
   visibility = [ 'PUBLIC' ],
 )
 

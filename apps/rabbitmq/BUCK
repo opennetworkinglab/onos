@@ -1,0 +1,24 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api',
+    '//lib:guava',
+    '//lib:gson',
+    '//lib:amqp-client',
+]
+
+BUNDLES = [
+   '//apps/rabbitmq:onos-apps-rabbitmq',
+]
+
+osgi_jar (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'Rabbit MQ APP',
+    category = 'Traffic Steering',
+    url = 'http://onosproject.org',
+    description = 'Rabbit MQ application.',
+    required_apps = [ 'org.onosproject.proxyarp' ],
+    included_bundles = BUNDLES,
+)
