@@ -52,7 +52,6 @@ import org.onosproject.net.flow.FlowRuleEvent;
 import org.onosproject.net.flow.FlowRuleListener;
 import org.onosproject.net.flow.FlowRuleOperation;
 import org.onosproject.net.flow.FlowRuleOperations;
-import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleProvider;
 import org.onosproject.net.flow.FlowRuleProviderRegistry;
 import org.onosproject.net.flow.FlowRuleProviderService;
@@ -601,7 +600,6 @@ public class FlowRuleManager
     private class FlowOperationsProcessor implements Runnable {
 
         private final List<Set<FlowRuleOperation>> stages;
-        private final FlowRuleOperationsContext context;
         private final FlowRuleOperations fops;
         private boolean hasFailed = false;
 
@@ -609,7 +607,6 @@ public class FlowRuleManager
 
         FlowOperationsProcessor(FlowRuleOperations ops) {
             this.stages = Lists.newArrayList(ops.stages());
-            this.context = ops.callback();
             this.fops = ops;
         }
 
@@ -617,8 +614,8 @@ public class FlowRuleManager
         public synchronized void run() {
             if (stages.size() > 0) {
                 process(stages.remove(0));
-            } else if (!hasFailed && context != null) {
-                context.onSuccess(fops);
+            } else if (!hasFailed && fops.callback() != null) {
+                fops.callback().onSuccess(fops);
             }
         }
 
@@ -654,12 +651,12 @@ public class FlowRuleManager
                 operationsService.execute(this);
             }
 
-            if (context != null) {
+            if (fops.callback() != null) {
                 final FlowRuleOperations.Builder failedOpsBuilder =
                     FlowRuleOperations.builder();
                 failures.forEach(failedOpsBuilder::add);
 
-                context.onError(failedOpsBuilder.build());
+                fops.callback().onError(failedOpsBuilder.build());
             }
         }
     }
