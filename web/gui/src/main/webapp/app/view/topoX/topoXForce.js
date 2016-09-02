@@ -143,7 +143,19 @@
     }
 
     function doTmpPeerRegions(data) {
+        var peerDiv = topdiv.select('.peers').select('div');
+        rmP(peerDiv);
 
+        function logPeer(p) {
+            var o = peerDiv.append('p'),
+                id = p.id,
+                nt = p.nodeType;
+            o.text('[' + nt + '] id = ' + id);
+        }
+
+        data.peers.forEach(function (p) {
+            logPeer(p);
+        });
     }
 
     // ========================== Event Handlers

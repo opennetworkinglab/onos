@@ -136,8 +136,9 @@ public class UiTopoLayoutManager implements UiTopoLayoutService {
 
         UiTopoLayoutId parentId = layout.parent();
         return layoutMap.values().stream()
-                // all layouts who are NOT me and who share my parent...
+                // all layouts who are NOT me (or root) and who share my parent...
                 .filter(l -> !Objects.equals(l.id(), layoutId) &&
+                        !Objects.equals(l.id(), UiTopoLayoutId.DEFAULT_ID) &&
                         Objects.equals(l.parent(), parentId))
                 .collect(Collectors.toSet());
     }
