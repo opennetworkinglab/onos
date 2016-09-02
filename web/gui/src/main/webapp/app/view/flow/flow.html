@@ -5,6 +5,23 @@
             Flows for Device {{devId || "(No device selected)"}}
             ({{tableData.length}} total)
         </h2>
+
+        <div class="search">
+            <input type="text" ng-model="query" placeholder="Search"/>
+            <select ng-model="queryBy">
+                <option value="" disabled>Search By</option>
+                <option value="$">All</option>
+                <option value="id">Flow ID</option>
+                <option value="appId">App ID</option>
+                <option value="groupId">Group ID</option>
+                <option value="tableId">Table ID</option>
+                <option value="priority">Priority</option>
+                <option value="timeout">Timeout</option>
+                <option value="permanent">Permanent</option>
+                <option value="state">State</option>
+            </select>
+        </div>
+
         <div class="ctrl-btns">
             <div class="refresh" ng-class="{active: autoRefresh}"
                  icon icon-size="42" icon-id="refresh"
@@ -81,7 +98,7 @@
                     </td>
                 </tr>
 
-                <tr ng-repeat-start="flow in tableData track by $index"
+                <tr ng-repeat-start="flow in tableData | filter:queryFilter track by $index"
                     ng-repeat-complete row-id="{{flow.id}}">
                     <td>{{flow.id}}</td>
                     <td>{{flow.appId}}</td>
