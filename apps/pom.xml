@@ -31,6 +31,7 @@
 
     <modules>
         <module>acl</module>
+        <module>roadm</module>
         <module>faultmanagement</module>
         <module>fwd</module>
         <module>mobility</module>

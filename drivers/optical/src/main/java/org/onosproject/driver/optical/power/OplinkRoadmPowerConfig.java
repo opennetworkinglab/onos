@@ -122,11 +122,22 @@ public class OplinkRoadmPowerConfig extends AbstractHandlerBehaviour
             TrafficSelector selector = entry.selector();
             OchSignalCriterion entrySigid =
                     (OchSignalCriterion) selector.getCriterion(Criterion.Type.OCH_SIGID);
+            // Check channel
             if (entrySigid != null && och.equals(entrySigid.lambda())) {
+                // Check input port
                 PortCriterion entryPort =
                         (PortCriterion) selector.getCriterion(Criterion.Type.IN_PORT);
                 if (entryPort != null && portNum.equals(entryPort.port())) {
                     return entry;
+                }
+
+                // Check output port
+                TrafficTreatment treatment = entry.treatment();
+                for (Instruction instruction : treatment.allInstructions()) {
+                    if (instruction.type() == Instruction.Type.OUTPUT &&
+                        ((Instructions.OutputInstruction) instruction).port().equals(portNum)) {
+                        return entry;
+                    }
                 }
             }
         }

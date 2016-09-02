@@ -1,0 +1,39 @@
+/* css for ROADM device table view */
+
+.less-gap {
+    margin-top: -20px;
+}
+
+#ov-roadm-device h2 {
+    display: inline-block;
+}
+
+/* Panel Styling */
+#ov-roadm-device-item-details-panel.floatpanel {
+    position: absolute;
+    top: 115px;
+}
+
+.light #ov-roadm-device-item-details-panel.floatpanel {
+    background-color: rgb(229, 234, 237);
+}
+.dark #ov-roadm-device-item-details-panel.floatpanel {
+    background-color: #3A4042;
+}
+
+#ov-roadm-device-item-details-panel h3 {
+    margin: 0;
+    font-size: large;
+}
+
+#ov-roadm-device-item-details-panel h4 {
+    margin: 0;
+}
+
+#ov-roadm-device-item-details-panel td {
+    padding: 5px;
+}
+#ov-roadm-device-item-details-panel td.label {
+    font-style: italic;
+    opacity: 0.8;
+}

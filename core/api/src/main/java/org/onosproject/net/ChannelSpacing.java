@@ -30,9 +30,9 @@ public enum ChannelSpacing {
     private final Frequency frequency;
 
     /**
-     * Creates an instance with the specified interval in GHz.
+     * Creates an instance with the specified interval in MHz.
      *
-     * @param value interval of neighboring wavelengths in GHz.
+     * @param value interval of neighboring wavelengths in MHz.
      */
     ChannelSpacing(long value) {
         this.frequency = Frequency.ofMHz(value);

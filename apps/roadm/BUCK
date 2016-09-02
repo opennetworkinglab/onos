@@ -1,0 +1,24 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//core/store/serializers:onos-core-serializers',
+    '//apps/optical-model:onos-apps-optical-model',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_REST',
+    '//core/api:onos-api-tests',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
+
+onos_app (
+    title = 'ROADM App',
+    category = 'Optical',
+    url = 'http://onosproject.org',
+    description = """This application provides an interface and web GUI for monitoring
+                     and configuring power on ROADM devices.""",
+    required_apps = [ 'org.onosproject.optical-model' ],
+)

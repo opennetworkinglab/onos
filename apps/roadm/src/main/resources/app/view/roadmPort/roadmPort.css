@@ -1,0 +1,69 @@
+/* css for ROADM port table view */
+
+#ov-roadm-port h2 {
+    display: inline-block;
+}
+
+/* Panel Styling */
+#ov-roadm-port-item-details-panel.floatpanel {
+    position: absolute;
+    top: 115px;
+}
+
+.light #ov-roadm-port-item-details-panel.floatpanel {
+    background-color: rgb(229, 234, 237);
+}
+.dark #ov-roadm-port-item-details-panel.floatpanel {
+    background-color: #3A4042;
+}
+
+#ov-roadm-port-item-details-panel h3 {
+    margin: 0;
+    font-size: large;
+}
+
+#ov-roadm-port-item-details-panel h4 {
+    margin: 0;
+}
+
+#ov-roadm-port-item-details-panel td {
+    padding: 5px;
+}
+
+#ov-roadm-port-item-details-panel td.label {
+    font-style: italic;
+    opacity: 0.8;
+}
+
+#ov-roadm-port .table-header span.units {
+    font-variant: normal;
+    text-transform: none;
+}
+
+/* Editable Target Power field */
+#ov-roadm-port .editable span {
+    width: 100%;
+    display: inline-block;
+}
+
+#ov-roadm-port .editable span.target-power:hover {
+    color: #009fdb
+}
+
+#ov-roadm-port .editable input {
+    padding: 0;
+}
+#ov-roadm-port .editable button {
+    margin: 0;
+    padding: 0px 5px 0px 5px;
+}
+
+#ov-roadm-port .editable input {
+    width: 80px;
+}
+
+#ov-roadm-port .editable .input-error {
+    color: red;
+    font-size: 10px;
+    width: 180px;
+}
