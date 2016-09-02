@@ -4,5 +4,4 @@ export ONOS_NIC="10.1.10.*"
 export OC1="10.1.10.223"
 
 unset ONOS_USE_SSH
-export ONOS_APPS="drivers,openflow,fwd,proxyarp,mobility,dhcp"
-
+export ONOS_APPS="drivers,openflow,fwd,proxyarp,mobility"
