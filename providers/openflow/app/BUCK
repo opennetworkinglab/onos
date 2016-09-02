@@ -1,7 +1,7 @@
 APPS = [
-    'org.onosproject.openflow-base',
     'org.onosproject.hostprovider',
     'org.onosproject.lldpprovider',
+    'org.onosproject.openflow-base',
 ]
 
 onos_app (
