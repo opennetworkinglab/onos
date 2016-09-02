@@ -22,26 +22,18 @@
     'use strict';
 
     // internal state
-    var hovered, selections, selectOrder, consumeClick;
+    var consumeClick;
 
-    function selectObject(obj) {
-        var el = this,
-            nodeEv = el && el.tagName === 'g',
-            ev = d3.event.sourceEvent || {},
-            n;
-
-        console.log(el, nodeEv, ev, n);
-    }
+    function selectObject(obj) {}
 
     function clickConsumed(x) {
         var cc = consumeClick;
-        consumeClick = !!x;
+        consumeClick = Boolean(x);
         return cc;
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2SelectService',
-    [
+    .factory('Topo2SelectService', [
         function () {
 
             return {

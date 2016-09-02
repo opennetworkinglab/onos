@@ -39,7 +39,7 @@
                 return {
                     newDim: newDim,
                     getDimensions: getDimensions
-                }
+                };
             }
         ]
     );

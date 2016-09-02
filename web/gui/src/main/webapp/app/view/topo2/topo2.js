@@ -24,18 +24,14 @@
     'use strict';
 
     // references to injected services
-    var $scope, $log, $loc,
-        fs, mast, ks, zs,
-        gs, ms, sus, flash,
-        wss, ps, th,
-        t2es, t2fs, t2is, t2bcs;
+    var $scope, $log, fs, mast, ks, zs,
+        gs, sus, ps, t2es, t2fs, t2is, t2bcs;
 
     // DOM elements
-    var ovtopo2, svg, defs, zoomLayer, mapG, spriteG, forceG, noDevsLayer;
+    var ovtopo2, svg, defs, zoomLayer, forceG;
 
     // Internal state
-    var zoomer, actionMap;
-
+    var zoomer;
 
     // --- Glyphs, Icons, and the like -----------------------------------
 
@@ -66,10 +62,10 @@
         var sc = zoomer.scale(),
             tr = zoomer.translate();
 
-        ps.setPrefs('topo_zoom', {tx:tr[0], ty:tr[1], sc:sc});
+        ps.setPrefs('topo_zoom', { tx: tr[0], ty: tr[1], sc: sc });
 
         // keep the map lines constant width while zooming
-        mapG.style('stroke-width', (2.0 / sc) + 'px');
+        // mapG.style('stroke-width', (2.0 / sc) + 'px');
     }
 
     function setUpZoom() {
@@ -81,7 +77,6 @@
             zoomCallback: zoomCallback
         });
     }
-
 
     // === Controller Definition -----------------------------------------
 
@@ -101,7 +96,6 @@
             _t2es_, _t2fs_, _t2is_, _t2bcs_) {
 
             var params = _$loc_.search(),
-                projection,
                 dim,
                 wh,
                 uplink = {
@@ -109,14 +103,13 @@
                     // showNoDevs: showNoDevs,
                     // projection: function () { return projection; },
                     zoomLayer: function () { return zoomLayer; },
-                    zoomer: function () { return zoomer; },
+                    zoomer: function () { return zoomer; }
                     // opacifyMap: opacifyMap,
                     // topoStartDone: topoStartDone
                 };
 
             $scope = _$scope_;
             $log = _$log_;
-            $loc = _$loc_;
 
             fs = _fs_;
             mast = _mast_;
@@ -124,13 +117,9 @@
             zs = _zs_;
 
             gs = _gs_;
-            ms = _ms_;
             sus = _sus_;
-            flash = _flash_;
 
-            wss = _wss_;
             ps = _ps_;
-            th = _th_;
 
             t2es = _t2es_;
             t2fs = _t2fs_;
@@ -140,7 +129,10 @@
             // capture selected intent parameters (if they are set in the
             //  query string) so that the traffic overlay can highlight
             //  the path for that intent
-            if (params.intentKey && params.intentAppId && params.intentAppName) {
+            if (params.intentKey &&
+                params.intentAppId &&
+                params.intentAppName) {
+
                 $scope.intentData = {
                     key: params.intentKey,
                     appId: params.intentAppId,
@@ -169,7 +161,6 @@
             svg.attr(wh);
             dim = [wh.width, wh.height];
 
-
             // set up our keyboard shortcut bindings
             setUpKeys();
             setUpZoom();
@@ -183,7 +174,6 @@
             t2fs.init(svg, forceG, uplink, dim);
             t2bcs.init();
 
-
             // =-=-=-=-=-=-=-=-
             // TODO: in future, we will load background map data
             //  asynchronously (hence the promise) and then chain off
@@ -191,11 +181,7 @@
             // For now, we'll send the event inline...
             t2es.start();
 
-
-
             t2is.initInst({ showMastership: t2fs.showMastership });
-
-
 
             // === ORIGINAL CODE ===
 
@@ -242,4 +228,4 @@
 
             $log.log('OvTopo2Ctrl has been created');
         }]);
-}());
+})();

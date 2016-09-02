@@ -26,12 +26,14 @@
 
     function Collection(models, options) {
 
-        options || (options = {});
+        var opts = options || (options = {});
 
         this.models = [];
         this._reset();
 
-        if (options.comparator !== void 0) this.comparator = options.comparator;
+        if (opts.comparator) {
+            this.comparator = opts.comparator;
+        }
 
         if (models) {
             this.add(models);
@@ -48,7 +50,8 @@
 
                 data.forEach(function (d) {
 
-                    var model = new _this.model(d);
+                    var CollectionModel = _this.model;
+                    var model = new CollectionModel(d);
                     model.collection = _this;
 
                     _this.models.push(model);
@@ -57,9 +60,11 @@
             }
         },
         get: function (id) {
+
             if (!id) {
-                return void 0;
+                return null;
             }
+
             return this._byId[id] || null;
         },
         sort: function () {
@@ -76,9 +81,11 @@
             this._byId = [];
             this.models = [];
         },
-        toJSON: function(options) {
-            return this.models.map(function(model) { return model.toJSON(options); });
-        },
+        toJSON: function (options) {
+            return this.models.map(function (model) {
+                return model.toJSON(options);
+            });
+        }
     };
 
     Collection.extend = function (protoProps, staticProps) {

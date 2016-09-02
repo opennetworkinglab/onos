@@ -42,7 +42,7 @@ Visualization of the topology in an SVG layer, using a D3 Force Layout.
             return this.attributes[attr];
         },
 
-        set: function(key, val, options) {
+        set: function (key, val, options) {
 
             if (!key) {
                 return this;
@@ -56,19 +56,21 @@ Visualization of the topology in an SVG layer, using a D3 Force Layout.
                 (attributes = {})[key] = val;
             }
 
-            options || (options = {});
+            var opts = options || (options = {});
 
-            var unset = options.unset,
-                silent = options.silent,
+            var unset = opts.unset,
+                silent = opts.silent,
                 changes = [],
-                changing   = this._changing;
+                changing = this._changing;
 
             this._changing = true;
 
             if (!changing) {
 
                 // NOTE: angular.copy causes issues in chrome
-                this._previousAttributes = Object.create(Object.getPrototypeOf(this.attributes));
+                this._previousAttributes = Object.create(
+                    Object.getPrototypeOf(this.attributes)
+                );
                 this.changed = {};
             }
 
@@ -84,33 +86,37 @@ Visualization of the topology in an SVG layer, using a D3 Force Layout.
                     changes.push(index);
                 }
 
-                if (!angular.equals(previous[index], val)) {
-                    changed[index] = val;
-                } else {
+                if (angular.equals(previous[index], val)) {
                     delete changed[index];
+                } else {
+                    changed[index] = val;
                 }
 
-                unset ? delete current[index] : current[index] = val;
+                if (unset) {
+                    delete current[index];
+                } else {
+                    current[index] = val;
+                }
             });
 
             // Trigger all relevant attribute changes.
             if (!silent) {
                 if (changes.length) {
-                    this._pending = options;
+                    this._pending = opts;
                 }
                 for (var i = 0; i < changes.length; i++) {
-                    this.onChange(changes[i], this, current[changes[i]], options);
+                    this.onChange(changes[i], this,
+                        current[changes[i]], opts);
                 }
             }
 
             this._changing = false;
             return this;
         },
-        toJSON: function(options) {
-            return angular.copy(this.attributes)
-        },
+        toJSON: function (options) {
+            return angular.copy(this.attributes);
+        }
     };
-
 
     Model.extend = function (protoProps, staticProps) {
 
@@ -136,8 +142,7 @@ Visualization of the topology in an SVG layer, using a D3 Force Layout.
     };
 
     angular.module('ovTopo2')
-    .factory('Topo2Model',
-    [
+    .factory('Topo2Model', [
         function () {
             return Model;
         }

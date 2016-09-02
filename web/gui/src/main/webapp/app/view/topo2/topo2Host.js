@@ -22,7 +22,7 @@
 (function () {
     'use strict';
 
-    var Collection, Model, t2vs;
+    var Collection, Model;
 
     function createHostCollection(data, region) {
 
@@ -41,12 +41,10 @@
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2HostService',
-    [
+    .factory('Topo2HostService', [
         'Topo2Collection', 'Topo2NodeModel', 'Topo2ViewService',
         function (_Collection_, _NodeModel_, classnames, _t2vs_) {
 
-            t2vs = _t2vs_;
             Collection = _Collection_;
 
             Model = _NodeModel_.extend({

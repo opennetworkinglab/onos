@@ -22,7 +22,7 @@
 (function () {
     'use strict';
 
-    var wss, is, sus, ts, t2vs;
+    var wss, is, sus;
     var Collection, Model;
 
     var remappedDeviceTypes = {
@@ -31,22 +31,7 @@
 
     // configuration
     var devIconDim = 36,
-        labelPad = 10,
-        hostRadius = 14,
-        badgeConfig = {
-            radius: 12,
-            yoff: 5,
-            gdelta: 10
-        },
-        halfDevIcon = devIconDim / 2,
-        devBadgeOff = { dx: -halfDevIcon, dy: -halfDevIcon },
-        hostBadgeOff = { dx: -hostRadius, dy: -hostRadius },
-        status = {
-            i: 'badgeInfo',
-            w: 'badgeWarn',
-            e: 'badgeError'
-        },
-        deviceLabelIndex = 0;
+        halfDevIcon = devIconDim / 2;
 
     function createSubRegionCollection(data, region) {
 
@@ -67,22 +52,20 @@
             y: -dim / 2,
             width: dim + labelWidth,
             height: dim
-        }
+        };
     }
 
     angular.module('ovTopo2')
     .factory('Topo2SubRegionService',
-        ['WebSocketService', 'Topo2Collection', 'Topo2NodeModel', 'IconService', 'SvgUtilService',
-        'ThemeService', 'Topo2ViewService',
+        ['WebSocketService', 'Topo2Collection', 'Topo2NodeModel',
+        'IconService', 'SvgUtilService', 'ThemeService', 'Topo2ViewService',
 
-            function (_wss_, _Collection_, _NodeModel_, _is_, _sus_, _ts_, classnames, _t2vs_) {
+            function (_wss_, _c_, _NodeModel_, _is_, _sus_, _ts_, _t2vs_) {
 
                 wss = _wss_;
-                t2vs = _t2vs_;
                 is = _is_;
                 sus = _sus_;
-                ts = _ts_;
-                Collection = _Collection_;
+                Collection = _c_;
 
                 Model = _NodeModel_.extend({
                     initialize: function () {

@@ -19,16 +19,18 @@
  Module that renders the breadcrumbs for regions
  */
 
- (function () {
+(function () {
+
     'use strict';
 
     var $log, wss;
 
+    // Internal
     var breadcrumbContainer,
         breadcrumbs;
 
     function init() {
-
+        $log.debug("Topo2BreadcrumbService Initiated");
         breadcrumbs = [];
         breadcrumbContainer = d3.select('#breadcrumbs');
         render();
@@ -36,13 +38,8 @@
 
     function addBreadcrumb(crumbs) {
 
-        // If `crumbs` is an array, merge with breadcrumbs;
-        if (crumbs.length) {
-            breadcrumbs = breadcrumbs.concat(crumbs);
-        } else {
-            breadcrumbs.push(crumbs);
-        }
-
+        breadcrumbContainer.selectAll('.breadcrumb').remove();
+        breadcrumbs = crumbs.reverse();
         render();
     }
 

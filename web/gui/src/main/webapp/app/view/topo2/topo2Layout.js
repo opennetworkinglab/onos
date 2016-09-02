@@ -24,12 +24,10 @@
 
     var $log, sus, t2rs, t2d3, t2vs, t2ss;
 
-    var uplink, linkG, linkLabelG, numLinkLabelsG, nodeG, portLabelG;
-    var link, linkLabel, node;
+    var uplink, linkG, linkLabelG, nodeG;
+    var link, node;
 
-    var nodes, links, highlightedLink;
-
-    var force;
+    var highlightedLink;
 
     // default settings for force layout
     var defaultSettings = {
@@ -51,9 +49,9 @@
         linkStrength: {
             // note: key is link.type
             // range: {0.0 ... 1.0}
-            //direct: 1.0,
-            //optical: 1.0,
-            //hostLink: 1.0,
+            direct: 1.0,
+            optical: 1.0,
+            hostLink: 1.0,
             _def_: 1.0
         }
     };
@@ -79,23 +77,7 @@
     var settings,   // merged default settings and options
         force,      // force layout object
         drag,       // drag behavior handler
-        network = {
-            nodes: [],
-            links: [],
-            linksByDevice: {},
-            lookup: {},
-            revLinkToKey: {}
-        },
-        lu,                     // shorthand for lookup
-        rlk,                    // shorthand for revLinktoKey
-        showHosts = false,      // whether hosts are displayed
-        showOffline = true,     // whether offline devices are displayed
-        nodeLock = false,       // whether nodes can be dragged or not (locked)
-        fTimer,                 // timer for delayed force layout
-        fNodesTimer,            // timer for delayed nodes update
-        fLinksTimer,            // timer for delayed links update
-        dim,                    // the dimensions of the force layout [w,h]
-        linkNums = [];          // array of link number labels
+        nodeLock = false;       // whether nodes can be dragged or not (locked)
 
     var tickStuff = {
         nodeAttr: {
@@ -110,14 +92,6 @@
             y1: function (d) { return d.get('position').y1; },
             x2: function (d) { return d.get('position').x2; },
             y2: function (d) { return d.get('position').y2; }
-        },
-        linkLabelAttr: {
-            transform: function (d) {
-                var lnk = tms.findLinkById(d.get('key'));
-                if (lnk) {
-                    return t2d3.transformLabel(lnk.get('position'));
-                }
-            }
         }
     };
 
@@ -129,13 +103,18 @@
 
         linkG = forceG.append('g').attr('id', 'topo-links');
         linkLabelG = forceG.append('g').attr('id', 'topo-linkLabels');
-        numLinkLabelsG = forceG.append('g').attr('id', 'topo-numLinkLabels');
+        forceG.append('g').attr('id', 'topo-numLinkLabels');
         nodeG = forceG.append('g').attr('id', 'topo-nodes');
-        portLabelG = forceG.append('g').attr('id', 'topo-portLabels');
+        forceG.append('g').attr('id', 'topo-portLabels');
 
         link = linkG.selectAll('.link');
-        linkLabel = linkLabelG.selectAll('.linkLabel');
+        linkLabelG.selectAll('.linkLabel');
         node = nodeG.selectAll('.node');
+
+        _svg_.on('mousemove', mouseMoveHandler);
+    }
+
+    function createForceLayout() {
 
         force = d3.layout.force()
             .size(t2vs.getDimensions())
@@ -148,10 +127,11 @@
             .linkStrength(settings.linkStrength._def_)
             .on('tick', tick);
 
-            drag = sus.createDragBehavior(force,
-                t2ss.selectObject, atDragEnd, dragEnabled, clickEnabled);
+        drag = sus.createDragBehavior(force,
+            t2ss.selectObject, atDragEnd, dragEnabled, clickEnabled);
 
-            _svg_.on('mousemove', mouseMoveHandler)
+        start();
+        update();
     }
 
     function zoomingOrPanning(ev) {
@@ -188,9 +168,6 @@
                 .attr(tickStuff.linkAttr);
             // t2d3.applyNumLinkLabels(linkNums, numLinkLabelsG);
         }
-        if (linkLabel && linkLabel.size()) {
-            linkLabel.attr(tickStuff.linkLabelAttr);
-        }
     }
 
     function update() {
@@ -210,7 +187,7 @@
             .append('g')
             .attr({
                 id: function (d) { return sus.safeId(d.get('id')); },
-                class: function (d) { return d.svgClassName() },
+                class: function (d) { return d.svgClassName(); },
                 transform: function (d) {
                     // Need to guard against NaN here ??
                     return sus.translate(d.node.x, d.node.y);
@@ -227,10 +204,18 @@
         entering.filter('.sub-region').each(t2d3.nodeEnter);
         entering.filter('.host').each(t2d3.hostEnter);
 
-        // operate on both existing and new nodes:
-        // node.filter('.device').each(function (device) {
-        //     t2d3.updateDeviceColors(device);
-        // });
+        // operate on exiting nodes:
+        // Note that the node is removed after 2 seconds.
+        // Sub element animations should be shorter than 2 seconds.
+        var exiting = node.exit()
+            .transition()
+            .duration(2000)
+            .style('opacity', 0)
+            .remove();
+
+        // exiting node specifics:
+        // exiting.filter('.host').each(t2d3.hostExit);
+        exiting.filter('.device').each(t2d3.nodeExit);
     }
 
     function _updateLinks() {
@@ -241,16 +226,6 @@
         link = linkG.selectAll('.link')
             .data(regionLinks, function (d) { return d.get('key'); });
 
-        // operate on existing links:
-        link.each(function (d) {
-            // this is supposed to be an existing link, but we have observed
-            //  occasions (where links are deleted and added rapidly?) where
-            //  the DOM element has not been defined. So protect against that...
-            if (d.el) {
-                restyleLinkElement(d, true);
-            }
-        });
-
         // operate on entering links:
         var entering = link.enter()
             .append('line')
@@ -260,14 +235,14 @@
                 y1: function (d) { return d.get('position').y1; },
                 x2: function (d) { return d.get('position').x2; },
                 y2: function (d) { return d.get('position').y2; },
-                stroke: linkConfig['light'].inColor,
+                stroke: linkConfig.light.inColor,
                 'stroke-width': linkConfig.inWidth
             });
 
         entering.each(t2d3.linkEntering);
 
         // operate on both existing and new links:
-        //link.each(...)
+        // link.each(...)
 
         // add labels for how many links are in a thick line
         // t2d3.applyNumLinkLabels(linkNums, numLinkLabelsG);
@@ -278,7 +253,7 @@
         // operate on exiting links:
         link.exit()
             .attr('stroke-dasharray', '3 3')
-            .attr('stroke', linkConfig['light'].outColor)
+            .attr('stroke', linkConfig.light.outColor)
             .style('opacity', 0.5)
             .transition()
             .duration(1500)
@@ -291,33 +266,20 @@
     }
 
     function calcPosition() {
-        var lines = this,
-            linkSrcId,
-            linkNums = [];
+        var lines = this;
 
-		lines.each(function (d) {
+        lines.each(function (d) {
             if (d.get('type') === 'hostLink') {
                 d.set('position', getDefaultPos(d));
             }
         });
-
-        function normalizeLinkSrc(link) {
-            // ensure source device is consistent across set of links
-            // temporary measure until link modeling is refactored
-            if (!linkSrcId) {
-                linkSrcId = link.source.id;
-                return false;
-            }
-
-            return link.source.id !== linkSrcId;
-        }
 
         lines.each(function (d) {
             d.set('position', getDefaultPos(d));
         });
     }
 
-	function getDefaultPos(link) {
+    function getDefaultPos(link) {
 
         return {
             x1: link.get('source').x,
@@ -333,7 +295,6 @@
         }
     }
 
-
     function start() {
         force.start();
     }
@@ -342,7 +303,6 @@
     function mouseMoveHandler() {
         var mp = getLogicalMousePosition(this),
             link = computeNearestLink(mp);
-
 
         if (highlightedLink) {
             highlightedLink.unenhance();
@@ -363,11 +323,12 @@
             tr = uplink.zoomer().translate(),
             mx = (m[0] - tr[0]) / sc,
             my = (m[1] - tr[1]) / sc;
-        return {x: mx, y: my};
+        return { x: mx, y: my };
     }
 
-
-    function sq(x) { return x * x; }
+    function sq(x) {
+        return x * x;
+    }
 
     function mdist(p, m) {
         return Math.sqrt(sq(p.x - m.x) + sq(p.y - m.y));
@@ -376,33 +337,6 @@
     function prox(dist) {
         return dist / uplink.zoomer().scale();
     }
-
-    function computeNearestNode(mouse) {
-        var proximity = prox(30),
-            nearest = null,
-            minDist,
-            regionNodes = t2rs.regionNodes();
-
-        if (regionNodes.length) {
-            minDist = proximity * 2;
-
-            regionNodes.forEach(function (d) {
-                var dist;
-
-                if (!api.showHosts() && d.class === 'host') {
-                    return; // skip hidden hosts
-                }
-
-                dist = mdist({x: d.x, y: d.y}, mouse);
-                if (dist < minDist && dist < proximity) {
-                    minDist = dist;
-                    nearest = d;
-                }
-            });
-        }
-        return nearest;
-    }
-
 
     function computeNearestLink(mouse) {
         var proximity = prox(30),
@@ -418,11 +352,11 @@
                 y2 = line.y2,
                 x3 = mouse.x,
                 y3 = mouse.y,
-                k = ((y2-y1) * (x3-x1) - (x2-x1) * (y3-y1)) /
-                    (sq(y2-y1) + sq(x2-x1)),
-                x4 = x3 - k * (y2-y1),
-                y4 = y3 + k * (x2-x1);
-            return {x:x4, y:y4};
+                k = ((y2 - y1) * (x3 - x1) - (x2 - x1) * (y3 - y1)) /
+                    (sq(y2 - y1) + sq(x2 - x1)),
+                x4 = x3 - k * (y2 - y1),
+                y4 = y3 + k * (x2 - x1);
+            return { x: x4, y: y4 };
         }
 
         function lineHit(line, p, m) {
@@ -476,11 +410,12 @@
 
                 return {
                     init: init,
+                    createForceLayout: createForceLayout,
                     update: update,
                     start: start,
 
                     setDimensions: setDimensions
-                }
+                };
             }
         ]
     );

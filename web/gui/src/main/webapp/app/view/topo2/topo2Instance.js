@@ -2,13 +2,7 @@
     'use strict';
 
     // injected refs
-    var $log,
-        ps,
-        sus,
-        gs,
-        ts,
-        fs,
-        flash;
+    var $log, ps, sus, gs, ts;
 
     // api from topo
     var api;
@@ -24,9 +18,7 @@
     // internal state
     var onosInstances,
         onosOrder,
-        oiShowMaster,
         oiBox;
-
 
     function addInstance(data) {
         var id = data.id;
@@ -51,30 +43,15 @@
         }
     }
 
-    function removeInstance(data) {
-        var id = data.id,
-            d = onosInstances[id];
-        if (d) {
-            var idx = fs.find(id, onosOrder);
-            if (idx >= 0) {
-                onosOrder.splice(idx, 1);
-            }
-            delete onosInstances[id];
-            updateInstances();
-        } else {
-            logicError('removeInstance lookup fail. ID = "' + id + '"');
-        }
-    }
-
     // ==========================
 
     function clickInst(d) {
         var el = d3.select(this),
             aff = el.classed('affinity');
-        if (!aff) {
-            setAffinity(el, d);
-        } else {
+        if (aff) {
             cancelAffinity();
+        } else {
+            setAffinity(el, d);
         }
     }
 
@@ -86,7 +63,6 @@
 
         // suppress all elements except nodes whose master is this instance
         api.showMastership(d.id);
-        oiShowMaster = true;
     }
 
     function cancelAffinity() {
@@ -94,7 +70,6 @@
             .classed('mastership affinity', false);
 
         api.showMastership(null);
-        oiShowMaster = false;
     }
 
     function attachUiBadge(svg) {
@@ -173,7 +148,6 @@
             updAttr('ns', nSw(d.switches));
         });
 
-
         // operate on new onos instances
         var entering = onoses.enter()
             .append('div')
@@ -235,9 +209,7 @@
         onoses.exit().remove();
     }
 
-
     // ==========================
-
     function logicError(msg) {
         if (showLogicErrors) {
             $log.warn('TopoInstService: ' + msg);
@@ -251,21 +223,9 @@
 
         onosInstances = {};
         onosOrder = [];
-        oiShowMaster = false;
 
         // we want to update the instances, each time the theme changes
         ts.addListener(updateInstances);
-    }
-
-    function destroyInst() {
-        ts.removeListener(updateInstances);
-
-        ps.destroyPanel(idIns);
-        oiBox = null;
-
-        onosInstances = {};
-        onosOrder = [];
-        oiShowMaster = false;
     }
 
     function allInstances(data) {
@@ -281,16 +241,14 @@
     angular.module('ovTopo2')
         .factory('Topo2InstanceService',
         ['$log', 'PanelService', 'SvgUtilService', 'GlyphService',
-        'ThemeService', 'FnService', 'FlashService',
+        'ThemeService',
 
-        function (_$log_, _ps_, _sus_, _gs_, _ts_, _fs_, _flash_) {
+        function (_$log_, _ps_, _sus_, _gs_, _ts_) {
             $log = _$log_;
             ps = _ps_;
             sus = _sus_;
             gs = _gs_;
             ts = _ts_;
-            fs = _fs_;
-            flash = _flash_;
 
             return {
                 initInst: initInst,
@@ -298,4 +256,4 @@
             };
         }]);
 
-}());
+})();

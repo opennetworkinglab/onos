@@ -23,7 +23,7 @@
     'use strict';
 
     var $log;
-    var Collection, Model, region, ts, sus;
+    var Collection, Model, ts, sus;
 
     var linkLabelOffset = '0.35em';
 
@@ -51,9 +51,6 @@
         inWidth: 12,
         outWidth: 10
     };
-
-    var defaultLinkType = 'direct',
-        nearDist = 15;
 
     function createLink() {
 
@@ -92,14 +89,18 @@
         return box;
     }
 
+    function isLinkOnline(node) {
+        return (node.get('nodeType') === 'region') ? true : node.get('online');
+    }
+
     function linkEndPoints(srcId, dstId) {
 
-        var sourceNode = this.region.findNodeById(srcId)
-        var targetNode = this.region.findNodeById(dstId)
+        var sourceNode = this.region.findNodeById(srcId);
+        var targetNode = this.region.findNodeById(dstId);
 
         if (!sourceNode || !targetNode) {
             $log.error('Node(s) not on map for link:' + srcId + ':' + dstId);
-            //logicError('Node(s) not on map for link:\n' + sMiss + dMiss);
+            // logicError('Node(s) not on map for link:\n' + sMiss + dMiss);
             return null;
         }
 
@@ -126,10 +127,13 @@
                 return true;
             },
             online: function () {
-                // TODO: remove next line
-                return true;
 
-                return both && (s && s.online) && (t && t.online);
+                var source = this.get('source'),
+                    target = this.get('target'),
+                    sourceOnline = isLinkOnline(source),
+                    targetOnline = isLinkOnline(target);
+
+                return (sourceOnline) && (targetOnline);
             },
             enhance: function () {
                 var data = [],
@@ -147,7 +151,17 @@
                 });
                 data.push(point);
 
-                var entering = d3.select('#topo-portLabels').selectAll('.portLabel')
+                if (this.get('portA')) {
+                    point = this.locatePortLabel(1);
+                    angular.extend(point, {
+                        id: 'topo-port-src',
+                        num: this.get('portA')
+                    });
+                    data.push(point);
+                }
+
+                var entering = d3.select('#topo-portLabels')
+                    .selectAll('.portLabel')
                     .data(data).enter().append('g')
                     .classed('portLabel', true)
                     .attr('id', function (d) { return d.id; });
@@ -171,7 +185,7 @@
                 this.el.classed('enhanced', false);
                 d3.select('#topo-portLabels').selectAll('.portLabel').remove();
             },
-            locatePortLabel: function (link, src) {
+            locatePortLabel: function (src) {
                 var offset = 32,
                     pos = this.get('position'),
                     nearX = src ? pos.x1 : pos.x2,
@@ -179,13 +193,15 @@
                     farX = src ? pos.x2 : pos.x1,
                     farY = src ? pos.y2 : pos.y1;
 
-                function dist(x, y) { return Math.sqrt(x*x + y*y); }
+                function dist(x, y) {
+                    return Math.sqrt(x * x + y * y);
+                }
 
                 var dx = farX - nearX,
                     dy = farY - nearY,
                     k = offset / dist(dx, dy);
 
-                return {x: k * dx + nearX, y: k * dy + nearY};
+                return { x: k * dx + nearX, y: k * dy + nearY };
             },
             restyleLinkElement: function (immediate) {
                 // this fn's job is to look at raw links and decide what svg classes
@@ -219,21 +235,19 @@
                 }
             },
             onEnter: function (el) {
-                var _this = this,
-                    link = d3.select(el);
+                var link = d3.select(el);
 
                 this.el = link;
-
                 this.restyleLinkElement();
 
                 if (this.get('type') === 'hostLink') {
-                    sus.visible(link, api.showHosts());
+                    // sus.visible(link, api.showHosts());
                 }
             }
         });
 
         var LinkCollection = Collection.extend({
-            model: LinkModel,
+            model: LinkModel
         });
 
         return new LinkCollection(data);
@@ -241,7 +255,8 @@
 
     angular.module('ovTopo2')
     .factory('Topo2LinkService',
-        ['$log', 'Topo2Collection', 'Topo2Model', 'ThemeService', 'SvgUtilService',
+        ['$log', 'Topo2Collection', 'Topo2Model',
+        'ThemeService', 'SvgUtilService',
 
             function (_$log_, _Collection_, _Model_, _ts_, _sus_) {
 

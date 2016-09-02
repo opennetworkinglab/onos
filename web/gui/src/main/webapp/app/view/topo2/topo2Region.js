@@ -23,32 +23,30 @@
     'use strict';
 
     // Injected Services
-    var $log, wss, t2sr, t2ds, t2hs, t2ls;
-    var Collection, Model;
+    var $log, t2sr, t2ds, t2hs, t2ls;
+    var Model;
 
-    //Internal
+    // Internal
     var region;
 
-    function init() {
-        regions = {};
-    }
+    function init() {}
 
     function addRegion(data) {
 
         var RegionModel = Model.extend({
             findNodeById: findNodeById
-        })
+        });
 
         region = new RegionModel({
             id: data.id,
-            layerOrder: data.layerOrder,
+            layerOrder: data.layerOrder
         });
 
         region.set({
             subregions: t2sr.createSubRegionCollection(data.subregions, region),
             devices: t2ds.createDeviceCollection(data.devices, region),
             hosts: t2hs.createHostCollection(data.hosts, region),
-            links: t2ls.createLinkCollection(data.links, region),
+            links: t2ls.createLinkCollection(data.links, region)
         });
 
         angular.forEach(region.get('links').models, function (link) {
@@ -58,18 +56,10 @@
         $log.debug('Region: ', region);
     }
 
-    function regionNodes() {
-        return [].concat(
-            region.get('devices').models,
-            region.get('hosts').models,
-            region.get('subregions').models
-        );
-    }
-
     function findNodeById(id) {
 
         // Remove /{port} from id if needed
-        var regex = new RegExp('^[^\/]*');
+        var regex = new RegExp('^[^/]*');
         id = regex.exec(id)[0];
 
         return region.get('devices').get(id) ||
@@ -77,25 +67,37 @@
             region.get('subregions').get(id);
     }
 
+    function regionNodes() {
+
+        if (region) {
+            return [].concat(
+                region.get('devices').models,
+                region.get('hosts').models,
+                region.get('subregions').models
+            );
+        }
+
+        return [];
+    }
+
     function regionLinks() {
-        return region.get('links').models;
+        return (region) ? region.get('links').models : [];
     }
 
     angular.module('ovTopo2')
     .factory('Topo2RegionService',
-        ['$log', 'WebSocketService', 'Topo2Model', 'Topo2SubRegionService', 'Topo2DeviceService',
-        'Topo2HostService', 'Topo2LinkService', 'Topo2Collection',
+        ['$log', 'Topo2Model',
+        'Topo2SubRegionService', 'Topo2DeviceService',
+        'Topo2HostService', 'Topo2LinkService',
 
-        function (_$log_, _wss_, _Model_, _t2sr_, _t2ds_, _t2hs_, _t2ls_, _Collection_) {
+        function (_$log_, _Model_, _t2sr_, _t2ds_, _t2hs_, _t2ls_) {
 
             $log = _$log_;
-            wss = _wss_;
-            Model = _Model_
+            Model = _Model_;
             t2sr = _t2sr_;
             t2ds = _t2ds_;
             t2hs = _t2hs_;
             t2ls = _t2ls_;
-            Collection = _Collection_;
 
             return {
                 init: init,

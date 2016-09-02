@@ -22,97 +22,19 @@ Module that contains the d3.force.layout logic
 (function () {
     'use strict';
 
-    var sus, is, ts;
+    var is;
 
-    // internal state
-    var deviceLabelIndex = 0,
-    hostLabelIndex = 0;
-
-    // configuration
-    var devIconDim = 36,
-        labelPad = 4,
-        hostRadius = 14,
-        badgeConfig = {
-            radius: 12,
-            yoff: 5,
-            gdelta: 10
-        },
-        halfDevIcon = devIconDim / 2,
-        devBadgeOff = { dx: -halfDevIcon, dy: -halfDevIcon },
-        hostBadgeOff = { dx: -hostRadius, dy: -hostRadius },
-        status = {
-            i: 'badgeInfo',
-            w: 'badgeWarn',
-            e: 'badgeError'
-        };
-
-    // note: these are the device icon colors without affinity (no master)
-    var dColTheme = {
-        light: {
-            online: '#444444',
-            offline: '#cccccc'
-        },
-        dark: {
-            // TODO: theme
-            online: '#444444',
-            offline: '#cccccc'
-        }
-    };
+    // Configuration
+    var hostRadius = 14;
 
     function init() {}
 
-    function renderBadge(node, bdg, boff) {
-        var bsel,
-            bcr = badgeConfig.radius,
-            bcgd = badgeConfig.gdelta;
-
-        node.select('g.badge').remove();
-
-        bsel = node.append('g')
-            .classed('badge', true)
-            .classed(badgeStatus(bdg), true)
-            .attr('transform', sus.translate(boff.dx, boff.dy));
-
-        bsel.append('circle')
-            .attr('r', bcr);
-
-        if (bdg.txt) {
-            bsel.append('text')
-                .attr('dy', badgeConfig.yoff)
-                .attr('text-anchor', 'middle')
-                .text(bdg.txt);
-        } else if (bdg.gid) {
-            bsel.append('use')
-                .attr({
-                    width: bcgd * 2,
-                    height: bcgd * 2,
-                    transform: sus.translate(-bcgd, -bcgd),
-                    'xlink:href': '#' + bdg.gid
-                });
-        }
-    }
-
-    // TODO: Move to Device Model when working on the Exit Devices
-    function updateDeviceRendering(d) {
-        var node = d.el,
-            bdg = d.badge,
-            label = trimLabel(deviceLabel(d)),
-            labelWidth;
-
-        node.select('text').text(label);
-        labelWidth = label ? computeLabelWidth(node) : 0;
-
-        node.select('rect')
-            .transition()
-            .attr(iconBox(devIconDim, labelWidth));
-
-        if (bdg) {
-            renderBadge(node, bdg, devBadgeOff);
-        }
-    }
-
     function nodeEnter(node) {
         node.onEnter(this, node);
+    }
+
+    function nodeExit(node) {
+        node.onExit(this, node);
     }
 
     function hostLabel(d) {
@@ -144,19 +66,18 @@ Module that contains the d3.force.layout logic
 
     angular.module('ovTopo2')
     .factory('Topo2D3Service',
-    ['SvgUtilService', 'IconService', 'ThemeService',
+    ['IconService',
 
-        function (_sus_, _is_, _ts_) {
-            sus = _sus_;
+        function (_is_) {
             is = _is_;
-            ts = _ts_;
 
             return {
                 init: init,
                 nodeEnter: nodeEnter,
+                nodeExit: nodeExit,
                 hostEnter: hostEnter,
                 linkEntering: linkEntering
-            }
+            };
         }
     ]
 );

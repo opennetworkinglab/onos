@@ -25,9 +25,8 @@
     var randomService;
     var fn;
 
-    //internal state;
-    var defaultLinkType = 'direct',
-        nearDist = 15;
+    // Internal state;
+    var nearDist = 15;
 
     var devIconDim = 36,
         labelPad = 10,
@@ -42,9 +41,9 @@
             dim = [800, 600],
             xy;
 
-        // if the device contains explicit LONG/LAT data, use that to position
+        // If the device contains explicit LONG/LAT data, use that to position
         if (setLongLat(node)) {
-            //indicate we want to update cached meta data...
+            // Indicate we want to update cached meta data...
             return true;
         }
 
@@ -108,7 +107,7 @@
 
     angular.module('ovTopo2')
     .factory('Topo2NodeModel',
-        ['Topo2Model', 'FnService',  'RandomService',
+        ['Topo2Model', 'FnService', 'RandomService',
         function (Model, _fn_, _RandomService_) {
 
             randomService = _RandomService_;
@@ -118,25 +117,28 @@
                 initialize: function () {
                     this.node = this.createNode();
                 },
+                onEnter: function () {}, // To be overridden by sub-class
+                onExit: function () {}, // To be overridden by sub-class
                 label: function () {
 
                     var props = this.get('props'),
                         id = this.get('id'),
                         friendlyName = props ? props.name : id,
                         labels = ['', friendlyName, id],
-                        idx = (nodeLabelIndex < labels.length) ? nodeLabelIndex : 0;
+                        nli = nodeLabelIndex,
+                        idx = (nli < labels.length) ? nli : 0;
 
                     return labels[idx];
                 },
-                trimLabel: function(label) {
+                trimLabel: function (label) {
                     return (label && label.trim()) || '';
                 },
-                computeLabelWidth: function(el) {
+                computeLabelWidth: function (el) {
                     var text = el.select('text'),
-                    box = text.node().getBBox();
+                        box = text.node().getBBox();
                     return box.width + labelPad * 2;
                 },
-                addLabelElements: function(label) {
+                addLabelElements: function (label) {
                     var rect = this.el.append('rect');
                     var text = this.el.append('text').text(label)
                         .attr('text-anchor', 'left')
@@ -146,12 +148,16 @@
                     return {
                         rect: rect,
                         text: text
-                    }
+                    };
                 },
                 svgClassName: function () {
-                    return fn.classNames('node', this.nodeType, this.get('type'), {
-                        online: this.get('online')
-                    });
+                    return fn.classNames('node',
+                        this.nodeType,
+                        this.get('type'),
+                        {
+                            online: this.get('online')
+                        }
+                    );
                 },
                 createNode: function () {
 

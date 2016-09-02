@@ -1,0 +1,16 @@
+{
+  "name": "topo2",
+  "version": "1.0.0",
+  "description": "ONOS Topo2",
+  "main": "topo2.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "./node_modules/.bin/eslint ./**/*.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^3.4.0",
+    "eslint-config-google": "^0.6.0"
+  }
+}

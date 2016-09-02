@@ -22,7 +22,7 @@
 (function () {
     'use strict';
 
-    var Collection, Model, is, sus, ts, t2vs;
+    var Collection, Model, is, sus, ts;
 
     var remappedDeviceTypes = {
         virtual: 'cord'
@@ -30,30 +30,17 @@
 
     // configuration
     var devIconDim = 36,
-        labelPad = 10,
-        hostRadius = 14,
-        badgeConfig = {
-            radius: 12,
-            yoff: 5,
-            gdelta: 10
-        },
-        halfDevIcon = devIconDim / 2,
-        devBadgeOff = { dx: -halfDevIcon, dy: -halfDevIcon },
-        hostBadgeOff = { dx: -hostRadius, dy: -hostRadius },
-        status = {
-            i: 'badgeInfo',
-            w: 'badgeWarn',
-            e: 'badgeError'
-        },
-        deviceLabelIndex = 0;
+        halfDevIcon = devIconDim / 2;
 
     function createDeviceCollection(data, region) {
 
         var DeviceCollection = Collection.extend({
             model: Model,
-            comparator: function(a, b) {
-                var order = region.get('layerOrder');
-                return order.indexOf(a.get('layer')) - order.indexOf(b.get('layer'));
+            comparator: function (a, b) {
+                var order = region.get('layerOrder'),
+                    aLayer = a.get('layer'),
+                    bLayer = b.get('layer');
+                return order.indexOf(aLayer - order.indexOf(bLayer));
             }
         });
 
@@ -80,7 +67,7 @@
             y: -dim / 2,
             width: dim + labelWidth,
             height: dim
-        }
+        };
     }
 
     // note: these are the device icon colors without affinity (no master)
@@ -100,8 +87,9 @@
         var o = this.node.online,
             id = this.node.master, // TODO: This should be from node.master
             otag = o ? 'online' : 'offline';
-        return o ? sus.cat7().getColor(id, 0, ts.theme())
-                 : dColTheme[ts.theme()][otag];
+
+        return o ? sus.cat7().getColor(id, 0, ts.theme()) :
+            dColTheme[ts.theme()][otag];
     }
 
     function setDeviceColor() {
@@ -111,18 +99,17 @@
 
     angular.module('ovTopo2')
     .factory('Topo2DeviceService',
-        ['Topo2Collection', 'Topo2NodeModel', 'IconService', 'SvgUtilService',
-        'ThemeService', 'Topo2ViewService',
+        ['Topo2Collection', 'Topo2NodeModel', 'IconService',
+        'SvgUtilService', 'ThemeService',
 
-            function (_Collection_, _NodeModel_, _is_, _sus_, _ts_, classnames, _t2vs_) {
+            function (_c_, _nm_, _is_, _sus_, _ts_, classnames) {
 
-                t2vs = _t2vs_;
                 is = _is_;
                 sus = _sus_;
                 ts = _ts_;
-                Collection = _Collection_;
+                Collection = _c_;
 
-                Model = _NodeModel_.extend({
+                Model = _nm_.extend({
                     initialize: function () {
                         this.set('weight', 0);
                         this.constructor.__super__.initialize.apply(this, arguments);
@@ -152,7 +139,19 @@
                         node.attr('transform', sus.translate(-halfDevIcon, -halfDevIcon));
                         this.render();
                     },
-                    onExit: function () {},
+                    onExit: function () {
+                        var node = this.el;
+                        node.select('use')
+                            .style('opacity', 0.5)
+                            .transition()
+                            .duration(800)
+                            .style('opacity', 0);
+
+                        node.selectAll('rect')
+                            .style('stroke-fill', '#555')
+                            .style('fill', '#888')
+                            .style('opacity', 0.5);
+                    },
                     render: function () {
                         this.setDeviceColor();
                     }

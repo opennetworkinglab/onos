@@ -34,7 +34,6 @@
         openListener;
 
     // TODO: only add heartbeat timer etc. if we really need to be doing that..
-
     // ========================== Helper Functions
 
     function createHandlerMap() {
@@ -100,4 +99,4 @@
                 stop: stop
             };
         }]);
-}());
+})();
