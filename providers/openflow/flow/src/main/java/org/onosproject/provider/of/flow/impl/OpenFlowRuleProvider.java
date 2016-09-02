@@ -31,6 +31,8 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
@@ -70,11 +72,15 @@ import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
 import org.projectfloodlight.openflow.protocol.OFTableStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFTableStatsReply;
+import org.projectfloodlight.openflow.protocol.OFType;
+import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.errormsg.OFBadActionErrorMsg;
 import org.projectfloodlight.openflow.protocol.errormsg.OFBadInstructionErrorMsg;
 import org.projectfloodlight.openflow.protocol.errormsg.OFBadMatchErrorMsg;
 import org.projectfloodlight.openflow.protocol.errormsg.OFBadRequestErrorMsg;
 import org.projectfloodlight.openflow.protocol.errormsg.OFFlowModFailedErrorMsg;
+import org.projectfloodlight.openflow.types.U16;
+import org.projectfloodlight.openflow.types.U64;
 import org.slf4j.Logger;
 
 import java.util.Collections;
@@ -116,11 +122,14 @@ public class OpenFlowRuleProvider extends AbstractProvider
     protected DriverService driverService;
 
     private static final int DEFAULT_POLL_FREQUENCY = 5;
+    private static final int MIN_EXPECTED_BYTE_LEN = 56;
+    private static final int SKIP_BYTES = 4;
+    private static final boolean DEFAULT_ADAPTIVE_FLOW_SAMPLING = false;
+
     @Property(name = "flowPollFrequency", intValue = DEFAULT_POLL_FREQUENCY,
             label = "Frequency (in seconds) for polling flow statistics")
     private int flowPollFrequency = DEFAULT_POLL_FREQUENCY;
 
-    private static final boolean DEFAULT_ADAPTIVE_FLOW_SAMPLING = false;
     @Property(name = "adaptiveFlowSampling", boolValue = DEFAULT_ADAPTIVE_FLOW_SAMPLING,
             label = "Adaptive Flow Sampling is on or off")
     private boolean adaptiveFlowSampling = DEFAULT_ADAPTIVE_FLOW_SAMPLING;
@@ -500,6 +509,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
         }
 
         private void handleErrorMsg(DeviceId deviceId, OFMessage msg) {
+            InternalCacheEntry entry = pendingBatches.getIfPresent(msg.getXid());
             OFErrorMsg error = (OFErrorMsg) msg;
             OFMessage ofMessage = null;
             switch (error.getErrType()) {
@@ -531,19 +541,100 @@ public class OpenFlowRuleProvider extends AbstractProvider
                     // Do nothing.
                     return;
                 }
+
                 if (ofMessage != null) {
-                    InternalCacheEntry entry =
-                        pendingBatches.getIfPresent(msg.getXid());
+
                     if (entry != null)  {
                         OFFlowMod ofFlowMod = (OFFlowMod) ofMessage;
                         entry.appendFailure(new FlowEntryBuilder(deviceId, ofFlowMod, driverService).build());
                     } else {
                       log.error("No matching batch for this error: {}", error);
                     }
+
                 } else {
-                    log.error("Flow installation failed but switch didn't"
-                                + " tell us which one.");
+
+                    U64 cookieId = readCookieIdFromOFErrorMsg(error, msg.getVersion());
+
+                    if (cookieId != null) {
+                        long flowId = cookieId.getValue();
+
+                        if (entry != null) {
+                            for (FlowRuleBatchEntry fbEntry : entry.operation.getOperations()) {
+                                if (fbEntry.target().id().value() == flowId) {
+                                    entry.appendFailure(fbEntry.target());
+                                    break;
+                                }
+                            }
+                        } else {
+                            log.error("No matching batch for this error: {}", error);
+                        }
+
+                    } else {
+                        log.error("Flow installation failed but switch " +
+                                "didn't tell us which one.");
+                    }
                 }
+        }
+
+        /**
+         * Reading cookieId from OFErrorMsg.
+         *
+         * Loxigen OpenFlow API failed in parsing error messages because of
+         * 64 byte data truncation based on OpenFlow specs. The method written
+         * is a workaround to extract the cookieId from the packet till the
+         * issue is resolved in Loxigen OpenFlow code.
+         * Ref: https://groups.google.com/a/onosproject.org/forum/#!topic
+         * /onos-dev/_KwlHZDllLE
+         *
+         * @param msg OF error message
+         * @param ofVersion Openflow version
+         * @return cookieId
+         */
+        private U64 readCookieIdFromOFErrorMsg(OFErrorMsg msg,
+                                               OFVersion ofVersion) {
+
+            if (ofVersion.wireVersion < OFVersion.OF_13.wireVersion) {
+                log.debug("Unhandled error msg with OF version {} " +
+                        "which is less than {}",
+                        ofVersion, OFVersion.OF_13);
+                return null;
+            }
+
+            ChannelBuffer bb = ChannelBuffers.wrappedBuffer(
+                    msg.getData().getData());
+
+            if (bb.readableBytes() < MIN_EXPECTED_BYTE_LEN) {
+                log.debug("Wrong length: Expected to be >= {}, was: {}",
+                        MIN_EXPECTED_BYTE_LEN, bb.readableBytes());
+                return null;
+            }
+
+            byte ofVer = bb.readByte();
+
+            if (ofVer != ofVersion.wireVersion) {
+                log.debug("Wrong version: Expected={}, got={}",
+                        ofVersion.wireVersion, ofVer);
+                return null;
+            }
+
+            byte type = bb.readByte();
+
+            if (type != OFType.FLOW_MOD.ordinal()) {
+                log.debug("Wrong type: Expected={}, got={}",
+                        OFType.FLOW_MOD.ordinal(), type);
+                return null;
+            }
+
+            int length = U16.f(bb.readShort());
+
+            if (length < MIN_EXPECTED_BYTE_LEN) {
+                log.debug("Wrong length: Expected to be >= {}, was: {}",
+                        MIN_EXPECTED_BYTE_LEN, length);
+                return null;
+            }
+
+            bb.skipBytes(SKIP_BYTES);
+            return U64.ofRaw(bb.readLong());
         }
 
         @Override
@@ -565,8 +656,8 @@ public class OpenFlowRuleProvider extends AbstractProvider
 
                 synchronized (afsc) {
                     if (afsc.getFlowMissingXid() != NewAdaptiveFlowStatsCollector.NO_FLOW_MISSING_XID) {
-                        log.debug("OpenFlowRuleProvider:pushFlowMetrics, flowMissingXid={}, "
-                                        + "OFFlowStatsReply Xid={}, for {}",
+                        log.debug("OpenFlowRuleProvider:pushFlowMetrics, flowMissingXid={}, " +
+                                        "OFFlowStatsReply Xid={}, for {}",
                                 afsc.getFlowMissingXid(), replies.getXid(), dpid);
                     }
 
