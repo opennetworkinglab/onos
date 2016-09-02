@@ -64,6 +64,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.pce.pceservice.api.PceService;
 import org.onosproject.pce.pceservice.PcepAnnotationKeys;
+import org.onosproject.pce.pcestore.api.PceStore;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.ProviderId;
@@ -73,6 +74,7 @@ import org.onosproject.net.provider.ProviderId;
  */
 public class PcePathResourceTest extends PceResourceTest {
     private final PceService pceService = createMock(PceService.class);
+    private final PceStore pceStore = createMock(PceStore.class);
     private final TunnelService tunnelService = createMock(TunnelService.class);
     private final TunnelEndPoint src = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(23423));
     private final TunnelEndPoint dst = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(32421));
@@ -102,6 +104,7 @@ public class PcePathResourceTest extends PceResourceTest {
        MockPceCodecContext context = new MockPceCodecContext();
        ServiceDirectory testDirectory = new TestServiceDirectory().add(PceService.class, pceService)
                                                                   .add(TunnelService.class, tunnelService)
+                                                                  .add(PceStore.class, pceStore)
                                                                   .add(CodecService.class, context.codecManager());
        BaseResource.setServiceDirectory(testDirectory);
 
@@ -233,7 +236,7 @@ public class PcePathResourceTest extends PceResourceTest {
      */
     @Test
     public void testPost() {
-        expect(pceService.setupPath(anyObject(), anyObject(), anyObject(), anyObject(), anyObject()))
+        expect(pceService.setupPath(anyObject(), anyObject(), anyObject(), anyObject(), anyObject(), anyObject()))
                          .andReturn(true)
                          .anyTimes();
         replay(pceService);

@@ -19,7 +19,8 @@ package org.onosproject.pce.pceservice;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.net.intent.Constraint;
-import org.onosproject.pce.pceservice.DefaultPcePath.Builder;
+
+import java.util.Collection;
 
 /**
  * Abstraction of an entity which provides functionalities of pce path.
@@ -97,6 +98,13 @@ public interface PcePath {
     Constraint bandwidthConstraint();
 
     /**
+     * Returns the list of explicit path objects.
+     *
+     * @return list of explicit path objects
+     */
+    Collection<ExplicitPathInfo> explicitPathInfo();
+
+    /**
      * Copies only non-null or non-zero member variables.
      *
      * @param id path-id
@@ -172,6 +180,14 @@ public interface PcePath {
          * @return object of pce-path
          */
         Builder of(Tunnel tunnel);
+
+        /**
+         * Returns the builder object of ExplicitPathInfo.
+         *
+         * @param explicitPathInfo list of explicit path obj
+         * @return builder object of ExplicitPathInfo
+         */
+        Builder explicitPathInfo(Collection<ExplicitPathInfo> explicitPathInfo);
 
         /**
          * Builds object of pce path.

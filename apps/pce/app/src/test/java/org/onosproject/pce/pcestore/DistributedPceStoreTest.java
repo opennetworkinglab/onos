@@ -120,7 +120,7 @@ public class DistributedPceStoreTest {
        Constraint bandwidth1 = BandwidthConstraint.of(200, DataRateUnit.BPS);
        constraints1.add(bandwidth1);
 
-       failedPathInfo1 = new PcePathInfo(src1, dst1, name1, constraints1, lspType1);
+       failedPathInfo1 = new PcePathInfo(src1, dst1, name1, constraints1, lspType1, null);
 
        // Creates failedPathInfo2
        DeviceId src2 = DeviceId.deviceId("foo2");
@@ -131,7 +131,7 @@ public class DistributedPceStoreTest {
        Constraint bandwidth2 = BandwidthConstraint.of(400, DataRateUnit.BPS);
        constraints2.add(bandwidth2);
 
-       failedPathInfo2 = new PcePathInfo(src2, dst2, name2, constraints2, lspType2);
+       failedPathInfo2 = new PcePathInfo(src2, dst2, name2, constraints2, lspType2, null);
 
        // Creates failedPathInfo3
        DeviceId src3 = DeviceId.deviceId("foo3");
@@ -142,7 +142,7 @@ public class DistributedPceStoreTest {
        Constraint bandwidth3 = BandwidthConstraint.of(500, DataRateUnit.BPS);
        constraints3.add(bandwidth3);
 
-       failedPathInfo3 = new PcePathInfo(src3, dst3, name3, constraints3, lspType3);
+       failedPathInfo3 = new PcePathInfo(src3, dst3, name3, constraints3, lspType3, null);
 
        // Creates failedPathInfo4
        DeviceId src4 = DeviceId.deviceId("foo4");
@@ -153,7 +153,7 @@ public class DistributedPceStoreTest {
        Constraint bandwidth4 = BandwidthConstraint.of(600, DataRateUnit.BPS);
        constraints4.add(bandwidth4);
 
-       failedPathInfo4 = new PcePathInfo(src4, dst4, name4, constraints4, lspType4);
+       failedPathInfo4 = new PcePathInfo(src4, dst4, name4, constraints4, lspType4, null);
     }
 
     @After

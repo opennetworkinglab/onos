@@ -53,10 +53,10 @@ public class PcePathInfoTest {
         Constraint bandwidth13 = BandwidthConstraint.of(300, DataRateUnit.BPS);
         constraints1.add(bandwidth13);
 
-        PcePathInfo pathInfo1 = new PcePathInfo(src1, dst1, name1, constraints1, lspType1);
+        PcePathInfo pathInfo1 = new PcePathInfo(src1, dst1, name1, constraints1, lspType1, null);
 
         // create same object as above object
-        PcePathInfo samePathInfo1 = new PcePathInfo(src1, dst1, name1, constraints1, lspType1);
+        PcePathInfo samePathInfo1 = new PcePathInfo(src1, dst1, name1, constraints1, lspType1, null);
 
         // Create different object.
         DeviceId src2 = DeviceId.deviceId("foo2");
@@ -69,7 +69,7 @@ public class PcePathInfoTest {
         Constraint bandwidth22 = BandwidthConstraint.of(800, DataRateUnit.BPS);
         constraints2.add(bandwidth22);
 
-        PcePathInfo pathInfo2 = new PcePathInfo(src2, dst2, name2, constraints2, lspType2);
+        PcePathInfo pathInfo2 = new PcePathInfo(src2, dst2, name2, constraints2, lspType2, null);
 
         new EqualsTester().addEqualityGroup(pathInfo1, samePathInfo1)
                           .addEqualityGroup(pathInfo2)
@@ -93,7 +93,7 @@ public class PcePathInfoTest {
         Constraint bandwidth3 = BandwidthConstraint.of(300, DataRateUnit.BPS);
         constraints.add(bandwidth3);
 
-        PcePathInfo pathInfo = new PcePathInfo(src, dst, name, constraints, lspType);
+        PcePathInfo pathInfo = new PcePathInfo(src, dst, name, constraints, lspType, null);
 
         assertThat(src, is(pathInfo.src()));
         assertThat(dst, is(pathInfo.dst()));
