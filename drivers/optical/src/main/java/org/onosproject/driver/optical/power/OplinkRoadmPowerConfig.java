@@ -19,6 +19,7 @@ package org.onosproject.driver.optical.power;
 import java.util.List;
 import java.util.Optional;
 
+import com.google.common.collect.Range;
 import org.onosproject.driver.extensions.OplinkAttenuation;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
@@ -49,7 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Port Power (Gain and attenuation) implementation for Oplink ROADM.
+ * Port Power (Gain and attenuation) implementation for Oplink 1-SLOT-8D ROADM.
  *
  * An Oplink ROADM port exposes OchSignal resources.
  * Optical Power can be set at port level or channel/wavelength level (attenuation).
@@ -58,6 +59,27 @@ import org.slf4j.LoggerFactory;
 
 public class OplinkRoadmPowerConfig extends AbstractHandlerBehaviour
                                     implements PowerConfig<Object> {
+
+    private static final int LINE_IN = 1;
+    private static final int LINE_OUT = 2;
+    private static final int AUX_OUT_1 = 3;
+    private static final int AUX_OUT_2 = 4;
+    private static final int EXPRESS_OUT_1 = 5;
+    private static final int EXPRESS_OUT_2 = 6;
+    private static final int EXPRESS_OUT_3 = 7;
+    private static final int EXPRESS_OUT_4 = 8;
+    private static final int EXPRESS_OUT_5 = 9;
+    private static final int EXPRESS_OUT_6 = 10;
+    private static final int EXPRESS_OUT_7 = 11;
+    private static final int AUX_IN_1 = 12;
+    private static final int AUX_IN_2 = 13;
+    private static final int EXPRESS_IN_1 = 14;
+    private static final int EXPRESS_IN_2 = 15;
+    private static final int EXPRESS_IN_3 = 16;
+    private static final int EXPRESS_IN_4 = 17;
+    private static final int EXPRESS_IN_5 = 18;
+    private static final int EXPRESS_IN_6 = 19;
+    private static final int EXPRESS_IN_7 = 20;
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -170,6 +192,35 @@ public class OplinkRoadmPowerConfig extends AbstractHandlerBehaviour
         }
     }
 
+    @Override
+    public Optional<Range<Long>> getTargetPowerRange(PortNumber port, Object component) {
+        Range<Long> range = null;
+        switch (getType(component)) {
+            case PORT:
+                range = getTargetPortPowerRange(port);
+                break;
+            case CHANNEL:
+                range = getChannelAttenuationRange(port);
+                break;
+            default:
+                break;
+        }
+        return Optional.ofNullable(range);
+    }
+
+    @Override
+    public Optional<Range<Long>> getInputPowerRange(PortNumber port, Object component) {
+        Range<Long> range = null;
+        switch (getType(component)) {
+            case PORT:
+                range = getInputPortPowerRange(port);
+                break;
+            default:
+                break;
+        }
+        return Optional.ofNullable(range);
+    }
+
     private Long getChannelAttenuation(PortNumber portNum, OchSignal och) {
         FlowEntry flowEntry = findFlow(portNum, och);
         if (flowEntry != null) {
@@ -262,5 +313,50 @@ public class OplinkRoadmPowerConfig extends AbstractHandlerBehaviour
 
         FlowRuleService service = this.handler().get(FlowRuleService.class);
         service.applyFlowRules(flowBuilder.build());
+    }
+
+    // Returns the acceptable target range for an output Port, null otherwise
+    private Range<Long> getTargetPortPowerRange(PortNumber port) {
+        Range<Long> range = null;
+        long num = port.toLong();
+        if (num == LINE_OUT) {
+            range = Range.closed(100L, 2040L);
+        } else if (num >= AUX_OUT_1 && num <= EXPRESS_OUT_7) {
+            range = Range.closed(-680L, 1530L);
+        }
+        return range;
+    }
+
+    // Returns the acceptable attenuation range for a connection (represented as
+    // a flow with attenuation instruction). Port can be either the input or
+    // output port of the connection. Returns null if the connection does not
+    // support attenuation.
+    private Range<Long> getChannelAttenuationRange(PortNumber port) {
+        Range<Long> range = null;
+        long num = port.toLong();
+        // Only connections from AuxIn to LineOut or ExpressIn to LineOut support
+        // attenuation.
+        if (num == LINE_OUT ||
+            num >= AUX_IN_1 && num <= EXPRESS_IN_7) {
+            range = Range.closed(0L, 2550L);
+        }
+        return range;
+    }
+
+    // Returns the working input power range for an input port, null if the port
+    // is not an input port.
+    private Range<Long> getInputPortPowerRange(PortNumber port) {
+        Range<Long> range = null;
+        long portNum = port.toLong();
+        if (portNum == LINE_IN) {
+            // TODO implement support for IR and ER range
+            // only supports LR right now
+            range = Range.closed(-2600L, 540L);
+        } else if (portNum == AUX_IN_1 || portNum == AUX_IN_2) {
+            range = Range.closed(-1250L, 1590L);
+        } else if (portNum >= EXPRESS_IN_1 && portNum <= EXPRESS_IN_7) {
+            range = Range.closed(-1420L, 1420L);
+        }
+        return range;
     }
 }

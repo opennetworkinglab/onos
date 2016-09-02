@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.behaviour;
 
+import com.google.common.annotations.Beta;
+import com.google.common.collect.Range;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.HandlerBehaviour;
 
@@ -29,6 +31,7 @@ import java.util.Optional;
  *
  * Power levels are specified with a long and unit .01 dBm.
  */
+@Beta
 public interface PowerConfig<T> extends HandlerBehaviour {
 
     /**
@@ -42,7 +45,6 @@ public interface PowerConfig<T> extends HandlerBehaviour {
 
     /**
      * Set the target power on the component.
-     *
      *
      * @param port the port
      * @param component the port component
@@ -58,4 +60,31 @@ public interface PowerConfig<T> extends HandlerBehaviour {
      * @return power power in .01 dBm
      */
     Optional<Long> currentPower(PortNumber port, T component);
+
+    /**
+     * Get the acceptable target power range for setTargetPower,
+     * as optical components have different configurable output power ranges.
+     *
+     * @param port the port
+     * @param component the port component
+     * @return the accepted target power range, null if the component's power is
+     * not configurable. For example the port target power can only be set on TX ports.
+     */
+    default Optional<Range<Long>> getTargetPowerRange(PortNumber port, T component) {
+        return Optional.empty();
+    }
+
+    /**
+     * Get the expected input power range for the component,
+     * as optical components have different working input power ranges.
+     *
+     * @param port the port
+     * @param component the port component
+     * @return the expected input power range, null if the component does not have
+     * a specified input power range. For example input power range only applies
+     * to RX ports.
+     */
+    default Optional<Range<Long>> getInputPowerRange(PortNumber port, T component) {
+        return Optional.empty();
+    }
 }
