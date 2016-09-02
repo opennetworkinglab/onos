@@ -18,17 +18,15 @@ package org.onosproject.patchpanel.impl;
 import org.onosproject.net.ConnectPoint;
 
 /**
- * A service for the patch panel application to
- * export and use with the cli .
+ * A service for the patch panel application to export and use with the cli.
  */
 public interface PatchPanelService {
 
     /**
-     * Get the connectPoints that need to be patched.
+     * Adds a new patch between two connect points.
+     *
      * @param cp    the first connect point
      * @param cp2   the second connect point
-     * @return void
      */
-    public boolean addPatch(ConnectPoint cp, ConnectPoint cp2);
-
+    boolean addPatch(ConnectPoint cp, ConnectPoint cp2);
 }

@@ -1,0 +1,16 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+]
+
+osgi_jar (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'Patch Panel',
+    category = 'Traffic Steering',
+    url = 'http://onosproject.org',
+    description = 'Creates patches between ports on a switch',
+)

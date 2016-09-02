@@ -14,15 +14,6 @@
  * limitations under the License.
  */
 
-/**
- * This class acts as a software patch panel application.
- * The user specifies 2 connectpoint on the same device that he/she would like to patch.
- * Using a flow rule, the 2 connectpoints are patched.
- *
- * @author Parvahti Meyyappan
- * @version %I%, %G%
- */
-
 package org.onosproject.patchpanel.impl;
 
 import org.apache.felix.scr.annotations.Component;
@@ -31,6 +22,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.onosproject.cli.net.ConnectPointCompleter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.PortNumber;
@@ -46,10 +38,18 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * This class acts as a software patch panel application.
+ * The user specifies 2 connectpoint on the same device that he/she would like to patch.
+ * Using a flow rule, the 2 connectpoints are patched.
+ */
 @Component(immediate = true)
 @Service
 public class PatchPanel implements PatchPanelService {
+
+    // OSGI: help bundle plugin discover runtime package dependency.
+    @SuppressWarnings("unused")
+    private ConnectPointCompleter connectPointCompleter;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
@@ -65,12 +65,8 @@ public class PatchPanel implements PatchPanelService {
 
     @Activate
     protected void activate() throws NullPointerException {
+        appId = coreService.registerApplication("org.onosproject.patchpanel");
         log.info("Started");
-        try {
-            appId = coreService.getAppId("org.onosproject.patchPanel");
-        } catch (NullPointerException e) {
-            throw new NullPointerException("ERROR:App Id is null");
-        }
     }
 
     @Deactivate
@@ -101,10 +97,18 @@ public class PatchPanel implements PatchPanelService {
                 .withSelector(DefaultTrafficSelector.builder().matchInPort(inPort).build())
                 .withTreatment(DefaultTrafficTreatment.builder().setOutput(outPort).build())
                 .withPriority(PacketPriority.REACTIVE.priorityValue())
-                .makeTemporary(5)
+                .makePermanent()
                 .fromApp(appId).build();
 
-        flowRuleService.applyFlowRules(fr);
+        FlowRule fr2 = DefaultFlowRule.builder()
+                .forDevice(cp1.deviceId())
+                .withSelector(DefaultTrafficSelector.builder().matchInPort(outPort).build())
+                .withTreatment(DefaultTrafficTreatment.builder().setOutput(inPort).build())
+                .withPriority(PacketPriority.REACTIVE.priorityValue())
+                .makePermanent()
+                .fromApp(appId).build();
+
+        flowRuleService.applyFlowRules(fr, fr2);
 
     }
 

@@ -34,7 +34,7 @@ import java.util.List;
  *  ONOS UI Custom-View application component for the Patch Panel Application.
  */
 @Component(immediate = true)
-public class AppUiComponent {
+public class PatchPanelUiComponent {
 
     private static final String VIEW_ID = "sampleCustom";
     private static final String VIEW_TEXT = "Patch Panel Application";
@@ -51,7 +51,7 @@ public class AppUiComponent {
 
     // Factory for UI message handlers
     private final UiMessageHandlerFactory messageHandlerFactory =
-            () -> ImmutableList.of(new AppUiMessageHandler());
+            () -> ImmutableList.of(new PatchPanelUiMessageHandler());
 
     // Application UI extension
     protected UiExtension extension =

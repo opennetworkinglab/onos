@@ -40,7 +40,7 @@ import java.util.List;
  *  to each event. In this particular implementation the second message
  *  handler creates the patch and the first message handler loads the data
  */
-public class AppUiMessageHandler extends UiMessageHandler {
+public class PatchPanelUiMessageHandler extends UiMessageHandler {
 
     private static final String SAMPLE_CUSTOM_DATA_REQ = "sampleCustomDataRequest";
     private static final String SAMPLE_CUSTOM_DATA_RESP = "sampleCustomDataResponse";

@@ -15,7 +15,7 @@
  */
 
 /**
- * patch panel-related CLI commands(in cli folder).
+ * Patch panel-related CLI commands(in cli folder).
  */
 package org.onosproject.patchpanel.cli;
 

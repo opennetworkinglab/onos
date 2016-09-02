@@ -28,10 +28,11 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.patchpanel.impl.PatchPanelService;
 
-//name of command and description
+/**
+ * Command for adding a new patch.
+ */
 @Command(scope = "onos", name = "patch",
          description = "Gets the 2 ports of one ConnectPoint that will be patched")
-
 public class PatchPanelCommand extends AbstractShellCommand {
     //the 2 arguments, both connect points
     @Argument(index = 0, name = "switch/portNumber", description = "ConnectPoint and first port number",
