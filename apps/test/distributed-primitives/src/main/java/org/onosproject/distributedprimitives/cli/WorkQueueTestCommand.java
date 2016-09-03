@@ -46,7 +46,7 @@ public class WorkQueueTestCommand extends AbstractShellCommand {
 
     @Argument(index = 1, name = "operation",
             description = "operation name. One of {add, addMutiple, "
-                    + "takeAndComplete, totalPending, totalInProgress, totalCompleted}",
+                    + "takeAndComplete, totalPending, totalInProgress, totalCompleted, destroy}",
             required = true, multiValued = false)
     String operation = null;
 
@@ -95,9 +95,11 @@ public class WorkQueueTestCommand extends AbstractShellCommand {
         } else if (operation.equals("totalCompleted")) {
             WorkQueueStats stats = get(queue.stats());
             print("%d", stats.totalCompleted());
+        } else if (operation.equals("destroy")) {
+            get(queue.destroy());
         } else {
             print("Invalid operation name. Valid operations names are:"
-                    + " [add, addMultiple takeAndComplete, totalPending, totalInProgress, totalCompleted]");
+                    + " [add, addMultiple takeAndComplete, totalPending, totalInProgress, totalCompleted, destroy]");
         }
     }
 

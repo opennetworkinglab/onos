@@ -30,6 +30,9 @@
         <import file="${ONOS_SCENARIOS}/dist-leader.xml"/>
         <dependency name="Distributed-Primitive-Leader" requires="Distributed-Primitive-Counter"/>
 
+        <import file="${ONOS_SCENARIOS}/dist-work-queue.xml"/>
+        <dependency name="Distributed-Primitive-WorkQueue" requires="Distributed-Primitive-Leader"/>
+
     </group>
 </scenario>
 

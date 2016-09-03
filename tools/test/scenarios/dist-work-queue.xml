@@ -30,6 +30,9 @@
         <step name="Distributed-Primitive-WorkQueue.Test-Queue-Check-InProgress-1" requires="^"
               exec="onos-cluster-execute-expect work-queue-test stc-test-work-queue totalInProgress --expect 0"/>
 
+        <step name="Distributed-Primitive-WorkQueue.Test-Queue-Check-TotalCompleted-1" requires="^"
+              exec="onos-cluster-execute-expect work-queue-test stc-test-work-queue totalCompleted --expect 0"/>
+
         <step name="Distributed-Primitive-WorkQueue.Test-Queue-AddMultiple" requires="^"
               exec="onos-execute-expect ${OCI} work-queue-test stc-test-work-queue addMultiple bar car --expect Done"/>
 
@@ -42,7 +45,11 @@
         <step name="Distributed-Primitive-WorkQueue.Test-Queue-Check-InProgress-2" requires="^"
               exec="onos-cluster-execute-expect work-queue-test stc-test-work-queue totalInProgress --expect 0"/>
 
-        <!-- Since totalCompleted is a additive quantity, testing its value breaks when the test is run in a loop -->
+        <step name="Distributed-Primitive-WorkQueue.Test-Queue-Check-TotalCompleted-2" requires="^"
+              exec="onos-cluster-execute-expect work-queue-test stc-test-work-queue totalCompleted --expect 3"/>
+
+        <step name="Distributed-Primitive-WorkQueue.Test-Queue-Destroy" requires="^"
+              exec="onos ${OCI} work-queue-test stc-test-work-queue destroy"/>
 
         <!--Check with check logs-->
         <step name="Distributed-Primitive-WorkQueue.Check-Log-Exceptions" requires="^"

@@ -98,14 +98,18 @@ public class AtomixWorkQueueState  extends ResourceStateMachine implements Sessi
     }
 
     protected void clear(Commit<? extends Clear> commit) {
-        unassignedTasks.forEach(TaskHolder::complete);
-        unassignedTasks.clear();
-        assignments.values().forEach(TaskAssignment::markComplete);
-        assignments.clear();
-        registeredWorkers.values().forEach(Commit::close);
-        registeredWorkers.clear();
-        activeTasksPerSession.clear();
-        totalCompleted.set(0);
+        try {
+            unassignedTasks.forEach(TaskHolder::complete);
+            unassignedTasks.clear();
+            assignments.values().forEach(TaskAssignment::markComplete);
+            assignments.clear();
+            registeredWorkers.values().forEach(Commit::close);
+            registeredWorkers.clear();
+            activeTasksPerSession.clear();
+            totalCompleted.set(0);
+        } finally {
+            commit.close();
+        }
     }
 
     protected void register(Commit<? extends Register> commit) {

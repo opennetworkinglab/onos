@@ -7,9 +7,9 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.Task;
+import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.WorkQueueStats;
 
 import com.google.common.collect.Collections2;
@@ -72,5 +72,10 @@ public class DefaultDistributedWorkQueue<E> implements WorkQueue<E> {
     @Override
     public CompletableFuture<Void> stopProcessing() {
         return backingQueue.stopProcessing();
+    }
+
+    @Override
+    public CompletableFuture<Void> destroy() {
+        return backingQueue.destroy();
     }
 }
