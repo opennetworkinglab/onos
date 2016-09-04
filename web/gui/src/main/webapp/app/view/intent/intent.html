@@ -32,10 +32,10 @@
                  tooltip tt-msg="topoTip"
                  ng-click="showIntent()"></div>
 
-            <div ng-class="{'active': !!selId}"
+            <div ng-class="{'active': !!selId && isIntentInstalled()}"
                  icon icon-id="stop" icon-size="42"
                  tooltip tt-msg="deactivateTip"
-                 ng-click="deactivateIntent()"></div>
+                 ng-click="(!!selId && isIntentInstalled()) ? deactivateIntent():''"></div>
 
 
         </div>
