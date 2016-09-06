@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -36,21 +37,29 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
+import org.onosproject.store.service.LogicalClockService;
 import org.onosproject.store.service.MultiValuedTimestamp;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.vtnrsc.AllowedAddressPair;
 import org.onosproject.vtnrsc.BindingHostId;
+import org.onosproject.vtnrsc.DefaultFloatingIp;
 import org.onosproject.vtnrsc.DefaultVirtualPort;
 import org.onosproject.vtnrsc.FixedIp;
+import org.onosproject.vtnrsc.FloatingIp;
+import org.onosproject.vtnrsc.FloatingIpId;
+import org.onosproject.vtnrsc.RouterId;
 import org.onosproject.vtnrsc.SecurityGroup;
 import org.onosproject.vtnrsc.SubnetId;
 import org.onosproject.vtnrsc.TenantId;
+import org.onosproject.vtnrsc.TenantNetwork;
 import org.onosproject.vtnrsc.TenantNetworkId;
+import org.onosproject.vtnrsc.TenantRouter;
 import org.onosproject.vtnrsc.VirtualPort;
 import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
@@ -70,7 +79,7 @@ implements VirtualPortService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final String VIRTUALPORT = "vtn-virtual-port";
+    private static final String VIRTUALPORT = "vtn-virtual-port-store";
     private static final String VTNRSC_APP = "org.onosproject.vtnrsc";
 
     private static final String VIRTUALPORT_ID_NULL = "VirtualPort ID cannot be null";
@@ -94,6 +103,9 @@ implements VirtualPortService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LogicalClockService clockService;
+
     private EventuallyConsistentMapListener<VirtualPortId, VirtualPort> virtualPortListener =
             new InnerVirtualPortStoreListener();
 
@@ -101,34 +113,46 @@ implements VirtualPortService {
     public void activate() {
 
         appId = coreService.registerApplication(VTNRSC_APP);
-
         eventDispatcher.addSink(VirtualPortEvent.class, listenerRegistry);
 
-        vPortStore = storageService.<VirtualPortId, VirtualPort>eventuallyConsistentMapBuilder()
-                .withName(VIRTUALPORT)
-                .withSerializer(KryoNamespace.newBuilder().register(KryoNamespaces.API)
-                                .register(MultiValuedTimestamp.class)
-                        .register(VirtualPortId.class,
-                                  TenantNetworkId.class,
-                                  VirtualPort.State.class,
-                                  TenantId.class,
-                                  AllowedAddressPair.class,
-                                  FixedIp.class,
-                                  BindingHostId.class,
-                                  SecurityGroup.class,
-                                  SubnetId.class,
-                                  IpAddress.class,
-                                  DefaultVirtualPort.class))
-                .withTimestampProvider((k, v) ->new WallClockTimestamp())
-                                          .build();
-
+        KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
+                .register(KryoNamespaces.API)
+                .register(MultiValuedTimestamp.class)
+                .register(TenantNetworkId.class)
+                .register(Host.class)
+                .register(TenantNetwork.class)
+                .register(TenantNetworkId.class)
+                .register(TenantId.class)
+                .register(SubnetId.class)
+                .register(VirtualPortId.class)
+                .register(VirtualPort.State.class)
+                .register(AllowedAddressPair.class)
+                .register(FixedIp.class)
+                .register(FloatingIp.class)
+                .register(FloatingIpId.class)
+                .register(FloatingIp.Status.class)
+                .register(UUID.class)
+                .register(DefaultFloatingIp.class)
+                .register(BindingHostId.class)
+                .register(SecurityGroup.class)
+                .register(IpAddress.class)
+                .register(DefaultVirtualPort.class)
+                .register(RouterId.class)
+                .register(TenantRouter.class)
+                .register(VirtualPort.class);
+        vPortStore = storageService
+                .<VirtualPortId, VirtualPort>eventuallyConsistentMapBuilder()
+                .withName(VIRTUALPORT).withSerializer(serializer)
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
+                .build();
         vPortStore.addListener(virtualPortListener);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        vPortStore.clear();
+        vPortStore.removeListener(virtualPortListener);
+        vPortStore.destroy();
         log.info("Stoppped");
     }
 
