@@ -228,15 +228,15 @@ public class OpenstackSecurityGroupManager extends AbstractVmHandler
         if (portMin > 0 && portMax > 0 && portMin == portMax) {
             if (protocol.toUpperCase().equals(PROTO_TCP)) {
                 if (direction.equals(OpenstackSecurityGroupRule.Direction.EGRESS)) {
-                    sBuilder.matchTcpDst(TpPort.tpPort(portMax));
-                } else {
                     sBuilder.matchTcpSrc(TpPort.tpPort(portMax));
+                } else {
+                    sBuilder.matchTcpDst(TpPort.tpPort(portMax));
                 }
             } else if (protocol.toUpperCase().equals(PROTO_UDP)) {
                 if (direction.equals(OpenstackSecurityGroupRule.Direction.EGRESS)) {
-                    sBuilder.matchUdpDst(TpPort.tpPort(portMax));
-                } else {
                     sBuilder.matchUdpSrc(TpPort.tpPort(portMax));
+                } else {
+                    sBuilder.matchUdpDst(TpPort.tpPort(portMax));
                 }
             }
         }
