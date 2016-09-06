@@ -576,8 +576,10 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                     throws IOException, SwitchStateException {
                 // if we get here, then the error message is for something else
                 if (m.getErrType() == OFErrorType.BAD_REQUEST &&
+                        (((OFBadRequestErrorMsg) m).getCode() ==
+                           OFBadRequestCode.EPERM) ||
                         ((OFBadRequestErrorMsg) m).getCode() ==
-                        OFBadRequestCode.EPERM) {
+                           OFBadRequestCode.IS_SLAVE) {
                     // We are the master controller and the switch returned
                     // a permission error. This is a likely indicator that
                     // the switch thinks we are slave. Reassert our
