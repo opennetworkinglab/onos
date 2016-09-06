@@ -44,10 +44,13 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncDocumentTree;
+import org.onosproject.store.service.AsyncConsistentMultimap;
+import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AtomicCounterBuilder;
 import org.onosproject.store.service.AtomicValueBuilder;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapBuilder;
+import org.onosproject.store.service.ConsistentMultimapBuilder;
 import org.onosproject.store.service.ConsistentTreeMapBuilder;
 import org.onosproject.store.service.DistributedSetBuilder;
 import org.onosproject.store.service.DocumentTreeBuilder;
@@ -146,6 +149,13 @@ public class StorageManager implements StorageService, StorageAdminService {
     }
 
     @Override
+    public <K, V> ConsistentMultimapBuilder<K, V> consistentMultimapBuilder() {
+        checkPermission(STORAGE_WRITE);
+        return new DefaultConsistentMultimapBuilder<K, V>(
+                federatedPrimitiveCreator);
+    }
+
+    @Override
     public <E> DistributedSetBuilder<E> setBuilder() {
         checkPermission(STORAGE_WRITE);
         return new DefaultDistributedSetBuilder<>(() -> this.<E, Boolean>consistentMapBuilder());
@@ -191,6 +201,22 @@ public class StorageManager implements StorageService, StorageAdminService {
     public <V> AsyncDocumentTree<V> getDocumentTree(String name, Serializer serializer) {
         checkPermission(STORAGE_WRITE);
         return federatedPrimitiveCreator.newAsyncDocumentTree(name, serializer);
+    }
+
+    @Override
+    public <K, V> AsyncConsistentMultimap<K, V> getAsyncSetMultimap(
+            String name, Serializer serializer) {
+        checkPermission(STORAGE_WRITE);
+        return federatedPrimitiveCreator.newAsyncConsistentSetMultimap(name,
+                                                                serializer);
+    }
+
+    @Override
+    public <V> AsyncConsistentTreeMap<V> getAsyncTreeMap(
+            String name, Serializer serializer) {
+        checkPermission(STORAGE_WRITE);
+        return federatedPrimitiveCreator.newAsyncConsistentTreeMap(name,
+                                                                   serializer);
     }
 
     @Override

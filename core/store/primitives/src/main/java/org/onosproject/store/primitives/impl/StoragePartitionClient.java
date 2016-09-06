@@ -39,6 +39,7 @@ import java.util.function.Function;
 import org.onlab.util.HexString;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMap;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimap;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMap;
 import org.onosproject.store.primitives.resources.impl.AtomixCounter;
 import org.onosproject.store.primitives.resources.impl.AtomixDocumentTree;
@@ -48,6 +49,7 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncDocumentTree;
@@ -154,7 +156,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
             atomixConsistentTreeMap.statusChangeListeners()
                     .forEach(listener -> listener.accept(mapper.apply(state)));
         };
-            resourceClient.client().onStateChange(statusListener);
+        resourceClient.client().onStateChange(statusListener);
         AsyncConsistentTreeMap<byte[]> rawMap =
                 new DelegatingAsyncConsistentTreeMap<byte[]>(atomixConsistentTreeMap) {
                     @Override
@@ -168,6 +170,38 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 value -> value == null ? null : serializer.encode(value),
                 bytes -> serializer.decode(bytes));
         return transcodedMap;
+    }
+
+    @Override
+    public <K, V> AsyncConsistentMultimap<K, V> newAsyncConsistentSetMultimap(
+            String name, Serializer serializer) {
+        AtomixConsistentSetMultimap atomixConsistentSetMultimap =
+                client.getResource(name, AtomixConsistentSetMultimap.class)
+                        .join();
+        Consumer<State> statusListener = state -> {
+            atomixConsistentSetMultimap.statusChangeListeners()
+                    .forEach(listener -> listener.accept(mapper.apply(state)));
+        };
+        resourceClient.client().onStateChange(statusListener);
+        AsyncConsistentMultimap<String, byte[]> rawMap =
+                new DelegatingAsyncConsistentMultimap<String, byte[]>(
+                        atomixConsistentSetMultimap) {
+                    @Override
+                    public String name() {
+                        return super.name();
+                    }
+                };
+        AsyncConsistentMultimap<K, V> trancodedMap =
+                DistributedPrimitives.<K, V, String, byte[]>newTranscodingMultimap(
+                        rawMap,
+                        key -> HexString.toHexString(serializer.encode(key)),
+                        string -> serializer.decode(
+                                HexString.fromHexString(string)),
+                        value -> value == null ? null :
+                                serializer.encode(value),
+                        bytes -> serializer.decode(bytes));
+        return trancodedMap;
+
     }
 
     @Override

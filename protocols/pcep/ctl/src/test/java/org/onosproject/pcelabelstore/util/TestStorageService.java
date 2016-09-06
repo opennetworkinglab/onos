@@ -15,12 +15,20 @@
  */
 package org.onosproject.pcelabelstore.util;
 
+import org.onosproject.store.service.AsyncConsistentMultimap;
+import org.onosproject.store.service.AsyncConsistentTreeMap;
+import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.AtomicCounterBuilder;
 import org.onosproject.store.service.AtomicValueBuilder;
 import org.onosproject.store.service.ConsistentMapBuilder;
+import org.onosproject.store.service.ConsistentMultimapBuilder;
 import org.onosproject.store.service.DistributedSetBuilder;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
+import org.onosproject.store.service.LeaderElectorBuilder;
+import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.Topic;
 import org.onosproject.store.service.TransactionContextBuilder;
+import org.onosproject.store.service.WorkQueue;
 
 public class TestStorageService extends StorageServiceAdapter {
 
@@ -33,6 +41,11 @@ public class TestStorageService extends StorageServiceAdapter {
     @Override
     public <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder() {
         return TestConsistentMap.builder();
+    }
+
+    @Override
+    public <K, V> ConsistentMultimapBuilder<K, V> consistentMultimapBuilder() {
+        return null;
     }
 
     @Override
@@ -53,5 +66,35 @@ public class TestStorageService extends StorageServiceAdapter {
     @Override
     public TransactionContextBuilder transactionContextBuilder() {
         throw new UnsupportedOperationException("transactionContextBuilder");
+    }
+
+    @Override
+    public LeaderElectorBuilder leaderElectorBuilder() {
+        return null;
+    }
+
+    @Override
+    public <E> WorkQueue<E> getWorkQueue(String name, Serializer serializer) {
+        return null;
+    }
+
+    @Override
+    public <K, V> AsyncConsistentMultimap<K, V> getAsyncSetMultimap(String name, Serializer serializer) {
+        return null;
+    }
+
+    @Override
+    public <V> AsyncConsistentTreeMap<V> getAsyncTreeMap(String name, Serializer serializer) {
+        return null;
+    }
+
+    @Override
+    public <T> Topic<T> getTopic(String name, Serializer serializer) {
+        return null;
+    }
+
+    @Override
+    public <V> AsyncDocumentTree<V> getDocumentTree(String name, Serializer serializer) {
+        return null;
     }
 }

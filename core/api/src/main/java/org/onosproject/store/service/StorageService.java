@@ -60,6 +60,15 @@ public interface StorageService {
     <V> ConsistentTreeMapBuilder<V> consistentTreeMapBuilder();
 
     /**
+     * Creates a new {@code AsyncConsistentSetMultimapBuilder}.
+     *
+     * @param <K> key type
+     * @param <V> value type
+     * @return builder for a set based async consistent multimap
+     */
+    <K, V> ConsistentMultimapBuilder<K, V> consistentMultimapBuilder();
+
+    /**
      * Creates a new DistributedSetBuilder.
      *
      * @param <E> set element type
@@ -135,6 +144,30 @@ public interface StorageService {
      * @return AsyncDocumentTree instance
      */
     <V> AsyncDocumentTree<V> getDocumentTree(String name, Serializer serializer);
+
+     /** Returns a set backed instance of {@code AsyncConsistentMultimap} with
+     * the specified name.
+     *
+     * @param name the multimap name
+     * @param serializer serializer
+     * @param <K> key type
+     * @param <V> value type
+     * @return set backed {@code AsyncConsistentMultimap} instance
+     */
+    <K, V> AsyncConsistentMultimap<K, V> getAsyncSetMultimap(String name,
+                                                             Serializer serializer);
+
+    /**
+     * Returns an instance of {@code AsyncConsistentTreeMap} with the specified
+     * name.
+     *
+     * @param name the treemap name
+     * @param serializer serializer
+     * @param <V> value type
+     * @return set backed {@code AsyncConsistentTreeMap} instance
+     */
+    <V> AsyncConsistentTreeMap<V> getAsyncTreeMap(String name,
+                                                  Serializer serializer);
 
     /**
      * Returns an instance of {@code Topic} with specified name.

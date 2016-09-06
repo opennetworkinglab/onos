@@ -65,7 +65,19 @@ public class StorageServiceAdapter implements StorageService {
     }
 
     @Override
+    public <K, V> AsyncConsistentMultimap<K, V> getAsyncSetMultimap(
+            String name, Serializer serializer) {
+        return null;
+    }
+
+    @Override
     public <T> Topic<T> getTopic(String name, Serializer serializer) {
+        return null;
+    }
+
+    @Override
+    public <V> AsyncConsistentTreeMap<V> getAsyncTreeMap(
+            String name, Serializer serializer) {
         return null;
     }
 
@@ -76,6 +88,10 @@ public class StorageServiceAdapter implements StorageService {
 
     @Override
     public <V> AsyncDocumentTree<V> getDocumentTree(String name, Serializer serializer) {
+        return null;
+    }
+    @Override
+    public <K, V> ConsistentMultimapBuilder<K, V> consistentMultimapBuilder() {
         return null;
     }
 }

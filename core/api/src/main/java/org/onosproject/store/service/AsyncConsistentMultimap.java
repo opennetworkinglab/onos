@@ -17,6 +17,7 @@
 package org.onosproject.store.service;
 
 import com.google.common.collect.Multiset;
+import org.onosproject.store.primitives.DefaultConsistentMultimap;
 
 import java.util.Collection;
 import java.util.Map;
@@ -229,4 +230,32 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
      * values, the returned map may be empty.
      */
     CompletableFuture<Map<K, Collection<V>>> asMap();
+
+    /**
+     * Returns a {@code ConsistentMultimap} instance that wraps this map. All
+     * calls will have the same behavior as this map but will be blocking
+     * instead of asynchronous. If a call does not complete within the
+     * default timeout an exception will be produced.
+     *
+     * @return a {@code ConsistentMultimap} which wraps this map, providing
+     * synchronous access to this map
+     */
+    default ConsistentMultimap<K, V> asMultimap() {
+        return asMultimap(DEFAULT_OPERTATION_TIMEOUT_MILLIS);
+    }
+
+    /**
+     * Returns a {@code ConsistentMultimap} instance that wraps this map. All
+     * calls will have the same behavior as this map but will be blocking
+     * instead of asynchronous. If a call does not complete within the
+     * specified timeout an exception will be produced.
+     *
+     * @param timeoutMillis the number of millis to block while waiting for a
+     *                      call to return
+     * @return a {@code ConsistentMultimap} which wraps this map, providing
+     * synchronous access to this map
+     */
+    default ConsistentMultimap<K, V> asMultimap(long timeoutMillis) {
+        return new DefaultConsistentMultimap(this, timeoutMillis);
+    }
 }

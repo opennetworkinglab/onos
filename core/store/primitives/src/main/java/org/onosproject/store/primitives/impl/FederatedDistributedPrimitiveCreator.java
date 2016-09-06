@@ -27,6 +27,7 @@ import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncDocumentTree;
@@ -73,6 +74,13 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
     public <V> AsyncConsistentTreeMap<V> newAsyncConsistentTreeMap(String name,
                                                                    Serializer serializer) {
         return getCreator(name).newAsyncConsistentTreeMap(name, serializer);
+    }
+
+    @Override
+    public <K, V> AsyncConsistentMultimap<K, V> newAsyncConsistentSetMultimap(
+            String name, Serializer serializer) {
+        return getCreator(name).newAsyncConsistentSetMultimap(name,
+                                                              serializer);
     }
 
     @Override

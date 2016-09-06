@@ -18,6 +18,7 @@ package org.onosproject.store.primitives.impl;
 import java.util.function.Function;
 
 import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncDistributedSet;
 
@@ -121,4 +122,39 @@ public final class DistributedPrimitives {
                                                        valueEncoder,
                                                        valueDecoder);
     }
+
+    /**
+     * Creates an instance of {@code AsyncConsistentMultimap} that transforms
+     * operations inputs and applies them to corresponding operation in a
+     * differently typed map and returns the output after reverse transforming
+     * it.
+     *
+     * @param multimap backing multimap
+     * @param keyEncoder transformer for key type of returned map to key type
+     *                   of input map
+     * @param keyDecoder transformer for key type of input map to key type of
+     *                   returned map
+     * @param valueEncoder transformer for value type of returned map to value
+     *                     type of input map
+     * @param valueDecoder transformer for value type of input map to value
+     *                     type of returned map
+     * @param <K1> returned map key type
+     * @param <K2> input map key type
+     * @param <V1> returned map value type
+     * @param <V2> input map key type
+     * @return new map
+     */
+    public static <K1, V1, K2, V2> AsyncConsistentMultimap<K1, V1>
+    newTranscodingMultimap(AsyncConsistentMultimap<K2, V2> multimap,
+                           Function<K1, K2> keyEncoder,
+                           Function<K2, K1> keyDecoder,
+                           Function<V1, V2> valueEncoder,
+                           Function<V2, V1> valueDecoder) {
+        return new TranscodingAsyncConsistentMultimap<>(multimap,
+                                                        keyEncoder,
+                                                        keyDecoder,
+                                                        valueDecoder,
+                                                        valueEncoder);
+    }
+
 }
