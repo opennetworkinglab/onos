@@ -15,6 +15,7 @@
  */
 package org.onosproject.sdnip;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -26,12 +27,10 @@ import org.onosproject.core.CoreService;
 import org.onosproject.incubator.component.ComponentService;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.routing.IntentSynchronizationAdminService;
 import org.onosproject.routing.IntentSynchronizationService;
 import org.onosproject.routing.RoutingService;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -61,20 +60,16 @@ public class SdnIp {
     protected IntentSynchronizationService intentSynchronizer;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected IntentSynchronizationAdminService intentSynchronizerAdmin;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentService componentService;
 
     private PeerConnectivityManager peerConnectivity;
 
     private ApplicationId appId;
 
-    private static List<String> components = new ArrayList<>();
-    static {
-        components.add("org.onosproject.routing.bgp.BgpSessionManager");
-        components.add(org.onosproject.sdnip.SdnIpFib.class.getName());
-    }
+    private final List<String> components = ImmutableList.of(
+            "org.onosproject.routing.bgp.BgpSessionManager",
+            org.onosproject.sdnip.SdnIpFib.class.getName()
+    );
 
     @Activate
     protected void activate() {
@@ -89,11 +84,10 @@ public class SdnIp {
                                                        interfaceService);
         peerConnectivity.start();
 
-        applicationService.registerDeactivateHook(appId, () -> {
-            intentSynchronizer.removeIntentsByAppId(appId);
-        });
+        applicationService.registerDeactivateHook(appId,
+                () -> intentSynchronizer.removeIntentsByAppId(appId));
 
-        log.info("SDN-IP started");
+        log.info("Started");
     }
 
     @Deactivate
@@ -102,19 +96,6 @@ public class SdnIp {
 
         peerConnectivity.stop();
 
-        log.info("SDN-IP Stopped");
+        log.info("Stopped");
     }
-
-    /**
-     * Converts DPIDs of the form xx:xx:xx:xx:xx:xx:xx to OpenFlow provider
-     * device URIs.
-     *
-     * @param dpid the DPID string to convert
-     * @return the URI string for this device
-     */
-    static String dpidToUri(String dpid) {
-        return "of:" + dpid.replace(":", "");
-    }
-
-
 }
