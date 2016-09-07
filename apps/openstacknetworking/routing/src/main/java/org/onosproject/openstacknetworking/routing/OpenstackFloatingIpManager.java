@@ -30,6 +30,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -231,6 +232,11 @@ public class OpenstackFloatingIpManager extends AbstractVmHandler implements Ope
                 .matchIPDst(floatingIp.toIpPrefix());
 
         gatewayService.getGatewayDeviceIds().stream().forEach(deviceId -> {
+            TrafficSelector.Builder sForTrafficFromVmBuilder = DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPDst(floatingIp.toIpPrefix())
+                    .matchInPort(nodeService.tunnelPort(deviceId).get());
+
             RulePopulatorUtil.removeRule(
                     flowObjectiveService,
                     appId,
@@ -246,6 +252,14 @@ public class OpenstackFloatingIpManager extends AbstractVmHandler implements Ope
                     sIncomingBuilder.build(),
                     ForwardingObjective.Flag.VERSATILE,
                     FLOATING_RULE_PRIORITY);
+
+            RulePopulatorUtil.removeRule(
+                    flowObjectiveService,
+                    appId,
+                    deviceId,
+                    sForTrafficFromVmBuilder.build(),
+                    ForwardingObjective.Flag.VERSATILE,
+                    FLOATING_RULE_FOR_TRAFFIC_FROM_VM_PRIORITY);
         });
     }
 
@@ -259,13 +273,13 @@ public class OpenstackFloatingIpManager extends AbstractVmHandler implements Ope
             return;
         }
 
-        TrafficSelector selector = DefaultTrafficSelector.builder()
+        TrafficSelector selectorForTrafficFromExternal = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(floatingIp.toIpPrefix())
                 .build();
 
         gatewayService.getGatewayDeviceIds().stream().forEach(gnodeId -> {
-            TrafficTreatment treatment =  DefaultTrafficTreatment.builder()
+            TrafficTreatment treatmentForTrafficFromExternal =  DefaultTrafficTreatment.builder()
                     .setEthSrc(Constants.DEFAULT_GATEWAY_MAC)
                     .setEthDst(associatedVm.mac())
                     .setIpDst(associatedVm.ipAddresses().stream().findFirst().get())
@@ -275,15 +289,43 @@ public class OpenstackFloatingIpManager extends AbstractVmHandler implements Ope
                     .setOutput(nodeService.tunnelPort(gnodeId).get())
                     .build();
 
-            ForwardingObjective fo = DefaultForwardingObjective.builder()
-                    .withSelector(selector)
-                    .withTreatment(treatment)
+            ForwardingObjective forwardingObjectiveForTrafficFromExternal = DefaultForwardingObjective.builder()
+                    .withSelector(selectorForTrafficFromExternal)
+                    .withTreatment(treatmentForTrafficFromExternal)
                     .withFlag(ForwardingObjective.Flag.VERSATILE)
                     .withPriority(FLOATING_RULE_PRIORITY)
                     .fromApp(appId)
                     .add();
 
-            flowObjectiveService.forward(gnodeId, fo);
+            flowObjectiveService.forward(gnodeId, forwardingObjectiveForTrafficFromExternal);
+
+
+            TrafficSelector selectorForTrafficFromVm = DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPDst(floatingIp.toIpPrefix())
+                    .matchInPort(nodeService.tunnelPort(gnodeId).get())
+                    .build();
+
+            TrafficTreatment treatmentForTrafficFromVm = DefaultTrafficTreatment.builder()
+                    .setEthSrc(Constants.DEFAULT_GATEWAY_MAC)
+                    .setEthDst(associatedVm.mac())
+                    .setIpDst(associatedVm.ipAddresses().stream().findFirst().get())
+                    .setTunnelId(Long.valueOf(associatedVm.annotations().value(VXLAN_ID)))
+                    .extension(buildExtension(deviceService, gnodeId, dataIp.get().getIp4Address()),
+                            gnodeId)
+                    .setOutput(PortNumber.IN_PORT)
+                    .build();
+
+            ForwardingObjective forwardingObjectiveForTrafficFromVm = DefaultForwardingObjective.builder()
+                    .withSelector(selectorForTrafficFromVm)
+                    .withTreatment(treatmentForTrafficFromVm)
+                    .withFlag(ForwardingObjective.Flag.VERSATILE)
+                    .withPriority(FLOATING_RULE_FOR_TRAFFIC_FROM_VM_PRIORITY)
+                    .fromApp(appId)
+                    .add();
+
+            flowObjectiveService.forward(gnodeId, forwardingObjectiveForTrafficFromVm);
+
         });
     }
 

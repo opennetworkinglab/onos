@@ -62,7 +62,8 @@ public final class Constants {
 
     public static final int GATEWAY_ICMP_PRIORITY = 43000;
     public static final int ROUTING_RULE_PRIORITY = 25000;
-    public static final int FLOATING_RULE_PRIORITY = 42000;
+    public static final int FLOATING_RULE_FOR_TRAFFIC_FROM_VM_PRIORITY = 42000;
+    public static final int FLOATING_RULE_PRIORITY = 41000;
     public static final int PNAT_RULE_PRIORITY = 26000;
     public static final int PNAT_TIMEOUT = 120;
 }
