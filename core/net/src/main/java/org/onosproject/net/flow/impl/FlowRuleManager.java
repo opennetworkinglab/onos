@@ -577,12 +577,13 @@ public class FlowRuleManager
     }
 
     private class FlowOperationsProcessor implements Runnable {
-
-        private final List<Set<FlowRuleOperation>> stages;
+        // Immutable
         private final FlowRuleOperations fops;
-        private boolean hasFailed = false;
 
+        // Mutable
+        private final List<Set<FlowRuleOperation>> stages;
         private final Set<DeviceId> pendingDevices = new HashSet<>();
+        private boolean hasFailed = false;
 
         FlowOperationsProcessor(FlowRuleOperations ops) {
             this.stages = Lists.newArrayList(ops.stages());
