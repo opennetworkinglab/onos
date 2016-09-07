@@ -441,16 +441,40 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      * Vlan assignment is done by the application.
      * Allows tagged packets into pipeline as per configured port-vlan info.
      *
-     * @param portCriterion   port on device for which this filter is programmed
-     * @param vidCriterion   vlan assigned to port, or NONE for untagged
-     * @param assignedVlan   assigned vlan-id for untagged packets
-     * @param applicationId  for application programming this filter
+     * @param portCriterion       port on device for which this filter is programmed
+     * @param vidCriterion        vlan assigned to port, or NONE for untagged
+     * @param assignedVlan        assigned vlan-id for untagged packets
+     * @param applicationId       for application programming this filter
      * @return list of FlowRule for port-vlan filters
      */
     protected List<FlowRule> processVlanIdFilter(PortCriterion portCriterion,
                                                  VlanIdCriterion vidCriterion,
                                                  VlanId assignedVlan,
                                                  ApplicationId applicationId) {
+        return processVlanIdFilterInternal(portCriterion, vidCriterion, assignedVlan,
+                applicationId, true);
+    }
+
+    /**
+     * Internal implementation of processVlanIdFilter.
+     * <p>
+     * The is_present bit in set_vlan_vid action is required to be 0 in OFDPA i12.
+     * Since it is non-OF spec, we need an extension treatment for that.
+     * The useSetVlanExtension must be set to false for OFDPA i12.
+     * </p>
+     *
+     * @param portCriterion       port on device for which this filter is programmed
+     * @param vidCriterion        vlan assigned to port, or NONE for untagged
+     * @param assignedVlan        assigned vlan-id for untagged packets
+     * @param applicationId       for application programming this filter
+     * @param useSetVlanExtension use the setVlanVid extension that has is_present bit set to 0.
+     * @return list of FlowRule for port-vlan filters
+     */
+    protected List<FlowRule> processVlanIdFilterInternal(PortCriterion portCriterion,
+                                                         VlanIdCriterion vidCriterion,
+                                                         VlanId assignedVlan,
+                                                         ApplicationId applicationId,
+                                                         boolean useSetVlanExtension) {
         List<FlowRule> rules = new ArrayList<>();
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
@@ -463,8 +487,12 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             // untagged packets are assigned vlans
             OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(VlanId.NONE);
             selector.extension(ofdpaMatchVlanVid, deviceId);
-            OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(assignedVlan);
-            treatment.extension(ofdpaSetVlanVid, deviceId);
+            if (useSetVlanExtension) {
+                OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(assignedVlan);
+                treatment.extension(ofdpaSetVlanVid, deviceId);
+            } else {
+                treatment.setVlanId(assignedVlan);
+            }
 
             preSelector = DefaultTrafficSelector.builder();
             OfdpaMatchVlanVid preOfdpaMatchVlanVid = new OfdpaMatchVlanVid(assignedVlan);
@@ -796,6 +824,23 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      * @return A collection of flow rules, or an empty set
      */
     protected Collection<FlowRule> processEthTypeSpecific(ForwardingObjective fwd) {
+        return processEthTypeSpecificInternal(fwd, false);
+    }
+
+    /**
+     * Internal implementation of processEthTypeSpecific.
+     * <p>
+     * Wildcarded IPv4_DST is not supported in OFDPA i12. Therefore, we break
+     * the rule into 0.0.0.0/1 and 128.0.0.0/1.
+     * The allowDefaultRoute must be set to false for OFDPA i12.
+     * </p>
+     *
+     * @param fwd the forwarding objective
+     * @param allowDefaultRoute allow wildcarded IPv4_DST or not
+     * @return A collection of flow rules, or an empty set
+     */
+    protected Collection<FlowRule> processEthTypeSpecificInternal(ForwardingObjective fwd,
+                                                                  boolean allowDefaultRoute) {
         TrafficSelector selector = fwd.selector();
         EthTypeCriterion ethType =
                 (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
@@ -806,10 +851,6 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder();
         TrafficSelector.Builder complementarySelector = DefaultTrafficSelector.builder();
 
-        /*
-         * NOTE: The switch does not support matching 0.0.0.0/0.
-         * Split it into 0.0.0.0/1 and 128.0.0.0/1
-         */
         if (ethType.ethType().toShort() == Ethernet.TYPE_IPV4) {
             IpPrefix ipv4Dst = ((IPCriterion) selector.getCriterion(Criterion.Type.IPV4_DST)).ip();
             if (ipv4Dst.isMulticast()) {
@@ -831,14 +872,23 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 log.debug("processing IPv4 multicast specific forwarding objective {} -> next:{}"
                         + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
             } else {
-                if (ipv4Dst.prefixLength() > 0) {
-                    filteredSelector.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipv4Dst);
+                if (ipv4Dst.prefixLength() == 0) {
+                    if (allowDefaultRoute) {
+                        // The entire IPV4_DST field is wildcarded intentionally
+                        filteredSelector.matchEthType(Ethernet.TYPE_IPV4);
+                    } else {
+                        /*
+                         * NOTE: The switch does not support matching 0.0.0.0/0
+                         * Split it into 0.0.0.0/1 and 128.0.0.0/1
+                         */
+                        filteredSelector.matchEthType(Ethernet.TYPE_IPV4)
+                                .matchIPDst(IpPrefix.valueOf("0.0.0.0/1"));
+                        complementarySelector.matchEthType(Ethernet.TYPE_IPV4)
+                                .matchIPDst(IpPrefix.valueOf("128.0.0.0/1"));
+                        defaultRule = true;
+                    }
                 } else {
-                    filteredSelector.matchEthType(Ethernet.TYPE_IPV4)
-                            .matchIPDst(IpPrefix.valueOf("0.0.0.0/1"));
-                    complementarySelector.matchEthType(Ethernet.TYPE_IPV4)
-                            .matchIPDst(IpPrefix.valueOf("128.0.0.0/1"));
-                    defaultRule = true;
+                    filteredSelector.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipv4Dst);
                 }
                 forTableId = UNICAST_ROUTING_TABLE;
                 log.debug("processing IPv4 unicast specific forwarding objective {} -> next:{}"

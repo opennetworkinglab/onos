@@ -299,8 +299,33 @@ public class Ofdpa2GroupHandler {
      *         error in processing the chain
      */
     protected GroupInfo createL2L3Chain(TrafficTreatment treatment, int nextId,
+                                        ApplicationId appId, boolean mpls,
+                                        TrafficSelector meta) {
+        return createL2L3ChainInternal(treatment, nextId, appId, mpls, meta, true);
+    }
+
+    /**
+     * Internal implementation of createL2L3Chain.
+     * <p>
+     * The is_present bit in set_vlan_vid action is required to be 0 in OFDPA i12.
+     * Since it is non-OF spec, we need an extension treatment for that.
+     * The useSetVlanExtension must be set to false for OFDPA i12.
+     * </p>
+     *
+     * @param treatment that needs to be broken up to create the group chain
+     * @param nextId of the next objective that needs this group chain
+     * @param appId of the application that sent this next objective
+     * @param mpls determines if L3Unicast or MPLSInterface group is created
+     * @param meta metadata passed in by the application as part of the nextObjective
+     * @param useSetVlanExtension use the setVlanVid extension that has is_present bit set to 0.
+     * @return GroupInfo containing the GroupDescription of the
+     *         L2Interface group(inner) and the GroupDescription of the (outer)
+     *         L3Unicast/MPLSInterface group. May return null if there is an
+     *         error in processing the chain
+     */
+    protected GroupInfo createL2L3ChainInternal(TrafficTreatment treatment, int nextId,
                                       ApplicationId appId, boolean mpls,
-                                      TrafficSelector meta) {
+                                      TrafficSelector meta, boolean useSetVlanExtension) {
         // for the l2interface group, get vlan and port info
         // for the outer group, get the src/dst mac, and vlan info
         TrafficTreatment.Builder outerTtb = DefaultTrafficTreatment.builder();
@@ -324,8 +349,12 @@ public class Ofdpa2GroupHandler {
                         break;
                     case VLAN_ID:
                         vlanid = ((L2ModificationInstruction.ModVlanIdInstruction) l2ins).vlanId();
-                        OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(vlanid);
-                        outerTtb.extension(ofdpaSetVlanVid, deviceId);
+                        if (useSetVlanExtension) {
+                            OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(vlanid);
+                            outerTtb.extension(ofdpaSetVlanVid, deviceId);
+                        } else {
+                            outerTtb.setVlanId(vlanid);
+                        }
                         setVlan = true;
                         break;
                     case VLAN_POP:
@@ -358,8 +387,12 @@ public class Ofdpa2GroupHandler {
             }
             // if vlan is not set, use the vlan in metadata for outerTtb
             if (vlanid != null && !setVlan) {
-                OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(vlanid);
-                outerTtb.extension(ofdpaSetVlanVid, deviceId);
+                if (useSetVlanExtension) {
+                    OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(vlanid);
+                    outerTtb.extension(ofdpaSetVlanVid, deviceId);
+                } else {
+                    outerTtb.setVlanId(vlanid);
+                }
             }
         }
 

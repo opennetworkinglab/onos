@@ -447,10 +447,6 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         TrafficSelector.Builder filteredSelector = DefaultTrafficSelector.builder();
         TrafficSelector.Builder complementarySelector = DefaultTrafficSelector.builder();
 
-        /*
-         * NOTE: The switch does not support matching 0.0.0.0/0.
-         * Split it into 0.0.0.0/1 and 128.0.0.0/1
-         */
         if (ethType.ethType().toShort() == Ethernet.TYPE_IPV4) {
             IpPrefix ipv4Dst = ((IPCriterion) selector.getCriterion(Criterion.Type.IPV4_DST)).ip();
             if (ipv4Dst.isMulticast()) {
@@ -471,14 +467,11 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                 log.debug("processing IPv4 multicast specific forwarding objective {} -> next:{}"
                         + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
             } else {
-                if (ipv4Dst.prefixLength() > 0) {
-                    filteredSelector.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipv4Dst);
+                if (ipv4Dst.prefixLength() == 0) {
+                    // The entire IPV4_DST field is wildcarded intentionally
+                    filteredSelector.matchEthType(Ethernet.TYPE_IPV4);
                 } else {
-                    filteredSelector.matchEthType(Ethernet.TYPE_IPV4)
-                            .matchIPDst(IpPrefix.valueOf("0.0.0.0/1"));
-                    complementarySelector.matchEthType(Ethernet.TYPE_IPV4)
-                            .matchIPDst(IpPrefix.valueOf("128.0.0.0/1"));
-                    defaultRule = true;
+                    filteredSelector.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipv4Dst);
                 }
                 forTableId = UNICAST_ROUTING_TABLE;
                 log.debug("processing IPv4 unicast specific forwarding objective {} -> next:{}"
