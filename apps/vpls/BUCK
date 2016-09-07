@@ -10,6 +10,12 @@ COMPILE_DEPS = [
     '//apps/routing:onos-apps-routing',
 ]
 
+BUNDLES = [
+    '//apps/vpls:onos-apps-vpls',
+    '//apps/routing-api:onos-apps-routing-api',
+    '//apps/routing:onos-apps-routing',
+]
+
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
 ]
@@ -23,5 +29,6 @@ onos_app (
     title = 'VLAN L2 Broadcast Network App',
     category = 'Traffic Steering',
     url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
     description = 'Application to create L2 broadcast network using VLAN.',
 )
