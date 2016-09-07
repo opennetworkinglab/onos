@@ -16,45 +16,41 @@
 
 package org.onosproject.store.service;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * A path class for identifying nodes within the {@code DocumentTree}.
- *
- * Note: indexing is ONE based so the root is the 1st level, to retrieve the
- * root one should query level 1.
- */
-public class DocumentPath implements Comparable {
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
-    private final ArrayList<String> tokens = Lists.newArrayList();
+/**
+ * Unique key for nodes in the {@link DocumentTree}.
+ */
+public class DocumentPath implements Comparable<DocumentPath> {
+
+    private final List<String> pathElements = Lists.newArrayList();
 
     /**
      * Private utility constructor for internal generation of partial paths only.
      *
-     * @param path
+     * @param pathElements list of path elements
      */
-    private DocumentPath(List<String> path) {
-        Preconditions.checkNotNull(path);
-        this.tokens.addAll(path);
+    private DocumentPath(List<String> pathElements) {
+        Preconditions.checkNotNull(pathElements);
+        this.pathElements.addAll(pathElements);
     }
 
     /**
-     * Constructor to generate new {@DocumentPath}, new paths must contain at
-     * least one name and string names may NOT contain any '.'s. If one field
-     * is null that field will be ignored.
+     * Constructs a {@DocumentPath}.
+     * <p>
+     * New paths must contain at least one name and string names may NOT contain any period characters.
+     * If one field is {@code null} that field will be ignored.
      *
-     * @throws IllegalDocumentNameException if both parameters are null or the string
-     * name contains an illegal character ('.')
      * @param nodeName the name of the last level of this path
-     * @param parentPath the path representing the parents leading up to this
-     *                   node, in the case of the root this should be null
+     * @param parentPath the path representing the parent leading up to this
+     *                   node, in the case of the root this should be {@code null}
+     * @throws IllegalDocumentNameException if both parameters are null or name contains an illegal character ('.')
      */
     public DocumentPath(String nodeName, DocumentPath parentPath) {
         if (nodeName.contains(".")) {
@@ -62,12 +58,12 @@ public class DocumentPath implements Comparable {
                     "Periods are not allowed in names.");
         }
         if (parentPath != null) {
-            tokens.addAll(parentPath.path());
+            pathElements.addAll(parentPath.pathElements());
         }
         if (nodeName != null) {
-            tokens.add(nodeName);
+            pathElements.add(nodeName);
         }
-        if (tokens.isEmpty()) {
+        if (pathElements.isEmpty()) {
             throw new IllegalDocumentNameException("A document path must contain at" +
                                                    "least one non-null" +
                                                    "element.");
@@ -75,39 +71,37 @@ public class DocumentPath implements Comparable {
     }
 
     /**
-     * Returns a path from the root to the parent of this node, if this node is
-     * the root this call returns null.
+     * Returns a path for the parent of this node.
      *
-     * @return a {@code DocumentPath} representing a path to this paths parent,
-     * null if this a root path
+     * @return parent node path. If this path is for the root, returns {@code null}.
      */
     public DocumentPath parent() {
-        if (tokens.size() <= 1) {
+        if (pathElements.size() <= 1) {
             return null;
         }
-        return new DocumentPath(this.tokens.subList(0, tokens.size() - 1));
+        return new DocumentPath(this.pathElements.subList(0, pathElements.size() - 1));
     }
 
     /**
-     * Returns the complete list of tokens representing this path in correct
+     * Returns the list of path elements representing this path in correct
      * order.
      *
-     * @return a list of strings representing this path
+     * @return a list of elements that make up this path
      */
-    public List<String> path() {
-        return ImmutableList.copyOf(tokens);
+    public List<String> pathElements() {
+        return ImmutableList.copyOf(pathElements);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(tokens);
+        return Objects.hash(pathElements);
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof DocumentPath) {
             DocumentPath that = (DocumentPath) obj;
-            return this.tokens.equals(that.tokens);
+            return this.pathElements.equals(that.pathElements);
         }
         return false;
     }
@@ -115,7 +109,7 @@ public class DocumentPath implements Comparable {
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
-        Iterator<String> iter = tokens.iterator();
+        Iterator<String> iter = pathElements.iterator();
         while (iter.hasNext()) {
             stringBuilder.append(iter.next());
             if (iter.hasNext()) {
@@ -126,26 +120,21 @@ public class DocumentPath implements Comparable {
     }
 
     @Override
-    public int compareTo(Object o) {
-        if (o instanceof DocumentPath) {
-            DocumentPath that = (DocumentPath) o;
-            int shorterLength = this.tokens.size() > that.tokens.size() ?
-                    that.tokens.size() : this.tokens.size();
-            for (int i = 0; i < shorterLength; i++) {
-                if (this.tokens.get(i).compareTo(that.tokens.get(i)) != 0) {
-                    return this.tokens.get(i).compareTo(that.tokens.get(i));
-                }
-            }
-
-            if (this.tokens.size() > that.tokens.size()) {
-                return 1;
-            } else if (that.tokens.size() > this.tokens.size()) {
-                return -1;
-            } else {
-                return 0;
+    public int compareTo(DocumentPath that) {
+        int shorterLength = this.pathElements.size() > that.pathElements.size()
+                ? that.pathElements.size() : this.pathElements.size();
+        for (int i = 0; i < shorterLength; i++) {
+            if (this.pathElements.get(i).compareTo(that.pathElements.get(i)) != 0) {
+                return this.pathElements.get(i).compareTo(that.pathElements.get(i));
             }
         }
-        throw new IllegalArgumentException("Compare can only compare objects" +
-                                                   "of the same type.");
+
+        if (this.pathElements.size() > that.pathElements.size()) {
+            return 1;
+        } else if (that.pathElements.size() > this.pathElements.size()) {
+            return -1;
+        } else {
+            return 0;
+        }
     }
 }

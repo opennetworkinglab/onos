@@ -16,82 +16,68 @@
 
 package org.onosproject.store.service;
 
-import org.onosproject.store.primitives.DocumentTreeNode;
-
 import java.util.Iterator;
 
+import org.onosproject.store.primitives.DocumentTreeNode;
+
 /**
- * Interface for a tree with structure wherein keys hold information
- * about the hierarchical structure of the tree (name of parent,
- * grandparent etc.).
+ * A hierarchical <a href="https://en.wikipedia.org/wiki/Document_Object_Model">document tree</a> data structure.
+ *
+ * @param V document tree value type
  */
 public interface DocumentTree<V> {
 
     /**
-     * Returns the root of the tree. This will be the first part of any fully
-     * qualified path and will enable discovery of the entire tree.
+     * Returns the {@link DocumentPath path} to root of the tree.
      *
-     * @return a string that is the name of the root of the tree.
+     * @return path to root of the tree
      */
     DocumentPath root();
 
     /**
-     * Returns a sorted list containing all key value pairs that are direct
-     * descendants of the supplied parent. The returned list will be immutable.
-     * If the specified parent does not exist this method will fail with an
-     * exception.
+     * Returns an iterator for all the first order descendants of a node.
      *
-     * @throws NoSuchDocumentPathException if the parent does not exist
-     * @param parentPath the path to the parent of the desired nodes
-     * @return an iterator of the children of the specified parent
+     * @param path path to the node
+     * @return an iterator for the child nodes of the specified node path
+     * @throws NoSuchDocumentPathException if the path does not point to a valid node
      */
-    Iterator<DocumentTreeNode<V>> getChildren(DocumentPath parentPath);
+    Iterator<DocumentTreeNode<V>> getChildren(DocumentPath path);
 
     /**
-     * Returns the value associated with the supplied key or null if no such
-     * node exists.
+     * Returns a document tree node.
      *
-     * @param key the key to query
-     * @return a value or null
+     * @param path path to node
+     * @return node value or {@code null} if path does not point to a valid node
      */
-    DocumentTreeNode<V> getNode(DocumentPath key);
+    DocumentTreeNode<V> getNode(DocumentPath path);
 
     /**
-     * Takes a string that specifies the complete path to the mapping to be
-     * added or updated and creates the key value mapping or updates the value.
-     * If the specified parent cannot be found the operation fails with an
-     * error.
+     * Creates or updates a document tree node.
      *
-     * @throws NoSuchDocumentPathException if the specified parent does not
-     * exist.
-     * @param key the fully qualified key of the entry to be added or updated
+     * @param path path for the node to create or update
      * @param value the non-null value to be associated with the key
-     * @return the previous mapping or null if there was no previous mapping
+     * @return the previous mapping or {@code null} if there was no previous mapping
+     * @throws NoSuchDocumentPathException if the parent node (for the node to create/update) does not exist
      */
-    V putNode(DocumentPath key, V value);
+    V putNode(DocumentPath path, V value);
 
     /**
-     * Takes the fully qualified  name of the node to be added along with
-     * the value to be added. If the specified key already exists it doesnot
-     * update anything & returns false. If the parent does not exist the
-     * operation fails with an exception.
+     * Creates a document tree node if one does not exist already.
      *
-     * @throws NoSuchDocumentPathException if the specified parent does not
-     * exist.
-     * @param key the fully qualified key of the entry to be added or updated
+     * @param path path for the node to create
      * @param value the non-null value to be associated with the key
-     * @return returns true if the mapping could be added successfully
+     * @return returns {@code true} if the mapping could be added successfully, {@code false} otherwise
+     * @throws NoSuchDocumentPathException if the parent node (for the node to create) does not exist
      */
-    boolean createNode(DocumentPath key, V value);
+    boolean createNode(DocumentPath path, V value);
 
     /**
-     * Removes the node with the specified fully qualified key. Returns null if
-     * the node did not exist. This method will throw an exception if called on
-     * a non-leaf node.
+     * Removes the node with the specified path.
      *
-     * @throws IllegalDocumentModificationException if the node had children.
-     * @param key the fully qualified key of the node to be removed
-     * @return the previous value of the node or null if it did not exist
+     * is not a leaf node i.e has one or more children
+     * @param path path for the node to remove
+     * @return the previous value of the node or {@code null} if it did not exist
+     * @throws IllegalDocumentModificationException if the remove to be removed
      */
     V removeNode(DocumentPath key);
 }
