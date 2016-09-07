@@ -32,7 +32,7 @@ public interface Band {
 
         /**
          * defines a simple DiffServ policer that remark
-         * the drop precedence of the DSCP field in the
+         * the drop precedence of the DSCP field in the
          * IP header of the packets that exceed the band
          * rate value.
          */
@@ -113,7 +113,7 @@ public interface Band {
         Builder dropPrecedence(short prec);
 
         /**
-         * Assigns the @See Type of this band.
+         * Assigns the {@link Type} of this band.
          *
          * @param type a band type
          * @return this
