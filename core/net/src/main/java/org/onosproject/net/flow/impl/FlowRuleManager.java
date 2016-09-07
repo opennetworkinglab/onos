@@ -603,12 +603,20 @@ public class FlowRuleManager
 
         // Mutable
         private final List<Set<FlowRuleOperation>> stages;
-        private final Set<DeviceId> pendingDevices = new HashSet<>();
+        private final Set<DeviceId> pendingDevices;
         private boolean hasFailed = false;
 
         FlowOperationsProcessor(FlowRuleOperations ops) {
             this.stages = Lists.newArrayList(ops.stages());
             this.fops = ops;
+            this.pendingDevices = new HashSet<>();
+        }
+
+        FlowOperationsProcessor(FlowOperationsProcessor src) {
+            this.fops = src.fops;
+            this.stages = Lists.newArrayList(src.stages);
+            this.pendingDevices = new HashSet<>(src.pendingDevices);
+            this.hasFailed = src.hasFailed;
         }
 
         @Override
@@ -641,7 +649,7 @@ public class FlowRuleManager
         synchronized void satisfy(DeviceId devId) {
             pendingDevices.remove(devId);
             if (pendingDevices.isEmpty()) {
-                operationsService.execute(this);
+                operationsService.execute(new FlowOperationsProcessor(this));
             }
         }
 
@@ -649,7 +657,7 @@ public class FlowRuleManager
             hasFailed = true;
             pendingDevices.remove(devId);
             if (pendingDevices.isEmpty()) {
-                operationsService.execute(this);
+                operationsService.execute(new FlowOperationsProcessor(this));
             }
 
             FlowRuleOperations.Builder failedOpsBuilder = FlowRuleOperations.builder();
