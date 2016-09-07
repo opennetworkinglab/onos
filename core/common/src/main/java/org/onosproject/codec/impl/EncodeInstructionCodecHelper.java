@@ -241,12 +241,17 @@ public final class EncodeInstructionCodecHelper {
         DeviceService deviceService = serviceDirectory.get(DeviceService.class);
         Device device = deviceService.getDevice(deviceId);
 
+        if (device == null) {
+            throw new IllegalArgumentException("Device not found");
+        }
+
         if (device.is(ExtensionTreatmentCodec.class)) {
             ExtensionTreatmentCodec treatmentCodec = device.as(ExtensionTreatmentCodec.class);
             ObjectNode node = treatmentCodec.encode(extensionInstruction.extensionInstruction(), context);
             result.set(InstructionCodec.EXTENSION, node);
         } else {
-            log.warn("There is no codec to encode extension for device {}", deviceId.toString());
+            throw new IllegalArgumentException(
+                    "There is no codec to encode extension for device " + deviceId.toString());
         }
     }
 

@@ -18,12 +18,16 @@ package org.onosproject.net.host.impl;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
@@ -48,8 +52,10 @@ import org.onosproject.net.host.HostStore;
 import org.onosproject.net.host.HostStoreDelegate;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import java.util.Dictionary;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -93,16 +99,40 @@ public class HostManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EdgePortService edgePortService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
+    @Property(name = "allowDuplicateIps", boolValue = true,
+            label = "Enable removal of duplicate ip address")
+
+    private boolean allowDuplicateIps = true;
     private HostMonitor monitor;
 
+
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
         store.setDelegate(delegate);
         eventDispatcher.addSink(HostEvent.class, listenerRegistry);
+        cfgService.registerProperties(getClass());
+        modified(context);
         networkConfigService.addListener(networkConfigListener);
         monitor = new HostMonitor(packetService, this, interfaceService, edgePortService);
         monitor.start();
         log.info("Started");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        Boolean flag;
+        flag = Tools.isPropertyEnabled(properties, "allowDuplicateIps");
+        if (flag == null) {
+            log.info("Removal of duplicate ip address is not configured");
+        } else {
+            allowDuplicateIps = flag;
+            log.info("Removal of duplicate ip address is {}",
+                     allowDuplicateIps ? "disabled" : "enabled");
+        }
     }
 
     @Deactivate
@@ -208,9 +238,30 @@ public class HostManager
             checkNotNull(hostId, HOST_ID_NULL);
             checkValidity();
             hostDescription = validateHost(hostDescription, hostId);
+
+            if (!allowDuplicateIps) {
+                removeDuplicates(hostId, hostDescription);
+            }
             store.createOrUpdateHost(provider().id(), hostId,
-                                                       hostDescription, replaceIps);
+                                     hostDescription, replaceIps);
         }
+
+        // When a new IP is detected, remove that IP on other hosts if it exists
+        public void removeDuplicates(HostId hostId, HostDescription desc) {
+            desc.ipAddress().forEach(ip -> {
+                Set<Host> allHosts = store.getHosts(ip);
+                allHosts.forEach(eachHost -> {
+                    if (!(eachHost.id().equals(hostId))) {
+                        log.info("Duplicate ip {} found on host {} and {}", ip,
+                                 hostId.toString(), eachHost.id().toString());
+                        store.removeIp(eachHost.id(), ip);
+                    }
+                });
+            });
+        }
+
+
+
 
         // returns a HostDescription made from the union of the BasicHostConfig
         // annotations if it exists

@@ -22,6 +22,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.topology.ClusterId;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyCluster;
@@ -35,7 +36,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
-
 import static org.onlab.util.Tools.nullIsNotFound;
 
 /**
@@ -187,9 +187,10 @@ public class TopologyWebResource extends AbstractWebResource {
     @Path("broadcast/{connectPoint}")
     public Response getConnectPointBroadcast(@PathParam("connectPoint") String connectPointString) {
         Topology topology = get(TopologyService.class).currentTopology();
-
         DeviceId deviceId = DeviceId.deviceId(getDeviceId(connectPointString));
+        nullIsNotFound(get(DeviceService.class).getDevice(deviceId), "Device not found " + connectPointString);
         PortNumber portNumber = PortNumber.portNumber(getPortNumber(connectPointString));
+        nullIsNotFound(get(DeviceService.class).getPort(deviceId, portNumber), "Port not found " + connectPointString);
         ConnectPoint connectPoint = new ConnectPoint(deviceId, portNumber);
         boolean isBroadcast = get(TopologyService.class).isBroadcastPoint(topology, connectPoint);
 
@@ -211,9 +212,10 @@ public class TopologyWebResource extends AbstractWebResource {
     @Path("infrastructure/{connectPoint}")
     public Response getConnectPointInfrastructure(@PathParam("connectPoint") String connectPointString) {
         Topology topology = get(TopologyService.class).currentTopology();
-
         DeviceId deviceId = DeviceId.deviceId(getDeviceId(connectPointString));
+        nullIsNotFound(get(DeviceService.class).getDevice(deviceId), "Device not found " + connectPointString);
         PortNumber portNumber = PortNumber.portNumber(getPortNumber(connectPointString));
+        nullIsNotFound(get(DeviceService.class).getPort(deviceId, portNumber), "Port not found " + connectPointString);
         ConnectPoint connectPoint = new ConnectPoint(deviceId, portNumber);
         boolean isInfrastructure = get(TopologyService.class).isInfrastructure(topology, connectPoint);
 

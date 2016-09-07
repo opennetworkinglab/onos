@@ -54,6 +54,7 @@ import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageException;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.Topic;
 import org.onosproject.store.service.Versioned;
 import org.onosproject.store.service.DistributedPrimitive.Status;
 import org.slf4j.Logger;
@@ -89,10 +90,13 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Manages inventory of applications in a distributed data store providing
  * stronger consistency guarantees.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
 public class DistributedApplicationStore extends ApplicationArchive
         implements ApplicationStore {
+
+    // FIXME: eliminate the need for this
+    private static final int FIXME_ACTIVATION_DELAY = 500;
 
     private final Logger log = getLogger(getClass());
 
@@ -115,6 +119,7 @@ public class DistributedApplicationStore extends ApplicationArchive
     private ExecutorService messageHandlingExecutor;
 
     private ConsistentMap<ApplicationId, InternalApplicationHolder> apps;
+    private Topic<Application> appActivationTopic;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterCommunicationService clusterCommunicator;
@@ -129,6 +134,7 @@ public class DistributedApplicationStore extends ApplicationArchive
     protected ApplicationIdStore idStore;
 
     private final InternalAppsListener appsListener = new InternalAppsListener();
+    private final Consumer<Application> appActivator = new AppActivator();
 
     private Consumer<Status> statusChangeListener;
 
@@ -144,25 +150,30 @@ public class DistributedApplicationStore extends ApplicationArchive
     public void activate() {
         messageHandlingExecutor = Executors.newSingleThreadExecutor(
                 groupedThreads("onos/store/app", "message-handler", log));
-        clusterCommunicator.<String, byte[]>addSubscriber(APP_BITS_REQUEST,
-                                                          bytes -> new String(bytes, Charsets.UTF_8),
-                                                          name -> {
-                                                              try {
-                                                                  return toByteArray(getApplicationInputStream(name));
-                                                              } catch (IOException e) {
-                                                                  throw new StorageException(e);
-                                                              }
-                                                          },
-                                                          Function.identity(),
-                                                          messageHandlingExecutor);
+        clusterCommunicator.addSubscriber(APP_BITS_REQUEST,
+                                          bytes -> new String(bytes, Charsets.UTF_8),
+                                          name -> {
+                                              try {
+                                                  return toByteArray(getApplicationInputStream(name));
+                                              } catch (IOException e) {
+                                                  throw new StorageException(e);
+                                              }
+                                          },
+                                          Function.identity(),
+                                          messageHandlingExecutor);
 
         apps = storageService.<ApplicationId, InternalApplicationHolder>consistentMapBuilder()
                 .withName("onos-apps")
                 .withRelaxedReadConsistency()
                 .withSerializer(Serializer.using(KryoNamespaces.API,
-                                    InternalApplicationHolder.class,
-                                    InternalState.class))
+                                                 InternalApplicationHolder.class,
+                                                 InternalState.class))
                 .build();
+
+        appActivationTopic = storageService.getTopic("onos-apps-activation-topic",
+                                                     Serializer.using(KryoNamespaces.API));
+
+        appActivationTopic.subscribe(appActivator, messageHandlingExecutor);
 
         executor = newSingleThreadScheduledExecutor(groupedThreads("onos/app", "store", log));
         statusChangeListener = status -> {
@@ -180,7 +191,7 @@ public class DistributedApplicationStore extends ApplicationArchive
      * Processes existing applications from the distributed map. This is done to
      * account for events that this instance may be have missed due to a staggered start.
      */
-    void bootstrapExistingApplications() {
+    private void bootstrapExistingApplications() {
         apps.asJavaMap().forEach((appId, holder) -> setupApplicationAndNotify(appId, holder.app(), holder.state()));
 
     }
@@ -244,6 +255,7 @@ public class DistributedApplicationStore extends ApplicationArchive
         clusterCommunicator.removeSubscriber(APP_BITS_REQUEST);
         apps.removeStatusChangeListener(statusChangeListener);
         apps.removeListener(appsListener);
+        appActivationTopic.unsubscribe(appActivator);
         messageHandlingExecutor.shutdown();
         executor.shutdown();
         log.info("Stopped");
@@ -253,7 +265,7 @@ public class DistributedApplicationStore extends ApplicationArchive
     public void setDelegate(ApplicationStoreDelegate delegate) {
         super.setDelegate(delegate);
         executor.execute(this::bootstrapExistingApplications);
-        executor.schedule(() -> loadFromDisk(), APP_LOAD_DELAY_MS, TimeUnit.MILLISECONDS);
+        executor.schedule((Runnable) this::loadFromDisk, APP_LOAD_DELAY_MS, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -296,7 +308,7 @@ public class DistributedApplicationStore extends ApplicationArchive
     }
 
     private boolean hasPrerequisites(ApplicationDescription app) {
-        return !app.requiredApps().stream().map(n -> getId(n))
+        return !app.requiredApps().stream().map(this::getId)
                 .anyMatch(id -> id == null || getApplication(id) == null);
     }
 
@@ -345,7 +357,7 @@ public class DistributedApplicationStore extends ApplicationArchive
             apps.computeIf(appId, v -> v != null && v.state() != ACTIVATED,
                     (k, v) -> new InternalApplicationHolder(
                             v.app(), ACTIVATED, v.permissions()));
-
+            appActivationTopic.publish(vAppHolder.value().app());
         }
     }
 
@@ -414,7 +426,17 @@ public class DistributedApplicationStore extends ApplicationArchive
                 return new InternalApplicationHolder(v.app(), v.state(), ImmutableSet.copyOf(permissions));
             });
         if (permissionsChanged.get()) {
-            delegate.notify(new ApplicationEvent(APP_PERMISSIONS_CHANGED, appHolder.value().app()));
+            notifyDelegate(new ApplicationEvent(APP_PERMISSIONS_CHANGED, appHolder.value().app()));
+        }
+    }
+
+    private class AppActivator implements Consumer<Application> {
+        @Override
+        public void accept(Application app) {
+            String appName = app.id().name();
+            installAppIfNeeded(app);
+            setActive(appName);
+            notifyDelegate(new ApplicationEvent(APP_ACTIVATED, app));
         }
     }
 
@@ -438,23 +460,20 @@ public class DistributedApplicationStore extends ApplicationArchive
                 }
                 setupApplicationAndNotify(appId, newApp.app(), newApp.state());
             } else if (event.type() == MapEvent.Type.REMOVE) {
-                delegate.notify(new ApplicationEvent(APP_UNINSTALLED, oldApp.app()));
+                notifyDelegate(new ApplicationEvent(APP_UNINSTALLED, oldApp.app()));
                 purgeApplication(appId.name());
             }
         }
     }
 
     private void setupApplicationAndNotify(ApplicationId appId, Application app, InternalState state) {
+        // ACTIVATED state is handled separately in NextAppToActivateValueListener
         if (state == INSTALLED) {
             fetchBitsIfNeeded(app);
-            delegate.notify(new ApplicationEvent(APP_INSTALLED, app));
-        } else if (state == ACTIVATED) {
-            installAppIfNeeded(app);
-            setActive(appId.name());
-            delegate.notify(new ApplicationEvent(APP_ACTIVATED, app));
+            notifyDelegate(new ApplicationEvent(APP_INSTALLED, app));
         } else if (state == DEACTIVATED) {
             clearActive(appId.name());
-            delegate.notify(new ApplicationEvent(APP_DEACTIVATED, app));
+            notifyDelegate(new ApplicationEvent(APP_DEACTIVATED, app));
         }
     }
 
@@ -485,7 +504,7 @@ public class DistributedApplicationStore extends ApplicationArchive
     private void installAppIfNeeded(Application app) {
         if (!appBitsAvailable(app)) {
             fetchBits(app);
-            delegate.notify(new ApplicationEvent(APP_INSTALLED, app));
+            notifyDelegate(new ApplicationEvent(APP_INSTALLED, app));
         }
     }
 
@@ -539,25 +558,25 @@ public class DistributedApplicationStore extends ApplicationArchive
     private Application registerApp(ApplicationDescription appDesc) {
         ApplicationId appId = idStore.registerApplication(appDesc.name());
         return new DefaultApplication(appId,
-                appDesc.version(),
-                appDesc.title(),
-                appDesc.description(),
-                appDesc.origin(),
-                appDesc.category(),
-                appDesc.url(),
-                appDesc.readme(),
-                appDesc.icon(),
-                appDesc.role(),
-                appDesc.permissions(),
-                appDesc.featuresRepo(),
-                appDesc.features(),
-                appDesc.requiredApps());
+                                      appDesc.version(),
+                                      appDesc.title(),
+                                      appDesc.description(),
+                                      appDesc.origin(),
+                                      appDesc.category(),
+                                      appDesc.url(),
+                                      appDesc.readme(),
+                                      appDesc.icon(),
+                                      appDesc.role(),
+                                      appDesc.permissions(),
+                                      appDesc.featuresRepo(),
+                                      appDesc.features(),
+                                      appDesc.requiredApps());
     }
 
     /**
      * Internal class for holding app information.
      */
-    private static class InternalApplicationHolder {
+    private static final class InternalApplicationHolder {
         private final Application app;
         private final InternalState state;
         private final Set<Permission> permissions;
@@ -569,7 +588,7 @@ public class DistributedApplicationStore extends ApplicationArchive
             permissions = null;
         }
 
-        public InternalApplicationHolder(Application app, InternalState state, Set<Permission> permissions) {
+        private InternalApplicationHolder(Application app, InternalState state, Set<Permission> permissions) {
             this.app = Preconditions.checkNotNull(app);
             this.state = state;
             this.permissions = permissions == null ? null : ImmutableSet.copyOf(permissions);

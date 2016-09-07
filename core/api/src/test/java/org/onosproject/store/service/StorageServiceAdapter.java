@@ -35,11 +35,6 @@ public class StorageServiceAdapter implements StorageService {
     }
 
     @Override
-    public <E> DistributedQueueBuilder<E> queueBuilder() {
-        return null;
-    }
-
-    @Override
     public AtomicCounterBuilder atomicCounterBuilder() {
         return null;
     }
@@ -61,6 +56,15 @@ public class StorageServiceAdapter implements StorageService {
 
     @Override
     public <E> WorkQueue<E> getWorkQueue(String name, Serializer serializer) {
+        return null;
+    }
+
+    @Override
+    public <T> Topic<T> getTopic(String name, Serializer serializer) {
+        return null;
+    }
+
+    public <V> ConsistentTreeMapBuilder<V> consistentTreeMapBuilder() {
         return null;
     }
 }

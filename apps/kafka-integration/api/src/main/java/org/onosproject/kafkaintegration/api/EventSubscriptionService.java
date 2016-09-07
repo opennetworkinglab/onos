@@ -14,15 +14,15 @@
  */
 package org.onosproject.kafkaintegration.api;
 
+import java.util.List;
+
 import org.onosproject.kafkaintegration.api.dto.EventSubscriber;
-import org.onosproject.kafkaintegration.api.dto.EventSubscriberGroupId;
 import org.onosproject.kafkaintegration.api.dto.OnosEvent.Type;
+import org.onosproject.kafkaintegration.api.dto.RegistrationResponse;
 import org.onosproject.kafkaintegration.errors.InvalidApplicationException;
 import org.onosproject.kafkaintegration.errors.InvalidGroupIdException;
 
 import com.google.common.annotations.Beta;
-
-import java.util.List;
 
 /**
  * APIs for subscribing to Onos Event Messages.
@@ -34,9 +34,9 @@ public interface EventSubscriptionService {
      * Registers the external application to receive events generated in ONOS.
      *
      * @param appName Application Name
-     * @return unique consumer group identifier
+     * @return Registration Response DTO.
      */
-    EventSubscriberGroupId registerListener(String appName);
+    RegistrationResponse registerListener(String appName);
 
     /**
      * Removes the Registered Listener.

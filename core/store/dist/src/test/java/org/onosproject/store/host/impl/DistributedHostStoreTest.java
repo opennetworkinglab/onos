@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.host.impl;
 
-import junit.framework.TestCase;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,10 +31,13 @@ import org.onosproject.store.service.TestStorageService;
 import java.util.HashSet;
 import java.util.Set;
 
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertFalse;
+
 /**
  * Tests for the ECHostStore.
  */
-public class DistributedHostStoreTest extends TestCase {
+public class DistributedHostStoreTest {
 
     private DistributedHostStore ecXHostStore;
 

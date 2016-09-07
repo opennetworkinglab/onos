@@ -384,7 +384,7 @@ public class ReactiveForwarding {
                     ignoreIpv4McastPackets ? "enabled" : "disabled");
         }
         flowTimeout = Tools.getIntegerProperty(properties, "flowTimeout", DEFAULT_TIMEOUT);
-        log.info("Configured. Flow Timeout is configured to {}", flowTimeout, " seconds");
+        log.info("Configured. Flow Timeout is configured to {} seconds", flowTimeout);
 
         flowPriority = Tools.getIntegerProperty(properties, "flowPriority", DEFAULT_PRIORITY);
         log.info("Configured. Flow Priority is configured to {}", flowPriority);

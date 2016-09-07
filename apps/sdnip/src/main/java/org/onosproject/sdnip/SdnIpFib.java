@@ -171,6 +171,7 @@ public class SdnIpFib {
         // TODO this should be only peering interfaces
         interfaceService.getInterfaces().stream()
                 .filter(intf -> !intf.equals(egressInterface))
+                .filter(intf -> !intf.connectPoint().equals(egressPort))
                 .forEach(intf -> {
                     ingressInterfaces.add(intf);
                     ConnectPoint ingressPort = intf.connectPoint();

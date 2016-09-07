@@ -4,11 +4,17 @@ COMPILE_DEPS = [
     '//protocols/netconf/api:onos-protocols-netconf-api',
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',
+    '//apps/optical-model:onos-apps-optical-model',
 ]
 
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
     '//core/api:onos-api-tests',
+]
+
+BUNDLES = [
+    ':onos-drivers-fujitsu',
+    '//drivers/utilities:onos-drivers-utilities',
 ]
 
 osgi_jar_with_tests (
@@ -19,9 +25,11 @@ osgi_jar_with_tests (
 )
 
 onos_app (
+    app_name = 'org.onosproject.drivers.fujitsu',
     title = 'Fujitsu device drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
     description = 'ONOS Fujitsu device drivers application.',
-    required_apps = [ 'org.onosproject.netconf' ],
+    included_bundles = BUNDLES,
+    required_apps = [ 'org.onosproject.netconf', 'org.onosproject.optical-model' ],
 )

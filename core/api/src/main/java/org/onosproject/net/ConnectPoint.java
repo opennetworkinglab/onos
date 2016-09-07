@@ -15,8 +15,6 @@
  */
 package org.onosproject.net;
 
-import com.google.common.base.MoreObjects;
-
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -166,10 +164,7 @@ public class ConnectPoint {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("elementId", elementId)
-                .add("portNumber", portNumber)
-                .toString();
+        return elementId + "/" + portNumber;
     }
 
 }

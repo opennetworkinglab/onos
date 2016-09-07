@@ -37,11 +37,18 @@
         <onos.app.category>Drivers</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.requires>
-            org.onosproject.restsb
+            org.onosproject.restsb,
+            org.onosproject.optical-model
         </onos.app.requires>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-optical-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-drivers-utilities</artifactId>

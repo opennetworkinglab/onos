@@ -113,7 +113,7 @@ public class AlarmTableMessageHandler extends UiMessageHandler {
                     AlarmServiceUtil.lookUpAlarms() :
                     AlarmServiceUtil.lookUpAlarms(DeviceId.deviceId(devId));
 
-            alarms.stream().forEach((alarm) -> {
+            alarms.forEach((alarm) -> {
                 populateRow(tm.addRow(), alarm);
             });
 

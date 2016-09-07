@@ -65,7 +65,7 @@ public class LumentumAlarmConsumer extends AbstractHandlerBehaviour implements A
         }
 
         // Gets the alarm table and for each entry get the ID and create the proper alarm.
-        snmp.get(ALARMS_TABLE_OID).stream()
+        snmp.get(ALARMS_TABLE_OID)
                 .forEach(alarm -> snmp.get(ALARMS_ID_OID).forEach(alarmIdEvent -> {
                     int alarmId = getAlarmId(alarmIdEvent);
                     alarms.add(new DefaultAlarm.Builder(deviceId, getMessage(alarmId),

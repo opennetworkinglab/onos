@@ -76,6 +76,8 @@ public final class ImmutableByteSequence {
      * the passed byte array, from/to the given indexes (inclusive).
      *
      * @param original a byte array value
+     * @param fromIdx starting index
+     * @param toIdx ending index
      * @return a new immutable byte sequence
      */
     public static ImmutableByteSequence copyFrom(byte[] original, int fromIdx, int toIdx) {

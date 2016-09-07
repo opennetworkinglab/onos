@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//apps/optical-model:onos-apps-optical-model',
 ]
 
 osgi_jar_with_tests (
@@ -11,4 +12,5 @@ onos_app (
     category = 'Traffic Steering',
     url = 'http://onosproject.org',
     description = 'Packet/Optical use-case application.',
+    required_apps = [ 'org.onosproject.optical-model' ],
 )

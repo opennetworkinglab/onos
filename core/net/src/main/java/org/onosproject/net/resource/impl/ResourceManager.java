@@ -84,7 +84,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
 
     @Override
     public List<ResourceAllocation> allocate(ResourceConsumer consumer,
-                                             List<Resource> resources) {
+                                             List<? extends Resource> resources) {
         checkPermission(RESOURCE_WRITE);
         checkNotNull(consumer);
         checkNotNull(resources);
@@ -202,14 +202,14 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     }
 
     @Override
-    public boolean register(List<Resource> resources) {
+    public boolean register(List<? extends Resource> resources) {
         checkNotNull(resources);
 
         return store.register(resources);
     }
 
     @Override
-    public boolean unregister(List<ResourceId> ids) {
+    public boolean unregister(List<? extends ResourceId> ids) {
         checkNotNull(ids);
 
         return store.unregister(ids);

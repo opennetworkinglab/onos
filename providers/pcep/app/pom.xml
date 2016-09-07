@@ -36,12 +36,10 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-pcepio</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-pcep-controller-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>

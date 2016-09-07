@@ -287,10 +287,21 @@ public class PcepOpenObjectVer1 implements PcepOpenObject {
             default:
                 log.debug("Unsupported TLV: " + hType);
                 cb.skipBytes(hLength);
-                continue;
+                tlv = null;
             }
 
-            llOptionalTlv.add(tlv);
+            // Check for the padding
+            int pad = hLength % 4;
+            if (0 < pad) {
+                pad = 4 - pad;
+                if (pad <= cb.readableBytes()) {
+                    cb.skipBytes(pad);
+                }
+            }
+
+            if (tlv != null) {
+                llOptionalTlv.add(tlv);
+            }
         }
 
         if (0 < cb.readableBytes()) {

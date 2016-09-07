@@ -120,6 +120,18 @@
                             <packages>@internal-ospf</packages>
                         </group>
                         <group>
+                            <title>ISIS Protocol &amp; Providers</title>
+                            <packages>@internal-isis</packages>
+                        </group>
+                        <group>
+                            <title>LISP Protocol &amp; Providers</title>
+                            <packages>@internal-lisp</packages>
+                        </group>
+                        <group>
+                            <title>SNMP Protocol &amp; Providers</title>
+                            <packages>@internal-snmp</packages>
+                        </group>
+                        <group>
                             <title>REST Protocol &amp; Providers</title>
                             <packages>@internal-restsb</packages>
                         </group>

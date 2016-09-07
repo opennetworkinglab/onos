@@ -114,7 +114,7 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
 
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
 
-        filter.conditions().stream().forEach(selector::add);
+        filter.conditions().forEach(selector::add);
 
         if (filter.key() != null) {
             selector.add(filter.key());

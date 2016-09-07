@@ -94,6 +94,7 @@ public class ResourceConsumerId {
     /**
      * Creates ResourceConsumerId from given value and class.
      *
+     * @param <T> resource consumer class type
      * @param value ID value unique within the given class
      * @param cls class of ResourceConsumer implementation
      * @return created ResourceConsumerId object
@@ -105,6 +106,7 @@ public class ResourceConsumerId {
     /**
      * Creates ResourceConsumerId instance from Identifier object.
      *
+     * @param <T> resource consumer class type
      * @param id identifier object backed by Long value
      * @return created ResourceConsumerId object
      */

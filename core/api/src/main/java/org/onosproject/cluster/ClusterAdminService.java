@@ -34,6 +34,16 @@ public interface ClusterAdminService extends ClusterService {
     void formCluster(Set<ControllerNode> nodes);
 
     /**
+     * Forms cluster configuration based on the specified set of node
+     * information.&nbsp; This method resets and restarts the controller
+     * instance.
+     *
+     * @param nodes    set of nodes that form the cluster
+     * @param partitionSize number of nodes to compose a partition
+     */
+    void formCluster(Set<ControllerNode> nodes, int partitionSize);
+
+    /**
      * Adds a new controller node to the cluster.
      *
      * @param nodeId  controller node identifier

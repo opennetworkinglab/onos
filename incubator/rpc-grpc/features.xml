@@ -17,25 +17,8 @@
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.1" name="${project.artifactId}-${project.version}">
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
-        <feature>onos-api</feature>
-        <bundle>mvn:com.google.protobuf/protobuf-java/3.0.0-beta-2</bundle>
-        <bundle>mvn:io.netty/netty-common/4.1.0.CR7</bundle>
-        <bundle>mvn:io.netty/netty-buffer/4.1.0.CR7</bundle>
-        <bundle>mvn:io.netty/netty-transport/4.1.0.CR7</bundle>
-        <bundle>mvn:io.netty/netty-handler/4.1.0.CR7</bundle>
-        <bundle>mvn:io.netty/netty-codec/4.1.0.CR7</bundle>
-        <bundle>mvn:io.netty/netty-codec-http/4.1.0.CR7</bundle>
-        <bundle>mvn:io.netty/netty-codec-http2/4.1.0.CR7</bundle>
-        <bundle>mvn:io.netty/netty-resolver/4.1.0.CR7</bundle>
-        <!-- TODO: Create shaded jar for these. -->
-        <bundle>wrap:mvn:com.google.auth/google-auth-library-credentials/0.3.0$Bundle-SymbolicName=com.google.auth.google-auth-library-credentials&amp;Bundle-Version=0.3.0</bundle>
-        <bundle>wrap:mvn:com.google.auth/google-auth-library-oauth2-http/0.3.0$Bundle-SymbolicName=com.google.auth.google-auth-library-oauth2-http&amp;Bundle-Version=0.3.0</bundle>
-        <bundle>wrap:mvn:io.grpc/grpc-core/0.14.0$Bundle-SymbolicName=io.grpc.grpc-core&amp;Bundle-Version=0.14.0&amp;</bundle>
-        <bundle>wrap:mvn:io.grpc/grpc-protobuf-lite/0.14.0$Bundle-SymbolicName=io.grpc.grpc-protobuf-lite&amp;Bundle-Version=0.14.0&amp;</bundle>
-        <bundle>wrap:mvn:io.grpc/grpc-protobuf/0.14.0$Bundle-SymbolicName=io.grpc.grpc-protobuf&amp;Bundle-Version=0.14.0&amp;</bundle>
-        <bundle>wrap:mvn:io.grpc/grpc-stub/0.14.0$Bundle-SymbolicName=io.grpc.grpc-stub&amp;Bundle-Version=0.14.0&amp;</bundle>
-        <bundle>wrap:mvn:io.grpc/grpc-netty/0.14.0$Bundle-SymbolicName=io.grpc.grpc-netty&amp;Bundle-Version=0.14.0&amp;Import-Package=io.netty.*;version=4.1.0.CR7,*</bundle>
-        <bundle>wrap:mvn:io.grpc/grpc-auth/0.14.0$Bundle-SymbolicName=io.grpc.grpc-auth&amp;Bundle-Version=0.14.0&amp;Import-Package=javax.net.ssl,*</bundle>
+        <feature version="${project.version}">onos-api</feature>
+
         <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
     </feature>
 </features>

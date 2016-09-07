@@ -21,6 +21,7 @@ osgi_jar_with_tests (
 )
 
 onos_app (
+    app_name = 'org.onosproject.drivers.bti',
     title = 'Bti Device Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',

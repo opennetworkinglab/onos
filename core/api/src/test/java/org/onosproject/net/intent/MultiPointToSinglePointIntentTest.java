@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.net.intent;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import static org.junit.Assert.assertEquals;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
@@ -42,6 +45,39 @@ public class MultiPointToSinglePointIntentTest extends ConnectivityIntentTest {
         assertEquals("incorrect egress", P2, intent.egressPoint());
     }
 
+    @Rule
+    public ExpectedException wrongMultiple = ExpectedException.none();
+
+    @Test
+    public void multipleSelectors() {
+
+        MultiPointToSinglePointIntent intent = createFirstMultiple();
+        assertEquals("incorrect id", APPID, intent.appId());
+        assertEquals("incorrect match", MATCH, intent.selector());
+        assertEquals("incorrect ingress", PS1, intent.ingressPoints());
+        assertEquals("incorrect egress", P2, intent.egressPoint());
+        assertEquals("incorrect selectors", MATCHES, intent.ingressSelectors());
+
+        intent = createSecondMultiple();
+        assertEquals("incorrect id", APPID, intent.appId());
+        assertEquals("incorrect match", VLANMATCH1, intent.selector());
+        assertEquals("incorrect ingress", PS1, intent.ingressPoints());
+        assertEquals("incorrect egress", P2, intent.egressPoint());
+        assertEquals("incorrect selectors", MATCHES, intent.ingressSelectors());
+
+        intent = createThirdMultiple();
+        assertEquals("incorrect id", APPID, intent.appId());
+        assertEquals("incorrect match", MATCH, intent.selector());
+        assertEquals("incorrect ingress", PS1, intent.ingressPoints());
+        assertEquals("incorrect egress", P2, intent.egressPoint());
+        assertEquals("incorrect selectors", VLANMATCHES, intent.ingressSelectors());
+
+        wrongMultiple.expect(IllegalArgumentException.class);
+        wrongMultiple.expectMessage("Selector and Multiple Selectors are both set");
+        intent = createWrongMultiple();
+    }
+
+
     @Override
     protected MultiPointToSinglePointIntent createOne() {
         return MultiPointToSinglePointIntent.builder()
@@ -63,4 +99,49 @@ public class MultiPointToSinglePointIntentTest extends ConnectivityIntentTest {
                 .egressPoint(P1)
                 .build();
     }
+
+    protected MultiPointToSinglePointIntent createFirstMultiple() {
+        return MultiPointToSinglePointIntent.builder()
+                .appId(APPID)
+                .selector(MATCH)
+                .treatment(NOP)
+                .ingressPoints(PS1)
+                .egressPoint(P2)
+                .selectors(MATCHES)
+                .build();
+    }
+
+    protected MultiPointToSinglePointIntent createSecondMultiple() {
+        return MultiPointToSinglePointIntent.builder()
+                .appId(APPID)
+                .selector(VLANMATCH1)
+                .treatment(NOP)
+                .ingressPoints(PS1)
+                .egressPoint(P2)
+                .selectors(MATCHES)
+                .build();
+    }
+
+    protected MultiPointToSinglePointIntent createThirdMultiple() {
+        return MultiPointToSinglePointIntent.builder()
+                .appId(APPID)
+                .selector(MATCH)
+                .treatment(NOP)
+                .ingressPoints(PS1)
+                .egressPoint(P2)
+                .selectors(VLANMATCHES)
+                .build();
+    }
+
+    protected MultiPointToSinglePointIntent createWrongMultiple() {
+        return MultiPointToSinglePointIntent.builder()
+                .appId(APPID)
+                .selector(VLANMATCH1)
+                .treatment(NOP)
+                .ingressPoints(PS1)
+                .egressPoint(P2)
+                .selectors(VLANMATCHES)
+                .build();
+    }
+
 }

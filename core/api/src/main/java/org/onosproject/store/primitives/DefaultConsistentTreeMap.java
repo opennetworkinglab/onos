@@ -45,7 +45,6 @@ import java.util.function.Predicate;
 public class DefaultConsistentTreeMap<V>
         extends Synchronous<AsyncConsistentTreeMap<V>>
         implements ConsistentTreeMap<V> {
-    private static final int MAX_DELAY_BETWEEN_RETRY_MILLIS = 50;
     private final AsyncConsistentTreeMap<V> treeMap;
     private final long operationTimeoutMillis;
     private Map<String, V> javaMap;

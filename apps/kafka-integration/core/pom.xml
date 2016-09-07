@@ -30,7 +30,8 @@
     <packaging>bundle</packaging>
     <description>
         Kafka Integration Application.
-        This module is exclusive of REST calls and is only for the implementation of Apache Kafka.
+        This module is exclusive of REST calls and is only for the implementation
+        of the Application.
     </description>
 
     <dependencies>
@@ -49,7 +50,6 @@
         <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
-            <version>4.3.1</version>
         </dependency>
 
         <dependency>
@@ -73,7 +73,7 @@
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
-            <version>3.0.0-beta-2</version>
+            <version>3.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>

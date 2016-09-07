@@ -19,7 +19,7 @@ import org.onosproject.net.link.LinkProvider;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 
-import com.google.api.client.repackaged.com.google.common.annotations.Beta;
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 
 /**

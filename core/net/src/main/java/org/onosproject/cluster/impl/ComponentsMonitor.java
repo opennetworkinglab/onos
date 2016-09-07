@@ -94,9 +94,16 @@ public class ComponentsMonitor {
     }
 
     private boolean isFullyStarted(Feature feature) {
-        return feature.getBundles().stream()
-                .map(info -> bundleContext.getBundle(info.getLocation()))
-                .allMatch(this::isFullyStarted);
+        try {
+            return feature.getBundles().stream()
+                    .map(info -> bundleContext.getBundle(info.getLocation()))
+                    .allMatch(this::isFullyStarted);
+        } catch (NullPointerException npe) {
+            // FIXME: Remove this catch block when Felix fixes the bug
+            // Due to a bug in the Felix implementation, this can throw an NPE.
+            // Catch the error and do something sensible with it.
+            return false;
+        }
     }
 
     private boolean isFullyStarted(Bundle bundle) {

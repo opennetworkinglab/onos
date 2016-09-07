@@ -105,10 +105,12 @@ public final class ProtobufUtils {
         String swVersion = deviceDescription.getSwVersion();
         String serialNumber = deviceDescription.getSerialNumber();
         ChassisId chassis = new ChassisId(deviceDescription.getChassisId());
+        boolean defaultAvailable = deviceDescription.getIsDefaultAvailable();
         return new DefaultDeviceDescription(uri, type, manufacturer,
                                             hwVersion, swVersion, serialNumber,
                                             chassis,
-                                            asAnnotations(deviceDescription.getAnnotations()));
+                                            defaultAvailable,
+                                            asAnnotations(deviceDescription.getAnnotationsMap()));
     }
 
     /**
@@ -127,6 +129,7 @@ public final class ProtobufUtils {
             .setSwVersion(deviceDescription.swVersion())
             .setSerialNumber(deviceDescription.serialNumber())
             .setChassisId(deviceDescription.chassisId().toString())
+            .setIsDefaultAvailable(deviceDescription.isDefaultAvailable())
             .putAllAnnotations(asMap(deviceDescription.annotations()))
             .build();
     }
@@ -230,7 +233,7 @@ public final class ProtobufUtils {
         boolean isEnabled = portDescription.getIsEnabled();
         Port.Type type = translate(portDescription.getType());
         long portSpeed = portDescription.getPortSpeed();
-        SparseAnnotations annotations = asAnnotations(portDescription.getAnnotations());
+        SparseAnnotations annotations = asAnnotations(portDescription.getAnnotationsMap());
         // TODO How to deal with more specific Port...
         return new DefaultPortDescription(number, isEnabled, type, portSpeed, annotations);
     }
@@ -242,7 +245,6 @@ public final class ProtobufUtils {
      * @return gRPC PortDescription message
      */
     public static org.onosproject.grpc.net.Port.PortDescription translate(PortDescription portDescription) {
-        // TODO How to deal with more specific Port...
         return org.onosproject.grpc.net.Port.PortDescription.newBuilder()
                 .setPortNumber(portDescription.portNumber().toString())
                 .setIsEnabled(portDescription.isEnabled())

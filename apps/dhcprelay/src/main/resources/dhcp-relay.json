@@ -2,7 +2,9 @@
   "apps": {
     "org.onosproject.dhcp-relay" : {
       "dhcprelay" : {
-        "dhcpserverConnectPoint": "of:0000000000000002/2"
+        "dhcpserverConnectPoint": "of:0000000000000002/2",
+        "serverip": "172.168.10.2",
+        "servermac": "d2:70:98:90:8c:44"
       }
     }
   }

@@ -46,7 +46,7 @@ import java.util.Optional;
 import static com.google.common.base.Preconditions.*;
 
 /**
- * intent service implementation built on the virtual network service.
+ * Intent service implementation built on the virtual network service.
  */
 public class VirtualNetworkIntentService extends AbstractListenerManager<IntentEvent, IntentListener>
         implements IntentService, VnetService {
@@ -148,18 +148,17 @@ public class VirtualNetworkIntentService extends AbstractListenerManager<IntentE
     public void withdraw(Intent intent) {
         checkNotNull(intent, INTENT_NULL);
         // Withdraws the physical intents created due to the virtual intents.
-        store.getTunnelIds(intent)
-                .forEach(tunnelId -> {
-                    Key intentKey = Key.of(tunnelId.id(), intent.appId());
-                    Intent physicalIntent = intentService.getIntent(intentKey);
-                    checkNotNull(physicalIntent, INTENT_NULL);
+        store.getTunnelIds(intent).forEach(tunnelId -> {
+            Key intentKey = Key.of(tunnelId.id(), intent.appId());
+            Intent physicalIntent = intentService.getIntent(intentKey);
+            checkNotNull(physicalIntent, INTENT_NULL);
 
-                    // Withdraw the physical intent(s)
-                    log.info("Withdrawing pt-pt intent: " + physicalIntent);
-                    intentService.withdraw(physicalIntent);
-                });
+            // Withdraw the physical intent(s)
+            log.debug("Withdrawing pt-pt intent: " + physicalIntent);
+            intentService.withdraw(physicalIntent);
+        });
         // Now withdraw the virtual intent
-        log.info("Withdrawing virtual intent: " + intent);
+        log.debug("Withdrawing virtual intent: " + intent);
         intentService.withdraw(intent);
     }
 
@@ -205,7 +204,9 @@ public class VirtualNetworkIntentService extends AbstractListenerManager<IntentE
     @Override
     public IntentState getIntentState(Key intentKey) {
         checkNotNull(intentKey, KEY_NULL);
-        return store.getIntentData(intentKey).state();
+        return Optional.ofNullable(store.getIntentData(intentKey))
+                .map(IntentData::state)
+                .orElse(null);
     }
 
     @Override

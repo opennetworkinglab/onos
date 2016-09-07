@@ -18,6 +18,7 @@ package org.onosproject.net.topology.impl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.junit.TestUtils;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Host;
@@ -53,11 +54,11 @@ public class PathManagerTest {
     private FakeHostMgr fakeHostMgr = new FakeHostMgr();
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         mgr = new PathManager();
         service = mgr;
-        mgr.topologyService = fakeTopoMgr;
-        mgr.hostService = fakeHostMgr;
+        TestUtils.setField(mgr, "topologyService", fakeTopoMgr);
+        TestUtils.setField(mgr, "hostService", fakeHostMgr);
         mgr.activate();
     }
 

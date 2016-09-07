@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.net.DisjointPath;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Path;
 import org.onosproject.net.intent.ConnectivityIntent;
@@ -98,6 +99,29 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
         Set<Path> paths = pathService.getPaths(one, two, weight(intent.constraints()));
         final List<Constraint> constraints = intent.constraints();
         ImmutableList<Path> filtered = FluentIterable.from(paths)
+                .filter(path -> checkPath(path, constraints))
+                .toList();
+        if (filtered.isEmpty()) {
+            throw new PathNotFoundException(one, two);
+        }
+        // TODO: let's be more intelligent about this eventually
+        return filtered.iterator().next();
+    }
+
+    /**
+     * Computes a disjoint path between two ConnectPoints.
+     *
+     * @param intent intent on which behalf path is being computed
+     * @param one    start of the path
+     * @param two    end of the path
+     * @return DisjointPath         between the two
+     * @throws PathNotFoundException if two paths cannot be found
+     */
+    protected DisjointPath getDisjointPath(ConnectivityIntent intent,
+                           ElementId one, ElementId two) {
+        Set<DisjointPath> paths = pathService.getDisjointPaths(one, two, weight(intent.constraints()));
+        final List<Constraint> constraints = intent.constraints();
+        ImmutableList<DisjointPath> filtered = FluentIterable.from(paths)
                 .filter(path -> checkPath(path, constraints))
                 .toList();
         if (filtered.isEmpty()) {

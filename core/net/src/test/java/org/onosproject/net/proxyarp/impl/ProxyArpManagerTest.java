@@ -416,7 +416,7 @@ public class ProxyArpManagerTest {
      */
     @Test
     public void testNotKnown() {
-        expect(hostService.getHostsByIp(IP1)).andReturn(Collections.<Host>emptySet());
+        expect(hostService.getHostsByIp(IP1)).andReturn(Collections.emptySet());
         replay(hostService);
         replay(interfaceService);
 

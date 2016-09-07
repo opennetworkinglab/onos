@@ -1,7 +1,0 @@
-module PathListener {
-    namespace "test";
-    prefix test;
-    leaf admin-status {
-        type instance-identifier;
-    }
-}

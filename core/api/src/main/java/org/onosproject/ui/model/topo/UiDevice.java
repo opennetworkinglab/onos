@@ -32,7 +32,6 @@ public class UiDevice extends UiNode {
 
     private RegionId regionId;
     private NodeId masterId;
-    private boolean online;
 
     /**
      * Creates a new UI device.
@@ -61,15 +60,6 @@ public class UiDevice extends UiNode {
      */
     public void setMasterId(NodeId masterId) {
         this.masterId = masterId;
-    }
-
-    /**
-     * Sets a flag indicating whether the backing device is online.
-     *
-     * @param online boolen flag
-     */
-    public void setOnline(boolean online) {
-        this.online = online;
     }
 
     @Override
@@ -133,15 +123,6 @@ public class UiDevice extends UiNode {
      */
     public String type() {
         return device.type().toString().toLowerCase();
-    }
-
-    /**
-     * Returns a boolean indicating whether the backing device is online.
-     *
-     * @return true if device is online, false otherwise
-     */
-    public boolean isOnline() {
-        return online;
     }
 
     /**

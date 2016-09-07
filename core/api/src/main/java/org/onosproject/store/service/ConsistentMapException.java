@@ -36,6 +36,13 @@ public class ConsistentMapException extends StorageException {
      * ConsistentMap operation timeout.
      */
     public static class Timeout extends ConsistentMapException {
+        public Timeout() {
+            super();
+        }
+
+        public Timeout(String message) {
+            super(message);
+        }
     }
 
     /**

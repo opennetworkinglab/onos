@@ -31,6 +31,7 @@ import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ClusterStore;
@@ -117,6 +118,34 @@ public class DistributedClusterStore
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MessagingService messagingService;
+
+    // This must be optional to avoid a cyclic dependency
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY)
+    protected ComponentConfigService cfgService;
+
+    /**
+     * Hook for wiring up optional reference to a service.
+     *
+     * @param service service being announced
+     */
+    protected void bindComponentConfigService(ComponentConfigService service) {
+        if (cfgService == null) {
+            cfgService = service;
+            cfgService.registerProperties(getClass());
+        }
+    }
+
+    /**
+     * Hook for unwiring optional reference to a service.
+     *
+     * @param service service being withdrawn
+     */
+    protected void unbindComponentConfigService(ComponentConfigService service) {
+        if (cfgService == service) {
+            cfgService.unregisterProperties(getClass(), false);
+            cfgService = null;
+        }
+    }
 
     @Activate
     public void activate() {

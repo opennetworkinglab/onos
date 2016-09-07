@@ -9,7 +9,8 @@ BUNDLES = [
 ]
 
 onos_app (
-    title = 'PCEP Provider',
+    app_name = 'org.onosproject.restsb',
+    title = 'REST Provider',
     category = 'Provider',
     url = 'http://onosproject.org',
     included_bundles = BUNDLES,

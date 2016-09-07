@@ -68,14 +68,14 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
     private static final Event KILL_PILL = new AbstractEvent(null, 0) {
     };
 
-    private DispatchLoop dispatchLoop;
+    private volatile DispatchLoop dispatchLoop;
     private long maxProcessMillis = DEFAULT_EXECUTE_MS;
 
     // Means to detect long-running sinks
     private TimerTask watchdog;
-    private EventSink lastSink;
+    private volatile EventSink lastSink;
     private final Stopwatch stopwatch = Stopwatch.createUnstarted();
-    private Future<?> dispatchFuture;
+    private volatile Future<?> dispatchFuture;
 
     @Override
     public void post(Event event) {

@@ -1,5 +1,6 @@
 BUNDLES = [
     '//providers/netconf/device:onos-providers-netconf-device',
+    '//providers/netconf/alarm:onos-providers-netconf-alarm',
     '//protocols/netconf/api:onos-protocols-netconf-api',
     '//protocols/netconf/ctl:onos-protocols-netconf-ctl',
 ]

@@ -35,6 +35,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class FlowRuleIntent extends Intent {
 
     private final Collection<FlowRule> flowRules;
+    private PathIntent.ProtectionType type;
 
     /**
      * Creates a flow rule intent with the specified flow rules and resources.
@@ -48,7 +49,19 @@ public class FlowRuleIntent extends Intent {
     }
 
     /**
-     * Creates an flow rule intent with the specified key, flow rules to be set, and
+     * Creates a flow rule intent with the specified flow rules, resources, and type.
+     *
+     * @param appId application id
+     * @param flowRules flow rules to be set
+     * @param resources network resource to be set
+     */
+    public FlowRuleIntent(ApplicationId appId, List<FlowRule> flowRules, Collection<NetworkResource> resources,
+                          PathIntent.ProtectionType type) {
+        this(appId, null, flowRules, resources, type);
+    }
+
+    /**
+     * Creates a flow rule intent with the specified key, flow rules to be set, and
      * required network resources.
      *
      * @param appId     application id
@@ -58,8 +71,32 @@ public class FlowRuleIntent extends Intent {
      */
     public FlowRuleIntent(ApplicationId appId, Key key, Collection<FlowRule> flowRules,
                           Collection<NetworkResource> resources) {
+        this(appId, key, flowRules, resources, PathIntent.ProtectionType.PRIMARY);
+    }
+
+    /**
+     * Creates a flow rule intent with the specified key, flow rules to be set, and
+     * required network resources.
+     *
+     * @param appId     application id
+     * @param key       key
+     * @param flowRules flow rules
+     * @param resources network resources
+     */
+    public FlowRuleIntent(ApplicationId appId, Key key, Collection<FlowRule> flowRules,
+                          Collection<NetworkResource> resources, PathIntent.ProtectionType primary) {
         super(appId, key, resources, DEFAULT_INTENT_PRIORITY);
         this.flowRules = ImmutableList.copyOf(checkNotNull(flowRules));
+        this.type = primary;
+    }
+
+    /**
+     * Creates a flow rule intent with all the same characteristics as the given
+     * one except for the flow rule type.
+     */
+    public FlowRuleIntent(FlowRuleIntent intent, PathIntent.ProtectionType type) {
+        this(intent.appId(), intent.key(), intent.flowRules(),
+              intent.resources(), type);
     }
 
     /**
@@ -68,6 +105,7 @@ public class FlowRuleIntent extends Intent {
     protected FlowRuleIntent() {
         super();
         this.flowRules = null;
+        this.type = PathIntent.ProtectionType.PRIMARY;
     }
 
     /**
@@ -82,6 +120,10 @@ public class FlowRuleIntent extends Intent {
     @Override
     public boolean isInstallable() {
         return true;
+    }
+
+    public PathIntent.ProtectionType type() {
+        return type;
     }
 
     @Override

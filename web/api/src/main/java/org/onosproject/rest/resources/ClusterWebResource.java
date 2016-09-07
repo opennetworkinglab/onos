@@ -15,6 +15,7 @@
  */
 package org.onosproject.rest.resources;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.cluster.ClusterAdminService;
@@ -94,7 +95,16 @@ public class ClusterWebResource extends AbstractWebResource {
         ObjectNode root = (ObjectNode) mapper().readTree(config);
 
         List<ControllerNode> nodes = codec.decode((ArrayNode) root.path("nodes"), this);
-        get(ClusterAdminService.class).formCluster(new HashSet<>(nodes));
+        JsonNode partitionSizeNode = root.get("partitionSize");
+        if (partitionSizeNode != null) {
+            int partitionSize = partitionSizeNode.asInt();
+            if (partitionSize == 0) {
+                return Response.notAcceptable(null).build();
+            }
+            get(ClusterAdminService.class).formCluster(new HashSet<>(nodes), partitionSize);
+        } else {
+            get(ClusterAdminService.class).formCluster(new HashSet<>(nodes));
+        }
 
         return Response.ok().build();
     }

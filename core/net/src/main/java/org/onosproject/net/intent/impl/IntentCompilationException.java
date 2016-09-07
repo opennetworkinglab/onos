@@ -19,7 +19,10 @@ import org.onosproject.net.intent.IntentException;
 
 /**
  * An exception thrown when a intent compilation fails.
+ *
+ * @deprecated in in Hummingbird (1.6.0) use {@link org.onosproject.net.intent.IntentCompilationException} instead.
  */
+@Deprecated
 public class IntentCompilationException extends IntentException {
     private static final long serialVersionUID = 235237603018210810L;
 

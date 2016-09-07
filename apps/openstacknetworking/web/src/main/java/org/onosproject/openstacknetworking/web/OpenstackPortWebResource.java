@@ -79,7 +79,6 @@ public class OpenstackPortWebResource extends AbstractWebResource {
             sgService.updateSecurityGroup(osPort);
 
             return Response.status(Response.Status.OK).build();
-
         } catch (IOException e) {
             log.error("UpdatePort post process failed due to {}", e.getMessage());
 

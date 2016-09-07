@@ -23,8 +23,12 @@ import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipEvent;
 import org.onosproject.cluster.LeadershipEventListener;
@@ -34,8 +38,10 @@ import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import java.util.Dictionary;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -56,8 +62,11 @@ public class MastershipLoadBalancer {
 
     private final Logger log = getLogger(getClass());
 
-    // TODO: parameterize via component config
-    private static final int SCHEDULE_PERIOD = 5;
+    private static final int DEFAULT_SCHEDULE_PERIOD = 5;
+    @Property(name = "schedulePeriod", intValue = DEFAULT_SCHEDULE_PERIOD,
+            label = "Period to schedule balancing the mastership to be shared as evenly as by all online instances.")
+    private int schedulePeriod = DEFAULT_SCHEDULE_PERIOD;
+
     private static final String REBALANCE_MASTERSHIP = "rebalance/mastership";
 
     private NodeId localId;
@@ -78,6 +87,9 @@ public class MastershipLoadBalancer {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     private InnerLeadershipListener leadershipListener = new InnerLeadershipListener();
 
     /* This listener is used to trigger balancing for any mastership event which will include switches changing state
@@ -91,7 +103,9 @@ public class MastershipLoadBalancer {
             listeningDecorator(newSingleThreadScheduledExecutor(groupedThreads("MastershipLoadBalancer", "%d", log)));
 
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
+        cfgService.registerProperties(getClass());
+        modified(context);
         mastershipService.addListener(mastershipListener);
         localId = clusterService.getLocalNode().id();
         leadershipService.addListener(leadershipListener);
@@ -101,12 +115,21 @@ public class MastershipLoadBalancer {
 
     @Deactivate
     public void deactivate() {
+        cfgService.unregisterProperties(getClass(), false);
         mastershipService.removeListener(mastershipListener);
         leadershipService.withdraw(REBALANCE_MASTERSHIP);
         leadershipService.removeListener(leadershipListener);
         cancelBalance();
         executorService.shutdown();
         log.info("Stopped");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        readComponentConfiguration(context);
+        cancelBalance();
+        scheduleBalance();
+        log.info("modified");
     }
 
     private synchronized void processLeaderChange(NodeId newLeader) {
@@ -125,7 +148,7 @@ public class MastershipLoadBalancer {
 
             ListenableScheduledFuture task =
                     executorService.schedule(mastershipAdminService::balanceRoles,
-                            SCHEDULE_PERIOD, TimeUnit.SECONDS);
+                            schedulePeriod, TimeUnit.SECONDS);
             task.addListener(() -> {
                         log.info("Completed balance roles");
                         nextTask.set(null);
@@ -141,6 +164,26 @@ public class MastershipLoadBalancer {
         Future task = nextTask.getAndSet(null);
         if (task != null) {
             task.cancel(false);
+        }
+    }
+
+    /**
+     * Extracts properties from the component configuration context.
+     *
+     * @param context the component context
+     */
+    private void readComponentConfiguration(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+
+        Integer newSchedulePeriod = Tools.getIntegerProperty(properties,
+                                                             "schedulePeriod");
+        if (newSchedulePeriod == null) {
+            schedulePeriod = DEFAULT_SCHEDULE_PERIOD;
+            log.info("Schedule period is not configured, default value is {}",
+                     DEFAULT_SCHEDULE_PERIOD);
+        } else {
+            schedulePeriod = newSchedulePeriod;
+            log.info("Configured. Schedule period is configured to {}", schedulePeriod);
         }
     }
 

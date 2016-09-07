@@ -14,42 +14,45 @@
   ~ limitations under the License.
 -->
 
-<scenario name="distributed value test"
+<scenario name="distributed-value-test"
           description="ONOS AtomicValue distributed primitive Test">
     <group name="Distributed-Primitive-Value">
 
         <!--<import file="${ONOS_SCENARIOS}/setup.xml"/>
         <dependency name="Setup" requires="Prerequisites"/>-->
 
-        <step name="Activate-Distributed-Primitives-App"
+        <step name="Distributed-Primitive-Value.Activate-Distributed-Primitives-App"
             exec="onos ${OCI} app activate org.onosproject.distributedprimitives"/>
 
-        <step name="Test-Value-Initial-Value" requires="^"
+        <step name="Distributed-Primitive-Value.Test-Value-Initial-Value" requires="Distributed-Primitive-Value.Activate-Distributed-Primitives-App"
               exec="onos-cluster-execute-expect value-test test-value get --expect null"/>
 
-        <step name="Test-Value-Set" requires="^"
+        <step name="Distributed-Primitive-Value.Test-Value-Set" requires="Distributed-Primitive-Value.Test-Value-Initial-Value"
               exec="onos ${OCI} value-test test-value set v0"/>
 
-        <step name="Test-Value-Get" requires="^"
+        <step name="Distributed-Primitive-Value.Test-Value-Get" requires="Distributed-Primitive-Value.Test-Value-Set"
               exec="onos-cluster-execute-expect value-test test-value get --expect v0"/>
 
-        <step name="Test-Value-CompareAndSet-False" requires="^"
+        <step name="Distributed-Primitive-Value.Test-Value-CompareAndSet-False" requires="Distributed-Primitive-Value.Test-Value-Get"
               exec="onos-execute-expect ${OCI} value-test test-value compareAndSet v1 v2 --expect false"/>
 
-        <step name="Test-Value-Not-Updated-After-CAS" requires="^"
+        <step name="Distributed-Primitive-Value.Test-Value-Not-Updated-After-CAS" requires="Distributed-Primitive-Value.Test-Value-CompareAndSet-False"
               exec="onos-cluster-execute-expect value-test test-value get --expect v0"/>
 
-        <step name="Test-Value-CompareAndSet-True" requires="^"
+        <step name="Distributed-Primitive-Value.Test-Value-CompareAndSet-True" requires="Distributed-Primitive-Value.Test-Value-Not-Updated-After-CAS"
               exec="onos-execute-expect ${OCI} value-test test-value compareAndSet v0 v1 --expect true"/>
 
-        <step name="Test-Value-Updated-After-CAS" requires="^"
+        <step name="Distributed-Primitive-Value.Test-Value-Updated-After-CAS" requires="Distributed-Primitive-Value.Test-Value-CompareAndSet-True"
               exec="onos-cluster-execute-expect value-test test-value get --expect v1"/>
 
+        <step name="Distributed-Primitive-Value.Destroy-Value" requires="Distributed-Primitive-Value.Test-Value-Updated-After-CAS"
+              exec="onos ${OCI} value-test test-value set null"/>
+
         <!--Check with check logs-->
-        <step name="Check-Log-Exceptions" requires="^"
+        <step name="Distributed-Primitive-Value.Check-Log-Exceptions" requires="Distributed-Primitive-Value.Destroy-Value"
               exec="onos-check-logs ${OCI}"/>
 
-        <step name="Teardown-Distributed-Primitives-Test-App" requires="^"
+        <step name="Distributed-Primitive-Value.Teardown-Distributed-Primitives-Test-App" requires="Distributed-Primitive-Value.Check-Log-Exceptions"
               exec="onos ${OCI} app deactivate org.onosproject.distributedprimitives"/>
     </group>
 </scenario>

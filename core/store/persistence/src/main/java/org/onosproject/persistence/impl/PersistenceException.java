@@ -19,11 +19,10 @@ package org.onosproject.persistence.impl;
 /**
  * An exception defined for failures of the local persistent store system.
  */
-
-/**
- * Throws an exception with the specified message.
- */
 public class PersistenceException extends RuntimeException {
+    /**
+     * Throws an exception with the specified message.
+     */
     public PersistenceException(String s) {
         super(s);
     }

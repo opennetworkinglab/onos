@@ -16,15 +16,32 @@
 
 package org.onosproject.driver.optical.power;
 
+import java.util.List;
 import java.util.Optional;
 
-import org.onosproject.net.AnnotationKeys;
+import org.onosproject.driver.extensions.OplinkAttenuation;
+import org.onosproject.net.OchSignal;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.Direction;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.PowerConfig;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.OchSignalCriterion;
+import org.onosproject.net.flow.criteria.PortCriterion;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
+import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.optical.OpticalAnnotations;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowController;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
@@ -40,8 +57,27 @@ import org.slf4j.LoggerFactory;
  */
 
 public class OplinkRoadmPowerConfig extends AbstractHandlerBehaviour
-                                    implements PowerConfig<Direction> {
+                                    implements PowerConfig<Object> {
+
     protected final Logger log = LoggerFactory.getLogger(getClass());
+
+    // Component type
+    private enum Type {
+        NONE,
+        PORT,
+        CHANNEL
+    }
+
+    // Get the type if component is valid
+    private Type getType(Object component) {
+        if (component == null || component instanceof Direction) {
+            return Type.PORT;
+        } else if (component instanceof OchSignal) {
+            return Type.CHANNEL;
+        } else {
+            return Type.NONE;
+        }
+    }
 
     private OpenFlowSwitch getOpenFlowDevice() {
         final OpenFlowController controller = this.handler().get(OpenFlowController.class);
@@ -54,41 +90,177 @@ public class OplinkRoadmPowerConfig extends AbstractHandlerBehaviour
         }
     }
 
-    @Override
-    public Optional<Long> getTargetPower(PortNumber portNum, Direction component) {
-        // Will be implemented in the future.
-        return Optional.empty();
+    // Find matching flow on device
+    private FlowEntry findFlow(PortNumber portNum, OchSignal och) {
+        FlowRuleService service = this.handler().get(FlowRuleService.class);
+        Iterable<FlowEntry> flowEntries = service.getFlowEntries(this.data().deviceId());
+
+        // Return first matching flow
+        for (FlowEntry entry : flowEntries) {
+            TrafficSelector selector = entry.selector();
+            OchSignalCriterion entrySigid =
+                    (OchSignalCriterion) selector.getCriterion(Criterion.Type.OCH_SIGID);
+            if (entrySigid != null && och.equals(entrySigid.lambda())) {
+                PortCriterion entryPort =
+                        (PortCriterion) selector.getCriterion(Criterion.Type.IN_PORT);
+                if (entryPort != null && portNum.equals(entryPort.port())) {
+                    return entry;
+                }
+            }
+        }
+        log.warn("No matching flow found");
+        return null;
     }
 
     @Override
-    public Optional<Long> currentPower(PortNumber portNum, Direction component) {
+    public Optional<Long> getTargetPower(PortNumber portNum, Object component) {
         Long returnVal = null;
         // Check if switch is connected, otherwise do not return value in store,
         // which is obsolete.
         if (getOpenFlowDevice() != null) {
-            DeviceService deviceService = this.handler().get(DeviceService.class);
-            Port port = deviceService.getPort(this.data().deviceId(), portNum);
-            if (port != null) {
-                String currentPower = port.annotations().value(AnnotationKeys.CURRENT_POWER);
-                if (currentPower != null) {
-                    returnVal = Long.valueOf(currentPower);
-                }
+            switch (getType(component)) {
+                case PORT:
+                    // Will be implemented in the future.
+                    break;
+                case CHANNEL:
+                    returnVal = getChannelAttenuation(portNum, (OchSignal) component);
+                    break;
+                default:
+                    break;
             }
         }
         return Optional.ofNullable(returnVal);
     }
 
     @Override
-    public void setTargetPower(PortNumber portNum, Direction component, long power) {
-        OpenFlowSwitch device = getOpenFlowDevice();
-        if (device != null) {
-            device.sendMsg(device.factory().buildOplinkPortPowerSet()
-                    .setXid(0)
-                    .setPort((int) portNum.toLong())
-                    .setPowerValue((int) power)
-                    .build());
+    public Optional<Long> currentPower(PortNumber portNum, Object component) {
+        Long returnVal = null;
+        // Check if switch is connected, otherwise do not return value in store,
+        // which is obsolete.
+        if (getOpenFlowDevice() != null) {
+            switch (getType(component)) {
+                case PORT:
+                    returnVal = getCurrentPortPower(portNum);
+                    break;
+                case CHANNEL:
+                    returnVal = getCurrentChannelPower(portNum, (OchSignal) component);
+                    break;
+                default:
+                    break;
+            }
+        }
+        return Optional.ofNullable(returnVal);
+    }
+
+    @Override
+    public void setTargetPower(PortNumber portNum, Object component, long power) {
+        if (getOpenFlowDevice() != null) {
+            switch (getType(component)) {
+                case PORT:
+                    setTargetPortPower(portNum, power);
+                    break;
+                case CHANNEL:
+                    setChannelAttenuation(portNum, (OchSignal) component, power);
+                    break;
+                default:
+                    break;
+            }
         } else {
             log.warn("OpenFlow handshaker driver not found or device is not connected");
         }
+    }
+
+    private Long getChannelAttenuation(PortNumber portNum, OchSignal och) {
+        FlowEntry flowEntry = findFlow(portNum, och);
+        if (flowEntry != null) {
+            List<Instruction> instructions = flowEntry.treatment().allInstructions();
+            for (Instruction ins : instructions) {
+                if (ins.type() == Instruction.Type.EXTENSION) {
+                    ExtensionTreatment ext = ((Instructions.ExtensionInstructionWrapper) ins).extensionInstruction();
+                    if (ext.type() == ExtensionTreatmentType.ExtensionTreatmentTypes.OPLINK_ATTENUATION.type()) {
+                        return (long) ((OplinkAttenuation) ext).getAttenuation();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private Long getCurrentPortPower(PortNumber portNum) {
+        DeviceService deviceService = this.handler().get(DeviceService.class);
+        Port port = deviceService.getPort(this.data().deviceId(), portNum);
+        if (port != null) {
+            String currentPower = port.annotations().value(OpticalAnnotations.CURRENT_POWER);
+            if (currentPower != null) {
+                return Long.valueOf(currentPower);
+            }
+        }
+        return null;
+    }
+
+    private Long getCurrentChannelPower(PortNumber portNum, OchSignal och) {
+        FlowEntry flowEntry = findFlow(portNum, och);
+        if (flowEntry != null) {
+            // TODO put somewhere else if possible
+            // We put channel power in packets
+            return flowEntry.packets();
+        }
+        return null;
+    }
+
+    private void setTargetPortPower(PortNumber portNum, long power) {
+        OpenFlowSwitch device = getOpenFlowDevice();
+        device.sendMsg(device.factory().buildOplinkPortPowerSet()
+                .setXid(0)
+                .setPort((int) portNum.toLong())
+                .setPowerValue((int) power)
+                .build());
+    }
+
+    private void setChannelAttenuation(PortNumber portNum, OchSignal och, long power) {
+        FlowEntry flowEntry = findFlow(portNum, och);
+        if (flowEntry != null) {
+            List<Instruction> instructions = flowEntry.treatment().allInstructions();
+            for (Instruction ins : instructions) {
+                if (ins.type() == Instruction.Type.EXTENSION) {
+                    ExtensionTreatment ext = ((Instructions.ExtensionInstructionWrapper) ins).extensionInstruction();
+                    if (ext.type() == ExtensionTreatmentType.ExtensionTreatmentTypes.OPLINK_ATTENUATION.type()) {
+                        ((OplinkAttenuation) ext).setAttenuation((int) power);
+                        FlowRuleService service = this.handler().get(FlowRuleService.class);
+                        service.applyFlowRules(flowEntry);
+                        return;
+                    }
+                }
+            }
+            addAttenuation(flowEntry, power);
+        } else {
+            log.warn("Target channel power not set");
+        }
+    }
+
+    // Replace flow with new flow containing Oplink attenuation extension instruction. Also resets
+    // metrics.
+    private void addAttenuation(FlowEntry flowEntry, long power) {
+        FlowRule.Builder flowBuilder = new DefaultFlowRule.Builder();
+        flowBuilder.withCookie(flowEntry.id().value());
+        flowBuilder.withPriority(flowEntry.priority());
+        flowBuilder.forDevice(flowEntry.deviceId());
+        flowBuilder.forTable(flowEntry.tableId());
+        if (flowEntry.isPermanent()) {
+            flowBuilder.makePermanent();
+        } else {
+            flowBuilder.makeTemporary(flowEntry.timeout());
+        }
+
+        flowBuilder.withSelector(flowEntry.selector());
+
+        // Copy original instructions and add attenuation instruction
+        TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
+        flowEntry.treatment().allInstructions().forEach(ins -> treatmentBuilder.add(ins));
+        treatmentBuilder.add(Instructions.extension(new OplinkAttenuation((int) power), this.data().deviceId()));
+        flowBuilder.withTreatment(treatmentBuilder.build());
+
+        FlowRuleService service = this.handler().get(FlowRuleService.class);
+        service.applyFlowRules(flowBuilder.build());
     }
 }

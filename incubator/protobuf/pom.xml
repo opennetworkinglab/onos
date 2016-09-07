@@ -30,9 +30,8 @@
 
     <properties>
         <onos.app.name>org.onosproject.incubator.protobuf</onos.app.name>
-        <onos.app.requires>org.onosproject.incubator.rpc</onos.app.requires>
-        <!-- Note: update feature.xml when updating -->
-        <protobuf.version>3.0.0-beta-2</protobuf.version>
+        <onos.app.title>ONOS Protocol Buffers models</onos.app.title>
+        <protobuf.version>3.0.0</protobuf.version>
     </properties>
 
     <dependencies>
@@ -125,11 +124,7 @@
                 <artifactId>protobuf-maven-plugin</artifactId>
                 <version>0.5.0</version>
                 <configuration>
-                    <!-- The version of protoc must match protobuf-java. If you don't 
-                        depend on protobuf-java directly, you will be transitively depending on the 
-                        protobuf-java version that grpc depends on. -->
                     <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
-                    <checkStaleness>true</checkStaleness>
                 </configuration>
                 <executions>
                     <execution>
@@ -143,7 +138,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.10</version>
+                <version>1.11</version>
                 <executions>
                     <execution>
                         <id>add-source</id>

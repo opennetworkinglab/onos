@@ -27,9 +27,6 @@ import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.cluster.ClusterService;
-import org.onosproject.mastership.MastershipEvent;
-import org.onosproject.mastership.MastershipListener;
-import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.behaviour.Pipeliner;
@@ -87,9 +84,6 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected MastershipService mastershipService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
     // Note: The following dependencies are added on behalf of the pipeline
@@ -116,7 +110,6 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     private final Map<DeviceId, Pipeliner> pipeliners = Maps.newConcurrentMap();
 
     private final PipelinerContext context = new InnerPipelineContext();
-    private final MastershipListener mastershipListener = new InnerMastershipListener();
     private final DeviceListener deviceListener = new InnerDeviceListener();
 
     protected ServiceDirectory serviceDirectory = new DefaultServiceDirectory();
@@ -133,16 +126,13 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     protected void activate() {
         executorService = newFixedThreadPool(4, groupedThreads("onos/objective-installer", "%d", log));
         flowObjectiveStore.setDelegate(delegate);
-        mastershipService.addListener(mastershipListener);
         deviceService.addListener(deviceListener);
-        deviceService.getDevices().forEach(device -> setupPipelineHandler(device.id()));
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         flowObjectiveStore.unsetDelegate(delegate);
-        mastershipService.removeListener(mastershipListener);
         deviceService.removeListener(deviceListener);
         executorService.shutdown();
         pipeliners.clear();
@@ -265,14 +255,20 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     // Retrieves the device pipeline behaviour from the cache.
     private Pipeliner getDevicePipeliner(DeviceId deviceId) {
-        return pipeliners.get(deviceId);
+        return pipeliners.computeIfAbsent(deviceId, this::initPipelineHandler);
     }
 
-    private void setupPipelineHandler(DeviceId deviceId) {
-        if (defaultDriverService == null) {
-            // We're not ready to go to work yet.
-            return;
-        }
+    /**
+     * Creates and initialize {@link Pipeliner}.
+     * <p>
+     * Note: Expected to be called under per-Device lock.
+     *      e.g., {@code pipeliners}' Map#compute family methods
+     *
+     * @param deviceId Device to initialize pipeliner
+     * @return {@link Pipeliner} instance or null
+     */
+    private Pipeliner initPipelineHandler(DeviceId deviceId) {
+        start = now();
 
         // Attempt to lookup the handler in the cache
         DriverHandler handler = driverHandlers.get(deviceId);
@@ -286,11 +282,11 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                 if (!handler.driver().hasBehaviour(Pipeliner.class)) {
                     log.warn("Pipeline behaviour not supported for device {}",
                              deviceId);
-                    return;
+                    return null;
                 }
             } catch (ItemNotFoundException e) {
                 log.warn("No applicable driver for device {}", deviceId);
-                return;
+                return null;
             }
 
             driverHandlers.put(deviceId, handler);
@@ -304,28 +300,8 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         Pipeliner pipeliner = handler.behaviour(Pipeliner.class);
         hbTime = now();
         pipeliner.init(deviceId, context);
-        pipeliners.putIfAbsent(deviceId, pipeliner);
-    }
-
-    // Triggers driver setup when the local node becomes a device master.
-    private class InnerMastershipListener implements MastershipListener {
-        @Override
-        public void event(MastershipEvent event) {
-            switch (event.type()) {
-                case MASTER_CHANGED:
-                    log.debug("mastership changed on device {}", event.subject());
-                    start = now();
-                    if (deviceService.isAvailable(event.subject())) {
-                        setupPipelineHandler(event.subject());
-                    }
-                    stopWatch();
-                    break;
-                case BACKUPS_CHANGED:
-                    break;
-                default:
-                    break;
-            }
-        }
+        stopWatch();
+        return pipeliner;
     }
 
     // Triggers driver setup when a device is (re)detected.
@@ -337,16 +313,24 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                 case DEVICE_AVAILABILITY_CHANGED:
                     log.debug("Device either added or availability changed {}",
                               event.subject().id());
-                    start = now();
                     if (deviceService.isAvailable(event.subject().id())) {
                         log.debug("Device is now available {}", event.subject().id());
-                        setupPipelineHandler(event.subject().id());
+                        getDevicePipeliner(event.subject().id());
+                    } else {
+                        log.debug("Device is no longer available {}", event.subject().id());
                     }
-                    stopWatch();
                     break;
                 case DEVICE_UPDATED:
                     break;
                 case DEVICE_REMOVED:
+                    // evict Pipeliner and Handler cache, when
+                    // the Device was administratively removed.
+                    //
+                    // System expect the user to clear all existing flows,
+                    // before removing device, especially if they intend to
+                    // replace driver/pipeliner assigned to the device.
+                    driverHandlers.remove(event.subject().id());
+                    pipeliners.remove(event.subject().id());
                     break;
                 case DEVICE_SUSPENDED:
                     break;
@@ -501,7 +485,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         List<String> pendingNexts = new ArrayList<>();
         for (Integer nextId : pendingForwards.keySet()) {
             Set<PendingNext> pnext = pendingForwards.get(nextId);
-            StringBuffer pend = new StringBuffer();
+            StringBuilder pend = new StringBuilder();
             pend.append("Next Id: ").append(Integer.toString(nextId))
                 .append(" :: ");
             for (PendingNext pn : pnext) {

@@ -300,7 +300,7 @@ public class PathComputationTest {
         }
 
         @Override
-        public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<Resource> resources) {
+        public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<? extends Resource> resources) {
             for (Resource resource: resources) {
                 if (resource instanceof ContinuousResource) {
                     List<ResourceAllocation> allocs = new LinkedList<>();

@@ -38,6 +38,9 @@
         <module>protobuf</module>
         <module>rpc</module>
         <module>rpc-grpc</module>
+        <module>rpc-nb</module>
+        <module>protobuf-nb</module>
+        <module>grpc</module>
     </modules>
 
     <dependencies>

@@ -25,7 +25,5 @@ public enum LispType {
     LISP_MAP_REGISTER,          // LISP Map-Register Message
     LISP_MAP_NOTIFY,            // LISP Map-Notify Message
     LISP_MAP_REQUEST,           // LISP Map-Request Message
-    LISP_MAP_REPLY,             // LISP Map-Reply Message
-    LISP_MAP_REPLY_ACTION,      // LISP Map-Reply-Action Message
-    LISP_SOLICIT_MAP_REQUEST;   // LISP Solicit-Map-Request Message
+    LISP_MAP_REPLY              // LISP Map-Reply Message
 }

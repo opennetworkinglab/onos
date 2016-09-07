@@ -1099,7 +1099,7 @@ public class Ofdpa2GroupHandler {
                     .collect(Collectors.toSet());
             keys.addAll(otherkeys);
 
-            keys.stream().forEach(key ->
+            keys.forEach(key ->
                     processPendingAddGroupsOrNextObjs(key, false));
         }
     }

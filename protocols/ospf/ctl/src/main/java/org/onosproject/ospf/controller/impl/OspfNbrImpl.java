@@ -28,8 +28,10 @@ import org.onosproject.ospf.controller.OspfLinkTed;
 import org.onosproject.ospf.controller.OspfLsa;
 import org.onosproject.ospf.controller.OspfLsaType;
 import org.onosproject.ospf.controller.OspfLsdb;
+import org.onosproject.ospf.controller.OspfMessage;
 import org.onosproject.ospf.controller.OspfNbr;
 import org.onosproject.ospf.controller.OspfNeighborState;
+import org.onosproject.ospf.controller.OspfPacketType;
 import org.onosproject.ospf.controller.OspfRouter;
 import org.onosproject.ospf.controller.TopologyForDeviceAndLink;
 import org.onosproject.ospf.controller.area.OspfAreaImpl;
@@ -40,7 +42,7 @@ import org.onosproject.ospf.protocol.lsa.LsaHeader;
 import org.onosproject.ospf.protocol.lsa.OpaqueLsaHeader;
 import org.onosproject.ospf.protocol.lsa.types.OpaqueLsa10;
 import org.onosproject.ospf.protocol.lsa.types.TopLevelTlv;
-import org.onosproject.ospf.protocol.ospfpacket.OspfMessage;
+import org.onosproject.ospf.protocol.ospfpacket.OspfMessageWriter;
 import org.onosproject.ospf.protocol.ospfpacket.OspfPacketHeader;
 import org.onosproject.ospf.protocol.ospfpacket.subtype.LsRequestPacket;
 import org.onosproject.ospf.protocol.ospfpacket.types.DdPacket;
@@ -49,7 +51,6 @@ import org.onosproject.ospf.protocol.ospfpacket.types.LsRequest;
 import org.onosproject.ospf.protocol.ospfpacket.types.LsUpdate;
 import org.onosproject.ospf.protocol.util.ChecksumCalculator;
 import org.onosproject.ospf.protocol.util.OspfInterfaceState;
-import org.onosproject.ospf.protocol.util.OspfPacketType;
 import org.onosproject.ospf.protocol.util.OspfParameters;
 import org.onosproject.ospf.protocol.util.OspfUtil;
 import org.slf4j.Logger;
@@ -181,7 +182,6 @@ public class OspfNbrImpl implements OspfNbr {
      * A link to the OSPF-Area this Neighbor Data Structure belongs to.
      */
     private OspfArea ospfArea;
-    private OspfInterfaceChannelHandler handler;
     private List<TopLevelTlv> topLevelTlvs = new ArrayList<>();
     private List<DeviceInformation> deviceInformationList = new ArrayList<>();
 
@@ -195,12 +195,11 @@ public class OspfNbrImpl implements OspfNbr {
      * @param ipAddr                         IP address
      * @param routerId                       router id
      * @param options                        options
-     * @param handler                        channel handler instance
      * @param topologyForDeviceAndLinkCommon topology for device and link instance
      */
     public OspfNbrImpl(OspfArea paramOspfArea, OspfInterface paramOspfInterface,
                        Ip4Address ipAddr, Ip4Address routerId, int options,
-                       OspfInterfaceChannelHandler handler, TopologyForDeviceAndLink topologyForDeviceAndLinkCommon) {
+                       TopologyForDeviceAndLink topologyForDeviceAndLinkCommon) {
         this.ospfArea = paramOspfArea;
         this.ospfInterface = paramOspfInterface;
         state = OspfNeighborState.DOWN;
@@ -211,7 +210,6 @@ public class OspfNbrImpl implements OspfNbr {
         this.options = options;
         lastDdPacket = new DdPacket();
         routerDeadInterval = paramOspfInterface.routerDeadIntervalTime();
-        this.handler = handler;
         this.topologyForDeviceAndLink = topologyForDeviceAndLinkCommon;
     }
 
@@ -240,6 +238,15 @@ public class OspfNbrImpl implements OspfNbr {
      */
     public void setIsOpaqueCapable(boolean isOpaqueCapable) {
         this.isOpaqueCapable = isOpaqueCapable;
+    }
+
+    /**
+     * Sets router dead interval.
+     *
+     * @param routerDeadInterval router dead interval
+     */
+    public void setRouterDeadInterval(int routerDeadInterval) {
+        this.routerDeadInterval = routerDeadInterval;
     }
 
     /**
@@ -313,7 +320,8 @@ public class OspfNbrImpl implements OspfNbr {
                 startRxMtDdTimer(channel);
                 //setting destination ip
                 ddPacket.setDestinationIp(packet.sourceIp());
-                channel.write(ddPacket);
+                byte[] messageToWrite = getMessage(ddPacket);
+                channel.write(messageToWrite);
             } else {
                 state = OspfNeighborState.TWOWAY;
             }
@@ -409,7 +417,8 @@ public class OspfNbrImpl implements OspfNbr {
                 setLastSentDdPacket(ddPacket);
                 getIsMoreBit();
 
-                ch.write(lastSentDdPacket());
+                byte[] messageToWrite = getMessage(lastSentDdPacket);
+                ch.write(messageToWrite);
             } else {
                 // process LSA Vector's List, Add it to LSRequestList.
                 processLsas(payload);
@@ -437,7 +446,8 @@ public class OspfNbrImpl implements OspfNbr {
                 setLastSentDdPacket(ddPacket);
                 getIsMoreBit();
                 ddPacket.setDestinationIp(packet.sourceIp());
-                ch.write(lastSentDdPacket());
+                byte[] messageToWrite = getMessage(lastSentDdPacket);
+                ch.write(messageToWrite);
                 startRxMtDdTimer(ch);
             }
         }
@@ -594,7 +604,8 @@ public class OspfNbrImpl implements OspfNbr {
             //setting destination ip
             ddPacket.setDestinationIp(neighborIpAddr());
             setLastSentDdPacket(ddPacket);
-            ch.write(ddPacket);
+            byte[] messageToWrite = getMessage(ddPacket);
+            ch.write(messageToWrite);
         }
     }
 
@@ -651,7 +662,8 @@ public class OspfNbrImpl implements OspfNbr {
                 getIsMoreBit();
                 //Set the destination IP Address
                 ddPacket.setDestinationIp(dataDescPkt.sourceIp());
-                ch.write(lastSentDdPacket());
+                byte[] messageToWrite = getMessage(lastSentDdPacket());
+                ch.write(messageToWrite);
 
                 startRxMtDdTimer(ch);
             }
@@ -692,7 +704,8 @@ public class OspfNbrImpl implements OspfNbr {
             }
 
             ddPacket.setDestinationIp(dataDescPkt.sourceIp());
-            ch.write(ddPacket);
+            byte[] messageToWrite = getMessage(ddPacket);
+            ch.write(messageToWrite);
         }
     }
 
@@ -753,7 +766,8 @@ public class OspfNbrImpl implements OspfNbr {
                 LsRequest lsRequest = buildLsRequest();
                 //Setting the destination address
                 lsRequest.setDestinationIp(header.sourceIp());
-                ch.write(lsRequest);
+                byte[] messageToWrite = getMessage(lsRequest);
+                ch.write(messageToWrite);
 
                 setLastSentLsrPacket(lsRequest);
                 startRxMtLsrTimer(ch);
@@ -859,7 +873,8 @@ public class OspfNbrImpl implements OspfNbr {
                     //setting destination ip
                     ddPacket.setDestinationIp(neighborIpAddr());
                     setLastSentDdPacket(ddPacket);
-                    ch.write(ddPacket);
+                    byte[] messageToWrite = getMessage(ddPacket);
+                    ch.write(messageToWrite);
                 }
             } else if (state.getValue() >= OspfNeighborState.EXSTART.getValue()) {
                 if (!formAdjacencyOrNot()) {
@@ -942,39 +957,55 @@ public class OspfNbrImpl implements OspfNbr {
      */
     private void callDeviceAndLinkAdding(TopologyForDeviceAndLink topologyForDeviceAndLink) {
         Map<String, DeviceInformation> deviceInformationMap = topologyForDeviceAndLink.deviceInformationMap();
+        Map<String, DeviceInformation> deviceInformationMapForPointToPoint =
+                topologyForDeviceAndLink.deviceInformationMapForPointToPoint();
+        Map<String, DeviceInformation> deviceInformationMapToDelete =
+                topologyForDeviceAndLink.deviceInformationMapToDelete();
         Map<String, LinkInformation> linkInformationMap = topologyForDeviceAndLink.linkInformationMap();
+        Map<String, LinkInformation> linkInformationMapForPointToPoint =
+                topologyForDeviceAndLink.linkInformationMapForPointToPoint();
         OspfRouter ospfRouter = new OspfRouterImpl();
-        log.debug("Device Information in list format along with size {}", deviceInformationMap.size());
-        for (String key : deviceInformationMap.keySet()) {
-            DeviceInformation value = deviceInformationMap.get(key);
-            ospfRouter.setRouterIp(value.routerId());
-            ospfRouter.setAreaIdOfInterface(ospfArea.areaId());
-            ospfRouter.setNeighborRouterId(value.deviceId());
-            OspfDeviceTed ospfDeviceTed = new OspfDeviceTedImpl();
-            List<Ip4Address> ip4Addresses = value.interfaceId();
-            ospfDeviceTed.setIpv4RouterIds(ip4Addresses);
-            ospfRouter.setDeviceTed(ospfDeviceTed);
-            ospfRouter.setOpaque(ospfArea.isOpaqueEnabled());
-            if (value.isDr()) {
-                ospfRouter.setDr(value.isDr());
-            } else {
-                ospfRouter.setDr(false);
+
+        if (deviceInformationMap.size() != 0) {
+            for (String key : deviceInformationMap.keySet()) {
+                DeviceInformation value = deviceInformationMap.get(key);
+                ospfRouter.setRouterIp(value.routerId());
+                ospfRouter.setAreaIdOfInterface(ospfArea.areaId());
+                ospfRouter.setNeighborRouterId(value.deviceId());
+                OspfDeviceTed ospfDeviceTed = new OspfDeviceTedImpl();
+                List<Ip4Address> ip4Addresses = value.interfaceId();
+                ospfDeviceTed.setIpv4RouterIds(ip4Addresses);
+                ospfRouter.setDeviceTed(ospfDeviceTed);
+                ospfRouter.setOpaque(ospfArea.isOpaqueEnabled());
+                if (value.isDr()) {
+                    ospfRouter.setDr(value.isDr());
+                } else {
+                    ospfRouter.setDr(false);
+                }
+                int size = value.interfaceId().size();
+                for (int i = 0; i < size; i++) {
+                    ospfRouter.setInterfaceId(value.interfaceId().get(i));
+                }
+                ((OspfInterfaceImpl) ospfInterface).addDeviceInformation(ospfRouter);
             }
-            int size = value.interfaceId().size();
-            for (int i = 0; i < size; i++) {
-                ospfRouter.setInterfaceId(value.interfaceId().get(i));
+        }
+        if (deviceInformationMapForPointToPoint.size() != 0) {
+            for (String key : deviceInformationMapForPointToPoint.keySet()) {
+                DeviceInformation value = deviceInformationMapForPointToPoint.get(key);
+                ospfRouter.setRouterIp(value.routerId());
+                ospfRouter.setAreaIdOfInterface(ospfArea.areaId());
+                ospfRouter.setNeighborRouterId(value.deviceId());
+                OspfDeviceTed ospfDeviceTed = new OspfDeviceTedImpl();
+                List<Ip4Address> ip4Addresses = value.interfaceId();
+                ospfDeviceTed.setIpv4RouterIds(ip4Addresses);
+                ospfRouter.setDeviceTed(ospfDeviceTed);
+                ospfRouter.setOpaque(value.isDr());
+                int size = value.interfaceId().size();
+                for (int i = 0; i < size; i++) {
+                    ospfRouter.setInterfaceId(value.interfaceId().get(i));
+                }
+                ((OspfInterfaceImpl) ospfInterface).addDeviceInformation(ospfRouter);
             }
-            if (value.isAlreadyCreated()) {
-                removeDeviceDetails(value.routerId());
-                OspfRouter ospfRouter1 = new OspfRouterImpl();
-                ospfRouter1.setRouterIp(value.routerId());
-                ospfRouter1.setInterfaceId(ospfInterface.ipAddress());
-                ospfRouter1.setAreaIdOfInterface(ospfArea.areaId());
-                ospfRouter1.setDeviceTed(new OspfDeviceTedImpl());
-                topologyForDeviceAndLink.removeLinks(value.routerId());
-                handler.removeDeviceInformation(ospfRouter1);
-            }
-            handler.addDeviceInformation(ospfRouter);
         }
         for (Map.Entry<String, LinkInformation> entry : linkInformationMap.entrySet()) {
             String key = entry.getKey();
@@ -983,8 +1014,8 @@ public class OspfNbrImpl implements OspfNbr {
             ospfRouterForLink.setInterfaceId(value.interfaceIp());
             ospfRouterForLink.setAreaIdOfInterface(ospfArea.areaId());
             ospfRouterForLink.setOpaque(ospfArea.isOpaqueEnabled());
-            OspfLinkTed ospfLinkTed =
-                    topologyForDeviceAndLink.getOspfLinkTedHashMap(value.linkDestinationId().toString());
+            OspfLinkTed ospfLinkTed = topologyForDeviceAndLink.getOspfLinkTedHashMap(
+                    value.linkDestinationId().toString());
             if (ospfLinkTed == null) {
                 ospfLinkTed = new OspfLinkTedImpl();
                 ospfLinkTed.setMaximumLink(Bandwidth.bps(0));
@@ -996,13 +1027,9 @@ public class OspfNbrImpl implements OspfNbr {
                 ospfRouterForLink.setRouterIp(value.linkSourceId());
                 ospfRouterForLink.setNeighborRouterId(value.linkDestinationId());
                 try {
-                    handler.addLinkInformation(ospfRouterForLink, ospfLinkTed);
-                    log.debug("LinkId, LinkSrc , LinkDest , LinkInterface values are : "
-                                      + value.linkId() + " , " + value.linkSourceId() + "  , "
-                                      + value.linkDestinationId() + " , "
-                                      + value.interfaceIp());
+                    ((OspfInterfaceImpl) ospfInterface).addLinkInformation(ospfRouterForLink, ospfLinkTed);
                 } catch (Exception e) {
-                    log.debug("Got Exception : {}", e.getMessage());
+                    log.debug("Exception addLinkInformation: " + e.getMessage());
                 }
             }
         }
@@ -1178,8 +1205,28 @@ public class OspfNbrImpl implements OspfNbr {
                 }
             }
         }
+
+        constructDeviceInformationFromDb();
         callDeviceAndLinkAdding(topologyForDeviceAndLink);
+
         return true;
+    }
+
+    /**
+     * Constructs device and link information from link state database.
+     */
+    private void constructDeviceInformationFromDb() {
+        OspfLsdb database = ospfArea.database();
+        List lsas = database.getAllLsaHeaders(true, true);
+        Iterator iterator = lsas.iterator();
+        while (iterator.hasNext()) {
+            OspfLsa ospfLsa = (OspfLsa) iterator.next();
+            if (ospfLsa.getOspfLsaType().value() == OspfLsaType.ROUTER.value()) {
+                topologyForDeviceAndLink.addLocalDevice(ospfLsa, ospfInterface, ospfArea);
+            } else if (ospfLsa.getOspfLsaType().value() == OspfLsaType.NETWORK.value()) {
+                topologyForDeviceAndLink.addLocalDevice(ospfLsa, ospfInterface, ospfArea);
+            }
+        }
     }
 
     /**
@@ -1190,7 +1237,7 @@ public class OspfNbrImpl implements OspfNbr {
      */
     private boolean isLinkStateMatchesOwnRouterId(String linkStateId) {
         boolean isLinkStateMatches = false;
-        List<OspfInterface> interfaceLst = ospfArea.getInterfacesLst();
+        List<OspfInterface> interfaceLst = ospfArea.ospfInterfaceList();
         for (OspfInterface ospfInterface : interfaceLst) {
             if (ospfInterface.ipAddress().toString().equals(linkStateId)) {
                 isLinkStateMatches = true;
@@ -1262,7 +1309,8 @@ public class OspfNbrImpl implements OspfNbr {
 
         //setting the destination.
         responseLsUpdate.setDestinationIp(destination);
-        ch.write(responseLsUpdate);
+        byte[] messageToWrite = getMessage(responseLsUpdate);
+        ch.write(messageToWrite);
     }
 
     /**
@@ -1288,7 +1336,8 @@ public class OspfNbrImpl implements OspfNbr {
         ackContent.addLinkStateHeader(ackLsa);
         //setting the destination IP
         ackContent.setDestinationIp(sourceIp);
-        ch.write(ackContent);
+        byte[] messageToWrite = getMessage(ackContent);
+        ch.write(messageToWrite);
     }
 
     /**
@@ -1314,7 +1363,7 @@ public class OspfNbrImpl implements OspfNbr {
         ddSummaryList.clear();
         if (neighborIpAddr.equals(neighborBdr) ||
                 neighborIpAddr.equals(neighborDr)) {
-            handler.neighborChange();
+            ((OspfInterfaceImpl) ospfInterface).neighborChange();
         }
         log.debug("Neighbor Went Down : "
                           + this.neighborIpAddr + " , " + this.neighborId);
@@ -1324,16 +1373,14 @@ public class OspfNbrImpl implements OspfNbr {
         ospfRouter.setInterfaceId(ospfInterface.ipAddress());
         ospfRouter.setAreaIdOfInterface(ospfArea.areaId());
         ospfRouter.setDeviceTed(new OspfDeviceTedImpl());
-        handler.removeDeviceInformation(ospfRouter);
+        ((OspfInterfaceImpl) ospfInterface).removeDeviceInformation(ospfRouter);
         removeDeviceDetails(this.neighborIpAddr);
         OspfRouter ospfRouter1 = new OspfRouterImpl();
         ospfRouter1.setRouterIp(this.neighborIpAddr);
         ospfRouter1.setInterfaceId(ospfInterface.ipAddress());
         ospfRouter1.setAreaIdOfInterface(ospfArea.areaId());
         ospfRouter1.setDeviceTed(new OspfDeviceTedImpl());
-        handler.removeDeviceInformation(ospfRouter1);
-        handler.removeLinkInformation(this);
-        callDeviceAndLinkAdding(topologyForDeviceAndLink);
+        ((OspfInterfaceImpl) ospfInterface).removeDeviceInformation(ospfRouter1);
     }
 
     /**
@@ -1344,13 +1391,12 @@ public class OspfNbrImpl implements OspfNbr {
     private void removeDeviceDetails(Ip4Address routerId) {
         String key = "device:" + routerId;
         topologyForDeviceAndLink.removeDeviceInformationMap(key);
-        topologyForDeviceAndLink.removeLinks(routerId);
     }
 
     /**
      * Starts the inactivity timer.
      */
-    private void startInactivityTimeCheck() {
+    public void startInactivityTimeCheck() {
         if (!inActivityTimerScheduled) {
             log.debug("OSPFNbr::startInactivityTimeCheck");
             inActivityTimeCheckTask = new InternalInactivityTimeCheck();
@@ -1364,7 +1410,7 @@ public class OspfNbrImpl implements OspfNbr {
     /**
      * Stops the inactivity timer.
      */
-    private void stopInactivityTimeCheck() {
+    public void stopInactivityTimeCheck() {
         if (inActivityTimerScheduled) {
             log.debug("OSPFNbr::stopInactivityTimeCheck ");
             exServiceInActivity.shutdown();
@@ -1393,7 +1439,7 @@ public class OspfNbrImpl implements OspfNbr {
     /**
      * Stops the flooding timer.
      */
-    private void stopFloodingTimer() {
+    public void stopFloodingTimer() {
         if (floodingTimerScheduled) {
             log.debug("OSPFNbr::stopFloodingTimer ");
             exServiceFlooding.shutdown();
@@ -1420,7 +1466,7 @@ public class OspfNbrImpl implements OspfNbr {
     /**
      * Stops the Dd Retransmission executor task.
      */
-    private void stopRxMtDdTimer() {
+    public void stopRxMtDdTimer() {
         if (rxmtDdPacketTimerScheduled) {
             exServiceRxmtDDPacket.shutdown();
             rxmtDdPacketTimerScheduled = false;
@@ -1447,7 +1493,7 @@ public class OspfNbrImpl implements OspfNbr {
     /**
      * Stops Ls request retransmission executor task.
      */
-    private void stopRxMtLsrTimer() {
+    public void stopRxMtLsrTimer() {
         if (rxmtLsrTimerScheduled) {
             exServiceRxmtLsr.shutdown();
             rxmtLsrTimerScheduled = false;
@@ -1679,6 +1725,21 @@ public class OspfNbrImpl implements OspfNbr {
         return pendingReTxList;
     }
 
+    /**
+     * Gets message as bytes.
+     *
+     * @param ospfMessage OSPF message
+     * @return OSPF message
+     */
+    private byte[] getMessage(OspfMessage ospfMessage) {
+        OspfMessageWriter messageWriter = new OspfMessageWriter();
+        if (((OspfInterfaceImpl) ospfInterface).state().equals(OspfInterfaceState.POINT2POINT)) {
+            ospfMessage.setDestinationIp(OspfUtil.ALL_SPF_ROUTERS);
+        }
+        return (messageWriter.getMessage(ospfMessage, ospfInterface.interfaceIndex(),
+                                         ((OspfInterfaceImpl) ospfInterface).state().value()));
+    }
+
 
     /**
      * Represents a Task which will do an inactivity time check.
@@ -1720,7 +1781,8 @@ public class OspfNbrImpl implements OspfNbr {
         public void run() {
             if ((ch != null) && ch.isConnected()) {
                 DdPacket ddPacket = lastSentDdPacket();
-                ch.write(ddPacket);
+                byte[] messageToWrite = getMessage(ddPacket);
+                ch.write(messageToWrite);
                 log.debug("Re-Transmit DD Packet .");
             } else {
                 log.debug(
@@ -1748,7 +1810,8 @@ public class OspfNbrImpl implements OspfNbr {
         public void run() {
             if ((ch != null) && ch.isConnected()) {
                 LsRequest lsrPacket = getLastSentLsrPacket();
-                ch.write(lsrPacket);
+                byte[] messageToWrite = getMessage(lsrPacket);
+                ch.write(messageToWrite);
                 log.debug("Re-Transmit LSRequest Packet .");
             } else {
                 log.debug(
@@ -1783,7 +1846,8 @@ public class OspfNbrImpl implements OspfNbr {
                     for (LsUpdate lsupdate : lsUpdateList) {
                         //Pending for acknowledge directly sent it to neighbor
                         lsupdate.setDestinationIp(neighborIpAddr);
-                        channel.write(lsupdate);
+                        byte[] messageToWrite = getMessage(lsupdate);
+                        channel.write(messageToWrite);
                     }
                 }
 
@@ -1799,7 +1863,8 @@ public class OspfNbrImpl implements OspfNbr {
                                 (((OspfInterfaceImpl) ospfInterface).state() == OspfInterfaceState.BDR)) {
                             lsupdate.setDestinationIp(neighborDr);
                         }
-                        channel.write(lsupdate);
+                        byte[] messageToWrite = getMessage(lsupdate);
+                        channel.write(messageToWrite);
                     }
                 }
             }

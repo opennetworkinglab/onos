@@ -18,12 +18,10 @@
  ONOS GUI -- SVG -- Glyph Service - Unit Tests
  */
 
-//FIXME Size are changed
-
 describe('factory: fw/svg/glyph.js', function() {
     var $log, fs, gs, d3Elem, svg;
 
-    var numBaseGlyphs = 51,
+    var numBaseGlyphs = 81,
         vbBird = '352 224 113 112',
         vbGlyph = '0 0 110 110',
         vbBadge = '0 0 10 10',

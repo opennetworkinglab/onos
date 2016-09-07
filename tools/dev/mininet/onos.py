@@ -62,6 +62,7 @@ from functools import partial
 KarafPort = 8101	# ssh port indicating karaf is running
 GUIPort = 8181		# GUI/REST port
 OpenFlowPort = 6653 	# OpenFlow port
+CopycatPort = 9876      # Copycat port
 
 def defaultUser():
     "Return a reasonable default user"
@@ -209,6 +210,25 @@ def RenamedTopo( topo, *args, **kwargs ):
     return RenamedTopoCls( *args, **kwargs )
 
 
+# We accept objects that "claim" to be a particular class,
+# since the class definitions can be both execed (--custom) and
+# imported (in another custom file), which breaks isinstance().
+# In order for this to work properly, a class should not be
+# renamed so as to inappropriately omit or include the class
+# name text. Note that mininet.util.specialClass renames classes
+# by adding the specialized parameter names and values.
+
+def isONOSNode( obj ):
+    "Does obj claim to be some kind of ONOSNode?"
+    return ( isinstance( obj, ONOSNode) or
+             'ONOSNode' in type( obj ).__name__ )
+
+def isONOSCluster( obj ):
+    "Does obj claim to be some kind of ONOSCluster?"
+    return ( isinstance( obj, ONOSCluster ) or
+             'ONOSCluster' in type( obj ).__name__ )
+
+
 class ONOSNode( Controller ):
     "ONOS cluster node"
 
@@ -338,6 +358,17 @@ class ONOSNode( Controller ):
             info( '.' )
             self.sanityCheck()
             time.sleep( 1 )
+        info( ' node-status' )
+        while True:
+            result = quietRun( '%s -h %s "nodes"' %
+                               ( self.client, self.IP() ), shell=True )
+            nodeStr = 'id=%s, address=%s:%s, state=READY, updated' %\
+                      ( self.IP(), self.IP(), CopycatPort )
+            if nodeStr in result:
+                break
+            info( '.' )
+            self.sanityCheck()
+            time.sleep( 1 )
         info( ')\n' )
 
     def updateEnv( self, envDict ):
@@ -357,19 +388,32 @@ class ONOSNode( Controller ):
 
 class ONOSCluster( Controller ):
     "ONOS Cluster"
+    # Offset for port forwarding
+    portOffset = 0
     def __init__( self, *args, **kwargs ):
         """name: (first parameter)
            *args: topology class parameters
            ipBase: IP range for ONOS nodes
-           forward: default port forwarding list,
+           forward: default port forwarding list
+           portOffset: offset to port base (optional)
            topo: topology class or instance
            nodeOpts: ONOSNode options
-           **kwargs: additional topology parameters"""
+           **kwargs: additional topology parameters
+        By default, multiple ONOSClusters will increment
+        the portOffset automatically; alternately, it can
+        be specified explicitly.
+        """
         args = list( args )
         name = args.pop( 0 )
         topo = kwargs.pop( 'topo', None )
         self.nat = kwargs.pop( 'nat', 'nat0' )
         nodeOpts = kwargs.pop( 'nodeOpts', {} )
+        self.portOffset = kwargs.pop( 'portOffset', ONOSCluster.portOffset )
+        # Pass in kwargs to the ONOSNodes instead of the cluster
+        "alertAction: exception|ignore|warn|exit (exception)"
+        alertAction = kwargs.pop( 'alertAction', None )
+        if alertAction:
+            nodeOpts[ 'alertAction'] = alertAction
         # Default: single switch with 1 ONOS node
         if not topo:
             topo = SingleSwitchTopo
@@ -391,6 +435,8 @@ class ONOSCluster( Controller ):
             self.net.addNAT( self.nat ).configDefault()
         updateNodeIPs( self.env, self.nodes() )
         self._remoteControllers = []
+        # Update port offset for more ONOS clusters
+        ONOSCluster.portOffset += len( self.nodes() )
 
     def start( self ):
         "Start up ONOS cluster"
@@ -421,7 +467,7 @@ class ONOSCluster( Controller ):
 
     def nodes( self ):
         "Return list of ONOS nodes"
-        return [ h for h in self.net.hosts if isinstance( h, ONOSNode ) ]
+        return [ h for h in self.net.hosts if isONOSNode( h ) ]
 
     def configPortForwarding( self, ports=[], action='A' ):
         """Start or stop port forwarding (any intf) for all nodes
@@ -431,20 +477,20 @@ class ONOSCluster( Controller ):
                   '-j ACCEPT' )
         for port in ports:
             for index, node in enumerate( self.nodes() ):
-                ip, inport = node.IP(), port + index
+                ip, inport = node.IP(), port + self.portOffset + index
                 # Configure a destination NAT rule
                 self.cmd( 'iptables -t nat -' + action,
                           'PREROUTING -t nat -p tcp --dport', inport,
                           '-j DNAT --to-destination %s:%s' % ( ip, port ) )
 
-                    
+
 class ONOSSwitchMixin( object ):
     "Mixin for switches that connect to an ONOSCluster"
     def start( self, controllers ):
         "Connect to ONOSCluster"
         self.controllers = controllers
         assert ( len( controllers ) is 1 and
-                 isinstance( controllers[ 0 ], ONOSCluster ) )
+                 isONOSCluster( controllers[ 0 ] ) )
         clist = controllers[ 0 ].nodes()
         return super( ONOSSwitchMixin, self ).start( clist )
 
@@ -489,9 +535,9 @@ class ONOSCLI( OldCLI ):
     prompt = 'mininet-onos> '
 
     def __init__( self, net, **kwargs ):
-        c0 = net.controllers[ 0 ]
-        if isinstance( c0, ONOSCluster ):
-            net = MininetFacade( net, cnet=c0.net )
+        clusters = [ c.net for c in net.controllers
+                     if isONOSCluster( c ) ]
+        net = MininetFacade( net, *clusters )
         OldCLI.__init__( self, net, **kwargs )
 
     def onos1( self ):
@@ -501,7 +547,7 @@ class ONOSCLI( OldCLI ):
     def do_onos( self, line ):
         "Send command to ONOS CLI"
         c0 = self.mn.controllers[ 0 ]
-        if isinstance( c0, ONOSCluster ):
+        if isONOSCluster( c0 ):
             # cmdLoop strips off command name 'onos'
             if line.startswith( ':' ):
                 line = 'onos' + line
@@ -529,9 +575,9 @@ class ONOSCLI( OldCLI ):
     def do_status( self, line ):
         "Return status of ONOS cluster(s)"
         for c in self.mn.controllers:
-            if isinstance( c, ONOSCluster ):
+            if isONOSCluster( c ):
                 for node in c.net.hosts:
-                    if isinstance( node, ONOSNode ):
+                    if isONOSNode( node ):
                         errors, warnings = node.checkLog()
                         running = ( 'Running' if node.isRunning()
                                    else 'Exited' )

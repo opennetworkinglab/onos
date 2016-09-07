@@ -77,12 +77,12 @@ public class PathsWebResource extends AbstractWebResource {
     }
 
     /**
-     * Gets all shortest disjoint paths between any two hosts or devices.
-     * Returns array of all shortest disjoint paths between any two elements.
+     * Gets all shortest disjoint path pairs between any two hosts or devices.
+     * Returns array of all shortest disjoint path pairs between any two elements.
      * @onos.rsModel Paths
      * @param src source identifier
      * @param dst destination identifier
-     * @return 200 OK with array of all shortest disjoint paths between any two elements
+     * @return 200 OK with array of all shortest disjoint path pairs between any two elements
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)

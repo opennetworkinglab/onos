@@ -20,7 +20,8 @@
         <feature>onos-api</feature>
         <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
 
-        <bundle>mvn:org.onosproject/openflowj/0.9.4.onos</bundle>
+        <bundle>mvn:org.onosproject/openflowj/0.9.5.onos</bundle>
         <bundle>mvn:${project.groupId}/onos-of-api/${project.version}</bundle>
+
     </feature>
 </features>

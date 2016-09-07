@@ -15,98 +15,100 @@
  */
 package org.onosproject.store.flow.impl;
 
- import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.Futures;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.KryoNamespace;
-import org.onlab.util.Tools;
-import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.NodeId;
-import org.onosproject.core.CoreService;
-import org.onosproject.core.IdGenerator;
-import org.onosproject.mastership.MastershipService;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flow.CompletedBatchOperation;
-import org.onosproject.net.flow.DefaultFlowEntry;
-import org.onosproject.net.flow.FlowEntry;
-import org.onosproject.net.flow.FlowEntry.FlowEntryState;
-import org.onosproject.net.flow.FlowId;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleBatchEntry;
-import org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
-import org.onosproject.net.flow.FlowRuleBatchEvent;
-import org.onosproject.net.flow.FlowRuleBatchOperation;
-import org.onosproject.net.flow.FlowRuleBatchRequest;
-import org.onosproject.net.flow.FlowRuleEvent;
-import org.onosproject.net.flow.FlowRuleEvent.Type;
-import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.net.flow.FlowRuleStore;
-import org.onosproject.net.flow.FlowRuleStoreDelegate;
-import org.onosproject.net.flow.StoredFlowEntry;
-import org.onosproject.net.flow.TableStatisticsEntry;
-import org.onosproject.persistence.PersistenceService;
-import org.onosproject.store.AbstractStore;
-import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.cluster.messaging.ClusterMessage;
-import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
-import org.onosproject.store.flow.ReplicaInfoEvent;
-import org.onosproject.store.flow.ReplicaInfoEventListener;
-import org.onosproject.store.flow.ReplicaInfoService;
-import org.onosproject.store.impl.MastershipBasedTimestamp;
-import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.StoreSerializer;
-import org.onosproject.store.serializers.custom.DistributedStoreSerializers;
-import org.onosproject.store.service.EventuallyConsistentMap;
-import org.onosproject.store.service.EventuallyConsistentMapEvent;
-import org.onosproject.store.service.EventuallyConsistentMapListener;
-import org.onosproject.store.service.Serializer;
-import org.onosproject.store.service.StorageService;
-import org.onosproject.store.service.WallClockTimestamp;
-import org.osgi.service.component.ComponentContext;
-import org.slf4j.Logger;
-
  import java.util.Collections;
-import java.util.Dictionary;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
+ import java.util.Dictionary;
+ import java.util.HashSet;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Objects;
+ import java.util.Set;
+ import java.util.concurrent.ExecutorService;
+ import java.util.concurrent.Executors;
+ import java.util.concurrent.ScheduledExecutorService;
+ import java.util.concurrent.ScheduledFuture;
+ import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.atomic.AtomicInteger;
+ import java.util.concurrent.atomic.AtomicReference;
+ import java.util.stream.Collectors;
+
+ import org.apache.felix.scr.annotations.Activate;
+ import org.apache.felix.scr.annotations.Component;
+ import org.apache.felix.scr.annotations.Deactivate;
+ import org.apache.felix.scr.annotations.Modified;
+ import org.apache.felix.scr.annotations.Property;
+ import org.apache.felix.scr.annotations.Reference;
+ import org.apache.felix.scr.annotations.ReferenceCardinality;
+ import org.apache.felix.scr.annotations.Service;
+ import org.onlab.util.KryoNamespace;
+ import org.onlab.util.Tools;
+ import org.onosproject.cfg.ComponentConfigService;
+ import org.onosproject.cluster.ClusterService;
+ import org.onosproject.cluster.NodeId;
+ import org.onosproject.core.CoreService;
+ import org.onosproject.core.IdGenerator;
+ import org.onosproject.mastership.MastershipService;
+ import org.onosproject.net.DeviceId;
+ import org.onosproject.net.device.DeviceService;
+ import org.onosproject.net.flow.CompletedBatchOperation;
+ import org.onosproject.net.flow.DefaultFlowEntry;
+ import org.onosproject.net.flow.FlowEntry;
+ import org.onosproject.net.flow.FlowEntry.FlowEntryState;
+ import org.onosproject.net.flow.FlowId;
+ import org.onosproject.net.flow.FlowRule;
+ import org.onosproject.net.flow.FlowRuleBatchEntry;
+ import org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
+ import org.onosproject.net.flow.FlowRuleBatchEvent;
+ import org.onosproject.net.flow.FlowRuleBatchOperation;
+ import org.onosproject.net.flow.FlowRuleBatchRequest;
+ import org.onosproject.net.flow.FlowRuleEvent;
+ import org.onosproject.net.flow.FlowRuleEvent.Type;
+ import org.onosproject.net.flow.FlowRuleService;
+ import org.onosproject.net.flow.FlowRuleStore;
+ import org.onosproject.net.flow.FlowRuleStoreDelegate;
+ import org.onosproject.net.flow.StoredFlowEntry;
+ import org.onosproject.net.flow.TableStatisticsEntry;
+ import org.onosproject.persistence.PersistenceService;
+ import org.onosproject.store.AbstractStore;
+ import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+ import org.onosproject.store.cluster.messaging.ClusterMessage;
+ import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
+ import org.onosproject.store.flow.ReplicaInfoEvent;
+ import org.onosproject.store.flow.ReplicaInfoEventListener;
+ import org.onosproject.store.flow.ReplicaInfoService;
+ import org.onosproject.store.impl.MastershipBasedTimestamp;
+ import org.onosproject.store.serializers.KryoNamespaces;
+ import org.onosproject.store.service.EventuallyConsistentMap;
+ import org.onosproject.store.service.EventuallyConsistentMapEvent;
+ import org.onosproject.store.service.EventuallyConsistentMapListener;
+ import org.onosproject.store.service.Serializer;
+ import org.onosproject.store.service.StorageService;
+ import org.onosproject.store.service.WallClockTimestamp;
+ import org.osgi.service.component.ComponentContext;
+ import org.slf4j.Logger;
+
+ import com.google.common.collect.ImmutableList;
+ import com.google.common.collect.Iterables;
+ import com.google.common.collect.Maps;
+ import com.google.common.collect.Sets;
+ import com.google.common.util.concurrent.Futures;
 
  import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onlab.util.Tools.get;
-import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
-import static org.onosproject.store.flow.ReplicaInfoEvent.Type.MASTER_CHANGED;
-import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.*;
-import static org.slf4j.LoggerFactory.getLogger;
+ import static org.onlab.util.Tools.get;
+ import static org.onlab.util.Tools.groupedThreads;
+ import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
+ import static org.onosproject.store.flow.ReplicaInfoEvent.Type.MASTER_CHANGED;
+ import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.APPLY_BATCH_FLOWS;
+ import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.FLOW_TABLE_BACKUP;
+ import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.GET_DEVICE_FLOW_ENTRIES;
+ import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.GET_FLOW_ENTRY;
+ import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.REMOTE_APPLY_COMPLETED;
+ import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.REMOVE_FLOW_ENTRY;
+ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages inventory of flow rules using a distributed state management protocol.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
 public class DistributedFlowRuleStore
         extends AbstractStore<FlowRuleBatchEvent, FlowRuleStoreDelegate>
@@ -183,13 +185,9 @@ public class DistributedFlowRuleStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
-    protected static final StoreSerializer SERIALIZER = StoreSerializer.using(
-            KryoNamespace.newBuilder()
-                    .register(DistributedStoreSerializers.STORE_COMMON)
-                    .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
-                    .build("FlowRuleStore"));
+    protected final Serializer serializer = Serializer.using(KryoNamespaces.API);
 
-    protected static final KryoNamespace.Builder SERIALIZER_BUILDER = KryoNamespace.newBuilder()
+    protected final KryoNamespace.Builder serializerBuilder = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
             .register(MastershipBasedTimestamp.class);
 
@@ -223,7 +221,7 @@ public class DistributedFlowRuleStore
 
         deviceTableStats = storageService.<DeviceId, List<TableStatisticsEntry>>eventuallyConsistentMapBuilder()
                 .withName("onos-flow-table-stats")
-                .withSerializer(SERIALIZER_BUILDER)
+                .withSerializer(serializerBuilder)
                 .withAntiEntropyPeriod(5, TimeUnit.SECONDS)
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .withTombstonesDisabled()
@@ -331,17 +329,17 @@ public class DistributedFlowRuleStore
 
         clusterCommunicator.addSubscriber(APPLY_BATCH_FLOWS, new OnStoreBatch(), executor);
         clusterCommunicator.<FlowRuleBatchEvent>addSubscriber(
-                REMOTE_APPLY_COMPLETED, SERIALIZER::decode, this::notifyDelegate, executor);
+                REMOTE_APPLY_COMPLETED, serializer::decode, this::notifyDelegate, executor);
         clusterCommunicator.addSubscriber(
-                GET_FLOW_ENTRY, SERIALIZER::decode, flowTable::getFlowEntry, SERIALIZER::encode, executor);
+                GET_FLOW_ENTRY, serializer::decode, flowTable::getFlowEntry, serializer::encode, executor);
         clusterCommunicator.addSubscriber(
-                GET_DEVICE_FLOW_ENTRIES, SERIALIZER::decode, flowTable::getFlowEntries, SERIALIZER::encode, executor);
+                GET_DEVICE_FLOW_ENTRIES, serializer::decode, flowTable::getFlowEntries, serializer::encode, executor);
         clusterCommunicator.addSubscriber(
-                REMOVE_FLOW_ENTRY, SERIALIZER::decode, this::removeFlowRuleInternal, SERIALIZER::encode, executor);
+                REMOVE_FLOW_ENTRY, serializer::decode, this::removeFlowRuleInternal, serializer::encode, executor);
         clusterCommunicator.addSubscriber(
-                REMOVE_FLOW_ENTRY, SERIALIZER::decode, this::removeFlowRuleInternal, SERIALIZER::encode, executor);
+                REMOVE_FLOW_ENTRY, serializer::decode, this::removeFlowRuleInternal, serializer::encode, executor);
         clusterCommunicator.addSubscriber(
-                FLOW_TABLE_BACKUP, SERIALIZER::decode, flowTable::onBackupReceipt, SERIALIZER::encode, executor);
+                FLOW_TABLE_BACKUP, serializer::decode, flowTable::onBackupReceipt, serializer::encode, executor);
     }
 
     private void unregisterMessageHandlers() {
@@ -386,8 +384,8 @@ public class DistributedFlowRuleStore
 
         return Tools.futureGetOrElse(clusterCommunicator.sendAndReceive(rule,
                                     FlowStoreMessageSubjects.GET_FLOW_ENTRY,
-                                    SERIALIZER::encode,
-                                    SERIALIZER::decode,
+                                    serializer::encode,
+                                    serializer::decode,
                                     master),
                                FLOW_RULE_STORE_TIMEOUT_MILLIS,
                                TimeUnit.MILLISECONDS,
@@ -412,8 +410,8 @@ public class DistributedFlowRuleStore
 
         return Tools.futureGetOrElse(clusterCommunicator.sendAndReceive(deviceId,
                                     FlowStoreMessageSubjects.GET_DEVICE_FLOW_ENTRIES,
-                                    SERIALIZER::encode,
-                                    SERIALIZER::decode,
+                                    serializer::encode,
+                                    serializer::decode,
                                     master),
                                FLOW_RULE_STORE_TIMEOUT_MILLIS,
                                TimeUnit.MILLISECONDS,
@@ -460,7 +458,7 @@ public class DistributedFlowRuleStore
 
         clusterCommunicator.unicast(operation,
                                     APPLY_BATCH_FLOWS,
-                                    SERIALIZER::encode,
+                                    serializer::encode,
                                     master)
                            .whenComplete((result, error) -> {
                                if (error != null) {
@@ -569,7 +567,7 @@ public class DistributedFlowRuleStore
         if (stored != null) {
             //FIXME modification of "stored" flow entry outside of flow table
             stored.setBytes(rule.bytes());
-            stored.setLife(rule.life());
+            stored.setLife(rule.life(TimeUnit.NANOSECONDS), TimeUnit.NANOSECONDS);
             stored.setPackets(rule.packets());
             stored.setLastSeen();
             if (stored.state() == FlowEntryState.PENDING_ADD) {
@@ -607,8 +605,8 @@ public class DistributedFlowRuleStore
         return Futures.getUnchecked(clusterCommunicator.sendAndReceive(
                                rule,
                                REMOVE_FLOW_ENTRY,
-                               SERIALIZER::encode,
-                               SERIALIZER::decode,
+                               serializer::encode,
+                               serializer::decode,
                                master));
     }
 
@@ -633,7 +631,7 @@ public class DistributedFlowRuleStore
             notifyDelegate(event);
         } else {
             // TODO check unicast return value
-            clusterCommunicator.unicast(event, REMOTE_APPLY_COMPLETED, SERIALIZER::encode, nodeId);
+            clusterCommunicator.unicast(event, REMOTE_APPLY_COMPLETED, serializer::encode, nodeId);
             //error log: log.warn("Failed to respond to peer for batch operation result");
         }
     }
@@ -642,7 +640,7 @@ public class DistributedFlowRuleStore
 
         @Override
         public void handle(final ClusterMessage message) {
-            FlowRuleBatchOperation operation = SERIALIZER.decode(message.payload());
+            FlowRuleBatchOperation operation = serializer.decode(message.payload());
             log.debug("received batch request {}", operation);
 
             final DeviceId deviceId = operation.deviceId();
@@ -657,7 +655,7 @@ public class DistributedFlowRuleStore
                 // TODO: we might want to wrap response in envelope
                 // to distinguish sw programming failure and hand over
                 // it make sense in the latter case to retry immediately.
-                message.respond(SERIALIZER.encode(allFailed));
+                message.respond(serializer.encode(allFailed));
                 return;
             }
 
@@ -730,22 +728,23 @@ public class DistributedFlowRuleStore
             log.debug("Sending flowEntries for devices {} to {} for backup.", deviceIds, nodeId);
             Map<DeviceId, Map<FlowId, Map<StoredFlowEntry, StoredFlowEntry>>>
                     deviceFlowEntries = Maps.newConcurrentMap();
-            deviceIds.forEach(id -> deviceFlowEntries.put(id, ImmutableMap.copyOf(getFlowTable(id))));
+            deviceIds.forEach(id -> deviceFlowEntries.put(id, getFlowTableCopy(id)));
             clusterCommunicator.<Map<DeviceId,
                                  Map<FlowId, Map<StoredFlowEntry, StoredFlowEntry>>>,
                                  Set<DeviceId>>
                     sendAndReceive(deviceFlowEntries,
                                    FLOW_TABLE_BACKUP,
-                                   SERIALIZER::encode,
-                                   SERIALIZER::decode,
+                                   serializer::encode,
+                                   serializer::decode,
                                    nodeId)
                     .whenComplete((backedupDevices, error) -> {
                         Set<DeviceId> devicesNotBackedup = error != null ?
                             deviceFlowEntries.keySet() :
                             Sets.difference(deviceFlowEntries.keySet(), backedupDevices);
                         if (devicesNotBackedup.size() > 0) {
-                            log.warn("Failed to backup devices: {}. Reason: {}",
-                                     devicesNotBackedup, error.getMessage());
+                            log.warn("Failed to backup devices: {}. Reason: {}, Node: {}",
+                                     devicesNotBackedup, error != null ? error.getMessage() : "none",
+                                     nodeId);
                         }
                         if (backedupDevices != null) {
                             backedupDevices.forEach(id -> {
@@ -769,17 +768,43 @@ public class DistributedFlowRuleStore
                         .withSerializer(new Serializer() {
                             @Override
                             public <T> byte[] encode(T object) {
-                                return SERIALIZER.encode(object);
+                                return serializer.encode(object);
                             }
 
                             @Override
                             public <T> T decode(byte[] bytes) {
-                                return SERIALIZER.decode(bytes);
+                                return serializer.decode(bytes);
                             }
                         })
                         .build());
             } else {
                 return flowEntries.computeIfAbsent(deviceId, id -> Maps.newConcurrentMap());
+            }
+        }
+
+        private Map<FlowId, Map<StoredFlowEntry, StoredFlowEntry>> getFlowTableCopy(DeviceId deviceId) {
+            Map<FlowId, Map<StoredFlowEntry, StoredFlowEntry>> copy = Maps.newHashMap();
+            if (persistenceEnabled) {
+                return flowEntries.computeIfAbsent(deviceId, id -> persistenceService
+                        .<FlowId, Map<StoredFlowEntry, StoredFlowEntry>>persistentMapBuilder()
+                        .withName("FlowTable:" + deviceId.toString())
+                        .withSerializer(new Serializer() {
+                            @Override
+                            public <T> byte[] encode(T object) {
+                                return serializer.encode(object);
+                            }
+
+                            @Override
+                            public <T> T decode(byte[] bytes) {
+                                return serializer.decode(bytes);
+                            }
+                        })
+                        .build());
+            } else {
+                flowEntries.computeIfAbsent(deviceId, id -> Maps.newConcurrentMap()).forEach((k, v) -> {
+                    copy.put(k, Maps.newHashMap(v));
+                });
+                return copy;
             }
         }
 
@@ -861,7 +886,7 @@ public class DistributedFlowRuleStore
             try {
                 // compute a mapping from node to the set of devices whose flow entries it should backup
                 Map<NodeId, Set<DeviceId>> devicesToBackupByNode = Maps.newHashMap();
-                flowEntries.keySet().stream().forEach(deviceId -> {
+                flowEntries.keySet().forEach(deviceId -> {
                     List<NodeId> backupNodes = getBackupNodes(deviceId);
                     backupNodes.forEach(backupNode -> {
                             if (lastBackupTimes.getOrDefault(new BackupOperation(backupNode, deviceId), 0L)

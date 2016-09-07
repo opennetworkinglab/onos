@@ -15,13 +15,23 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.onosproject.lisp.msg.types.LispCanonicalAddressFormatEnum.*;
 
 /**
  * LISP Canonical Address Formatted address class.
  *
+ * <pre>
+ * {@literal
  *  0                   1                   2                   3
  *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -29,14 +39,17 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * |    Type       |     Rsvd2     |            Length             |
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * }</pre>
  */
 public class LispLcafAddress extends LispAfiAddress {
 
-    protected final LispCanonicalAddressFormatEnum lcafType;
-    protected final byte reserved1;
-    protected final byte reserved2;
-    protected final byte flag;
-    protected final byte length;
+    private static final Logger log = LoggerFactory.getLogger(LispLcafAddress.class);
+
+    private final LispCanonicalAddressFormatEnum lcafType;
+    private final byte reserved1;
+    private final byte reserved2;
+    private final byte flag;
+    private final short length;
 
     /**
      * Initializes LCAF address.
@@ -48,7 +61,7 @@ public class LispLcafAddress extends LispAfiAddress {
      * @param length length field
      */
     protected LispLcafAddress(LispCanonicalAddressFormatEnum lcafType,
-                              byte reserved1, byte reserved2, byte flag, byte length) {
+                              byte reserved1, byte reserved2, byte flag, short length) {
         super(AddressFamilyIdentifierEnum.LCAF);
         this.lcafType = lcafType;
         this.reserved1 = reserved1;
@@ -66,7 +79,7 @@ public class LispLcafAddress extends LispAfiAddress {
      * @param length length field
      */
     protected LispLcafAddress(LispCanonicalAddressFormatEnum lcafType,
-                              byte reserved2, byte flag, byte length) {
+                              byte reserved2, byte flag, short length) {
         super(AddressFamilyIdentifierEnum.LCAF);
         this.lcafType = lcafType;
         this.reserved2 = reserved2;
@@ -83,7 +96,7 @@ public class LispLcafAddress extends LispAfiAddress {
      * @param length length field
      */
     protected LispLcafAddress(LispCanonicalAddressFormatEnum lcafType,
-                              byte reserved2, byte length) {
+                              byte reserved2, short length) {
         super(AddressFamilyIdentifierEnum.LCAF);
         this.lcafType = lcafType;
         this.reserved2 = reserved2;
@@ -105,6 +118,21 @@ public class LispLcafAddress extends LispAfiAddress {
         this.reserved1 = 0;
         this.flag = 0;
         this.length = 0;
+    }
+
+    /**
+     * Initializes LCAF address.
+     *
+     * @param lcafType LCAF type
+     * @param length length field
+     */
+    protected LispLcafAddress(LispCanonicalAddressFormatEnum lcafType, short length) {
+        super(AddressFamilyIdentifierEnum.LCAF);
+        this.lcafType = lcafType;
+        this.reserved1 = 0;
+        this.reserved2 = 0;
+        this.flag = 0;
+        this.length = length;
     }
 
     /**
@@ -162,8 +190,49 @@ public class LispLcafAddress extends LispAfiAddress {
      *
      * @return LCAF length value
      */
-    public byte getLength() {
+    public short getLength() {
         return length;
+    }
+
+    /**
+     * Deserializes common fields from byte buffer.
+     *
+     * @param byteBuf byte buffer
+     * @return LispLcafAddress with filled common data fields
+     */
+    public static LispLcafAddress deserializeCommon(ByteBuf byteBuf) {
+
+        // reserved1 -> 8 bits
+        byte reserved1 = (byte) byteBuf.readUnsignedByte();
+
+        // flags -> 8 bits
+        byte flag = (byte) byteBuf.readUnsignedByte();
+
+        // LCAF type -> 8 bits
+        byte lcafType = (byte) byteBuf.readUnsignedByte();
+
+        // reserved2 -> 8bits
+        byte reserved2 = (byte) byteBuf.readUnsignedByte();
+
+        // length -> 16 bits
+        short length = (short) byteBuf.readUnsignedShort();
+
+        return new LispLcafAddress(LispCanonicalAddressFormatEnum.valueOf(lcafType),
+                                    reserved1, reserved2, flag, length);
+    }
+
+    /**
+     * Serializes common fields to byte buffer.
+     *
+     * @param byteBuf byte buffer
+     * @param address LISP LCAF address instance
+     */
+    public static void serializeCommon(ByteBuf byteBuf, LispLcafAddress address) {
+        byteBuf.writeByte(address.getReserved1());
+        byteBuf.writeByte(address.getFlag());
+        byteBuf.writeByte(address.getType().getLispCode());
+        byteBuf.writeByte(address.getReserved2());
+        byteBuf.writeShort(address.getLength());
     }
 
     @Override
@@ -197,5 +266,147 @@ public class LispLcafAddress extends LispAfiAddress {
                 .add("flag", flag)
                 .add("length", length)
                 .toString();
+    }
+
+    protected static class LcafAddressBuilder<T> {
+
+        protected byte reserved1;
+        protected byte flag;
+        protected byte lcafType;
+        protected byte reserved2;
+        protected short length;
+
+        /**
+         * Sets reserved1 value.
+         *
+         * @param reserved1 reserved1 value
+         * @return LcafAddressBuilder object
+         */
+        public T withReserved1(byte reserved1) {
+            this.reserved1 = reserved1;
+            return (T) this;
+        }
+
+        /**
+         * Sets flag.
+         *
+         * @param flag flag boolean
+         * @return LcafAddressBuilder object
+         */
+        public T withFlag(byte flag) {
+            this.flag = flag;
+            return (T) this;
+        }
+
+        /**
+         * Sets LCAF type.
+         *
+         * @param lcafType LCAF type
+         * @return LcafAddressBuilder object
+         */
+        public T withLcafType(byte lcafType) {
+            this.lcafType = lcafType;
+            return (T) this;
+        }
+
+        /**
+         * Sets reserved2 value.
+         *
+         * @param reserved2 reserved2 value
+         * @return LcafAddressBuilder object
+         */
+        public T withReserved2(byte reserved2) {
+            this.reserved2 = reserved2;
+            return (T) this;
+        }
+
+        /**
+         * Sets length value.
+         *
+         * @param length length value
+         * @return LcafAddressBuilder object
+         */
+        public T withLength(short length) {
+            this.length = length;
+            return (T) this;
+        }
+
+        /**
+         * Builds LispLcafAddress object.
+         *
+         * @return LispLcafAddress instance
+         */
+        public LispLcafAddress build() {
+            return new LispLcafAddress(LispCanonicalAddressFormatEnum.valueOf(lcafType),
+                                        reserved1, reserved2, flag, length);
+        }
+    }
+
+    /**
+     * LISP LCAF reader class.
+     */
+    public static class LcafAddressReader implements LispAddressReader<LispLcafAddress> {
+
+        private static final int LCAF_TYPE_FIELD_INDEX = 4;
+
+        @Override
+        public LispLcafAddress readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
+
+            int index = byteBuf.readerIndex();
+
+            // LCAF type -> 8 bits
+            byte lcafType = (byte) byteBuf.getUnsignedByte(index + LCAF_TYPE_FIELD_INDEX);
+
+            if (lcafType == APPLICATION_DATA.getLispCode()) {
+                return new LispAppDataLcafAddress.AppDataLcafAddressReader().readFrom(byteBuf);
+            }
+
+            if (lcafType == LIST.getLispCode()) {
+                return new LispListLcafAddress.ListLcafAddressReader().readFrom(byteBuf);
+            }
+
+            if (lcafType == SEGMENT.getLispCode()) {
+                return new LispSegmentLcafAddress.SegmentLcafAddressReader().readFrom(byteBuf);
+            }
+
+            if (lcafType == SOURCE_DEST.getLispCode()) {
+                return new LispSourceDestLcafAddress.SourceDestLcafAddressReader().readFrom(byteBuf);
+            }
+
+            log.warn("Unsupported LCAF type, please specify a correct LCAF type");
+
+            return null;
+        }
+    }
+
+    /**
+     * LISP LCAF address writer class.
+     */
+    public static class LcafAddressWriter implements LispAddressWriter<LispLcafAddress> {
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispLcafAddress address) throws LispWriterException {
+            switch (address.getType()) {
+                case APPLICATION_DATA:
+                    new LispAppDataLcafAddress.AppDataLcafAddressWriter().writeTo(byteBuf,
+                            (LispAppDataLcafAddress) address);
+                    break;
+                case LIST:
+                    new LispListLcafAddress.ListLcafAddressWriter().writeTo(byteBuf,
+                            (LispListLcafAddress) address);
+                    break;
+                case SEGMENT:
+                    new LispSegmentLcafAddress.SegmentLcafAddressWriter().writeTo(byteBuf,
+                            (LispSegmentLcafAddress) address);
+                    break;
+                case SOURCE_DEST:
+                    new LispSourceDestLcafAddress.SourceDestLcafAddressWriter().writeTo(byteBuf,
+                            (LispSourceDestLcafAddress) address);
+                    break;
+                default:
+                    log.warn("Unsupported LCAF type, please specify a correct LCAF type");
+                    break;
+            }
+        }
     }
 }

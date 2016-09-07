@@ -43,7 +43,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of device key services.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
 public class DeviceKeyManager extends AbstractListenerManager<DeviceKeyEvent, DeviceKeyListener>
         implements DeviceKeyService, DeviceKeyAdminService {

@@ -19,6 +19,8 @@ package org.onosproject.scalablegateway.impl;
 import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -36,7 +38,6 @@ import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.onosproject.net.group.DefaultGroupDescription;
 import org.onosproject.net.group.DefaultGroupKey;
-import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
@@ -48,6 +49,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.net.group.DefaultGroupBucket.createSelectGroupBucket;
 
 /**
@@ -59,7 +61,6 @@ public class SelectGroupHandler {
 
     private static final String TUNNEL_DESTINATION = "tunnelDst";
     private static final String PORTNAME_PREFIX_TUNNEL = "vxlan";
-    private static final String PORTNAME = "portName";
 
     private final GroupService groupService;
     private final DeviceService deviceService;
@@ -89,45 +90,60 @@ public class SelectGroupHandler {
      * @param nodeList gateway node list for bucket action
      * @return created select type group description
      */
-    public GroupDescription createSelectGroupInVxlan(DeviceId srcDeviceId, List<GatewayNode> nodeList) {
+    public GroupId createGatewayGroup(DeviceId srcDeviceId, List<GatewayNode> nodeList) {
         List<GroupBucket> bucketList = generateBucketsForSelectGroup(srcDeviceId, nodeList);
-        GroupKey key = generateGroupKey(srcDeviceId, nodeList);
-        return new DefaultGroupDescription(srcDeviceId, GroupDescription.Type.SELECT,
-                new GroupBuckets(bucketList), key, null, appId);
+        GroupId groupId = getGroupId(srcDeviceId);
+        GroupDescription groupDescription = new DefaultGroupDescription(
+                srcDeviceId,
+                GroupDescription.Type.SELECT,
+                new GroupBuckets(bucketList),
+                getGroupKey(srcDeviceId),
+                groupId.id(),
+                appId);
+
+        groupService.addGroup(groupDescription);
+        return groupId;
     }
 
-    private GroupKey generateGroupKey(DeviceId srcDeviceId, List<GatewayNode> nodeList) {
-        String cookie = srcDeviceId.toString();
-        for (GatewayNode node : nodeList) {
-            cookie = cookie.concat(node.getGatewayDeviceId().toString());
-        }
-        return new DefaultGroupKey(cookie.getBytes());
+    /**
+     * Returns unique group key with supplied source device ID as a hash.
+     *
+     * @param srcDeviceId source device id
+     * @return group key
+     */
+    public GroupKey getGroupKey(DeviceId srcDeviceId) {
+        return new DefaultGroupKey(srcDeviceId.toString().getBytes());
+    }
 
+    private GroupId getGroupId(DeviceId srcDeviceId) {
+        return new DefaultGroupId(srcDeviceId.toString().hashCode());
     }
 
     /**
      * Updates groupBuckets in select type group.
      *
-     * @param deviceId target device id for group description
-     * @param oldAppCookie group key for target group
+     * @param deviceId target device id to update the group
      * @param nodeList updated gateway node list for bucket action
-     * @param nodeInsertion update type(add or remove)
-     * @return result of process
+     * @param isInsert update type(add or remove)
      */
-    public boolean updateBucketToSelectGroupInVxlan(DeviceId deviceId, GroupKey oldAppCookie,
-                                                    List<GatewayNode> nodeList, boolean nodeInsertion) {
+    public void updateGatewayGroupBuckets(DeviceId deviceId,
+                                          List<GatewayNode> nodeList,
+                                          boolean isInsert) {
         List<GroupBucket> bucketList = generateBucketsForSelectGroup(deviceId, nodeList);
-
-        GroupKey newAppCookie = generateGroupKey(deviceId, nodeList);
-        if (nodeInsertion) {
-            groupService.addBucketsToGroup(deviceId, oldAppCookie,
-                    new GroupBuckets(bucketList), newAppCookie, appId);
+        GroupKey groupKey = getGroupKey(deviceId);
+        if (isInsert) {
+            groupService.addBucketsToGroup(
+                    deviceId,
+                    groupKey,
+                    new GroupBuckets(bucketList),
+                    groupKey, appId);
         } else {
-            groupService.removeBucketsFromGroup(deviceId, oldAppCookie,
-                    new GroupBuckets(bucketList), newAppCookie, appId);
+            groupService.removeBucketsFromGroup(
+                    deviceId,
+                    groupKey,
+                    new GroupBuckets(bucketList),
+                    groupKey, appId);
         }
-        Group group = groupService.getGroup(deviceId, newAppCookie);
-        return group != null ? true : false;
     }
 
     private List<GroupBucket> generateBucketsForSelectGroup(DeviceId deviceId, List<GatewayNode> nodeList) {
@@ -175,7 +191,7 @@ public class SelectGroupHandler {
      */
     private PortNumber getTunnelPort(DeviceId deviceId) {
         Port port = deviceService.getPorts(deviceId).stream()
-                .filter(p -> p.annotations().value(PORTNAME).equals(PORTNAME_PREFIX_TUNNEL))
+                .filter(p -> p.annotations().value(PORT_NAME).equals(PORTNAME_PREFIX_TUNNEL))
                 .findAny().orElse(null);
 
         if (port == null) {

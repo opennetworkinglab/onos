@@ -123,7 +123,7 @@ public class LinkKeyTest {
         LinkKey k1 = LinkKey.linkKey(SRC1, DST1);
         String k1String = k1.toString();
         assertThat(k1String, allOf(containsString("LinkKey{"),
-                                   containsString("src=ConnectPoint{elementId=1, portNumber=1}"),
-                                   containsString("dst=ConnectPoint{elementId=2, portNumber=1}")));
+                                   containsString("src=1/1"),
+                                   containsString("dst=2/1}")));
     }
 }

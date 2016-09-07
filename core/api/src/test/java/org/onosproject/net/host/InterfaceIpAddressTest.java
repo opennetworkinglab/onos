@@ -34,6 +34,10 @@ public class InterfaceIpAddressTest {
     private static final IpAddress BROADCAST_ADDRESS =
         IpAddress.valueOf("1.2.0.255");         // NOTE: non-default broadcast
     private static final IpAddress PEER_ADDRESS = IpAddress.valueOf("5.6.7.8");
+    private static final IpAddress DEF_BROADCAST_ADDRESS =
+        IpAddress.valueOf("1.2.255.255");         // NOTE: default broadcast
+    private static final IpPrefix V6_SUBNET_ADDRESS =
+        IpPrefix.valueOf("::/64");
 
     private static final IpAddress IP_ADDRESS2 = IpAddress.valueOf("10.2.3.4");
     private static final IpPrefix SUBNET_ADDRESS2 =
@@ -97,8 +101,16 @@ public class InterfaceIpAddressTest {
             new InterfaceIpAddress(IP_ADDRESS, SUBNET_ADDRESS);
         assertThat(addr.ipAddress(), is(IP_ADDRESS));
         assertThat(addr.subnetAddress(), is(SUBNET_ADDRESS));
-        assertThat(addr.broadcastAddress(), nullValue());
+        assertThat(addr.broadcastAddress(), is(DEF_BROADCAST_ADDRESS));
         assertThat(addr.peerAddress(), nullValue());
+
+        IpPrefix  subnetAddr = IpPrefix.valueOf("10.2.3.0/24");
+        InterfaceIpAddress addr1 = new InterfaceIpAddress(IP_ADDRESS2, subnetAddr);
+        assertThat(addr1.broadcastAddress().toString(), is("10.2.3.255"));
+
+        IpAddress ipAddress = IpAddress.valueOf("2001::4");
+        InterfaceIpAddress addr2 = new InterfaceIpAddress(ipAddress, V6_SUBNET_ADDRESS);
+        assertThat(addr2.broadcastAddress(), is(nullValue()));
     }
 
     /**
@@ -144,7 +156,7 @@ public class InterfaceIpAddressTest {
         addr = new InterfaceIpAddress(IP_ADDRESS, SUBNET_ADDRESS);
         assertThat(addr.ipAddress().toString(), is("1.2.3.4"));
         assertThat(addr.subnetAddress().toString(), is("1.2.0.0/16"));
-        assertThat(addr.broadcastAddress(), is(nullValue()));   // TODO: Fix
+        assertThat(addr.broadcastAddress(), is(DEF_BROADCAST_ADDRESS));
         assertThat(addr.peerAddress(), is(nullValue()));
 
         // Interface address with non-default broadcast address
@@ -243,4 +255,11 @@ public class InterfaceIpAddressTest {
         assertThat(addr3, is(not(addr4)));
     }
 
+    /**
+     * Tests invalid class copy constructor for a null object to copy from.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalConstructorArgument() {
+        InterfaceIpAddress toAddr = new InterfaceIpAddress(IP_ADDRESS, V6_SUBNET_ADDRESS);
+    }
 }

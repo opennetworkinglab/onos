@@ -30,7 +30,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.NewConcurrentHashMap;
 import org.onlab.util.Tools;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.CompletedBatchOperation;
@@ -66,7 +65,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -163,10 +161,6 @@ public class SimpleFlowRuleStore
         }
     }
 
-    private static NewConcurrentHashMap<FlowId, List<StoredFlowEntry>> lazyEmptyFlowTable() {
-        return NewConcurrentHashMap.<FlowId, List<StoredFlowEntry>>ifNeeded();
-    }
-
     /**
      * Returns the flow table for specified device.
      *
@@ -174,8 +168,7 @@ public class SimpleFlowRuleStore
      * @return Map representing Flow Table of given device.
      */
     private ConcurrentMap<FlowId, List<StoredFlowEntry>> getFlowTable(DeviceId deviceId) {
-        return createIfAbsentUnchecked(flowEntries,
-                                       deviceId, lazyEmptyFlowTable());
+        return flowEntries.computeIfAbsent(deviceId, k -> new ConcurrentHashMap<>());
     }
 
     private List<StoredFlowEntry> getFlowEntries(DeviceId deviceId, FlowId flowId) {
@@ -317,6 +310,7 @@ public class SimpleFlowRuleStore
         return null;
     }
 
+    @Override
     public void purgeFlowRule(DeviceId deviceId) {
         flowEntries.remove(deviceId);
     }

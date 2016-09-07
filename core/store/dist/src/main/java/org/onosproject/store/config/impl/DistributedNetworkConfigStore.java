@@ -226,10 +226,11 @@ public class DistributedNetworkConfigStore
             if (Objects.equals(subject, k.subject) && k.configClass != null && delegate != null) {
                 ConfigFactory<S, ? extends Config<S>> configFactory = factoriesByConfig.get(k.configClass);
                 if (configFactory == null) {
-                    log.error("Found config but no config factory: subject={}, configClass={}",
-                            subject, k.configClass);
+                    log.warn("Found config but no config factory: subject={}, configClass={}",
+                             subject, k.configClass);
+                } else {
+                    builder.add(configFactory.configClass());
                 }
-                builder.add(factoriesByConfig.get(k.configClass).configClass());
             }
         });
         return builder.build();

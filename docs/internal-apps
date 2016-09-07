@@ -11,6 +11,7 @@ org.onosproject.proxyarp
 org.onosproject.calendar
 org.onosproject.olt*
 org.onosproject.optical*
+org.onosproject.newoptical*
 org.onosproject.sdnip
 org.onosproject.sdnip.*
 org.onosproject.config
@@ -38,5 +39,17 @@ org.onosproject.iptopology*
 org.onosproject.drivermatrix*
 org.onosproject.pathpainter*
 org.onosproject.openstack*
+org.onosproject.scalablegateway*
 org.onosproject.forwarder*
 org.onosproject.sfc*
+org.onosproject.netcfgmonitor*
+org.onosproject.flowperf
+org.onosproject.loadtest
+org.onosproject.events
+org.onosproject.bmv2*
+org.onosproject.xosclient*
+org.onosproject.kafkaintegration*
+org.onosproject.gangliametrics*
+org.onosproject.graphitemetrics*
+org.onosproject.influxdbmetrics*
+org.onosproject.yms*

@@ -80,8 +80,6 @@ public class ApplicationManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FeaturesService featuresService;
 
-    private boolean initializing;
-
     // Application supplied hooks for pre-activation processing.
     private final Multimap<String, Runnable> deactivateHooks = HashMultimap.create();
     private final Cache<ApplicationId, CountDownLatch> pendingOperations =
@@ -92,11 +90,7 @@ public class ApplicationManager
     @Activate
     public void activate() {
         eventDispatcher.addSink(ApplicationEvent.class, listenerRegistry);
-
-        initializing = true;
         store.setDelegate(delegate);
-        initializing = false;
-
         log.info("Started");
     }
 

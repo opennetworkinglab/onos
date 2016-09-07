@@ -16,8 +16,14 @@
 package org.onosproject.pcep.controller;
 
 import java.util.Collection;
+import java.util.LinkedList;
 
+import org.onosproject.incubator.net.tunnel.DefaultLabelStack;
+import org.onosproject.incubator.net.tunnel.LabelStack;
+import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.net.Path;
 import org.onosproject.pcepio.protocol.PcepMessage;
+import org.onosproject.pcepio.types.PcepValueType;
 
 /**
  * Abstraction of an Pcep client controller. Serves as a one stop
@@ -85,20 +91,6 @@ public interface PcepClientController {
     void removeNodeListener(PcepNodeListener listener);
 
     /**
-     * Register a listener for packet events.
-     *
-     * @param listener the listener to notify
-     */
-    void addPacketListener(PcepPacketListener listener);
-
-    /**
-     * Unregister a packet listener.
-     *
-     * @param listener the listener to unregister
-     */
-    void removePacketListener(PcepPacketListener listener);
-
-    /**
      * Send a message to a particular pcc client.
      *
      * @param pccId the id of the client to send message.
@@ -118,4 +110,29 @@ public interface PcepClientController {
      * Close all connected PCC clients.
      */
     void closeConnectedClients();
+
+    /**
+     * Create label stack from the given path.
+     *
+     * @param path from which label stack is to be computed
+     * @return the label stack
+     */
+    public LabelStack computeLabelStack(Path path);
+
+    /**
+     * Allocates and downloads local labels for the given LSP.
+     *
+     * @param tunnel for which local labels have to be assigned and downloaded
+     * @return success or failure
+     */
+    public boolean allocateLocalLabel(Tunnel tunnel);
+
+    /**
+     * Creates label stack for ERO object from network resource.
+     *
+     * @param labelStack
+     * @param path (hop list)
+     * @return list of ERO sub-objects
+     */
+    public LinkedList<PcepValueType> createPcepLabelStack(DefaultLabelStack labelStack, Path path);
 }

@@ -16,6 +16,7 @@
 
 package org.onosproject.ui.impl.topo;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -25,12 +26,14 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.incubator.net.PortStatisticsService;
 import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.Annotated;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.Device;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkService;
-import org.onosproject.net.region.Region;
 import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.model.topo.UiClusterMember;
@@ -39,7 +42,10 @@ import org.onosproject.ui.model.topo.UiHost;
 import org.onosproject.ui.model.topo.UiLink;
 import org.onosproject.ui.model.topo.UiNode;
 import org.onosproject.ui.model.topo.UiRegion;
+import org.onosproject.ui.model.topo.UiSynthLink;
 import org.onosproject.ui.model.topo.UiTopoLayout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,8 +53,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.AnnotationKeys.LATITUDE;
+import static org.onosproject.net.AnnotationKeys.LONGITUDE;
 import static org.onosproject.ui.model.topo.UiNode.LAYER_DEFAULT;
 
 /**
@@ -61,6 +70,12 @@ class Topo2Jsonifier {
             "UiNode.LAYER_DEFAULT not last in layer list";
     private static final String E_UNKNOWN_UI_NODE =
             "Unknown subclass of UiNode: ";
+
+    private static final String REGION = "region";
+    private static final String DEVICE = "device";
+    private static final String HOST = "host";
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -76,6 +91,11 @@ class Topo2Jsonifier {
     private PortStatisticsService portStatsService;
     private TopologyService topologyService;
     private TunnelService tunnelService;
+
+
+    // NOTE: we'll stick this here for now, but maybe there is a better home?
+    //       (this is not distributed across the cluster)
+    private static Map<String, ObjectNode> metaUi = new ConcurrentHashMap<>();
 
 
     /**
@@ -149,21 +169,33 @@ class Topo2Jsonifier {
 
     /**
      * Returns a JSON representation of the layout to use for displaying in
-     * the topology view.
+     * the topology view. The identifiers and names of regions from the
+     * current to the root is included, so that the bread-crumb widget can
+     * be rendered.
      *
      * @param layout the layout to transform
+     * @param crumbs list of layouts in bread-crumb order
      * @return a JSON representation of the data
      */
-    ObjectNode layout(UiTopoLayout layout) {
-        return objectNode()
+    ObjectNode layout(UiTopoLayout layout, List<UiTopoLayout> crumbs) {
+        ObjectNode result = objectNode()
                 .put("id", layout.id().toString())
                 .put("parent", nullIsEmpty(layout.parent()))
                 .put("region", nullIsEmpty(layout.regionId()))
-                .put("regionName", regionName(layout.region()));
+                .put("regionName", UiRegion.safeName(layout.region()));
+        addCrumbs(result, crumbs);
+        return result;
     }
 
-    private String regionName(Region region) {
-        return region == null ? "" : region.name();
+    private void addCrumbs(ObjectNode result, List<UiTopoLayout> crumbs) {
+        ArrayNode trail = arrayNode();
+        crumbs.forEach(c -> {
+            ObjectNode n = objectNode()
+                    .put("id", c.regionId().toString())
+                    .put("name", UiRegion.safeName(c.region()));
+            trail.add(n);
+        });
+        result.set("crumbs", trail);
     }
 
     /**
@@ -172,9 +204,11 @@ class Topo2Jsonifier {
      *
      * @param region     the region to transform to JSON
      * @param subRegions the subregions within this region
+     * @param links      the links within this region
      * @return a JSON representation of the data
      */
-    ObjectNode region(UiRegion region, Set<UiRegion> subRegions) {
+    ObjectNode region(UiRegion region, Set<UiRegion> subRegions,
+                      List<UiSynthLink> links) {
         ObjectNode payload = objectNode();
         if (region == null) {
             payload.put("note", "no-region");
@@ -185,14 +219,16 @@ class Topo2Jsonifier {
             payload.set("subregions", jsonSubRegions(subRegions));
         }
 
+        if (links != null) {
+            payload.set("links", jsonLinks(links));
+        }
+
         List<String> layerTags = region.layerOrder();
         List<Set<UiNode>> splitDevices = splitByLayer(layerTags, region.devices());
         List<Set<UiNode>> splitHosts = splitByLayer(layerTags, region.hosts());
-        Set<UiLink> links = region.links();
 
         payload.set("devices", jsonGrouped(splitDevices));
         payload.set("hosts", jsonGrouped(splitHosts));
-        payload.set("links", jsonLinks(links));
         payload.set("layerOrder", jsonStrings(layerTags));
 
         return payload;
@@ -200,22 +236,20 @@ class Topo2Jsonifier {
 
     private ArrayNode jsonSubRegions(Set<UiRegion> subregions) {
         ArrayNode kids = arrayNode();
-        if (subregions != null) {
-            subregions.forEach(s -> kids.add(jsonClosedRegion(s)));
-        }
+        subregions.forEach(s -> kids.add(jsonClosedRegion(s)));
         return kids;
+    }
+
+    private JsonNode jsonLinks(List<UiSynthLink> links) {
+        ArrayNode synthLinks = arrayNode();
+        links.forEach(l -> synthLinks.add(json(l)));
+        return synthLinks;
     }
 
     private ArrayNode jsonStrings(List<String> strings) {
         ArrayNode array = arrayNode();
         strings.forEach(array::add);
         return array;
-    }
-
-    private ArrayNode jsonLinks(Set<UiLink> links) {
-        ArrayNode result = arrayNode();
-        links.forEach(lnk -> result.add(json(lnk)));
-        return result;
     }
 
     private ArrayNode jsonGrouped(List<Set<UiNode>> groupedNodes) {
@@ -245,46 +279,137 @@ class Topo2Jsonifier {
     private ObjectNode json(UiDevice device) {
         ObjectNode node = objectNode()
                 .put("id", device.idAsString())
+                .put("nodeType", DEVICE)
                 .put("type", device.type())
-                .put("online", device.isOnline())
+                .put("online", deviceService.isAvailable(device.id()))
                 .put("master", nullIsEmpty(device.master()))
                 .put("layer", device.layer());
 
-        // TODO: complete device details
-//        addLabels(node, device);
-//        addProps(node, device);
-//        addGeoLocation(node, device);
-//        addMetaUi(node, device);
+        Device d = device.backingDevice();
+
+        addProps(node, d);
+        addGeoLocation(node, d);
+        addMetaUi(node, device.idAsString());
 
         return node;
     }
 
-    private void addLabels(ObjectNode node, UiDevice device) {
+    private void addProps(ObjectNode node, Device dev) {
+        Annotations annot = dev.annotations();
+        ObjectNode props = objectNode();
+        if (annot != null) {
+            annot.keys().forEach(k -> props.put(k, annot.value(k)));
+        }
+        node.set("props", props);
+    }
 
+    private void addMetaUi(ObjectNode node, String metaInstanceId) {
+        ObjectNode meta = metaUi.get(metaInstanceId);
+        if (meta != null) {
+            node.set("metaUi", meta);
+        }
+    }
+
+    private void addGeoLocation(ObjectNode node, Annotated a) {
+        List<String> lngLat = getAnnotValues(a, LONGITUDE, LATITUDE);
+        if (lngLat != null) {
+            try {
+                double lng = Double.parseDouble(lngLat.get(0));
+                double lat = Double.parseDouble(lngLat.get(1));
+                ObjectNode loc = objectNode()
+                        .put("type", "lnglat")
+                        .put("lng", lng)
+                        .put("lat", lat);
+                node.set("location", loc);
+
+            } catch (NumberFormatException e) {
+                log.warn("Invalid geo data: longitude={}, latitude={}",
+                        lngLat.get(0), lngLat.get(1));
+            }
+        } else {
+            log.debug("No geo lng/lat for {}", a);
+        }
+    }
+
+    // return list of string values from annotated instance, for given keys
+    // return null if any keys are not present
+    List<String> getAnnotValues(Annotated a, String... annotKeys) {
+        List<String> result = new ArrayList<>(annotKeys.length);
+        for (String k : annotKeys) {
+            String v = a.annotations().value(k);
+            if (v == null) {
+                return null;
+            }
+            result.add(v);
+        }
+        return result;
+    }
+
+    // derive JSON object from annotations
+    private ObjectNode props(Annotations annotations) {
+        ObjectNode p = objectNode();
+        if (annotations != null) {
+            annotations.keys().forEach(k -> p.put(k, annotations.value(k)));
+        }
+        return p;
     }
 
     private ObjectNode json(UiHost host) {
         return objectNode()
                 .put("id", host.idAsString())
+                .put("nodeType", HOST)
                 .put("layer", host.layer());
         // TODO: complete host details
     }
 
-
-    private ObjectNode json(UiLink link) {
-        return objectNode()
-                .put("id", link.idAsString());
-        // TODO: complete link details
+    private ObjectNode json(UiSynthLink sLink) {
+        UiLink uLink = sLink.link();
+        ObjectNode data = objectNode()
+                .put("id", uLink.idAsString())
+                .put("epA", uLink.endPointA())
+                .put("epB", uLink.endPointB())
+                .put("type", uLink.type());
+        String pA = uLink.endPortA();
+        String pB = uLink.endPortB();
+        if (pA != null) {
+            data.put("portA", pA);
+        }
+        if (pB != null) {
+            data.put("portB", pB);
+        }
+        return data;
     }
 
 
     private ObjectNode jsonClosedRegion(UiRegion region) {
         return objectNode()
                 .put("id", region.idAsString())
+                .put("name", region.name())
+                .put("nodeType", REGION)
                 .put("nDevs", region.deviceCount());
         // TODO: complete closed-region details
     }
 
+    /**
+     * Returns a JSON array representation of a set of regions/devices. Note
+     * that the information is sufficient for showing regions as nodes.
+     *
+     * @param nodes the nodes
+     * @return a JSON representation of the nodes
+     */
+    public ArrayNode closedNodes(Set<UiNode> nodes) {
+        ArrayNode array = arrayNode();
+        for (UiNode node : nodes) {
+            if (node instanceof UiRegion) {
+                array.add(jsonClosedRegion((UiRegion) node));
+            } else if (node instanceof UiDevice) {
+                array.add(json((UiDevice) node));
+            } else {
+                log.warn("Unexpected node instance: {}", node.getClass());
+            }
+        }
+        return array;
+    }
 
     /**
      * Returns a JSON array representation of a list of regions. Note that the
@@ -326,20 +451,6 @@ class Topo2Jsonifier {
         ArrayNode array = arrayNode();
         for (UiHost host : hosts) {
             array.add(json(host));
-        }
-        return array;
-    }
-
-    /**
-     * Returns a JSON array representation of a list of links.
-     *
-     * @param links the links
-     * @return a JSON representation of the links
-     */
-    public ArrayNode links(Set<UiLink> links) {
-        ArrayNode array = arrayNode();
-        for (UiLink link : links) {
-            array.add(json(link));
         }
         return array;
     }

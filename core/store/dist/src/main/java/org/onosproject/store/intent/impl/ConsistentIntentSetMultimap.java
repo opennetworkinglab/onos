@@ -41,7 +41,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * A collection that maps Intent IDs as keys to values as Intent IDs,
  * where each key may associated with multiple values without duplication.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
 @Beta
 public class ConsistentIntentSetMultimap implements IntentSetMultimap {

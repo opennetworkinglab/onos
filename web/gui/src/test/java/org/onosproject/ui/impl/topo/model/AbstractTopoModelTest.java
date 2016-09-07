@@ -54,8 +54,11 @@ import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionId;
 import org.onosproject.net.region.RegionListener;
 import org.onosproject.net.region.RegionService;
+import org.onosproject.ui.UiTopoLayoutService;
 import org.onosproject.ui.impl.AbstractUiImplTest;
 import org.onosproject.ui.model.ServiceBundle;
+import org.onosproject.ui.model.topo.UiTopoLayout;
+import org.onosproject.ui.model.topo.UiTopoLayoutId;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -69,6 +72,7 @@ import static org.onosproject.cluster.NodeId.nodeId;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.HostId.hostId;
 import static org.onosproject.net.PortNumber.portNumber;
+import static org.onosproject.ui.model.topo.UiTopoLayoutId.layoutId;
 
 /**
  * Base class for model test classes.
@@ -89,6 +93,12 @@ abstract class AbstractTopoModelTest extends AbstractUiImplTest {
              D6 ---+              +--- D9
 
       Twelve hosts (two per D4 ... D9)  H4a, H4b, H5a, H5b, ...
+
+      Layouts:
+        LROOT : (default)
+        +-- L1 : R1
+        +-- L2 : R2
+        +-- L3 : R3
 
       Regions:
         R1 : D1, D2, D3
@@ -135,6 +145,27 @@ abstract class AbstractTopoModelTest extends AbstractUiImplTest {
 
     protected static final Set<Region> REGION_SET =
             ImmutableSet.of(REGION_1, REGION_2, REGION_3);
+
+    protected static final String LROOT = "LROOT";
+    protected static final String L1 = "L1";
+    protected static final String L2 = "L2";
+    protected static final String L3 = "L3";
+
+    protected static final UiTopoLayout LAYOUT_ROOT = layout(LROOT, null, null);
+    protected static final UiTopoLayout LAYOUT_1 = layout(L1, REGION_1, LROOT);
+    protected static final UiTopoLayout LAYOUT_2 = layout(L2, REGION_2, LROOT);
+    protected static final UiTopoLayout LAYOUT_3 = layout(L3, REGION_3, LROOT);
+
+    protected static final Set<UiTopoLayout> LAYOUT_SET =
+            ImmutableSet.of(LAYOUT_ROOT, LAYOUT_1, LAYOUT_2, LAYOUT_3);
+    protected static final Set<UiTopoLayout> ROOT_KIDS =
+            ImmutableSet.of(LAYOUT_1, LAYOUT_2, LAYOUT_3);
+    protected static final Set<UiTopoLayout> PEERS_OF_1 =
+            ImmutableSet.of(LAYOUT_2, LAYOUT_3);
+    protected static final Set<UiTopoLayout> PEERS_OF_2 =
+            ImmutableSet.of(LAYOUT_1, LAYOUT_3);
+    protected static final Set<UiTopoLayout> PEERS_OF_3 =
+            ImmutableSet.of(LAYOUT_1, LAYOUT_2);
 
     protected static final String D1 = "d1";
     protected static final String D2 = "d2";
@@ -222,6 +253,21 @@ abstract class AbstractTopoModelTest extends AbstractUiImplTest {
     }
 
     /**
+     * Returns UI topology layout instance with the specified parameters.
+     *
+     * @param layoutId the layout ID
+     * @param region   the backing region
+     * @param parentId the parent layout ID
+     * @return layout instance
+     */
+    protected static UiTopoLayout layout(String layoutId, Region region,
+                                         String parentId) {
+        UiTopoLayoutId pid = parentId == null
+                ? UiTopoLayoutId.DEFAULT_ID : layoutId(parentId);
+        return new UiTopoLayout(layoutId(layoutId), region, pid);
+    }
+
+    /**
      * Returns a region instance with specified parameters.
      *
      * @param id      region id
@@ -254,6 +300,11 @@ abstract class AbstractTopoModelTest extends AbstractUiImplTest {
      */
     protected static final ServiceBundle MOCK_SERVICES =
             new ServiceBundle() {
+                @Override
+                public UiTopoLayoutService layout() {
+                    return MOCK_LAYOUT;
+                }
+
                 @Override
                 public ClusterService cluster() {
                     return MOCK_CLUSTER;
@@ -297,6 +348,7 @@ abstract class AbstractTopoModelTest extends AbstractUiImplTest {
 
     private static final ClusterService MOCK_CLUSTER = new MockClusterService();
     private static final MastershipService MOCK_MASTER = new MockMasterService();
+    private static final UiTopoLayoutService MOCK_LAYOUT = new MockLayoutService();
     private static final RegionService MOCK_REGION = new MockRegionService();
     private static final DeviceService MOCK_DEVICE = new MockDeviceService();
     private static final LinkService MOCK_LINK = new MockLinkService();
@@ -381,6 +433,71 @@ abstract class AbstractTopoModelTest extends AbstractUiImplTest {
                 backups.add(CNID_2);
             }
             return new RoleInfo(master, backups);
+        }
+    }
+
+    // TODO: consider implementing UiTopoLayoutServiceAdapter and extending that here
+    private static class MockLayoutService implements UiTopoLayoutService {
+        private final Map<UiTopoLayoutId, UiTopoLayout> map = new HashMap<>();
+        private final Map<UiTopoLayoutId, Set<UiTopoLayout>> peers = new HashMap<>();
+        private final Map<RegionId, UiTopoLayout> byRegion = new HashMap<>();
+
+        MockLayoutService() {
+            map.put(LAYOUT_ROOT.id(), LAYOUT_ROOT);
+            map.put(LAYOUT_1.id(), LAYOUT_1);
+            map.put(LAYOUT_2.id(), LAYOUT_2);
+            map.put(LAYOUT_3.id(), LAYOUT_3);
+
+            peers.put(LAYOUT_ROOT.id(), ImmutableSet.of());
+            peers.put(LAYOUT_1.id(), ImmutableSet.of(LAYOUT_2, LAYOUT_3));
+            peers.put(LAYOUT_2.id(), ImmutableSet.of(LAYOUT_1, LAYOUT_3));
+            peers.put(LAYOUT_3.id(), ImmutableSet.of(LAYOUT_1, LAYOUT_2));
+
+            byRegion.put(REGION_1.id(), LAYOUT_1);
+            byRegion.put(REGION_2.id(), LAYOUT_2);
+            byRegion.put(REGION_3.id(), LAYOUT_3);
+        }
+
+        @Override
+        public UiTopoLayout getRootLayout() {
+            return LAYOUT_ROOT;
+        }
+
+        @Override
+        public Set<UiTopoLayout> getLayouts() {
+            return LAYOUT_SET;
+        }
+
+        @Override
+        public boolean addLayout(UiTopoLayout layout) {
+            return false;
+        }
+
+        @Override
+        public UiTopoLayout getLayout(UiTopoLayoutId layoutId) {
+            return map.get(layoutId);
+        }
+
+        @Override
+        public UiTopoLayout getLayout(RegionId regionId) {
+            return byRegion.get(regionId);
+        }
+
+        @Override
+        public Set<UiTopoLayout> getPeerLayouts(UiTopoLayoutId layoutId) {
+            return peers.get(layoutId);
+        }
+
+        @Override
+        public Set<UiTopoLayout> getChildren(UiTopoLayoutId layoutId) {
+            return LAYOUT_ROOT.id().equals(layoutId)
+                    ? ROOT_KIDS
+                    : Collections.emptySet();
+        }
+
+        @Override
+        public boolean removeLayout(UiTopoLayout layout) {
+            return false;
         }
     }
 

@@ -42,7 +42,7 @@ public class SimpleApplicationIdStore implements ApplicationIdStore {
 
     @Override
     public Set<ApplicationId> getAppIds() {
-        return ImmutableSet.<ApplicationId>copyOf(appIds.values());
+        return ImmutableSet.copyOf(appIds.values());
     }
 
     @Override

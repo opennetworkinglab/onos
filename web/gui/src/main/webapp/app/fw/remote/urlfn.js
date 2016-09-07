@@ -34,8 +34,20 @@
             }
 
             function urlBase(protocol, port, host) {
+                // A little bit of funky here. It is possible that ONOS sits
+                // behind a proxy and has an app prefix, e.g.
+                //      http://host:port/my/app/onos/ui...
+                // This bit of regex grabs everything after the host:port and
+                // before the uiContext (/onos/ui/) and uses that as an app
+                // prefix by inserting it back into the WS URL.
+                // If no prefix, then no insert.
+
+                var match = $loc.absUrl().match('.*//[^/]+/(.+)' + uiContext),
+                    appPrefix = match ? '/' + match[1] : '';
+
                 return matchSecure(protocol) + '://' +
-                    (host || $loc.host()) + ':' + (port || $loc.port());
+                    (host || $loc.host()) + ':' +
+                    (port || $loc.port()) + appPrefix;
             }
 
             function httpPrefix(suffix) {

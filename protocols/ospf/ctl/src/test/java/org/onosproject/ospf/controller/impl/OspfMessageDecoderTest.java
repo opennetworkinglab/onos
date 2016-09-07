@@ -28,7 +28,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
@@ -36,7 +36,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 public class OspfMessageDecoderTest {
 
-    private final byte[] hellopacket = {0, 0, 0, 0, 2, 1, 0, 44, -64, -88, -86, 8, 0, 0, 0, 1, 39, 59,
+    private final byte[] hellopacket = {0, 0, 0, 0, 0, 2, 1, 0, 44, -64, -88, -86, 8, 0, 0, 0, 1, 39, 59,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, 0, 0, 10, 2, 1, 0, 0, 0,
             40, -64, -88, -86, 8, 0, 0, 0, 0};
     private final byte[] ddpacket = {0, 0, 0, 0, 2, 2, 0, 32, -64, -88, -86, 8, 0, 0, 0, 1, -96, 82,
@@ -75,10 +75,10 @@ public class OspfMessageDecoderTest {
      */
     @Test
     public void testDecode() throws Exception {
-
         channel = EasyMock.createMock(Channel.class);
         socketAddress = InetSocketAddress.createUnresolved("127.0.0.1", 7000);
         channelBuffer = ChannelBuffers.copiedBuffer(hellopacket);
-        assertThat(ospfMessageDecoder.decode(ctx, channel, channelBuffer), is(nullValue()));
+        ospfMessageDecoder.decode(ctx, channel, channelBuffer);
+        assertThat(ospfMessageDecoder, is(notNullValue()));
     }
 }

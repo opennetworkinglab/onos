@@ -14,66 +14,63 @@
   ~ limitations under the License.
 -->
 
-<scenario name="distributed counter test"
+<scenario name="distributed-counter-test"
           description="ONOS AtomicCounter distributed primitive Test">
     <group name="Distributed-Primitive-Counter">
 
-        <!--<import file="${ONOS_SCENARIOS}/setup.xml"/>
-        <dependency name="Setup" requires="Prerequisites"/>-->
-
-        <step name="Activate-Distributed-Primitives-App"
+        <step name="Distributed-Primitive-Counter.Activate-Distributed-Primitives-App"
             exec="onos ${OCI} app activate org.onosproject.distributedprimitives"/>
 
-        <step name="Test-Counter-Initial-Value" requires="^"
+        <step name="Distributed-Primitive-Counter.Test-Counter-Initial-Value" requires="Distributed-Primitive-Counter.Activate-Distributed-Primitives-App"
               exec="onos-cluster-execute-expect counter-test test-counter get --expect 0"/>
 
-        <step name="Test-Counter-Set" requires="^"
+        <step name="Distributed-Primitive-Counter.Test-Counter-Set" requires="Distributed-Primitive-Counter.Test-Counter-Initial-Value"
               exec="onos ${OCI} counter-test test-counter set 1"/>
 
-        <step name="Test-Counter-Get" requires="^"
+        <step name="Distributed-Primitive-Counter.Test-Counter-Get" requires="Distributed-Primitive-Counter.Test-Counter-Set"
               exec="onos-cluster-execute-expect counter-test test-counter get --expect 1"/>
 
-        <step name="Test-Counter-IncrementAndGet" requires="^"
+        <step name="Distributed-Primitive-Counter.Test-Counter-IncrementAndGet" requires="Distributed-Primitive-Counter.Test-Counter-Get"
               exec="onos-execute-expect ${OCI} counter-test test-counter incrementAndGet --expect 2"/>
 
-        <step name="Test-Counter-GetAndIncrement" requires="^"
+        <step name="Distributed-Primitive-Counter.Test-Counter-GetAndIncrement" requires="Distributed-Primitive-Counter.Test-Counter-IncrementAndGet"
               exec="onos-execute-expect ${OCI} counter-test test-counter getAndIncrement --expect 2"/>
 
-        <step name="Test-Counter-Incremented" requires="^"
+        <step name="Distributed-Primitive-Counter.Test-Counter-Incremented" requires="Distributed-Primitive-Counter.Test-Counter-GetAndIncrement"
               exec="onos-cluster-execute-expect counter-test test-counter get --expect 3"/>
 
-        <step name="Test-Counter-AddAndGet" requires="^"
+        <step name="Distributed-Primitive-Counter.Test-Counter-AddAndGet" requires="Distributed-Primitive-Counter.Test-Counter-Incremented"
               exec="onos-execute-expect ${OCI} counter-test test-counter addAndGet 10 --expect 13"/>
 
-        <step name="Test-Counter-GetAndAdd" requires="^"
+        <step name="Distributed-Primitive-Counter.Test-Counter-GetAndAdd" requires="Distributed-Primitive-Counter.Test-Counter-AddAndGet"
               exec="onos-execute-expect ${OCI} counter-test test-counter getAndAdd 10 --expect 13"/>
 
-        <step name="Test-Counter-Updated-After-GetAndAdd" requires="^"
+        <step name="Distributed-Primitive-Counter.Test-Counter-Updated-After-GetAndAdd" requires="Distributed-Primitive-Counter.Test-Counter-GetAndAdd"
               exec="onos-cluster-execute-expect counter-test test-counter get --expect 23"/>
 
-        <step name="Test-Counter-CompareAndSet-False" requires="^"
+        <step name="Distributed-Primitive-Counter.Test-Counter-CompareAndSet-False" requires="Distributed-Primitive-Counter.Test-Counter-Updated-After-GetAndAdd"
               exec="onos-execute-expect ${OCI} counter-test test-counter compareAndSet 1 2 --expect false"/>
 
-        <step name="Test-Counter-Not-Updated-After-CAS" requires="^"
+        <step name="Distributed-Primitive-Counter.Test-Counter-Not-Updated-After-CAS" requires="Distributed-Primitive-Counter.Test-Counter-CompareAndSet-False"
               exec="onos-cluster-execute-expect counter-test test-counter get --expect 23"/>
 
-        <step name="Test-Counter-CompareAndSet-True" requires="^"
+        <step name="Distributed-Primitive-Counter.Test-Counter-CompareAndSet-True" requires="Distributed-Primitive-Counter.Test-Counter-Not-Updated-After-CAS"
               exec="onos-execute-expect ${OCI} counter-test test-counter compareAndSet 23 25 --expect true"/>
 
-        <step name="Test-Counter-Updated-After-CAS" requires="^"
+        <step name="Distributed-Primitive-Counter.Test-Counter-Updated-After-CAS" requires="Distributed-Primitive-Counter.Test-Counter-CompareAndSet-True"
               exec="onos-cluster-execute-expect counter-test test-counter get --expect 25"/>
 
-        <step name="Test-Counter-Reset" requires="^"
+        <step name="Distributed-Primitive-Counter.Test-Counter-Reset" requires="Distributed-Primitive-Counter.Test-Counter-Updated-After-CAS"
               exec="onos ${OCI} counter-test test-counter set 0"/>
 
-        <step name="Test-Counter-Get-After-Reset" requires="^"
+        <step name="Distributed-Primitive-Counter.Test-Counter-Get-After-Reset" requires="Distributed-Primitive-Counter.Test-Counter-Reset"
               exec="onos-cluster-execute-expect counter-test test-counter get --expect 0"/>
 
         <!--Check with check logs-->
-        <step name="Check-Log-Exceptions" requires="^"
+        <step name="Distributed-Primitive-Counter.Check-Log-Exceptions" requires="Distributed-Primitive-Counter.Test-Counter-Get-After-Reset"
               exec="onos-check-logs ${OCI}"/>
 
-        <step name="Teardown-Distributed-Primitives-Test-App" requires="^"
+        <step name="Distributed-Primitive-Counter.Teardown-Distributed-Primitives-Test-App" requires="Distributed-Primitive-Counter.Check-Log-Exceptions"
               exec="onos ${OCI} app deactivate org.onosproject.distributedprimitives"/>
     </group>
 </scenario>

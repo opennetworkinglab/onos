@@ -71,7 +71,7 @@ public class ControllerTest {
         ospfInterface.setIpAddress(Ip4Address.valueOf("1.1.1.1"));
         ospfInterfaces.add(ospfInterface);
         ospfArea.setAreaId(Ip4Address.valueOf("2.2.2.2"));
-        ospfArea.setInterfacesLst(ospfInterfaces);
+        ospfArea.setOspfInterfaceList(ospfInterfaces);
         ospfProcess.setProcessId("10.10.10.10");
         ospfAreas = new ArrayList();
         ospfAreas.add(ospfArea);
@@ -82,7 +82,7 @@ public class ControllerTest {
         ospfProcess1.setProcessId("11.11.11.11");
         ospfArea1 = new OspfAreaImpl();
         ospfArea1.setAreaId(Ip4Address.valueOf("2.2.2.2"));
-        ospfArea1.setInterfacesLst(ospfInterfaces);
+        ospfArea1.setOspfInterfaceList(ospfInterfaces);
         ospfAreas.add(ospfArea1);
         ospfProcess1.setAreas(ospfAreas);
         ospfProcesses.add(ospfProcess1);
@@ -167,83 +167,6 @@ public class ControllerTest {
         assertThat(controller, is(notNullValue()));
     }
 
-    /**
-     * Tests deleteInterfaceFromArea() method.
-     */
-    @Test
-    public void testDeleteInterfaceFromArea() throws Exception {
-        controller.updateConfig(ospfProcesses);
-        assertThat(controller.deleteInterfaceFromArea("10.10.10.10", "2.2.2.2", "1.1.1.1"), is(true));
-        assertThat(controller.deleteInterfaceFromArea("10.10.10.10", "2.2.2.2", "5.5.5.5"), is(false));
-    }
-
-    /**
-     * Tests checkArea() method.
-     */
-    @Test
-    public void testCheckArea() throws Exception {
-        controller.updateConfig(ospfProcesses);
-        assertThat(controller.checkArea("10.10.10.10", "2.2.2.2"), is(true));
-    }
-
-    /**
-     * Tests checkArea() method.
-     */
-    @Test
-    public void testCheckArea1() throws Exception {
-        controller.updateConfig(ospfProcesses);
-        assertThat(controller.checkArea("10.10.10.10", "111.111.111.111"), is(false));
-    }
-
-    /**
-     * Tests checkProcess() method.
-     */
-    @Test
-    public void testCheckProcess() throws Exception {
-        controller.updateConfig(ospfProcesses);
-        assertThat(controller.checkProcess("3.3.3.3"), is(false));
-        assertThat(controller.checkProcess("1.1.1.1"), is(false));
-    }
-
-    /**
-     * Tests checkInterface() method.
-     */
-    @Test
-    public void testCheckInterface() throws Exception {
-        controller.updateConfig(ospfProcesses);
-        assertThat(controller.checkInterface("10.10.10.10", "2.2.2.2", "1.1.1.1"), is(true));
-    }
-
-    /**
-     * Tests updateAreaInProcess() method.
-     */
-    @Test
-    public void testUpdateAreaInProcess() throws Exception {
-        controller.updateConfig(ospfProcesses);
-        controller.updateAreaInProcess("10.10.10.10", "2.2.2.2", ospfArea);
-        assertThat(controller, is(notNullValue()));
-    }
-
-    /**
-     * Tests updateConfig() method.
-     */
-    @Test
-    public void testUpdateConfig() throws Exception {
-        controller.updateConfig(ospfProcesses);
-        controller.updateConfig(ospfProcesses);
-        controller.updateConfig(ospfProcesses);
-        assertThat(controller, is(notNullValue()));
-    }
-
-    /**
-     * Tests updateConfig() method.
-     */
-    @Test
-    public void testUpdateConfig2() throws Exception {
-        controller.updateConfig(ospfProcesses);
-        controller.updateConfig(ospfProcesses);
-        assertThat(controller, is(notNullValue()));
-    }
 
     /**
      * Tests updateConfig() method.
@@ -257,7 +180,7 @@ public class ControllerTest {
         ospfInterface.setIpAddress(Ip4Address.valueOf("10.10.10.5"));
         ospfInterfaces.add(ospfInterface);
         ospfArea.setAreaId(Ip4Address.valueOf("2.2.2.2"));
-        ospfArea.setInterfacesLst(ospfInterfaces);
+        ospfArea.setOspfInterfaceList(ospfInterfaces);
         ospfProcess.setProcessId("10.10.10.10");
         ospfAreas = new ArrayList();
         ospfAreas.add(ospfArea);
@@ -266,67 +189,6 @@ public class ControllerTest {
         ospfProcesses.add(ospfProcess);
         controller.updateConfig(ospfProcesses);
         assertThat(controller, is(notNullValue()));
-    }
-
-    /**
-     * Tests deleteConfig() method.
-     */
-    @Test(expected = Exception.class)
-    public void testDeleteConfig() throws Exception {
-        controller.updateConfig(ospfProcesses);
-        controller.deleteConfig(ospfProcesses, "INTERFACE");
-        assertThat(controller, is(notNullValue()));
-    }
-
-    /**
-     * Tests deleteConfig() method.
-     */
-    @Test(expected = Exception.class)
-    public void testDeleteConfig1() throws Exception {
-        controller.updateConfig(ospfProcesses);
-        controller.deleteConfig(ospfProcesses, "AREA");
-        assertThat(controller, is(notNullValue()));
-    }
-
-    /**
-     * Tests deleteConfig() method.
-     */
-
-    @Test
-    public void testDeleteConfig2() throws Exception {
-        controller.updateConfig(ospfProcesses);
-        controller.deleteConfig(ospfProcesses, "PROCESS");
-        assertThat(controller, is(notNullValue()));
-    }
-
-    /**
-     * Tests deleteConfig() method.
-     */
-    @Test
-    public void testDeleteConfig3() throws Exception {
-        ospfProcesses = new ArrayList();
-        controller.deleteConfig(ospfProcesses, "PROCESS");
-        assertThat(controller, is(notNullValue()));
-    }
-
-    /**
-     * Tests deleteConfig() method.
-     */
-    @Test
-    public void testDeleteConfig4() throws Exception {
-        controller.updateConfig(ospfProcesses);
-        controller.deleteConfig(ospfProcesses, "PROCESS");
-        controller.updateConfig(ospfProcesses);
-        assertThat(controller, is(notNullValue()));
-    }
-
-    /**
-     * Tests deleteProcessWhenExists() method.
-     */
-    @Test
-    public void testDeleteProcessWhenExists() throws Exception {
-        controller.updateConfig(ospfProcesses);
-        controller.deleteProcessWhenExists(ospfProcesses, "PROCESS");
     }
 
     /**
@@ -350,7 +212,7 @@ public class ControllerTest {
         controller.start(ospfAgent, driverService);
         ospfRouter = new OspfRouterImpl();
         controller.addLinkDetails(ospfRouter, new OspfLinkTedImpl());
-        controller.removeLinkDetails(ospfRouter);
+        controller.removeLinkDetails(ospfRouter, new OspfLinkTedImpl());
         assertThat(controller, is(notNullValue()));
     }
 }

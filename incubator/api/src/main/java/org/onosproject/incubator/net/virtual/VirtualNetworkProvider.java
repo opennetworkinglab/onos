@@ -26,6 +26,18 @@ import org.onosproject.net.provider.Provider;
 public interface VirtualNetworkProvider extends Provider {
 
     /**
+     * Indicates whether or not the specified connect points on the underlying
+     * network are traversable/reachable.
+     *
+     * @param src source connection point
+     * @param dst destination connection point
+     * @return true if the destination is reachable from the source
+     */
+    boolean isTraversable(ConnectPoint src, ConnectPoint dst);
+
+    // TODO: Further enhance this interface to support the virtual intent programming across this boundary.
+
+    /**
      * Creates a network tunnel for all traffic from the specified source
      * connection point to the indicated destination connection point.
      *

@@ -32,8 +32,6 @@ import static org.junit.Assert.assertThat;
  * Unit test class for OspfDeviceTedImpl.
  */
 public class OspfLinkTedImplTest {
-    private static final Ip4Address LOCAL_ADDRESS = Ip4Address.valueOf("127.0.0.1");
-
     private OspfLinkTedImpl ospfLinkTed;
 
     @Before
@@ -91,7 +89,7 @@ public class OspfLinkTedImplTest {
     @Test
     public void testIpv4RemRouterId() throws Exception {
         List list = new ArrayList();
-        list.add(LOCAL_ADDRESS);
+        list.add(Ip4Address.valueOf(1));
         ospfLinkTed.setIpv4RemRouterId(list);
         assertThat(ospfLinkTed.ipv4RemRouterId().size(), is(1));
     }
@@ -102,7 +100,7 @@ public class OspfLinkTedImplTest {
     @Test
     public void testSetIpv4RemRouterId() throws Exception {
         List list = new ArrayList();
-        list.add(LOCAL_ADDRESS);
+        list.add(Ip4Address.valueOf(1));
         ospfLinkTed.setIpv4RemRouterId(list);
         assertThat(ospfLinkTed.ipv4RemRouterId().size(), is(1));
     }
@@ -133,7 +131,7 @@ public class OspfLinkTedImplTest {
     @Test
     public void testIpv4LocRouterId() throws Exception {
         List list = new ArrayList();
-        list.add(LOCAL_ADDRESS);
+        list.add(Ip4Address.valueOf(1));
         ospfLinkTed.setIpv4LocRouterId(list);
         assertThat(ospfLinkTed.ipv4LocRouterId().size(), is(1));
     }
@@ -144,7 +142,7 @@ public class OspfLinkTedImplTest {
     @Test
     public void testSetIpv4LocRouterId() throws Exception {
         List list = new ArrayList();
-        list.add(LOCAL_ADDRESS);
+        list.add(Ip4Address.valueOf(1));
         ospfLinkTed.setIpv4LocRouterId(list);
         assertThat(ospfLinkTed.ipv4LocRouterId().size(), is(1));
     }

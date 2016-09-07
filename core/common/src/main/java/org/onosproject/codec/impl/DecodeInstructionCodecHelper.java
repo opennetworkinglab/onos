@@ -25,6 +25,7 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onlab.util.HexString;
+import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.ExtensionTreatmentCodec;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
@@ -56,14 +57,16 @@ import static org.slf4j.LoggerFactory.getLogger;
 public final class DecodeInstructionCodecHelper {
     protected static final Logger log = getLogger(DecodeInstructionCodecHelper.class);
     private final ObjectNode json;
+    private final CodecContext context;
 
     /**
      * Creates a decode instruction codec object.
      *
      * @param json JSON object to decode
      */
-    public DecodeInstructionCodecHelper(ObjectNode json) {
+    public DecodeInstructionCodecHelper(ObjectNode json, CodecContext context) {
         this.json = json;
+        this.context = context;
     }
 
     /**
@@ -251,12 +254,17 @@ public final class DecodeInstructionCodecHelper {
             DeviceService deviceService = serviceDirectory.get(DeviceService.class);
             Device device = deviceService.getDevice(deviceId);
 
+            if (device == null) {
+                throw new IllegalArgumentException("Device not found");
+            }
+
             if (device.is(ExtensionTreatmentCodec.class)) {
                 ExtensionTreatmentCodec treatmentCodec = device.as(ExtensionTreatmentCodec.class);
-                ExtensionTreatment treatment = treatmentCodec.decode(node, null);
+                ExtensionTreatment treatment = treatmentCodec.decode(node, context);
                 return Instructions.extension(treatment, deviceId);
             } else {
-                log.warn("There is no codec to decode extension for device {}", deviceId.toString());
+                throw new IllegalArgumentException(
+                        "There is no codec to decode extension for device " + deviceId.toString());
             }
         }
         return null;

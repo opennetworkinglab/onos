@@ -2,6 +2,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:openflowj',
     '//protocols/openflow/api:onos-protocols-openflow-api',
+    '//apps/optical-model:onos-apps-optical-model',
 ]
 
 TEST_DEPS = [

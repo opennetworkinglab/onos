@@ -19,11 +19,25 @@ import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.provider.ProviderService;
 
+import java.util.Set;
+
 /**
  * Service through which virtual network providers can inject information into
  * the core.
  */
 public interface VirtualNetworkProviderService extends ProviderService<VirtualNetworkProvider> {
+
+    /**
+     * Set of separate topology clusters expressed in terms of connect points which
+     * belong to the same SCC of the underlying topology.
+     *
+     * @param clusters set of sets of mutually reachable connection points;
+     *                 the outer sets are not mutually reachable
+     */
+    void topologyChanged(Set<Set<ConnectPoint>> clusters);
+
+    // TBD: Is the above sufficient to determine health/viability of virtual entities based on
+    // clustering (SCC) of the physical ones?
 
     /**
      * This method is used to notify the VirtualNetwork service that a tunnel is now ACTIVE.

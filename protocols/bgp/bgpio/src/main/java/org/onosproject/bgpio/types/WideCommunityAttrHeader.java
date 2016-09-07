@@ -171,6 +171,7 @@ public class WideCommunityAttrHeader implements BgpValueType {
      *
      * @param c ChannelBuffer
      * @return object of WideCommunityAttrHeader
+     * @throws BgpParseException if a parsing error occurs
      */
     public static WideCommunityAttrHeader read(ChannelBuffer c) throws BgpParseException {
 

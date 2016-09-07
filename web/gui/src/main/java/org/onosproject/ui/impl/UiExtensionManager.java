@@ -134,6 +134,7 @@ public class UiExtensionManager
 
                 // FIXME: leave commented out for now, while still under development
 //                new UiView(NETWORK, "topo2", "New-Topo"),
+//                new UiView(NETWORK, "topoX", "Topo-X"),
 
                 new UiView(NETWORK, "device", "Devices", "nav_devs"),
                 new UiViewHidden("flow"),

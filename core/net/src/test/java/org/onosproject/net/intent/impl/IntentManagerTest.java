@@ -35,6 +35,7 @@ import org.onosproject.core.impl.TestCoreManager;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentCompilationException;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;

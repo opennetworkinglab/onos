@@ -16,6 +16,7 @@
 package org.onosproject.incubator.rpc.grpc;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.stream.Collectors.toList;
 import static org.onosproject.incubator.protobuf.net.ProtobufUtils.translate;
 import static org.onosproject.net.DeviceId.deviceId;
@@ -25,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,8 +38,8 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onosproject.grpc.net.device.DeviceProviderRegistryRpcGrpc;
-import org.onosproject.grpc.net.device.DeviceProviderRegistryRpcGrpc.DeviceProviderRegistryRpc;
+import org.onlab.util.Tools;
+import org.onosproject.grpc.net.device.DeviceProviderRegistryRpcGrpc.DeviceProviderRegistryRpcImplBase;
 import org.onosproject.grpc.net.device.DeviceService.DeviceConnected;
 import org.onosproject.grpc.net.device.DeviceService.DeviceDisconnected;
 import org.onosproject.grpc.net.device.DeviceService.DeviceProviderMsg;
@@ -48,7 +50,6 @@ import org.onosproject.grpc.net.device.DeviceService.ReceivedRoleReply;
 import org.onosproject.grpc.net.device.DeviceService.RegisterProvider;
 import org.onosproject.grpc.net.device.DeviceService.UpdatePortStatistics;
 import org.onosproject.grpc.net.device.DeviceService.UpdatePorts;
-import org.onosproject.grpc.net.link.LinkProviderServiceRpcGrpc;
 import org.onosproject.incubator.protobuf.net.ProtobufUtils;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
@@ -110,15 +111,18 @@ public class GrpcRemoteServiceServer {
     private final Map<String, LinkProviderService> linkProviderServices = Maps.newConcurrentMap();
     private final Map<String, LinkProvider> linkProviders = Maps.newConcurrentMap();
 
+    private ScheduledExecutorService executor;
+
     @Activate
     protected void activate(ComponentContext context) throws IOException {
+        executor = newScheduledThreadPool(1, Tools.groupedThreads("grpc", "%d", log));
         modified(context);
 
         log.debug("Server starting on {}", listenPort);
         try {
             server  = NettyServerBuilder.forPort(listenPort)
-                    .addService(DeviceProviderRegistryRpcGrpc.bindService(new DeviceProviderRegistryServerProxy()))
-                    .addService(LinkProviderServiceRpcGrpc.bindService(new LinkProviderServiceServerProxy(this)))
+                    .addService(new DeviceProviderRegistryServerProxy())
+                    .addService(new LinkProviderServiceServerProxy(this))
                     .build().start();
         } catch (IOException e) {
             log.error("Failed to start gRPC server", e);
@@ -130,9 +134,14 @@ public class GrpcRemoteServiceServer {
 
     @Deactivate
     protected void deactivate() {
+        executor.shutdown();
+        try {
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
 
-        registeredProviders.stream()
-            .forEach(deviceProviderRegistry::unregister);
+        registeredProviders.forEach(deviceProviderRegistry::unregister);
 
         server.shutdown();
         // Should we wait for shutdown?
@@ -182,12 +191,16 @@ public class GrpcRemoteServiceServer {
         return linkProviderServices.computeIfAbsent(scheme, this::registerStubLinkProvider);
     }
 
+    protected ScheduledExecutorService getSharedExecutor() {
+        return executor;
+    }
+
     // RPC Server-side code
     // RPC session Factory
     /**
      * Relays DeviceProviderRegistry calls from RPC client.
      */
-    class DeviceProviderRegistryServerProxy implements DeviceProviderRegistryRpc {
+    class DeviceProviderRegistryServerProxy extends DeviceProviderRegistryRpcImplBase {
 
         @Override
         public StreamObserver<DeviceProviderServiceMsg> register(StreamObserver<DeviceProviderMsg> toDeviceProvider) {
@@ -381,6 +394,16 @@ public class GrpcRemoteServiceServer {
 
         @Override
         public void triggerProbe(DeviceId deviceId) {
+            try {
+                onTriggerProbe(deviceId);
+            } catch (Exception e) {
+                log.error("Exception caught handling triggerProbe({})",
+                          deviceId, e);
+                toDeviceProvider.onError(e);
+            }
+        }
+
+        private void onTriggerProbe(DeviceId deviceId) {
             log.trace("triggerProbe({})", deviceId);
             DeviceProviderMsg.Builder msgBuilder = DeviceProviderMsg.newBuilder();
             msgBuilder.setTriggerProbe(msgBuilder.getTriggerProbeBuilder()
@@ -388,11 +411,20 @@ public class GrpcRemoteServiceServer {
                                        .build());
             DeviceProviderMsg triggerProbeMsg = msgBuilder.build();
             toDeviceProvider.onNext(triggerProbeMsg);
-            // TODO Catch Exceptions and call onError()
         }
 
         @Override
         public void roleChanged(DeviceId deviceId, MastershipRole newRole) {
+            try {
+                onRoleChanged(deviceId, newRole);
+            } catch (Exception e) {
+                log.error("Exception caught handling onRoleChanged({}, {})",
+                          deviceId, newRole, e);
+                toDeviceProvider.onError(e);
+            }
+        }
+
+        private void onRoleChanged(DeviceId deviceId, MastershipRole newRole) {
             log.trace("roleChanged({}, {})", deviceId, newRole);
             DeviceProviderMsg.Builder msgBuilder = DeviceProviderMsg.newBuilder();
             msgBuilder.setRoleChanged(msgBuilder.getRoleChangedBuilder()
@@ -400,11 +432,22 @@ public class GrpcRemoteServiceServer {
                                           .setNewRole(translate(newRole))
                                           .build());
             toDeviceProvider.onNext(msgBuilder.build());
-            // TODO Catch Exceptions and call onError()
         }
 
         @Override
         public boolean isReachable(DeviceId deviceId) {
+            try {
+                return onIsReachable(deviceId);
+            } catch (Exception e) {
+                log.error("Exception caught handling onIsReachable({})",
+                          deviceId, e);
+                toDeviceProvider.onError(e);
+                return false;
+            }
+        }
+
+        private boolean onIsReachable(DeviceId deviceId) {
+
             log.trace("isReachable({})", deviceId);
             CompletableFuture<Boolean> result = new CompletableFuture<>();
             final int xid = xidPool.incrementAndGet();
@@ -434,10 +477,10 @@ public class GrpcRemoteServiceServer {
                 log.warn("isReachable({}) Timed out", deviceId, e);
             } catch (ExecutionException e) {
                 log.error("isReachable({}) Execution failed", deviceId, e);
-                // close session?
+                // close session
+                toDeviceProvider.onError(e);
             }
             return false;
-            // TODO Catch Exceptions and call onError()
         }
 
         @Override
@@ -448,8 +491,9 @@ public class GrpcRemoteServiceServer {
         @Override
         public void changePortState(DeviceId deviceId, PortNumber portNumber,
                                     boolean enable) {
-            // TODO if required
-
+            // TODO Implement if required
+            log.error("changePortState not supported yet");
+            toDeviceProvider.onError(new UnsupportedOperationException("not implemented yet"));
         }
 
     }

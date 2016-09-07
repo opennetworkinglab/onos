@@ -90,11 +90,7 @@ public class DistributedRegionStore
     protected void activate() {
         Serializer serializer =
                 Serializer.using(Arrays.asList(KryoNamespaces.API),
-                                 Identifier.class,
-                                 RegionId.class,
-                                 Region.class,
-                                 DefaultRegion.class,
-                                 Region.Type.class);
+                                 Identifier.class);
 
         regionsRepo = storageService.<RegionId, Region>consistentMapBuilder()
                 .withSerializer(serializer)

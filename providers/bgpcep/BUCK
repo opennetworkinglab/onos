@@ -1,0 +1,25 @@
+BUNDLES = [
+  '//protocols/bgp/bgpio:onos-protocols-bgp-bgpio',
+  '//protocols/bgp/api:onos-protocols-bgp-api',
+  '//protocols/bgp/ctl:onos-protocols-bgp-ctl',
+  '//protocols/pcep/pcepio:onos-protocols-pcep-pcepio',
+  '//apps/pcep-api:onos-apps-pcep-api',
+  '//protocols/pcep/api:onos-protocols-pcep-api',
+  '//providers/bgp/topology:onos-providers-bgp-topology',
+  '//providers/bgp/cfg:onos-providers-bgp-cfg',
+  '//protocols/pcep/ctl:onos-protocols-pcep-ctl',
+  '//providers/pcep/topology:onos-providers-pcep-topology',
+  '//providers/pcep/tunnel:onos-providers-pcep-tunnel',
+  '//providers/bgpcep/flow:onos-providers-bgpcep-flow',
+  '//apps/pce/app:onos-apps-pce-app',
+  '//apps/pce/pceweb:onos-apps-pce-pceweb',
+]
+
+onos_app (
+    title = 'BGPCEP Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    description = 'BGPCEP providers.',
+)
+

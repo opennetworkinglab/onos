@@ -18,6 +18,7 @@ package org.onosproject.store.mastership.impl;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.mastership.MastershipEvent.Type.BACKUPS_CHANGED;
 import static org.onosproject.mastership.MastershipEvent.Type.MASTER_CHANGED;
+import static org.onosproject.mastership.MastershipEvent.Type.SUSPENDED;
 import static org.slf4j.LoggerFactory.getLogger;
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -69,7 +70,7 @@ import com.google.common.collect.Maps;
 /**
  * Implementation of the MastershipStore on top of Leadership Service.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
 public class ConsistentDeviceMastershipStore
     extends AbstractStore<MastershipEvent, MastershipStoreDelegate>
@@ -319,7 +320,8 @@ public class ConsistentDeviceMastershipStore
         private void handleEvent(LeadershipEvent event) {
             Leadership leadership = event.subject();
             DeviceId deviceId = extractDeviceIdFromTopic(leadership.topic());
-            RoleInfo roleInfo = getNodes(deviceId);
+            RoleInfo roleInfo = event.type() != LeadershipEvent.Type.SERVICE_DISRUPTED ?
+                    getNodes(deviceId) : new RoleInfo();
             switch (event.type()) {
             case LEADER_AND_CANDIDATES_CHANGED:
                 notifyDelegate(new MastershipEvent(BACKUPS_CHANGED, deviceId, roleInfo));
@@ -330,6 +332,12 @@ public class ConsistentDeviceMastershipStore
                 break;
             case CANDIDATES_CHANGED:
                 notifyDelegate(new MastershipEvent(BACKUPS_CHANGED, deviceId, roleInfo));
+                break;
+            case SERVICE_DISRUPTED:
+                notifyDelegate(new MastershipEvent(SUSPENDED, deviceId, roleInfo));
+                break;
+            case SERVICE_RESTORED:
+                // Do nothing, wait for updates from peers
                 break;
             default:
                 return;

@@ -31,8 +31,6 @@ import static org.junit.Assert.assertThat;
  * Unit test class for OspfDeviceTedImpl.
  */
 public class OspfDeviceTedImplTest {
-    private static final Ip6Address LOCAL_ADDRESS = Ip6Address.valueOf("::1");
-
     private OspfDeviceTedImpl ospfDeviceTed;
 
     @Before
@@ -131,7 +129,7 @@ public class OspfDeviceTedImplTest {
     @Test
     public void testIpv6RouterIds() throws Exception {
         List list = new ArrayList();
-        list.add(LOCAL_ADDRESS);
+        list.add(Ip6Address.valueOf(1));
         ospfDeviceTed.setIpv6RouterIds(list);
         assertThat(ospfDeviceTed.ipv6RouterIds().size(), is(1));
     }
@@ -142,7 +140,7 @@ public class OspfDeviceTedImplTest {
     @Test
     public void testSetIpv6RouterIds() throws Exception {
         List list = new ArrayList();
-        list.add(LOCAL_ADDRESS);
+        list.add(Ip6Address.valueOf(1));
         ospfDeviceTed.setIpv6RouterIds(list);
         assertThat(ospfDeviceTed.ipv6RouterIds().size(), is(1));
     }

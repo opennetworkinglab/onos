@@ -30,6 +30,7 @@ public interface AlarmTranslator {
      * Translates message from device into an alarm with appropriate
      * information.
      *
+     * @param deviceId device
      * @param message message from device to translate to alarm
      * @return Alarm with information determined by given message
      */

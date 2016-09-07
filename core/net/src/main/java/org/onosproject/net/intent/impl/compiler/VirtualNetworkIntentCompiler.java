@@ -31,16 +31,13 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStore;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
-import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentCompilationException;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.net.intent.constraint.EncapsulationConstraint;
-import org.onosproject.net.intent.impl.IntentCompilationException;
 import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 
@@ -93,12 +90,32 @@ public class VirtualNetworkIntentCompiler
         Optional<Path> path = getPaths(intent).stream()
                 .findFirst();
         if (path != null && path.isPresent()) {
-            path.get().links().forEach(link -> {
-                Intent physicalIntent = createPtPtIntent(intent, link);
-                intents.add(physicalIntent);
+            List<Link> links = path.get().links();
 
-                // store the virtual intent to physical intent tunnelId mapping
-                store.addTunnelId(intent, TunnelId.valueOf(physicalIntent.key().toString()));
+            // First create an intent between the intent ingress CP and the first link source CP,
+            // only if the two CPs are not the same.
+            Link firstLink = links.get(0);
+            if (!intent.ingressPoint().equals(firstLink.src())) {
+                intents.add(createPtPtIntent(intent, intent.ingressPoint(), firstLink.src()));
+            }
+
+            // Next create an intent between the intent egress CP and the last link destination CP,
+            // only if the two CPs are not the same.
+            Link lastLink = links.get(links.size() - 1);
+            if (!intent.egressPoint().equals(lastLink.dst())) {
+                intents.add(createPtPtIntent(intent, lastLink.dst(), intent.egressPoint()));
+            }
+
+            // Now loop through all of the virtual links in the path and create an intent.
+            // An intent is also created connecting two virtual links.
+            final int[] index = {0};
+            links.forEach(link -> {
+                intents.add(createPtPtIntent(intent, link.src(), link.dst()));
+                if (index[0] > 0) {
+                    Link previousLink = links.get(index[0] - 1);
+                    intents.add(createPtPtIntent(intent, previousLink.dst(), link.src()));
+                }
+                index[0]++;
             });
         } else {
             throw new IntentCompilationException("Unable to find a path for intent " + intent);
@@ -124,7 +141,7 @@ public class VirtualNetworkIntentCompiler
     }
 
     /**
-     * Encodes the key using the network identifier, application identifer, source and destination
+     * Encodes the key using the network identifier, application identifier, source and destination
      * connect points.
      *
      * @param networkId     virtual network identifier
@@ -133,25 +150,25 @@ public class VirtualNetworkIntentCompiler
      * @param dst           destination connect point
      * @return encoded key
      */
+
     private static Key encodeKey(NetworkId networkId, ApplicationId applicationId, ConnectPoint src, ConnectPoint dst) {
         String key = String.format(KEY_FORMAT, networkId, src, dst);
         return Key.of(key, applicationId);
     }
 
     /**
-     * Creates a point-to-point intent from the virtual network intent and virtual link.
+     * Creates a point-to-point intent using the virtual network intent between the source and destination
+     * connect point.
      *
      * @param intent virtual network intent
-     * @param link   virtual link
+     * @param src    source connect point
+     * @param dst    destination connect point
      * @return point to point intent
      */
-    private Intent createPtPtIntent(VirtualNetworkIntent intent, Link link) {
-        ConnectPoint ingressPoint = mapVirtualToPhysicalPort(intent.networkId(), link.src());
-        ConnectPoint egressPoint = mapVirtualToPhysicalPort(intent.networkId(), link.dst());
+    private Intent createPtPtIntent(VirtualNetworkIntent intent, ConnectPoint src, ConnectPoint dst) {
+        ConnectPoint ingressPoint = mapVirtualToPhysicalPort(intent.networkId(), src);
+        ConnectPoint egressPoint = mapVirtualToPhysicalPort(intent.networkId(), dst);
         Key intentKey = encodeKey(intent.networkId(), intent.appId(), ingressPoint, egressPoint);
-
-        List<Constraint> constraints = new ArrayList<>();
-        constraints.add(new EncapsulationConstraint(EncapsulationType.VLAN));
 
         // TODO Currently there can only be one intent between the ingress and egress across
         // all virtual networks. We may want to support multiple intents between the same src/dst pairs.
@@ -160,10 +177,15 @@ public class VirtualNetworkIntentCompiler
                 .appId(intent.appId())
                 .ingressPoint(ingressPoint)
                 .egressPoint(egressPoint)
-                .constraints(constraints)
+                .constraints(intent.constraints())
+                .selector(intent.selector())
+                .treatment(intent.treatment())
                 .build();
         log.debug("Submitting physical intent: " + physicalIntent);
         intentService.submit(physicalIntent);
+
+        // Store the physical intent against this virtual intent.
+        store.addTunnelId(intent, TunnelId.valueOf(physicalIntent.key().toString()));
 
         return physicalIntent;
     }

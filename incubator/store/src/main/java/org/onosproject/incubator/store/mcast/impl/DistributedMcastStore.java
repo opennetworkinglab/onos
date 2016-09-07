@@ -25,7 +25,6 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.mcast.McastEvent;
 import org.onosproject.net.mcast.McastRoute;
-import org.onosproject.net.mcast.McastRouteInfo;
 import org.onosproject.net.mcast.McastStore;
 import org.onosproject.net.mcast.McastStoreDelegate;
 import org.onosproject.store.AbstractStore;
@@ -39,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.onosproject.net.mcast.McastRouteInfo.mcastRouteInfo;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -96,14 +96,14 @@ public class DistributedMcastStore extends AbstractStore<McastEvent, McastStoreD
         switch (operation) {
             case ADD:
                 if (mcastRoutes.putIfAbsent(route, MulticastData.empty()) == null) {
-                    delegate.notify(new McastEvent(McastEvent.Type.ROUTE_ADDED,
-                                                   McastRouteInfo.mcastRouteInfo(route)));
+                    notifyDelegate(new McastEvent(McastEvent.Type.ROUTE_ADDED,
+                                                  mcastRouteInfo(route)));
                 }
                 break;
             case REMOVE:
                 if (mcastRoutes.remove(route) != null) {
-                    delegate.notify(new McastEvent(McastEvent.Type.ROUTE_REMOVED,
-                                                   McastRouteInfo.mcastRouteInfo(route)));
+                    notifyDelegate(new McastEvent(McastEvent.Type.ROUTE_REMOVED,
+                                                  mcastRouteInfo(route)));
                 }
                 break;
             default:
@@ -124,10 +124,10 @@ public class DistributedMcastStore extends AbstractStore<McastEvent, McastStoreD
 
 
         if (data != null) {
-            delegate.notify(new McastEvent(McastEvent.Type.SOURCE_ADDED,
-                                           McastRouteInfo.mcastRouteInfo(route,
-                                                                         data.sinks(),
-                                                                         source)));
+            notifyDelegate(new McastEvent(McastEvent.Type.SOURCE_ADDED,
+                                          mcastRouteInfo(route,
+                                                         data.sinks(),
+                                                         source)));
         }
 
     }
@@ -157,19 +157,16 @@ public class DistributedMcastStore extends AbstractStore<McastEvent, McastStoreD
         if (data != null) {
             switch (operation) {
                 case ADD:
-                    delegate.notify(new McastEvent(
-                            McastEvent.Type.SINK_ADDED,
-                            McastRouteInfo.mcastRouteInfo(route,
-                                                          sink,
-                                                          data.source())));
+                    notifyDelegate(new McastEvent(McastEvent.Type.SINK_ADDED,
+                                                  mcastRouteInfo(route, sink,
+                                                                 data.source())));
                     break;
                 case REMOVE:
                     if (data != null) {
-                        delegate.notify(new McastEvent(
-                                McastEvent.Type.SINK_REMOVED,
-                                McastRouteInfo.mcastRouteInfo(route,
-                                                              sink,
-                                                              data.source())));
+                        notifyDelegate(new McastEvent(McastEvent.Type.SINK_REMOVED,
+                                                      mcastRouteInfo(route,
+                                                                     sink,
+                                                                     data.source())));
                     }
                     break;
                 default:

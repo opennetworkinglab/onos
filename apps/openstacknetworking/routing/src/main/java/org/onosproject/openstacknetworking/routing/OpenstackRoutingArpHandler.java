@@ -15,99 +15,74 @@
  */
 package org.onosproject.openstacknetworking.routing;
 
-import com.google.common.collect.Lists;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ARP;
-import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.packet.DefaultOutboundPacket;
+import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
-import org.onosproject.net.packet.PacketPriority;
+import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.onosproject.openstacknetworking.Constants;
-import org.onosproject.openstacknode.OpenstackNodeService;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.openstacknetworking.Constants.DEVICE_OWNER_FLOATING_IP;
+import static org.onosproject.openstacknetworking.Constants.DEVICE_OWNER_ROUTER_GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Handle ARP packet sent from Openstack Gateway nodes.
+ * Handle ARP, ICMP and NAT packets from gateway nodes.
  */
+@Component(immediate = true)
 public class OpenstackRoutingArpHandler {
-    protected final Logger log = getLogger(getClass());
+    private final Logger log = getLogger(getClass());
 
-    private final PacketService packetService;
-    private final OpenstackInterfaceService openstackService;
-    private final ScalableGatewayService gatewayService;
-    private final OpenstackNodeService nodeService;
-    private static final String NETWORK_ROUTER_GATEWAY = "network:router_gateway";
-    private static final String NETWORK_FLOATING_IP = "network:floatingip";
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PacketService packetService;
 
-    /**
-     * Default constructor.
-     *
-     * @param packetService packet service
-     * @param openstackService openstackInterface service
-     * @param gatewayService gateway service
-     * @param nodeService openstackNodeService
-     */
-    OpenstackRoutingArpHandler(PacketService packetService, OpenstackInterfaceService openstackService,
-                               OpenstackNodeService nodeService, ScalableGatewayService gatewayService) {
-        this.packetService = packetService;
-        this.openstackService = checkNotNull(openstackService);
-        this.nodeService = nodeService;
-        this.gatewayService = gatewayService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackInterfaceService openstackService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ScalableGatewayService gatewayService;
+
+    private final ExecutorService executorService =
+            newSingleThreadExecutor(groupedThreads("onos/openstackrouting", "packet-event", log));
+
+    private final InternalPacketProcessor packetProcessor = new InternalPacketProcessor();
+
+    @Activate
+    protected void activate() {
+        packetService.addProcessor(packetProcessor, PacketProcessor.director(1));
+        log.info("Started");
     }
 
-    /**
-     * Requests ARP packet to GatewayNode.
-     *
-     * @param appId application id
-     */
-    public void requestPacket(ApplicationId appId) {
-
-        TrafficSelector arpSelector = DefaultTrafficSelector.builder()
-                .matchEthType(EthType.EtherType.ARP.ethType().toShort())
-                .build();
-
-        getExternalInfo().forEach(deviceId ->
-                packetService.requestPackets(arpSelector,
-                        PacketPriority.CONTROL,
-                        appId,
-                        Optional.of(deviceId))
-        );
+    @Deactivate
+    protected void deactivate() {
+        packetService.removeProcessor(packetProcessor);
+        log.info("Stopped");
     }
 
-    /**
-     * Handles ARP packet.
-     *
-     * @param context packet context
-     * @param ethernet ethernet
-     */
-    public void processArpPacketFromRouter(PacketContext context, Ethernet ethernet) {
-        checkNotNull(context, "context can not be null");
-        checkNotNull(ethernet, "ethernet can not be null");
-
-
+    private void processArpPacket(PacketContext context, Ethernet ethernet) {
         ARP arp = (ARP) ethernet.getPayload();
-
-        log.debug("arpEvent called from {} to {}",
+        log.trace("arpEvent called from {} to {}",
                 Ip4Address.valueOf(arp.getSenderProtocolAddress()).toString(),
                 Ip4Address.valueOf(arp.getTargetProtocolAddress()).toString());
 
@@ -116,13 +91,11 @@ public class OpenstackRoutingArpHandler {
         }
 
         IpAddress targetIp = Ip4Address.valueOf(arp.getTargetProtocolAddress());
-
         if (getTargetMacForTargetIp(targetIp.getIp4Address()) == MacAddress.NONE) {
-                return;
+            return;
         }
-        // FIXME: Set the correct gateway
-        MacAddress targetMac = Constants.GW_EXT_INT_MAC;
 
+        MacAddress targetMac = Constants.DEFAULT_EXTERNAL_ROUTER_MAC;
         Ethernet ethReply = ARP.buildArpReply(targetIp.getIp4Address(),
                 targetMac, ethernet);
 
@@ -136,22 +109,35 @@ public class OpenstackRoutingArpHandler {
                 ByteBuffer.wrap(ethReply.serialize())));
     }
 
+    private class InternalPacketProcessor implements PacketProcessor {
+
+        @Override
+        public void process(PacketContext context) {
+            if (context.isHandled()) {
+                return;
+            } else if (!gatewayService.getGatewayDeviceIds().contains(
+                    context.inPacket().receivedFrom().deviceId())) {
+                // return if the packet is not from gateway nodes
+                return;
+            }
+
+            InboundPacket pkt = context.inPacket();
+            Ethernet ethernet = pkt.parsed();
+            if (ethernet != null &&
+                    ethernet.getEtherType() == Ethernet.TYPE_ARP) {
+                executorService.execute(() -> processArpPacket(context, ethernet));
+            }
+        }
+    }
+
+    // TODO make a cache for the MAC, not a good idea to REST call every time it gets ARP request
     private MacAddress getTargetMacForTargetIp(Ip4Address targetIp) {
         OpenstackPort port = openstackService.ports().stream()
-                .filter(p -> p.deviceOwner().equals(NETWORK_ROUTER_GATEWAY) ||
-                             p.deviceOwner().equals(NETWORK_FLOATING_IP))
+                .filter(p -> p.deviceOwner().equals(DEVICE_OWNER_ROUTER_GATEWAY) ||
+                        p.deviceOwner().equals(DEVICE_OWNER_FLOATING_IP))
                 .filter(p -> p.fixedIps().containsValue(targetIp.getIp4Address()))
                 .findAny().orElse(null);
 
-        if (port == null) {
-            return MacAddress.NONE;
-        }
-        return port.macAddress();
-    }
-
-    private List<DeviceId> getExternalInfo() {
-        List<DeviceId> externalInfoList = Lists.newArrayList();
-        gatewayService.getGatewayDeviceIds().forEach(externalInfoList::add);
-        return externalInfoList;
+        return port == null ? MacAddress.NONE : port.macAddress();
     }
 }

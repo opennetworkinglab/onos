@@ -26,6 +26,7 @@ import org.onosproject.net.resource.Resources;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -100,13 +101,14 @@ final class EncodableDiscreteResources implements DiscreteResources {
             EncodableDiscreteResources cast = (EncodableDiscreteResources) other;
 
             Map<Class<?>, EncodedDiscreteResources> newMap = new LinkedHashMap<>();
-            for (Class<?> key : this.map.keySet()) {
-                EncodedDiscreteResources thisValues = this.map.get(key);
-                if (!cast.map.containsKey(key)) {
+            for (Entry<Class<?>, EncodedDiscreteResources> e : this.map.entrySet()) {
+                Class<?> key = e.getKey();
+                EncodedDiscreteResources thisValues = e.getValue();
+                EncodedDiscreteResources otherValues = cast.map.get(key);
+                if (otherValues == null) {
                     newMap.put(key, thisValues);
                     continue;
                 }
-                EncodedDiscreteResources otherValues = cast.map.get(key);
                 EncodedDiscreteResources diff = thisValues.difference(otherValues);
                 // omit empty resources from a new resource set
                 // empty EncodedDiscreteResources can't deserialize due to
@@ -133,7 +135,7 @@ final class EncodableDiscreteResources implements DiscreteResources {
     @Override
     public boolean containsAny(Set<DiscreteResource> other) {
         return other.stream()
-                .filter(x -> !map.containsKey(x))
+                .filter(x -> map.containsKey(getClass(x)))
                 .anyMatch(x -> map.get(getClass(x)).contains(x));
     }
 

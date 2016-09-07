@@ -24,17 +24,20 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.net.region.RegionId;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.ui.UiTopoLayoutService;
+import org.onosproject.ui.model.topo.UiRegion;
 import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.onosproject.ui.model.topo.UiTopoLayoutId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -111,16 +114,31 @@ public class UiTopoLayoutManager implements UiTopoLayoutService {
     }
 
     @Override
-    public Set<UiTopoLayout> getPeers(UiTopoLayoutId layoutId) {
+    public UiTopoLayout getLayout(RegionId regionId) {
+        if (regionId == null || regionId.equals(UiRegion.NULL_ID)) {
+            return getRootLayout();
+        }
+
+        List<UiTopoLayout> matchingLayouts = layoutMap.values().stream()
+                .filter(l -> Objects.equals(regionId, l.regionId()))
+                .collect(Collectors.toList());
+        return matchingLayouts.isEmpty() ? null : matchingLayouts.get(0);
+    }
+
+    @Override
+    public Set<UiTopoLayout> getPeerLayouts(UiTopoLayoutId layoutId) {
         checkNotNull(layoutId, ID_NULL);
+
         UiTopoLayout layout = layoutMap.get(layoutId);
-        if (layout == null) {
+        if (layout == null || layout.isRoot()) {
             return Collections.emptySet();
         }
 
         UiTopoLayoutId parentId = layout.parent();
         return layoutMap.values().stream()
+                // all layouts who are NOT me (or root) and who share my parent...
                 .filter(l -> !Objects.equals(l.id(), layoutId) &&
+                        !Objects.equals(l.id(), UiTopoLayoutId.DEFAULT_ID) &&
                         Objects.equals(l.parent(), parentId))
                 .collect(Collectors.toSet());
     }
@@ -129,7 +147,7 @@ public class UiTopoLayoutManager implements UiTopoLayoutService {
     public Set<UiTopoLayout> getChildren(UiTopoLayoutId layoutId) {
         checkNotNull(layoutId, ID_NULL);
         return layoutMap.values().stream()
-                .filter(l -> Objects.equals(l.parent(), layoutId))
+                .filter(l -> !l.isRoot() && Objects.equals(l.parent(), layoutId))
                 .collect(Collectors.toSet());
     }
 

@@ -76,10 +76,8 @@ public class DistributedDhcpStore implements DhcpStore {
                                 .register(KryoNamespaces.API)
                                 .register(IpAssignment.class,
                                         IpAssignment.AssignmentStatus.class,
-                                        Date.class,
-                                        long.class,
-                                        Ip4Address.class)
-                                .build()))
+                                        Date.class)
+                                .build("dhcp")))
                 .build();
 
         freeIPPool = storageService.<Ip4Address>setBuilder()
@@ -227,6 +225,15 @@ public class DistributedDhcpStore implements DhcpStore {
     @Override
     public Ip4Address releaseIP(HostId hostId) {
         if (allocationMap.containsKey(hostId)) {
+            // If the IP has been assigned with Option_RangeNotEnforced,
+            // we do not release the IP address nor remove the host from HostService.
+            // Therefore, if the IP is assigned statically, the IP needs to be released statically.
+            Versioned<IpAssignment> assignmentVersioned = allocationMap.get(hostId);
+            if (Versioned.valueOrNull(assignmentVersioned) != null &&
+                    assignmentVersioned.value().assignmentStatus().equals(Option_RangeNotEnforced)) {
+                return null;
+            }
+
             IpAssignment newAssignment = IpAssignment.builder(allocationMap.get(hostId).value())
                     .assignmentStatus(IpAssignment.AssignmentStatus.Option_Expired)
                     .build();

@@ -64,6 +64,8 @@ public class OSGiWrapper {
     private String bundleVersion;
 
     private String importPackages;
+    private String dynamicimportPackages;
+
     private String exportPackages;
     private String includeResources;
     private Set<String> includedResources = Sets.newHashSet();
@@ -73,8 +75,9 @@ public class OSGiWrapper {
 
     private String webContext;
 
+    // FIXME should consider using Commons CLI, etc.
     public static void main(String[] args) {
-        if (args.length < 11) {
+        if (args.length < 12) {
             System.err.println("Not enough args");
             System.exit(1);
         }
@@ -90,14 +93,17 @@ public class OSGiWrapper {
         String exportPackages = args[8];
         String includeResources = args[9];
         String webContext = args[10];
-        String desc = Joiner.on(' ').join(Arrays.copyOfRange(args, 11, args.length));
+        String dynamicimportPackages = args[11];
+        String desc = Joiner.on(' ').join(Arrays.copyOfRange(args, 12, args.length));
 
         OSGiWrapper wrapper = new OSGiWrapper(jar, output, cp,
                                               name, group,
                                               version, license,
                                               importPackages, exportPackages,
                                               includeResources,
-                                              webContext, desc);
+                                              webContext,
+                                              dynamicimportPackages,
+                                              desc);
         wrapper.log(wrapper + "\n");
         if (!wrapper.execute()) {
             System.err.printf("Error generating %s\n", name);
@@ -117,6 +123,7 @@ public class OSGiWrapper {
                        String exportPackages,
                        String includeResources,
                        String webContext,
+                       String dynamicimportPackages,
                        String bundleDescription) {
         this.inputJar = inputJar;
         this.classpath = Lists.newArrayList(classpath.split(":"));
@@ -134,6 +141,10 @@ public class OSGiWrapper {
         this.bundleDescription = bundleDescription;
 
         this.importPackages = importPackages;
+        this.dynamicimportPackages = dynamicimportPackages;
+        if (Objects.equals(dynamicimportPackages, "''")) {
+            this.dynamicimportPackages = null;
+        }
         this.exportPackages = exportPackages;
         if (!Objects.equals(includeResources, NONE)) {
             this.includeResources = includeResources;
@@ -156,6 +167,8 @@ public class OSGiWrapper {
 
         // There are no good defaults so make sure you set the Import-Package
         analyzer.setProperty(Analyzer.IMPORT_PACKAGE, importPackages);
+
+        analyzer.setProperty(Analyzer.DYNAMICIMPORT_PACKAGE, dynamicimportPackages);
 
         // TODO include version in export, but not in import
         analyzer.setProperty(Analyzer.EXPORT_PACKAGE, exportPackages);
@@ -251,7 +264,7 @@ public class OSGiWrapper {
         analyzer.setBundleClasspath("WEB-INF/classes," +
                                     analyzer.getProperty(analyzer.BUNDLE_CLASSPATH));
 
-        Set<String> paths = new HashSet<String>(dot.getResources().keySet());
+        Set<String> paths = new HashSet<>(dot.getResources().keySet());
 
         for (String path : paths) {
             if (path.indexOf('/') > 0 && !Character.isUpperCase(path.charAt(0))) {

@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.device.impl;
 
+import static org.onosproject.store.serializers.DeviceIdSerializer.deviceIdSerializer;
+
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.provider.ProviderId;
@@ -41,7 +43,7 @@ public class InternalPortStatusEventSerializer extends Serializer<InternalPortSt
     @Override
     public void write(Kryo kryo, Output output, InternalPortStatusEvent event) {
         kryo.writeClassAndObject(output, event.providerId());
-        kryo.writeClassAndObject(output, event.deviceId());
+        kryo.writeObject(output, event.deviceId(), deviceIdSerializer());
         kryo.writeClassAndObject(output, event.portDescription());
     }
 
@@ -49,7 +51,7 @@ public class InternalPortStatusEventSerializer extends Serializer<InternalPortSt
     public InternalPortStatusEvent read(Kryo kryo, Input input,
                                Class<InternalPortStatusEvent> type) {
         ProviderId providerId = (ProviderId) kryo.readClassAndObject(input);
-        DeviceId deviceId = (DeviceId) kryo.readClassAndObject(input);
+        DeviceId deviceId = kryo.readObject(input, DeviceId.class, deviceIdSerializer());
         @SuppressWarnings("unchecked")
         Timestamped<PortDescription> portDescription = (Timestamped<PortDescription>) kryo.readClassAndObject(input);
 

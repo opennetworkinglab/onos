@@ -29,6 +29,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.IPProtocolCriterion;
+import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flowobjective.ForwardingObjective;
@@ -226,16 +227,14 @@ public class CorsaPipelineV39 extends CorsaPipelineV3 {
     }
 
     @Override
-    protected TrafficTreatment processNextTreatment(TrafficTreatment treatment) {
+    protected CorsaTrafficTreatment processNextTreatment(TrafficTreatment treatment) {
         TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder();
-        tb.add(Instructions.popVlan());
         treatment.immediate().stream()
                 .filter(i -> {
                     switch (i.type()) {
                         case L2MODIFICATION:
                             L2ModificationInstruction l2i = (L2ModificationInstruction) i;
                             if (l2i.subtype() == VLAN_ID ||
-                                    l2i.subtype() == VLAN_POP ||
                                     l2i.subtype() == VLAN_POP ||
                                     l2i.subtype() == ETH_DST ||
                                     l2i.subtype() == ETH_SRC) {
@@ -247,6 +246,51 @@ public class CorsaPipelineV39 extends CorsaPipelineV3 {
                             return false;
                     }
                 }).forEach(i -> tb.add(i));
-        return tb.build();
+
+        TrafficTreatment t = tb.build();
+
+        boolean isPresentModVlanId = false;
+        boolean isPresentModEthSrc = false;
+        boolean isPresentModEthDst = false;
+        boolean isPresentOutpuPort = false;
+
+        for (Instruction instruction : t.immediate()) {
+            switch (instruction.type()) {
+                case L2MODIFICATION:
+                    L2ModificationInstruction l2i = (L2ModificationInstruction) instruction;
+                    if (l2i instanceof L2ModificationInstruction.ModVlanIdInstruction) {
+                        isPresentModVlanId = true;
+                    }
+
+                    if (l2i instanceof L2ModificationInstruction.ModEtherInstruction) {
+                        L2ModificationInstruction.L2SubType subType = l2i.subtype();
+                        if (subType.equals(L2ModificationInstruction.L2SubType.ETH_SRC)) {
+                            isPresentModEthSrc = true;
+                        } else if (subType.equals(L2ModificationInstruction.L2SubType.ETH_DST)) {
+                            isPresentModEthDst = true;
+                        }
+                    }
+                case OUTPUT:
+                    isPresentOutpuPort = true;
+                default:
+            }
+        }
+        CorsaTrafficTreatmentType type = CorsaTrafficTreatmentType.ACTIONS;
+        /**
+         * These are the allowed groups for CorsaPipelinev39
+         */
+        if (isPresentModVlanId && isPresentModEthSrc && isPresentModEthDst && isPresentOutpuPort) {
+            type = CorsaTrafficTreatmentType.GROUP;
+
+        } else if ((!isPresentModVlanId && isPresentModEthSrc && isPresentModEthDst && isPresentOutpuPort) ||
+                (!isPresentModVlanId && !isPresentModEthSrc && isPresentModEthDst && isPresentOutpuPort) ||
+                (!isPresentModVlanId && !isPresentModEthSrc && !isPresentModEthDst && isPresentOutpuPort)) {
+            type = CorsaTrafficTreatmentType.GROUP;
+            TrafficTreatment.Builder tb2 = DefaultTrafficTreatment.builder(t);
+            tb2.add(Instructions.popVlan());
+            t = tb2.build();
+        }
+        CorsaTrafficTreatment corsaTreatment = new CorsaTrafficTreatment(type, t);
+        return corsaTreatment;
     }
 }

@@ -22,14 +22,24 @@
         <step name="Netcfg.Activate-Dhcp"
               exec="onos ${OC1} app activate org.onosproject.dhcp"/>
 
+        <!-- Check that the activation was successful -->
+        <group name="Netcfg.Check-Dhcp-App-Activated" requires="Netcfg.Activate-Dhcp">
+            <parallel var="${OC#}">
+                <step name="Netcfg.Check-Dhcp-App-Activated-${#}"
+                      exec="onos-check-apps ${OC#} drivers,openflow,proxyarp,dhcp includes"/>
+                <step name="Netcfg.Check-Dhcp-Component-Active-${#}"
+                      exec="onos-check-component ${OC#} org.onosproject.dhcp.impl.DhcpManager ACTIVE"/>
+            </parallel>
+        </group>
+
         <!-- Upload the first set of config changes -->
-        <step name="Netcfg.Post-1" requires="^"
+        <step name="Netcfg.Post-1" requires="Netcfg.Check-Dhcp-App-Activated"
               exec="post-netcfg.py ${OC1} ${ONOS_SCENARIOS}/netcfg-test/dhcp-cfg1.json"/>
 
         <group name="Query1" requires="Netcfg.Post-1">
             <parallel var="${OC#}" starts="Netcfg.Query-1-${#}">
                 <!-- Check that the values made it into the config for the DHCP server -->
-                <step name="Netcfg.QueryDhcp-1-${#}" delay="2"
+                <step name="Netcfg.QueryDhcp-1-${#}"
                       exec="check-dhcp-netcfg.py ${OC#} ttl=1 lease=2 renew=3 rebind=4 delay=5 timeout=6"/>
             </parallel>
         </group>
@@ -56,12 +66,12 @@
         <group name="Query3" requires="Netcfg.Delete">
             <parallel var="${OC#}" starts="Netcfg.Query-3-${#}">
                 <!-- Check that the values were deleted for the config for the DHCP server -->
-                <step name="Netcfg.QueryDhcp-31-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} ttl=21"/>
-                <step name="Netcfg.QueryDhcp-32-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} lease=22"/>
-                <step name="Netcfg.QueryDhcp-33-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} renew=23"/>
-                <step name="Netcfg.QueryDhcp-34-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} rebind=24"/>
-                <step name="Netcfg.QueryDhcp-35-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} delay=25"/>
-                <step name="Netcfg.QueryDhcp-36-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} timeout=26"/>
+                <step name="Netcfg.QueryDhcp-31-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} ttl=21" delay="2"/>
+                <step name="Netcfg.QueryDhcp-32-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} lease=22" delay="2"/>
+                <step name="Netcfg.QueryDhcp-33-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} renew=23" delay="2"/>
+                <step name="Netcfg.QueryDhcp-34-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} rebind=24" delay="2"/>
+                <step name="Netcfg.QueryDhcp-35-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} delay=25" delay="2"/>
+                <step name="Netcfg.QueryDhcp-36-${#}" env="!" exec="check-dhcp-netcfg.py ${OC#} timeout=26" delay="2"/>
             </parallel>
         </group>
 

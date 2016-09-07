@@ -46,6 +46,8 @@ public class DefaultFlowRule implements FlowRule {
 
     private final int timeout;
     private final boolean permanent;
+    private final int hardTimeout;
+    private final FlowRemoveReason reason;
     private final GroupId groupId;
 
     private final Integer tableId;
@@ -60,6 +62,8 @@ public class DefaultFlowRule implements FlowRule {
         this.groupId = rule.groupId();
         this.id = rule.id();
         this.timeout = rule.timeout();
+        this.hardTimeout = rule.hardTimeout();
+        this.reason = rule.reason();
         this.permanent = rule.isPermanent();
         this.created = System.currentTimeMillis();
         this.tableId = rule.tableId();
@@ -68,8 +72,8 @@ public class DefaultFlowRule implements FlowRule {
 
     private DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
                             TrafficTreatment treatment, Integer priority,
-                            FlowId flowId, Boolean permanent, Integer timeout,
-                            Integer tableId) {
+                            FlowId flowId, Boolean permanent, Integer timeout, Integer hardTimeout,
+                            FlowRemoveReason reason, Integer tableId) {
 
         this.deviceId = deviceId;
         this.selector = selector;
@@ -79,6 +83,8 @@ public class DefaultFlowRule implements FlowRule {
         this.id = flowId;
         this.permanent = permanent;
         this.timeout = timeout;
+        this.hardTimeout = hardTimeout;
+        this.reason = reason;
         this.tableId = tableId;
         this.created = System.currentTimeMillis();
 
@@ -87,6 +93,8 @@ public class DefaultFlowRule implements FlowRule {
         this.groupId = new DefaultGroupId(0);
         this.payLoad = null;
     }
+
+
 
     /**
      * Support for the third party flow rule. Creates a flow rule of flow table.
@@ -105,6 +113,28 @@ public class DefaultFlowRule implements FlowRule {
                            TrafficTreatment treatment, int priority,
                            ApplicationId appId, int timeout, boolean permanent,
                            FlowRuleExtPayLoad payLoad) {
+        this(deviceId, selector, treatment, priority, appId, timeout, 0, permanent, payLoad);
+    }
+
+
+    /**
+     * Support for the third party flow rule. Creates a flow rule of flow table.
+     *
+     * @param deviceId the identity of the device where this rule applies
+     * @param selector the traffic selector that identifies what traffic this
+     *            rule
+     * @param treatment the traffic treatment that applies to selected traffic
+     * @param priority the flow rule priority given in natural order
+     * @param appId the application id of this flow
+     * @param timeout the timeout for this flow requested by an application
+     * @param hardTimeout the hard timeout located switch's flow table for this flow requested by an application
+     * @param permanent whether the flow is permanent i.e. does not time out
+     * @param payLoad 3rd-party origin private flow
+     */
+    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
+                           TrafficTreatment treatment, int priority,
+                           ApplicationId appId, int timeout, int hardTimeout, boolean permanent,
+                           FlowRuleExtPayLoad payLoad) {
 
         checkArgument(priority >= MIN_PRIORITY, "Priority cannot be less than " +
                 MIN_PRIORITY);
@@ -118,6 +148,8 @@ public class DefaultFlowRule implements FlowRule {
         this.appId = appId.id();
         this.groupId = new DefaultGroupId(0);
         this.timeout = timeout;
+        this.reason = FlowRemoveReason.NO_REASON;
+        this.hardTimeout = hardTimeout;
         this.permanent = permanent;
         this.tableId = 0;
         this.created = System.currentTimeMillis();
@@ -152,6 +184,30 @@ public class DefaultFlowRule implements FlowRule {
                            TrafficTreatment treatment, int priority,
                            ApplicationId appId, GroupId groupId, int timeout,
                            boolean permanent, FlowRuleExtPayLoad payLoad) {
+        this(deviceId, selector, treatment, priority, appId, groupId, timeout, 0, permanent, payLoad);
+    }
+
+    /**
+     * Support for the third party flow rule. Creates a flow rule of group
+     * table.
+     *
+     * @param deviceId the identity of the device where this rule applies
+     * @param selector the traffic selector that identifies what traffic this
+     *            rule
+     * @param treatment the traffic treatment that applies to selected traffic
+     * @param priority the flow rule priority given in natural order
+     * @param appId the application id of this flow
+     * @param groupId the group id of this flow
+     * @param timeout the timeout for this flow requested by an application
+     * @param hardTimeout the hard timeout located switch's flow table for this flow requested by an application
+     * @param permanent whether the flow is permanent i.e. does not time out
+     * @param payLoad 3rd-party origin private flow
+     *
+     */
+    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
+                           TrafficTreatment treatment, int priority,
+                           ApplicationId appId, GroupId groupId, int timeout, int hardTimeout,
+                           boolean permanent, FlowRuleExtPayLoad payLoad) {
 
         checkArgument(priority >= MIN_PRIORITY, "Priority cannot be less than " +
                 MIN_PRIORITY);
@@ -165,6 +221,8 @@ public class DefaultFlowRule implements FlowRule {
         this.appId = appId.id();
         this.groupId = groupId;
         this.timeout = timeout;
+        this.reason = FlowRemoveReason.NO_REASON;
+        this.hardTimeout = hardTimeout;
         this.permanent = permanent;
         this.created = System.currentTimeMillis();
         this.tableId = 0;
@@ -280,6 +338,18 @@ public class DefaultFlowRule implements FlowRule {
         return timeout;
     }
 
+
+
+    @Override
+    public int hardTimeout() {
+        return hardTimeout;
+    }
+
+    @Override
+    public FlowRemoveReason reason() {
+        return reason;
+    }
+
     @Override
     public boolean isPermanent() {
         return permanent;
@@ -310,6 +380,8 @@ public class DefaultFlowRule implements FlowRule {
         private TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
         private Integer timeout;
         private Boolean permanent;
+        private Integer hardTimeout = 0;
+        private FlowRemoveReason reason = FlowRemoveReason.NO_REASON;
 
         @Override
         public FlowRule.Builder withCookie(long cookie) {
@@ -368,6 +440,20 @@ public class DefaultFlowRule implements FlowRule {
         }
 
         @Override
+        public FlowRule.Builder withHardTimeout(int timeout) {
+            this.permanent = false;
+            this.hardTimeout = timeout;
+            this.timeout = timeout;
+            return this;
+        }
+
+        @Override
+        public FlowRule.Builder withReason(FlowRemoveReason reason) {
+            this.reason = reason;
+            return this;
+        }
+
+        @Override
         public FlowRule build() {
             FlowId localFlowId;
             checkArgument((flowId != null) ^ (appId != null), "Either an application" +
@@ -390,7 +476,7 @@ public class DefaultFlowRule implements FlowRule {
             }
 
             return new DefaultFlowRule(deviceId, selector, treatment, priority,
-                                       localFlowId, permanent, timeout, tableId);
+                                       localFlowId, permanent, timeout, hardTimeout, reason, tableId);
         }
 
         private FlowId computeFlowId(ApplicationId appId) {
@@ -400,7 +486,6 @@ public class DefaultFlowRule implements FlowRule {
 
         private int hash() {
             Funnel<TrafficSelector> selectorFunnel = (from, into) -> from.criteria()
-                    .stream()
                     .forEach(c -> into.putString(c.toString(), Charsets.UTF_8));
 
             HashFunction hashFunction = Hashing.murmur3_32();

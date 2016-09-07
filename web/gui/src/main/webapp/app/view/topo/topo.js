@@ -29,9 +29,9 @@
     ];
 
     // references to injected services
-    var $scope, $log, $cookies, $loc, fs, ks, zs, gs, ms, sus, flash, wss, ps, th,
-        tds, t3s, tes, tfs, tps, tis, tms, tss, tls, tts, tos, fltr, ttbs, tspr,
-        ttip, tov;
+    var $scope, $log, $loc, $timeout, $cookies,
+        fs, ks, zs, gs, ms, sus, flash, wss, ps, th, tds, t3s, tes, tfs, tps,
+        tis, tms, tss, tls, tts, tos, fltr, ttbs, tspr, ttip, tov;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, spriteG, forceG, noDevsLayer;
@@ -508,9 +508,14 @@
 
     function topoStartDone() {
         var d = $scope.intentData;
-        if (d) {
-            tts.selectIntent(d);
-        }
+        // give a small delay before attempting to reselect node(s) and stuff
+        // since they have to be re-added to the DOM first...
+        $timeout(function () {
+            tss.reselect();
+            if (d) {
+                tts.selectIntent(d);
+            }
+        }, 200);
     }
 
     // --- Controller Definition -----------------------------------------
@@ -527,7 +532,7 @@
             'TopoToolbarService', 'TopoMapService', 'TopoSpriteService',
             'TooltipService', 'TopoOverlayService',
 
-        function (_$scope_, _$log_, _$loc_, $timeout, _$cookies_, _fs_, mast, _ks_,
+        function (_$scope_, _$log_, _$loc_, _$timeout_, _$cookies_, _fs_, mast, _ks_,
                   _zs_, _gs_, _ms_, _sus_, _flash_, _wss_, _ps_, _th_,
                   _tds_, _t3s_, _tes_,
                   _tfs_, _tps_, _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_,
@@ -548,6 +553,7 @@
             $scope = _$scope_;
             $log = _$log_;
             $loc = _$loc_;
+            $timeout = _$timeout_;
             $cookies = _$cookies_;
             fs = _fs_;
             ks = _ks_;
@@ -585,11 +591,11 @@
                 setMap: setMap
             });
 
-            if (params.intentKey && params.intentAppId && params.intentAppName) {
+            if (params.key && params.appId && params.appName) {
                 $scope.intentData = {
-                    key: params.intentKey,
-                    appId: params.intentAppId,
-                    appName: params.intentAppName
+                    key: params.key,
+                    appId: params.appId,
+                    appName: params.appName
                 };
             }
 

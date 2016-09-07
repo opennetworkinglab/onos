@@ -26,5 +26,3 @@ enum DeviceEventType {
     PORT_STATS_UPDATED = 8;
 }
 
-
-

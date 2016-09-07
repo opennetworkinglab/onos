@@ -25,3 +25,44 @@
     /* prevents the little cut/copy/paste square that would appear on iPad */
     -webkit-user-select: none;
 }
+
+/* -- TEMPORARY CSS (to be deleted) -- */
+#topo2tmp div {
+    padding: 8px 24px;
+    margin: 8px;
+    background-color: #ddddff;
+}
+#topo2tmp div div {
+    padding: 4px 10px;
+}
+
+#topo2tmp h4 {
+    margin: 0
+}
+#topo2tmp p {
+    margin: 0
+}
+#topo2tmp .nav-me:hover {
+    background-color: #bbbbdd;
+}
+#topo2tmp .nav-me {
+    font-weight: bold;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+#breadcrumbs {
+    position: absolute;
+    padding: 10px 30px;
+    top: 54px;
+    width: 100%;
+}
+
+#breadcrumbs .breadcrumb {
+    display: inline-block;
+    margin-right: 20px;
+}
+
+.floatpanel {
+    top: 104px;
+}

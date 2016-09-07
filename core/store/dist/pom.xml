@@ -47,7 +47,6 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-misc</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -97,22 +96,18 @@
         <dependency>
             <groupId>commons-pool</groupId>
             <artifactId>commons-pool</artifactId>
-            <version>1.6</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-transport</artifactId>
-            <version>${netty4.version}</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-codec</artifactId>
-            <version>${netty4.version}</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-handler</artifactId>
-            <version>${netty4.version}</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
@@ -120,4 +115,5 @@
             <version>${netty4.version}</version>
         </dependency>
     </dependencies>
+
 </project>

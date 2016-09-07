@@ -31,7 +31,6 @@ import org.onosproject.incubator.net.tunnel.OpticalTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.mastership.MastershipService;
-import org.onosproject.net.ElementId;
 import org.onosproject.net.Annotated;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Annotations;
@@ -40,6 +39,7 @@ import org.onosproject.net.DefaultEdgeLink;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.EdgeLink;
+import org.onosproject.net.ElementId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
@@ -77,8 +77,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -93,6 +93,8 @@ import static org.onosproject.ui.topo.TopoUtils.compactLinkString;
  * Facility for creating messages bound for the topology viewer.
  */
 public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
+
+    private static final String NO_GEO_VALUE = "0.0";
 
     // default to an "add" event...
     private static final DefaultHashMap<ClusterEvent.Type, String> CLUSTER_EVENT =
@@ -361,10 +363,10 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
         String slng = annotations.value(AnnotationKeys.LONGITUDE);
         String slat = annotations.value(AnnotationKeys.LATITUDE);
-        boolean haveLng = slng != null && !slng.isEmpty();
-        boolean haveLat = slat != null && !slat.isEmpty();
-        try {
-            if (haveLng && haveLat) {
+        boolean validLng = slng != null && !slng.equals(NO_GEO_VALUE);
+        boolean validLat = slat != null && !slat.equals(NO_GEO_VALUE);
+        if (validLat && validLng) {
+            try {
                 double lng = Double.parseDouble(slng);
                 double lat = Double.parseDouble(slat);
                 ObjectNode loc = objectNode()
@@ -372,11 +374,9 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                         .put("lng", lng)
                         .put("lat", lat);
                 payload.set("location", loc);
-            } else {
-                log.trace("missing Lng/Lat: lng={}, lat={}", slng, slat);
+            } catch (NumberFormatException e) {
+                log.warn("Invalid geo data: longitude={}, latitude={}", slng, slat);
             }
-        } catch (NumberFormatException e) {
-            log.warn("Invalid geo data: longitude={}, latitude={}", slng, slat);
         }
     }
 

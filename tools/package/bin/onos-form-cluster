@@ -6,10 +6,11 @@
 [ $# -lt 2 ] && echo "usage: $(basename $0) ip1 ip2..." && exit 1
 
 # Scan arguments for user/password or other options...
-while getopts u:p: o; do
+while getopts u:p:s: o; do
     case "$o" in
         u) user=$OPTARG;;
         p) password=$OPTARG;;
+        s) partitionsize=$OPTARG;;
     esac
 done
 ONOS_WEB_USER=${ONOS_WEB_USER:-onos} # ONOS WEB User defaults to 'onos'
@@ -32,7 +33,11 @@ echo "{ \"nodes\": [ { \"ip\": \"$ip\" }" > $aux
 for node in $nodes; do
     echo ", { \"ip\": \"$node\" }" >> $aux
 done
-echo "], \"ipPrefix\": \"$ipPrefix.*\" }" >> $aux
+echo "], \"ipPrefix\": \"$ipPrefix.*\"" >> $aux
+if ! [ -z ${partitionsize} ]; then
+    echo ", \"partitionSize\": $partitionsize" >> $aux
+fi
+echo " }" >> $aux
 
 for node in $ip $nodes; do
     echo "Forming cluster on $node..."

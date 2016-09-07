@@ -128,7 +128,7 @@ public final class VtnData {
                                       FixedIp fixedIP) {
         if (vPortStore != null) {
             List<VirtualPort> vPorts = new ArrayList<>();
-            vPortStore.values().stream().forEach(p -> {
+            vPortStore.values().forEach(p -> {
                 Iterator<FixedIp> fixedIps = p.fixedIps().iterator();
                 while (fixedIps.hasNext()) {
                     if (fixedIps.next().equals(fixedIP)) {

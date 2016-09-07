@@ -36,10 +36,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class PathIntent extends ConnectivityIntent {
 
     private final Path path;
+    private ProtectionType type;
 
     /**
      * Creates a new point-to-point intent with the supplied ingress/egress
-     * ports and using the specified explicit path.
+     * ports and using the specified explicit path. Path is primary by default.
      *
      * @param appId     application identifier
      * @param key       intent key
@@ -57,10 +58,38 @@ public class PathIntent extends ConnectivityIntent {
                          Path path,
                          List<Constraint> constraints,
                          int priority) {
+        this(appId, key, selector, treatment, path, constraints, priority,
+             ProtectionType.PRIMARY);
+    }
+
+    /**
+     * Creates a new point-to-point intent with the supplied ingress/egress
+     * ports and using the specified explicit path, which can be classified
+     * as PRIMARY or BACKUP.
+     *
+     * @param appId     application identifier
+     * @param key       intent key
+     * @param selector  traffic selector
+     * @param treatment treatment
+     * @param path      traversed links
+     * @param constraints  optional list of constraints
+     * @param priority  priority to use for the generated flows
+     * @param type      PRIMARY or BACKUP
+     * @throws NullPointerException {@code path} is null
+     */
+    protected PathIntent(ApplicationId appId,
+                         Key key,
+                         TrafficSelector selector,
+                         TrafficTreatment treatment,
+                         Path path,
+                         List<Constraint> constraints,
+                         int priority,
+                         ProtectionType type) {
         super(appId, key, resources(path.links()), selector, treatment, constraints,
-                priority);
+              priority);
         PathIntent.validate(path.links());
         this.path = path;
+        this.type = type;
     }
 
     /**
@@ -69,6 +98,7 @@ public class PathIntent extends ConnectivityIntent {
     protected PathIntent() {
         super();
         this.path = null;
+        this.type = ProtectionType.PRIMARY;
     }
 
     /**
@@ -85,6 +115,7 @@ public class PathIntent extends ConnectivityIntent {
      */
     public static class Builder extends ConnectivityIntent.Builder {
         Path path;
+        ProtectionType type;
 
         protected Builder() {
             // Hide default constructor
@@ -131,6 +162,11 @@ public class PathIntent extends ConnectivityIntent {
             return this;
         }
 
+        public Builder setType(ProtectionType type) {
+            this.type = type;
+            return this;
+        }
+
         /**
          * Builds a path intent from the accumulated parameters.
          *
@@ -145,7 +181,8 @@ public class PathIntent extends ConnectivityIntent {
                     treatment,
                     path,
                     constraints,
-                    priority
+                    priority,
+                    type == null ? ProtectionType.PRIMARY : type
             );
         }
     }
@@ -183,6 +220,10 @@ public class PathIntent extends ConnectivityIntent {
         return path;
     }
 
+    public ProtectionType type() {
+        return type;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
@@ -195,7 +236,26 @@ public class PathIntent extends ConnectivityIntent {
                 .add("treatment", treatment())
                 .add("constraints", constraints())
                 .add("path", path)
+                .add("type", type)
                 .toString();
+    }
+
+    // for path protection purposes
+    @Beta
+    public enum ProtectionType {
+        /**
+         * Intent within primary path.
+         */
+        PRIMARY,
+        /**
+         * Intent within backup path.
+         */
+        BACKUP,
+        /**
+         * Intent whose flow rule serves as the fast failover
+         * between primary and backup paths.
+         */
+        FAILOVER
     }
 
 }

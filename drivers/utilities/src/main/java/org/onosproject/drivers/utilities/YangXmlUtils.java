@@ -69,7 +69,7 @@ public class YangXmlUtils {
         XMLConfiguration complete = new XMLConfiguration();
         List<String> paths = new ArrayList<>();
         Map<String, String> valuesWithKey = new HashMap<>();
-        values.keySet().stream().forEach(path -> {
+        values.keySet().forEach(path -> {
             List<String> allPaths = findPaths(cfg, path);
             String key = nullIsNotFound(allPaths.isEmpty() ? null : allPaths.get(0),
                                         "Yang model does not contain desired path");
@@ -163,7 +163,7 @@ public class YangXmlUtils {
                              HierarchicalConfiguration originalCfg, String path,
                              String originalKey) {
         //consider each sub configuration
-        configurations.stream().forEach(config -> {
+        configurations.forEach(config -> {
 
             YangElement element = new YangElement(path, new HashMap<>());
             //for each of the keys of the sub configuration

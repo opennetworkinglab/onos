@@ -30,8 +30,9 @@ public class OpticalPathEvent extends AbstractEvent<OpticalPathEvent.Type, Optic
 
     /**
      * Creates OpticalPathEvent object with specified type and subject.
-     * @param type
-     * @param subject
+     *
+     * @param type type of event
+     * @param subject subject of the event
      */
     public OpticalPathEvent(Type type, OpticalConnectivityId subject) {
         super(type, subject);

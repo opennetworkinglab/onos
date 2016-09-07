@@ -16,6 +16,8 @@
 package org.onosproject.net.flow;
 
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Represents a generalized match &amp; action pair to be applied to
  * an infrastucture device.
@@ -60,11 +62,19 @@ public interface FlowEntry extends FlowRule {
     FlowEntryState state();
 
     /**
-     * Returns the number of milliseconds this flow rule has been applied.
+     * Returns the number of seconds this flow rule has been applied.
      *
-     * @return number of millis
+     * @return number of seconds
      */
     long life();
+
+    /**
+     * Returns the time this flow rule has been applied.
+     *
+     * @param unit time unit the result will be converted to
+     * @return time in the requested {@link TimeUnit}
+     */
+    long life(TimeUnit unit);
 
     /**
      * Returns the number of packets this flow rule has matched.

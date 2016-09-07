@@ -105,7 +105,7 @@ public class ClassifierServiceImpl implements ClassifierService {
             log.info("No tunnel port in device");
             return;
         }
-        Sets.newHashSet(localTunnelPorts).stream().forEach(tp -> {
+        Sets.newHashSet(localTunnelPorts).forEach(tp -> {
             TrafficSelector selector = DefaultTrafficSelector.builder()
                     .matchInPort(tp).add(Criteria.matchTunnelId(Long
                             .parseLong(segmentationId.toString())))

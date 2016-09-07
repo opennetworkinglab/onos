@@ -46,6 +46,7 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowId;
+import org.onosproject.net.flow.FlowRule.FlowRemoveReason;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.FlowRuleService;
@@ -64,7 +65,9 @@ import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyShort;
 import static org.easymock.EasyMock.anyString;
@@ -141,7 +144,12 @@ public class FlowsResourceTest extends ResourceTest {
 
         @Override
         public long life() {
-            return baseValue + 11;
+            return life(SECONDS);
+        }
+
+        @Override
+        public long life(TimeUnit timeUnit) {
+            return SECONDS.convert(baseValue + 11, timeUnit);
         }
 
         @Override
@@ -208,6 +216,16 @@ public class FlowsResourceTest extends ResourceTest {
         @Override
         public int timeout() {
             return (int) (baseValue + 77);
+        }
+
+        @Override
+        public int hardTimeout() {
+            return 0;
+        }
+
+        @Override
+        public FlowRemoveReason reason() {
+            return  FlowRemoveReason.NO_REASON;
         }
 
         @Override
@@ -285,6 +303,16 @@ public class FlowsResourceTest extends ResourceTest {
         @Override
         public int timeout() {
             return (int) (baseValue + 77);
+        }
+
+        @Override
+        public int hardTimeout() {
+            return 0;
+        }
+
+        @Override
+        public FlowRemoveReason reason() {
+            return FlowRemoveReason.NO_REASON;
         }
 
         @Override

@@ -67,7 +67,7 @@ public final class GroupOperation {
         BAD_COMMAND,
         BAD_BUCKET,
         BAD_WATCH,
-        EPERM;
+        EPERM
     }
 
     /**

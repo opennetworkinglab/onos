@@ -16,4 +16,9 @@ osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
     web_context = '/onos/dhcp',
+    api_title = 'DHCP Server App',
+    api_version = '1.0',
+    api_description = 'REST API for DHCP Server App',
+    api_package = 'org.onosproject.dhcp.rest',
+    debug = False
 )

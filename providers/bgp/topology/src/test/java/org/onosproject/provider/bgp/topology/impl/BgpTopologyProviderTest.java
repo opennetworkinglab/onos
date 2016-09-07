@@ -107,7 +107,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 public class BgpTopologyProviderTest {
     private static final DeviceId DID2 = DeviceId.deviceId("l3:rd=0::routinguniverse=0:asn=10");
-    private static final String UNKNOWN = new String("unknown");
+    private static final String UNKNOWN = "unknown";
     public static ProviderId providerId = new ProviderId("l3", "foo");
     private static final NodeId NODE1 = new NodeId("Master1");
 
@@ -274,7 +274,7 @@ public class BgpTopologyProviderTest {
         Map<ResourceId, List<Resource>> registeredRes = new HashMap<>();
 
         @Override
-        public boolean register(List<Resource> resources) {
+        public boolean register(List<? extends Resource> resources) {
             for (Resource res : resources) {
                 List<Resource> resource = new LinkedList<>();
                 resource.add(res);
@@ -287,7 +287,7 @@ public class BgpTopologyProviderTest {
         }
 
         @Override
-        public boolean unregister(List<ResourceId> ids) {
+        public boolean unregister(List<? extends ResourceId> ids) {
             for (ResourceId id : ids) {
                 if (registeredRes.containsKey(id)) {
                     registeredRes.remove(id);

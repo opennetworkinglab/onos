@@ -92,7 +92,6 @@
     <script src="app/fw/layer/loading.js"></script>
 
     <!-- Framework and library stylesheets included here -->
-    <link rel="stylesheet" href="tp/angular-chart.min.css">
 
     <!-- TODO: use a single catenated-minified file here -->
     <link rel="stylesheet" href="app/onos.css">
@@ -128,10 +127,31 @@
 
     <!-- Under development for Region support. -->
     <script src="app/view/topo2/topo2.js"></script>
+    <script src="app/view/topo2/topo2Breadcrumb.js"></script>
+    <script src="app/view/topo2/topo2Collection.js"></script>
+    <script src="app/view/topo2/topo2D3.js"></script>
+    <script src="app/view/topo2/topo2Device.js"></script>
     <script src="app/view/topo2/topo2Event.js"></script>
     <script src="app/view/topo2/topo2Force.js"></script>
+    <script src="app/view/topo2/topo2Host.js"></script>
+    <script src="app/view/topo2/topo2Instance.js"></script>
+    <script src="app/view/topo2/topo2Layout.js"></script>
+    <script src="app/view/topo2/topo2Link.js"></script>
+    <script src="app/view/topo2/topo2Model.js"></script>
+    <script src="app/view/topo2/topo2NodeModel.js"></script>
+    <script src="app/view/topo2/topo2Region.js"></script>
+    <script src="app/view/topo2/topo2Select.js"></script>
+    <script src="app/view/topo2/topo2SubRegion.js"></script>
+    <script src="app/view/topo2/topo2Theme.js"></script>
+    <script src="app/view/topo2/topo2View.js"></script>
     <link rel="stylesheet" href="app/view/topo2/topo2.css">
     <link rel="stylesheet" href="app/view/topo2/topo2-theme.css">
+
+    <script src="app/view/topoX/topoX.js"></script>
+    <script src="app/view/topoX/topoXEvent.js"></script>
+    <script src="app/view/topoX/topoXForce.js"></script>
+    <link rel="stylesheet" href="app/view/topoX/topoX.css">
+    <link rel="stylesheet" href="app/view/topoX/topoX-theme.css">
 
     <!-- Builtin views javascript. -->
     <script src="app/view/topo/topo.js"></script>
@@ -212,6 +232,7 @@
          ng-controller="NavCtrl as navCtrl"
          ng-include="'nav.html'"></div>
 
+    <div id="breadcrumbs"></div>
     <div id="floatpanels"></div>
     <div id="alerts"></div>
     <div id="tooltip"></div>

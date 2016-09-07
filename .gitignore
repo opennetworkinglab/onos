@@ -12,17 +12,17 @@ target
 dependency-reduced-pom.xml
 .idea
 *.DS_Store
-localDB
-localDB.*
 .buckd
 buck-out
 .buckconfig.local
+.buckjavaargs*
+bucklets/plugins/
+.watchmanconfig
 
-core/store/trivial/data/
-core/store/apps
-core/store/data
 /bin/
 
 web/gui/src/main/webapp/tests/node_modules
+web/gui/src/test/_karma/node_modules
 web/gui/src/main/webapp/node_modules/
+
 npm-debug.log

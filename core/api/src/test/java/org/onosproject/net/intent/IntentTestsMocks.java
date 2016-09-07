@@ -26,6 +26,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.Path;
+import org.onosproject.net.flow.FlowRule.FlowRemoveReason;
 import org.onosproject.net.flow.FlowId;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleExtPayLoad;
@@ -192,7 +193,7 @@ public class IntentTestsMocks {
         }
 
         @Override
-        public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<Resource> resources) {
+        public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<? extends Resource> resources) {
             return null;
         }
 
@@ -327,6 +328,16 @@ public class IntentTestsMocks {
         @Override
         public int timeout() {
             return 0;
+        }
+
+        @Override
+        public int hardTimeout() {
+            return 0;
+        }
+
+        @Override
+        public FlowRemoveReason reason() {
+            return FlowRemoveReason.NO_REASON;
         }
 
         @Override

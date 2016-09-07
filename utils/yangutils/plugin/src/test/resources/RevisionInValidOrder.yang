@@ -1,9 +1,0 @@
-module Test {
-yang-version 1;
-namespace urn:ietf:params:xml:ns:yang:ietf-ospf;
-prefix test;
-revision 2016-02-03;
-include itut {
-revision-date 2016-02-03;
-}
-}

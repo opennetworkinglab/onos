@@ -15,9 +15,10 @@
  */
 package org.onosproject.xosclient.api;
 
+import com.google.common.base.Strings;
 import org.onlab.util.Identifier;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Representation of VTN service identifier.
@@ -39,7 +40,7 @@ public final class VtnServiceId extends Identifier<String> {
      * @return CordServiceId
      */
     public static VtnServiceId of(String id) {
-        checkNotNull(id);
+        checkArgument(!Strings.isNullOrEmpty(id), "VTN service ID cannot be null");
         return new VtnServiceId(id);
     }
 }

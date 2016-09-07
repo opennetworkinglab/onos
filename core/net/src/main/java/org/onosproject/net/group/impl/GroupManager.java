@@ -224,6 +224,13 @@ public class GroupManager
                                      newCookie);
     }
 
+    @Override
+    public void purgeGroupEntries(DeviceId deviceId) {
+        checkPermission(GROUP_WRITE);
+        store.purgeGroupEntry(deviceId);
+    }
+
+
     /**
      * Delete a group associated to an application cookie.
      * GROUP_DELETED or GROUP_DELETE_FAILED notifications would be
@@ -317,9 +324,9 @@ public class GroupManager
                 case GROUP_ADD_FAILED:
                 case GROUP_UPDATE_FAILED:
                 case GROUP_REMOVE_FAILED:
+                case GROUP_BUCKET_FAILOVER:
                     post(event);
                     break;
-
                 default:
                     break;
             }
@@ -346,6 +353,11 @@ public class GroupManager
             checkValidity();
             store.pushGroupMetrics(deviceId, groupEntries);
         }
+
+        @Override
+        public void notifyOfFailovers(Collection<Group> failoverGroups) {
+            store.notifyOfFailovers(failoverGroups);
+        }
     }
 
     private class InternalDeviceListener implements DeviceListener {
@@ -371,4 +383,5 @@ public class GroupManager
             }
         }
     }
+
 }

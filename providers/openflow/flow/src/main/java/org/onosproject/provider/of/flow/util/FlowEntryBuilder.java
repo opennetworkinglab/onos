@@ -94,6 +94,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.onosproject.net.flow.criteria.Criteria.*;
 import static org.onosproject.net.flow.instructions.Instructions.modL0Lambda;
 import static org.onosproject.net.flow.instructions.Instructions.modL1OduSignalId;
@@ -170,7 +172,8 @@ public class FlowEntryBuilder {
                     }
 
                     return new DefaultFlowEntry(builder.build(), FlowEntryState.ADDED,
-                                                stat.getDurationSec(),
+                                                SECONDS.toNanos(stat.getDurationSec())
+                                                        + stat.getDurationNsec(), NANOSECONDS,
                                                 stat.getPacketCount().getValue(),
                                                 stat.getByteCount().getValue());
                 case REMOVED:
@@ -179,13 +182,16 @@ public class FlowEntryBuilder {
                             .withSelector(buildSelector())
                             .withPriority(removed.getPriority())
                             .makeTemporary(removed.getIdleTimeout())
-                            .withCookie(removed.getCookie().getValue());
+                            .withCookie(removed.getCookie().getValue())
+                            .withReason(FlowRule.FlowRemoveReason.parseShort(removed.getReason()));
+
                     if (removed.getVersion() != OFVersion.OF_10) {
                         builder.forTable(removed.getTableId().getValue());
                     }
 
                     return new DefaultFlowEntry(builder.build(), FlowEntryState.REMOVED,
-                                                removed.getDurationSec(),
+                                                SECONDS.toNanos(removed.getDurationSec())
+                                                        + removed.getDurationNsec(), NANOSECONDS,
                                                 removed.getPacketCount().getValue(),
                                                 removed.getByteCount().getValue());
                 case MOD:
@@ -483,7 +489,7 @@ public class FlowEntryBuilder {
         case MPLS_BOS:
             @SuppressWarnings("unchecked")
             OFOxm<U8> mplsBos = (OFOxm<U8>) oxm;
-            builder.setMplsBos(mplsBos.getValue() == U8.ZERO ? false : true);
+            builder.setMplsBos(mplsBos.getValue() != U8.ZERO);
             break;
         case TUNNEL_ID:
             @SuppressWarnings("unchecked")

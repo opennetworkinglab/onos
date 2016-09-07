@@ -37,7 +37,7 @@ public interface InterfaceConfig extends HandlerBehaviour {
      * @deprecated in 1.7.0 Hummingbird release - use of addAccessMode() instead
      */
     @Deprecated
-    public boolean addAccessInterface(DeviceId deviceId, String intf, VlanId vlanId);
+    boolean addAccessInterface(DeviceId deviceId, String intf, VlanId vlanId);
 
     /**
      * Adds an access interface to a VLAN.
@@ -167,7 +167,7 @@ public interface InterfaceConfig extends HandlerBehaviour {
      * deviceId as parameter instead
      */
     @Deprecated
-    public List<DeviceInterfaceDescription> getInterfaces(DeviceId deviceId);
+    List<DeviceInterfaceDescription> getInterfaces(DeviceId deviceId);
 
     /**
      * Provides the interfaces configured on a device.

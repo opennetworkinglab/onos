@@ -42,6 +42,7 @@
             topo2AllInstances: t2fs,
             topo2CurrentLayout: t2fs,
             topo2CurrentRegion: t2fs,
+            topo2PeerRegions: t2fs,
             topo2StartDone: t2fs
 
             // Add further event names / module references as needed

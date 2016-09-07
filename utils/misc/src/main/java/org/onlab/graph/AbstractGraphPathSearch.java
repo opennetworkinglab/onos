@@ -279,9 +279,12 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
                     while (edges.hasNext()) {
                         E edge = edges.next();
                         boolean isLast = !edges.hasNext();
-                        DefaultMutablePath<V, E> pendingPath = isLast ? path : new DefaultMutablePath<>(path);
-                        pendingPath.insertEdge(edge);
-                        frontier.add(pendingPath);
+                        // Exclude any looping paths
+                        if (!isInPath(edge, path)) {
+                            DefaultMutablePath<V, E> pendingPath = isLast ? path : new DefaultMutablePath<>(path);
+                            pendingPath.insertEdge(edge);
+                            frontier.add(pendingPath);
+                        }
                     }
                 }
             }
@@ -289,6 +292,18 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
             // All pending paths have been scanned so promote the next frontier
             pendingPaths = frontier;
         }
+    }
+
+    /**
+     * Indicates whether or not the specified edge source is already visited
+     * in the specified path.
+     *
+     * @param edge edge to test
+     * @param path path to test
+     * @return true if the edge.src() is a vertex in the path already
+     */
+    private boolean isInPath(E edge, DefaultMutablePath<V, E> path) {
+        return path.edges().stream().anyMatch(e -> edge.src().equals(e.dst()));
     }
 
     // Returns the first vertex of the specified path. This is either the source

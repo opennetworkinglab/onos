@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
@@ -85,6 +86,9 @@ public class DistributedStatisticStore implements StatisticStore {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     public static final MessageSubject GET_CURRENT = new MessageSubject("peer-return-current");
     public static final MessageSubject GET_PREVIOUS = new MessageSubject("peer-return-previous");
 
@@ -109,7 +113,10 @@ public class DistributedStatisticStore implements StatisticStore {
     private static final long STATISTIC_STORE_TIMEOUT_MILLIS = 3000;
 
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
+        cfgService.registerProperties(getClass());
+
+        modified(context);
 
         messageHandlingExecutor = Executors.newFixedThreadPool(
                 messageHandlerThreadPoolSize,
@@ -132,6 +139,7 @@ public class DistributedStatisticStore implements StatisticStore {
 
     @Deactivate
     public void deactivate() {
+        cfgService.unregisterProperties(getClass(), false);
         clusterCommunicator.removeSubscriber(GET_PREVIOUS);
         clusterCommunicator.removeSubscriber(GET_CURRENT);
         messageHandlingExecutor.shutdown();

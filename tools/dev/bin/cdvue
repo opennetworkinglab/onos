@@ -1,0 +1,22 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+#   Component Dependency Mapper
+#-------------------------------------------------------------------------------
+
+VER=${CDVUE_VERSION:-1.0}
+JAR=~/.m2/repository/org/onosproject/cdvue/$VER/cdvue-$VER.jar
+
+# Download the cdvue binary if needed
+if [ ! -f $JAR ]; then
+    printf "Downloading cdvue binary..."
+    aux=/tmp/stc-$$.log
+    mvn dependency:get -Dartifact=org.onosproject:cdvue:$VER -Dtransitive=false -B >$aux || fgrep '[ERROR]' $aux
+    rm -f $aux
+    [ -f $JAR ] && printf "Done.\n"
+fi
+
+# Assume default project to be the base-name of the argument or of current dir
+name=$(basename ${1:-$PWD})
+
+# Now run the Component Dependency Viewer jar on the catalog
+java -jar "${JAR}" $1 && mv mapper.html $name.html && open $name.html

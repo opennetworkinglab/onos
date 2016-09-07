@@ -177,7 +177,7 @@ public class SimpleHostStore
 
     @Override
     public Iterable<Host> getHosts() {
-        return ImmutableSet.<Host>copyOf(hosts.values());
+        return ImmutableSet.copyOf(hosts.values());
     }
 
     @Override

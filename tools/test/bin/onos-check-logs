@@ -37,39 +37,35 @@ if [ "$2" = "old" ]; then
 else
     ssh $remote "
         [ "'`uname`'" != "'"Linux"'" ] && alias tac='tail -r'
-        tac $LOG | awk '
+        tac $LOG | tr -d '\000' | awk '
             BEGIN { off = 0; fail = 0; }
             / org.apache.karaf.main.lock.SimpleFileLock lock/ {
-                off = 1;
                 exit fail;
             }
 
             / ERROR / {
-                if (!off) {
-                    print \$0;
-                    exc = 0;
-                    fail = 1;
-                }
+                print \$0;
+                exc = 0;
+                fail = 1;
             }
             / WARN / {
-                if (!off && exc) {
+                if (exc) {
                     print \$0;
                     exc = 0;
                 }
+            }
+            / INFO / {
+                exc = 0;
             }
 
             /^[a-zA-Z0-9.]*(Exception|Error)/ {
-                if (!off) {
-                    print \$0;
-                    exc = 1;
-                    fail = 1;
-                }
+                print \$0;
+                exc = 1;
+                fail = 1;
             }
 
-            /	at / {
-                if (!off) {
-                    print \$0;
-                }
+            /(	at|Caused by:) / {
+                print \$0;
             }
         END { exit fail; }
         ' > $aux

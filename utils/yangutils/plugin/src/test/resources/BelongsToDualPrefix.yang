@@ -1,8 +1,0 @@
-submodule Test {
-yang-version 1;
-belongs-to ONOS {
-prefix On1;
-prefix On2;
-}
-}
-

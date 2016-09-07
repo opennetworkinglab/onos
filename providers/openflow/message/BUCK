@@ -15,6 +15,7 @@ osgi_jar_with_tests (
 )
 
 onos_app (
+    app_name = 'org.onosproject.openflow-message',
     title = 'Control Message Stats Provider',
     category = 'Provider',
     url = 'http://onosproject.org',

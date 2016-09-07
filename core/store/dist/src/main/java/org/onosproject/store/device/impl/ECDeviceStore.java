@@ -679,12 +679,32 @@ public class ECDeviceStore
     }
 
     @Override
+    public PortStatistics getStatisticsForPort(DeviceId deviceId, PortNumber portNumber) {
+        Map<PortNumber, PortStatistics> portStatsMap = devicePortStats.get(deviceId);
+        if (portStatsMap == null) {
+            return null;
+        }
+        PortStatistics portStats = portStatsMap.get(portNumber);
+        return portStats;
+    }
+
+    @Override
     public List<PortStatistics> getPortDeltaStatistics(DeviceId deviceId) {
         Map<PortNumber, PortStatistics> portStats = devicePortDeltaStats.get(deviceId);
         if (portStats == null) {
             return Collections.emptyList();
         }
         return ImmutableList.copyOf(portStats.values());
+    }
+
+    @Override
+    public PortStatistics getDeltaStatisticsForPort(DeviceId deviceId, PortNumber portNumber) {
+        Map<PortNumber, PortStatistics> portStatsMap = devicePortDeltaStats.get(deviceId);
+        if (portStatsMap == null) {
+            return null;
+        }
+        PortStatistics portStats = portStatsMap.get(portNumber);
+        return portStats;
     }
 
     @Override
@@ -824,7 +844,7 @@ public class ECDeviceStore
             if (event.type() == PUT) {
                 Device device = devices.get(event.key());
                 if (device != null) {
-                    delegate.notify(new DeviceEvent(PORT_STATS_UPDATED, device));
+                    notifyDelegate(new DeviceEvent(PORT_STATS_UPDATED, device));
                 }
             }
         }

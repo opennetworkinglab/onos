@@ -808,7 +808,7 @@ public class OpticalPathProvisionerTest {
     private static class TestResourceService implements ResourceService {
 
         @Override
-        public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<Resource> resources) {
+        public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<? extends Resource> resources) {
             List<ResourceAllocation> allocations = new ArrayList<>();
 
             resources.forEach(r -> allocations.add(new ResourceAllocation(r, consumer.consumerId())));

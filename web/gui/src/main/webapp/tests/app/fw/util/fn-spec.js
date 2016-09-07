@@ -216,7 +216,8 @@ describe('factory: fw/util/fn.js', function() {
             'isMobile', 'isChrome', 'isSafari', 'isFirefox',
             'debugOn', 'debug',
             'find', 'inArray', 'removeFromArray', 'isEmptyObject', 'sameObjProps', 'containsObj', 'cap',
-            'eecode', 'noPx', 'noPxStyle', 'endsWith', 'parseBitRate', 'addToTrie', 'removeFromTrie', 'trieLookup'
+            'eecode', 'noPx', 'noPxStyle', 'endsWith', 'parseBitRate', 'addToTrie', 'removeFromTrie', 'trieLookup',
+            'classNames'
         ])).toBeTruthy();
     });
 

@@ -60,14 +60,20 @@ import org.onosproject.net.region.RegionListener;
 import org.onosproject.net.region.RegionService;
 import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.TopologyService;
+import org.onosproject.ui.UiTopoLayoutService;
 import org.onosproject.ui.impl.topo.UiTopoSession;
 import org.onosproject.ui.model.ServiceBundle;
 import org.onosproject.ui.model.topo.UiClusterMember;
+import org.onosproject.ui.model.topo.UiDevice;
+import org.onosproject.ui.model.topo.UiDeviceLink;
+import org.onosproject.ui.model.topo.UiHost;
 import org.onosproject.ui.model.topo.UiRegion;
+import org.onosproject.ui.model.topo.UiSynthLink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -81,6 +87,9 @@ public final class UiSharedTopologyModel
 
     private static final Logger log =
             LoggerFactory.getLogger(UiSharedTopologyModel.class);
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private UiTopoLayoutService layoutService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private ClusterService clusterService;
@@ -196,15 +205,31 @@ public final class UiSharedTopologyModel
 
 
     // =======================================================================
-    //  methods that the topo session will use to extract information from us
+    //  Methods for topo session (or CLI) to use to get information from us
 
     /**
-     * Returns the list of cluster members stored in our model cache.
+     * Refreshes the cache's internal state.
+     */
+    public void refresh() {
+        cache.refresh();
+    }
+
+    /**
+     * Returns the list of cluster members stored in the model cache.
      *
      * @return list of cluster members
      */
     public List<UiClusterMember> getClusterMembers() {
         return cache.getAllClusterMembers();
+    }
+
+    /**
+     * Returns the set of regions stored in the model cache.
+     *
+     * @return set of regions
+     */
+    public Set<UiRegion> getRegions() {
+        return cache.getAllRegions();
     }
 
     /**
@@ -227,10 +252,40 @@ public final class UiSharedTopologyModel
     }
 
     /**
-     * Refreshes the cache's internal state.
+     * Returns the set of devices stored in the model cache.
+     *
+     * @return set of devices
      */
-    public void refresh() {
-        cache.refresh();
+    public Set<UiDevice> getDevices() {
+        return cache.getAllDevices();
+    }
+
+    /**
+     * Returns the set of hosts stored in the model cache.
+     *
+     * @return set of hosts
+     */
+    public Set<UiHost> getHosts() {
+        return cache.getAllHosts();
+    }
+
+    /**
+     * Returns the set of device links stored in the model cache.
+     *
+     * @return set of device links
+     */
+    public Set<UiDeviceLink> getDeviceLinks() {
+        return cache.getAllDeviceLinks();
+    }
+
+    /**
+     * Returns the synthetic links associated with the specified region.
+     *
+     * @param regionId region ID
+     * @return synthetic links for that region
+     */
+    public List<UiSynthLink> getSynthLinks(RegionId regionId) {
+        return cache.getSynthLinks(regionId);
     }
 
     // =====================================================================
@@ -241,6 +296,11 @@ public final class UiSharedTopologyModel
      * dynamically injected services.
      */
     private class DefaultServiceBundle implements ServiceBundle {
+        @Override
+        public UiTopoLayoutService layout() {
+            return layoutService;
+        }
+
         @Override
         public ClusterService cluster() {
             return clusterService;
@@ -385,11 +445,11 @@ public final class UiSharedTopologyModel
 
                 case LINK_ADDED:
                 case LINK_UPDATED:
-                    cache.addOrUpdateLink(link);
+                    cache.addOrUpdateDeviceLink(link);
                     break;
 
                 case LINK_REMOVED:
-                    cache.removeLink(link);
+                    cache.removeDeviceLink(link);
                     break;
 
                 default:

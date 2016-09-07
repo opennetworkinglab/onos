@@ -82,9 +82,8 @@ public class PersistentSet<E> implements Set<E> {
     public Object[] toArray() {
         Object[] retArray = new Object[items.size()];
         int index = 0;
-        Iterator<byte[]> iterator = items.iterator();
-        while (iterator.hasNext()) {
-            retArray[index] = serializer.decode(iterator.next());
+        for (byte[] item : items) {
+            retArray[index] = serializer.decode(item);
             index++;
         }
         return retArray;

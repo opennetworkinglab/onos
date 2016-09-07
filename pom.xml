@@ -53,9 +53,6 @@
     </licenses>
 
     <modules>
-        <!-- FIXME remove after 1.10 is released -->
-        <module>tools/package/maven-plugin</module>
-
         <module>lib</module>
 
         <module>utils</module>
@@ -85,11 +82,24 @@
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
             <snapshots>
                 <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
+                <updatePolicy>daily</updatePolicy>
                 <checksumPolicy>fail</checksumPolicy>
             </snapshots>
         </repository>
     </repositories>
+
+    <!-- FIXME required for onos-maven-plugin:1.10-SNAPSHOT -->
+    <pluginRepositories>
+        <pluginRepository>
+            <id>snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 
     <distributionManagement>
         <snapshotRepository>

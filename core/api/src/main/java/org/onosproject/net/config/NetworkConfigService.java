@@ -182,6 +182,7 @@ public interface NetworkConfigService
      * Clears the  configuration including queued based on the subject.
      * If does not exists this call has no effect.
      *
+     * @param <S>               type of subject
      * @param subject           configuration subject
      */
     <S> void removeConfig(S subject);
@@ -190,6 +191,7 @@ public interface NetworkConfigService
      * Clears the complete configuration including queued.
      * If does not exists this call has no effect.
      *
+     * @param <S>               type of subject
      */
     <S> void removeConfig();
 }

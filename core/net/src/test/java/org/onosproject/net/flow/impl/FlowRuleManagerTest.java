@@ -260,6 +260,22 @@ public class FlowRuleManagerTest {
     }
 
     @Test
+    public void purgeFlowRules() {
+        FlowRule f1 = addFlowRule(1);
+        FlowRule f2 = addFlowRule(2);
+        FlowRule f3 = addFlowRule(3);
+        assertEquals("3 rules should exist", 3, flowCount());
+        FlowEntry fe1 = new DefaultFlowEntry(f1);
+        FlowEntry fe2 = new DefaultFlowEntry(f2);
+        FlowEntry fe3 = new DefaultFlowEntry(f3);
+        providerService.pushFlowMetrics(DID, ImmutableList.of(fe1, fe2, fe3));
+        validateEvents(RULE_ADD_REQUESTED, RULE_ADD_REQUESTED, RULE_ADD_REQUESTED,
+                RULE_ADDED, RULE_ADDED, RULE_ADDED);
+        mgr.purgeFlowRules(DID);
+        assertEquals("0 rule should exist", 0, flowCount());
+    }
+
+    @Test
     public void removeFlowRules() {
         FlowRule f1 = addFlowRule(1);
         FlowRule f2 = addFlowRule(2);
@@ -538,14 +554,14 @@ public class FlowRuleManagerTest {
             @Override
             public CompletedBatchOperation get()
                     throws InterruptedException, ExecutionException {
-                return new CompletedBatchOperation(true, Collections.<FlowRule>emptySet(), null);
+                return new CompletedBatchOperation(true, Collections.emptySet(), null);
             }
 
             @Override
             public CompletedBatchOperation get(long timeout, TimeUnit unit)
                     throws InterruptedException,
                     ExecutionException, TimeoutException {
-                return new CompletedBatchOperation(true, Collections.<FlowRule>emptySet(), null);
+                return new CompletedBatchOperation(true, Collections.emptySet(), null);
             }
 
             @Override

@@ -45,9 +45,8 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-ovsdb-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
             <scope>test</scope>

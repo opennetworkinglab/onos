@@ -141,11 +141,6 @@ public final class TestDistributedSet<E> extends DistributedSetAdapter<E> {
     }
 
     @Override
-    public Type primitiveType() {
-        return super.primitiveType();
-    }
-
-    @Override
     public DistributedSet<E> asDistributedSet() {
         return new DefaultDistributedSet<>(this, 0);
     }

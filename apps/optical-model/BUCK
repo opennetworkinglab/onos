@@ -1,0 +1,28 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api',
+    '//cli:onos-cli',
+    '//lib:org.apache.karaf.shell.console',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+]
+
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
+
+onos_app (
+    app_name = 'org.onosproject.optical-model',
+    # Is there a way to change BUCK target name properly?
+    #name = 'onos-optical-model',
+    feature_coords = 'org.onosproject:onos-optical-model:%s' % (ONOS_VERSION),
+    title = 'Optical information model',
+    category = 'Optical',
+    url = 'https://wiki.onosproject.org/x/C4m',
+    description = 'ONOS optical information model.',
+    required_apps = [ ],
+)

@@ -37,7 +37,6 @@ import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.edge.EdgePortEvent;
 import org.onosproject.net.edge.EdgePortListener;
-import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketServiceAdapter;
@@ -352,7 +351,7 @@ public class EdgeManagerTest {
                                                                              true)));
         }
 
-        mgr.emitPacket(ByteBuffer.wrap(arr), Optional.<TrafficTreatment>empty());
+        mgr.emitPacket(ByteBuffer.wrap(arr), Optional.empty());
 
         assertEquals("There were an unexpected number of emitted packets",
                      (totalPorts - numInfraPorts) * numDevices, packets.size());
@@ -364,7 +363,7 @@ public class EdgeManagerTest {
         }
         //Start testing emission to a specific device
         packets.clear();
-        mgr.emitPacket(NetTestTools.did(Integer.toString(1)), ByteBuffer.wrap(arr), Optional.<TrafficTreatment>empty());
+        mgr.emitPacket(NetTestTools.did(Integer.toString(1)), ByteBuffer.wrap(arr), Optional.empty());
 
         assertEquals("Unexpected number of outbound packets were emitted.",
                      totalPorts - numInfraPorts, packets.size());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-present Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Timer;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -120,6 +121,7 @@ import org.projectfloodlight.openflow.types.PortSpeed;
 import org.slf4j.Logger;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -158,6 +160,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     @Property(name = POLL_PROP_NAME, intValue = POLL_INTERVAL,
     label = "Frequency (in seconds) for polling switch Port statistics")
     private int portStatsPollFrequency = POLL_INTERVAL;
+
+    private final Timer timer = new Timer("onos-openflow-collector");
 
     private HashMap<Dpid, PortStatsCollector> collectors = Maps.newHashMap();
 
@@ -221,7 +225,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 // disconnect to trigger switch-add later
                 sw.disconnectSwitch();
             }
-            PortStatsCollector psc = new PortStatsCollector(sw, portStatsPollFrequency);
+            PortStatsCollector psc = new PortStatsCollector(timer, sw, portStatsPollFrequency);
             psc.start();
             collectors.put(new Dpid(sw.getId()), psc);
         }
@@ -310,7 +314,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     private void pushPortMetrics(Dpid dpid, List<OFPortStatsEntry> portStatsEntries) {
         DeviceId deviceId = DeviceId.deviceId(Dpid.uri(dpid));
-        Collection<PortStatistics> stats = buildPortStatistics(deviceId, portStatsEntries);
+        Collection<PortStatistics> stats =
+                buildPortStatistics(deviceId, ImmutableList.copyOf(portStatsEntries));
         providerService.updatePortStatistics(deviceId, stats);
     }
 
@@ -360,6 +365,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             DeviceId did = deviceId(uri(dpid));
             OpenFlowSwitch sw = controller.getSwitch(dpid);
             if (sw == null) {
+                LOG.error("Switch {} is not found", dpid);
                 return;
             }
 
@@ -381,7 +387,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             providerService.deviceConnected(did, description);
             providerService.updatePorts(did, buildPortDescriptions(sw));
 
-            PortStatsCollector psc = new PortStatsCollector(sw, portStatsPollFrequency);
+            PortStatsCollector psc = new PortStatsCollector(timer, sw, portStatsPollFrequency);
             stopCollectorIfNeeded(collectors.put(dpid, psc));
             psc.start();
 
@@ -415,6 +421,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             DeviceId did = deviceId(uri(dpid));
             OpenFlowSwitch sw = controller.getSwitch(dpid);
             if (sw == null) {
+                LOG.error("Switch {} is not found", dpid);
                 return;
             }
             final List<PortDescription> ports = buildPortDescriptions(sw);
@@ -835,6 +842,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                             }
                         } else if (((OFStatsReply) msg).getStatsType() == OFStatsType.EXPERIMENTER) {
                             OpenFlowSwitch sw = controller.getSwitch(dpid);
+                            if (sw == null) {
+                                LOG.error("Switch {} is not found", dpid);
+                                break;
+                            }
                             if (sw instanceof OpenFlowOpticalSwitch) {
                                 // Optical switch uses experimenter stats message to update power
                                 List<PortDescription> portDescs =

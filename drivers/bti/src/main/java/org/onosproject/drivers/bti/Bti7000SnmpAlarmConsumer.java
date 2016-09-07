@@ -169,7 +169,7 @@ public class Bti7000SnmpAlarmConsumer extends AbstractHandlerBehaviour implement
             if ((deviceAlarms != null) && (deviceAlarms.getActAlarmEntry() != null)
                     && (!deviceAlarms.getActAlarmEntry().isEmpty())) {
 
-                deviceAlarms.getActAlarmEntry().values().stream().forEach((alarm) -> {
+                deviceAlarms.getActAlarmEntry().values().forEach((alarm) -> {
                     DefaultAlarm.Builder alarmBuilder = new DefaultAlarm.Builder(
                             deviceId, alarm.getActAlarmDescription(),
                             mapAlarmSeverity(alarm.getActAlarmSeverity()),

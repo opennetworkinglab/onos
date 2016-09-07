@@ -36,7 +36,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of {@code IdBlockStore} using {@code AtomicCounter}.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
 public class DistributedIdBlockStore implements IdBlockStore {
 

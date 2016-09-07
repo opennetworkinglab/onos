@@ -50,7 +50,7 @@ public interface TopologyForDeviceAndLink {
     /**
      * Sets link information.
      *
-     * @param key                key used to store in map
+     * @param key key used to store in map
      * @param linkInformationMap link information instance
      */
     void setLinkInformationMap(String key, LinkInformation linkInformationMap);
@@ -79,7 +79,7 @@ public interface TopologyForDeviceAndLink {
     void removeDeviceInformationMap(String key);
 
     /**
-     * Removes links from linkInformationMap.
+     * Removes links from link information map.
      *
      * @param routerId router's IP address
      */
@@ -109,4 +109,56 @@ public interface TopologyForDeviceAndLink {
      * @param ospfArea area instance
      */
     void updateLinkInformation(OspfLsa ospfLsa, OspfArea ospfArea);
+
+    /**
+     * Gets device information as map.
+     *
+     * @return deviceInformationMap to delete from core
+     */
+    Map<String, DeviceInformation> deviceInformationMapToDelete();
+
+    /**
+     * Sets device information as map.
+     *
+     * @param key key to store in device info map
+     * @param deviceInformationMapToDelete device information instance
+     */
+    void setDeviceInformationMapToDelete(String key, DeviceInformation deviceInformationMapToDelete);
+
+    /**
+     * Removes device information from deviceInformationMapToDelete.
+     *
+     * @param key key to remove device information
+     */
+    void removeDeviceInformationMapFromDeleteMap(String key);
+
+    /**
+     * Gets device information as map for Point-To-Point.
+     *
+     * @return deviceInformationMap
+     */
+    Map<String, DeviceInformation> deviceInformationMapForPointToPoint();
+
+    /**
+     * Sets device information as map for Point-To-Point.
+     *
+     * @param key key to store in device info
+     * @param deviceInformationMap device information instance
+     */
+    void setDeviceInformationMapForPointToPoint(String key, DeviceInformation deviceInformationMap);
+
+    /**
+     * Gets link information as map for Point-To-Point.
+     *
+     * @return linkInformationMap
+     */
+    Map<String, LinkInformation> linkInformationMapForPointToPoint();
+
+    /**
+     * Sets link information as map for Point-To-Point.
+     *
+     * @param key key to store link info
+     * @param linkInformationMap link information instance
+     */
+    void setLinkInformationMapForPointToPoint(String key, LinkInformation linkInformationMap);
 }

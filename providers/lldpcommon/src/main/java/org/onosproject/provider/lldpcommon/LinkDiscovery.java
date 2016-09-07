@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import java.nio.ByteBuffer;
 import java.util.Set;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
@@ -165,20 +166,24 @@ public class LinkDiscovery implements TimerTask {
 
             PortNumber srcPort = portNumber(onoslldp.getPort());
             PortNumber dstPort = packetContext.inPacket().receivedFrom().port();
-            DeviceId srcDeviceId = DeviceId.deviceId(onoslldp.getDeviceString());
-            DeviceId dstDeviceId = packetContext.inPacket().receivedFrom().deviceId();
 
-            ConnectPoint src = new ConnectPoint(srcDeviceId, srcPort);
-            ConnectPoint dst = new ConnectPoint(dstDeviceId, dstPort);
+            String idString = onoslldp.getDeviceString();
+            if (!isNullOrEmpty(idString)) {
+                DeviceId srcDeviceId = DeviceId.deviceId(idString);
+                DeviceId dstDeviceId = packetContext.inPacket().receivedFrom().deviceId();
 
-            LinkDescription ld = new DefaultLinkDescription(src, dst, lt);
-            try {
-                context.providerService().linkDetected(ld);
-                context.touchLink(LinkKey.linkKey(src, dst));
-            } catch (IllegalStateException e) {
+                ConnectPoint src = new ConnectPoint(srcDeviceId, srcPort);
+                ConnectPoint dst = new ConnectPoint(dstDeviceId, dstPort);
+
+                LinkDescription ld = new DefaultLinkDescription(src, dst, lt);
+                try {
+                    context.providerService().linkDetected(ld);
+                    context.touchLink(LinkKey.linkKey(src, dst));
+                } catch (IllegalStateException e) {
+                    return true;
+                }
                 return true;
             }
-            return true;
         }
         return false;
     }

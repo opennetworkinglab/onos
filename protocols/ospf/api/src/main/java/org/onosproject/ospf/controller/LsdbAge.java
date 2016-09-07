@@ -98,4 +98,11 @@ public interface LsdbAge {
      * @param lsaWrapper wrapper instance
      */
     public void removeLsaFromBin(LsaWrapper lsaWrapper);
+
+    /**
+     * Gets the age counter roll over.
+     *
+     * @return the age counter roll over
+     */
+    public int getAgeCounterRollOver();
 }

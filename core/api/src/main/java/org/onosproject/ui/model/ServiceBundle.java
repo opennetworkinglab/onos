@@ -24,11 +24,20 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.region.RegionService;
+import org.onosproject.ui.UiTopoLayoutService;
 
 /**
  * A bundle of services to pass to elements that might need a reference to them.
  */
 public interface ServiceBundle {
+
+    /**
+     * Reference to a UI Topology Layout service implementation.
+     *
+     * @return layout service
+     */
+    UiTopoLayoutService layout();
+
     /**
      * Reference to a cluster service implementation.
      *

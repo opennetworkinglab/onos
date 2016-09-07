@@ -41,13 +41,23 @@ public class LeadershipEvent extends AbstractEvent<LeadershipEvent.Type, Leaders
          * Signifies that the leader for a topic has changed.
          */
         // TODO: We may not need this. We currently do not support a way for a current leader to step down
-        // while still reamining a candidate
+        // while still remaining a candidate
         LEADER_CHANGED,
 
         /**
          * Signifies a change in the list of candidates for a topic.
          */
-        CANDIDATES_CHANGED
+        CANDIDATES_CHANGED,
+
+        /**
+         * Signifies the Leadership Elector is unavailable.
+         */
+        SERVICE_DISRUPTED,
+
+        /**
+         * Signifies the Leadership Elector is available again.
+         */
+        SERVICE_RESTORED
     }
 
     /**

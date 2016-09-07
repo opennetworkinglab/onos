@@ -37,5 +37,5 @@ public enum RequestType {
     /**
      * Specifies the request type for PCC to report existing tunnel.
      */
-    LSP_STATE_RPT;
+    LSP_STATE_RPT
 }

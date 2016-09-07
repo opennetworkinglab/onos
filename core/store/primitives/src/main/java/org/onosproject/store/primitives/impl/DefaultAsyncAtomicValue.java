@@ -29,10 +29,10 @@ import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.Versioned;
+import org.onosproject.utils.MeteringAgent;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
-import org.onosproject.utils.MeteringAgent;
 
 /**
  * Default implementation of a {@code AsyncAtomicValue}.
@@ -56,6 +56,7 @@ public class DefaultAsyncAtomicValue<V> implements AsyncAtomicValue<V> {
     private static final String ADD_LISTENER = "addListener";
     private static final String REMOVE_LISTENER = "removeListener";
     private static final String NOTIFY_LISTENER = "notifyListener";
+    private static final String DESTROY = "destroy";
 
     public DefaultAsyncAtomicValue(String name, Serializer serializer, AsyncConsistentMap<String, byte[]> backingMap) {
         this.name = checkNotNull(name, "name must not be null");
@@ -67,6 +68,14 @@ public class DefaultAsyncAtomicValue<V> implements AsyncAtomicValue<V> {
     @Override
     public String name() {
         return name;
+    }
+
+    @Override
+    public CompletableFuture<Void> destroy() {
+        final MeteringAgent.Context newTimer = monitor.startTimer(DESTROY);
+        return backingMap.remove(name)
+                         .whenComplete((r, e) -> newTimer.stop(e))
+                         .thenApply(v -> null);
     }
 
     @Override

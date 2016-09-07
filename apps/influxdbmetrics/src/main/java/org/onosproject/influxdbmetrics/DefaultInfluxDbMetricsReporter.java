@@ -195,7 +195,7 @@ public class DefaultInfluxDbMetricsReporter implements InfluxDbMetricsReporter {
         MetricRegistry moddedRegistry = new MetricRegistry();
         ControllerNode node = clusterService.getLocalNode();
         String prefix = node.id().id() + ".";
-        metricRegistry.getNames().stream().forEach(name ->
+        metricRegistry.getNames().forEach(name ->
                 moddedRegistry.register(prefix + name, metricRegistry.getMetrics().get(name)));
 
         return moddedRegistry;

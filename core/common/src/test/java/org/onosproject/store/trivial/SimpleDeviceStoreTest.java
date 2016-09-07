@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-/**
- *
- */
 package org.onosproject.store.trivial;
 
 import static org.junit.Assert.*;
@@ -268,7 +265,7 @@ public class SimpleDeviceStoreTest {
     @Test
     public final void testUpdatePorts() {
         putDevice(DID1, SW1);
-        List<PortDescription> pds = Arrays.<PortDescription>asList(
+        List<PortDescription> pds = Arrays.asList(
                 new DefaultPortDescription(P1, true),
                 new DefaultPortDescription(P2, true)
                 );
@@ -286,7 +283,7 @@ public class SimpleDeviceStoreTest {
         assertTrue("Event for all expectedport appeared", expectedPorts.isEmpty());
 
 
-        List<PortDescription> pds2 = Arrays.<PortDescription>asList(
+        List<PortDescription> pds2 = Arrays.asList(
                 new DefaultPortDescription(P1, false),
                 new DefaultPortDescription(P2, true),
                 new DefaultPortDescription(P3, true)
@@ -311,7 +308,7 @@ public class SimpleDeviceStoreTest {
             }
         }
 
-        List<PortDescription> pds3 = Arrays.<PortDescription>asList(
+        List<PortDescription> pds3 = Arrays.asList(
                 new DefaultPortDescription(P1, false),
                 new DefaultPortDescription(P2, true)
                 );
@@ -337,7 +334,7 @@ public class SimpleDeviceStoreTest {
     @Test
     public final void testUpdatePortStatus() {
         putDevice(DID1, SW1);
-        List<PortDescription> pds = Arrays.<PortDescription>asList(
+        List<PortDescription> pds = Arrays.asList(
                 new DefaultPortDescription(P1, true)
                 );
         deviceStore.updatePorts(PID, DID1, pds);
@@ -355,7 +352,7 @@ public class SimpleDeviceStoreTest {
     public final void testUpdatePortStatusAncillary() {
         putDeviceAncillary(DID1, SW1);
         putDevice(DID1, SW1);
-        List<PortDescription> pds = Arrays.<PortDescription>asList(
+        List<PortDescription> pds = Arrays.asList(
                 new DefaultPortDescription(P1, true, A1)
                 );
         deviceStore.updatePorts(PID, DID1, pds);
@@ -419,7 +416,7 @@ public class SimpleDeviceStoreTest {
     public final void testGetPort() {
         putDevice(DID1, SW1);
         putDevice(DID2, SW1);
-        List<PortDescription> pds = Arrays.<PortDescription>asList(
+        List<PortDescription> pds = Arrays.asList(
                 new DefaultPortDescription(P1, true),
                 new DefaultPortDescription(P2, false)
                 );
@@ -440,7 +437,7 @@ public class SimpleDeviceStoreTest {
     @Test
     public final void testRemoveDevice() {
         putDevice(DID1, SW1, A1);
-        List<PortDescription> pds = Arrays.<PortDescription>asList(
+        List<PortDescription> pds = Arrays.asList(
                 new DefaultPortDescription(P1, true, A2)
                 );
         deviceStore.updatePorts(PID, DID1, pds);
@@ -460,7 +457,7 @@ public class SimpleDeviceStoreTest {
 
         // putBack Device, Port w/o annotation
         putDevice(DID1, SW1);
-        List<PortDescription> pds2 = Arrays.<PortDescription>asList(
+        List<PortDescription> pds2 = Arrays.asList(
                 new DefaultPortDescription(P1, true)
                 );
         deviceStore.updatePorts(PID, DID1, pds2);

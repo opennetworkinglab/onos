@@ -290,7 +290,7 @@ public class OnosSwaggerMojo extends AbstractMojo {
     private void addJsonSchemaDefinition(ObjectNode definitions, DocletTag tag) {
         File definitionsDirectory = new File(srcDirectory + "/src/main/resources/definitions");
         if (tag != null) {
-            tag.getParameters().stream().forEach(param -> {
+            tag.getParameters().forEach(param -> {
                 try {
                     File config = new File(definitionsDirectory.getAbsolutePath() + "/"
                                                    + param + ".json");
@@ -340,7 +340,7 @@ public class OnosSwaggerMojo extends AbstractMojo {
         responses.set("200", success);
         if (tag != null && responseJson) {
             ObjectNode schema = mapper.createObjectNode();
-            tag.getParameters().stream().forEach(
+            tag.getParameters().forEach(
                     param -> schema.put("$ref", "#/definitions/" + param));
             success.set("schema", schema);
         }
@@ -403,7 +403,7 @@ public class OnosSwaggerMojo extends AbstractMojo {
                 if (tag != null && (method.toLowerCase().equals("post") ||
                         method.toLowerCase().equals("put"))) {
                     ObjectNode schema = mapper.createObjectNode();
-                    tag.getParameters().stream().forEach(param -> {
+                    tag.getParameters().forEach(param -> {
                         schema.put("$ref", "#/definitions/" + param);
                     });
                     individualParameterNode.set("schema", schema);

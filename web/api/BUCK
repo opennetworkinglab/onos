@@ -14,4 +14,8 @@ osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
     web_context = '/onos/v1',
+    api_title = 'ONOS Core REST API',
+    api_version = '1.0',
+    api_description = 'ONOS Core REST API',
+    api_package = 'org.onosproject.rest.impl',
 )

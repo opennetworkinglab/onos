@@ -58,13 +58,13 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
+import org.onosproject.net.flowobjective.FlowObjectiveServiceAdapter;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.HostServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.sfc.util.FlowClassifierAdapter;
-import org.onosproject.sfc.util.FlowObjectiveAdapter;
 import org.onosproject.sfc.util.MockDriverHandler;
 import org.onosproject.sfc.util.PortPairAdapter;
 import org.onosproject.sfc.util.PortPairGroupAdapter;
@@ -113,7 +113,7 @@ import com.google.common.collect.Sets;
 
 public class SfcFlowRuleInstallerImplTest {
 
-    FlowObjectiveService flowObjectiveService = new FlowObjectiveAdapter();
+    FlowObjectiveService flowObjectiveService = new FlowObjectiveServiceAdapter();
     DeviceService deviceService = new DeviceServiceAdapter(createPortList());
 
     HostService hostService = new HostServiceAdapter();
@@ -401,7 +401,7 @@ public class SfcFlowRuleInstallerImplTest {
 
         flowRuleInstaller.installLoadBalancedFlowRules(portChain, fiveTuple, nshSpiId);
 
-        ForwardingObjective forObj = ((FlowObjectiveAdapter) flowObjectiveService).forwardingObjective();
+        ForwardingObjective forObj = ((FlowObjectiveServiceAdapter) flowObjectiveService).forwardingObjective();
 
         // Check for Selector
         assertThat(forObj.selector().getCriterion(Criterion.Type.IN_PORT), instanceOf(PortCriterion.class));

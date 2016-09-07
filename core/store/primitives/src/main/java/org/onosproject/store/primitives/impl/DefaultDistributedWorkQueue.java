@@ -7,9 +7,9 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.Task;
+import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.WorkQueueStats;
 
 import com.google.common.collect.Collections2;
@@ -30,16 +30,25 @@ public class DefaultDistributedWorkQueue<E> implements WorkQueue<E> {
     }
 
     @Override
+    public String name() {
+        return backingQueue.name();
+    }
+
+    @Override
     public CompletableFuture<Void> addMultiple(Collection<E> items) {
         return backingQueue.addMultiple(items.stream()
                                              .map(serializer::encode)
                                              .collect(Collectors.toCollection(ArrayList::new)));
     }
 
+    private Collection<Task<E>> decodeCollection(Collection<Task<byte[]>> tasks) {
+        return Collections2.transform(tasks, task -> task.map(serializer::decode));
+    }
+
     @Override
     public CompletableFuture<Collection<Task<E>>> take(int maxTasks) {
         return backingQueue.take(maxTasks)
-                           .thenApply(tasks -> Collections2.transform(tasks, task -> task.<E>map(serializer::decode)));
+                           .thenApply(this::decodeCollection);
     }
 
     @Override
@@ -63,5 +72,10 @@ public class DefaultDistributedWorkQueue<E> implements WorkQueue<E> {
     @Override
     public CompletableFuture<Void> stopProcessing() {
         return backingQueue.stopProcessing();
+    }
+
+    @Override
+    public CompletableFuture<Void> destroy() {
+        return backingQueue.destroy();
     }
 }

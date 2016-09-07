@@ -101,6 +101,7 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowId;
+import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.flow.FlowRuleBatchEvent;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
@@ -188,6 +189,7 @@ import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
+import org.onosproject.net.intent.constraint.ProtectionConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.meter.MeterId;
@@ -234,6 +236,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public final class KryoNamespaces {
 
+    public static final int BASIC_MAX_SIZE = 50;
     public static final KryoNamespace BASIC = KryoNamespace.newBuilder()
             .nextId(KryoNamespace.FLOATING_ID)
             .register(byte[].class)
@@ -284,6 +287,7 @@ public final class KryoNamespaces {
     /**
      * KryoNamespace which can serialize ON.lab misc classes.
      */
+    public static final int MISC_MAX_SIZE = 30;
     public static final KryoNamespace MISC = KryoNamespace.newBuilder()
             .nextId(KryoNamespace.FLOATING_ID)
             .register(new IpPrefixSerializer(), IpPrefix.class)
@@ -302,20 +306,15 @@ public final class KryoNamespaces {
             .build("MISC");
 
     /**
-     * Kryo registration Id for user custom registration.
-     */
-    public static final int BEGIN_USER_CUSTOM_ID = 500;
-
-    // TODO: Populate other classes
-    /**
      * KryoNamespace which can serialize API bundle classes.
      */
+    public static final int API_MAX_SIZE = 499;
     public static final KryoNamespace API = KryoNamespace.newBuilder()
             .nextId(KryoNamespace.INITIAL_ID)
             .register(BASIC)
-            .nextId(KryoNamespace.INITIAL_ID + 50)
+            .nextId(KryoNamespace.INITIAL_ID + BASIC_MAX_SIZE)
             .register(MISC)
-            .nextId(KryoNamespace.INITIAL_ID + 50 + 30)
+            .nextId(KryoNamespace.INITIAL_ID + BASIC_MAX_SIZE + MISC_MAX_SIZE)
             .register(
                     Instructions.MeterInstruction.class,
                     MeterId.class,
@@ -352,6 +351,7 @@ public final class KryoNamespaces {
                     DefaultFlowEntry.class,
                     StoredFlowEntry.class,
                     DefaultFlowRule.class,
+                    FlowRule.FlowRemoveReason.class,
                     DefaultPacketRequest.class,
                     PacketPriority.class,
                     FlowEntry.FlowEntryState.class,
@@ -550,8 +550,14 @@ public final class KryoNamespaces {
             .register(ClosedOpenRange.class)
             .register(DiscreteResourceCodec.class)
             .register(new ImmutableByteSequenceSerializer(), ImmutableByteSequence.class)
+            .register(PathIntent.ProtectionType.class)
+            .register(ProtectionConstraint.class)
             .build("API");
 
+    /**
+     * Kryo registration Id for user custom registration.
+     */
+    public static final int BEGIN_USER_CUSTOM_ID = API_MAX_SIZE + 1;
 
     // not to be instantiated
     private KryoNamespaces() {

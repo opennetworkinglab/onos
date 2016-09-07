@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
@@ -84,6 +85,9 @@ public class DistributedFlowStatisticStore implements FlowStatisticStore {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     private Map<ConnectPoint, Set<FlowEntry>> previous =
             new ConcurrentHashMap<>();
 
@@ -107,7 +111,11 @@ public class DistributedFlowStatisticStore implements FlowStatisticStore {
     private static final long STATISTIC_STORE_TIMEOUT_MILLIS = 3000;
 
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
+        cfgService.registerProperties(getClass());
+
+        modified(context);
+
         local = clusterService.getLocalNode().id();
 
         messageHandlingExecutor = Executors.newFixedThreadPool(
@@ -127,6 +135,7 @@ public class DistributedFlowStatisticStore implements FlowStatisticStore {
 
     @Deactivate
     public void deactivate() {
+        cfgService.unregisterProperties(getClass(), false);
         clusterCommunicator.removeSubscriber(GET_PREVIOUS);
         clusterCommunicator.removeSubscriber(GET_CURRENT);
         messageHandlingExecutor.shutdown();

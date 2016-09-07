@@ -1,0 +1,14 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'Network Configuration Monitor Test App',
+    category = 'Test',
+    url = 'http://onosproject.org',
+    description = 'Network configuration monitor test application.',
+)

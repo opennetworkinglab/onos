@@ -35,7 +35,6 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-incubator-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -50,7 +49,6 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-core-common</artifactId>
-            <version>${project.version}</version>
             <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
@@ -99,7 +97,6 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-osgi</artifactId>
-            <version>${project.version}</version>
             <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>

@@ -33,7 +33,6 @@
     <modules>
         <module>junit</module>
         <module>misc</module>
-        <module>yangutils</module>
         <module>osgi</module>
         <module>rest</module>
         <module>osgiwrap</module>

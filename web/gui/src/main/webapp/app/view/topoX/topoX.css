@@ -1,0 +1,67 @@
+/*
+ * Copyright 2016-present Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+/*
+ ONOS GUI -- Topology View (test layout) -- CSS file
+ */
+
+/* --- Base SVG Layer --- */
+
+#ov-topoX svg {
+    /* prevents the little cut/copy/paste square that would appear on iPad */
+    -webkit-user-select: none;
+}
+
+#topoXtmp {
+    height: 700px;
+    width: 98%;
+    overflow-y: scroll;
+}
+
+#topoXtmp div {
+    padding: 2px 24px;
+    margin: 6px;
+    background-color: #ddddff;
+}
+#topoXtmp div div {
+    padding: 0 10px;
+}
+#topoXtmp div div span {
+    color: purple;
+    font-style: italic;
+    font-weight: bold;
+}
+
+#topoXtmp h4 {
+    margin: 0
+}
+#topoXtmp p {
+    margin: 0
+}
+#topoXtmp .nav-me:hover {
+    background-color: #bbbbdd;
+}
+#topoXtmp .nav-me {
+    font-weight: bold;
+    text-decoration: underline;
+    cursor: pointer;
+    color: blue;
+}
+
+.subRegions div p {
+    width: 40px;
+}

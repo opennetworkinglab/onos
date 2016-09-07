@@ -52,14 +52,11 @@ public final class DefaultTableStatisticsEntry implements TableStatisticsEntry {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("device: " + deviceId + ", ");
-
-        sb.append("tableId: " + this.tableId + ", ");
-        sb.append("activeEntries: " + this.activeFlowEntries + ", ");
-        sb.append("packetsLookedUp: " + this.packetsLookedupCount + ", ");
-        sb.append("packetsMatched: " + this.packetsMatchedCount);
-
-        return sb.toString();
+        return "device: " + deviceId + ", " +
+                "tableId: " + this.tableId + ", " +
+                "activeEntries: " + this.activeFlowEntries + ", " +
+                "packetsLookedUp: " + this.packetsLookedupCount + ", " +
+                "packetsMatched: " + this.packetsMatchedCount;
     }
 
     @Override

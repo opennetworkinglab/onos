@@ -22,7 +22,7 @@ for i in {1..5}; do
         cat $aux
         exit 0
     else
-        sleep 1
+        sleep 2
     fi
 done
 cat $aux

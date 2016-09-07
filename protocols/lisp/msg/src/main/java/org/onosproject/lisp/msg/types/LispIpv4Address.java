@@ -15,7 +15,12 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import io.netty.buffer.ByteBuf;
 import org.onlab.packet.IpAddress;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
+
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -30,7 +35,56 @@ public class LispIpv4Address extends LispIpAddress {
      * @param address IP address
      */
     public LispIpv4Address(IpAddress address) {
-        super(address, AddressFamilyIdentifierEnum.IP);
+        super(address, AddressFamilyIdentifierEnum.IP4);
         checkArgument(address.isIp4());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof LispIpv4Address) {
+            final LispIpv4Address other = (LispIpv4Address) obj;
+            return Objects.equals(this.address, other.address) &&
+                    Objects.equals(this.getAfi(), other.getAfi());
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(address, getAfi());
+    }
+
+    /**
+     * IPv4 address reader class.
+     */
+    public static class Ipv4AddressReader implements LispAddressReader<LispIpv4Address> {
+
+        private static final int SIZE_OF_IPV4_ADDRESS = 4;
+
+        @Override
+        public LispIpv4Address readFrom(ByteBuf byteBuf) throws LispParseError {
+
+            byte[] ipByte = new byte[SIZE_OF_IPV4_ADDRESS];
+            byteBuf.readBytes(ipByte);
+            IpAddress ipAddress = IpAddress.valueOf(IpAddress.Version.INET, ipByte);
+
+            return new LispIpv4Address(ipAddress);
+        }
+    }
+
+    /**
+     * IPv4 address writer class.
+     */
+    public static class Ipv4AddressWriter implements LispAddressWriter<LispIpv4Address> {
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispIpv4Address address) throws LispWriterException {
+            byte[] ipByte = address.getAddress().getIp4Address().toOctets();
+            byteBuf.writeBytes(ipByte);
+        }
     }
 }

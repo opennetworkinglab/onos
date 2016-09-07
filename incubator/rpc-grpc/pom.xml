@@ -30,11 +30,15 @@
 
     <properties>
         <onos.app.name>org.onosproject.incubator.rpc.grpc</onos.app.name>
-        <onos.app.requires>org.onosproject.incubator.rpc,org.onosproject.incubator.protobuf</onos.app.requires>
-        <protobuf.version>3.0.0-beta-2</protobuf.version>
-        <!-- Note: update feature.xml when updating -->
-        <grpc.version>0.14.0</grpc.version>
-        <grpc.netty.version>4.1.0.CR7</grpc.netty.version>
+        <onos.app.title>ONOS gRPC API</onos.app.title>
+        <onos.app.requires>
+            org.onosproject.incubator.rpc,
+            org.onosproject.incubator.protobuf,
+            org.onosproject.incubator.grpc
+        </onos.app.requires>
+        <protobuf.version>3.0.0</protobuf.version>
+        <grpc.version>1.0.0</grpc.version>
+        <grpc.netty.version>4.1.3.Final</grpc.netty.version>
     </properties>
 
     <dependencies>
@@ -68,16 +72,6 @@
             <artifactId>grpc-stub</artifactId>
             <version>${grpc.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-netty</artifactId>
-            <version>${grpc.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-auth</artifactId>
-            <version>${grpc.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>junit</groupId>
@@ -95,6 +89,12 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-incubator-protobuf</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-incubator-grpc</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -147,10 +147,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
@@ -175,29 +171,6 @@
             <plugin>
                 <groupId>org.onosproject</groupId>
                 <artifactId>onos-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>cfg</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>cfg</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>swagger</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>swagger</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>app</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>app</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>
@@ -211,7 +184,6 @@
                     <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
                     <pluginId>grpc-java</pluginId>
                     <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
-                    <checkStaleness>true</checkStaleness>
                 </configuration>
                 <executions>
                     <execution>
@@ -226,7 +198,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.10</version>
+                <version>1.11</version>
                 <executions>
                     <execution>
                         <id>add-source</id>
@@ -273,12 +245,6 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-common</artifactId>
                 <version>${grpc.netty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.twitter</groupId>
-                <artifactId>hpack</artifactId>
-                <!-- 0.11.0 and later are published as a bundle -->
-                <version>0.11.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

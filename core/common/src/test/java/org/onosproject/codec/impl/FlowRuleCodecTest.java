@@ -360,7 +360,6 @@ public class FlowRuleCodecTest {
         checkCommonData(rule);
 
         rule.treatment().allInstructions()
-                .stream()
                 .forEach(instruction ->
                 {
                     String subType;
@@ -551,7 +550,6 @@ public class FlowRuleCodecTest {
         assertThat(rule.selector().criteria().size(), is(35));
 
         rule.selector().criteria()
-                .stream()
                 .forEach(criterion ->
                         criteria.put(criterion.type().name(), criterion));
 

@@ -26,6 +26,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.NodeId;
@@ -63,6 +64,19 @@ public class AtomixLeaderElector extends AbstractResource<AtomixLeaderElector>
     public static final String CHANGE_SUBJECT = "leadershipChangeEvents";
     private final LoadingCache<String, CompletableFuture<Leadership>> cache;
 
+    Function<CopycatClient.State, Status> mapper = state -> {
+        switch (state) {
+            case CONNECTED:
+                return Status.ACTIVE;
+            case SUSPENDED:
+                return Status.SUSPENDED;
+            case CLOSED:
+                return Status.INACTIVE;
+            default:
+                throw new IllegalStateException("Unknown state " + state);
+        }
+    };
+
     public AtomixLeaderElector(CopycatClient client, Properties properties) {
         super(client, properties);
         cache = CacheBuilder.newBuilder()
@@ -79,6 +93,7 @@ public class AtomixLeaderElector extends AbstractResource<AtomixLeaderElector>
             }
         };
         addStatusChangeListener(statusListener);
+        client.onStateChange(this::handleStateChange);
     }
 
     @Override
@@ -192,5 +207,9 @@ public class AtomixLeaderElector extends AbstractResource<AtomixLeaderElector>
 
     private boolean isListening() {
         return !leadershipChangeListeners.isEmpty();
+    }
+
+    private void handleStateChange(CopycatClient.State state) {
+        statusChangeListeners().forEach(listener -> listener.accept(mapper.apply(state)));
     }
 }

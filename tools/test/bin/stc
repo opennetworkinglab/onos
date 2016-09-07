@@ -5,7 +5,7 @@
 
 . $ONOS_ROOT/tools/build/envDefaults
 
-VER=${STC_VERSION:-2.0}
+VER=${STC_VERSION:-2.2}
 JAR=~/.m2/repository/org/onosproject/onos-stc/$VER/onos-stc-$VER.jar
 SCENARIOS=$ONOS_ROOT/tools/test/scenarios
 
@@ -35,5 +35,5 @@ scenario=${1:-smoke}
 
 # Run stc
 [ -z "$stcDebug" ] && DEBUG_OPTS=""
-stcColor=${stcColor:-$interactive} stcDumpLogs=${stcDumpLogs:-$notInteractive} \
+stcTitle=${stcTitle:-} stcColor=${stcColor:-$interactive} stcDumpLogs=${stcDumpLogs:-$notInteractive} \
     java $DEBUG_OPTS -jar $JAR $scenario "$@"

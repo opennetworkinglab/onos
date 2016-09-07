@@ -499,7 +499,8 @@ public final class AtomixConsistentTreeMapCommands {
 
     /**
      * Returns the smallest key larger than or equal to the specified key.
-     * @param <K>
+     *
+     * @param <K> key type
      */
     @SuppressWarnings("serial")
     public static class CeilingKey<K> extends KeyQuery<K> {

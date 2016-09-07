@@ -16,69 +16,87 @@
 
 package org.onosproject.provider.of.device.impl;
 
-import org.jboss.netty.util.HashedWheelTimer;
-import org.jboss.netty.util.Timeout;
-import org.jboss.netty.util.TimerTask;
-import org.onlab.util.Timer;
+import org.onlab.util.SharedExecutors;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFPortStatsRequest;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.slf4j.Logger;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Sends Port Stats Request and collect the port statistics with a time interval.
  */
-public class PortStatsCollector implements TimerTask {
+public class PortStatsCollector {
 
-    // TODO: Refactoring is required using ScheduledExecutorService
-
-    private final HashedWheelTimer timer = Timer.getTimer();
-    private final OpenFlowSwitch sw;
     private final Logger log = getLogger(getClass());
+
+    private static final int SECONDS = 1000;
+
+    private OpenFlowSwitch sw;
+    private Timer timer;
+    private TimerTask task;
+
     private int refreshInterval;
     private final AtomicLong xidAtomic = new AtomicLong(1);
 
-    private Timeout timeout;
-    private volatile boolean stopped;
-
     /**
-     * Creates a PortStatsCollector object.
+     * Creates a port states collector object.
      *
-     * @param sw Open Flow switch
-     * @param interval time interval for collecting port statistic
+     * @param timer     timer to use for scheduling
+     * @param sw        switch to pull
+     * @param interval  interval for collecting port statistic
      */
-    public PortStatsCollector(OpenFlowSwitch sw, int interval) {
-        this.sw = sw;
+    PortStatsCollector(Timer timer, OpenFlowSwitch sw, int interval) {
+        this.timer = timer;
+        this.sw = checkNotNull(sw, "Null switch");
         this.refreshInterval = interval;
     }
 
-    @Override
-    public void run(Timeout to) throws Exception {
-        if (stopped || timeout.isCancelled()) {
-            return;
-        }
-        log.trace("Collecting stats for {}", sw.getStringId());
+    private class InternalTimerTask extends TimerTask {
 
-        sendPortStatistic();
-
-        if (!stopped && !timeout.isCancelled()) {
-            log.trace("Scheduling stats collection in {} seconds for {}",
-                    this.refreshInterval, this.sw.getStringId());
-            timeout.getTimer().newTimeout(this, refreshInterval, TimeUnit.SECONDS);
+        @Override
+        public void run() {
+            sendPortStatistic();
         }
     }
 
-    synchronized void adjustPollInterval(int pollInterval) {
+    /**
+     * Starts the port statistic collector.
+     */
+    public synchronized void start() {
+        log.info("Starting Port Stats collection thread for {}", sw.getStringId());
+        task = new InternalTimerTask();
+        SharedExecutors.getTimer().scheduleAtFixedRate(task, 1 * SECONDS,
+                                                       refreshInterval * SECONDS);
+    }
+
+    /**
+     * Stops the port statistic collector.
+     */
+    public synchronized void stop() {
+        log.info("Stopping Port Stats collection thread for {}", sw.getStringId());
+        task.cancel();
+        task = null;
+    }
+
+    /**
+     * Adjusts poll interval of the port statistic collector and restart.
+     *
+     * @param pollInterval period of collecting port statistic
+     */
+    public synchronized void adjustPollInterval(int pollInterval) {
         this.refreshInterval = pollInterval;
-        // task.cancel();
-        // task = new InternalTimerTask();
-        // timer.scheduleAtFixedRate(task, pollInterval * SECONDS, pollInterval * 1000);
+        task.cancel();
+        task = new InternalTimerTask();
+        timer.scheduleAtFixedRate(task, refreshInterval * SECONDS,
+                                  refreshInterval * SECONDS);
     }
 
     /**
@@ -94,23 +112,5 @@ public class PortStatsCollector implements TimerTask {
                 .setXid(statsXid)
                 .build();
         sw.sendMsg(statsRequest);
-    }
-
-    /**
-     * Starts the collector.
-     */
-    public synchronized void start() {
-        log.info("Starting Port Stats collection thread for {}", sw.getStringId());
-        stopped = false;
-        timeout = timer.newTimeout(this, 1, TimeUnit.SECONDS);
-    }
-
-    /**
-     * Stops the collector.
-     */
-    public synchronized void stop() {
-        log.info("Stopping Port Stats collection thread for {}", sw.getStringId());
-        stopped = true;
-        timeout.cancel();
     }
 }

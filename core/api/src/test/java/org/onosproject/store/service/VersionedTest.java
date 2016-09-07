@@ -54,7 +54,7 @@ public class VersionedTest {
      */
     @Test
     public void testMap() {
-        Versioned<String> tempObj = stats1.<String>map(VersionedTest::transform);
+        Versioned<String> tempObj = stats1.map(VersionedTest::transform);
         assertThat(tempObj.value(), is("1"));
     }
 

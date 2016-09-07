@@ -57,6 +57,9 @@ describe('factory: fw/remote/websocket.js', function () {
                 port: function () { return '80'; },
                 search: function() {
                     return {debug: 'true'};
+                },
+                absUrl: function () {
+                    return 'ws://foo:123/onos/ui/websock/path';
                 }
             };
         })

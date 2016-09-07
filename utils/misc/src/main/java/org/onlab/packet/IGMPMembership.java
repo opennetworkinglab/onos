@@ -60,6 +60,16 @@ public class IGMPMembership extends IGMPGroup {
     }
 
     /**
+     * Sets the IGMP record type.
+     *
+     * @param type A multicast record type, like MODE_IS_INCLUDE or MODE_IS_EXCLUDE.
+     */
+    public void setRecordType(byte type) {
+        recordType = type;
+    }
+
+
+    /**
      * Serialize this Membership Report.
      *
      * @param bb the ByteBuffer to write into, positioned at the next spot to be written to.

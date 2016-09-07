@@ -18,6 +18,9 @@ package org.onosproject.store.primitives.resources.impl;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
+import io.atomix.copycat.client.CopycatClient;
+import io.atomix.resource.AbstractResource;
+import io.atomix.resource.ResourceTypeInfo;
 
 import java.util.Collection;
 import java.util.List;
@@ -34,21 +37,18 @@ import java.util.function.Consumer;
 import org.onlab.util.AbstractAccumulator;
 import org.onlab.util.Accumulator;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueCommands.Add;
+import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueCommands.Clear;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueCommands.Complete;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueCommands.Register;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueCommands.Stats;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueCommands.Take;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueCommands.Unregister;
-import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.Task;
+import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.WorkQueueStats;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ImmutableList;
-
-import io.atomix.copycat.client.CopycatClient;
-import io.atomix.resource.AbstractResource;
-import io.atomix.resource.ResourceTypeInfo;
 
 /**
  * Distributed resource providing the {@link WorkQueue} primitive.
@@ -66,6 +66,18 @@ public class AtomixWorkQueue extends AbstractResource<AtomixWorkQueue>
 
     protected AtomixWorkQueue(CopycatClient client, Properties options) {
         super(client, options);
+    }
+
+    @Override
+    public String name() {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Void> destroy() {
+        executor.shutdown();
+        timer.cancel();
+        return client.submit(new Clear());
     }
 
     @Override
@@ -116,7 +128,7 @@ public class AtomixWorkQueue extends AbstractResource<AtomixWorkQueue>
                                             executor,
                                             completedTaskAccumulator));
         return register().thenCompose(v -> take(parallelism))
-                         .thenAccept(taskProcessor.get()::accept);
+                         .thenAccept(taskProcessor.get());
     }
 
     @Override

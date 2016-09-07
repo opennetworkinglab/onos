@@ -279,12 +279,15 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
         }
 
         private void poll() {
-            try {
-                while (true) {
+            while (true) {
+                try {
                     listener.event(queue.take());
+                } catch (InterruptedException e) {
+                    log.info("Route listener event thread shutting down: {}", e.getMessage());
+                    break;
+                } catch (Exception e) {
+                    log.warn("Exception during route event handler", e);
                 }
-            } catch (InterruptedException e) {
-                log.info("Route listener event thread shutting down: {}", e.getMessage());
             }
         }
 

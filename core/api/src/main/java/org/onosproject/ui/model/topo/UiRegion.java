@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.net.region.RegionId.regionId;
 
 /**
@@ -36,7 +37,8 @@ import static org.onosproject.net.region.RegionId.regionId;
  */
 public class UiRegion extends UiNode {
 
-    private static final String NULL_NAME = "<null-region>";
+    private static final String NULL_NAME = "(root)";
+    private static final String NO_NAME = "???";
 
     /**
      * The identifier for the null-region. That is, a container for devices,
@@ -53,13 +55,16 @@ public class UiRegion extends UiNode {
     // loose bindings to things in this region
     private final Set<DeviceId> deviceIds = new HashSet<>();
     private final Set<HostId> hostIds = new HashSet<>();
-    private final Set<UiLinkId> uiLinkIds = new HashSet<>();
 
     private final List<String> layerOrder = new ArrayList<>();
 
     private final UiTopology topology;
 
     private final Region region;
+
+    // keep track of hierarchy (inferred from UiTopoLayoutService)
+    private RegionId parent;
+    private final Set<RegionId> kids = new HashSet<>();
 
     /**
      * Constructs a UI region, with a reference to the specified backing region.
@@ -80,7 +85,6 @@ public class UiRegion extends UiNode {
     protected void destroy() {
         deviceIds.clear();
         hostIds.clear();
-        uiLinkIds.clear();
     }
 
     /**
@@ -101,6 +105,61 @@ public class UiRegion extends UiNode {
      */
     public RegionId id() {
         return region == null ? NULL_ID : region.id();
+    }
+
+    /**
+     * Returns the identity of the parent region.
+     *
+     * @return parent region ID
+     */
+    public RegionId parent() {
+        return parent;
+    }
+
+    /**
+     * Returns true if this is the root (default) region.
+     *
+     * @return true if root region
+     */
+    public boolean isRoot() {
+        return id().equals(parent);
+    }
+
+    /**
+     * Returns the identities of the child regions.
+     *
+     * @return child region IDs
+     */
+    public Set<RegionId> children() {
+        return ImmutableSet.copyOf(kids);
+    }
+
+    /**
+     * Returns the UI region that is the parent of this region.
+     *
+     * @return the parent region
+     */
+    public UiRegion parentRegion() {
+        return topology.findRegion(parent);
+    }
+
+    /**
+     * Sets the parent ID for this region.
+     *
+     * @param parentId parent ID
+     */
+    public void setParent(RegionId parentId) {
+        parent = parentId;
+    }
+
+    /**
+     * Sets the children IDs for this region.
+     *
+     * @param children children IDs
+     */
+    public void setChildren(Set<RegionId> children) {
+        kids.clear();
+        kids.addAll(children);
     }
 
     @Override
@@ -138,9 +197,10 @@ public class UiRegion extends UiNode {
         return toStringHelper(this)
                 .add("id", id())
                 .add("name", name())
+                .add("parent", parent)
+                .add("kids", kids)
                 .add("devices", deviceIds)
                 .add("#hosts", hostIds.size())
-                .add("#links", uiLinkIds.size())
                 .toString();
     }
 
@@ -200,24 +260,6 @@ public class UiRegion extends UiNode {
     }
 
     /**
-     * Returns the set of link identifiers for this region.
-     *
-     * @return link identifiers for this region
-     */
-    public Set<UiLinkId> linkIds() {
-        return ImmutableSet.copyOf(uiLinkIds);
-    }
-
-    /**
-     * Returns the links in this region.
-     *
-     * @return the links in this region
-     */
-    public Set<UiLink> links() {
-        return topology.linkSet(uiLinkIds);
-    }
-
-    /**
      * Returns the order in which layers should be rendered. Lower layers
      * come earlier in the list. For example, to indicate that nodes in the
      * optical layer should be rendered "below" nodes in the packet layer,
@@ -230,5 +272,21 @@ public class UiRegion extends UiNode {
      */
     public List<String> layerOrder() {
         return Collections.unmodifiableList(layerOrder);
+    }
+
+    /**
+     * Guarantees to return a string for the name of the specified region.
+     * If region is null, we return the null region name, else we return
+     * the name as configured on the region.
+     *
+     * @param region the region whose name we require
+     * @return the region's name
+     */
+    public static String safeName(Region region) {
+        if (region == null) {
+            return NULL_NAME;
+        }
+        String name = region.name();
+        return isNullOrEmpty(name) ? NO_NAME : name;
     }
 }

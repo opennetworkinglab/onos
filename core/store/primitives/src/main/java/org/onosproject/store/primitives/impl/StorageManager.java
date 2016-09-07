@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.STORAGE_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collection;
@@ -39,14 +41,14 @@ import org.onosproject.store.primitives.PartitionAdminService;
 import org.onosproject.store.primitives.PartitionService;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AtomicCounterBuilder;
 import org.onosproject.store.service.AtomicValueBuilder;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapBuilder;
-import org.onosproject.store.service.DistributedQueueBuilder;
+import org.onosproject.store.service.ConsistentTreeMapBuilder;
 import org.onosproject.store.service.DistributedSetBuilder;
-import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.LeaderElectorBuilder;
 import org.onosproject.store.service.MapInfo;
@@ -54,21 +56,20 @@ import org.onosproject.store.service.PartitionInfo;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageAdminService;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.Topic;
 import org.onosproject.store.service.TransactionContextBuilder;
+import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.WorkQueueStats;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 
-import static org.onosproject.security.AppGuard.checkPermission;
-import static org.onosproject.security.AppPermission.Type.*;
-
 /**
  * Implementation for {@code StorageService} and {@code StorageAdminService}.
  */
 @Service
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 public class StorageManager implements StorageService, StorageAdminService {
 
     private final Logger log = getLogger(getClass());
@@ -131,15 +132,15 @@ public class StorageManager implements StorageService, StorageAdminService {
     }
 
     @Override
-    public <E> DistributedSetBuilder<E> setBuilder() {
-        checkPermission(STORAGE_WRITE);
-        return new DefaultDistributedSetBuilder<>(() -> this.<E, Boolean>consistentMapBuilder());
+    public <V> ConsistentTreeMapBuilder<V> consistentTreeMapBuilder() {
+        return new DefaultConsistentTreeMapBuilder<V>(
+                federatedPrimitiveCreator);
     }
 
     @Override
-    public <E> DistributedQueueBuilder<E> queueBuilder() {
+    public <E> DistributedSetBuilder<E> setBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new DefaultDistributedQueueBuilder<>(federatedPrimitiveCreator);
+        return new DefaultDistributedSetBuilder<>(() -> this.<E, Boolean>consistentMapBuilder());
     }
 
     @Override
@@ -224,5 +225,14 @@ public class StorageManager implements StorageService, StorageAdminService {
                                              .asConsistentMap();
                     return new MapInfo(name, map.size());
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public <T> Topic<T> getTopic(String name, Serializer serializer) {
+        AsyncAtomicValue<T> atomicValue = this.<T>atomicValueBuilder()
+                                              .withName("topic-" + name)
+                                              .withSerializer(serializer)
+                                              .build();
+        return new DefaultDistributedTopic<>(atomicValue);
     }
 }

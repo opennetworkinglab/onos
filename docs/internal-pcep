@@ -1,3 +1,6 @@
+org.onosproject.pce.*
+org.onosproject.pcerest*
+org.onosproject.pceweb*
 org.onosproject.pcep*
 org.onosproject.pcepio*
 org.onosproject.provider.pcep*

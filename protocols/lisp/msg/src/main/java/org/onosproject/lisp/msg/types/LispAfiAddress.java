@@ -15,7 +15,14 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
+
 import java.util.Objects;
+
+import static org.onosproject.lisp.msg.types.AddressFamilyIdentifierEnum.*;
 
 /**
  * LISP Locator address typed by Address Family Identifier (AFI).
@@ -66,5 +73,85 @@ public abstract class LispAfiAddress {
             return false;
         }
         return true;
+    }
+
+    /**
+     * AFI address reader class.
+     */
+    public static class AfiAddressReader implements LispAddressReader<LispAfiAddress> {
+
+        @Override
+        public LispAfiAddress readFrom(ByteBuf byteBuf)
+                                    throws LispParseError, LispReaderException {
+
+            int index = byteBuf.readerIndex();
+
+            // AFI code -> 16 bits
+            short afiCode = (short) byteBuf.getUnsignedShort(index);
+
+            // handle IPv4 and IPv6 address
+            if (afiCode == IP4.getIanaCode() ||
+                afiCode == IP6.getIanaCode()) {
+                return new LispIpAddress.IpAddressReader().readFrom(byteBuf);
+            }
+
+            // handle distinguished name address
+            if (afiCode == DISTINGUISHED_NAME.getIanaCode()) {
+                return new LispDistinguishedNameAddress.DistinguishedNameAddressReader().readFrom(byteBuf);
+            }
+
+            // handle MAC address
+            if (afiCode == MAC.getIanaCode()) {
+                return new LispMacAddress.MacAddressReader().readFrom(byteBuf);
+            }
+
+            // handle LCAF address
+            if (afiCode == LCAF.getIanaCode()) {
+                return new LispLcafAddress.LcafAddressReader().readFrom(byteBuf);
+            }
+
+            // handle autonomous system address
+            if (afiCode == AS.getIanaCode()) {
+                return new LispAsAddress.AsAddressReader().readFrom(byteBuf);
+            }
+
+            return null;
+        }
+    }
+
+    /**
+     * AFI address writer class.
+     */
+    public static class AfiAddressWriter implements LispAddressWriter<LispAfiAddress> {
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispAfiAddress address) throws LispWriterException {
+
+            // AFI code
+            byteBuf.writeShort(address.getAfi().getIanaCode());
+
+            switch (address.getAfi()) {
+                case IP4:
+                    new LispIpAddress.IpAddressWriter().writeTo(byteBuf, (LispIpv4Address) address);
+                    break;
+                case IP6:
+                    new LispIpAddress.IpAddressWriter().writeTo(byteBuf, (LispIpv6Address) address);
+                    break;
+                case DISTINGUISHED_NAME:
+                    new LispDistinguishedNameAddress.DistinguishedNameAddressWriter().writeTo(byteBuf,
+                            (LispDistinguishedNameAddress) address);
+                    break;
+                case MAC:
+                    new LispMacAddress.MacAddressWriter().writeTo(byteBuf, (LispMacAddress) address);
+                    break;
+                case LCAF:
+                    new LispLcafAddress.LcafAddressWriter().writeTo(byteBuf, (LispLcafAddress) address);
+                    break;
+                case AS:
+                    new LispAsAddress.AsAddressWriter().writeTo(byteBuf, (LispAsAddress) address);
+                    break;
+                default: break; // TODO: need log warning message
+            }
+        }
     }
 }

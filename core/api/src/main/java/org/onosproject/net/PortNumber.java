@@ -52,7 +52,7 @@ public final class PortNumber {
     /**
      * Logical PortNumbers.
      */
-    public static enum Logical {
+    public enum Logical {
         IN_PORT(IN_PORT_NUMBER),
         TABLE(TABLE_NUMBER),
         NORMAL(NORMAL_NUMBER),
@@ -95,7 +95,7 @@ public final class PortNumber {
 
     // lazily populated Logical port number to PortNumber
     static final Supplier<Map<Long, Logical>> LOGICAL = Suppliers.memoize(() -> {
-            Builder<Long, Logical> builder = ImmutableMap.<Long, Logical>builder();
+            Builder<Long, Logical> builder = ImmutableMap.builder();
             for (Logical lp : Logical.values()) {
                 builder.put(lp.number(), lp);
             }

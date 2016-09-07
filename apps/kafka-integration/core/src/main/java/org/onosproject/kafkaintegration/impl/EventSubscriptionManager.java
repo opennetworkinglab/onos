@@ -15,7 +15,15 @@
  */
 package org.onosproject.kafkaintegration.impl;
 
-import com.google.common.collect.ImmutableList;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.kafkaintegration.api.dto.OnosEvent.Type.DEVICE;
+import static org.onosproject.kafkaintegration.api.dto.OnosEvent.Type.LINK;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -25,14 +33,15 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.kafkaintegration.api.EventSubscriptionService;
+import org.onosproject.kafkaintegration.api.KafkaConfigService;
 import org.onosproject.kafkaintegration.api.dto.DefaultEventSubscriber;
 import org.onosproject.kafkaintegration.api.dto.EventSubscriber;
 import org.onosproject.kafkaintegration.api.dto.EventSubscriberGroupId;
+import org.onosproject.kafkaintegration.api.dto.RegistrationResponse;
 import org.onosproject.kafkaintegration.api.dto.OnosEvent;
 import org.onosproject.kafkaintegration.api.dto.OnosEvent.Type;
 import org.onosproject.kafkaintegration.errors.InvalidApplicationException;
 import org.onosproject.kafkaintegration.errors.InvalidGroupIdException;
-import org.onosproject.kafkaintegration.listener.ListenerFactory;
 import org.onosproject.kafkaintegration.listener.OnosEventListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.LinkService;
@@ -42,14 +51,7 @@ import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.kafkaintegration.api.dto.OnosEvent.Type.DEVICE;
-import static org.onosproject.kafkaintegration.api.dto.OnosEvent.Type.LINK;
+import com.google.common.collect.ImmutableList;
 
 /**
  * Implementation of Event Subscription Manager.
@@ -82,6 +84,9 @@ public class EventSubscriptionManager implements EventSubscriptionService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected KafkaConfigService kafkaConfigService;
+
     private ApplicationId appId;
 
     @Activate
@@ -100,13 +105,11 @@ public class EventSubscriptionManager implements EventSubscriptionService {
         subscriptions = storageService
                 .<Type, List<EventSubscriber>>consistentMapBuilder()
                 .withName(SUBSCRIBED_APPS)
-                .withSerializer(Serializer.using(KryoNamespaces.API,
-                                                 EventSubscriber.class,
-                                                 OnosEvent.class,
-                                                 OnosEvent.Type.class,
-                                                 DefaultEventSubscriber.class,
-                                                 EventSubscriberGroupId.class,
-                                                 UUID.class))
+                .withSerializer(Serializer
+                        .using(KryoNamespaces.API, EventSubscriber.class,
+                               OnosEvent.class, OnosEvent.Type.class,
+                               DefaultEventSubscriber.class,
+                               EventSubscriberGroupId.class, UUID.class))
                 .build().asJavaMap();
 
         log.info("Started");
@@ -118,15 +121,22 @@ public class EventSubscriptionManager implements EventSubscriptionService {
     }
 
     @Override
-    public EventSubscriberGroupId registerListener(String appName) {
+    public RegistrationResponse registerListener(String appName) {
 
         // TODO: Remove it once ONOS provides a mechanism for external apps
         // to register with the core service. See Jira - 4409
         ApplicationId externalAppId = coreService.registerApplication(appName);
 
-        return registeredApps.computeIfAbsent(externalAppId,
-                                              (key) -> new EventSubscriberGroupId(UUID
-                                                      .randomUUID()));
+        EventSubscriberGroupId id =
+                registeredApps.computeIfAbsent(externalAppId,
+                                               (key) -> new EventSubscriberGroupId(UUID
+                                                       .randomUUID()));
+
+        RegistrationResponse response = new RegistrationResponse(id,
+                            kafkaConfigService.getConfigParams().getIpAddress(),
+                            kafkaConfigService.getConfigParams().getPort());
+
+        return response;
     }
 
     @Override
@@ -147,15 +157,10 @@ public class EventSubscriptionManager implements EventSubscriptionService {
                     + "registered to make this request.");
         }
 
-        if (!validGroupId(subscriber.subscriberGroupId(), subscriber.appName())) {
+        if (!validGroupId(subscriber.subscriberGroupId(),
+                          subscriber.appName())) {
             throw new InvalidGroupIdException("Incorrect group id in the request");
         }
-
-        OnosEventListener onosListener = getListener(subscriber.eventType());
-        checkNotNull(onosListener, "No listener for the supported event type - {}", subscriber.eventType());
-
-        applyListenerAction(subscriber.eventType(), onosListener,
-                            ListenerAction.START);
 
         // update internal state
         List<EventSubscriber> subscriptionList =
@@ -233,12 +238,6 @@ public class EventSubscriptionManager implements EventSubscriptionService {
      * @param eventType ONOS event type
      * @return ONOS event listener
      */
-    private OnosEventListener getListener(Type eventType) {
-        checkNotNull(eventType);
-        ListenerFactory factory = ListenerFactory.getInstance();
-        OnosEventListener onosListener = factory.getListener(eventType);
-        return onosListener;
-    }
 
     /**
      * Checks if the group id is valid for this registered application.
@@ -287,15 +286,6 @@ public class EventSubscriptionManager implements EventSubscriptionService {
         // stop the listener.
         List<EventSubscriber> subscribers =
                 subscriptions.get(subscriber.eventType());
-        if (subscribers.size() == 1) {
-            OnosEventListener onosListener =
-                    getListener(subscriber.eventType());
-            checkNotNull(onosListener,
-                         "No listener for the supported event type - {}",
-                         subscriber.eventType());
-            applyListenerAction(subscriber.eventType(), onosListener,
-                                ListenerAction.STOP);
-        }
 
         // update internal state.
         subscribers.remove(subscriber);
@@ -308,7 +298,6 @@ public class EventSubscriptionManager implements EventSubscriptionService {
     @Override
     public List<EventSubscriber> getEventSubscribers(Type type) {
         return subscriptions.getOrDefault(type, ImmutableList.of());
-
     }
 
     /**

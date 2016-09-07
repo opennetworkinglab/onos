@@ -32,13 +32,12 @@ public interface DeviceAdminService extends DeviceService {
 
     // TODO: add ability to administratively suspend/resume device
 
-
-  /**
-   * Administratively enables or disables a port on a device.
-   *
-   * @param deviceId  device identifier
-   * @param portNumber port identifier
-   * @param enable true if port is to be enabled, false to disable
-   */
+    /**
+     * Administratively enables or disables a port on a device.
+     *
+     * @param deviceId  device identifier
+     * @param portNumber port identifier
+     * @param enable true if port is to be enabled, false to disable
+     */
     void changePortState(DeviceId deviceId, PortNumber portNumber, boolean enable);
 }

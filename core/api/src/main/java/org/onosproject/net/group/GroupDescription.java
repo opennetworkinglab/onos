@@ -78,7 +78,7 @@ public interface GroupDescription {
      * Returns groupId passed in by caller.
      *
      * @return Integer group id passed in by caller. May be null if caller
-     *                 passed in null to let groupService determin the group id.
+     *                 passed in null to let groupService determine the group id.
      */
     Integer givenGroupId();
 

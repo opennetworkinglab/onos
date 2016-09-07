@@ -22,7 +22,7 @@ import org.onlab.packet.Ip4Address;
 import org.onosproject.ospf.exceptions.OspfErrorType;
 import org.onosproject.ospf.exceptions.OspfParseException;
 import org.onosproject.ospf.protocol.ospfpacket.OspfPacketHeader;
-import org.onosproject.ospf.protocol.util.OspfPacketType;
+import org.onosproject.ospf.controller.OspfPacketType;
 import org.onosproject.ospf.protocol.util.OspfUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

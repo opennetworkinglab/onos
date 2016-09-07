@@ -41,7 +41,7 @@ public class LsdbAgeImpl implements LsdbAge {
 
     private static final Logger log =
             LoggerFactory.getLogger(LsdbAgeImpl.class);
-    protected int ageCounter = 0;
+    protected static int ageCounter = 0;
     private InternalAgeTimer dbAgeTimer;
     private ScheduledExecutorService exServiceage;
     // creating age bins of MAXAGE

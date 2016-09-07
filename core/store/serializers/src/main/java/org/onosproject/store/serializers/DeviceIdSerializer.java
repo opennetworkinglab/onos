@@ -27,6 +27,12 @@ import com.esotericsoftware.kryo.io.Output;
 */
 public final class DeviceIdSerializer extends Serializer<DeviceId> {
 
+    private static final DeviceIdSerializer INSTANCE = new DeviceIdSerializer();
+
+    public static final DeviceIdSerializer deviceIdSerializer() {
+        return INSTANCE;
+    }
+
     /**
      * Creates {@link DeviceId} serializer instance.
      */

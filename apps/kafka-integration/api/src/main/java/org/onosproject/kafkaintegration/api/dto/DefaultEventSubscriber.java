@@ -84,6 +84,7 @@ public final class DefaultEventSubscriber implements EventSubscriber {
                 .addValue(subscriberGroupId.toString())
                 .add("eventType", eventType).toString();
     }
+
     /**
      * To create an instance of the builder.
      *
@@ -92,6 +93,7 @@ public final class DefaultEventSubscriber implements EventSubscriber {
     public static Builder builder() {
         return new Builder();
     }
+
     /**
      * Builder class for Event subscriber.
      */
@@ -107,8 +109,7 @@ public final class DefaultEventSubscriber implements EventSubscriber {
         }
 
         @Override
-        public Builder setSubscriberGroupId(EventSubscriberGroupId
-                                                            subscriberGroupId) {
+        public Builder setSubscriberGroupId(EventSubscriberGroupId subscriberGroupId) {
             this.subscriberGroupId = subscriberGroupId;
             return this;
         }
@@ -122,13 +123,11 @@ public final class DefaultEventSubscriber implements EventSubscriber {
         @Override
         public EventSubscriber build() {
             checkNotNull(appName, "App name cannot be null");
-            checkNotNull(subscriberGroupId, "Subscriber group ID cannot " +
-                    "be " +
-                    "null");
+            checkNotNull(subscriberGroupId,
+                         "Subscriber group ID cannot " + "be " + "null");
             checkNotNull(eventType, "Event type cannot be null");
 
-            return new DefaultEventSubscriber(appName,
-                                              subscriberGroupId,
+            return new DefaultEventSubscriber(appName, subscriberGroupId,
                                               eventType);
         }
     }

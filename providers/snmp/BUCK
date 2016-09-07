@@ -1,0 +1,18 @@
+BUNDLES = [
+  '//providers/snmp/device:onos-providers-snmp-device',
+  '//protocols/snmp/api:onos-protocols-snmp-api',
+  '//protocols/snmp/ctl:onos-protocols-snmp-ctl',
+  '//lib:org.apache.servicemix.bundles.snmp4j',
+  '//lib:snmp-core',
+  '//lib:bti7000',
+  '//lib:mibs-net-snmp',
+]
+
+onos_app (
+    app_name = 'org.onosproject.snmp',
+    title = 'SNMP Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    description = 'SNMP providers.',
+)

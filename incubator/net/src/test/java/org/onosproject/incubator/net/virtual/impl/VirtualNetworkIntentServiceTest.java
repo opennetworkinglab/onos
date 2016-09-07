@@ -81,7 +81,7 @@ public class VirtualNetworkIntentServiceTest extends TestDeviceParams {
 
     private final String tenantIdValue1 = "TENANT_ID1";
     private static final ApplicationId APP_ID =
-            new TestApplicationId(PtToPtIntentVirtualNetworkProvider.PTPT_INTENT_APPID);
+            new TestApplicationId("MyAppId");
 
     private ConnectPoint cp1;
     private ConnectPoint cp2;

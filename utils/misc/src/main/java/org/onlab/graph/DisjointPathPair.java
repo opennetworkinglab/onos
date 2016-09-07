@@ -66,7 +66,7 @@ public class DisjointPathPair<V extends Vertex, E extends Edge<V>> implements Pa
     /**
      * Returns the secondary path.
      *
-     * @return primary path
+     * @return secondary path, or null if there is no secondary path available.
      */
     public Path<V, E> secondary() {
         return secondary;

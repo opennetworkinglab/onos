@@ -15,6 +15,14 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
+import io.atomix.catalyst.buffer.BufferInput;
+import io.atomix.catalyst.buffer.BufferOutput;
+import io.atomix.catalyst.serializer.CatalystSerializable;
+import io.atomix.catalyst.serializer.SerializableTypeResolver;
+import io.atomix.catalyst.serializer.Serializer;
+import io.atomix.catalyst.serializer.SerializerRegistry;
+import io.atomix.copycat.Command;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -24,14 +32,6 @@ import org.onosproject.store.service.Task;
 import org.onosproject.store.service.WorkQueueStats;
 
 import com.google.common.base.MoreObjects;
-
-import io.atomix.catalyst.buffer.BufferInput;
-import io.atomix.catalyst.buffer.BufferOutput;
-import io.atomix.catalyst.serializer.CatalystSerializable;
-import io.atomix.catalyst.serializer.SerializableTypeResolver;
-import io.atomix.catalyst.serializer.Serializer;
-import io.atomix.catalyst.serializer.SerializerRegistry;
-import io.atomix.copycat.Command;
 
 /**
  * {@link AtomixWorkQueue} resource state machine operations.
@@ -207,6 +207,24 @@ public final class AtomixWorkQueueCommands {
         }
     }
 
+    @SuppressWarnings("serial")
+    public static class Clear implements Command<Void>, CatalystSerializable {
+
+        @Override
+        public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
+        }
+
+        @Override
+        public void readObject(BufferInput<?> buffer, Serializer serializer) {
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                    .toString();
+        }
+    }
+
     /**
      * Work queue command type resolver.
      */
@@ -219,6 +237,7 @@ public final class AtomixWorkQueueCommands {
             registry.register(Add.class, -963);
             registry.register(Complete.class, -964);
             registry.register(Stats.class, -965);
+            registry.register(Clear.class, -966);
         }
     }
 }

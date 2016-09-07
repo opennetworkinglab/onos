@@ -37,11 +37,18 @@
         <onos.app.title>Fujitsu Device Drivers</onos.app.title>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.requires>
-            org.onosproject.netconf
+            org.onosproject.netconf,
+            org.onosproject.optical-model
         </onos.app.requires>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-optical-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-netconf-api</artifactId>

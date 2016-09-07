@@ -80,6 +80,7 @@ public interface RestSBController {
     /**
      * Does a REST POST request with specified parameters to the device.
      *
+     * @param <T>           post return type
      * @param device        device to make the request to
      * @param request       url of the request
      * @param payload       payload of the request as an InputStream

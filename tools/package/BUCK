@@ -13,73 +13,6 @@ FEATURES = [
 #'//features:onos-security',
 ]
 
-#FIXME this list is currently mirrored from the root Buck file
-APPS = [
-  # Drivers
-  '//drivers/default:onos-drivers-default-oar',
-  '//drivers/corsa:onos-drivers-corsa-oar',
-  '//drivers/ovsdb:onos-drivers-ovsdb-oar',
-
-  # Providers
-  '//providers/bgp:onos-providers-bgp-oar',
-  '//providers/host:onos-providers-host-oar',
-  '//providers/lldp:onos-providers-lldp-oar',
-  '//providers/netcfghost:onos-providers-netcfghost-oar',
-  '//providers/netcfglinks:onos-providers-netcfglinks-oar',
-  '//providers/netconf:onos-providers-netconf-oar',
-  '//providers/openflow/message:onos-providers-openflow-message-oar',
-  '//providers/ovsdb:onos-providers-ovsdb-oar',
-  '//providers/pcep:onos-providers-pcep-oar',
-  '//providers/null:onos-providers-null-oar',
-  '//providers/openflow/base:onos-providers-openflow-base-oar',
-  '//providers/openflow/app:onos-providers-openflow-app-oar',
-  '//providers/rest:onos-providers-rest-oar',
-  '//providers/isis:onos-providers-isis-oar',
-  '//providers/ovsdb/host:onos-providers-ovsdb-host-oar',
-  '//providers/ovsdb/base:onos-providers-ovsdb-base-oar',
-
-  # Apps
-  '//apps/dhcp:onos-apps-dhcp-oar',
-  '//apps/dhcprelay:onos-apps-dhcprelay-oar',
-  '//apps/fwd:onos-apps-fwd-oar',
-  '//apps/acl:onos-apps-acl-oar',
-  '//apps/bgprouter:onos-apps-bgprouter-oar',
-  '//apps/proxyarp:onos-apps-proxyarp-oar',
-  '//apps/segmentrouting:onos-apps-segmentrouting-oar',
-  '//apps/gangliametrics:onos-apps-gangliametrics-oar',
-  '//apps/graphitemetrics:onos-apps-graphitemetrics-oar',
-  '//apps/influxdbmetrics:onos-apps-influxdbmetrics-oar',
-  '//apps/metrics:onos-apps-metrics-oar',
-  '//apps/mfwd:onos-apps-mfwd-oar',
-  '//apps/mlb:onos-apps-mlb-oar',
-  '//apps/openstackinterface:onos-apps-openstackinterface-oar',
-  '//apps/openstacknetworking:onos-apps-openstacknetworking-oar',
-  '//apps/openstacknetworking/routing:onos-apps-openstacknetworking-routing-oar',
-  '//apps/openstacknetworking/switching:onos-apps-openstacknetworking-switching-oar',
-  '//apps/mobility:onos-apps-mobility-oar',
-  '//apps/optical:onos-apps-optical-oar',
-  '//apps/pathpainter:onos-apps-pathpainter-oar',
-  '//apps/pcep-api:onos-apps-pcep-api-oar',
-  '//apps/pim:onos-apps-pim-oar',
-  '//apps/reactive-routing:onos-apps-reactive-routing-oar',
-  '//apps/sdnip:onos-apps-sdnip-oar',
-  '//apps/virtualbng:onos-apps-virtualbng-oar',
-  '//apps/vpls:onos-apps-vpls-oar',
-  '//apps/vrouter:onos-apps-vrouter-oar',
-  '//apps/vtn:onos-apps-vtn-oar',
-  '//apps/faultmanagement:onos-apps-faultmanagement-oar',
-  '//apps/openstacknode:onos-apps-openstacknode-oar',
-  '//apps/cpman/app:onos-apps-cpman-app-oar',
-  '//apps/xosclient:onos-apps-xosclient-oar',
-  '//apps/scalablegateway:onos-apps-scalablegateway-oar',
-  '//apps/events:onos-apps-events-oar',
-  '//apps/test/election:onos-apps-test-election-oar',
-  '//apps/test/distributed-primitives:onos-apps-test-distributed-primitives-oar',
-  '//apps/test/intent-perf:onos-apps-test-intent-perf-oar',
-  '//apps/test/loadtest:onos-apps-test-loadtest-oar',
-  '//apps/test/demo:onos-apps-test-demo-oar',
-]
-
 #TODO move to buck-tools
 export_file (
   name = 'onos-prep-karaf',
@@ -107,6 +40,7 @@ sources += staged_repos + staged_apps
 
 genrule(
   name = 'onos-package',
+  srcs = glob(['bin/*', 'etc/*', 'init/*', 'config/*']),
   out = 'onos.tar.gz',
   bash = '$(exe //buck-tools:onos-stage) $OUT $(location :onos-karaf) ' + ' '.join(sources),
   visibility = [ 'PUBLIC' ],

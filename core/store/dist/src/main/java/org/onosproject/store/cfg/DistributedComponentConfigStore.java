@@ -44,7 +44,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Manages inventory of component configurations in a distributed data store
  * that provides strong sequential consistency guarantees.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
 public class DistributedComponentConfigStore
         extends AbstractStore<ComponentConfigEvent, ComponentConfigStoreDelegate>
@@ -101,9 +101,9 @@ public class DistributedComponentConfigStore
             String[] keys = event.key().split(SEP);
             if (event.type() == INSERT || event.type() == UPDATE) {
                 String value = event.newValue().value();
-                delegate.notify(new ComponentConfigEvent(PROPERTY_SET, keys[0], keys[1], value));
+                notifyDelegate(new ComponentConfigEvent(PROPERTY_SET, keys[0], keys[1], value));
             } else if (event.type() == REMOVE) {
-                delegate.notify(new ComponentConfigEvent(PROPERTY_UNSET, keys[0], keys[1], null));
+                notifyDelegate(new ComponentConfigEvent(PROPERTY_UNSET, keys[0], keys[1], null));
             }
         }
     }

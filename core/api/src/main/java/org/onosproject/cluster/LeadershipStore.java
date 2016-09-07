@@ -24,7 +24,7 @@ import org.onosproject.store.Store;
 public interface LeadershipStore extends Store<LeadershipEvent, LeadershipStoreDelegate> {
 
     /**
-     * Adds registration for the local instance to be leader for topic.
+     * Adds registration for the local instance to be part of the leadership contest for topic.
      *
      * @param topic leadership topic
      * @return Updated leadership after operation is completed

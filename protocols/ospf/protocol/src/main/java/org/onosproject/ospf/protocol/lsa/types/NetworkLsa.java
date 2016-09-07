@@ -103,6 +103,16 @@ public class NetworkLsa extends LsaHeader {
     }
 
     /**
+     * Gets the list of attached routers.
+     *
+     * @return list of attached routers
+     */
+    public List<Ip4Address> attachedRouters() {
+
+        return attachedRouters;
+    }
+
+    /**
      * Reads from channel buffer and populate instance.
      *
      * @param channelBuffer channel buffer instance

@@ -16,322 +16,330 @@
 package org.onosproject.openstacknetworking.routing;
 
 import com.google.common.collect.Maps;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
-import org.onosproject.net.Port;
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
+import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketPriority;
+import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.openstackinterface.OpenstackRouter;
 import org.onosproject.openstacknetworking.Constants;
 import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstacknode.OpenstackNode;
+import org.onosproject.openstacknode.OpenstackNodeEvent;
+import org.onosproject.openstacknode.OpenstackNodeListener;
 import org.onosproject.openstacknode.OpenstackNodeService;
+import org.onosproject.scalablegateway.api.GatewayNode;
 import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.openstacknetworking.Constants.*;
+import static org.onosproject.openstacknode.OpenstackNodeService.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
- * Handle ICMP packet sent from Openstack Gateway nodes.
+ * Handle ICMP packet sent from OpenStack Gateway nodes.
+ * For a request to any private network gateway IPs, it generates fake reply.
+ * For a request to the external network, it does source NAT with a public IP and
+ * forward the request to the external only if the request instance has external
+ * connection setups.
  */
+@Component(immediate = true)
 public class OpenstackIcmpHandler {
     protected final Logger log = getLogger(getClass());
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
 
-    private static final String NETWORK_ROUTER_INTERFACE = "network:router_interface";
-    private static final String PORTNAME = "portName";
-    private static final String NETWORK_ROUTER_GATEWAY = "network:router_gateway";
-    private static final String NETWORK_FLOATING_IP = "network:floatingip";
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PacketService packetService;
 
-    private final PacketService packetService;
-    private final DeviceService deviceService;
-    private final ScalableGatewayService gatewayService;
-    private final HostService hostService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostService hostService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackInterfaceService openstackService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ScalableGatewayService gatewayService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackNodeService nodeService;
+
+    private final ExecutorService eventExecutor = newSingleThreadScheduledExecutor(
+            groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
+    private final InternalPacketProcessor packetProcessor = new InternalPacketProcessor();
+    private final InternalNodeListener nodeListener = new InternalNodeListener();
     private final Map<String, Host> icmpInfoMap = Maps.newHashMap();
-    private final OpenstackInterfaceService openstackService;
-    private final OpenstackNodeService nodeService;
 
-    /**
-     * Default constructor.
-     *
-     * @param packetService             packet service
-     * @param deviceService             device service
-     * @param openstackService          openstackInterface service
-     */
-    OpenstackIcmpHandler(PacketService packetService,
-                         DeviceService deviceService,
-                         HostService hostService,
-                         OpenstackInterfaceService openstackService,
-                         OpenstackNodeService nodeService,
-                         ScalableGatewayService gatewayService
-                         ) {
-        this.packetService = packetService;
-        this.deviceService = deviceService;
-        this.hostService = hostService;
-        this.openstackService = checkNotNull(openstackService);
-        this.nodeService = nodeService;
-        this.gatewayService = gatewayService;
+    ApplicationId appId;
+
+    @Activate
+    protected void activate() {
+        appId = coreService.registerApplication(ROUTING_APP_ID);
+        packetService.addProcessor(packetProcessor, PacketProcessor.director(1));
+        nodeService.addListener(nodeListener);
+        requestPacket(appId);
+
+        log.info("Started");
     }
 
-    /**
-     * Requests ICMP packet.
-     *
-     * @param appId Application Id
-     */
-    public void requestPacket(ApplicationId appId) {
+    @Deactivate
+    protected void deactivate() {
+        packetService.removeProcessor(packetProcessor);
+        log.info("Stopped");
+    }
+
+    private void requestPacket(ApplicationId appId) {
         TrafficSelector icmpSelector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_ICMP)
                 .build();
 
-       // TODO: Return the correct gateway node
-        Optional<OpenstackNode> gwNode =  nodeService.nodes().stream()
-                .filter(n -> n.type().equals(OpenstackNodeService.NodeType.GATEWAY))
-                .findFirst();
-
-        if (!gwNode.isPresent()) {
-            log.warn("No Gateway is defined.");
-            return;
-        }
-
-        packetService.requestPackets(icmpSelector,
-                PacketPriority.CONTROL,
-                appId,
-                Optional.of(gwNode.get().intBridge()));
+        gatewayService.getGatewayDeviceIds().stream().forEach(gateway -> {
+            packetService.requestPackets(icmpSelector,
+                                         PacketPriority.CONTROL,
+                                         appId,
+                                         Optional.of(gateway));
+            log.debug("Requested ICMP packet on {}", gateway);
+        });
     }
 
-    /**
-     * Handles ICMP packet.
-     *
-     * @param context  packet context
-     * @param ethernet ethernet
-     */
-    public void processIcmpPacket(PacketContext context, Ethernet ethernet) {
-        checkNotNull(context, "context can not be null");
-        checkNotNull(ethernet, "ethernet can not be null");
-
+    private void processIcmpPacket(PacketContext context, Ethernet ethernet) {
         IPv4 ipPacket = (IPv4) ethernet.getPayload();
-
-        log.debug("icmpEvent called from ip {}, mac {}", Ip4Address.valueOf(ipPacket.getSourceAddress()).toString(),
-                ethernet.getSourceMAC().toString());
+        log.trace("Processing ICMP packet from ip {}, mac {}",
+                  Ip4Address.valueOf(ipPacket.getSourceAddress()),
+                  ethernet.getSourceMAC());
 
         ICMP icmp = (ICMP) ipPacket.getPayload();
         short icmpId = getIcmpId(icmp);
 
-        DeviceId deviceId = context.inPacket().receivedFrom().deviceId();
-        PortNumber portNumber = context.inPacket().receivedFrom().port();
-        if (icmp.getIcmpType() == ICMP.TYPE_ECHO_REQUEST) {
-            //TODO: Considers icmp between internal subnets which are belonged to the same router.
-            Optional<Host> host = hostService.getHostsByMac(ethernet.getSourceMAC()).stream().findFirst();
-            if (!host.isPresent()) {
-                log.warn("No host found for MAC {}", ethernet.getSourceMAC());
-                return;
-            }
+        DeviceId srcDevice = context.inPacket().receivedFrom().deviceId();
+        switch (icmp.getIcmpType()) {
+            case ICMP.TYPE_ECHO_REQUEST:
+                Optional<Host> reqHost = hostService.getHostsByMac(ethernet.getSourceMAC())
+                        .stream().findFirst();
+                if (!reqHost.isPresent()) {
+                    log.warn("No host found for MAC {}", ethernet.getSourceMAC());
+                    return;
+                }
 
-            IpAddress gatewayIp = IpAddress.valueOf(host.get().annotations().value(Constants.GATEWAY_IP));
-            if (ipPacket.getDestinationAddress() == gatewayIp.getIp4Address().toInt()) {
-                processIcmpPacketSentToGateway(ipPacket, icmp, host.get());
-            } else {
-                Ip4Address pNatIpAddress = pNatIpForPort(host.get());
-                checkNotNull(pNatIpAddress, "pNatIpAddress can not be null");
+                // TODO Considers icmp between internal subnets belong to the same router.
+                // TODO do we have to support ICMP reply for non-existing gateway?
+                Ip4Address gatewayIp = Ip4Address.valueOf(
+                        reqHost.get().annotations().value(Constants.GATEWAY_IP));
+                if (Objects.equals(ipPacket.getDestinationAddress(), gatewayIp.toInt())) {
+                    processRequestToGateway(ipPacket, reqHost.get());
+                } else {
+                    Optional<Ip4Address> srcNatIp = getSrcNatIp(reqHost.get());
+                    if (!srcNatIp.isPresent()) {
+                        log.trace("VM {} has no external connection", reqHost.get());
+                        return;
+                    }
 
-                sendRequestPacketToExt(ipPacket, icmp, deviceId, pNatIpAddress);
-
+                    sendRequestToExternal(ipPacket, srcDevice, srcNatIp.get());
+                    String icmpInfoKey = String.valueOf(icmpId)
+                            .concat(String.valueOf(srcNatIp.get().toInt()))
+                            .concat(String.valueOf(ipPacket.getDestinationAddress()));
+                    icmpInfoMap.putIfAbsent(icmpInfoKey, reqHost.get());
+                }
+                break;
+            case ICMP.TYPE_ECHO_REPLY:
                 String icmpInfoKey = String.valueOf(icmpId)
-                        .concat(String.valueOf(pNatIpAddress.toInt()))
-                        .concat(String.valueOf(ipPacket.getDestinationAddress()));
-                icmpInfoMap.putIfAbsent(icmpInfoKey, host.get());
-            }
-        } else if (icmp.getIcmpType() == ICMP.TYPE_ECHO_REPLY) {
-            String icmpInfoKey = String.valueOf(icmpId)
-                    .concat(String.valueOf(ipPacket.getDestinationAddress()))
-                    .concat(String.valueOf(ipPacket.getSourceAddress()));
+                        .concat(String.valueOf(ipPacket.getDestinationAddress()))
+                        .concat(String.valueOf(ipPacket.getSourceAddress()));
 
-            processResponsePacketFromExternalToHost(ipPacket, icmp, icmpInfoMap.get(icmpInfoKey));
-
-            icmpInfoMap.remove(icmpInfoKey);
+                processReplyFromExternal(ipPacket, icmpInfoMap.get(icmpInfoKey));
+                icmpInfoMap.remove(icmpInfoKey);
+                break;
+            default:
+                break;
         }
     }
 
-    private void processIcmpPacketSentToExtenal(IPv4 icmpRequestIpv4, ICMP icmpRequest,
-                                                int destAddr, MacAddress destMac,
-                                                DeviceId deviceId, PortNumber portNumber) {
-        icmpRequest.setChecksum((short) 0);
-        icmpRequest.setIcmpType(ICMP.TYPE_ECHO_REPLY).resetChecksum();
-        icmpRequestIpv4.setSourceAddress(icmpRequestIpv4.getDestinationAddress())
-                .setDestinationAddress(destAddr).resetChecksum();
-        icmpRequestIpv4.setPayload(icmpRequest);
-        Ethernet icmpResponseEth = new Ethernet();
-        icmpResponseEth.setEtherType(Ethernet.TYPE_IPV4)
-                // TODO: Get the correct GW MAC
-                .setSourceMACAddress(Constants.GW_EXT_INT_MAC)
-                .setDestinationMACAddress(destMac).setPayload(icmpRequestIpv4);
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder().setOutput(portNumber).build();
-        OutboundPacket packet = new DefaultOutboundPacket(deviceId,
-                treatment, ByteBuffer.wrap(icmpResponseEth.serialize()));
-        packetService.emit(packet);
+    // TODO do we have to handle the request to the fake gateway?
+    private void processRequestToGateway(IPv4 ipPacket, Host reqHost) {
+        ICMP icmpReq = (ICMP) ipPacket.getPayload();
+        icmpReq.setChecksum((short) 0);
+        icmpReq.setIcmpType(ICMP.TYPE_ECHO_REPLY).resetChecksum();
+
+        int destinationAddress = ipPacket.getSourceAddress();
+
+        ipPacket.setSourceAddress(ipPacket.getDestinationAddress())
+                .setDestinationAddress(destinationAddress)
+                .resetChecksum();
+
+        ipPacket.setPayload(icmpReq);
+        Ethernet icmpReply = new Ethernet();
+        icmpReply.setEtherType(Ethernet.TYPE_IPV4)
+                .setSourceMACAddress(Constants.DEFAULT_GATEWAY_MAC)
+                .setDestinationMACAddress(reqHost.mac())
+                .setPayload(ipPacket);
+
+        sendReply(icmpReply, reqHost);
     }
 
-    private void processIcmpPacketSentToGateway(IPv4 icmpRequestIpv4, ICMP icmpRequest,
-                                                Host host) {
-        icmpRequest.setChecksum((short) 0);
-        icmpRequest.setIcmpType(ICMP.TYPE_ECHO_REPLY)
-                .resetChecksum();
-
-        Ip4Address ipAddress = host.ipAddresses().stream().findAny().get().getIp4Address();
-        icmpRequestIpv4.setSourceAddress(icmpRequestIpv4.getDestinationAddress())
-                .setDestinationAddress(ipAddress.toInt())
-                .resetChecksum();
-
-        icmpRequestIpv4.setPayload(icmpRequest);
-
-        Ethernet icmpResponseEth = new Ethernet();
-
-        icmpResponseEth.setEtherType(Ethernet.TYPE_IPV4)
-                .setSourceMACAddress(Constants.GATEWAY_MAC)
-                .setDestinationMACAddress(host.mac())
-                .setPayload(icmpRequestIpv4);
-
-        sendResponsePacketToHost(icmpResponseEth, host);
-    }
-
-    private void sendRequestPacketToExt(IPv4 icmpRequestIpv4, ICMP icmpRequest, DeviceId deviceId,
-                                        Ip4Address pNatIpAddress) {
-        icmpRequest.resetChecksum();
-        icmpRequestIpv4.setSourceAddress(pNatIpAddress.toInt())
-                .resetChecksum();
-        icmpRequestIpv4.setPayload(icmpRequest);
+    private void sendRequestToExternal(IPv4 ipPacket, DeviceId srcDevice, Ip4Address srcNatIp) {
+        ICMP icmpReq = (ICMP) ipPacket.getPayload();
+        icmpReq.resetChecksum();
+        ipPacket.setSourceAddress(srcNatIp.toInt()).resetChecksum();
+        ipPacket.setPayload(icmpReq);
 
         Ethernet icmpRequestEth = new Ethernet();
-
         icmpRequestEth.setEtherType(Ethernet.TYPE_IPV4)
-                // TODO: Get the correct one - Scalable Gateway ...
-                .setSourceMACAddress(Constants.GW_EXT_INT_MAC)
-                .setDestinationMACAddress(Constants.PHY_ROUTER_MAC)
-                .setPayload(icmpRequestIpv4);
-
-        // TODO: Return the correct gateway node
-        Optional<OpenstackNode> gwNode =  nodeService.nodes().stream()
-                .filter(n -> n.type().equals(OpenstackNodeService.NodeType.GATEWAY))
-                .findFirst();
-
-        if (!gwNode.isPresent()) {
-            log.warn("No Gateway is defined.");
-            return;
-        }
+                .setSourceMACAddress(DEFAULT_GATEWAY_MAC)
+                .setDestinationMACAddress(DEFAULT_EXTERNAL_ROUTER_MAC)
+                .setPayload(ipPacket);
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                // FIXME: please double check this.
-                .setOutput(getPortForAnnotationPortName(gwNode.get().intBridge(),
-                        // FIXME: please double check this.
-                        org.onosproject.openstacknode.Constants.PATCH_INTG_BRIDGE))
+                .setOutput(gatewayService.getUplinkPort(srcDevice))
                 .build();
 
-        OutboundPacket packet = new DefaultOutboundPacket(deviceId,
-                treatment, ByteBuffer.wrap(icmpRequestEth.serialize()));
+        OutboundPacket packet = new DefaultOutboundPacket(
+                srcDevice,
+                treatment,
+                ByteBuffer.wrap(icmpRequestEth.serialize()));
 
         packetService.emit(packet);
     }
 
-    private void processResponsePacketFromExternalToHost(IPv4 icmpResponseIpv4, ICMP icmpResponse,
-                                                         Host host) {
-        icmpResponse.resetChecksum();
+    private void processReplyFromExternal(IPv4 ipPacket, Host dstHost) {
+        ICMP icmpReply = (ICMP) ipPacket.getPayload();
+        icmpReply.resetChecksum();
 
-        Ip4Address ipAddress = host.ipAddresses().stream().findFirst().get().getIp4Address();
-        icmpResponseIpv4.setDestinationAddress(ipAddress.toInt())
+        Ip4Address ipAddress = dstHost.ipAddresses().stream().findFirst().get().getIp4Address();
+        ipPacket.setDestinationAddress(ipAddress.toInt())
                 .resetChecksum();
-        icmpResponseIpv4.setPayload(icmpResponse);
+        ipPacket.setPayload(icmpReply);
 
         Ethernet icmpResponseEth = new Ethernet();
-
         icmpResponseEth.setEtherType(Ethernet.TYPE_IPV4)
-                .setSourceMACAddress(Constants.GATEWAY_MAC)
-                .setDestinationMACAddress(host.mac())
-                .setPayload(icmpResponseIpv4);
+                .setSourceMACAddress(Constants.DEFAULT_GATEWAY_MAC)
+                .setDestinationMACAddress(dstHost.mac())
+                .setPayload(ipPacket);
 
-        sendResponsePacketToHost(icmpResponseEth, host);
+        sendReply(icmpResponseEth, dstHost);
     }
 
-    private void sendResponsePacketToHost(Ethernet icmpResponseEth, Host host) {
-
+    private void sendReply(Ethernet icmpReply, Host dstHost) {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(host.location().port())
+                .setOutput(dstHost.location().port())
                 .build();
 
-        OutboundPacket packet = new DefaultOutboundPacket(host.location().deviceId(),
-                treatment, ByteBuffer.wrap(icmpResponseEth.serialize()));
+        OutboundPacket packet = new DefaultOutboundPacket(
+                dstHost.location().deviceId(),
+                treatment,
+                ByteBuffer.wrap(icmpReply.serialize()));
 
         packetService.emit(packet);
+    }
+
+    private Optional<Ip4Address> getSrcNatIp(Host host) {
+        // TODO cache external gateway IP for each network because
+        // asking Neutron for every ICMP request is a bad idea
+        Optional<OpenstackPort> osPort = openstackService.ports().stream()
+                .filter(port -> port.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE) &&
+                        Objects.equals(host.annotations().value(NETWORK_ID),
+                                       port.networkId()))
+                .findAny();
+        if (!osPort.isPresent()) {
+            return Optional.empty();
+        }
+
+        OpenstackRouter osRouter = openstackService.router(osPort.get().deviceId());
+        if (osRouter == null) {
+            return Optional.empty();
+        }
+
+        return osRouter.gatewayExternalInfo().externalFixedIps()
+                .values().stream().findAny();
     }
 
     private short getIcmpId(ICMP icmp) {
         return ByteBuffer.wrap(icmp.serialize(), 4, 2).getShort();
     }
 
-    private Ip4Address pNatIpForPort(Host host) {
+    private class InternalPacketProcessor implements PacketProcessor {
 
-        OpenstackPort openstackPort = openstackService.ports().stream()
-                .filter(p -> p.deviceOwner().equals(NETWORK_ROUTER_INTERFACE) &&
-                        p.networkId().equals(host.annotations().value(Constants.NETWORK_ID)))
-                .findAny().orElse(null);
+        @Override
+        public void process(PacketContext context) {
+            if (context.isHandled()) {
+                return;
+            } else if (!gatewayService.getGatewayDeviceIds().contains(
+                    context.inPacket().receivedFrom().deviceId())) {
+                // return if the packet is not from gateway nodes
+                return;
+            }
 
-        checkNotNull(openstackPort, "openstackPort can not be null");
+            InboundPacket pkt = context.inPacket();
+            Ethernet ethernet = pkt.parsed();
+            if (ethernet == null || ethernet.getEtherType() == Ethernet.TYPE_ARP) {
+                return;
+            }
 
-        return openstackService.router(openstackPort.deviceId())
-                .gatewayExternalInfo().externalFixedIps().values()
-                .stream().findAny().orElse(null);
-    }
-
-    private PortNumber getPortForAnnotationPortName(DeviceId deviceId, String match) {
-        Port port = deviceService.getPorts(deviceId).stream()
-                .filter(p -> p.annotations().value(PORTNAME).equals(match))
-                .findAny().orElse(null);
-
-        checkNotNull(port, "port cannot be null");
-
-        return port.number();
-    }
-
-    private boolean requestToOpenstackRoutingNetwork(int destAddr) {
-        OpenstackPort port = openstackService.ports().stream()
-                .filter(p -> p.deviceOwner().equals(NETWORK_ROUTER_GATEWAY) ||
-                        p.deviceOwner().equals(NETWORK_FLOATING_IP))
-                .filter(p -> p.fixedIps().containsValue(
-                        Ip4Address.valueOf(destAddr)))
-                .findAny().orElse(null);
-        if (port == null) {
-            return false;
+            IPv4 iPacket = (IPv4) ethernet.getPayload();
+            if (iPacket.getProtocol() == IPv4.PROTOCOL_ICMP) {
+                    eventExecutor.execute(() -> processIcmpPacket(context, ethernet));
+            }
         }
-        return true;
     }
-    private Map<DeviceId, PortNumber> getExternalInfo() {
-        Map<DeviceId, PortNumber> externalInfoMap = Maps.newHashMap();
-        gatewayService.getGatewayDeviceIds().forEach(deviceId ->
-                externalInfoMap.putIfAbsent(deviceId, gatewayService.getGatewayExternalPort(deviceId)));
-        return externalInfoMap;
+
+    private class InternalNodeListener implements OpenstackNodeListener {
+
+        @Override
+        public void event(OpenstackNodeEvent event) {
+            OpenstackNode node = event.node();
+
+            switch (event.type()) {
+                case COMPLETE:
+                    if (node.type() == GATEWAY) {
+                        log.info("GATEWAY node {} detected", node.hostname());
+                        eventExecutor.execute(() -> {
+                            GatewayNode gnode = GatewayNode.builder()
+                                    .gatewayDeviceId(node.intBridge())
+                                    .dataIpAddress(node.dataIp().getIp4Address())
+                                    .uplinkIntf(node.externalPortName().get())
+                                    .build();
+                            gatewayService.addGatewayNode(gnode);
+                            requestPacket(appId);
+                        });
+                    }
+                    break;
+                case INIT:
+                case DEVICE_CREATED:
+                case INCOMPLETE:
+                default:
+                    break;
+            }
+        }
     }
 }

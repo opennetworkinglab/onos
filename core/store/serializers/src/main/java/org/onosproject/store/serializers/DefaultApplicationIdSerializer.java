@@ -36,14 +36,14 @@ public final class DefaultApplicationIdSerializer extends Serializer<DefaultAppl
 
     @Override
     public void write(Kryo kryo, Output output, DefaultApplicationId object) {
-        kryo.writeObject(output, object.id());
-        kryo.writeObject(output, object.name());
+        output.writeShort(object.id());
+        output.writeString(object.name());
     }
 
     @Override
     public DefaultApplicationId read(Kryo kryo, Input input, Class<DefaultApplicationId> type) {
-        short id = kryo.readObject(input, Short.class);
-        String name = kryo.readObject(input, String.class);
+        short id = input.readShort();
+        String name = input.readString();
         return new DefaultApplicationId(id, name);
     }
 }

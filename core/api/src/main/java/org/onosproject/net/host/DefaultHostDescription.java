@@ -52,7 +52,7 @@ public class DefaultHostDescription extends AbstractDescription
     public DefaultHostDescription(MacAddress mac, VlanId vlan,
                                   HostLocation location,
                                   SparseAnnotations... annotations) {
-        this(mac, vlan, location, Collections.<IpAddress>emptySet(),
+        this(mac, vlan, location, Collections.emptySet(),
              annotations);
     }
 

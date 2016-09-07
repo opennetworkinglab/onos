@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PLUGINS=$ONOS_ROOT/bucklets/plugins
+
+# Build it first
+pluginJar=$(NO_BUCKD=1 buck build //tools/build/buck-plugin:onosjar --no-cache --show-output | grep onosjar.jar | cut -d\  -f2)
+
+# Then install it
+mkdir -p $PLUGINS
+cp $ONOS_ROOT/$pluginJar $PLUGINS
+
+ls -l $PLUGINS

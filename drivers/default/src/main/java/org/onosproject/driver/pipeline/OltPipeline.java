@@ -649,7 +649,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
     private class InnerGroupListener implements GroupListener {
         @Override
         public void event(GroupEvent event) {
-            if (event.type() == GroupEvent.Type.GROUP_ADDED) {
+            if (event.type() == GroupEvent.Type.GROUP_ADDED ||
+                event.type() == GroupEvent.Type.GROUP_UPDATED) {
                 GroupKey key = event.subject().appCookie();
 
                 NextObjective obj = pendingGroups.getIfPresent(key);

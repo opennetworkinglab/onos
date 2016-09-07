@@ -449,7 +449,7 @@ public class NewAdaptiveFlowStatsCollector implements SwitchDataCollector {
 
                 // update now
                 //FIXME modification of "stored" flow entry outside of store
-                stored.setLife(fe.life());
+                stored.setLife(fe.life(TimeUnit.NANOSECONDS), TimeUnit.NANOSECONDS);
                 stored.setPackets(fe.packets());
                 stored.setBytes(fe.bytes());
                 stored.setLastSeen();

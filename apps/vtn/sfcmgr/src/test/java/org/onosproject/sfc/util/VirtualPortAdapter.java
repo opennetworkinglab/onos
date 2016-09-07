@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.vtnrsc.FixedIp;
 import org.onosproject.vtnrsc.TenantId;
@@ -48,6 +49,11 @@ public class VirtualPortAdapter implements VirtualPortService {
 
     @Override
     public VirtualPort getPort(FixedIp fixedIP) {
+        return null;
+    }
+
+    @Override
+    public VirtualPort getPort(MacAddress mac) {
         return null;
     }
 

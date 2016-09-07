@@ -22,15 +22,22 @@ if [ -n "$doSetup" ]; then
     stc setup || exit 1
 fi
 
+# Iterate the specified number of times, or indefinitely if count not given
 let run=1
 while [ $count -le 0 -o $run -le $count ]; do
-    printf "\033]0;%s\007" "STC Run #$run"
+    export stcTitle="STC Run #$run; "
     printf "Starting run %d...\n" $run
+
+    # If we're running on a borrowed cell, refresh the reservation
+    [ "$ONOS_CELL" = "borrow" ] && onos-cell $ONOS_CELL 120 >/dev/null
+
+    # Iterate over all listed scenarios
     for scenario in "${@:-smoke}"; do
         printf "Running scenario %s...\n" $scenario
         stc $scenario
     done
     status=$?
+
     printf "Finished run %d...\n" $run
     [ $status -ne 0 ] && exit $status
     let run=run+1

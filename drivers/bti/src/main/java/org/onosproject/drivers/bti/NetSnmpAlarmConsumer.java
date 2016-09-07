@@ -67,7 +67,7 @@ public class NetSnmpAlarmConsumer extends AbstractHandlerBehaviour implements Al
             IfTable interfaceTable = (IfTable) networkDevice.getRootObject()
                     .getEntity(CLASS_REGISTRY.getClassToOidMap().get(IfTable.class));
             if (interfaceTable != null) {
-                interfaceTable.getEntries().values().stream().forEach((ifEntry) -> {
+                interfaceTable.getEntries().values().forEach((ifEntry) -> {
                     if (ifEntry.getIfAdminStatus() == 1 && ifEntry.getIfOperStatus() == 2) {
                         alarms.add(new DefaultAlarm.Builder(deviceId, "Link Down.",
                                                             Alarm.SeverityLevel.CRITICAL,

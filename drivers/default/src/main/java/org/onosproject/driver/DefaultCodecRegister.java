@@ -32,6 +32,7 @@ import org.onosproject.driver.extensions.NiciraSetNshSpi;
 import org.onosproject.driver.extensions.NiciraSetTunnelDst;
 import org.onosproject.driver.extensions.OfdpaMatchVlanVid;
 import org.onosproject.driver.extensions.OfdpaSetVlanVid;
+import org.onosproject.driver.extensions.OplinkAttenuation;
 import org.onosproject.driver.extensions.codec.MoveExtensionTreatmentCodec;
 import org.onosproject.driver.extensions.codec.NiciraMatchNshSiCodec;
 import org.onosproject.driver.extensions.codec.NiciraMatchNshSpiCodec;
@@ -43,6 +44,7 @@ import org.onosproject.driver.extensions.codec.NiciraSetNshSpiCodec;
 import org.onosproject.driver.extensions.codec.NiciraSetTunnelDstCodec;
 import org.onosproject.driver.extensions.codec.OfdpaMatchVlanVidCodec;
 import org.onosproject.driver.extensions.codec.OfdpaSetVlanVidCodec;
+import org.onosproject.driver.extensions.codec.OplinkAttenuationCodec;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -71,6 +73,7 @@ public class DefaultCodecRegister {
         codecService.registerCodec(NiciraSetNshContextHeader.class, new NiciraSetNshContextHeaderCodec());
         codecService.registerCodec(OfdpaMatchVlanVid.class, new OfdpaMatchVlanVidCodec());
         codecService.registerCodec(OfdpaSetVlanVid.class, new OfdpaSetVlanVidCodec());
+        codecService.registerCodec(OplinkAttenuation.class, new OplinkAttenuationCodec());
         log.info("Registered default driver codecs.");
     }
 
@@ -87,6 +90,7 @@ public class DefaultCodecRegister {
         codecService.unregisterCodec(NiciraSetNshContextHeader.class);
         codecService.unregisterCodec(OfdpaMatchVlanVid.class);
         codecService.unregisterCodec(OfdpaSetVlanVid.class);
+        codecService.unregisterCodec(OplinkAttenuation.class);
         log.info("Unregistered default driver codecs.");
     }
 }

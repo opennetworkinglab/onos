@@ -100,7 +100,6 @@ import org.onosproject.pcepio.protocol.PcepLspObject;
 import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.protocol.PcepMetricObject;
 import org.onosproject.pcepio.protocol.PcepMsgPath;
-import org.onosproject.pcepio.protocol.PcepNai;
 import org.onosproject.pcepio.protocol.PcepReportMsg;
 import org.onosproject.pcepio.protocol.PcepSrpObject;
 import org.onosproject.pcepio.protocol.PcepStateReport;
@@ -109,7 +108,6 @@ import org.onosproject.pcepio.protocol.PcepUpdateRequest;
 import org.onosproject.pcepio.types.IPv4SubObject;
 import org.onosproject.pcepio.types.PathSetupTypeTlv;
 import org.onosproject.pcepio.types.PcepNaiIpv4Adjacency;
-import org.onosproject.pcepio.types.PcepNaiIpv4NodeId;
 import org.onosproject.pcepio.types.PcepValueType;
 import org.onosproject.pcepio.types.SrEroSubObject;
 import org.onosproject.pcepio.types.StatefulIPv4LspIdentifiersTlv;
@@ -124,10 +122,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -279,7 +277,6 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             collectors.values().forEach(tsc -> tsc.adjustPollInterval(tunnelStatsPollFrequency));
             log.info("New setting: tunnelStatsPollFrequency={}", tunnelStatsPollFrequency);
         }
-
     }
 
     @Override
@@ -317,8 +314,27 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         //TODO: tunnel which is passed doesn't have tunnelID
         if (tunnel.annotations().value(PLSP_ID) != null) {
             if (LspType.valueOf(tunnel.annotations().value(LSP_SIG_TYPE)) != WITHOUT_SIGNALLING_AND_WITHOUT_SR) {
-                // For CR LSPs, BGP flow provider will send update message after pushing labels.
                 updateTunnel(tunnel, path);
+            } else {
+                // Download labels and send update message.
+                // To get new tunnel ID (modified tunnel ID)
+                Collection<Tunnel> tunnels = tunnelService.queryTunnel(tunnel.src(), tunnel.dst());
+                for (Tunnel t : tunnels) {
+                    if (t.state().equals(INIT) && t.tunnelName().equals(tunnel.tunnelName())) {
+                        tunnel = new DefaultTunnel(tunnel.providerId(), tunnel.src(),
+                                tunnel.dst(), tunnel.type(),
+                                t.state(), tunnel.groupId(),
+                                t.tunnelId(),
+                                tunnel.tunnelName(),
+                                tunnel.path(),
+                                tunnel.resource(),
+                                tunnel.annotations());
+                                break;
+                    }
+                }
+                if (!pcepClientController.allocateLocalLabel(tunnel)) {
+                    log.error("Unable to allocate labels for the tunnel {}.", tunnel.toString());
+                }
             }
             return;
         }
@@ -805,13 +821,11 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                                                    extendAnnotations);
 
         }
-        TunnelDescription tunnel = new DefaultTunnelDescription(
-                                                                tunnelId,
+        TunnelDescription tunnel = new DefaultTunnelDescription(tunnelId,
                                                                 srcPoint,
                                                                 dstPoint,
                                                                 tunnelType,
-                                                                new DefaultGroupId(
-                                                                                   0),
+                                                                new DefaultGroupId(0),
                                                                 id(), name,
                                                                 path,
                                                                 annotations);
@@ -841,7 +855,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
      */
     private String getPcepTunnelKey(TunnelId tunnelId) {
         for (String key : tunnelMap.keySet()) {
-            if (tunnelMap.get(key).id() == tunnelId.id()) {
+            if (Objects.equals(tunnelMap.get(key).id(), tunnelId.id())) {
                 return key;
             }
         }
@@ -903,55 +917,6 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
     }
 
     /**
-     * Creates label stack for ERO object from network resource.
-     *
-     * @param labelStack
-     * @param path (hop list)
-     * @return list of ERO subobjects
-     */
-    private LinkedList<PcepValueType> createPcepLabelStack(DefaultLabelStack labelStack, Path path) {
-        checkNotNull(labelStack);
-
-        LinkedList<PcepValueType> llSubObjects = new LinkedList<PcepValueType>();
-        Iterator<Link> links = path.links().iterator();
-        LabelResourceId label = null;
-        Link link = null;
-        PcepValueType subObj = null;
-        PcepNai nai = null;
-        Device dstNode = null;
-        long srcPortNo, dstPortNo;
-
-        ListIterator<LabelResourceId> labelListIterator = labelStack.labelResources().listIterator();
-        while (labelListIterator.hasNext()) {
-            label = labelListIterator.next();
-            link = links.next();
-
-            srcPortNo = link.src().port().toLong();
-            srcPortNo = ((srcPortNo & IDENTIFIER_SET) == IDENTIFIER_SET) ? srcPortNo & SET : srcPortNo;
-
-            dstPortNo = link.dst().port().toLong();
-            dstPortNo = ((dstPortNo & IDENTIFIER_SET) == IDENTIFIER_SET) ? dstPortNo & SET : dstPortNo;
-
-            nai = new PcepNaiIpv4Adjacency((int) srcPortNo, (int) dstPortNo);
-            subObj = new SrEroSubObject(PcepNaiIpv4Adjacency.ST_TYPE, false, false, false, true, (int) label.labelId(),
-                                        nai);
-            llSubObjects.add(subObj);
-
-            dstNode = deviceService.getDevice(link.dst().deviceId());
-            nai = new PcepNaiIpv4NodeId(Ip4Address.valueOf(dstNode.annotations().value(LSRID)).toInt());
-
-            if (!labelListIterator.hasNext()) {
-                log.error("Malformed label stack.");
-            }
-            label = labelListIterator.next();
-            subObj = new SrEroSubObject(PcepNaiIpv4NodeId.ST_TYPE, false, false, false, true, (int) label.labelId(),
-                                        nai);
-            llSubObjects.add(subObj);
-        }
-        return llSubObjects;
-    }
-
-    /**
      * Creates PcInitiated lsp request list for setup tunnel.
      *
      * @param tunnel mpls tunnel
@@ -966,10 +931,18 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                                                                           throws PcepParseException {
         PcepValueType tlv;
         LinkedList<PcepValueType> llSubObjects = null;
+        LspType lspType = LspType.valueOf(tunnel.annotations().value(LSP_SIG_TYPE));
 
-        NetworkResource labelStack = tunnel.resource();
-        if (labelStack != null && labelStack instanceof DefaultLabelStack) {
-            llSubObjects = createPcepLabelStack((DefaultLabelStack) labelStack, path);
+        if (lspType == SR_WITHOUT_SIGNALLING) {
+            NetworkResource labelStack = tunnel.resource();
+            if (labelStack == null || !(labelStack instanceof DefaultLabelStack)) {
+                labelStack = pcepClientController.computeLabelStack(tunnel.path());
+                if (labelStack == null) {
+                    log.error("Unable to create label stack.");
+                    return null;
+                }
+            }
+            llSubObjects = pcepClientController.createPcepLabelStack((DefaultLabelStack) labelStack, path);
         } else {
             llSubObjects = createPcepPath(path);
         }
@@ -982,7 +955,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
 
         // set PathSetupTypeTlv of SRP object
-        tlv = new PathSetupTypeTlv(LspType.valueOf(tunnel.annotations().value(LSP_SIG_TYPE)).type());
+        tlv = new PathSetupTypeTlv(lspType.type());
         llOptionalTlv.add(tlv);
 
         // build SRP object
@@ -1114,7 +1087,6 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             PcepTunnelData pcepTunnelData = new PcepTunnelData(tunnel, DELETE);
             pcepTunnelApiMapper.addToCoreTunnelRequestQueue(pcepTunnelData);
             int srpId = SrpIdGenerators.create();
-            TunnelId tunnelId = tunnel.tunnelId();
 
             PcepValueType tlv;
             LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
@@ -1192,14 +1164,21 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             PcepTunnelData pcepTunnelData = new PcepTunnelData(tunnel, path, UPDATE);
             pcepTunnelApiMapper.addToCoreTunnelRequestQueue(pcepTunnelData);
             int srpId = SrpIdGenerators.create();
-            TunnelId tunnelId = tunnel.tunnelId();
             PcepValueType tlv;
-            int plspId = 0;
 
             LinkedList<PcepValueType> llSubObjects = null;
-            NetworkResource labelStack = tunnel.resource();
-            if (labelStack != null && labelStack instanceof DefaultLabelStack) {
-                llSubObjects = createPcepLabelStack((DefaultLabelStack) labelStack, path);
+            LspType lspSigType = LspType.valueOf(tunnel.annotations().value(LSP_SIG_TYPE));
+
+            if (lspSigType == SR_WITHOUT_SIGNALLING) {
+                NetworkResource labelStack = tunnel.resource();
+                if (labelStack == null || !(labelStack instanceof DefaultLabelStack)) {
+                    labelStack = pcepClientController.computeLabelStack(tunnel.path());
+                    if (labelStack == null) {
+                        log.error("Unable to create label stack.");
+                        return;
+                    }
+                }
+                llSubObjects = pcepClientController.createPcepLabelStack((DefaultLabelStack) labelStack, path);
             } else {
                 llSubObjects = createPcepPath(path);
             }
@@ -1208,7 +1187,6 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             LinkedList<PcepUpdateRequest> llUpdateRequestList = new LinkedList<PcepUpdateRequest>();
 
             // set PathSetupTypeTlv of SRP object
-            LspType lspSigType = LspType.valueOf(tunnel.annotations().value(LSP_SIG_TYPE));
             tlv = new PathSetupTypeTlv(lspSigType.type());
             llOptionalTlv.add(tlv);
 
@@ -1284,8 +1262,6 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         }
     }
 
-
-
     private class InnerTunnelProvider implements PcepTunnelListener, PcepEventListener, PcepClientListener {
 
         @Override
@@ -1301,7 +1277,6 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             }
 
             TunnelId tunnelId = getTunnelId(tunnelKey);
-
             tunnel = buildOpticalTunnel(pcepTunnel, tunnelId);
 
             OperationType operType = pcepTunnel.getOperationType();
@@ -1736,7 +1711,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         private void tunnelUpdateInDelegatedCase(PccId pccId, SparseAnnotations annotations,
                 DefaultTunnelDescription td, ProviderId providerId, State tunnelState,
                                                  StatefulIPv4LspIdentifiersTlv ipv4LspIdentifiersTlv) {
-            //Wait for 2sec then query tunnel based on ingress PLSP-ID and local LSP-ID
+            // Wait for 2sec then query tunnel based on ingress PLSP-ID and local LSP-ID
 
             /*
              * If ONOS is not the master for that PCC then check if D flag is set, if yes wait [while
@@ -1890,14 +1865,11 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
 
             if (endOfSyncAction == PcepLspSyncAction.UNSTABLE) {
-
                 // Send PCInit msg again after global reoptimization.
                 tunnelUpdated(td, UNSTABLE);
 
-                // To remove the old tunnel from store whose PLSPID is not
-                // recognized by ingress PCC.
+                // To remove the old tunnel from store whose PLSPID is not recognized by ingress PCC.
                 tunnelRemoved(td);
-
             } else if (endOfSyncAction == REMOVE) {
                 tunnelRemoved(td);
             }

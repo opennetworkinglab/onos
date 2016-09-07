@@ -13,6 +13,22 @@
 
             <div class="separator"></div>
 
+            <span ng-if="brief">
+            <div class="active"
+                 icon icon-id="plus" icon-size="42"
+                 tooltip tt-msg="detailTip"
+                 ng-click="briefToggle()"> </div>
+            </span>
+
+            <span ng-if="!brief">
+            <div class="active"
+                 icon icon-id="minus" icon-size="42"
+                 tooltip tt-msg="briefTip"
+                 ng-click="briefToggle()"> </div>
+            </span>
+
+            <div class="separator"></div>
+
             <div class="active"
                  icon icon-id="deviceTable" icon-size="42"
                  tooltip tt-msg="deviceTip"
@@ -69,7 +85,7 @@
                     <td class="right">{{group.packets}}</td>
                     <td class="right">{{group.bytes}}</td>
                 </tr>
-                <tr row-id="{{group.id}}" ng-repeat-end>
+                <tr row-id="{{group.id}}" ng-hide="brief" ng-repeat-end>
                     <td class="buckets" colspan="6"
                         ng-bind-html="group.buckets"></td>
                 </tr>

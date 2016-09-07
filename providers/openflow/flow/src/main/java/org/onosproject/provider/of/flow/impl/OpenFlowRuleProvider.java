@@ -61,7 +61,6 @@ import org.osgi.service.component.ComponentContext;
 import org.projectfloodlight.openflow.protocol.OFBadRequestCode;
 import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
-import org.projectfloodlight.openflow.protocol.OFErrorType;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsReply;
@@ -71,6 +70,9 @@ import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
 import org.projectfloodlight.openflow.protocol.OFTableStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFTableStatsReply;
+import org.projectfloodlight.openflow.protocol.errormsg.OFBadActionErrorMsg;
+import org.projectfloodlight.openflow.protocol.errormsg.OFBadInstructionErrorMsg;
+import org.projectfloodlight.openflow.protocol.errormsg.OFBadMatchErrorMsg;
 import org.projectfloodlight.openflow.protocol.errormsg.OFBadRequestErrorMsg;
 import org.projectfloodlight.openflow.protocol.errormsg.OFFlowModFailedErrorMsg;
 import org.slf4j.Logger;
@@ -220,7 +222,9 @@ public class OpenFlowRuleProvider extends AbstractProvider
     }
 
     private void createCollector(OpenFlowSwitch sw) {
-        checkNotNull(sw, "Null switch");
+        if (sw == null) {
+            return;
+        }
         if (adaptiveFlowSampling) {
             // NewAdaptiveFlowStatsCollector Constructor
             NewAdaptiveFlowStatsCollector fsc =
@@ -488,30 +492,58 @@ public class OpenFlowRuleProvider extends AbstractProvider
                     } else {
                         log.warn("Received error message {} from {}", msg, dpid);
                     }
-
-                    OFErrorMsg error = (OFErrorMsg) msg;
-                    if (error.getErrType() == OFErrorType.FLOW_MOD_FAILED) {
-                        OFFlowModFailedErrorMsg fmFailed = (OFFlowModFailedErrorMsg) error;
-                        if (fmFailed.getData().getParsedMessage().isPresent()) {
-                            OFMessage m = fmFailed.getData().getParsedMessage().get();
-                            OFFlowMod fm = (OFFlowMod) m;
-                            InternalCacheEntry entry =
-                                    pendingBatches.getIfPresent(msg.getXid());
-                            if (entry != null) {
-                                entry.appendFailure(new FlowEntryBuilder(deviceId, fm, driverService).build());
-                            } else {
-                                log.error("No matching batch for this error: {}", error);
-                            }
-                        } else {
-                            // FIXME: Potentially add flowtracking to avoid this message.
-                            log.error("Flow installation failed but switch didn't"
-                                              + " tell us which one.");
-                        }
-                    }
+                    handleErrorMsg(deviceId, msg);
                     break;
                 default:
                     log.debug("Unhandled message type: {}", msg.getType());
             }
+        }
+
+        private void handleErrorMsg(DeviceId deviceId, OFMessage msg) {
+            OFErrorMsg error = (OFErrorMsg) msg;
+            OFMessage ofMessage = null;
+            switch (error.getErrType()) {
+                case BAD_ACTION:
+                    OFBadActionErrorMsg baErrorMsg = (OFBadActionErrorMsg) error;
+                    if (baErrorMsg.getData().getParsedMessage().isPresent()) {
+                        ofMessage = baErrorMsg.getData().getParsedMessage().get();
+                    }
+                    break;
+                case BAD_INSTRUCTION:
+                    OFBadInstructionErrorMsg biErrorMsg = (OFBadInstructionErrorMsg) error;
+                    if (biErrorMsg.getData().getParsedMessage().isPresent()) {
+                        ofMessage = biErrorMsg.getData().getParsedMessage().get();
+                    }
+                    break;
+                case BAD_MATCH:
+                    OFBadMatchErrorMsg bmErrorMsg = (OFBadMatchErrorMsg) error;
+                    if (bmErrorMsg.getData().getParsedMessage().isPresent()) {
+                        ofMessage = bmErrorMsg.getData().getParsedMessage().get();
+                    }
+                    break;
+                case FLOW_MOD_FAILED:
+                    OFFlowModFailedErrorMsg fmFailed = (OFFlowModFailedErrorMsg) error;
+                    if (fmFailed.getData().getParsedMessage().isPresent()) {
+                        ofMessage = fmFailed.getData().getParsedMessage().get();
+                    }
+                    break;
+                default:
+                    // Do nothing.
+                    return;
+                }
+                if (ofMessage != null) {
+                    InternalCacheEntry entry =
+                        pendingBatches.getIfPresent(msg.getXid());
+                    if (entry != null)  {
+                        OFFlowMod ofFlowMod = (OFFlowMod) ofMessage;
+                        entry.appendFailure(new FlowEntryBuilder(deviceId, ofFlowMod, driverService).build());
+                    } else {
+                      log.error("No matching batch for this error: {}", error);
+                    }
+                } else {
+                    log.error("Flow installation failed but switch didn't"
+                                + " tell us which one.");
+                }
         }
 
         @Override

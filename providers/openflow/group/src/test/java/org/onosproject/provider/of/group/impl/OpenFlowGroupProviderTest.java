@@ -201,6 +201,10 @@ public class OpenFlowGroupProviderTest {
             this.groups = groupEntries;
         }
 
+        @Override
+        public void notifyOfFailovers(Collection<Group> groups) {
+        }
+
         public Collection<Group> getGroupEntries() {
             return groups;
         }

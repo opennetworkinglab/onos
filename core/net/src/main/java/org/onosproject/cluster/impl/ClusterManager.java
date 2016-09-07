@@ -71,6 +71,7 @@ public class ClusterManager
         implements ClusterService, ClusterAdminService {
 
     public static final String INSTANCE_ID_NULL = "Instance ID cannot be null";
+    private static final int DEFAULT_PARTITION_SIZE = 3;
     private final Logger log = getLogger(getClass());
 
     private ClusterStoreDelegate delegate = new InternalStoreDelegate();
@@ -146,10 +147,15 @@ public class ClusterManager
 
     @Override
     public void formCluster(Set<ControllerNode> nodes) {
+        formCluster(nodes, DEFAULT_PARTITION_SIZE);
+    }
+
+    @Override
+    public void formCluster(Set<ControllerNode> nodes, int partitionSize) {
         checkNotNull(nodes, "Nodes cannot be null");
         checkArgument(!nodes.isEmpty(), "Nodes cannot be empty");
 
-        ClusterMetadata metadata = new ClusterMetadata("default", nodes, buildDefaultPartitions(nodes));
+        ClusterMetadata metadata = new ClusterMetadata("default", nodes, buildDefaultPartitions(nodes, partitionSize));
         clusterMetadataAdminService.setClusterMetadata(metadata);
         try {
             log.warn("Shutting down container for cluster reconfiguration!");
@@ -183,13 +189,13 @@ public class ClusterManager
         }
     }
 
-    private static Set<Partition> buildDefaultPartitions(Collection<ControllerNode> nodes) {
+    private static Set<Partition> buildDefaultPartitions(Collection<ControllerNode> nodes, int partitionSize) {
         List<ControllerNode> sorted = new ArrayList<>(nodes);
         Collections.sort(sorted, (o1, o2) -> o1.id().toString().compareTo(o2.id().toString()));
         Set<Partition> partitions = Sets.newHashSet();
         // add partitions
         int length = nodes.size();
-        int count = Math.min(3, length);
+        int count = Math.min(partitionSize, length);
         for (int i = 0; i < length; i++) {
             int index = i;
             Set<NodeId> set = new HashSet<>(count);

@@ -15,7 +15,12 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import io.netty.buffer.ByteBuf;
 import org.onlab.packet.IpAddress;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
+
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -30,7 +35,56 @@ public class LispIpv6Address extends LispIpAddress {
      * @param address IP address
      */
     public LispIpv6Address(IpAddress address) {
-        super(address, AddressFamilyIdentifierEnum.IP);
+        super(address, AddressFamilyIdentifierEnum.IP6);
         checkArgument(address.isIp6());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof LispIpv6Address) {
+            final LispIpv6Address other = (LispIpv6Address) obj;
+            return Objects.equals(this.address, other.address) &&
+                    Objects.equals(this.getAfi(), other.getAfi());
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(address, getAfi());
+    }
+
+    /**
+     * IPv6 address reader class.
+     */
+    public static class Ipv6AddressReader implements LispAddressReader<LispIpv6Address> {
+
+        private static final int SIZE_OF_IPV6_ADDRESS = 16;
+
+        @Override
+        public LispIpv6Address readFrom(ByteBuf byteBuf) throws LispParseError {
+
+            byte[] ipByte = new byte[SIZE_OF_IPV6_ADDRESS];
+            byteBuf.readBytes(ipByte);
+            IpAddress ipAddress = IpAddress.valueOf(IpAddress.Version.INET6, ipByte);
+
+            return new LispIpv6Address(ipAddress);
+        }
+    }
+
+    /**
+     * Ipv6 address writer class.
+     */
+    public static class Ipv6AddressWriter implements LispAddressWriter<LispIpv6Address> {
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispIpv6Address address) throws LispWriterException {
+            byte[] ipByte = address.getAddress().getIp6Address().toOctets();
+            byteBuf.writeBytes(ipByte);
+        }
     }
 }

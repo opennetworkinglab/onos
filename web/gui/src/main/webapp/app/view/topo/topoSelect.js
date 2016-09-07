@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, wss, tov, tps, tts, ns;
+    var $log, fs, wss, tov, tps, tts, ns, sus;
 
     // api to topoForce
     var api;
@@ -130,6 +130,14 @@
         if (n.classed('device')) {
             api.updateDeviceColors(obj);
         }
+        updateDetail();
+    }
+
+    function reselect() {
+        selectOrder.forEach(function (id) {
+            var sel = d3.select('g#' + sus.safeId(id));
+            sel.classed('selected', true);
+        });
         updateDetail();
     }
 
@@ -280,8 +288,9 @@
     .factory('TopoSelectService',
         ['$log', 'FnService', 'WebSocketService', 'TopoOverlayService',
             'TopoPanelService', 'TopoTrafficService', 'NavService',
+            'SvgUtilService',
 
-        function (_$log_, _fs_, _wss_, _tov_, _tps_, _tts_, _ns_) {
+        function (_$log_, _fs_, _wss_, _tov_, _tps_, _tts_, _ns_, _sus_) {
             $log = _$log_;
             fs = _fs_;
             wss = _wss_;
@@ -289,10 +298,13 @@
             tps = _tps_;
             tts = _tts_;
             ns = _ns_;
+            sus = _sus_;
 
             function initSelect(_api_) {
                 api = _api_;
-                setInitialState();
+                if (!selections) {
+                    setInitialState();
+                }
             }
 
             function destroySelect() { }
@@ -315,7 +327,8 @@
                 somethingSelected: somethingSelected,
 
                 clickConsumed: clickConsumed,
-                selectionContext: selectionContext
+                selectionContext: selectionContext,
+                reselect: reselect
             };
         }]);
 }());

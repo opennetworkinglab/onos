@@ -21,9 +21,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestTools;
+import org.onlab.osgi.ComponentContextAdapter;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.event.Event;
 import org.onosproject.net.DeviceId;
@@ -43,6 +45,8 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.trivial.SimpleHostStore;
 
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
@@ -94,6 +98,16 @@ public class HostManagerTest {
     protected TestHostProvider provider;
     protected HostProviderService providerService;
 
+    private static final ComponentContextAdapter REMOVE_DUPS =
+            new ComponentContextAdapter() {
+                @Override
+                public Dictionary getProperties() {
+                    Hashtable<String, String> props = new Hashtable<>();
+                    props.put("allowDuplicateIps", "true");
+                    return props;
+                }
+            };
+
     @Before
     public void setUp() {
         mgr = new HostManager();
@@ -101,8 +115,8 @@ public class HostManagerTest {
         injectEventDispatcher(mgr, new TestEventDispatcher());
         registry = mgr;
         mgr.networkConfigService = new TestNetworkConfigService();
-        mgr.activate();
-
+        mgr.cfgService = new ComponentConfigAdapter();
+        mgr.activate(REMOVE_DUPS);
         mgr.addListener(listener);
 
         provider = new TestHostProvider();

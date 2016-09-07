@@ -176,6 +176,18 @@
         flash.flash('Host-to-Host flow added');
     }
 
+    function removeIntent (d) {
+        $log.debug('Entering removeIntent');
+        wss.sendEvent('removeIntent', {
+            appId: d.appId,
+            appName: d.appName,
+            key: d.key
+        });
+        trafficMode = 'intents';
+        hoverMode = null;
+        flash.flash('Intent removed');
+    }
+
     function addMultiSourceIntent () {
         var so = api.selectOrder();
         wss.sendEvent('addMultiSourceIntent', {
@@ -223,7 +235,8 @@
                 // TODO: these should move to new UI demo app
                 // invoked from buttons on detail (multi-select) panel
                 addHostIntent: addHostIntent,
-                addMultiSourceIntent: addMultiSourceIntent
+                addMultiSourceIntent: addMultiSourceIntent,
+                removeIntent: removeIntent
             };
         }]);
 }());

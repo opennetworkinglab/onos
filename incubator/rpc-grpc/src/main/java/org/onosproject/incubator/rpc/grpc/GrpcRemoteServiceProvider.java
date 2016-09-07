@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.grpc.ManagedChannel;
+import io.grpc.internal.DnsNameResolverProvider;
 import io.grpc.netty.NegotiationType;
 import io.grpc.netty.NettyChannelBuilder;
 
@@ -62,7 +63,6 @@ public class GrpcRemoteServiceProvider implements RemoteServiceContextProvider {
 
     private RemoteServiceContextProviderService providerService;
 
-
     @Activate
     protected void activate() {
         providerService = rpcRegistry.register(this);
@@ -78,8 +78,7 @@ public class GrpcRemoteServiceProvider implements RemoteServiceContextProvider {
         rpcRegistry.unregister(this);
 
         // shutdown all channels
-        channels.values().stream()
-            .forEach(ManagedChannel::shutdown);
+        channels.values().forEach(ManagedChannel::shutdown);
         // Should we wait for shutdown? How?
         channels.clear();
         log.info("Stopped");
@@ -117,6 +116,10 @@ public class GrpcRemoteServiceProvider implements RemoteServiceContextProvider {
         }
         return NettyChannelBuilder.forAddress(uri.getHost(), port)
                 .negotiationType(NegotiationType.PLAINTEXT)
+                // TODO Not ideal fix, gRPC discovers name resolvers
+                // in the class path, but OSGi was preventing it.
+                // Manually specifying the default dns resolver for now.
+                .nameResolverFactory(new DnsNameResolverProvider())
                 .build();
     }
 

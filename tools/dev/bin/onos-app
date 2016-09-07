@@ -10,7 +10,7 @@ app=${3}
 export URL=http://$node:8181/onos/v1/applications
 export HDR="-HContent-Type:application/octet-stream"
 export HAJ="-HContent-Type:application/json"
-export curl="curl -sS --user $ONOS_WEB_USER:$ONOS_WEB_PASS"
+export curl="curl -sS --user $ONOS_WEB_USER:$ONOS_WEB_PASS --noproxy localhost "
 
 # Prints usage help
 function usage {

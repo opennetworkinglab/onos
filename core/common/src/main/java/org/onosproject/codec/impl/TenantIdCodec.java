@@ -40,7 +40,7 @@ public class TenantIdCodec extends JsonCodec<TenantId> {
         checkNotNull(tenantId, NULL_TENANT_MSG);
 
         ObjectNode result = context.mapper().createObjectNode()
-                .put(TENANT_ID, tenantId.id().toString());
+                .put(TENANT_ID, tenantId.id());
 
         return result;
     }

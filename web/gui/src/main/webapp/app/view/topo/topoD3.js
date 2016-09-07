@@ -320,6 +320,7 @@
     // updateLinks - subfunctions
 
     function linkEntering(d) {
+
         var link = d3.select(this);
         d.el = link;
         api.restyleLinkElement(d);
@@ -365,7 +366,7 @@
             rect.attr(rectAroundText(el));
             text.attr('dy', linkLabelOffset);
 
-            el.attr('transform', transformLabel(d.ldata.position));
+            el.attr('transform', transformLabel(d.ldata.position, d.key));
         });
 
         // Remove any labels that are no longer required.
@@ -386,11 +387,56 @@
         return box;
     }
 
-    function transformLabel(p) {
+    function generateLabelFunction() {
+        var labels = [];
+        var xGap = 15;
+        var yGap = 17;
+
+        return function(newId, newX, newY) {
+
+            var idx = -1;
+
+            labels.forEach(function(l, i) {
+                if (l.id === newId) {
+                    idx = i;
+                    return;
+                }
+                var minX = l.x - xGap;
+                var maxX = l.x + xGap;
+                var minY = l.y - yGap;
+                var maxY = l.y + yGap;
+
+                if (newX > minX && newX < maxX && newY > minY && newY < maxY) {
+                    // labels are overlapped
+                    newX = newX - xGap;
+                    newY = newY - yGap;
+                }
+            });
+
+            if (idx === -1) {
+                labels.push({id: newId, x: newX, y: newY});
+            }
+            else {
+                labels[idx] = {id: newId, x: newX, y: newY};
+            }
+
+            return {x: newX, y: newY};
+        }
+    }
+
+    var getLabelPosNoOverlap = generateLabelFunction();
+
+    function transformLabel(p, id) {
         var dx = p.x2 - p.x1,
             dy = p.y2 - p.y1,
             xMid = dx/2 + p.x1,
             yMid = dy/2 + p.y1;
+
+        if (id) {
+            var pos = getLabelPosNoOverlap(id, xMid, yMid);
+            return sus.translate(pos.x, pos.y);
+        }
+
         return sus.translate(xMid, yMid);
     }
 

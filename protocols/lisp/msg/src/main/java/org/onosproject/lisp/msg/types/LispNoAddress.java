@@ -15,6 +15,10 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
+
 /**
  * No address.
  */
@@ -25,5 +29,27 @@ public class LispNoAddress extends LispAfiAddress {
      */
     public LispNoAddress() {
         super(AddressFamilyIdentifierEnum.NO_ADDRESS);
+    }
+
+    /**
+     * LISP no address reader class.
+     */
+    public static class NoAddressReader implements LispAddressReader<LispNoAddress> {
+
+        @Override
+        public LispNoAddress readFrom(ByteBuf byteBuf) throws LispParseError {
+            return new LispNoAddress();
+        }
+    }
+
+    /**
+     * LISP no address writer class.
+     */
+    public static class NoAddressWriter implements LispAddressWriter<LispNoAddress> {
+
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispNoAddress address) throws LispWriterException {
+
+        }
     }
 }

@@ -19,8 +19,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
 import org.onosproject.xosclient.api.OpenStackAccess;
 import org.onosproject.xosclient.api.VtnServiceApi;
 import org.onosproject.xosclient.api.XosAccess;
@@ -146,15 +144,17 @@ public final class DefaultVtnServiceApi extends XosApi implements VtnServiceApi 
             return null;
         }
 
-        return new VtnService(serviceId,
-                              osNet.getName(),
-                              serviceType(osNet.getName()),
-                              networkType(osNet.getName()),
-                              Long.parseLong(osNet.getProviderSegID()),
-                              IpPrefix.valueOf(osSubnet.getCidr()),
-                              IpAddress.valueOf(osSubnet.getGateway()),
-                              providerServices(serviceId),
-                              tenantServices(serviceId));
+        return VtnService.build()
+                .id(serviceId)
+                .name(osNet.getName())
+                .serviceType(serviceType(osNet.getName()))
+                .networkType(networkType(osNet.getName()))
+                .vni(osNet.getProviderSegID())
+                .subnet(osSubnet.getCidr())
+                .serviceIp(osSubnet.getGateway())
+                .providerServices(providerServices(serviceId))
+                .tenantServices(tenantServices(serviceId))
+                .build();
     }
 
     // TODO remove this when XOS provides this information
@@ -177,7 +177,7 @@ public final class DefaultVtnServiceApi extends XosApi implements VtnServiceApi 
 
     // TODO remove this when XOS provides this information
     private NetworkType networkType(String netName) {
-        checkArgument(!Strings.isNullOrEmpty(netName));
+        checkArgument(!Strings.isNullOrEmpty(netName), "VTN network name cannot be null");
 
         String name = netName.toUpperCase();
         if (name.contains(PUBLIC.name())) {
@@ -193,7 +193,7 @@ public final class DefaultVtnServiceApi extends XosApi implements VtnServiceApi 
 
     // TODO remove this when XOS provides this information
     private ServiceType serviceType(String netName) {
-        checkArgument(!Strings.isNullOrEmpty(netName));
+        checkArgument(!Strings.isNullOrEmpty(netName), "VTN network name cannot be null");
 
         String name = netName.toUpperCase();
         if (name.contains(VSG.name())) {

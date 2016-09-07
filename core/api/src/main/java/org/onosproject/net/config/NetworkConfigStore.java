@@ -155,6 +155,7 @@ public interface NetworkConfigStore extends Store<NetworkConfigEvent, NetworkCon
      * Clears the  configuration based on the subject including queued.
      * If does not exists this call has no effect.
      *
+     * @param <S>               type of subject
      * @param subject   configuration subject
      */
     <S> void clearConfig(S subject);
@@ -163,6 +164,7 @@ public interface NetworkConfigStore extends Store<NetworkConfigEvent, NetworkCon
      * Clears the complete configuration including queued.
      * If does not exists this call has no effect.
      *
+     * @param <S>               type of subject
      */
     <S> void clearConfig();
 

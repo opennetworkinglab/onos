@@ -15,6 +15,7 @@
  */
 package org.onosproject.driver.pipeline;
 
+import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -86,8 +87,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -96,6 +97,11 @@ import java.util.stream.Collectors;
  */
 public class SpringOpenTTP extends AbstractHandlerBehaviour
         implements Pipeliner {
+
+    /**
+     * GroupCheck delay.
+     */
+    private static final int CHECK_DELAY = 500;
 
     // Default table ID - compatible with CpqD switch
     private static final int TABLE_VLAN = 0;
@@ -118,7 +124,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
     protected int aclTableId = TABLE_ACL;
     protected int srcMacTableId = TABLE_SMAC;
 
-    protected final Logger log = getLogger(getClass());
+    private static final Logger log = getLogger(SpringOpenTTP.class);
 
     private ServiceDirectory serviceDirectory;
     private FlowRuleService flowRuleService;
@@ -130,11 +136,19 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
 
     private Cache<GroupKey, NextObjective> pendingGroups;
 
-    private ScheduledExecutorService groupChecker = Executors
-            .newScheduledThreadPool(2,
-                                    groupedThreads("onos/pipeliner",
-                                                   "spring-open-%d",
-                                                   log));
+    private static final ScheduledExecutorService GROUP_CHECKER
+        = newScheduledThreadPool(2,
+                                 groupedThreads("onos/pipeliner",
+                                                "spring-open-%d", log));
+    static {
+        // ONOS-3579 workaround, let core threads die out on idle
+        if (GROUP_CHECKER instanceof ScheduledThreadPoolExecutor) {
+            ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor) GROUP_CHECKER;
+            executor.setKeepAliveTime(CHECK_DELAY * 2, TimeUnit.MILLISECONDS);
+            executor.allowCoreThreadTimeOut(true);
+        }
+    }
+
     protected KryoNamespace appKryo = new KryoNamespace.Builder()
             .register(KryoNamespaces.API)
             .register(GroupKey.class)
@@ -157,9 +171,6 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                                               ObjectiveError.GROUPINSTALLATIONFAILED);
                                      }
                                  }).build();
-
-        groupChecker.scheduleAtFixedRate(new GroupChecker(), 0, 500,
-                                         TimeUnit.MILLISECONDS);
 
         coreService = serviceDirectory.get(CoreService.class);
         flowRuleService = serviceDirectory.get(FlowRuleService.class);
@@ -325,8 +336,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                     buckets = nextObjective
                             .next()
                             .stream()
-                            .map((treatment) -> DefaultGroupBucket
-                                 .createSelectGroupBucket(treatment))
+                            .map(DefaultGroupBucket::createSelectGroupBucket)
                             .collect(Collectors.toList());
                     if (!buckets.isEmpty()) {
                         final GroupKey key = new DefaultGroupKey(
@@ -342,6 +352,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                                 + " in dev:{}", nextObjective.id(), deviceId);
                         pendingGroups.put(key, nextObjective);
                         groupService.addGroup(groupDescription);
+                        verifyPendingGroupLater();
                     }
                 }
                 break;
@@ -349,8 +360,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                 buckets = nextObjective
                         .next()
                         .stream()
-                        .map((treatment) -> DefaultGroupBucket
-                                .createAllGroupBucket(treatment))
+                        .map(DefaultGroupBucket::createAllGroupBucket)
                         .collect(Collectors.toList());
                 if (!buckets.isEmpty()) {
                     final GroupKey key = new DefaultGroupKey(
@@ -367,6 +377,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                             + "in device {}", nextObjective.id(), deviceId);
                     pendingGroups.put(key, nextObjective);
                     groupService.addGroup(groupDescription);
+                    verifyPendingGroupLater();
                 }
                 break;
             case FAILOVER:
@@ -1130,6 +1141,10 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         }
     }
 
+    private void verifyPendingGroupLater() {
+        GROUP_CHECKER.schedule(new GroupChecker(), CHECK_DELAY, TimeUnit.MILLISECONDS);
+    }
+
     private class GroupChecker implements Runnable {
 
         @Override
@@ -1141,23 +1156,29 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                     .filter(key -> groupService.getGroup(deviceId, key) != null)
                     .collect(Collectors.toSet());
 
-            keys.stream()
-                    .forEach(key -> {
-                                 NextObjective obj = pendingGroups
-                                         .getIfPresent(key);
-                                 if (obj == null) {
-                                     return;
-                                 }
-                                 log.debug("Group verified: dev:{} gid:{} <<->> nextId:{}",
-                                           deviceId,
-                                           groupService.getGroup(deviceId, key).id(),
-                                           obj.id());
-                                 pass(obj);
-                                 pendingGroups.invalidate(key);
-                                 flowObjectiveStore.putNextGroup(
-                                                        obj.id(),
-                                                        new SpringOpenGroup(key, null));
-                    });
+            keys.forEach(key -> {
+                NextObjective obj = pendingGroups
+                        .getIfPresent(key);
+                if (obj == null) {
+                    return;
+                }
+                log.debug("Group verified: dev:{} gid:{} <<->> nextId:{}",
+                        deviceId,
+                        groupService.getGroup(deviceId, key).id(),
+                        obj.id());
+                pass(obj);
+                pendingGroups.invalidate(key);
+                flowObjectiveStore.putNextGroup(
+                        obj.id(),
+                        new SpringOpenGroup(key, null));
+            });
+
+            if (!pendingGroups.asMap().isEmpty()) {
+                // Periodically execute only if entry remains in pendingGroups.
+                // Iterating pendingGroups trigger cleanUp and expiration,
+                // which will eventually empty the pendingGroups.
+                verifyPendingGroupLater();
+            }
         }
     }
 

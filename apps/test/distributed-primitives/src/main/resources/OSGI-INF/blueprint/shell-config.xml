@@ -38,6 +38,9 @@
             <action class="org.onosproject.distributedprimitives.cli.CounterTestCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.distributedprimitives.cli.WorkQueueTestCommand"/>
+        </command>
+        <command>
             <action class="org.onosproject.distributedprimitives.cli.ConsistentMapTestCommand"/>
         </command>
         <command>

@@ -390,7 +390,11 @@ public class DefaultTopology extends AbstractModel implements Topology {
                 SUURBALLE.search(graph, srcV, dstV, weight, ALL_PATHS);
         ImmutableSet.Builder<DisjointPath> builder = ImmutableSet.builder();
         for (org.onlab.graph.Path<TopologyVertex, TopologyEdge> path : result.paths()) {
-            builder.add(networkDisjointPath((org.onlab.graph.DisjointPathPair<TopologyVertex, TopologyEdge>) path));
+            DisjointPath disjointPath =
+                    networkDisjointPath((org.onlab.graph.DisjointPathPair<TopologyVertex, TopologyEdge>) path);
+            if (disjointPath.backup() != null) {
+                builder.add(disjointPath);
+            }
         }
         return builder.build();
     }
@@ -421,7 +425,11 @@ public class DefaultTopology extends AbstractModel implements Topology {
                 srlg.search(graph, srcV, dstV, weight, ALL_PATHS);
         ImmutableSet.Builder<DisjointPath> builder = ImmutableSet.builder();
         for (org.onlab.graph.Path<TopologyVertex, TopologyEdge> path : result.paths()) {
-            builder.add(networkDisjointPath((org.onlab.graph.DisjointPathPair<TopologyVertex, TopologyEdge>) path));
+            DisjointPath disjointPath =
+                    networkDisjointPath((org.onlab.graph.DisjointPathPair<TopologyVertex, TopologyEdge>) path);
+            if (disjointPath.backup() != null) {
+                builder.add(disjointPath);
+            }
         }
         return builder.build();
     }
@@ -482,6 +490,12 @@ public class DefaultTopology extends AbstractModel implements Topology {
     }
 
     private DisjointPath networkDisjointPath(DisjointPathPair<TopologyVertex, TopologyEdge> path) {
+        if (!path.hasBackup()) {
+            // There was no secondary path available.
+            return new DefaultDisjointPath(CORE_PROVIDER_ID,
+                                           (DefaultPath) networkPath(path.primary()),
+                                           null);
+        }
         return new DefaultDisjointPath(CORE_PROVIDER_ID,
                                        (DefaultPath) networkPath(path.primary()),
                                        (DefaultPath) networkPath(path.secondary()));

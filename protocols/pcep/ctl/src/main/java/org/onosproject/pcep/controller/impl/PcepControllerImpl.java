@@ -111,13 +111,13 @@ public class PcepControllerImpl implements PcepController {
     @Override
     public Boolean deleteTunnel(String id) {
         // TODO Auto-generated method stub
-        return null;
+        return false;
     }
 
     @Override
     public Boolean updateTunnelBandwidth(String id, long bandwidth) {
         // TODO Auto-generated method stub
-        return null;
+        return false;
     }
 
     @Override

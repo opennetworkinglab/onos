@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <prerequisites>
-        <maven>3.0.3</maven>
+        <maven>3.0.5</maven>
     </prerequisites>
 
     <parent>
@@ -41,9 +41,9 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <onos-build-conf.version>1.3</onos-build-conf.version>
-        <netty4.version>4.0.36.Final</netty4.version>
-        <openflowj.version>0.9.4.onos</openflowj.version>
-        <onos-maven-plugin.version>1.10-SNAPSHOT</onos-maven-plugin.version>
+        <netty4.version>4.0.40.Final</netty4.version>
+        <openflowj.version>0.9.5.onos</openflowj.version>
+        <onos-maven-plugin.version>1.10</onos-maven-plugin.version>
         <osgi.version>5.0.0</osgi.version>
         <karaf.version>3.0.5</karaf.version>
         <jersey.version>2.22.2</jersey.version>
@@ -263,18 +263,17 @@
             <dependency>
                 <groupId>com.esotericsoftware</groupId>
                 <artifactId>kryo</artifactId>
-                <version>3.0.3</version>
+                <version>4.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.esotericsoftware</groupId>
                 <artifactId>reflectasm</artifactId>
-                <version>1.11.0</version>
-                <type>bundle</type>
+                <version>1.11.3</version>
             </dependency>
             <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
-                <version>5.0.3</version>
+                <version>5.0.4</version>
             </dependency>
             <dependency>
                 <groupId>com.esotericsoftware</groupId>
@@ -377,7 +376,6 @@
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
-            <version>3.0.1</version>
         </dependency>
     </dependencies>
 
@@ -411,7 +409,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>2.10.3</version>
+                    <version>2.10.4</version>
                     <configuration>
                         <tags>
                             <tag>
@@ -425,7 +423,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>2.6</version>
+                    <version>3.0.2</version>
                     <configuration>
                         <skipIfEmpty>true</skipIfEmpty>
                     </configuration>
@@ -442,13 +440,13 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>2.7</version>
+                    <version>3.0.1</version>
                 </plugin>
 
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
-                    <version>3.0.1</version>
+                    <version>3.2.0</version>
                     <extensions>true</extensions>
                     <configuration>
                         <niceManifest>true</niceManifest>
@@ -458,13 +456,13 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
-                    <version>2.4.2</version>
+                    <version>2.4.3</version>
                 </plugin>
 
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-scr-plugin</artifactId>
-                    <version>1.21.0</version>
+                    <version>1.22.0</version>
                     <executions>
                         <execution>
                             <id>generate-scr-srcdescriptor</id>
@@ -483,7 +481,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>findbugs-maven-plugin</artifactId>
-                    <version>3.0.1</version>
+                    <version>3.0.4</version>
                     <dependencies>
                         <dependency>
                             <groupId>org.onosproject</groupId>
@@ -599,7 +597,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.7.5.201505241946</version>
+                <version>0.7.7.201606060606</version>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>

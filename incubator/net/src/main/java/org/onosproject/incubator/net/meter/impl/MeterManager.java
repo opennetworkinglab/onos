@@ -216,7 +216,7 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
                     .filter(m -> storedMeterMap.remove(Pair.of(m.deviceId(), m.id())) != null)
                     .forEach(m -> store.updateMeterState(m));
 
-            storedMeterMap.values().stream().forEach(m -> {
+            storedMeterMap.values().forEach(m -> {
                 if (m.state() == MeterState.PENDING_ADD) {
                     provider().performMeterOperation(m.deviceId(),
                                                      new MeterOperation(m,

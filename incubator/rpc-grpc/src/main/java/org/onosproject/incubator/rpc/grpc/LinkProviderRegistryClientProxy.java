@@ -22,7 +22,7 @@ import org.onosproject.net.link.LinkProviderRegistry;
 import org.onosproject.net.link.LinkProviderService;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 
-import com.google.api.client.repackaged.com.google.common.annotations.Beta;
+import com.google.common.annotations.Beta;
 
 import io.grpc.Channel;
 

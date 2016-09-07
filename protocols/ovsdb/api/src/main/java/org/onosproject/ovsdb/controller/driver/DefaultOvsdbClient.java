@@ -17,6 +17,8 @@ package org.onosproject.ovsdb.controller.driver;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -30,10 +32,13 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.BridgeDescription;
 import org.onosproject.net.behaviour.ControllerInfo;
+import org.onosproject.net.behaviour.MirroringStatistics;
+import org.onosproject.net.behaviour.MirroringName;
 import org.onosproject.ovsdb.controller.OvsdbBridge;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbInterface;
 import org.onosproject.ovsdb.controller.OvsdbInterface.Type;
+import org.onosproject.ovsdb.controller.OvsdbMirror;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.onosproject.ovsdb.controller.OvsdbPort;
 import org.onosproject.ovsdb.controller.OvsdbPortName;
@@ -41,6 +46,7 @@ import org.onosproject.ovsdb.controller.OvsdbPortNumber;
 import org.onosproject.ovsdb.controller.OvsdbRowStore;
 import org.onosproject.ovsdb.controller.OvsdbStore;
 import org.onosproject.ovsdb.controller.OvsdbTableStore;
+
 import org.onosproject.ovsdb.rfc.jsonrpc.Callback;
 import org.onosproject.ovsdb.rfc.message.OperationResult;
 import org.onosproject.ovsdb.rfc.message.TableUpdates;
@@ -61,6 +67,7 @@ import org.onosproject.ovsdb.rfc.schema.TableSchema;
 import org.onosproject.ovsdb.rfc.table.Bridge;
 import org.onosproject.ovsdb.rfc.table.Controller;
 import org.onosproject.ovsdb.rfc.table.Interface;
+import org.onosproject.ovsdb.rfc.table.Mirror;
 import org.onosproject.ovsdb.rfc.table.OvsdbTable;
 import org.onosproject.ovsdb.rfc.table.Port;
 import org.onosproject.ovsdb.rfc.table.TableGenerator;
@@ -73,10 +80,12 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
@@ -103,6 +112,7 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
     private final Map<String, String> requestMethod = Maps.newHashMap();
     private final Map<String, SettableFuture<? extends Object>> requestResult = Maps.newHashMap();
     private final Map<String, DatabaseSchema> schema = Maps.newHashMap();
+
 
     /**
      * Creates an OvsdbClient.
@@ -232,6 +242,107 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         rowStore.insertRow(uuid, row);
         tableStore.createOrUpdateTable(tableName, rowStore);
         ovsdbStore.createOrUpdateOvsdbStore(dbName, tableStore);
+    }
+
+    /**
+     * Gets the Mirror uuid.
+     *
+     * @param mirrorName mirror name
+     * @return mirror uuid, empty if no uuid is found
+     */
+    @Override
+    public String getMirrorUuid(String mirrorName) {
+        DatabaseSchema dbSchema = schema.get(DATABASENAME);
+        OvsdbRowStore rowStore = getRowStore(DATABASENAME, MIRROR);
+        if (rowStore == null) {
+            log.warn("The mirror uuid is null");
+            return null;
+        }
+
+        ConcurrentMap<String, Row> mirrorTableRows = rowStore.getRowStore();
+        if (mirrorTableRows == null) {
+            log.warn("The mirror uuid is null");
+            return null;
+        }
+
+        for (String uuid : mirrorTableRows.keySet()) {
+            Mirror mirror = (Mirror) TableGenerator
+                    .getTable(dbSchema, mirrorTableRows.get(uuid), OvsdbTable.MIRROR);
+            String name = mirror.getName();
+            if (name.contains(mirrorName)) {
+                return uuid;
+            }
+        }
+        log.warn("Mirroring not found");
+        return null;
+    }
+
+    /**
+     * Gets mirrors of the device.
+     *
+     * @param deviceId target device id
+     * @return set of mirroring; empty if no mirror is found
+     */
+    @Override
+    public Set<MirroringStatistics> getMirroringStatistics(DeviceId deviceId) {
+        Uuid bridgeUuid = getBridgeUuid(deviceId);
+        if (bridgeUuid == null) {
+            log.warn("Couldn't find bridge {} in {}", deviceId, nodeId.getIpAddress());
+            return null;
+        }
+
+        List<MirroringStatistics> mirrorings = getMirrorings(bridgeUuid);
+        if (mirrorings == null) {
+            log.warn("Couldn't find mirrors in {}", nodeId.getIpAddress());
+            return null;
+        }
+        return ImmutableSet.copyOf(mirrorings);
+    }
+
+    /**
+     * Helper method which retrieves mirrorings statistics using bridge uuid.
+     *
+     * @param bridgeUuid the uuid of the bridge
+     * @return the list of the mirrorings statistics.
+     */
+    private List<MirroringStatistics> getMirrorings(Uuid bridgeUuid) {
+        DatabaseSchema dbSchema = schema.get(DATABASENAME);
+        if (dbSchema == null) {
+            log.warn("Unable to retrieve dbSchema {}", DATABASENAME);
+            return null;
+        }
+        OvsdbRowStore rowStore = getRowStore(DATABASENAME, BRIDGE);
+        if (rowStore == null) {
+            log.warn("Unable to retrieve rowStore {} of {}", BRIDGE, DATABASENAME);
+            return null;
+        }
+
+        Row bridgeRow = rowStore.getRow(bridgeUuid.value());
+        Bridge bridge = (Bridge) TableGenerator.
+                getTable(dbSchema, bridgeRow, OvsdbTable.BRIDGE);
+
+        Set<Uuid> mirroringsUuids = (Set<Uuid>) ((OvsdbSet) bridge
+                .getMirrorsColumn().data()).set();
+
+        OvsdbRowStore mirrorRowStore = getRowStore(DATABASENAME, MIRROR);
+        if (mirrorRowStore == null) {
+            log.warn("Unable to retrieve rowStore {} of {}", MIRROR, DATABASENAME);
+            return null;
+        }
+
+        List<MirroringStatistics> mirroringStatistics = new ArrayList<>();
+        ConcurrentMap<String, Row> mirrorTableRows = mirrorRowStore.getRowStore();
+        mirrorTableRows.forEach((key, row) -> {
+            if (!mirroringsUuids.contains(Uuid.uuid(key))) {
+                return;
+            }
+            Mirror mirror = (Mirror) TableGenerator
+                    .getTable(dbSchema, row, OvsdbTable.MIRROR);
+            mirroringStatistics.add(MirroringStatistics.mirroringStatistics(mirror.getName(),
+                                                                      (Map<String, Integer>) ((OvsdbMap) mirror
+                                                                   .getStatisticsColumn().data()).map()));
+        });
+        return ImmutableList.copyOf(mirroringStatistics);
     }
 
     @Override
@@ -500,6 +611,142 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
             return;
         }
         deleteConfig(BRIDGE, UUID, bridgeUuid, DATABASENAME, BRIDGES);
+    }
+
+    /**
+     * Creates a mirror port. Mirrors the traffic
+     * that goes to selectDstPort or comes from
+     * selectSrcPort or packets containing selectVlan
+     * to mirrorPort or to all ports that trunk mirrorVlan.
+     *
+     * @param mirror the OVSDB mirror description
+     * @return true if mirror creation is successful, false otherwise
+     */
+    @Override
+    public boolean createMirror(String bridgeName, OvsdbMirror mirror) {
+
+        /**
+         * Retrieves bridge's uuid. It is necessary to update
+         * Bridge table.
+         */
+        String bridgeUuid  = getBridgeUuid(bridgeName);
+        if (bridgeUuid == null) {
+            log.warn("Couldn't find bridge {} in {}", bridgeName, nodeId.getIpAddress());
+            return false;
+        }
+
+        OvsdbMirror.Builder mirrorBuilder = OvsdbMirror.builder();
+
+        mirrorBuilder.mirroringName(mirror.mirroringName());
+        mirrorBuilder.selectAll(mirror.selectAll());
+
+        /**
+         * Retrieves the uuid of the monitored dst ports.
+         */
+        mirrorBuilder.monitorDstPorts(mirror.monitorDstPorts().parallelStream()
+                                              .map(dstPort -> {
+                                                  String dstPortUuid = getPortUuid(dstPort.value(), bridgeUuid);
+                                                  if (dstPortUuid != null) {
+                                                      return Uuid.uuid(dstPortUuid);
+                                                  }
+                                                  log.warn("Couldn't find port {} in {}",
+                                                           dstPort.value(), nodeId.getIpAddress());
+                                                  return null;
+                                              })
+                                              .filter(Objects::nonNull)
+                                              .collect(Collectors.toSet())
+        );
+
+        /**
+         * Retrieves the uuid of the monitored src ports.
+         */
+        mirrorBuilder.monitorSrcPorts(mirror.monitorSrcPorts().parallelStream()
+                                              .map(srcPort -> {
+                                                  String srcPortUuid = getPortUuid(srcPort.value(), bridgeUuid);
+                                                  if (srcPortUuid != null) {
+                                                      return Uuid.uuid(srcPortUuid);
+                                                  }
+                                                  log.warn("Couldn't find port {} in {}",
+                                                           srcPort.value(), nodeId.getIpAddress());
+                                                  return null;
+                                              }).filter(Objects::nonNull)
+                                              .collect(Collectors.toSet())
+        );
+
+        mirrorBuilder.monitorVlans(mirror.monitorVlans());
+        mirrorBuilder.mirrorPort(mirror.mirrorPort());
+        mirrorBuilder.mirrorVlan(mirror.mirrorVlan());
+        mirrorBuilder.externalIds(mirror.externalIds());
+        mirror = mirrorBuilder.build();
+
+        if (mirror.monitorDstPorts().size() == 0 &&
+                mirror.monitorSrcPorts().size() == 0 &&
+                mirror.monitorVlans().size() == 0) {
+            log.warn("Invalid monitoring data");
+            return false;
+        }
+
+        DatabaseSchema dbSchema = schema.get(DATABASENAME);
+
+        Mirror mirrorEntry = (Mirror) TableGenerator.createTable(dbSchema, OvsdbTable.MIRROR);
+        mirrorEntry.setName(mirror.mirroringName());
+        mirrorEntry.setSelectDstPort(mirror.monitorDstPorts());
+        mirrorEntry.setSelectSrcPort(mirror.monitorSrcPorts());
+        mirrorEntry.setSelectVlan(mirror.monitorVlans());
+        mirrorEntry.setExternalIds(mirror.externalIds());
+
+        /**
+         * If mirror port, retrieves the uuid of the mirror port.
+         */
+        if (mirror.mirrorPort() != null) {
+
+            String outputPortUuid = getPortUuid(mirror.mirrorPort().value(), bridgeUuid);
+            if (outputPortUuid == null) {
+                log.warn("Couldn't find port {} in {}", mirror.mirrorPort().value(), nodeId.getIpAddress());
+                return false;
+            }
+
+            mirrorEntry.setOutputPort(Uuid.uuid(outputPortUuid));
+
+        } else if (mirror.mirrorVlan() != null) {
+
+            mirrorEntry.setOutputVlan(mirror.mirrorVlan());
+
+        } else {
+            log.warn("Invalid mirror, no mirror port and no mirror vlan");
+            return false;
+        }
+
+        ArrayList<Operation> operations = Lists.newArrayList();
+        Insert mirrorInsert = new Insert(dbSchema.getTableSchema("Mirror"), "Mirror", mirrorEntry.getRow());
+        operations.add(mirrorInsert);
+
+        // update the bridge table
+        Condition condition = ConditionUtil.isEqual(UUID, Uuid.uuid(bridgeUuid));
+        Mutation mutation = MutationUtil.insert(MIRRORS, Uuid.uuid("Mirror"));
+        List<Condition> conditions = Lists.newArrayList(condition);
+        List<Mutation> mutations = Lists.newArrayList(mutation);
+        operations.add(new Mutate(dbSchema.getTableSchema("Bridge"), conditions, mutations));
+
+        transactConfig(DATABASENAME, operations);
+        log.info("Created mirror {}", mirror.mirroringName());
+        return true;
+    }
+
+    /**
+     * Drops the configuration for mirror.
+     *
+     * @param mirroringName
+     */
+    @Override
+    public void dropMirror(MirroringName mirroringName) {
+        String mirrorUuid = getMirrorUuid(mirroringName.name());
+        if (mirrorUuid != null) {
+            log.info("Deleted mirror {}", mirroringName.name());
+            deleteConfig(MIRROR, UUID, mirrorUuid, BRIDGE, MIRRORS);
+        }
+        log.warn("Unable to delete {}", mirroringName.name());
+        return;
     }
 
     @Deprecated

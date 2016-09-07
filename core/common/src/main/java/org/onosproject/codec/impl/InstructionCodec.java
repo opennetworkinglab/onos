@@ -77,6 +77,6 @@ public final class InstructionCodec extends JsonCodec<Instruction> {
             return null;
         }
 
-        return new DecodeInstructionCodecHelper(json).decode();
+        return new DecodeInstructionCodecHelper(json, context).decode();
     }
 }

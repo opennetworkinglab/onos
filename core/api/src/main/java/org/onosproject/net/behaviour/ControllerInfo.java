@@ -17,17 +17,23 @@ package org.onosproject.net.behaviour;
 
 import com.google.common.base.Preconditions;
 import org.onlab.packet.IpAddress;
+import org.onosproject.net.Annotated;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.DefaultAnnotations;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Objects;
 
 /**
  * Represents information for a device to connect to a controller.
  */
-public class ControllerInfo {
+public class ControllerInfo implements Annotated {
 
     private IpAddress ip = IpAddress.valueOf("0.0.0.0");
     private int port = 6653;
     private String type = "error";
+    private final Annotations annotations;
 
     /**
      * Information for contacting the controller.
@@ -37,18 +43,36 @@ public class ControllerInfo {
      * @param type the connection type
      */
     public ControllerInfo(IpAddress ip, int port, String type) {
-        this.ip = ip;
-        this.port = port;
-        this.type = type;
+        this(ip, port, type, DefaultAnnotations.EMPTY);
     }
 
+    /**
+     * Information for contacting the controller.
+     *
+     * @param ip   the ip address
+     * @param port the tcp port
+     * @param type the connection type
+     * @param annotations optional key/value annotations
+     */
+    public ControllerInfo(IpAddress ip, int port, String type, Annotations annotations) {
+        this.ip = checkNotNull(ip);
+        this.port = port;
+        this.type = checkNotNull(type);
+        this.annotations = checkNotNull(annotations);
+    }
+
+    // TODO Factory method equivalent to this method
+    //      should probably live in OVSDB, NETCONF package.
     /**
      * Information for contacting the controller, if some information
      * is not contained in the target string because it's optional
      * it's leaved as in the field declaration (default values).
      *
      * @param target column returned from ovsdb query
+     *
+     * @deprecated in Hummingbird (1.7.0)
      */
+    @Deprecated
     public ControllerInfo(String target) {
         String[] data = target.split(":");
         this.type = data[0];
@@ -69,6 +93,7 @@ public class ControllerInfo {
                 this.port = Integer.parseInt(data[2]);
             }
         }
+        this.annotations = DefaultAnnotations.EMPTY;
     }
 
     /**
@@ -98,11 +123,24 @@ public class ControllerInfo {
         return type;
     }
 
+    @Override
+    public Annotations annotations() {
+        return annotations;
+    }
+
+    // TODO Method equivalent to this method
+    //      should probably live in OVSDB, NETCONF package.
+    // @deprecated in Hummingbird (1.7.0)
+    @Deprecated
     public String target() {
         if (type.startsWith("p")) {
             return type + ":" + port + ":" + ip;
         } else {
-            return type + ":" + ip + ":" + port;
+            if (annotations.equals(DefaultAnnotations.EMPTY)) {
+                return type + ":" + ip + ":" + port;
+            } else {
+                return type + ":" + ip + ":" + port + ":" + annotations.toString();
+            }
         }
     }
 
@@ -115,12 +153,10 @@ public class ControllerInfo {
     @Override
     public boolean equals(Object toBeCompared) {
         if (toBeCompared instanceof ControllerInfo) {
-            ControllerInfo controllerInfo = (ControllerInfo) toBeCompared;
-            if (controllerInfo.type().equals(this.type)
-                    && controllerInfo.ip().equals(this.ip())
-                    && controllerInfo.port() == this.port) {
-                return true;
-            }
+            ControllerInfo that = (ControllerInfo) toBeCompared;
+            return Objects.equals(this.type, that.type) &&
+                    Objects.equals(this.ip, that.ip) &&
+                    Objects.equals(this.port, that.port);
         }
         return false;
     }

@@ -224,6 +224,7 @@ public class BgpFlowSpecNlri {
      * Update buffer with identical flow types.
      *
      * @param cb channel buffer
+     * @param bgpFlowSpecNlri flow specification
      */
     public static void updateBufferIdenticalFlowTypes(ChannelBuffer cb, BgpFlowSpecNlri bgpFlowSpecNlri) {
 
@@ -256,6 +257,7 @@ public class BgpFlowSpecNlri {
      * Update buffer with non-identical flow types.
      *
      * @param cb channel buffer
+     * @param bgpFlowSpecNlri flow specification
      */
     public static void updateBufferNonIdenticalFlowTypes(ChannelBuffer cb, BgpFlowSpecNlri bgpFlowSpecNlri) {
         ChannelBuffer flowSpecTmpBuff = ChannelBuffers.dynamicBuffer();

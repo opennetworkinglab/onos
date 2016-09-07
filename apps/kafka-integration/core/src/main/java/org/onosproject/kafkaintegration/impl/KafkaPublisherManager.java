@@ -22,7 +22,7 @@ import org.onosproject.kafkaintegration.api.dto.OnosEvent.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.protobuf.GeneratedMessage;
+import com.google.protobuf.GeneratedMessageV3;
 
 /**
  * Dispatch ONOS Events to all interested Listeners.
@@ -53,7 +53,7 @@ public final class KafkaPublisherManager
     }
 
     @Override
-    public void publish(Type eventType, GeneratedMessage message) {
+    public void publish(Type eventType, GeneratedMessageV3 message) {
         log.debug("Dispatching ONOS Event {}", eventType);
         post(new OnosEvent(eventType, message));
     }

@@ -1,0 +1,23 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Checks whether the given ONOS component has a given state.
+# -----------------------------------------------------------------------------
+
+aux=/tmp/stc-$$.log
+trap "rm -f $aux 2>/dev/null" EXIT
+
+node=$1
+component=$2
+state=$3
+
+for attempt in {1..30}; do
+    onos ${node:-$OCI} scr:list  | grep $component > $aux
+
+    if grep $state $aux; then
+        exit 0
+    else
+        sleep 1
+    fi
+done
+
+cat $aux && exit 1

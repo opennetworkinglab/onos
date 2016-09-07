@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
@@ -88,6 +89,9 @@ public class DistributedPacketStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     private PacketRequestTracker tracker;
 
     private static final MessageSubject PACKET_OUT_SUBJECT =
@@ -105,7 +109,11 @@ public class DistributedPacketStore
     private static final int MAX_BACKOFF = 50;
 
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
+        cfgService.registerProperties(getClass());
+
+        modified(context);
+
         messageHandlingExecutor = Executors.newFixedThreadPool(
                 messageHandlerThreadPoolSize,
                 groupedThreads("onos/store/packet", "message-handlers", log));
@@ -122,6 +130,7 @@ public class DistributedPacketStore
 
     @Deactivate
     public void deactivate() {
+        cfgService.unregisterProperties(getClass(), false);
         communicationService.removeSubscriber(PACKET_OUT_SUBJECT);
         messageHandlingExecutor.shutdown();
         tracker = null;
@@ -221,6 +230,7 @@ public class DistributedPacketStore
                     firstRequest.set(true);
                     return ImmutableSet.of(request);
                 } else if (!existingRequests.contains(request)) {
+                    firstRequest.set(true);
                     return ImmutableSet.<PacketRequest>builder()
                                        .addAll(existingRequests)
                                        .add(request)

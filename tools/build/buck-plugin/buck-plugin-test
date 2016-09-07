@@ -1,0 +1,3 @@
+#!/bin/bash
+
+NO_BUCKD=1 buck build //apps/dhcp/app:onos-apps-dhcp-app --no-cache --show-output

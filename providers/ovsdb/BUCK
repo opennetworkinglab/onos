@@ -1,17 +1,14 @@
-BUNDLES = [
-    '//providers/ovsdb/device:onos-providers-ovsdb-device',
-    '//providers/ovsdb/tunnel:onos-providers-ovsdb-tunnel',
-]
-
 APPS = [
     'org.onosproject.ovsdb-base',
     'org.onosproject.ovsdbhostprovider',
 ]
 
 onos_app (
-  title = 'OVSDB Southbound Meta App',
-  description = 'ONOS OVSDB southbound meta application',
-  category = 'Provider',
-  included_bundles = BUNDLES,
-  required_apps = APPS,
+    app_name = 'org.onosproject.ovsdb',
+    title = 'OVSDB Southbound Meta App',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    description = 'ONOS OVSDB southbound meta application',
+    included_bundles = [ '//utils/osgi:onlab-osgi' ],  # FIXME to allow hollow oar files
+    required_apps = APPS,
 )

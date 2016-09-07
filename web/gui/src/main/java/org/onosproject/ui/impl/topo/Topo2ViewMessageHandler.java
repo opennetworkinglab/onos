@@ -24,7 +24,9 @@ import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.impl.UiWebSocket;
 import org.onosproject.ui.model.topo.UiClusterMember;
+import org.onosproject.ui.model.topo.UiNode;
 import org.onosproject.ui.model.topo.UiRegion;
+import org.onosproject.ui.model.topo.UiSynthLink;
 import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,8 +57,9 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     // === Inbound event identifiers
-    private static final String TOPO2_START = "topo2Start";
-    private static final String TOPO2_STOP = "topo2Stop";
+    private static final String START = "topo2Start";
+    private static final String NAV_REGION = "topo2navRegion";
+    private static final String STOP = "topo2Stop";
 
     // === Outbound event identifiers
     private static final String ALL_INSTANCES = "topo2AllInstances";
@@ -83,6 +86,7 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
     protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
                 new Topo2Start(),
+                new Topo2NavRegion(),
                 new Topo2Stop()
         );
     }
@@ -90,9 +94,29 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
     // ==================================================================
 
 
+    private ObjectNode mkLayoutMessage(UiTopoLayout currentLayout) {
+        List<UiTopoLayout> crumbs = topoSession.breadCrumbs();
+        return t2json.layout(currentLayout, crumbs);
+    }
+
+    private ObjectNode mkRegionMessage(UiTopoLayout currentLayout) {
+        UiRegion region = topoSession.getRegion(currentLayout);
+        Set<UiRegion> kids = topoSession.getSubRegions(currentLayout);
+        List<UiSynthLink> links = topoSession.getLinks(currentLayout);
+        return t2json.region(region, kids, links);
+    }
+
+    private ObjectNode mkPeersMessage(UiTopoLayout currentLayout) {
+        Set<UiNode> peers = topoSession.getPeerNodes(currentLayout);
+        ObjectNode peersPayload = objectNode();
+        peersPayload.set("peers", t2json.closedNodes(peers));
+        return peersPayload;
+    }
+
+
     private final class Topo2Start extends RequestHandler {
         private Topo2Start() {
-            super(TOPO2_START);
+            super(START);
         }
 
         @Override
@@ -108,47 +132,54 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
             //  correctly
             topoSession.refreshModel();
 
-            // this is the list of ONOS cluster members
+            // start with the list of ONOS cluster members
             List<UiClusterMember> instances = topoSession.getAllInstances();
             sendMessage(ALL_INSTANCES, t2json.instances(instances));
 
+
+            // Send layout, region, peers data...
+
             // this is the layout that the user has chosen to display
             UiTopoLayout currentLayout = topoSession.currentLayout();
-            sendMessage(CURRENT_LAYOUT, t2json.layout(currentLayout));
+            sendMessage(CURRENT_LAYOUT, mkLayoutMessage(currentLayout));
 
             // this is the region that is associated with the current layout
             //   this message includes details of the sub-regions, devices,
             //   hosts, and links within the region
             //   (as well as layer-order hints)
-            UiRegion region = topoSession.getRegion(currentLayout);
-            Set<UiRegion> kids = topoSession.getSubRegions(currentLayout);
-            sendMessage(CURRENT_REGION, t2json.region(region, kids));
+            sendMessage(CURRENT_REGION, mkRegionMessage(currentLayout));
 
-            // these are the regions that are siblings to this one
-            Set<UiRegion> peers = topoSession.getPeerRegions(currentLayout);
-            ObjectNode peersPayload = objectNode();
-            peersPayload.set("peers", t2json.closedRegions(peers));
-            sendMessage(PEER_REGIONS, peersPayload);
+            // these are the regions/devices that are siblings to this region
+            sendMessage(PEER_REGIONS, mkPeersMessage(currentLayout));
+        }
+    }
 
-            // finally, tell the UI that we are done : TODO review / delete??
-            sendMessage(TOPO_START_DONE, null);
-
-
-            // OLD CODE DID THE FOLLOWING...
-//            addListeners();
-//            sendAllInstances(null);
-//            sendAllDevices();
-//            sendAllLinks();
-//            sendAllHosts();
-//            sendTopoStartDone();
+    private final class Topo2NavRegion extends RequestHandler {
+        private Topo2NavRegion() {
+            super(NAV_REGION);
         }
 
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            String rid = string(payload, "rid");
+            log.debug("topo2navRegion: rid={}", rid);
 
+            // NOTE: we are NOT re-issuing information about the cluster nodes
+
+            // switch to the selected region...
+            topoSession.navToRegion(rid);
+
+            // re-send layout, region, peers data...
+            UiTopoLayout currentLayout = topoSession.currentLayout();
+            sendMessage(CURRENT_LAYOUT, mkLayoutMessage(currentLayout));
+            sendMessage(CURRENT_REGION, mkRegionMessage(currentLayout));
+            sendMessage(PEER_REGIONS, mkPeersMessage(currentLayout));
+        }
     }
 
     private final class Topo2Stop extends RequestHandler {
         private Topo2Stop() {
-            super(TOPO2_STOP);
+            super(STOP);
         }
 
         @Override

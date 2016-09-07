@@ -10,32 +10,59 @@ cd /tmp
 # Kill any running instances
 [ -f /tmp/onos.pid ] && kill -9 $(cat /tmp/onos.pid) &>/dev/null
 
-set -e
+ONOS_DIR=$(tar tf $ONOS_TAR | head -n 1 | cut -d/ -f1)
+ONOS_MD5=$ONOS_DIR/CHECKSUM
 
-# Blitz previously unrolled onos- directory
-rm -fr onos-*/
+# Extract MD5 of the ONOS tar file and of the previous installation, if one exists
+oldMD5=$(cat $ONOS_MD5 2>/dev/null)
+newMD5=$(md5 -q $ONOS_TAR)
 
-# Unroll new image from the specified tar file
-[ -f $ONOS_TAR ] && tar zxf $ONOS_TAR
+# Search for the "clean" argument anywhere on the command-line
+echo "$@" | egrep -q "\bclean\b" && clean=true || unset clean
 
-# Change into the ONOS home directory
-cd onos-*/
-export ONOS_HOME=$PWD
+set -e          # Do not tolerate any errors from this point onward
 
-# FIXME: for now we're running using the karaf client; later use raw SSH
-unset ONOS_USE_SSH
+# If the previous installation does not exist, or if the ONOS tar changed,
+# or if the user asked for clean run, start from scratch.
+if [ ! -d $ONOS_DIR -o "$oldMD5" != "$newMD5" -o -d $ONOS_DIR -a -n "$clean" ]; then
+    echo "Running clean installation..."
 
-# Create config/cluster.json (cluster metadata)
-IP=${ONOS_IP:-127.0.0.1}
-echo "Creating local cluster configs for IP $IP..."
-[ -d $ONOS_HOME/config ] || mkdir -p $ONOS_HOME/config
-cat > $ONOS_HOME/config/cluster.json <<EOF
-{
-  "name": "default",
-  "nodes": [ {"id": "$IP", "ip": "$IP", "port": 9876 } ],
-  "partitions": [ { "id": 1, "members": [ "$IP" ] } ]
-}
+    # Blitz previously unrolled onos- directory
+    rm -fr $ONOS_DIR
+
+    # Unroll new image from the specified tar file
+    [ -f $ONOS_TAR ] && tar zxf $ONOS_TAR
+
+    # Write out this installation's MD5 checksum
+    echo "$newMD5" > $ONOS_MD5
+
+    # Change into the ONOS home directory
+    cd $ONOS_DIR
+    export ONOS_HOME=$PWD
+
+    # FIXME: for now we're running using the karaf client; later use raw SSH
+    unset ONOS_USE_SSH
+
+    # Create config/cluster.json (cluster metadata)
+    IP=${ONOS_IP:-127.0.0.1}
+    echo "Creating local cluster configs for IP $IP..."
+    [ -d $ONOS_HOME/config ] || mkdir -p $ONOS_HOME/config
+    cat > $ONOS_HOME/config/cluster.json <<-EOF
+    {
+      "name": "default",
+      "nodes": [ {"id": "$IP", "ip": "$IP", "port": 9876 } ],
+      "partitions": [ { "id": 1, "members": [ "$IP" ] } ]
+    }
 EOF
+
+else
+    # Otherwise, run using the previous installation
+    echo "Running previous installation..."
+
+    # Change into the ONOS home directory
+    cd $ONOS_DIR
+    export ONOS_HOME=$PWD
+fi
 
 # Start ONOS as a server, but include any specified options
 ./bin/onos-service server "$@" &>onos.log &

@@ -9,6 +9,10 @@ BUNDLES = [
     '//providers/openflow/meter:onos-providers-openflow-meter',
 ]
 
+APPS = [
+    'org.onosproject.optical-model',
+]
+
 onos_app (
     app_name = 'org.onosproject.openflow-base',
     title = 'OpenFlow Provider',
@@ -16,4 +20,5 @@ onos_app (
     url = 'http://onosproject.org',
     description = 'OpenFlow protocol southbound providers.',
     included_bundles = BUNDLES,
+    required_apps = APPS,
 )

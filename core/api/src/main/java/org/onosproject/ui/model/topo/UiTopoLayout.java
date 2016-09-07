@@ -39,7 +39,8 @@ public class UiTopoLayout {
     public UiTopoLayout(UiTopoLayoutId id, Region region, UiTopoLayoutId parent) {
         this.id = id;
         this.region = region;
-        this.parent = parent;
+        // NOTE: root layout is its own parent...
+        this.parent = parent != null ? parent : this.id;
     }
 
     @Override
@@ -67,13 +68,16 @@ public class UiTopoLayout {
     }
 
     /**
-     * Returns the identifier of the backing region. Will be null if the
-     * region is null.
+     * Returns the identifier of the backing region. If this is the default
+     * layout, the null-region ID will be returned, otherwise the ID of the
+     * backing region for this layout will be returned; null in the case that
+     * there is no backing region.
      *
      * @return backing region identifier
      */
     public RegionId regionId() {
-        return region == null ? null : region.id();
+        return isRoot() ? UiRegion.NULL_ID
+                : (region == null ? null : region.id());
     }
 
     /**
@@ -85,5 +89,13 @@ public class UiTopoLayout {
         return parent;
     }
 
-    // TODO: additional properties pertinent to the layout
+    /**
+     * Returns true if this layout instance is at the top of the
+     * hierarchy tree.
+     *
+     * @return true if this is the root layout
+     */
+    public boolean isRoot() {
+        return id.equals(parent);
+    }
 }

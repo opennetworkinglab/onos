@@ -83,6 +83,16 @@ class NetconfDeviceServiceMock implements DeviceService {
     }
 
     @Override
+    public PortStatistics getStatisticsForPort(DeviceId deviceId, PortNumber portNumber) {
+        return null;
+    }
+
+    @Override
+    public PortStatistics getDeltaStatisticsForPort(DeviceId deviceId, PortNumber portNumber) {
+        return null;
+    }
+
+    @Override
     public Port getPort(DeviceId deviceId, PortNumber portNumber) {
         return null;
     }

@@ -26,7 +26,7 @@ import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutableBa
 public class PointToPointIntentTest extends ConnectivityIntentTest {
 
     /**
-     * Checks that the MultiPointToSinglePointIntent class is immutable.
+     * Checks that the PointToPointIntent class is immutable.
      */
     @Test
     public void checkImmutability() {

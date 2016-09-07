@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api',
 ]
 
 osgi_jar (

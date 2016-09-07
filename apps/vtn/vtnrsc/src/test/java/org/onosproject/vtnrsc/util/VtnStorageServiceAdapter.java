@@ -15,11 +15,12 @@
  */
 package org.onosproject.vtnrsc.util;
 
+import org.onosproject.store.service.Topic;
+import org.onosproject.store.service.ConsistentTreeMapBuilder;
 import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.DistributedSetBuilder;
-import org.onosproject.store.service.DistributedQueueBuilder;
 import org.onosproject.store.service.AtomicCounterBuilder;
 import org.onosproject.store.service.AtomicValueBuilder;
 import org.onosproject.store.service.LeaderElectorBuilder;
@@ -42,12 +43,12 @@ public class VtnStorageServiceAdapter implements StorageService {
     }
 
     @Override
-    public <E> DistributedSetBuilder<E> setBuilder() {
+    public <V> ConsistentTreeMapBuilder<V> consistentTreeMapBuilder() {
         return null;
     }
 
     @Override
-    public <E> DistributedQueueBuilder<E> queueBuilder() {
+    public <E> DistributedSetBuilder<E> setBuilder() {
         return null;
     }
 
@@ -73,6 +74,11 @@ public class VtnStorageServiceAdapter implements StorageService {
 
     @Override
     public <E> WorkQueue<E> getWorkQueue(String name, Serializer serializer) {
+        return null;
+    }
+
+    @Override
+    public <T> Topic<T> getTopic(String name, Serializer serializer) {
         return null;
     }
 }

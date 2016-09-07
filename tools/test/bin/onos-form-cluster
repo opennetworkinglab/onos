@@ -7,10 +7,11 @@
 . $ONOS_ROOT/tools/build/envDefaults
 
 # Scan arguments for user/password or other options...
-while getopts u:p: o; do
+while getopts u:p:s: o; do
     case "$o" in
         u) user=$OPTARG;;
         p) password=$OPTARG;;
+        s) partitionsize=$OPTARG;;
     esac
 done
 ONOS_WEB_USER=${ONOS_WEB_USER:-onos} # ONOS WEB User defaults to 'onos'
@@ -29,6 +30,12 @@ else
     nodes="$@"
 fi
 
+if ! [ -z ${partitionsize} ]; then
+    partitionarg="-s ${partitionsize}"
+else
+    partitionarg=
+fi
+
 set -x
 
-ssh $ONOS_USER@$node $ONOS_INSTALL_DIR/bin/onos-form-cluster -u $user -p $password $nodes
+ssh $ONOS_USER@$node $ONOS_INSTALL_DIR/bin/onos-form-cluster -u $user -p $partitionarg $password $nodes

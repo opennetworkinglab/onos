@@ -21,6 +21,7 @@ import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
 import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.pool.KryoCallback;
 import com.esotericsoftware.kryo.pool.KryoFactory;
 import com.esotericsoftware.kryo.pool.KryoPool;
@@ -78,7 +79,6 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
 
     private final boolean registrationRequired;
     private final String friendlyName;
-
 
     /**
      * KryoNamespace builder.
@@ -272,19 +272,12 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
      * @return serialized bytes
      */
     public byte[] serialize(final Object obj, final int bufferSize) {
-        ByteBufferOutput out = new ByteBufferOutput(bufferSize, MAX_BUFFER_SIZE);
-        try {
-            Kryo kryo = borrow();
-            try {
-                kryo.writeClassAndObject(out, obj);
-                out.flush();
-                return out.toBytes();
-            } finally {
-                release(kryo);
-            }
-        } finally {
-            out.release();
-        }
+        Output out = new Output(bufferSize, MAX_BUFFER_SIZE);
+        return pool.run(kryo -> {
+            kryo.writeClassAndObject(out, obj);
+            out.flush();
+            return out.toBytes();
+        });
     }
 
     /**
@@ -403,6 +396,17 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
 
     private String friendlyName() {
         return friendlyName;
+    }
+
+    /**
+     * Gets the number of classes registered in this Kryo namespace.
+     *
+     * @return size of namespace
+     */
+    public int size() {
+        return (int) registeredBlocks.stream()
+                .flatMap(block -> block.types().stream())
+                .count();
     }
 
     /**

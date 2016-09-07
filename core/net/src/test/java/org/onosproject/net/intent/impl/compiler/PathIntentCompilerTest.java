@@ -47,6 +47,7 @@ import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.resource.MockResourceService;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -941,7 +942,7 @@ public class PathIntentCompilerTest {
 
             assertTrue(VlanId.NO_VID < vlanToEncap.toShort() && vlanToEncap.toShort() < VlanId.MAX_VLAN);
 
-            /**
+            /*
              * This second part is meant to test if the random selection is working properly.
              * We are compiling the same intent in order to verify if the VLAN ID is different
              * from the previous one.

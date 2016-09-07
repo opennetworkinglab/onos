@@ -1,0 +1,67 @@
+#!/bin/bash
+# -------------------------------------------------------------------------------------------------
+# ONOS ACL tool.
+# Usage:
+# onos-acl node_ip [allow|deny|del] [--srcIp srcIp] [--dstIp dstIp] [--ipProto ipProto] [--dstTpPort dstTpPort] [--alcId aclId]
+# onos-acl node_ip --json acl-config.json
+# -------------------------------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+. $ONOS_ROOT/tools/test/bin/find-node.sh
+
+fail="--fail"
+[ "$1" == "-v" ] && shift && fail=""
+
+node=$(find_node $1)
+
+if [ "$2" == "--json" ]; then
+    shift
+    file=$2
+    curl $fail -sSL --user $ONOS_WEB_USER:$ONOS_WEB_PASS \
+                -X POST -H 'Content-Type:application/json' \
+                http://$node:8181/onos/v1/acl/rules -d@$file
+
+else
+    policy="${2:deny}"
+    srcIp=""
+    dstIp=""
+    ipProto=""
+    dstTpPort=""
+    aclId=""
+
+    while [ "$#" -gt 3 ]; do
+        if [ "$3" == "--srcIp" ]; then
+            shift && srcIp="$3" && shift
+        elif [ "$3" == "--dstIp" ]; then
+            shift && dstIp="$3" && shift
+        elif [ "$3" == "--ipProto" ]; then
+            shift && ipProto="$3" && shift
+        elif [ "$3" == "--dstTpPort" ]; then
+            shift && dstTpPort="$3" && shift
+        elif [ "$3" == "--aclId" ]; then
+            shift && aclId="$3" && shift
+        else
+            shift
+        fi
+    done
+
+    if [ "$policy" == "del" ]; then
+        curl $fail -sSL --user $ONOS_WEB_USER:$ONOS_WEB_PASS \
+                -X DELETE http://$node:8181/onos/v1/acl/rules/$aclId
+
+    else
+
+        aclRule="{\"action\": \"$policy\""
+        [ "$srcIp" != "" ] && aclRule="$aclRule, \"srcIp\":\"$srcIp\""
+        [ "$dstIp" != "" ] && aclRule="$aclRule, \"dstIp\":\"$dstIp\""
+        [ "$ipProto" != "" ] && aclRule="$aclRule, \"ipProto\":\"$ipProto\""
+        [ "$dstTpPort" != "" ] && aclRule="$aclRule, \"dstTpPort\":\"$dstTpPort\""
+        aclRule="$aclRule}"
+
+        curl $fail -sSL --user $ONOS_WEB_USER:$ONOS_WEB_PASS \
+            -X POST -H 'Content-Type:application/json' \
+            http://$node:8181/onos/v1/acl/rules -d "$aclRule"
+    fi
+
+fi

@@ -181,7 +181,7 @@ public class DhcpManager implements DhcpService {
         factories.forEach(cfgService::registerConfigFactory);
         cfgListener.reconfigureNetwork(cfgService.getConfig(appId, DhcpConfig.class));
         hostProviderService = hostProviderRegistry.register(hostProvider);
-        packetService.addProcessor(processor, PacketProcessor.director(0));
+        packetService.addProcessor(processor, PacketProcessor.director(1));
         requestPackets();
         timeout = Timer.getTimer().newTimeout(new PurgeListTask(), timerDelay, TimeUnit.MINUTES);
         log.info("Started");

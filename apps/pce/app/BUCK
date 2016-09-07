@@ -1,0 +1,30 @@
+COMPILE_DEPS = [
+  '//lib:CORE_DEPS',
+  '//lib:COMPILE',
+  '//lib:org.osgi.compendium',
+  '//cli:onos-cli',
+  '//core/store/serializers:onos-core-serializers',
+  '//utils/rest:onlab-rest',
+  '//incubator/api:onos-incubator-api',
+  '//apps/pcep-api:onos-apps-pcep-api',
+  '//utils/misc:onlab-misc',
+  '//core/api:onos-api',
+  '//lib:org.apache.karaf.shell.console',
+  '//lib:javax.ws.rs-api',
+]
+
+TEST_DEPS = [
+  '//lib:TEST_REST',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS
+)
+
+onos_app (
+    title = 'PCE App',
+    category = 'default',
+    url = 'http://onosproject.org',
+    description = 'PCE as centeral controller App.',
+)

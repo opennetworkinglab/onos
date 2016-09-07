@@ -229,7 +229,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
         super(new ProviderId("lldp", PROVIDER_NAME));
     }
 
-    private final String buildSrcMac() {
+    private String buildSrcMac() {
         String srcMac = ProbedLinkProvider.fingerprintMac(clusterMetadataService.getClusterMetadata());
         String defMac = ProbedLinkProvider.defaultMac();
         if (srcMac.equals(defMac)) {
@@ -542,22 +542,20 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
     private class InternalRoleListener implements MastershipListener {
         @Override
         public void event(MastershipEvent event) {
-            if (MastershipEvent.Type.BACKUPS_CHANGED.equals(event.type())) {
+            if (MastershipEvent.Type.MASTER_CHANGED.equals(event.type())) {
                 // only need new master events
-                return;
+                eventExecutor.execute(() -> {
+                    DeviceId deviceId = event.subject();
+                    Device device = deviceService.getDevice(deviceId);
+                    if (device == null) {
+                        log.debug("Device {} doesn't exist, or isn't there yet", deviceId);
+                        return;
+                    }
+                    if (clusterService.getLocalNode().id().equals(event.roleInfo().master())) {
+                        updateDevice(device).ifPresent(ld -> updatePorts(ld, device.id()));
+                    }
+                });
             }
-
-            eventExecutor.execute(() -> {
-                DeviceId deviceId = event.subject();
-                Device device = deviceService.getDevice(deviceId);
-                if (device == null) {
-                    log.debug("Device {} doesn't exist, or isn't there yet", deviceId);
-                    return;
-                }
-                if (clusterService.getLocalNode().id().equals(event.roleInfo().master())) {
-                    updateDevice(device).ifPresent(ld -> updatePorts(ld, device.id()));
-                }
-            });
         }
     }
 
