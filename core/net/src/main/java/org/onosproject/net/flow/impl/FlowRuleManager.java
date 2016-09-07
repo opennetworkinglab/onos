@@ -16,6 +16,7 @@
 package org.onosproject.net.flow.impl;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -579,22 +580,22 @@ public class FlowRuleManager
     private class FlowOperationsProcessor implements Runnable {
         // Immutable
         private final FlowRuleOperations fops;
+        private final ImmutableSet<DeviceId> pendingDevices;
 
         // Mutable
         private final List<Set<FlowRuleOperation>> stages;
-        private final Set<DeviceId> pendingDevices;
         private boolean hasFailed = false;
 
         FlowOperationsProcessor(FlowRuleOperations ops) {
             this.stages = Lists.newArrayList(ops.stages());
             this.fops = ops;
-            this.pendingDevices = new HashSet<>();
+            this.pendingDevices = ImmutableSet.of();
         }
 
-        FlowOperationsProcessor(FlowOperationsProcessor src, boolean hasFailed) {
+        FlowOperationsProcessor(FlowOperationsProcessor src, boolean hasFailed, Set<DeviceId> pendingDevices) {
             this.fops = src.fops;
             this.stages = Lists.newArrayList(src.stages);
-            this.pendingDevices = new HashSet<>(src.pendingDevices);
+            this.pendingDevices = ImmutableSet.copyOf(pendingDevices);
             this.hasFailed = hasFailed;
         }
 
@@ -614,28 +615,33 @@ public class FlowRuleManager
                 perDeviceBatches.put(op.rule().deviceId(),
                         new FlowRuleBatchEntry(mapOperationType(op.type()), op.rule()));
             }
-            pendingDevices.addAll(perDeviceBatches.keySet());
+            ImmutableSet<DeviceId> newPendingDevices = ImmutableSet.<DeviceId>builder()
+                    .addAll(pendingDevices)
+                    .addAll(perDeviceBatches.keySet())
+                    .build();
 
             for (DeviceId deviceId : perDeviceBatches.keySet()) {
                 long id = idGenerator.getNewId();
                 final FlowRuleBatchOperation b = new FlowRuleBatchOperation(perDeviceBatches.get(deviceId),
                                                deviceId, id);
-                pendingFlowOperations.put(id, this);
+                pendingFlowOperations.put(id, new FlowOperationsProcessor(this, hasFailed, newPendingDevices));
                 deviceInstallers.execute(() -> store.storeBatch(b));
             }
         }
 
         synchronized void satisfy(DeviceId devId) {
-            pendingDevices.remove(devId);
-            if (pendingDevices.isEmpty()) {
-                operationsService.execute(new FlowOperationsProcessor(this, hasFailed));
+            Set<DeviceId> newPendingDevices = new HashSet<>(pendingDevices);
+            newPendingDevices.remove(devId);
+            if (newPendingDevices.isEmpty()) {
+                operationsService.execute(new FlowOperationsProcessor(this, hasFailed, newPendingDevices));
             }
         }
 
         synchronized void fail(DeviceId devId, Set<? extends FlowRule> failures) {
-            pendingDevices.remove(devId);
-            if (pendingDevices.isEmpty()) {
-                operationsService.execute(new FlowOperationsProcessor(this, true));
+            Set<DeviceId> newPendingDevices = new HashSet<>(pendingDevices);
+            newPendingDevices.remove(devId);
+            if (newPendingDevices.isEmpty()) {
+                operationsService.execute(new FlowOperationsProcessor(this, true, newPendingDevices));
             }
 
             FlowRuleOperations.Builder failedOpsBuilder = FlowRuleOperations.builder();
