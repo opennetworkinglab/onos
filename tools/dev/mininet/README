@@ -1,0 +1,34 @@
+Mininet dev tools README
+
+This directory contains modules for Mininet that are
+intended to help with ONOS core and application development.
+
+They can be imported into Python scripts, or invoked using
+mn's --custom option.
+
+Test topologies for use with Mininet may be found in
+../../test/topos
+
+
+onos.py:
+
+onos.py provides a Mininet controller class which makes it
+convenient to create ONOS clusters in a single VM. It also
+creates a customizable control network. Additional information
+may be found in the module comment and on the docs wiki.
+
+example: sudo mn --custom onos.py --controller onos,1 --topo linear,10
+
+
+bmv2.py:
+
+bmv2.py provides a Mininet switch class which enables use of
+the BMv2 P4 software switch.
+
+Additional information may be found on the docs wiki.
+
+
+examples/:
+
+The examples/ directory contains example scripts which may make
+use of onos.py or other modules in this directory.
