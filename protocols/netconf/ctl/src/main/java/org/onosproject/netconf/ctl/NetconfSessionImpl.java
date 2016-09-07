@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -71,6 +71,7 @@ public class NetconfSessionImpl implements NetconfSession {
             Collections.singletonList("urn:ietf:params:netconf:base:1.0");
     private String serverCapabilities;
     private NetconfStreamHandler t;
+    private static final int MAX_ENTRIES = 600;
     private Map<Integer, CompletableFuture<String>> replies;
     private List<String> errorReplies;
 
@@ -78,7 +79,9 @@ public class NetconfSessionImpl implements NetconfSession {
     public NetconfSessionImpl(NetconfDeviceInfo deviceInfo) throws NetconfException {
         this.deviceInfo = deviceInfo;
         connectionActive = false;
-        replies = new HashMap<>();
+        /* Use LRUCache instead of HashMap to prevent memory leaks */
+        //replies = new HashMap<>();
+        replies = new LruCache<>(MAX_ENTRIES);
         errorReplies = new ArrayList<>();
         startConnection();
     }
@@ -186,6 +189,7 @@ public class NetconfSessionImpl implements NetconfSession {
     public CompletableFuture<String> request(String request) {
         CompletableFuture<String> ftrep = t.sendMessage(request);
         replies.put(messageIdInteger.get(), ftrep);
+        log.info("reply LRU cache size {}", replies.size());
         return ftrep;
     }
 
@@ -449,6 +453,20 @@ public class NetconfSessionImpl implements NetconfSession {
             CompletableFuture<String> completedReply =
                     replies.get(messageId.get());
             completedReply.complete(event.getMessagePayload());
+        }
+    }
+
+    public class LruCache<K, V> extends LinkedHashMap<K, V> {
+        private final int sizeCache;
+
+        public LruCache(int sizeCache) {
+            super(MAX_ENTRIES, 0.75f, true);
+            this.sizeCache = sizeCache;
+        }
+
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+            return size() > sizeCache;
         }
     }
 }
