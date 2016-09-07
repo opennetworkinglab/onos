@@ -253,9 +253,35 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         return queued;
     }
 
-    // Retrieves the device pipeline behaviour from the cache.
+    /**
+     * Retrieves (if it exists) the device pipeline behaviour from the cache.
+     * Otherwise it warms the caches and triggers the init method of the Pipeline.
+     *
+     * @param deviceId the id of the device associated to the pipeline
+     * @return the implementation of the Pipeliner behaviour
+     */
     private Pipeliner getDevicePipeliner(DeviceId deviceId) {
         return pipeliners.computeIfAbsent(deviceId, this::initPipelineHandler);
+    }
+
+    /**
+     * Retrieves (if it exists) the device pipeline behaviour from the cache and
+     * and triggers the init method of the pipeline. Otherwise (DEVICE_ADDED) it warms
+     * the caches and triggers the init method of the Pipeline. The rationale of this
+     * method is for managing the scenario of a switch that goes down for a failure
+     * and goes up after a while.
+     *
+     * @param deviceId the id of the device associated to the pipeline
+     * @return the implementation of the Pipeliner behaviour
+     */
+    private Pipeliner getAndInitDevicePipeliner(DeviceId deviceId) {
+        return pipeliners.compute(deviceId, (deviceIdValue, pipelinerValue) -> {
+            if (pipelinerValue != null) {
+                pipelinerValue.init(deviceId, context);
+                return pipelinerValue;
+            }
+            return this.initPipelineHandler(deviceId);
+        });
     }
 
     /**
@@ -315,7 +341,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                               event.subject().id());
                     if (deviceService.isAvailable(event.subject().id())) {
                         log.debug("Device is now available {}", event.subject().id());
-                        getDevicePipeliner(event.subject().id());
+                        getAndInitDevicePipeliner(event.subject().id());
                     } else {
                         log.debug("Device is no longer available {}", event.subject().id());
                     }
