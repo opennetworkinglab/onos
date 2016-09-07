@@ -51,7 +51,7 @@ public class OpticalModelLoader {
     private ConfigFactory<ConnectPoint, OpticalPortConfig>
         opticalPortConfigFactory = new ConfigFactory<ConnectPoint, OpticalPortConfig>(CONNECT_POINT_SUBJECT_FACTORY,
                                                        OpticalPortConfig.class,
-                                                       "optical") {
+                                                       OpticalPortConfig.CONFIG_KEY) {
         @Override
         public OpticalPortConfig createConfig() {
             return new OpticalPortConfig();

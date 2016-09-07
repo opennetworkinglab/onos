@@ -28,8 +28,28 @@ import static org.onosproject.net.config.Config.FieldPresence.OPTIONAL;
 
 /**
  * Configurations for an optical port on a device.
+ *
+ * <p>
+ * Example:
+ * <pre>
+ * "ports": {
+ *   "(device Id)/(port number)": {
+ *     {@value #CONFIG_KEY}: {
+ *              {@value #TYPE}: "OCH",
+ *              {@value #SPEED}: 0,
+ *              {@value #PORT}: 10
+ *              ...
+ *     }
+ *   }
+ * }
+ * </pre>
  */
 public final class OpticalPortConfig extends Config<ConnectPoint> {
+
+    /**
+     * Configuration key for {@link OpticalPortConfig}.
+     */
+    public static final String CONFIG_KEY = "optical";
 
     // optical type {OMS, OCH, ODUClt, fiber}
     public static final String TYPE = "type";
