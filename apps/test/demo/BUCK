@@ -14,7 +14,6 @@ osgi_jar_with_tests (
     api_version = '1.0',
     api_description = 'REST API for Demo App',
     api_package = 'org.onosproject.demo',
-    debug = False,
 )
 
 onos_app (
