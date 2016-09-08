@@ -239,16 +239,9 @@ public class PeerConnectivityManager {
         }
 
         // Add VLAN treatment for traffic going from BGP speaker to BGP peer
-        if (!vlanOne.equals(vlanTwo)) {
-            if (vlanTwo.equals(VlanId.NONE)) {
-                treatmentToPeer.popVlan();
-            } else {
-                treatmentToPeer.setVlanId(vlanTwo);
-            }
-        }
+        treatmentToPeer = applyVlanTreatment(vlanOne, vlanTwo, treatmentToPeer);
 
         // Path from BGP speaker to BGP peer matching destination TCP port 179
-
         selector = buildSelector(tcpProtocol,
                 vlanOne,
                 ipOne,
@@ -309,13 +302,7 @@ public class PeerConnectivityManager {
                             .build());
 
         // Add VLAN treatment for traffic going from BGP peer to BGP speaker
-        if (!vlanTwo.equals(vlanOne)) {
-            if (vlanOne.equals(VlanId.NONE)) {
-                treatmentToSpeaker.popVlan();
-            } else {
-                treatmentToSpeaker.setVlanId(vlanOne);
-            }
-        }
+        treatmentToSpeaker = applyVlanTreatment(vlanTwo, vlanOne, treatmentToSpeaker);
 
         // Path from BGP peer to BGP speaker matching destination TCP port 179
         selector = buildSelector(tcpProtocol,
@@ -396,9 +383,9 @@ public class PeerConnectivityManager {
                                           Short dstTcpPort) {
         TrafficSelector.Builder builder = DefaultTrafficSelector.builder().matchIPProtocol(ipProto);
 
-        // Match on any VLAN Id if a VLAN Id configured on the ingress interface
+        // Match on VLAN Id if a VLAN Id configured on the ingress interface
         if (!ingressVlanId.equals(VlanId.NONE)) {
-            builder.matchVlanId(VlanId.ANY);
+            builder.matchVlanId(ingressVlanId);
         }
 
         if (dstIp.isIp4()) {
@@ -420,6 +407,31 @@ public class PeerConnectivityManager {
         }
 
         return builder.build();
+    }
+
+    /*
+     * Adds the VLAN Id treatment before building the intents, depending on how
+     * the VLAN Ids of the BGP speakers and the BGP peers are configured.
+     */
+    private TrafficTreatment.Builder applyVlanTreatment(VlanId vlanOne,
+                                                        VlanId vlanTwo,
+                                                        TrafficTreatment.Builder treatment) {
+        if (!vlanOne.equals(vlanTwo)) {
+            // VLANs are different. Do some VLAN treatment
+            if (vlanTwo.equals(VlanId.NONE)) {
+                // VLAN two is none. VLAN one is set. Do a pop
+                treatment.popVlan();
+            } else {
+                // Either both VLANs are set or vlanOne is not
+                if (vlanOne.equals(VlanId.NONE)) {
+                    // VLAN one is none. VLAN two is set. Push the VLAN header
+                    treatment.pushVlan();
+                }
+                // Set the VLAN Id to the egress VLAN Id
+                treatment.setVlanId(vlanTwo);
+            }
+        }
+        return treatment;
     }
 
     /**

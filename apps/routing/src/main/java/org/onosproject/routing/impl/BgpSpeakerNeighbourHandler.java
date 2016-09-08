@@ -21,6 +21,8 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
@@ -41,8 +43,6 @@ import org.onosproject.routing.config.BgpConfig;
 
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.onosproject.net.HostId.hostId;
 
 /**
  * Manages neighbour message handlers for the use case of internal BGP speakers
@@ -154,11 +154,18 @@ public class BgpSpeakerNeighbourHandler {
             case REPLY:
                 // Proxy replies over to our internal BGP speaker if the host
                 // is known to us
-                Host h = hostService.getHost(hostId(context.dstMac(), context.vlan()));
-
+                Host h = hostService.getHostsByMac(context.dstMac()).stream()
+                                                                    .findFirst()
+                                                                    .get();
                 if (h == null) {
                     context.drop();
                 } else {
+                    VlanId bgpSpeakerVlanId = h.vlan();
+                    if (!bgpSpeakerVlanId.equals(VlanId.NONE)) {
+                        context.packet().setVlanID(bgpSpeakerVlanId.toShort());
+                    } else {
+                        context.packet().setVlanID(Ethernet.VLAN_UNTAGGED);
+                    }
                     context.forward(h.location());
                 }
                 break;
@@ -179,9 +186,6 @@ public class BgpSpeakerNeighbourHandler {
             // For messages coming from a BGP speaker, look at the sender address
             // to find the interface to proxy to
             interfaceService.getInterfacesByIp(context.sender())
-                    .stream()
-                    .filter(intf -> intf.vlan().equals(context.vlan()))
-                    .map(intf -> intf.connectPoint())
                     .forEach(context::forward);
         }
     }

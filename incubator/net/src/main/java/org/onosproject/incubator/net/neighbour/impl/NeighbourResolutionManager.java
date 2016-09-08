@@ -549,7 +549,16 @@ public class NeighbourResolutionManager implements NeighbourResolutionService {
 
         @Override
         public void forward(NeighbourMessageContext context, Interface outIntf) {
-            // TODO implement
+            Ethernet packetOut = (Ethernet) context.packet().clone();
+            if (outIntf.vlan().equals(VlanId.NONE)) {
+                // The egress interface has no VLAN Id. Send out an untagged
+                // packet
+                packetOut.setVlanID(Ethernet.VLAN_UNTAGGED);
+            } else {
+                // The egress interface has a VLAN set. Send out a tagged packet
+                packetOut.setVlanID(outIntf.vlan().toShort());
+            }
+            sendTo(packetOut, outIntf.connectPoint());
         }
 
         @Override

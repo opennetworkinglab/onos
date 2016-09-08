@@ -316,7 +316,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 .matchIPDst(IpPrefix.valueOf(dstPrefix));
 
         if (!srcVlanId.equals(VlanId.NONE)) {
-            builder.matchVlanId(VlanId.ANY);
+            builder.matchVlanId(srcVlanId);
         }
 
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
@@ -495,7 +495,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 .matchIPDst(IpPrefix.valueOf(dstPrefix));
 
         if (!srcVlanId.equals(VlanId.NONE)) {
-            builder.matchVlanId(VlanId.ANY);
+            builder.matchVlanId(srcVlanId);
         }
 
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
