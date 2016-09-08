@@ -75,7 +75,7 @@ public interface DocumentTree<V> {
      * Removes the node with the specified path.
      *
      * is not a leaf node i.e has one or more children
-     * @param path path for the node to remove
+     * @param key path for the node to remove
      * @return the previous value of the node or {@code null} if it did not exist
      * @throws IllegalDocumentModificationException if the remove to be removed
      */
