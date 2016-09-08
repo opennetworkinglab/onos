@@ -15,6 +15,6 @@
  */
 
 /**
- * Packet for mq utility.
+ * Package for MQ utility.
  */
 package org.onosproject.rabbitmq.util;

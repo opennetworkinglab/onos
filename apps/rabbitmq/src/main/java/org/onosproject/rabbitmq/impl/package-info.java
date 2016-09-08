@@ -15,6 +15,6 @@
  */
 
 /**
- * Package for mq implementation.
+ * Package for MQ implementation.
  */
 package org.onosproject.rabbitmq.impl;
