@@ -28,5 +28,7 @@
                    impl="org.onosproject.drivers.cisco.PortGetterCsr1000vImpl"/>
         <behaviour api="org.onosproject.net.behaviour.PortStatsQuery"
                    impl="org.onosproject.drivers.cisco.PortStatsQueryCsr1000vImpl"/>
+        <behaviour api="org.onosproject.net.behaviour.ConfigSetter"
+                   impl="org.onosproject.drivers.cisco.ConfigSetterCsr1000vImpl"/>
     </driver>
 </drivers>
