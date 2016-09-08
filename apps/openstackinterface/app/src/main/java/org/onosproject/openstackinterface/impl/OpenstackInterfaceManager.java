@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import org.apache.commons.io.IOUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -28,6 +29,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.glassfish.jersey.client.ClientProperties;
+import org.onlab.packet.Ip4Address;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Port;
@@ -57,7 +59,11 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -65,6 +71,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -91,6 +98,9 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
     private static final String URI_SECURITY_GROUPS = "security-groups";
     private static final String URI_FLOATINGIPS = "floatingips";
     private static final String URI_TOKENS = "tokens";
+    private static final String FLOATINGIP = "floatingip";
+    private static final String PORT_ID = "port_id";
+    private static final String FIXED_IP_ADDRESS = "fixed_ip_address";
 
     private static final String PATH_ROUTERS = "routers";
     private static final String PATH_NETWORKS = "networks";
@@ -485,6 +495,63 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
         return openstackFloatingIPs;
     }
 
+    @Override
+    public boolean updateFloatingIp(String id, String portId, Optional<Ip4Address> fixedIpAddress) {
+        Invocation.Builder builder = getClientBuilder(neutronUrl, URI_FLOATINGIPS + "/" + id);
+
+        if (builder == null || (portId != null && !fixedIpAddress.isPresent())) {
+            log.warn("Failed to update floating IP");
+            return false;
+        }
+
+        ObjectNode objectNode = createFloatingIpObject(portId, fixedIpAddress);
+
+        InputStream inputStream = new ByteArrayInputStream(objectNode.toString().getBytes());
+
+        try {
+            Response response = builder.header(HEADER_AUTH_TOKEN, getToken())
+                    .put(Entity.entity(IOUtils.toString(inputStream, StandardCharsets.UTF_8),
+                            MediaType.APPLICATION_JSON));
+            log.debug("updateFloatingIp called: {}, status: {}", response.readEntity(String.class),
+                    String.valueOf(response.getStatus()));
+
+            return checkReply(response);
+        } catch (IOException e) {
+            log.error("Cannot do PUT {} request");
+            return false;
+        }
+    }
+
+    private ObjectNode createFloatingIpObject(String portId, Optional<Ip4Address> fixedIpAddress) {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode objectNode = mapper.createObjectNode();
+
+        objectNode.putObject(FLOATINGIP)
+                .put(PORT_ID, portId);
+
+        if (portId != null) {
+            objectNode.put(FIXED_IP_ADDRESS, fixedIpAddress.get().toString());
+        }
+
+        return objectNode;
+    }
+
+    private boolean checkReply(Response response) {
+        if (response != null) {
+            return checkStatusCode(response.getStatus());
+        }
+
+        log.warn("Null floating IP response from openstack");
+        return false;
+    }
+
+    private boolean checkStatusCode(int statusCode) {
+        if (statusCode == Response.Status.OK.getStatusCode()) {
+            return true;
+        }
+
+        return false;
+    }
     private void configureNetwork() {
         OpenstackInterfaceConfig cfg =
                 cfgService.getConfig(appId, OpenstackInterfaceConfig.class);
