@@ -42,7 +42,7 @@ public class DocumentPath implements Comparable<DocumentPath> {
     }
 
     /**
-     * Constructs a {@DocumentPath}.
+     * Constructs a new document path.
      * <p>
      * New paths must contain at least one name and string names may NOT contain any period characters.
      * If one field is {@code null} that field will be ignored.
