@@ -25,7 +25,8 @@ public class ConfigSetterCsr1000vImpl extends AbstractHandlerBehaviour implement
     public String setConfiguration(String request) {
         NetconfController controller = checkNotNull(handler().get(NetconfController.class));
         NetconfSession session = controller.getDevicesMap().get(handler().data().deviceId()).getSession();
-        String reply;
+        String reply, requestNetConfString = new StringBuilder(buildHeadPattern())
+                .append(request).append(buildTailPattern()).toString();
 
         try {
             reply = session.get(request);
@@ -35,5 +36,27 @@ public class ConfigSetterCsr1000vImpl extends AbstractHandlerBehaviour implement
         }
 
         return reply;
+    }
+
+    private String buildHeadPattern() {
+        StringBuilder pattern = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        pattern.append("<rpc>");
+        pattern.append("<edit-config>");
+        pattern.append("<target>");
+        pattern.append("<running/>");
+        pattern.append("</target>");
+        pattern.append("<config>");
+        pattern.append("<cli-config-data-block>");
+
+        return pattern.toString();
+    }
+
+    private String buildTailPattern() {
+        StringBuilder pattern = new StringBuilder("</cli-config-data-block>");
+        pattern.append("</config>");
+        pattern.append("</edit-config>");
+        pattern.append("</rpc>");
+
+        return pattern.toString();
     }
 }
