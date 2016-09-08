@@ -33,7 +33,6 @@ import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.netconf.NetconfController;
-import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 
@@ -70,7 +69,8 @@ public class FujitsuT100DeviceDescription extends AbstractHandlerBehaviour
         try {
             reply = session.get(requestBuilder());
         } catch (IOException e) {
-            throw new RuntimeException(new NetconfException("Failed to retrieve configuration.", e));
+            log.error("Failed to retrieve port details for device {}", handler().data().deviceId());
+            return ImmutableList.of();
         }
         List<PortDescription> descriptions =
                 parseFujitsuT100Ports(XmlConfigParser.

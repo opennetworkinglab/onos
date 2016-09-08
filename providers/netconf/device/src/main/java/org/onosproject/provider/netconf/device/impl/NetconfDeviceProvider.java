@@ -16,6 +16,7 @@
 
 package org.onosproject.provider.netconf.device.impl;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -348,26 +349,40 @@ public class NetconfDeviceProvider extends AbstractProvider
             boolean isReachable = isReachable(deviceId);
             if (isReachable && !deviceService.isAvailable(deviceId)) {
                 Device device = deviceService.getDevice(deviceId);
-                DeviceDescription updatedDeviceDescription = null;
                 if (device.is(DeviceDescriptionDiscovery.class)) {
                     if (mastershipService.isLocalMaster(deviceId)) {
                         DeviceDescriptionDiscovery deviceDescriptionDiscovery =
                                 device.as(DeviceDescriptionDiscovery.class);
-                        updatedDeviceDescription = deviceDescriptionDiscovery.discoverDeviceDetails();
+                        DeviceDescription updatedDeviceDescription = deviceDescriptionDiscovery.discoverDeviceDetails();
+                        if (updatedDeviceDescription != null &&
+                                !descriptionEquals(device, updatedDeviceDescription)) {
+                            providerService.deviceConnected(
+                                    deviceId, new DefaultDeviceDescription(
+                                            updatedDeviceDescription, true, updatedDeviceDescription.annotations()));
+                        }
+                        //if ports are not discovered, retry the discovery
+                        if (deviceService.getPorts(deviceId).isEmpty()) {
+                            discoverPorts(deviceId);
+                        }
                     }
                 } else {
                     log.warn("No DeviceDescriptionDiscovery behaviour for device {}", deviceId);
                 }
-                if (updatedDeviceDescription == null) {
-                    updatedDeviceDescription = deviceDescription;
-                }
-                providerService.deviceConnected(
-                        deviceId, new DefaultDeviceDescription(
-                                updatedDeviceDescription, true, updatedDeviceDescription.annotations()));
             } else if (!isReachable && deviceService.isAvailable(deviceId)) {
                 providerService.deviceDisconnected(deviceId);
             }
         }
+    }
+
+    private boolean descriptionEquals(Device device, DeviceDescription updatedDeviceDescription) {
+        return Objects.equal(device.id(), updatedDeviceDescription.deviceUri())
+                && Objects.equal(device.type(), updatedDeviceDescription.type())
+                && Objects.equal(device.manufacturer(), updatedDeviceDescription.manufacturer())
+                && Objects.equal(device.hwVersion(), updatedDeviceDescription.hwVersion())
+                && Objects.equal(device.swVersion(), updatedDeviceDescription.swVersion())
+                && Objects.equal(device.serialNumber(), updatedDeviceDescription.serialNumber())
+                && Objects.equal(device.chassisId(), updatedDeviceDescription.chassisId())
+                && Objects.equal(device.annotations(), updatedDeviceDescription.annotations());
     }
 
     private void checkAndUpdateDevices() {
