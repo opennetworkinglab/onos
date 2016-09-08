@@ -23,7 +23,7 @@ import org.onosproject.store.primitives.DocumentTreeNode;
 /**
  * A hierarchical <a href="https://en.wikipedia.org/wiki/Document_Object_Model">document tree</a> data structure.
  *
- * @param V document tree value type
+ * @param <V> document tree value type
  */
 public interface DocumentTree<V> {
 
