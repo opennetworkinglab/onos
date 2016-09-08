@@ -723,7 +723,7 @@ public class DistributedGroupStore
                                                 newGroup.appCookie()), newGroup);
             notifyDelegate(new GroupEvent(Type.GROUP_UPDATE_REQUESTED, newGroup));
         } else {
-            log.warn("updateGroupDescriptionInternal with type {}: No "
+            log.debug("updateGroupDescriptionInternal with type {}: No "
                              + "change in the buckets in update", type);
         }
     }
