@@ -72,6 +72,28 @@ public interface DocumentTree<V> {
     boolean createNode(DocumentPath path, V value);
 
     /**
+     * Conditionally updates a tree node if the current version matches a specified version.
+     *
+     * @param path path for the node to create
+     * @param newValue the non-null value to be associated with the key
+     * @param version current version of the value for update to occur
+     * @return returns {@code true} if the update was made, {@code false} otherwise
+     * @throws NoSuchDocumentPathException if the parent node (for the node to create) does not exist
+     */
+    boolean replace(DocumentPath path, V newValue, long version);
+
+    /**
+     * Conditionally updates a tree node if the current value matches a specified value.
+     *
+     * @param path path for the node to create
+     * @param newValue the non-null value to be associated with the key
+     * @param currentValue current value for update to occur
+     * @return returns {@code true} if the update was made, {@code false} otherwise
+     * @throws NoSuchDocumentPathException if the parent node (for the node to create) does not exist
+     */
+    boolean replace(DocumentPath path, V newValue, V currentValue);
+
+    /**
      * Removes the node with the specified path.
      *
      * is not a leaf node i.e has one or more children

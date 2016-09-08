@@ -16,24 +16,25 @@
 
 package org.onosproject.store.primitives;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.Sets;
-import org.onosproject.store.service.DocumentPath;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.TreeSet;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.onosproject.store.service.DocumentPath;
+
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.Sets;
 
 /**
- * A tree node made for {@code DocumentTree}
- * implementations that keeps records of its parent and children.
+ * A {@code DocumentTree} node.
  */
 public class DocumentTreeNode<V> {
     private final DocumentPath key;
     private V value;
+    private long version;
     private final TreeSet<DocumentTreeNode<V>> children =
             Sets.newTreeSet(new Comparator<DocumentTreeNode<V>>() {
                 @Override
@@ -42,17 +43,20 @@ public class DocumentTreeNode<V> {
                     return o1.getKey().compareTo(o2.getKey());
                 }
             });
-    private DocumentTreeNode parent;
+    private final DocumentTreeNode<V> parent;
 
-    public DocumentTreeNode(DocumentPath key, V value,
-                            DocumentTreeNode parent) {
+    public DocumentTreeNode(DocumentPath key,
+                            V value,
+                            long version,
+                            DocumentTreeNode<V> parent) {
         this.key = checkNotNull(key);
         this.value = checkNotNull(value);
+        this.version = version;
         this.parent = parent;
     }
 
     /**
-     * Returns this objects key.
+     * Returns this node's key.
      *
      * @return the key
      */
@@ -61,7 +65,7 @@ public class DocumentTreeNode<V> {
     }
 
     /**
-     * Returns this objects value.
+     * Returns this node's value.
      *
      * @return the value
      */
@@ -70,18 +74,29 @@ public class DocumentTreeNode<V> {
     }
 
     /**
-     * Sets this objects value.
+     * Returns this node's version.
      *
-     * @param value the value to be set
+     * @return the version
      */
-    public void setValue(V value) {
-        this.value = value;
+    public long getVersion() {
+        return version;
+    }
+
+    /**
+     * Updates this node.
+     *
+     * @param newValue new value to be set
+     * @param newVersion new version to be set
+     */
+    public void update(V newValue, long newVersion) {
+        this.value = newValue;
+        this.version = newVersion;
     }
 
     /**
      * Returns a collection of the children of this node.
      *
-     * @return a sorted iterator for the children of this node.
+     * @return iterator for the children of this node.
      */
     public Iterator<DocumentTreeNode<V>> getChildren() {
         return children.iterator();
@@ -91,19 +106,17 @@ public class DocumentTreeNode<V> {
      * Adds a child to this node.
      *
      * @param child the child node to be added
-     * @return true if the child set was modified as a result of this call,
-     * false otherwise
+     * @return {@code true} if the child set was modified as a result of this call, {@code false} otherwise
      */
     public boolean addChild(DocumentTreeNode<V> child) {
         return children.add(child);
     }
 
     /**
-     * Removes a child from the children of this node.
+     * Removes a child node.
      *
      * @param child the child node to be removed
-     * @return true if the child set was modified as a result of this call,
-     * false otherwise
+     * @return {@code true} if the child set was modified as a result of this call, {@code false} otherwise
      */
     public boolean removeChild(String child) {
         return children.remove(child);
@@ -126,10 +139,10 @@ public class DocumentTreeNode<V> {
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof DocumentTreeNode) {
-            DocumentTreeNode that = (DocumentTreeNode) obj;
+            DocumentTreeNode<V> that = (DocumentTreeNode<V>) obj;
             if (this.parent.equals(that.parent)) {
                 if (this.children.size() == that.children.size()) {
-                    for (DocumentTreeNode child : this.children) {
+                    for (DocumentTreeNode<V> child : this.children) {
                         if (!that.children.contains(child)) {
                             return false;
                         }
@@ -148,7 +161,7 @@ public class DocumentTreeNode<V> {
                 .add("parent", this.parent)
                 .add("key", this.key)
                 .add("value", this.value);
-        for (DocumentTreeNode child : children) {
+        for (DocumentTreeNode<V> child : children) {
             helper = helper.add("child", child.key);
         }
         return helper.toString();
