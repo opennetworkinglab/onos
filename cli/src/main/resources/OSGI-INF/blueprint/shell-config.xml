@@ -229,6 +229,7 @@
             <action class="org.onosproject.cli.net.EdgePortsListCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
+                <null/>
             </completers>
         </command>
 

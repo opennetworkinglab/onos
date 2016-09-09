@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +28,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -38,26 +38,32 @@ import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.edge.EdgePortEvent;
 import org.onosproject.net.edge.EdgePortListener;
 import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.link.LinkListener;
+import org.onosproject.net.link.LinkServiceAdapter;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketServiceAdapter;
-import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyEvent.Type;
-import org.onosproject.net.topology.TopologyListener;
-import org.onosproject.net.topology.TopologyServiceAdapter;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.NetTestTools.injectEventDispatcher;
-import static org.onosproject.net.device.DeviceEvent.Type.*;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
 import static org.onosproject.net.edge.EdgePortEvent.Type.EDGE_PORT_ADDED;
 import static org.onosproject.net.edge.EdgePortEvent.Type.EDGE_PORT_REMOVED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
@@ -78,22 +84,22 @@ public class EdgeManagerTest {
     private Set<OutboundPacket> packets = Sets.newConcurrentHashSet();
     private final EdgePortListener testListener = new TestListener(events);
     private TestDeviceManager testDeviceManager;
-    private TestTopologyManager testTopologyManager;
+    private TestLinkService testLinkService;
 
     @Before
     public void setUp() {
         mgr = new EdgeManager();
         injectEventDispatcher(mgr, new TestEventDispatcher());
-        testTopologyManager = new TestTopologyManager(infrastructurePorts);
-        mgr.topologyService = testTopologyManager;
         testDeviceManager = new TestDeviceManager(devices);
         mgr.deviceService = testDeviceManager;
+
+        testLinkService = new TestLinkService();
+        mgr.linkService = testLinkService;
+
         mgr.packetService = new TestPacketManager();
         mgr.activate();
         mgr.addListener(testListener);
-
     }
-
 
     @After
     public void tearDown() {
@@ -110,13 +116,12 @@ public class EdgeManagerTest {
 
         assertEquals("Unexpected number of ports", numDevices * numPorts, infrastructurePorts.size());
 
-        assertFalse("no ports expected", mgr.getEdgePoints().iterator().hasNext());
-
         assertFalse("Expected isEdge to return false",
                     mgr.isEdgePoint(NetTestTools.connectPoint(Integer.toString(1), 1)));
 
         removeInfraPort(NetTestTools.connectPoint(Integer.toString(1), 1));
-        assertTrue("Expected isEdge to return false",
+        postTopologyEvent(new LinkEvent(LINK_REMOVED, NetTestTools.link(Integer.toString(1), 1, "b", 2)));
+        assertTrue("Expected isEdge to return true",
                    mgr.isEdgePoint(NetTestTools.connectPoint(Integer.toString(1), 1)));
     }
 
@@ -190,17 +195,25 @@ public class EdgeManagerTest {
         int numDevices = 10;
         int numInfraPorts = 5;
         totalPorts = 10;
+
         defaultPopulator(numDevices, numInfraPorts);
 
+        events.clear();
+
         //Test response to device added events
-        referenceDevice = NetTestTools.device("1");
+
+        referenceDevice = NetTestTools.device("11");
+        devices.put(referenceDevice.id(), referenceDevice);
+        for (int port = 1; port <= numInfraPorts; port++) {
+            infrastructurePorts.add(NetTestTools.connectPoint("11", port));
+        }
         event = new DeviceEvent(DEVICE_ADDED, referenceDevice,
                                 new DefaultPort(referenceDevice, PortNumber.portNumber(1), true));
         postTopologyEvent(event);
 
         //Check that ports were populated correctly
         assertTrue("Unexpected number of new ports added",
-                   mgr.deviceService.getPorts(NetTestTools.did("1")).size() == 10);
+                   mgr.deviceService.getPorts(NetTestTools.did("11")).size() == 10);
 
         //Check that of the ten ports the half that are infrastructure ports aren't added
         assertEquals("Unexpected number of new edge ports added", (totalPorts - numInfraPorts), events.size());
@@ -227,7 +240,7 @@ public class EdgeManagerTest {
         for (; pointIterator.hasNext(); count++) {
             pointIterator.next();
         }
-        assertEquals("Unexpected number of edge points", totalPorts - numInfraPorts, count);
+        assertEquals("Unexpected number of edge points", (numDevices + 1) * numInfraPorts, count);
         //Testing device removal
         events.clear();
         event = (new DeviceEvent(DEVICE_REMOVED, referenceDevice,
@@ -271,10 +284,11 @@ public class EdgeManagerTest {
 
         //Ensure that the deviceManager shows the device as unavailable
         removeDevice(referenceDevice);
-        /*This variable copies the behavior of the topology by returning ports attached to an unavailable device
-        //this behavior is necessary for the following event to execute properly, if these statements are removed
-        no events will be generated since no ports will be provided in getPorts() to EdgeManager.
-        */
+        // This variable copies the behavior of the topology by returning ports
+        // attached to an unavailable device this behavior is necessary for the
+        // following event to execute properly, if these statements are removed
+        // no events will be generated since no ports will be provided in
+        // getPorts() to EdgeManager.
         alwaysReturnPorts = true;
         postTopologyEvent(event);
         alwaysReturnPorts = false;
@@ -330,7 +344,6 @@ public class EdgeManagerTest {
         }
     }
 
-
     @Test
     public void testEmit() {
         byte[] arr = new byte[10];
@@ -345,7 +358,7 @@ public class EdgeManagerTest {
         }
         for (int i = 0; i < numDevices; i++) {
             referenceDevice = NetTestTools.device(Integer.toString(i));
-            postTopologyEvent(new DeviceEvent(DEVICE_ADDED, referenceDevice,
+            testDeviceManager.listener.event(new DeviceEvent(DEVICE_ADDED, referenceDevice,
                                                              new DefaultPort(referenceDevice,
                                                                              PortNumber.portNumber(1),
                                                                              true)));
@@ -392,7 +405,13 @@ public class EdgeManagerTest {
      * @param event Event
      */
     private void postTopologyEvent(Event event) {
-        testTopologyManager.listener.event(topologyEventOf(event));
+        if (event instanceof DeviceEvent) {
+            testDeviceManager.listener.event((DeviceEvent) event);
+        }
+        if (event instanceof LinkEvent) {
+            testLinkService.listener.event((LinkEvent) event);
+        }
+        //testTopologyManager.listener.event(topologyEventOf(event));
     }
 
 
@@ -406,7 +425,9 @@ public class EdgeManagerTest {
             String str = Integer.toString(device);
             Device deviceToAdd = NetTestTools.device(str);
             devices.put(deviceToAdd.id(), deviceToAdd);
+            testDeviceManager.listener.event(new DeviceEvent(DEVICE_ADDED, deviceToAdd));
             for (int port = 1; port <= numInfraPorts; port++) {
+                testLinkService.listener.event(new LinkEvent(LINK_ADDED, NetTestTools.link(str, port, "other", 1)));
                 infrastructurePorts.add(NetTestTools.connectPoint(str, port));
             }
         }
@@ -434,30 +455,6 @@ public class EdgeManagerTest {
 
     private void removeInfraPort(ConnectPoint port) {
         infrastructurePorts.remove(port);
-    }
-
-    private class TestTopologyManager extends TopologyServiceAdapter {
-        private TopologyListener listener;
-        private Set<ConnectPoint> infrastructurePorts;
-
-        public TestTopologyManager(Set<ConnectPoint> infrastructurePorts) {
-            this.infrastructurePorts = infrastructurePorts;
-        }
-
-        @Override
-        public boolean isInfrastructure(Topology topology, ConnectPoint connectPoint) {
-            return infrastructurePorts.contains(connectPoint);
-        }
-
-        @Override
-        public void addListener(TopologyListener listener) {
-            this.listener = listener;
-        }
-
-        @Override
-        public void removeListener(TopologyListener listener) {
-            this.listener = null;
-        }
     }
 
     private class TestDeviceManager extends DeviceServiceAdapter {
@@ -507,6 +504,25 @@ public class EdgeManagerTest {
         @Override
         public void removeListener(DeviceListener listener) {
             this.listener = null;
+        }
+    }
+
+    private class TestLinkService extends LinkServiceAdapter {
+
+        private LinkListener listener;
+
+        @Override
+        public Set<Link> getLinks(ConnectPoint connectPoint) {
+            if (infrastructurePorts.contains(connectPoint)) {
+                return Collections.singleton(NetTestTools.link("1", 1, "2", 1));
+            } else {
+                return Collections.emptySet();
+            }
+        }
+
+        @Override
+        public void addListener(LinkListener listener) {
+            this.listener = listener;
         }
     }
 

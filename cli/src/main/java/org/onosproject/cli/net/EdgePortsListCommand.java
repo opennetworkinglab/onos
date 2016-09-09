@@ -18,8 +18,14 @@ package org.onosproject.cli.net;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.edge.EdgePortService;
+import org.onosproject.utils.Comparators;
 
+import java.util.Collections;
+import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
 import static org.onosproject.net.DeviceId.deviceId;
 
 /**
@@ -35,16 +41,24 @@ public class EdgePortsListCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     String uri = null;
 
-
-
     @Override
     protected void execute() {
         EdgePortService service = get(EdgePortService.class);
         if (uri == null) {
-            service.getEdgePoints().forEach(e -> print(FMT, e.deviceId(), e.port()));
+            printEdgePoints(service.getEdgePoints());
         } else {
-            service.getEdgePoints(deviceId(uri)).forEach(e -> print(FMT, e.deviceId(), e.port()));
+            printEdgePoints(service.getEdgePoints(deviceId(uri)));
         }
+    }
+
+    private void printEdgePoints(Iterable<ConnectPoint> edgePoints) {
+        sort(edgePoints).forEach(e -> print(FMT, e.deviceId(), e.port()));
+    }
+
+    private static List<ConnectPoint> sort(Iterable<ConnectPoint> connectPoints) {
+        List<ConnectPoint> edgePoints = newArrayList(connectPoints);
+        Collections.sort(edgePoints, Comparators.CONNECT_POINT_COMPARATOR);
+        return edgePoints;
     }
 
 }
