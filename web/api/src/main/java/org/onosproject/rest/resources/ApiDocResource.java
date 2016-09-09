@@ -111,7 +111,6 @@ public class ApiDocResource extends AbstractInjectionResource {
      * @throws URISyntaxException if unable to create redirect URI
      */
     @GET
-    @Path("/")
     public Response getDefault() throws IOException, URISyntaxException {
         return uriInfo.getPath().endsWith("/") ? getIndex() :
                 temporaryRedirect(new URI(uriInfo.getPath() + "/")).build();
