@@ -26,7 +26,7 @@ for i in {1..15}; do
     onos $target "onos:intents" | tee $aux
     if  [ -z "$numIntentsExpected" ]; then
         ( cat $aux | grep "key=$2" | grep "state=$3" ) && cat $aux && exit 0
-    else 
+    else
         # exit 0 only if expected number of intents (with required key)
         # are present and all intents match state (if expected no. of intents > 0)
         numIntents=`grep "key=$2" $aux | wc -l`
@@ -35,8 +35,8 @@ for i in {1..15}; do
         [ $numIntents -eq $numIntentsOfState ] \
             && [ $numIntents -eq $numIntentsExpected ] \
             && cat $aux && exit 0
-    fi 
-    sleep 1
+    fi
+    sleep 2
 done
 
 cat $aux
