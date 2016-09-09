@@ -427,7 +427,7 @@ public class NetconfSessionImpl implements NetconfSession {
         rpc.append(EDIT_CONFIG_CLOSE).append("\n");
         rpc.append(RPC_CLOSE);
         rpc.append(ENDPATTERN);
-        log.info(rpc.toString());
+        log.debug(rpc.toString());
         String reply = sendRequest(rpc.toString());
         return checkReply(reply);
     }
