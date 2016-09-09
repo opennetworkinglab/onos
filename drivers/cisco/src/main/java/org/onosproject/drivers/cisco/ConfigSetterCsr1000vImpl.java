@@ -46,13 +46,13 @@ public class ConfigSetterCsr1000vImpl extends AbstractHandlerBehaviour implement
         pattern.append("<running/>");
         pattern.append("</target>");
         pattern.append("<config>");
-        pattern.append("<cli-config-data-block>");
+        pattern.append("<cli-config-data>");
 
         return pattern.toString();
     }
 
     private String buildTailPattern() {
-        StringBuilder pattern = new StringBuilder("</cli-config-data-block>");
+        StringBuilder pattern = new StringBuilder("</cli-config-data>");
         pattern.append("</config>");
         pattern.append("</edit-config>");
         pattern.append("</rpc>");
