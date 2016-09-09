@@ -26,6 +26,5 @@ onos_app (
   category = 'Utility',
   url = 'http://onosproject.org',
   included_bundles = BUNDLES,
-  required_apps = [ 'org.onosproject.proxyarp' ],
   description = 'SDN-IP peering application',
 )

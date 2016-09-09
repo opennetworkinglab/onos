@@ -22,5 +22,4 @@
     <artifact>mvn:${project.groupId}/${project.artifactId}/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-routing-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-routing/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-proxyarp/${project.version}</artifact>
 </app>

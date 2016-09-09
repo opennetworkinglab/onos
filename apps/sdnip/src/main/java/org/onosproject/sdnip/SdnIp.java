@@ -68,6 +68,7 @@ public class SdnIp {
 
     private final List<String> components = ImmutableList.of(
             "org.onosproject.routing.bgp.BgpSessionManager",
+            "org.onosproject.routing.impl.BgpSpeakerNeighbourHandler",
             org.onosproject.sdnip.SdnIpFib.class.getName()
     );
 

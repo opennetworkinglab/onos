@@ -17,7 +17,7 @@
 <app name="org.onosproject.sdnip" origin="ON.Lab" version="${project.version}"
      category="Traffic Steering" url="http://onosproject.org" title="SDN-IP App"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
-     features="${project.artifactId}" apps="org.onosproject.proxyarp">
+     features="${project.artifactId}">
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/${project.artifactId}/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-routing-api/${project.version}</artifact>

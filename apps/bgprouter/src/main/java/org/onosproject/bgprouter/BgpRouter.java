@@ -95,6 +95,7 @@ public class BgpRouter {
     static {
         components.add("org.onosproject.routing.bgp.BgpSessionManager");
         components.add("org.onosproject.routing.impl.Router");
+        components.add("org.onosproject.routing.impl.BgpSpeakerNeighbourHandler");
         components.add("org.onosproject.routing.impl.SingleSwitchFibInstaller");
     }
 
