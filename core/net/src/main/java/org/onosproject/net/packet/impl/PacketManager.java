@@ -17,7 +17,6 @@ package org.onosproject.net.packet.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -34,7 +33,6 @@ import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
@@ -68,7 +66,9 @@ import java.util.concurrent.Executors;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.security.AppGuard.checkPermission;
-import static org.onosproject.security.AppPermission.Type.*;
+import static org.onosproject.security.AppPermission.Type.PACKET_EVENT;
+import static org.onosproject.security.AppPermission.Type.PACKET_READ;
+import static org.onosproject.security.AppPermission.Type.PACKET_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -82,9 +82,10 @@ public class PacketManager
 
     private final Logger log = getLogger(getClass());
 
-    private static final String TABLE_TYPE_MSG =
-            "Table Type cannot be null. For requesting packets without " +
-                    "table hints, use other methods in the packetService API";
+    private static final String ERROR_NULL_PROCESSOR = "Processor cannot be null";
+    private static final String ERROR_NULL_SELECTOR = "Selector cannot be null";
+    private static final String ERROR_NULL_APP_ID = "Application ID cannot be null";
+    private static final String ERROR_NULL_DEVICE_ID = "Device ID cannot be null";
 
     private final PacketStoreDelegate delegate = new InternalStoreDelegate();
 
@@ -98,13 +99,10 @@ public class PacketManager
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowRuleService flowService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketStore store;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private FlowObjectiveService objectiveService;
+    protected FlowObjectiveService objectiveService;
 
     private ExecutorService eventHandlingExecutor;
 
@@ -146,7 +144,7 @@ public class PacketManager
     @Override
     public void addProcessor(PacketProcessor processor, int priority) {
         checkPermission(PACKET_EVENT);
-        checkNotNull(processor, "Processor cannot be null");
+        checkNotNull(processor, ERROR_NULL_PROCESSOR);
         ProcessorEntry entry = new ProcessorEntry(processor, priority);
 
         // Insert the new processor according to its priority.
@@ -162,7 +160,7 @@ public class PacketManager
     @Override
     public void removeProcessor(PacketProcessor processor) {
         checkPermission(PACKET_EVENT);
-        checkNotNull(processor, "Processor cannot be null");
+        checkNotNull(processor, ERROR_NULL_PROCESSOR);
 
         // Remove the processor entry.
         for (int i = 0; i < processors.size(); i++) {
@@ -183,8 +181,8 @@ public class PacketManager
     public void requestPackets(TrafficSelector selector, PacketPriority priority,
                                ApplicationId appId) {
         checkPermission(PACKET_READ);
-        checkNotNull(selector, "Selector cannot be null");
-        checkNotNull(appId, "Application ID cannot be null");
+        checkNotNull(selector, ERROR_NULL_SELECTOR);
+        checkNotNull(appId, ERROR_NULL_APP_ID);
 
         PacketRequest request = new DefaultPacketRequest(selector, priority, appId,
                                                          localNodeId, Optional.empty());
@@ -195,8 +193,9 @@ public class PacketManager
     public void requestPackets(TrafficSelector selector, PacketPriority priority,
                                ApplicationId appId, Optional<DeviceId> deviceId) {
         checkPermission(PACKET_READ);
-        checkNotNull(selector, "Selector cannot be null");
-        checkNotNull(appId, "Application ID cannot be null");
+        checkNotNull(selector, ERROR_NULL_SELECTOR);
+        checkNotNull(appId, ERROR_NULL_APP_ID);
+        checkNotNull(deviceId, ERROR_NULL_DEVICE_ID);
 
         PacketRequest request =
                 new DefaultPacketRequest(selector, priority, appId,
@@ -210,8 +209,8 @@ public class PacketManager
     public void cancelPackets(TrafficSelector selector, PacketPriority priority,
                               ApplicationId appId) {
         checkPermission(PACKET_READ);
-        checkNotNull(selector, "Selector cannot be null");
-        checkNotNull(appId, "Application ID cannot be null");
+        checkNotNull(selector, ERROR_NULL_SELECTOR);
+        checkNotNull(appId, ERROR_NULL_APP_ID);
 
 
         PacketRequest request = new DefaultPacketRequest(selector, priority, appId,
@@ -223,8 +222,9 @@ public class PacketManager
     public void cancelPackets(TrafficSelector selector, PacketPriority priority,
                               ApplicationId appId, Optional<DeviceId> deviceId) {
         checkPermission(PACKET_READ);
-        checkNotNull(selector, "Selector cannot be null");
-        checkNotNull(appId, "Application ID cannot be null");
+        checkNotNull(selector, ERROR_NULL_SELECTOR);
+        checkNotNull(appId, ERROR_NULL_APP_ID);
+        checkNotNull(deviceId, ERROR_NULL_DEVICE_ID);
 
         PacketRequest request = new DefaultPacketRequest(selector, priority,
                                                          appId, localNodeId,
