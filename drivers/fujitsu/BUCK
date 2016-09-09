@@ -2,6 +2,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//drivers/utilities:onos-drivers-utilities',
     '//protocols/netconf/api:onos-protocols-netconf-api',
+    '//protocols/netconf/ctl:onos-protocols-netconf-ctl',
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',
     '//apps/optical-model:onos-apps-optical-model',
