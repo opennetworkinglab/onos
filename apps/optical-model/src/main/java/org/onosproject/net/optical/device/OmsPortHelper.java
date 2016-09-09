@@ -29,6 +29,7 @@ import org.onosproject.net.DefaultAnnotations.Builder;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.optical.OmsPort;
+import org.onosproject.net.optical.OpticalAnnotations;
 import org.onosproject.net.optical.impl.DefaultOmsPort;
 import org.slf4j.Logger;
 
@@ -42,20 +43,6 @@ import com.google.common.collect.ImmutableSet;
 public final class OmsPortHelper {
 
     private static final Logger log = getLogger(OmsPortHelper.class);
-
-    // Annotation keys
-    /**
-     * minFrequency in Hz.
-     */
-    private static final String MIN_FREQ_HZ = "minFrequency";
-    /**
-     * maxFrequency in Hz.
-     */
-    private static final String MAX_FREQ_HZ = "maxFrequency";
-    /**
-     * grid in Hz.
-     */
-    private static final String GRID_HZ = "grid";
 
     /**
      * Creates OMS port description based on the supplied information.
@@ -78,9 +65,9 @@ public final class OmsPortHelper {
         Builder builder = DefaultAnnotations.builder();
         builder.putAll(annotations);
 
-        builder.set(MIN_FREQ_HZ, String.valueOf(minFrequency.asHz()));
-        builder.set(MAX_FREQ_HZ, String.valueOf(maxFrequency.asHz()));
-        builder.set(GRID_HZ, String.valueOf(grid.asHz()));
+        builder.set(OpticalAnnotations.MIN_FREQ_HZ, String.valueOf(minFrequency.asHz()));
+        builder.set(OpticalAnnotations.MAX_FREQ_HZ, String.valueOf(maxFrequency.asHz()));
+        builder.set(OpticalAnnotations.GRID_HZ, String.valueOf(grid.asHz()));
 
         long portSpeed = 0;
         return new DefaultPortDescription(number, isEnabled, Port.Type.OMS, portSpeed, builder.build());
@@ -133,9 +120,9 @@ public final class OmsPortHelper {
         try {
             Annotations an = port.annotations();
 
-            Frequency minFrequency = Frequency.ofHz(Long.parseLong(an.value(MIN_FREQ_HZ)));
-            Frequency maxFrequency = Frequency.ofHz(Long.parseLong(an.value(MAX_FREQ_HZ)));
-            Frequency grid = Frequency.ofHz(Long.parseLong(an.value(GRID_HZ)));
+            Frequency minFrequency = Frequency.ofHz(Long.parseLong(an.value(OpticalAnnotations.MIN_FREQ_HZ)));
+            Frequency maxFrequency = Frequency.ofHz(Long.parseLong(an.value(OpticalAnnotations.MAX_FREQ_HZ)));
+            Frequency grid = Frequency.ofHz(Long.parseLong(an.value(OpticalAnnotations.GRID_HZ)));
 
             return Optional.of(new DefaultOmsPort(port, minFrequency, maxFrequency, grid));
 
@@ -153,7 +140,10 @@ public final class OmsPortHelper {
      * @return filtered view of given {@link Annotations}
      */
     public static Annotations stripHandledAnnotations(Annotations input) {
-        return new FilteredAnnotation(input, ImmutableSet.of(MIN_FREQ_HZ, MAX_FREQ_HZ, GRID_HZ));
+        return new FilteredAnnotation(input, ImmutableSet.of(
+                OpticalAnnotations.MIN_FREQ_HZ,
+                OpticalAnnotations.MAX_FREQ_HZ,
+                OpticalAnnotations.GRID_HZ));
     }
 
     // not meant to be instantiated

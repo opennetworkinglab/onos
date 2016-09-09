@@ -26,12 +26,32 @@ public final class OpticalAnnotations {
     private OpticalAnnotations() {}
 
     /**
+     * Annotation key for mininum frequency in Hz.
+     * Value is expected to be an integer.
+     */
+    public static final String MIN_FREQ_HZ = "minFrequency";
+
+    /**
+     * Annotation key for maximum frequency in Hz.
+     * Value is expected be an integer.
+     */
+    public static final String MAX_FREQ_HZ = "maxFrequency";
+
+    /**
+     * Annotation key for grid in Hz.
+     * Value is expected to be an integer.
+     */
+    public static final String GRID_HZ = "grid";
+
+    /**
      * Annotation key for optical port's target power.
+     * Value is expected to be an integer.
      */
     public static final String TARGET_POWER = "targetPower";
 
     /**
      * Annotation key for optical port's current power.
+     * Value is expected to be an integer.
      */
     public static final String CURRENT_POWER = "currentPower";
 
@@ -42,6 +62,7 @@ public final class OpticalAnnotations {
 
     /**
      * Annotation key for optical port's neighbor's PortNumber#toString().
+     * Value is expected to be an integer.
      */
     public static final String NEIGHBOR_PORT = "neighborPort";
 }
