@@ -485,6 +485,9 @@
         <command>
             <action class="org.onosproject.cli.net.PacketProcessorsListCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.cli.net.NeighbourHandlersListCommand"/>
+        </command>
 
         <command>
             <action class="org.onosproject.cli.net.AddTestFlowsCommand"/>

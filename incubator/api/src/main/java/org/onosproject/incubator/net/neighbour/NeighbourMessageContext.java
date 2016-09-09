@@ -76,6 +76,16 @@ public interface NeighbourMessageContext {
     MacAddress srcMac();
 
     /**
+     * Gets the destination MAC address of the message.
+     * <p>
+     * Only valid for reply packets, will be null for request packets.
+     * </p>
+     *
+     * @return target MAC address
+     */
+    MacAddress dstMac();
+
+    /**
      * Gets the target IP address of the message.
      *
      * @return target IP address

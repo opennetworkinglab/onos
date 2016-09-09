@@ -50,7 +50,11 @@ import static org.onlab.util.Tools.groupedThreads;
 
 /**
  * Implementation of proxy ARP distribution mechanism.
+ *
+ * @deprecated in Hummingbird release. This is no longer necessary as there are
+ * other solutions for the problem this was solving.
  */
+@Deprecated
 @Component(immediate = true)
 @Service
 public class DistributedProxyArpStore implements ProxyArpStore {

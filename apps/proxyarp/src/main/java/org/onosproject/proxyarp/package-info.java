@@ -15,6 +15,6 @@
  */
 
 /**
- * Proxy Arp  application that handles arp resolution for you.
+ * Application that handles ARP and NDP resolution on a single L2 broadcast domain.
  */
 package org.onosproject.proxyarp;

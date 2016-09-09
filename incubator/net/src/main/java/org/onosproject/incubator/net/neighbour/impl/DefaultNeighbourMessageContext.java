@@ -105,7 +105,12 @@ public class DefaultNeighbourMessageContext implements NeighbourMessageContext {
 
     @Override
     public MacAddress srcMac() {
-        return MacAddress.valueOf(eth.getSourceMACAddress());
+        return eth.getSourceMAC();
+    }
+
+    @Override
+    public MacAddress dstMac() {
+        return eth.getDestinationMAC();
     }
 
     @Override

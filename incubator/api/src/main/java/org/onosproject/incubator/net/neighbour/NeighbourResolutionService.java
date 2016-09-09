@@ -17,8 +17,12 @@
 package org.onosproject.incubator.net.neighbour;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
+
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Provides a means of registering logic for handling neighbour messages.
@@ -32,8 +36,10 @@ public interface NeighbourResolutionService {
      *
      * @param connectPoint connect point
      * @param handler neighbour message handler
+     * @param appId application ID
      */
-    void registerNeighbourHandler(ConnectPoint connectPoint, NeighbourMessageHandler handler);
+    void registerNeighbourHandler(ConnectPoint connectPoint, NeighbourMessageHandler handler,
+                                  ApplicationId appId);
 
     /**
      * Registers a neighbour message handler for all neighbour messages incoming
@@ -42,8 +48,10 @@ public interface NeighbourResolutionService {
      *
      * @param intf interface
      * @param handler neighbour message handler
+     * @param appId application ID
      */
-    void registerNeighbourHandler(Interface intf, NeighbourMessageHandler handler);
+    void registerNeighbourHandler(Interface intf, NeighbourMessageHandler handler,
+                                  ApplicationId appId);
 
     /**
      * Unregisters a neighbour message handler that was assigned to a connect
@@ -51,14 +59,34 @@ public interface NeighbourResolutionService {
      *
      * @param connectPoint connect point
      * @param handler neighbour message handler
+     * @param appId application ID
      */
-    void unregisterNeighbourHandler(ConnectPoint connectPoint, NeighbourMessageHandler handler);
+    void unregisterNeighbourHandler(ConnectPoint connectPoint, NeighbourMessageHandler handler,
+                                    ApplicationId appId);
 
     /**
      * Unregisters a neighbour message handler that was assigned to an interface.
      *
      * @param intf interface
      * @param handler neighbour message handler
+     * @param appId application ID
      */
-    void unregisterNeighbourHandler(Interface intf, NeighbourMessageHandler handler);
+    void unregisterNeighbourHandler(Interface intf, NeighbourMessageHandler handler,
+                                    ApplicationId appId);
+
+    /**
+     * Unregisters all neighbour handlers that were registered by the given
+     * application.
+     *
+     * @param appId application ID
+     */
+    void unregisterNeighbourHandlers(ApplicationId appId);
+
+    /**
+     * Gets the neighbour message handlers that have been registered with the
+     * service.
+     *
+     * @return neighbour message handlers indexed by connect point
+     */
+    Map<ConnectPoint, Collection<NeighbourHandlerRegistration>> getHandlerRegistrations();
 }

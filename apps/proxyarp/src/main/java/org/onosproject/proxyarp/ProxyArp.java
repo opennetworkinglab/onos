@@ -51,8 +51,11 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Sample reactive proxy arp application.
+ *
+ * @deprecated in Hummingbird release
  */
-@Component(immediate = true)
+@Deprecated
+@Component(enabled = false)
 public class ProxyArp {
 
     private final Logger log = getLogger(getClass());

@@ -63,7 +63,12 @@ import static org.onosproject.security.AppGuard.checkPermission;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppPermission.Type.*;
 
-
+/**
+ * Implementation of the proxy ARP service.
+ *
+ * @deprecated in Hummingbird release
+ */
+@Deprecated
 @Component(immediate = true)
 @Service
 public class ProxyArpManager implements ProxyArpService {

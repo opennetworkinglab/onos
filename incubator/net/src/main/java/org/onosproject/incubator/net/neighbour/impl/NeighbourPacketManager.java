@@ -16,9 +16,10 @@
 
 package org.onosproject.incubator.net.neighbour.impl;
 
-import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.ListMultimap;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -33,6 +34,7 @@ import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPv6;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.packet.ndp.NeighborAdvertisement;
@@ -42,6 +44,7 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.neighbour.NeighbourHandlerRegistration;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageActions;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageHandler;
@@ -63,8 +66,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.Dictionary;
-import java.util.List;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -79,7 +84,7 @@ import static org.onosproject.net.packet.PacketPriority.CONTROL;
  * Manages handlers for neighbour messages.
  */
 @Service
-@Component(immediate = true, enabled = false)
+@Component(immediate = true)
 public class NeighbourPacketManager implements NeighbourResolutionService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -106,8 +111,8 @@ public class NeighbourPacketManager implements NeighbourResolutionService {
     private static final String APP_NAME = "org.onosproject.neighbour";
     private ApplicationId appId;
 
-    private ListMultimap<ConnectPoint, HandlerRegistration> packetHandlers =
-            Multimaps.synchronizedListMultimap(LinkedListMultimap.create());
+    private SetMultimap<ConnectPoint, NeighbourHandlerRegistration> packetHandlers =
+            Multimaps.synchronizedSetMultimap(HashMultimap.create());
 
     private final InternalPacketProcessor processor = new InternalPacketProcessor();
     private final InternalNeighbourMessageActions actions = new InternalNeighbourMessageActions();
@@ -191,23 +196,52 @@ public class NeighbourPacketManager implements NeighbourResolutionService {
     }
 
     @Override
-    public void registerNeighbourHandler(ConnectPoint connectPoint, NeighbourMessageHandler handler) {
-        packetHandlers.put(connectPoint, new HandlerRegistration(handler));
+    public void registerNeighbourHandler(ConnectPoint connectPoint,
+                                         NeighbourMessageHandler handler,
+                                         ApplicationId appId) {
+        packetHandlers.put(connectPoint, new HandlerRegistration(handler, appId));
     }
 
     @Override
-    public void registerNeighbourHandler(Interface intf, NeighbourMessageHandler handler) {
-        packetHandlers.put(intf.connectPoint(), new HandlerRegistration(handler, intf));
+    public void registerNeighbourHandler(Interface intf,
+                                         NeighbourMessageHandler handler,
+                                         ApplicationId appId) {
+        packetHandlers.put(intf.connectPoint(),
+                new HandlerRegistration(handler, intf, appId));
     }
 
     @Override
-    public void unregisterNeighbourHandler(ConnectPoint connectPoint, NeighbourMessageHandler handler) {
-        packetHandlers.remove(connectPoint, handler);
+    public void unregisterNeighbourHandler(ConnectPoint connectPoint,
+                                           NeighbourMessageHandler handler,
+                                           ApplicationId appId) {
+        packetHandlers.remove(connectPoint, new HandlerRegistration(handler, appId));
     }
 
     @Override
-    public void unregisterNeighbourHandler(Interface intf, NeighbourMessageHandler handler) {
-        packetHandlers.remove(intf.connectPoint(), handler);
+    public void unregisterNeighbourHandler(Interface intf,
+                                           NeighbourMessageHandler handler,
+                                           ApplicationId appId) {
+        packetHandlers.remove(intf.connectPoint(),
+                new HandlerRegistration(handler, intf, appId));
+    }
+
+    @Override
+    public void unregisterNeighbourHandlers(ApplicationId appId) {
+        synchronized (packetHandlers) {
+            Iterator<NeighbourHandlerRegistration> it = packetHandlers.values().iterator();
+
+            while (it.hasNext()) {
+                NeighbourHandlerRegistration registration = it.next();
+                if (registration.appId().equals(appId)) {
+                    it.remove();
+                }
+            }
+        }
+    }
+
+    @Override
+    public Map<ConnectPoint, Collection<NeighbourHandlerRegistration>> getHandlerRegistrations() {
+        return ImmutableMap.copyOf(Multimaps.asMap(packetHandlers));
     }
 
     public void handlePacket(PacketContext context) {
@@ -227,7 +261,7 @@ public class NeighbourPacketManager implements NeighbourResolutionService {
     }
 
     private void handleMessage(NeighbourMessageContext context) {
-        List<HandlerRegistration> handlers = packetHandlers.get(context.inPort());
+        Collection<NeighbourHandlerRegistration> handlers = packetHandlers.get(context.inPort());
 
         handlers.forEach(registration -> {
             if (registration.intf() == null || matches(context, registration.intf())) {
@@ -236,16 +270,51 @@ public class NeighbourPacketManager implements NeighbourResolutionService {
         });
     }
 
+    /**
+     * Checks that incoming packet matches the parameters of the interface.
+     * This means that if the interface specifies a particular parameter
+     * (VLAN, IP address, etc.) then the incoming packet should match those
+     * parameters.
+     *
+     * @param context incoming message context
+     * @param intf interface to check
+     * @return true if the incoming message matches the interface, otherwise false
+     */
     private boolean matches(NeighbourMessageContext context, Interface intf) {
         checkNotNull(context);
         checkNotNull(intf);
 
         boolean matches = true;
+        // For non-broadcast packets, if the interface has a MAC address check that
+        // the destination MAC address of the packet matches the interface MAC
+        if (!context.dstMac().isBroadcast() &&
+                !intf.mac().equals(MacAddress.NONE) &&
+                !intf.mac().equals(context.dstMac())) {
+            matches = false;
+        }
+        // If the interface has a VLAN, check that the packet's VLAN matches
         if (!intf.vlan().equals(VlanId.NONE) && !intf.vlan().equals(context.vlan())) {
+            matches = false;
+        }
+        // If the interface has IP addresses, check that the packet's target IP
+        // address matches one of the interface IP addresses
+        if (!intf.ipAddressesList().isEmpty() && !hasIp(intf, context.target())) {
             matches = false;
         }
 
         return matches;
+    }
+
+    /**
+     * Returns true if the interface has the given IP address.
+     *
+     * @param intf interface to check
+     * @param ip IP address
+     * @return true if the IP is configured on the interface, otherwise false
+     */
+    private boolean hasIp(Interface intf, IpAddress ip) {
+        return intf.ipAddressesList().stream()
+                .anyMatch(intfAddress -> intfAddress.ipAddress().equals(ip));
     }
 
 
@@ -295,7 +364,7 @@ public class NeighbourPacketManager implements NeighbourResolutionService {
     }
 
     /**
-     * Builds an Neighbor Discovery reply based on a request.
+     * Builds an NDP reply based on a request.
      *
      * @param srcIp   the IP address to use as the reply source
      * @param srcMac  the MAC address to use as the reply source
@@ -336,17 +405,18 @@ public class NeighbourPacketManager implements NeighbourResolutionService {
     /**
      * Stores a neighbour message handler registration.
      */
-    private class HandlerRegistration {
+    private class HandlerRegistration implements NeighbourHandlerRegistration {
         private final Interface intf;
         private final NeighbourMessageHandler handler;
+        private final ApplicationId appId;
 
         /**
          * Creates a new handler registration.
          *
          * @param handler neighbour message handler
          */
-        public HandlerRegistration(NeighbourMessageHandler handler) {
-            this(handler, null);
+        public HandlerRegistration(NeighbourMessageHandler handler, ApplicationId appId) {
+            this(handler, null, appId);
         }
 
         /**
@@ -355,27 +425,25 @@ public class NeighbourPacketManager implements NeighbourResolutionService {
          * @param handler neighbour message handler
          * @param intf interface
          */
-        public HandlerRegistration(NeighbourMessageHandler handler, Interface intf) {
+        public HandlerRegistration(NeighbourMessageHandler handler, Interface intf, ApplicationId appId) {
             this.intf = intf;
             this.handler = handler;
+            this.appId = appId;
         }
 
-        /**
-         * Gets the interface of the registration.
-         *
-         * @return interface
-         */
+        @Override
         public Interface intf() {
             return intf;
         }
 
-        /**
-         * Gets the neighbour message handler.
-         *
-         * @return message handler
-         */
+        @Override
         public NeighbourMessageHandler handler() {
             return handler;
+        }
+
+        @Override
+        public ApplicationId appId() {
+            return appId;
         }
 
         @Override
@@ -391,12 +459,13 @@ public class NeighbourPacketManager implements NeighbourResolutionService {
             HandlerRegistration that = (HandlerRegistration) other;
 
             return Objects.equals(intf, that.intf) &&
-                    Objects.equals(handler, that.handler);
+                    Objects.equals(handler, that.handler) &&
+                    Objects.equals(appId, that.appId);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(intf, handler);
+            return Objects.hash(intf, handler, appId);
         }
     }
 
@@ -450,7 +519,7 @@ public class NeighbourPacketManager implements NeighbourResolutionService {
 
         @Override
         public void proxy(NeighbourMessageContext context, Interface outIntf) {
-
+            // TODO implement
         }
 
         @Override

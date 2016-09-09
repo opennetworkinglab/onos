@@ -22,7 +22,11 @@ import java.nio.ByteBuffer;
 
 /**
  * State distribution mechanism for the proxy ARP service.
+ *
+ * @deprecated in Hummingbird release. This is no longer necessary as there are
+ * other solutions for the problem this was solving.
  */
+@Deprecated
 public interface ProxyArpStore {
 
     /**

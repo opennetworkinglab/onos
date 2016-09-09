@@ -22,8 +22,11 @@ import org.onosproject.net.packet.PacketContext;
 
 /**
  * Service for processing ARP or NDP requests on behalf of applications.
+ *
+ * @deprecated in Hummingbird release. Use NeighbourResolutionService instead.
  */
 // TODO: move to the peer host package
+@Deprecated
 public interface ProxyArpService {
 
     /**
