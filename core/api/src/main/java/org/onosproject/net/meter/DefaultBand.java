@@ -34,6 +34,9 @@ public final class DefaultBand implements Band, BandEntry {
     public DefaultBand(Type type, long rate,
                        Long burstSize, Short prec) {
         this.type = type;
+        if (type == Type.REMARK) {
+            checkArgument(prec <= MAX_PRECEDENCE && prec >= MIN_PRECEDENCE, ERR_MSG);
+        }
         this.rate = rate;
         this.burstSize = burstSize;
         this.prec = prec;

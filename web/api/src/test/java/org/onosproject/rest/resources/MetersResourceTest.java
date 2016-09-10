@@ -263,9 +263,9 @@ public class MetersResourceTest extends ResourceTest {
 
             // check application id
             final String jsonAppId = jsonMeter.get("appId").asString();
-            final String appId = meter.appId().toString();
+            final String appId = meter.appId().name();
             if (!jsonAppId.equals(appId)) {
-                reason = "appId " + meter.appId().toString();
+                reason = "appId " + meter.appId().name();
                 return false;
             }
 

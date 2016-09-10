@@ -34,7 +34,7 @@
           },
           "appId": {
             "type": "string",
-            "example": "1"
+            "example": "org.onosproject.rest"
           },
           "deviceId": {
             "type": "string",

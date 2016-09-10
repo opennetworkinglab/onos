@@ -35,6 +35,7 @@ public class DefaultMeterTest {
     private Meter m1;
     private Meter sameAsm1;
     private Meter m2;
+    private Meter m3;
 
     @Before
     public void setup() {
@@ -42,6 +43,12 @@ public class DefaultMeterTest {
         Band band = DefaultBand.builder()
                 .ofType(Band.Type.DROP)
                 .withRate(500)
+                .build();
+
+        Band band1 = DefaultBand.builder()
+                .ofType(Band.Type.REMARK)
+                .withRate(500)
+                .dropPrecedence((short) 1)
                 .build();
 
         m1 = DefaultMeter.builder()
@@ -68,13 +75,23 @@ public class DefaultMeterTest {
                 .withBands(Collections.singletonList(band))
                 .build();
 
+        m3 = DefaultMeter.builder()
+                .forDevice(did("3"))
+                .fromApp(APP_ID)
+                .withId(MeterId.meterId(3))
+                .withUnit(Meter.Unit.KB_PER_SEC)
+                .withBands(Collections.singletonList(band1))
+                .build();
+
+
     }
 
     @Test
     public void testEquality() {
         new EqualsTester()
                 .addEqualityGroup(m1, sameAsm1)
-                .addEqualityGroup(m2).testEquals();
+                .addEqualityGroup(m2)
+                .addEqualityGroup(m3).testEquals();
     }
 
     @Test
