@@ -20,6 +20,10 @@ package org.onosproject.net.meter;
  */
 public interface Band {
 
+    short MIN_PRECEDENCE = 0;
+    short MAX_PRECEDENCE = 255;
+    String ERR_MSG = "Precedence out of range";
+
     /**
      * Specifies the type of band.
      */

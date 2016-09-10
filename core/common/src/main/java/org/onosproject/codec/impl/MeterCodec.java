@@ -61,7 +61,7 @@ public final class MeterCodec extends JsonCodec<Meter> {
                 .put(DEVICE_ID, meter.deviceId().toString());
 
         if (meter.appId() != null) {
-            result.put(APP_ID, meter.appId().toString());
+            result.put(APP_ID, meter.appId().name());
         }
 
         if (meter.state() != null) {
