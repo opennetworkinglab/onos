@@ -118,8 +118,8 @@ public class NetconfDeviceProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ComponentConfigService componentCfgService;
+    //@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    //protected ComponentConfigService componentCfgService;
 
     private static final String APP_NAME = "org.onosproject.netconf";
     private static final String SCHEME_NAME = "netconf";
@@ -155,10 +155,10 @@ public class NetconfDeviceProvider extends AbstractProvider
     private ApplicationId appId;
     private boolean active;
 
-    static final int DEFAULT_POLLING_INTERVAL = 5500;
-    @Property(name = "pollingInterval", intValue = DEFAULT_POLLING_INTERVAL, // unit in milliseconds
-            label = "Set netconf device port stats polling interval")
-    private int pollingInterval;
+    //static final int DEFAULT_POLLING_INTERVAL = 5500;
+    //@Property(name = "pollingInterval", intValue = DEFAULT_POLLING_INTERVAL, // unit in milliseconds
+    //        label = "Set netconf device port stats polling interval")
+    private final static int pollingInterval = 5500;
 
     private final ScheduledExecutorService scheduledExecutorService = SharedScheduledExecutors.getPoolThreadExecutor();
     private ScheduledFuture<?> poller;
@@ -171,12 +171,11 @@ public class NetconfDeviceProvider extends AbstractProvider
         appId = coreService.registerApplication(APP_NAME);
         cfgService.registerConfigFactory(factory);
         cfgService.addListener(cfgListener);
-        componentCfgService.registerProperties(getClass());
+        //componentCfgService.registerProperties(getClass());
         controller.addDeviceListener(innerNodeListener);
         deviceService.addListener(deviceListener);
         executor.execute(NetconfDeviceProvider.this::connectDevices);
         localNodeId = clusterService.getLocalNode().id();
-        /* Poll devices every 1000 milliseconds */
         poller = scheduledExecutorService.scheduleAtFixedRate(this::pollDevices, pollingInterval,
                 pollingInterval, MILLISECONDS);
         log.info("Started");
@@ -196,7 +195,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         providerRegistry.unregister(this);
         providerService = null;
         cfgService.unregisterConfigFactory(factory);
-        componentCfgService.unregisterProperties(getClass(), false);
+        //componentCfgService.unregisterProperties(getClass(), false);
         if (poller != null) {
             poller.cancel(false);
         }
@@ -204,7 +203,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         log.info("Stopped");
     }
 
-    @Modified
+    /*@Modified
     public void modified() {
         Set<ConfigProperty> configProperties = componentCfgService.getProperties(getClass().getCanonicalName());
         for (ConfigProperty property : configProperties) {
@@ -212,7 +211,7 @@ public class NetconfDeviceProvider extends AbstractProvider
                 pollingInterval = property.asInteger();
             }
         }
-    }
+    }*/
 
     public NetconfDeviceProvider() {
         super(new ProviderId(SCHEME_NAME, DEVICE_PROVIDER_PACKAGE));
