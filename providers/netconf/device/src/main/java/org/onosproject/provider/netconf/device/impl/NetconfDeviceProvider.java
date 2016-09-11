@@ -69,6 +69,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -113,6 +114,9 @@ public class NetconfDeviceProvider extends AbstractProvider
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService componentCfgService;
 
     private static final String APP_NAME = "org.onosproject.netconf";
     private static final String SCHEME_NAME = "netconf";
@@ -164,6 +168,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         appId = coreService.registerApplication(APP_NAME);
         cfgService.registerConfigFactory(factory);
         cfgService.addListener(cfgListener);
+        componentCfgService.registerProperties(getClass());
         controller.addDeviceListener(innerNodeListener);
         deviceService.addListener(deviceListener);
         executor.execute(NetconfDeviceProvider.this::connectDevices);
@@ -188,11 +193,22 @@ public class NetconfDeviceProvider extends AbstractProvider
         providerRegistry.unregister(this);
         providerService = null;
         cfgService.unregisterConfigFactory(factory);
+        componentCfgService.unregisterProperties(getClass(), false);
         if (poller != null) {
             poller.cancel(false);
         }
         executor.shutdown();
         log.info("Stopped");
+    }
+
+    @Modified
+    public void modified() {
+        Set<ConfigProperty> configProperties = componentCfgService.getProperties(getClass().getCanonicalName());
+        for (ConfigProperty property : configProperties) {
+            if (property.name().equals("pollingInterval")) {
+                pollingInterval = property.asInteger();
+            }
+        }
     }
 
     public NetconfDeviceProvider() {
