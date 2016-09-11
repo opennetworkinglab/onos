@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Property;
 import org.onlab.packet.ChassisId;
 import org.onlab.util.SharedScheduledExecutors;
 import org.onosproject.cluster.ClusterService;
@@ -147,7 +148,11 @@ public class NetconfDeviceProvider extends AbstractProvider
     private ApplicationId appId;
     private boolean active;
 
-    private static final int POLL_PERIOD = 1_000; // milliseconds
+    static final int DEFAULT_POLLING_INTERVAL = 5500;
+    @Property(name = "pollingInterval", intValue = DEFAULT_POLLING_INTERVAL, // unit in milliseconds
+            label = "Set netconf device port stats polling interval")
+    private int POLLING_INTERVAL;
+
     private final ScheduledExecutorService scheduledExecutorService = SharedScheduledExecutors.getPoolThreadExecutor();
     private ScheduledFuture<?> poller;
 
@@ -164,7 +169,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         executor.execute(NetconfDeviceProvider.this::connectDevices);
         localNodeId = clusterService.getLocalNode().id();
         /* Poll devices every 1000 milliseconds */
-        poller = scheduledExecutorService.scheduleAtFixedRate(this::pollDevices, 1_000, POLL_PERIOD, MILLISECONDS);
+        poller = scheduledExecutorService.scheduleAtFixedRate(this::pollDevices, POLLING_INTERVAL, POLLING_INTERVAL, MILLISECONDS);
         log.info("Started");
     }
 
