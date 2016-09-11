@@ -189,7 +189,7 @@ public class NetconfSessionImpl implements NetconfSession {
     public CompletableFuture<String> request(String request) {
         CompletableFuture<String> ftrep = t.sendMessage(request);
         replies.put(messageIdInteger.get(), ftrep);
-        log.info("reply LRU cache size {}", replies.size());
+        log.debug("reply LRU cache size {}", replies.size());
         return ftrep;
     }
 

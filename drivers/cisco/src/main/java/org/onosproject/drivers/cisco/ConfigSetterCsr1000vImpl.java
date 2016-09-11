@@ -27,9 +27,10 @@ public class ConfigSetterCsr1000vImpl extends AbstractHandlerBehaviour implement
         NetconfSession session = controller.getDevicesMap().get(handler().data().deviceId()).getSession();
         String reply, requestNetConfString = new StringBuilder(buildHeadPattern())
                 .append(request).append(buildTailPattern()).toString();
+        log.info("Sending out netconf request {}", requestNetConfString);
 
         try {
-            reply = session.get(request);
+            reply = session.get(requestNetConfString);
             log.debug("Device {} replies {}", handler().data().deviceId(), reply.replaceAll("\r", ""));
         } catch (IOException e) {
             throw new RuntimeException(new NetconfException("Failed to set configuration via netconf", e));
