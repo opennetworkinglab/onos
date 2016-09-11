@@ -41,7 +41,7 @@ public class ConfigSetterCsr1000vImpl extends AbstractHandlerBehaviour implement
 
     private String buildHeadPattern() {
         StringBuilder pattern = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        pattern.append("<rpc>");
+        pattern.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">");
         pattern.append("<edit-config>");
         pattern.append("<target>");
         pattern.append("<running/>");
