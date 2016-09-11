@@ -169,7 +169,8 @@ public class NetconfDeviceProvider extends AbstractProvider
         executor.execute(NetconfDeviceProvider.this::connectDevices);
         localNodeId = clusterService.getLocalNode().id();
         /* Poll devices every 1000 milliseconds */
-        poller = scheduledExecutorService.scheduleAtFixedRate(this::pollDevices, pollingInterval, pollingInterval, MILLISECONDS);
+        poller = scheduledExecutorService.scheduleAtFixedRate(this::pollDevices, pollingInterval,
+                pollingInterval, MILLISECONDS);
         log.info("Started");
     }
 
