@@ -153,7 +153,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     //static final int DEFAULT_POLLING_INTERVAL = 5500;
     //@Property(name = "pollingInterval", intValue = DEFAULT_POLLING_INTERVAL, // unit in milliseconds
     //        label = "Set netconf device port stats polling interval")
-    private static final int pollingInterval = 5500;
+    private static final int POLLING_INTERVAL = 5500;
 
     private final ScheduledExecutorService scheduledExecutorService = SharedScheduledExecutors.getPoolThreadExecutor();
     private ScheduledFuture<?> poller;
@@ -171,8 +171,8 @@ public class NetconfDeviceProvider extends AbstractProvider
         deviceService.addListener(deviceListener);
         executor.execute(NetconfDeviceProvider.this::connectDevices);
         localNodeId = clusterService.getLocalNode().id();
-        poller = scheduledExecutorService.scheduleAtFixedRate(this::pollDevices, pollingInterval,
-                pollingInterval, MILLISECONDS);
+        poller = scheduledExecutorService.scheduleAtFixedRate(this::pollDevices, POLLING_INTERVAL,
+                POLLING_INTERVAL, MILLISECONDS);
         log.info("Started");
     }
 
