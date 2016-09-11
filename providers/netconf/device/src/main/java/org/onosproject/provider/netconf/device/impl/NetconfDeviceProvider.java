@@ -22,8 +22,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Modified;
 import org.onlab.packet.ChassisId;
 import org.onlab.util.SharedScheduledExecutors;
 import org.onosproject.cluster.ClusterService;
@@ -31,8 +29,6 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.config.basics.ConfigException;
-import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
@@ -72,7 +68,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -158,7 +153,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     //static final int DEFAULT_POLLING_INTERVAL = 5500;
     //@Property(name = "pollingInterval", intValue = DEFAULT_POLLING_INTERVAL, // unit in milliseconds
     //        label = "Set netconf device port stats polling interval")
-    private final static int pollingInterval = 5500;
+    private static final int pollingInterval = 5500;
 
     private final ScheduledExecutorService scheduledExecutorService = SharedScheduledExecutors.getPoolThreadExecutor();
     private ScheduledFuture<?> poller;
