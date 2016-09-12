@@ -16,6 +16,7 @@
 
 package org.onosproject.store.service;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -68,6 +69,16 @@ public class DocumentPath implements Comparable<DocumentPath> {
                                                    "least one non-null" +
                                                    "element.");
         }
+    }
+
+    /**
+     * Creates a new {@code DocumentPath} from a period delimited path string.
+     *
+     * @param path path string
+     * @return {@code DocumentPath} instance
+     */
+    public static DocumentPath from(String path) {
+        return new DocumentPath(Arrays.asList(path.split("\\.")));
     }
 
     /**

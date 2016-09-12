@@ -16,15 +16,16 @@
 
 package org.onosproject.store.service;
 
-import java.util.Iterator;
+import java.util.Map;
 
-import org.onosproject.store.primitives.DocumentTreeNode;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A hierarchical <a href="https://en.wikipedia.org/wiki/Document_Object_Model">document tree</a> data structure.
  *
  * @param <V> document tree value type
  */
+@NotThreadSafe
 public interface DocumentTree<V> {
 
     /**
@@ -35,13 +36,13 @@ public interface DocumentTree<V> {
     DocumentPath root();
 
     /**
-     * Returns an iterator for all the first order descendants of a node.
+     * Returns the child values for this node.
      *
      * @param path path to the node
-     * @return an iterator for the child nodes of the specified node path
+     * @return mapping from a child name to its value
      * @throws NoSuchDocumentPathException if the path does not point to a valid node
      */
-    Iterator<DocumentTreeNode<V>> getChildren(DocumentPath path);
+    Map<String, Versioned<V>> getChildren(DocumentPath path);
 
     /**
      * Returns a document tree node.
@@ -49,7 +50,7 @@ public interface DocumentTree<V> {
      * @param path path to node
      * @return node value or {@code null} if path does not point to a valid node
      */
-    DocumentTreeNode<V> getNode(DocumentPath path);
+    Versioned<V> get(DocumentPath path);
 
     /**
      * Creates or updates a document tree node.
@@ -59,7 +60,7 @@ public interface DocumentTree<V> {
      * @return the previous mapping or {@code null} if there was no previous mapping
      * @throws NoSuchDocumentPathException if the parent node (for the node to create/update) does not exist
      */
-    V putNode(DocumentPath path, V value);
+    Versioned<V> set(DocumentPath path, V value);
 
     /**
      * Creates a document tree node if one does not exist already.
@@ -69,7 +70,7 @@ public interface DocumentTree<V> {
      * @return returns {@code true} if the mapping could be added successfully, {@code false} otherwise
      * @throws NoSuchDocumentPathException if the parent node (for the node to create) does not exist
      */
-    boolean createNode(DocumentPath path, V value);
+    boolean create(DocumentPath path, V value);
 
     /**
      * Conditionally updates a tree node if the current version matches a specified version.
@@ -77,7 +78,7 @@ public interface DocumentTree<V> {
      * @param path path for the node to create
      * @param newValue the non-null value to be associated with the key
      * @param version current version of the value for update to occur
-     * @return returns {@code true} if the update was made, {@code false} otherwise
+     * @return returns {@code true} if the update was made and the tree was modified, {@code false} otherwise
      * @throws NoSuchDocumentPathException if the parent node (for the node to create) does not exist
      */
     boolean replace(DocumentPath path, V newValue, long version);
@@ -88,7 +89,8 @@ public interface DocumentTree<V> {
      * @param path path for the node to create
      * @param newValue the non-null value to be associated with the key
      * @param currentValue current value for update to occur
-     * @return returns {@code true} if the update was made, {@code false} otherwise
+     * @return returns {@code true} if the update was made and the tree was modified, {@code false} otherwise.
+     * This method returns {@code false} if the newValue and currentValue are same.
      * @throws NoSuchDocumentPathException if the parent node (for the node to create) does not exist
      */
     boolean replace(DocumentPath path, V newValue, V currentValue);
@@ -96,12 +98,11 @@ public interface DocumentTree<V> {
     /**
      * Removes the node with the specified path.
      *
-     * is not a leaf node i.e has one or more children
-     * @param key path for the node to remove
+     * @param path path for the node to remove
      * @return the previous value of the node or {@code null} if it did not exist
      * @throws IllegalDocumentModificationException if the remove to be removed
      */
-    V removeNode(DocumentPath key);
+    Versioned<V> removeNode(DocumentPath path);
 
     /**
      * Registers a listener to be notified when a subtree rooted at the specified path
