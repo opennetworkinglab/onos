@@ -41,6 +41,11 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
+            <artifactId>onos-lisp-msg</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
             <classifier>tests</classifier>
             <scope>test</scope>

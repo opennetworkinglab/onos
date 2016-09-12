@@ -15,10 +15,34 @@
  */
 package org.onosproject.lisp.ctl;
 
-/**
- * Remove me.
- */
-@Deprecated
-public abstract class PlaceHolder {
+import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.protocols.LispMessage;
+import org.onosproject.lisp.msg.protocols.LispType;
 
+/**
+ * Adapter for testing against a LISP message.
+ */
+public class LispMessageAdapter implements LispMessage {
+    LispType type;
+
+    private LispMessageAdapter() {}
+
+    public LispMessageAdapter(LispType type) {
+        this.type = type;
+    }
+
+    @Override
+    public LispType getType() {
+        return type;
+    }
+
+    @Override
+    public void writeTo(ByteBuf byteBuf) {
+
+    }
+
+    @Override
+    public Builder createBuilder() {
+        return null;
+    }
 }
