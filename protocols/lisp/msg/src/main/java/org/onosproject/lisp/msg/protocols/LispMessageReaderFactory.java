@@ -21,6 +21,7 @@ import static org.onosproject.lisp.msg.protocols.DefaultLispMapReply.ReplyReader
 import static org.onosproject.lisp.msg.protocols.DefaultLispMapNotify.NotifyReader;
 import static org.onosproject.lisp.msg.protocols.DefaultLispMapRegister.RegisterReader;
 import static org.onosproject.lisp.msg.protocols.DefaultLispMapRequest.RequestReader;
+import static org.onosproject.lisp.msg.protocols.DefaultLispEncapsulatedControl.EcmReader;
 
 /**
  * A factory class which helps to instantiate LISP reader class.
@@ -39,22 +40,31 @@ public final class LispMessageReaderFactory {
     public static LispMessageReader getReader(ByteBuf buffer) {
         LispMessageReader reader;
 
-        int type = buffer.getByte(0) >> TYPE_SHIFT_BIT;
+        LispType type = LispType.valueOf(
+                (short) (buffer.getByte(0) >> TYPE_SHIFT_BIT));
+
         switch (type) {
-            case 1:
+            case LISP_MAP_REQUEST:
                 reader = new RequestReader();
                 break;
-            case 2:
+            case LISP_MAP_REPLY:
                 reader = new ReplyReader();
                 break;
-            case 3:
+            case LISP_MAP_REGISTER:
                 reader = new RegisterReader();
                 break;
-            case 4:
+            case LISP_MAP_NOTIFY:
                 reader = new NotifyReader();
                 break;
+            case LISP_ENCAPSULATED_CONTROL:
+                reader = new EcmReader();
+                break;
+            case UNKNOWN:
+                throw new IllegalArgumentException("Unknown message type: "
+                                                           + type);
             default:
-                throw new IllegalArgumentException("Unknown LISP message type: " + type);
+                throw new IllegalArgumentException("Undefined message type: "
+                                                           + type);
         }
         return reader;
     }

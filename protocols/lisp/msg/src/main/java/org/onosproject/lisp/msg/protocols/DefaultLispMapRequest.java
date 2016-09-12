@@ -49,6 +49,11 @@ public final class DefaultLispMapRequest implements LispMapRequest {
     private final boolean pitr;
     private final boolean smrInvoked;
 
+    static final RequestWriter WRITER;
+    static {
+        WRITER = new RequestWriter();
+    }
+
     /**
      * A private constructor that protects object instantiation from external.
      *
@@ -85,8 +90,8 @@ public final class DefaultLispMapRequest implements LispMapRequest {
     }
 
     @Override
-    public void writeTo(ByteBuf byteBuf) {
-        // TODO: serialize LispMapRequest message
+    public void writeTo(ByteBuf byteBuf) throws LispWriterException {
+        WRITER.writeTo(byteBuf, this);
     }
 
     @Override

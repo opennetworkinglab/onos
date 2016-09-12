@@ -16,6 +16,7 @@
 package org.onosproject.lisp.msg.protocols;
 
 import io.netty.buffer.ByteBuf;
+import org.onlab.packet.DeserializationException;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 
@@ -29,7 +30,14 @@ public interface LispMessageReader<T> {
      *
      * @param byteBuf byte buffer
      * @return LISP message instance
-     * @throws LispParseError LISP control message parse error
+     * @throws LispParseError if the requested message cannot be parsed
+     *         as a LISP object
+     * @throws LispReaderException if LISP message reader cannot process
+     *         the received message
+     * @throws DeserializationException if an inner IP header (IPv4 or IPv6)
+     *         cannot be deserialized due to the message not match
+     *         with IP header format
      */
-    T readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException;
+    T readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException,
+            DeserializationException;
 }

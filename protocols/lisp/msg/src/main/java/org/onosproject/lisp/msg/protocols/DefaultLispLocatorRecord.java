@@ -41,6 +41,11 @@ public final class DefaultLispLocatorRecord implements LispLocatorRecord {
     private final boolean routed;
     private final LispAfiAddress locatorAfi;
 
+    static final LocatorRecordWriter WRITER;
+    static {
+        WRITER = new LocatorRecordWriter();
+    }
+
     /**
      * A private constructor that protects object instantiation from external.
      *
@@ -107,8 +112,8 @@ public final class DefaultLispLocatorRecord implements LispLocatorRecord {
     }
 
     @Override
-    public void writeTo(ByteBuf byteBuf) {
-
+    public void writeTo(ByteBuf byteBuf) throws LispWriterException {
+        WRITER.writeTo(byteBuf, this);
     }
 
     @Override

@@ -16,6 +16,7 @@
 package org.onosproject.lisp.msg.protocols;
 
 import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 
 import java.util.List;
@@ -86,7 +87,7 @@ public interface LispMapRecord {
      *
      * @param byteBuf byte buffer
      */
-    void writeTo(ByteBuf byteBuf);
+    void writeTo(ByteBuf byteBuf) throws LispWriterException;
 
     /**
      * A builder of LISP map record.

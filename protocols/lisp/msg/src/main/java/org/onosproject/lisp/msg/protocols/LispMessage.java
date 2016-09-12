@@ -16,6 +16,7 @@
 package org.onosproject.lisp.msg.protocols;
 
 import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 /**
  * LISP message interface.
@@ -33,8 +34,10 @@ public interface LispMessage {
      * Writes LISP message object into communication channel.
      *
      * @param byteBuf byte buffer
+     * @throws LispWriterException if the writing request is failed due to
+     * the lisp object cannot be written to the buffer.
      */
-    void writeTo(ByteBuf byteBuf);
+    void writeTo(ByteBuf byteBuf) throws LispWriterException;
 
     /**
      * Generates LISP message builder.

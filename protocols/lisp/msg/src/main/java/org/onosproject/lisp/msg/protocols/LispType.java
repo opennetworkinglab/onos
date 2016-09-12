@@ -23,12 +23,26 @@ package org.onosproject.lisp.msg.protocols;
  */
 public enum LispType {
 
-    LISP_MAP_REQUEST(1),            // LISP Map-Request Message
-    LISP_MAP_REPLY(2),              // LISP Map-Reply Message
-    LISP_MAP_REGISTER(3),           // LISP Map-Register Message
-    LISP_MAP_NOTIFY(4),             // LISP Map-Notify Message
-    LISP_INFO(7),                   // LISP Info-Request or Info-Reply Message
-    UNKNOWN(-1);                    // Other Enums for internal use
+    /** LISP Map-Request Message. */
+    LISP_MAP_REQUEST(1),
+
+    /** LISP Map-Reply Message. */
+    LISP_MAP_REPLY(2),
+
+    /** LISP Map-Register Message. */
+    LISP_MAP_REGISTER(3),
+
+    /** LISP Map-Notify Message. */
+    LISP_MAP_NOTIFY(4),
+
+    /** LISP Info-Request or Info-Reply Message. */
+    LISP_INFO(7),
+
+    /** LISP Encapsulated Control Message. */
+    LISP_ENCAPSULATED_CONTROL(8),
+
+    /** Unknown types for internal use. */
+    UNKNOWN(-1);
 
     private final short type;
 

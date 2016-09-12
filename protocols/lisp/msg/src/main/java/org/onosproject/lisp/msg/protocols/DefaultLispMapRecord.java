@@ -45,6 +45,11 @@ public final class DefaultLispMapRecord implements LispMapRecord {
     private final LispAfiAddress eidPrefixAfi;
     private final List<LispLocatorRecord> locatorRecords;
 
+    static final MapRecordWriter WRITER;
+    static {
+        WRITER = new MapRecordWriter();
+    }
+
     /**
      * A private constructor that protects object instantiation from external.
      *
@@ -109,8 +114,8 @@ public final class DefaultLispMapRecord implements LispMapRecord {
     }
 
     @Override
-    public void writeTo(ByteBuf byteBuf) {
-
+    public void writeTo(ByteBuf byteBuf) throws LispWriterException {
+        WRITER.writeTo(byteBuf, this);
     }
 
     @Override

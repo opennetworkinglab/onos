@@ -41,6 +41,11 @@ public final class DefaultLispMapNotify implements LispMapNotify {
     private final byte[] authenticationData;
     private final List<LispMapRecord> mapRecords;
 
+    static final NotifyWriter WRITER;
+    static {
+        WRITER = new NotifyWriter();
+    }
+
     /**
      * A private constructor that protects object instantiation from external.
      *
@@ -64,8 +69,8 @@ public final class DefaultLispMapNotify implements LispMapNotify {
     }
 
     @Override
-    public void writeTo(ByteBuf byteBuf) {
-        // TODO: serialize LispMapRegister message
+    public void writeTo(ByteBuf byteBuf) throws LispWriterException {
+        WRITER.writeTo(byteBuf, this);
     }
 
     @Override

@@ -46,6 +46,11 @@ public final class DefaultLispMapRegister implements LispMapRegister {
     private final boolean proxyMapReply;
     private final boolean wantMapNotify;
 
+    static final RegisterWriter WRITER;
+    static {
+        WRITER = new RegisterWriter();
+    }
+
     /**
      * A private constructor that protects object instantiation from external.
      *
@@ -75,8 +80,8 @@ public final class DefaultLispMapRegister implements LispMapRegister {
     }
 
     @Override
-    public void writeTo(ByteBuf byteBuf) {
-        // TODO: serialize LispMapRegister message
+    public void writeTo(ByteBuf byteBuf) throws LispWriterException {
+        WRITER.writeTo(byteBuf, this);
     }
 
     @Override

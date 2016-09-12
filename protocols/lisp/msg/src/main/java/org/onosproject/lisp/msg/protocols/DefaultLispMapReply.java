@@ -40,6 +40,11 @@ public final class DefaultLispMapReply implements LispMapReply {
     private final boolean security;
     private final List<LispMapRecord> mapRecords;
 
+    static final ReplyWriter WRITER;
+    static {
+        WRITER = new ReplyWriter();
+    }
+
     /**
      * A private constructor that protects object instantiation from external.
      *
@@ -63,8 +68,8 @@ public final class DefaultLispMapReply implements LispMapReply {
     }
 
     @Override
-    public void writeTo(ByteBuf byteBuf) {
-        // TODO: serialize LispMapReply message
+    public void writeTo(ByteBuf byteBuf) throws LispWriterException {
+        WRITER.writeTo(byteBuf, this);
     }
 
     @Override

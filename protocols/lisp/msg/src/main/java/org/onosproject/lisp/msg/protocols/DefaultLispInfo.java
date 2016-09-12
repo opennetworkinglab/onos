@@ -82,8 +82,8 @@ public class DefaultLispInfo implements LispInfo {
     }
 
     @Override
-    public void writeTo(ByteBuf byteBuf) {
-        // TODO: serialize LispMapRegister message
+    public void writeTo(ByteBuf byteBuf) throws LispWriterException {
+        serialize(byteBuf, this);
     }
 
     @Override
