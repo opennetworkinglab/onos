@@ -128,14 +128,18 @@ public class BgpCfgProvider extends AbstractProvider {
         bgpConfig.setMaxSession(config.maxSession());
         bgpConfig.setLargeASCapability(config.largeAsCapability());
 
-        if (config.flowSpecCapability().equals("IPV4")) {
-            bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.IPV4);
-        } else if (config.flowSpecCapability().equals("VPNV4")) {
-            bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.VPNV4);
-        } else if (config.flowSpecCapability().equals("IPV4_VPNV4")) {
-            bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.IPV4_VPNV4);
-        } else {
+        if (config.flowSpecCapability() == null) {
             bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.NONE);
+        } else {
+            if (config.flowSpecCapability().equals("IPV4")) {
+                bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.IPV4);
+            } else if (config.flowSpecCapability().equals("VPNV4")) {
+                bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.VPNV4);
+            } else if (config.flowSpecCapability().equals("IPV4_VPNV4")) {
+                bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.IPV4_VPNV4);
+            } else {
+                bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.NONE);
+            }
         }
         bgpConfig.setFlowSpecRpdCapability(config.rpdCapability());
 
@@ -178,14 +182,18 @@ public class BgpCfgProvider extends AbstractProvider {
         bgpConfig.setMaxSession(config.maxSession());
         bgpConfig.setLargeASCapability(config.largeAsCapability());
 
-        if (config.flowSpecCapability().equals("IPV4")) {
-            bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.IPV4);
-        } else if (config.flowSpecCapability().equals("VPNV4")) {
-            bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.VPNV4);
-        } else if (config.flowSpecCapability().equals("IPV4_VPNV4")) {
-            bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.IPV4_VPNV4);
-        } else {
+        if (config.flowSpecCapability() == null) {
             bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.NONE);
+        } else {
+            if (config.flowSpecCapability().equals("IPV4")) {
+                bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.IPV4);
+            } else if (config.flowSpecCapability().equals("VPNV4")) {
+                bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.VPNV4);
+            } else if (config.flowSpecCapability().equals("IPV4_VPNV4")) {
+                bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.IPV4_VPNV4);
+            } else {
+                bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.NONE);
+            }
         }
         bgpConfig.setFlowSpecRpdCapability(config.rpdCapability());
 
