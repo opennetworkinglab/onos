@@ -181,11 +181,13 @@
         wss.sendEvent('removeIntent', {
             appId: d.appId,
             appName: d.appName,
-            key: d.key
+            key: d.key,
+            purge: d.intentPurge
         });
         trafficMode = 'intents';
         hoverMode = null;
-        flash.flash('Intent removed');
+        var txt = d.intentPurge ? 'purged' : 'withdrawn';
+        flash.flash('Intent ' + txt);
     }
 
     function addMultiSourceIntent () {

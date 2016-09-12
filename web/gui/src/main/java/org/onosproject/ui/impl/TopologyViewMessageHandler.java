@@ -150,6 +150,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String NAMES = "names";
     private static final String ACTIVATE = "activate";
     private static final String DEACTIVATE = "deactivate";
+    private static final String PURGE = "purge";
 
 
     private static final String MY_APP_ID = "org.onosproject.gui";
@@ -438,14 +439,16 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         Key key = Key.of(intentKey, applicId);
         log.debug("Attempting to select intent by key={}", key);
 
-        Intent intent = intentService.getIntent(key);
-
-        return intent;
+        return intentService.getIntent(key);
     }
 
     private final class RemoveIntent extends RequestHandler {
         private RemoveIntent() {
             super(REMOVE_INTENT);
+        }
+
+        private boolean isIntentToBePurged(ObjectNode payload) {
+            return bool(payload, PURGE);
         }
 
         @Override
@@ -454,8 +457,12 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
             if (intent == null) {
                 log.warn("Unable to find intent from payload {}", payload);
             } else {
-                log.debug("Removing intent {}", intent.key());
-                intentService.withdraw(intent);
+                log.debug("Withdrawing / Purging intent {}", intent.key());
+                if (isIntentToBePurged(payload)) {
+                    intentService.purge(intent);
+                } else {
+                    intentService.withdraw(intent);
+                }
             }
         }
     }

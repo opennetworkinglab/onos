@@ -37,6 +37,11 @@
                  tooltip tt-msg="deactivateTip"
                  ng-click="(!!selId && isIntentInstalled()) ? deactivateIntent():''"></div>
 
+            <div ng-class="{'active': !!selId && isIntentWithdrawn()}"
+                 icon icon-id="garbage" icon-size="42"
+                 tooltip tt-msg="purgeTip"
+                 ng-click="(!!selId && isIntentWithdrawn()) ? purgeIntent():''"></div>
+
 
         </div>
     </div>

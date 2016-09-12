@@ -72,6 +72,7 @@
 
             $scope.topoTip = 'Show selected intent on topology view';
             $scope.deactivateTip = 'Remove selected intent';
+            $scope.purgeTip = 'Purge selected intent';
 
             $scope.showIntent = function () {
                 var d = $scope.intentData;
@@ -82,14 +83,23 @@
                 return $scope.intentState === 'Installed';
             };
 
-            $scope.deactivateIntent = function () {
-                var content = ds.createDiv();
+            $scope.isIntentWithdrawn = function () {
+                return $scope.intentState === 'Withdrawn';
+            };
 
-                content.append('p')
-                    .text('Are you sure you want to remove the selected intent?');
+            function executeAction(bPurge) {
+                var content = ds.createDiv(),
+                    txt = bPurge ? 'purge' : 'withdraw' ;
+
+                $scope.intentData.intentPurge = bPurge;
+
+                content.append('p').
+                        text('Are you sure you want to '+ txt +
+                        ' the selected intent?');
 
                 function dOk() {
                     var d = $scope.intentData;
+                    $log.debug(d);
                     d && tts.removeIntent(d);
                     $scope.fired = true;
                 }
@@ -105,6 +115,14 @@
                     .addOk(dOk)
                     .addCancel(dCancel)
                     .bindKeys();
+            }
+
+            $scope.deactivateIntent = function () {
+                executeAction(false);
+            };
+
+            $scope.purgeIntent = function () {
+                executeAction(true);
             };
 
             $scope.briefToggle = function () {
