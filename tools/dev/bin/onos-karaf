@@ -9,12 +9,14 @@ if [ -L $ONOS_TAR ]; then
   echo "WARN: This script does not support deploying buck artifacts"
 fi
 
+SETUP_OPTS=""
 # FIXME: temporarily fix 500 error in GUI, need to be improved with a better way
 if echo $* | egrep "\bclean\b"; then
     export KARAF_ROOT=${KARAF_ROOT:-~/Applications/apache-karaf-$KARAF_VERSION}
     export STAGE=$(dirname $KARAF_ROOT)
     echo "Removing data directories..."
     [ -d $KARAF_ROOT ] && rm -fr $STAGE/data
+    SETUP_OPTS="${SETUP_OPTS} clean"
 fi
 
-onos-setup-karaf && karaf "$@"
+onos-setup-karaf $SETUP_OPTS && karaf "$@"
