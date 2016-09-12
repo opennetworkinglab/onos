@@ -545,7 +545,7 @@ public class NettyMessagingManager implements MessagingService {
                     } else if (message.status() == Status.ERROR_HANDLER_EXCEPTION) {
                         callback.completeExceptionally(new MessagingException.RemoteHandlerFailure());
                     } else if (message.status() == Status.PROTOCOL_EXCEPTION) {
-                        callback.completeExceptionally(new MessagingException.ProcotolException());
+                        callback.completeExceptionally(new MessagingException.ProtocolException());
                     }
                 } else {
                     log.debug("Received a reply for message id:[{}]. "

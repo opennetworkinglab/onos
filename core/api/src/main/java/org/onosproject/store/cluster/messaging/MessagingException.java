@@ -42,17 +42,26 @@ public class MessagingException extends IOException {
      * Exception indicating no remote registered remote handler.
      */
     public static class NoRemoteHandler extends MessagingException {
+        public NoRemoteHandler() {
+            super("No remote message handler registered for this message");
+        }
     }
 
     /**
      * Exception indicating handler failure.
      */
     public static class RemoteHandlerFailure extends MessagingException {
+        public RemoteHandlerFailure() {
+            super("Remote handler failed to handle message");
+        }
     }
 
     /**
-     * Exception indicating failure due to invalid message strucuture such as an incorrect preamble.
+     * Exception indicating failure due to invalid message structure such as an incorrect preamble.
      */
-    public static class ProcotolException extends MessagingException {
+    public static class ProtocolException extends MessagingException {
+        public ProtocolException() {
+            super("Failed to process message due to invalid message structure");
+        }
     }
 }

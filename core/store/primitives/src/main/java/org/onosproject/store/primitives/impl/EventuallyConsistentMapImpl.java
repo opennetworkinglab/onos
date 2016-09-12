@@ -588,7 +588,8 @@ public class EventuallyConsistentMapImpl<K, V>
                 peer)
                 .whenComplete((result, error) -> {
                     if (error != null) {
-                        log.debug("Failed to send anti-entropy advertisement to {}", peer, error);
+                        log.debug("Failed to send anti-entropy advertisement to {}: {}",
+                                peer, error.getMessage());
                     } else if (result == AntiEntropyResponse.PROCESSED) {
                         antiEntropyTimes.put(peer, adCreationTime);
                     }
@@ -603,7 +604,8 @@ public class EventuallyConsistentMapImpl<K, V>
                 peer)
                 .whenComplete((result, error) -> {
                     if (error != null) {
-                        log.debug("Failed to send update request to {}", peer, error);
+                        log.debug("Failed to send update request to {}: {}",
+                                peer, error.getMessage());
                     }
                 });
     }
