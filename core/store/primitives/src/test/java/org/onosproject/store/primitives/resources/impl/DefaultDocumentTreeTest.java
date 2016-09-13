@@ -49,7 +49,7 @@ public class DefaultDocumentTreeTest {
         Assert.assertTrue(tree.create(path("root.a.b"), "baz"));
     }
 
-    @Test(expected=IllegalDocumentModificationException.class)
+    @Test(expected = IllegalDocumentModificationException.class)
     public void testCreateNodeFailure() {
         DocumentTree<String> tree = new DefaultDocumentTree<>();
         tree.create(path("root.a.b"), "bar");
@@ -105,14 +105,14 @@ public class DefaultDocumentTreeTest {
         Assert.assertEquals(0, tree.getChildren(path("root.a.b")).size());
     }
 
-    @Test(expected=NoSuchDocumentPathException.class)
+    @Test(expected = NoSuchDocumentPathException.class)
     public void testGetChildrenFailure() {
         DocumentTree<String> tree = new DefaultDocumentTree<>();
         tree.create(path("root.a"), "bar");
         tree.getChildren(path("root.a.b"));
     }
 
-    @Test(expected=IllegalDocumentModificationException.class)
+    @Test(expected = IllegalDocumentModificationException.class)
     public void testSetRootFailure() {
         DocumentTree<String> tree = new DefaultDocumentTree<>();
         tree.set(tree.root(), "bar");
@@ -127,7 +127,7 @@ public class DefaultDocumentTreeTest {
         Assert.assertEquals("beta", tree.get(path("root.a.b")).value());
     }
 
-    @Test(expected=IllegalDocumentModificationException.class)
+    @Test(expected = IllegalDocumentModificationException.class)
     public void testSetInvalidNode() {
         DocumentTree<String> tree = new DefaultDocumentTree<>();
         tree.set(path("root.a.b"), "alpha");
@@ -153,7 +153,7 @@ public class DefaultDocumentTreeTest {
         Assert.assertTrue(tree.replace(path("root.x"), "beta", null));
     }
 
-    @Test(expected=IllegalDocumentModificationException.class)
+    @Test(expected = IllegalDocumentModificationException.class)
     public void testRemoveRoot() {
         DocumentTree<String> tree = new DefaultDocumentTree<>();
         tree.removeNode(tree.root());
@@ -168,7 +168,7 @@ public class DefaultDocumentTreeTest {
         Assert.assertEquals(0, tree.getChildren(path("root.a")).size());
     }
 
-    @Test(expected=NoSuchDocumentPathException.class)
+    @Test(expected = NoSuchDocumentPathException.class)
     public void testRemoveInvalidNode() {
         DocumentTree<String> tree = new DefaultDocumentTree<>();
         tree.removeNode(path("root.a"));
