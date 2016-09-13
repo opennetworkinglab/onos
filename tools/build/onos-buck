@@ -5,9 +5,9 @@
 
 set -e
 
-BUCK_URL="https://github.com/bocon13/buck/releases/download/v2016.07.29.01-wip/buck"
-BUCK_SHA="31b2925f0c7935cd581b11a52f4e7fc53ade125e"
-REQUIRED_VERSION="buck version b1271d04f2c319784f8af9abc92ed2d01d10ed3a"
+BUCK_URL="https://github.com/bocon13/buck/releases/download/v2016.09.13.01/buck"
+BUCK_SHA="e72cf2e9ef719fa81fd4e0d1b620f20448c10a9d"
+REQUIRED_VERSION="buck version 0b60c3d7f8d54b2e6e6607749b748c0f240a6eb3"
 
 [  "-U" = "$1" ] && shift && FORCE_UPDATE=True
 
