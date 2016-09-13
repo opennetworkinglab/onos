@@ -12,7 +12,7 @@ BRANDING=$4
 #FIXME karaf version
 KARAF_VERSION="3.0.5"
 
-PREFIX="onos-${ONOS_VERSION/-*/}"
+PREFIX="onos-${ONOS_VERSION/-SNAPSHOT/}"
 
 # Unroll the Apache Karaf bits, prune them and make ONOS top-level directories.
 tar xf $KARAF_TAR
