@@ -19,7 +19,7 @@ package org.onosproject.store.primitives.resources.impl;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.onosproject.store.service.DocumentPath;
 import org.onosproject.store.service.DocumentTree;
@@ -30,6 +30,7 @@ import org.onosproject.store.service.NoSuchDocumentPathException;
 import org.onosproject.store.service.Versioned;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
 
 /**
@@ -41,10 +42,17 @@ public class DefaultDocumentTree<V> implements DocumentTree<V> {
 
     private static final DocumentPath ROOT_PATH = DocumentPath.from("root");
     private final DefaultDocumentTreeNode<V> root;
-    private final AtomicInteger versionCounter = new AtomicInteger(0);
+    private final Supplier<Long> versionSupplier;
 
     public DefaultDocumentTree() {
-        root = new DefaultDocumentTreeNode<V>(ROOT_PATH, null, nextVersion(), null);
+        AtomicLong versionCounter = new AtomicLong(0);
+        versionSupplier = versionCounter::incrementAndGet;
+        root = new DefaultDocumentTreeNode<V>(ROOT_PATH, null, versionSupplier.get(), null);
+    }
+
+    public DefaultDocumentTree(Supplier<Long> versionSupplier) {
+        root = new DefaultDocumentTreeNode<V>(ROOT_PATH, null, versionSupplier.get(), null);
+        this.versionSupplier = versionSupplier;
     }
 
     @Override
@@ -74,7 +82,7 @@ public class DefaultDocumentTree<V> implements DocumentTree<V> {
         checkRootModification(path);
         DefaultDocumentTreeNode<V> node = getNode(path);
         if (node != null) {
-            return node.update(value, nextVersion());
+            return node.update(value, versionSupplier.get());
         } else {
             create(path, value);
             return null;
@@ -93,7 +101,7 @@ public class DefaultDocumentTree<V> implements DocumentTree<V> {
         if (parentNode == null) {
             throw new IllegalDocumentModificationException();
         }
-        parentNode.addChild(simpleName(path), value, nextVersion());
+        parentNode.addChild(simpleName(path), value, versionSupplier.get());
         return true;
     }
 
@@ -157,10 +165,6 @@ public class DefaultDocumentTree<V> implements DocumentTree<V> {
             currentNode = (DefaultDocumentTreeNode<V>) currentNode.child(pathElements.next());
         }
         return currentNode;
-    }
-
-    private long nextVersion() {
-        return versionCounter.incrementAndGet();
     }
 
     private String simpleName(DocumentPath path) {

@@ -72,6 +72,11 @@ public interface DistributedPrimitive {
         WORK_QUEUE,
 
         /**
+         * Document tree.
+         */
+        DOCUMENT_TREE,
+
+        /**
          * Distributed topic.
          */
         TOPIC,

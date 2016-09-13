@@ -15,14 +15,15 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
+import static com.google.common.base.Preconditions.checkState;
 import static org.onosproject.store.service.MapEvent.Type.INSERT;
 import static org.onosproject.store.service.MapEvent.Type.REMOVE;
 import static org.onosproject.store.service.MapEvent.Type.UPDATE;
 import static org.slf4j.LoggerFactory.getLogger;
-import io.atomix.copycat.server.session.ServerSession;
 import io.atomix.copycat.server.Commit;
 import io.atomix.copycat.server.Snapshottable;
 import io.atomix.copycat.server.StateMachineExecutor;
+import io.atomix.copycat.server.session.ServerSession;
 import io.atomix.copycat.server.session.SessionListener;
 import io.atomix.copycat.server.storage.snapshot.SnapshotReader;
 import io.atomix.copycat.server.storage.snapshot.SnapshotWriter;
@@ -68,15 +69,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import static com.google.common.base.Preconditions.checkState;
-
 /**
  * State Machine for {@link AtomixConsistentMap} resource.
  */
 public class AtomixConsistentMapState extends ResourceStateMachine implements SessionListener, Snapshottable {
 
     private final Logger log = getLogger(getClass());
-    private final Map<Long, Commit<? extends AtomixConsistentMapCommands.Listen>> listeners = new HashMap<>();
+    private final Map<Long, Commit<? extends Listen>> listeners = new HashMap<>();
     private final Map<String, MapEntryValue> mapEntries = new HashMap<>();
     private final Set<String> preparedKeys = Sets.newHashSet();
     private final Map<TransactionId, Commit<? extends TransactionPrepare>> pendingTransactions = Maps.newHashMap();

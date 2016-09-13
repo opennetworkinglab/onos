@@ -15,12 +15,13 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.catalyst.serializer.TypeSerializerFactory;
 import io.atomix.manager.util.ResourceManagerTypeResolver;
 import io.atomix.variables.internal.LongCommands;
+
+import java.util.Arrays;
+
 import org.onlab.util.Match;
 import org.onosproject.cluster.Leader;
 import org.onosproject.cluster.Leadership;
@@ -34,22 +35,28 @@ import org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapC
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapFactory;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapFactory;
+import org.onosproject.store.primitives.resources.impl.AtomixDocumentTreeCommands;
+import org.onosproject.store.primitives.resources.impl.AtomixDocumentTreeFactory;
 import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorCommands;
 import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorFactory;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueCommands;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueFactory;
 import org.onosproject.store.primitives.resources.impl.CommitResult;
+import org.onosproject.store.primitives.resources.impl.DocumentTreeUpdateResult;
 import org.onosproject.store.primitives.resources.impl.MapEntryUpdateResult;
 import org.onosproject.store.primitives.resources.impl.PrepareResult;
 import org.onosproject.store.primitives.resources.impl.RollbackResult;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.DocumentPath;
+import org.onosproject.store.service.DocumentTreeEvent;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.Task;
 import org.onosproject.store.service.Versioned;
 import org.onosproject.store.service.WorkQueueStats;
 
-import java.util.Arrays;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 
 /**
  * Serializer utility for Atomix Catalyst.
@@ -69,6 +76,11 @@ public final class CatalystSerializers {
                                                                        Transaction.State.class,
                                                                        PrepareResult.class,
                                                                        CommitResult.class,
+                                                                       DocumentPath.class,
+                                                                       DocumentTreeUpdateResult.class,
+                                                                       DocumentTreeUpdateResult.Status.class,
+                                                                       DocumentTreeEvent.class,
+                                                                       DocumentTreeEvent.Type.class,
                                                                        RollbackResult.class));
         // ONOS classes
         serializer.register(Change.class, factory);
@@ -90,6 +102,11 @@ public final class CatalystSerializers {
         serializer.register(MapEvent.class, factory);
         serializer.register(Task.class, factory);
         serializer.register(WorkQueueStats.class, factory);
+        serializer.register(DocumentPath.class, factory);
+        serializer.register(DocumentTreeUpdateResult.class, factory);
+        serializer.register(DocumentTreeUpdateResult.Status.class, factory);
+        serializer.register(DocumentTreeEvent.class, factory);
+        serializer.register(DocumentTreeEvent.Type.class, factory);
         serializer.register(Maps.immutableEntry("a", "b").getClass(), factory);
         serializer.register(ImmutableList.of().getClass(), factory);
 
@@ -97,6 +114,7 @@ public final class CatalystSerializers {
         serializer.resolve(new AtomixConsistentMapCommands.TypeResolver());
         serializer.resolve(new AtomixLeaderElectorCommands.TypeResolver());
         serializer.resolve(new AtomixWorkQueueCommands.TypeResolver());
+        serializer.resolve(new AtomixDocumentTreeCommands.TypeResolver());
         serializer.resolve(new ResourceManagerTypeResolver());
         serializer.resolve(new AtomixConsistentTreeMapCommands.TypeResolver());
         serializer.resolve(new AtomixConsistentMultimapCommands.TypeResolver());
@@ -104,6 +122,7 @@ public final class CatalystSerializers {
         serializer.registerClassLoader(AtomixConsistentMapFactory.class)
                 .registerClassLoader(AtomixLeaderElectorFactory.class)
                 .registerClassLoader(AtomixWorkQueueFactory.class)
+                .registerClassLoader(AtomixDocumentTreeFactory.class)
                 .registerClassLoader(AtomixConsistentTreeMapFactory.class)
                 .registerClassLoader(AtomixConsistentSetMultimapFactory.class);
 

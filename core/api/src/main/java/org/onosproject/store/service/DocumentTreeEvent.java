@@ -52,6 +52,14 @@ public class DocumentTreeEvent<V> {
     private final Optional<Versioned<V>> newValue;
     private final Optional<Versioned<V>> oldValue;
 
+    @SuppressWarnings("unused")
+    private DocumentTreeEvent() {
+        this.path = null;
+        this.type = null;
+        this.newValue = null;
+        this.oldValue = null;
+    }
+
     /**
      * Constructs a new {@code DocumentTreeEvent}.
      *
