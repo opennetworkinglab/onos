@@ -29,6 +29,7 @@ genrule(
 compile_features(
   name = 'onos-features',
   features = FEATURES,
+  maven_coords = 'org.onosproject:onos-features:xml:features:' + ONOS_VERSION,
 )
 
 staged_repos = ['$(location %s-repo)' % f for f in FEATURES]
@@ -42,7 +43,7 @@ genrule(
   name = 'onos-package',
   srcs = glob(['bin/*', 'etc/*', 'init/*', 'config/*']),
   out = 'onos.tar.gz',
-  bash = '$(exe //buck-tools:onos-stage) $OUT $(location :onos-karaf) ' + ' '.join(sources),
+  bash = '$(exe //buck-tools:onos-stage) $OUT ' + ONOS_VERSION + ' $(location :onos-karaf) ' + ' '.join(sources),
   visibility = [ 'PUBLIC' ],
 )
 

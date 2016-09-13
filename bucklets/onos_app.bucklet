@@ -71,6 +71,7 @@ FEATURES_FOOTER = '</features>'
 def compile_features(
         name,
         features = [],
+        maven_coords = None,
         visibility = [ 'PUBLIC' ],
     ):
 
@@ -83,6 +84,7 @@ def compile_features(
             bash = cmd,
             visibility = visibility,
             out = 'features.xml',
+            maven_coords = maven_coords,
     )
 
 
@@ -136,6 +138,8 @@ def onos_app(
 
     if app_name is None:
         app_name = _get_app_name()
+
+    maven_coords = '%s:%s:oar:%s' % ( ONOS_GROUP_ID, name, ONOS_VERSION )
 
     if title is None:
         print "Missing title for %s" % _get_name()
@@ -201,5 +205,6 @@ def onos_app(
         name = name + '-oar',
         out = 'app.oar',
         bash = '$(exe //buck-tools:onos-app-oar) $OUT ' + ' '.join(sources),
+        maven_coords = maven_coords,
         visibility = visibility,
     )
