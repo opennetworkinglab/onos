@@ -29,5 +29,4 @@ java_test(
     deps = SRC_DEPS +
            TEST_DEPS +
            [CURRENT_TARGET],
-    source_under_test = [CURRENT_TARGET],
 )
