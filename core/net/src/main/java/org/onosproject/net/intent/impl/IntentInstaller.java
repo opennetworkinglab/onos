@@ -215,10 +215,8 @@ class IntentInstaller {
             } else {
                 IntentData uninstall = uninstallData.get();
                 IntentData install = installData.get();
-                List<Intent> uninstallIntents = new ArrayList<>();
-                uninstallIntents.addAll(uninstall.installables());
-                List<Intent> installIntents = new ArrayList<>();
-                installIntents.addAll(install.installables());
+                List<Intent> uninstallIntents = Lists.newArrayList(uninstall.installables());
+                List<Intent> installIntents = Lists.newArrayList(install.installables());
 
                 checkState(uninstallIntents.stream().allMatch(this::isSupported),
                            "Unsupported installable intents detected");
@@ -234,6 +232,8 @@ class IntentInstaller {
                         if (uIntent.equals(installIntent)) {
                             return true;
                         } else if (uIntent instanceof FlowRuleIntent && installIntent instanceof FlowRuleIntent) {
+                            //FIXME we can further optimize this by doing the filtering on a flow-by-flow basis
+                            //      (direction can be implied from intent state)
                             return ((FlowRuleIntent) uIntent).flowRules()
                                     .containsAll(((FlowRuleIntent) installIntent).flowRules());
                         } else {
@@ -241,7 +241,12 @@ class IntentInstaller {
                         }
                     }).findFirst().ifPresent(common -> {
                         uninstallIntents.remove(common);
-                        iterator.remove();
+                        if (INSTALLED.equals(uninstall.state())) {
+                            // only remove the install intent if the existing
+                            // intent (i.e. the uninstall one) is already
+                            // installed or installing
+                            iterator.remove();
+                        }
                     });
                 }
 
