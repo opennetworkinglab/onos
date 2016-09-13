@@ -38,7 +38,6 @@ import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
-import org.onosproject.routing.IntentSynchronizationAdminService;
 import org.onosproject.routing.IntentSynchronizationService;
 import org.slf4j.Logger;
 
@@ -52,7 +51,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 public class Vpls {
-    private static final String VPLS_APP = "org.onosproject.vpls";
+    protected static final String VPLS_APP = "org.onosproject.vpls";
+
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -73,9 +73,6 @@ public class Vpls {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentSynchronizationService intentSynchronizer;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected IntentSynchronizationAdminService intentSynchronizerAdmin;
-
     private final HostListener hostListener = new InternalHostListener();
 
     private final InternalInterfaceListener interfaceListener
@@ -84,6 +81,7 @@ public class Vpls {
     private IntentInstaller intentInstaller;
 
     private ApplicationId appId;
+
 
     @Activate
     public void activate() {
@@ -102,12 +100,13 @@ public class Vpls {
 
         setupConnectivity();
 
-        log.info("Started");
+        log.debug("Activated");
     }
 
     @Deactivate
     public void deactivate() {
-        log.info("Stopped");
+        intentSynchronizer.removeIntentsByAppId(appId);
+        log.debug("Deactivated");
     }
 
     protected void setupConnectivity() {
@@ -130,6 +129,7 @@ public class Vpls {
          * hosts attached.
          */
         intentInstaller.installIntents(confHostPresentCPoint);
+
     }
 
     /**
@@ -146,21 +146,20 @@ public class Vpls {
         interfaceService.getInterfaces()
                 .stream()
                 .filter(intf -> intf.ipAddressesList().isEmpty())
-                .forEach(intf -> confCPointsByVlan.put(intf.vlan(),
-                                                       intf.connectPoint()));
+                .forEach(intf -> confCPointsByVlan.put(intf.vlan(), intf.connectPoint()));
         return confCPointsByVlan;
     }
 
     /**
-     * Checks if for any ConnectPoint configured there's an host present
-     * and in case it associate them together.
+     * Checks if for any ConnectPoint configured there's an host presents
+     * and in case it associates them together.
      *
-     * @param confCPointsByVlan the configured ConnectPoints grouped by vlan id
+     * @param confCPointsByVlan the configured ConnectPoints grouped by VLAN Id
      * @return the configured ConnectPoints with eventual hosts associated.
      */
     protected SetMultimap<VlanId, Pair<ConnectPoint, MacAddress>> pairAvailableHosts(
             SetMultimap<VlanId, ConnectPoint> confCPointsByVlan) {
-        log.debug("Binding connected hosts mac addresses");
+        log.debug("Binding connected hosts MAC addresses");
 
         SetMultimap<VlanId, Pair<ConnectPoint, MacAddress>> confHostPresentCPoint =
                 HashMultimap.create();
@@ -171,9 +170,10 @@ public class Vpls {
         return confHostPresentCPoint;
     }
 
+    // Bind VLAN Id with hosts and connect points
     private void bindMacAddr(Map.Entry<VlanId, ConnectPoint> e,
                              SetMultimap<VlanId, Pair<ConnectPoint,
-                             MacAddress>> confHostPresentCPoint) {
+                                     MacAddress>> confHostPresentCPoint) {
         VlanId vlanId = e.getKey();
         ConnectPoint cp = e.getValue();
         Set<Host> connectedHosts = hostService.getConnectedHosts(cp);

@@ -100,12 +100,13 @@ public class IntentInstaller {
                                 .filter(cp -> !cp.equals(src))
                                 .collect(Collectors.toSet());
                         Key brcKey = buildKey(PREFIX_BROADCAST, src, vlanId);
-                        if (intentService.getIntent(brcKey) == null) {
-                            SinglePointToMultiPointIntent brcIntent =
-                                    buildBrcIntent(brcKey, src, dsts, vlanId);
-                            intents.add(brcIntent);
+
+                        if (intentService.getIntent(brcKey) == null && dsts.size() > 0) {
+                            intents.add(buildBrcIntent(brcKey, src, dsts, vlanId));
                         }
-                        if (mac != null && countMacInCPoints(cPoints) > 1) {
+
+                        if (mac != null && countMacInCPoints(cPoints) > 1 &&
+                                dsts.size() > 0) {
                             Key uniKey = buildKey(PREFIX_UNICAST, src, vlanId);
                             if (intentService.getIntent(uniKey) == null) {
                                 MultiPointToSinglePointIntent uniIntent =
