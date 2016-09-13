@@ -36,8 +36,8 @@ public interface VoltPonLinkConfig extends HandlerBehaviour {
      * Set a parameter value of PON link in the device.
      *
      * @param target input data in string
-     *
+     * @return true if the operation is successful
      */
-    void setPonLink(String target);
+    boolean setPonLink(String target);
 
 }

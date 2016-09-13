@@ -25,6 +25,10 @@ import org.onosproject.netconf.NetconfController;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
@@ -40,14 +44,48 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
         implements VoltPonLinkConfig {
 
     private final Logger log = getLogger(FujitsuVoltPonLinkConfig.class);
-    private final Set<String> ponLinkParams = ImmutableSet.of(
-            "admin-state", "onu-discovery-mode", "onu-discovery-interval",
-            "dba-cycle-time", "mac-age-time", "lof-threshold",
-            "los-threshold", "pm-enable");
+    private static final Map<String, List<Integer>> PON_LINK_PARAMS = new HashMap<String, List<Integer>>() {
+        {
+            put("onu-discovery-interval", Arrays.asList(ONU_DISCOVERY_INTERVAL_MIN, ONU_DISCOVERY_INTERVAL_MAX));
+            put("dba-cycle-time", Arrays.asList(DBA_CYCLE_TIME_MIN, DBA_CYCLE_TIME_MAX));
+            put("mac-age-time", Arrays.asList(MAC_AGE_TIME_MIN, MAC_AGE_TIME_MAX));
+            put("lof-threshold", Arrays.asList(LOF_THRESHOLD_MIN, LOF_THRESHOLD_MAX));
+            put("los-threshold", Arrays.asList(LOS_THRESHOLD_MIN, LOS_THRESHOLD_MAX));
+            put(ONU_DISCOVERY_MODE, null);
+            put(PM_ENABLE, null);
+            put(ADMIN_STATE, null);
+        }
+    };
     private static final String VOLT_PORTS = "volt-ports";
     private static final String GPON_PONLINK_PORTS = "gpon-ponlink-ports";
     private static final String GPON_PONLINK_PORT = "gpon-ponlink-port";
-    private int pon;
+    private static final String ADMIN_STATE = "admin-state";
+    private static final String ONU_DISCOVERY_MODE = "onu-discovery-mode";
+    private static final String PM_ENABLE = "pm-enable";
+    private static final Set<String> ADMINSTATES =
+            ImmutableSet.of("enable", "disable");
+    private static final Set<String> ONUDISCOVERYMODES =
+            ImmutableSet.of("auto", "manual", "disabled");
+    private static final Set<String> PMENABLES =
+            ImmutableSet.of("true", "false");
+
+    private static final int ONU_DISCOVERY_INTERVAL_MIN = 1;
+    private static final int ONU_DISCOVERY_INTERVAL_MAX = 3600;
+    private static final int DBA_CYCLE_TIME_MIN = 2;
+    private static final int DBA_CYCLE_TIME_MAX = 40;
+    private static final int MAC_AGE_TIME_MIN = 1000;
+    private static final int MAC_AGE_TIME_MAX = 3600000;
+    private static final int LOF_THRESHOLD_MIN = 1;
+    private static final int LOF_THRESHOLD_MAX = 10;
+    private static final int LOS_THRESHOLD_MIN = 1;
+    private static final int LOS_THRESHOLD_MAX = 10;
+    private static final int FIRST_PART = 0;
+    private static final int SECOND_PART = 1;
+    private static final int THIRD_PART = 2;
+    private static final int RANGE_MIN = 0;
+    private static final int RANGE_MAX = 1;
+    private static final int ZERO = 0;
+    private static final int THREE = 3;
 
     @Override
     public String getPonLinks(String target) {
@@ -71,10 +109,15 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
             request.append(ANGLE_RIGHT).append(NEW_LINE);
             request.append(buildStartTag(VOLT_PORTS));
             if (target != null) {
+                int pon;
                 try {
                     pon = Integer.parseInt(target);
+                    if (pon <= ZERO) {
+                        log.error("Invalid integer for ponlink-id:{}", target);
+                        return reply;
+                    }
                 } catch (NumberFormatException e) {
-                    log.error("Non-number input");
+                    log.error("Non-number input for ponlink-id:{}", target);
                     return reply;
                 }
                 request.append(buildStartTag(GPON_PONLINK_PORTS));
@@ -91,17 +134,19 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
             request.append(buildEndTag(VOLT_PORTS));
             request.append(VOLT_NE_CLOSE);
 
-            reply = controller.
-                    getDevicesMap().get(ncDeviceId).getSession().
-                    get(request.toString(), REPORT_ALL);
+            reply = controller
+                        .getDevicesMap()
+                        .get(ncDeviceId)
+                        .getSession()
+                        .get(request.toString(), REPORT_ALL);
         } catch (IOException e) {
-            log.error("Cannot communicate to device {} exception ", ncDeviceId, e);
+            log.error("Cannot communicate to device {} exception {}", ncDeviceId, e);
         }
         return reply;
     }
 
     @Override
-    public void setPonLink(String target) {
+    public boolean setPonLink(String target) {
         DriverHandler handler = handler();
         NetconfController controller = handler.get(NetconfController.class);
         MastershipService mastershipService = handler.get(MastershipService.class);
@@ -112,27 +157,16 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
             log.warn("Not master for {} Use {} to execute command",
                      ncDeviceId,
                      mastershipService.getMasterFor(ncDeviceId));
-            return;
+            return false;
         }
 
-        String[] data = target.split(COLON);
-        if (data.length != 3) {
-            log.error("Invalid number of arguments");
-            return;
+        String[] data = checkSetInput(target);
+        if (data == null) {
+            log.error("Failed to check input: {}", target);
+            return false;
         }
 
-        try {
-            pon = Integer.parseInt(data[0]);
-        } catch (NumberFormatException e) {
-            log.error("Non-number input");
-            return;
-        }
-
-        if (!ponLinkParams.contains(data[1])) {
-            log.error("Unsupported parameter: {} ", data[1]);
-            return;
-        }
-
+        boolean result = false;
         try {
             StringBuilder request = new StringBuilder();
             request.append(VOLT_NE_OPEN).append(VOLT_NE_NAMESPACE);
@@ -141,23 +175,117 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
             request.append(buildStartTag(GPON_PONLINK_PORTS));
             request.append(buildStartTag(GPON_PONLINK_PORT));
             request.append(buildStartTag(PONLINK_ID, false));
-            request.append(data[0]);
+            request.append(data[FIRST_PART]);
             request.append(buildEndTag(PONLINK_ID));
 
-            request.append(buildStartTag(data[1], false));
-            request.append(data[2]);
-            request.append(buildEndTag(data[1]));
+            request.append(buildStartTag(data[SECOND_PART], false));
+            request.append(data[THIRD_PART]);
+            request.append(buildEndTag(data[SECOND_PART]));
 
             request.append(buildEndTag(GPON_PONLINK_PORT));
             request.append(buildEndTag(GPON_PONLINK_PORTS));
             request.append(buildEndTag(VOLT_PORTS));
             request.append(VOLT_NE_CLOSE);
 
-            controller.getDevicesMap().get(ncDeviceId).getSession().
+            result = controller.getDevicesMap().get(ncDeviceId).getSession().
                     editConfig(RUNNING, null, request.toString());
         } catch (IOException e) {
-            log.error("Cannot communicate to device {} exception ", ncDeviceId, e);
+            log.error("Cannot communicate to device {} exception {}", ncDeviceId, e);
         }
+        return result;
     }
 
+    /**
+     * Verifies input string for valid options.
+     *
+     * @param target input data in string
+     * @return String array
+     * @return null if an error condition is detected
+     */
+    private String[] checkSetInput(String target) {
+        String[] data = target.split(COLON);
+        String paramName = data[SECOND_PART];
+        String paramValue = data[THIRD_PART];
+        int pon;
+
+        if (data.length != THREE) {
+            log.error("Invalid number of arguments {}", data.length);
+            return null;
+        }
+
+        try {
+            pon = Integer.parseInt(data[FIRST_PART]);
+            if (pon <= ZERO) {
+                log.error("Invalid integer for ponlink-id: {}",
+                          data[FIRST_PART]);
+                return null;
+            }
+        } catch (NumberFormatException e) {
+            log.error("Non-number input for ponlink-id: {}",
+                      data[FIRST_PART]);
+            return null;
+        }
+
+        if (!PON_LINK_PARAMS.containsKey(paramName)) {
+            log.error("Unsupported parameter: {}", paramName);
+            return null;
+        }
+
+        List<Integer> range = PON_LINK_PARAMS.get(paramName);
+        if (range == null) {
+            switch (paramName) {
+                case ADMIN_STATE:
+                    if (!validState(ADMINSTATES, paramName, paramValue)) {
+                        return null;
+                    }
+                    break;
+                case ONU_DISCOVERY_MODE:
+                    if (!validState(ONUDISCOVERYMODES, paramName, paramValue)) {
+                        return null;
+                    }
+                    break;
+                default:
+                    if (!validState(PMENABLES, paramName, paramValue)) {
+                        return null;
+                    }
+                    break;
+            }
+        } else {
+            int value;
+
+            try {
+                value = Integer.parseInt(paramValue);
+            } catch (NumberFormatException e) {
+                log.error("Non-number input for Name {} : Value {}.",
+                          paramName, paramValue);
+                return null;
+            }
+
+            if ((value < range.get(RANGE_MIN)) ||
+                (value > range.get(RANGE_MAX))) {
+                log.error("Out of value range for Name {} : Value {}.",
+                          paramName, paramValue);
+                return null;
+            }
+        }
+
+        return data;
+    }
+
+    /**
+     * Verifies input string for valid options.
+     *
+     * @param states input data in string for parameter state
+     * @param name input data in string for parameter name
+     * @param value input data in string for parameter value
+     * @return true if the param is valid
+     * @return false if the param is invalid
+     */
+    private boolean validState(Set<String> states, String name, String value) {
+        if (!states.contains(value)) {
+            log.error("Invalid value for Name {} : Value {}.", name, value);
+            return false;
+        }
+        return true;
+    }
 }
