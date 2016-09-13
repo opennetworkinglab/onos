@@ -407,7 +407,7 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
                             node.intBridge(),
                             sBuilder.build(),
                             ForwardingObjective.Flag.SPECIFIC,
-                            ROUTING_RULE_PRIORITY));
+                            EW_ROUTING_RULE_PRIORITY));
         });
         log.debug("Removed routing rule from {} to {}", host, osSubNets);
     }
