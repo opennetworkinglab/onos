@@ -1,19 +1,23 @@
+# Comment the remote_jar out for local buck development
 remote_jar (
   name = 'buck-api',
   out = 'buck.jar',
-  url = 'https://github.com/bocon13/buck/releases/download/v2016.07.29.01-wip/buck.jar',
-  sha1 = 'f89324cb869b74fdcd4db9972233065a93d890a2',
+  url = 'https://github.com/bocon13/buck/releases/download/v2016.09.13.01/buck.jar',
+  sha1 = 'd5415b4326e5316675532a8cd48001a8456e8c9e',
   visibility = [],
 )
 
+# Uncomment the prebuilt_jar and copy buck-api to lib/buck.jar for local buck development
+# prebuilt_jar (
+#  name = 'buck-api',
+#  binary_jar = 'lib/buck.jar'
+# )
+
 COMPILE = [
   '//lib:qdox',
-  #'//lib:jackson-core',
-  #'//lib:jackson-databind',
-  #'//lib:jackson-annotations',
-]
-
-RUNTIME = [
+  '//lib:guava',
+  '//lib:bndlib',
+  '//lib:org.apache.felix.scr.bnd'
 ]
 
 java_library(

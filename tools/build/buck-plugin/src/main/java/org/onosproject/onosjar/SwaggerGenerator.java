@@ -102,10 +102,12 @@ public class SwaggerGenerator {
             }
             if (srcs != null) {
                 srcs.forEach(src -> {
-                    try {
-                        builder.addSource(src);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+                    if (src.toString().endsWith(".java")) {
+                        try {
+                            builder.addSource(src);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
                 });
             }

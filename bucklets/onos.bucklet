@@ -114,6 +114,7 @@ def osgi_jar(
     api_description = NONE,
     resources = NONE,
     resources_root = None,
+    tests = None,
     **kwargs
     ):
 
@@ -134,76 +135,42 @@ def osgi_jar(
       resources_root = RESOURCES_ROOT
 
   if api_title != NONE:
-      r = 'WEB-INF/classes/apidoc/swagger.json=bin/swagger.json'
+      r = 'WEB-INF/classes/apidoc/swagger.json=swagger.json'
       include_resources = include_resources + ',' + r if include_resources != NONE else r
 
-  bare_jar_name = name + '-jar'
-  osgi_jar_name = name + '-osgi'
   mvn_coords = group_id + ':' + name + ':' + version
 
-
   onos_jar(
-      name = bare_jar_name,
-      srcs = srcs,
+      name = name,
+      srcs = srcs + glob(['src/main/webapp/**']),
       deps = deps,
-      visibility = [], #intentially, not visible
+      visibility = visibility,
       resources = resources,
       resources_root = resources_root,
+      bundle_name = name,
+      group_id = group_id,
+      bundle_version = version,
+      bundle_license = license,
+      bundle_description = description,
+      import_packages = import_packages,
+      export_packages = export_packages,
+      include_resources = include_resources,
+      dynamicimport_packages = dynamicimport_packages,
       web_context = web_context,
       api_title = api_title,
       api_version = api_version,
       api_package = api_package,
       api_description = api_description,
+      tests = tests,
+      maven_coords = mvn_coords,
       **kwargs
-  )
-
-  cp = ':'.join(['$(classpath %s)' % c for c in deps]) if deps else '""'
-
-  args = ( '$(location :%s)' % bare_jar_name, #input jar
-           '$OUT',                            #output jar
-           cp,                                #classpath
-           name,                              #bundle name
-           group_id,                          #group id
-           version,                           #version
-           license,                           #license url
-           "'%s'" % import_packages,          #packages to import
-           "'%s'" % export_packages,          #packages to export
-           include_resources,                 #custom includes to classpath
-           web_context,                       #web context (REST API only)
-           "'%s'" % dynamicimport_packages,   #DynamicImport-Package
-           description,                       #description
-          )
-
-  #TODO stage_jar is a horrendous hack
-  stage_jar = 'pushd $SRCDIR; mkdir bin; cd bin; jar xf $(location :%s); ls; popd; ' % bare_jar_name
-  wrap_jar = '$(exe //utils/osgiwrap:osgi-jar) ' + ' '.join(args)
-  bash = stage_jar + wrap_jar
-  if debug:
-    bash = stage_jar + DEBUG_ARG + ' ' + wrap_jar
-    print bash
-
-  # FIXME: make sure that /swagger.json gets filtered
-  genrule(
-    name = osgi_jar_name,
-    bash = bash,
-    out = '%s-%s.jar' % (name, version), #FIXME add version to jar file
-    srcs =  glob(['src/main/webapp/**']),
-    visibility = [], #intentially, not visible
-  )
-
-  # TODO we really should shade the jar with maven flavor
-  prebuilt_jar(
-    name = name,
-    maven_coords = mvn_coords,
-    binary_jar = ':' + osgi_jar_name,
-    visibility = visibility,
   )
 
   ### Checkstyle
   checkstyle(
       name = name + '-checkstyle-files',
       srcs = srcs,
-      jar_target = ':'+ bare_jar_name,
+      jar_target = ':'+ name,
   )
 
   java_doc(
@@ -219,7 +186,7 @@ def osgi_jar(
 
   # TODO add project config for intellij
   # project_config(
-  #   src_target = ':' + bare_jar_name,
+  #   src_target = ':' + name,
   #   src_roots = [ 'src/main/java' ],
   #   test_target = ':' + name + '-tests',
   #   test_roots = [ 'src/test/java' ],
@@ -247,6 +214,8 @@ def osgi_jar(
 def osgi_jar_with_tests(
         name = None,
         deps = [],
+        group_id = ONOS_GROUP_ID,
+        version = ONOS_VERSION,
         test_srcs = None,
         test_deps = [ '//lib:TEST' ],
         test_resources = None,
@@ -260,7 +229,10 @@ def osgi_jar_with_tests(
 
   osgi_jar(name = name,
            deps = deps,
+           group_id = group_id,
+           version = version,
            visibility = visibility,
+           tests = [':' + name + '-tests'],
            **kwargs)
 
   if test_resources and not test_resources_root:
@@ -275,16 +247,18 @@ def osgi_jar_with_tests(
   if test_srcs is None:
       test_srcs = glob([TEST + '/*.java'])
 
+  mvn_coords = group_id + ':' + name + ':jar:tests:' + version
+
   java_test(
     name = name + '-tests',
     srcs = test_srcs,
     deps = deps +
            test_deps +
-           [':' + name + '-jar'],
-    source_under_test = [':' + name + '-jar'],
+           [':' + name + '#non-osgi'],
     resources = test_resources,
     resources_root = test_resources_root,
-    visibility = visibility
+    maven_coords = mvn_coords,
+    visibility = visibility,
   )
 
   checkstyle(
@@ -292,5 +266,3 @@ def osgi_jar_with_tests(
       srcs = test_srcs,
       jar_target = ':' + name + '-tests',
   )
-
-  #FIXME need to run checkstyle on test sources

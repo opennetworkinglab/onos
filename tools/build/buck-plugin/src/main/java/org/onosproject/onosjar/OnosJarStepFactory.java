@@ -28,12 +28,14 @@ import com.facebook.buck.rules.BuildableContext;
 import com.facebook.buck.rules.SourcePath;
 import com.facebook.buck.rules.SourcePathResolver;
 import com.facebook.buck.step.Step;
+import com.facebook.buck.step.fs.CopyStep;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -49,6 +51,15 @@ public class OnosJarStepFactory extends JavacToJarStepFactory {
     private final String apiPackage;
     private final String apiDescription;
     private final Optional<ImmutableSortedSet<SourcePath>> resources;
+    private final String groupId;
+    private final String bundleName;
+    private final String bundleVersion;
+    private final String bundleLicense;
+    private final String bundleDescription;
+    private final String importPackages;
+    private final String exportPackages;
+    private final String includeResources;
+    private final String dynamicimportPackages;
 
     public OnosJarStepFactory(JavacOptions javacOptions,
                               JavacOptionsAmender amender,
@@ -57,8 +68,26 @@ public class OnosJarStepFactory extends JavacToJarStepFactory {
                               Optional<String> apiVersion,
                               Optional<String> apiPackage,
                               Optional<String> apiDescription,
-                              Optional<ImmutableSortedSet<SourcePath>> resources) {
+                              Optional<ImmutableSortedSet<SourcePath>> resources,
+                              Optional<String> groupId,
+                              Optional<String> bundleName,
+                              Optional<String> bundleVersion,
+                              Optional<String> bundleLicense,
+                              Optional<String> bundleDescription,
+                              Optional<String> importPackages,
+                              Optional<String> exportPackages,
+                              Optional<String> includeResources,
+                              Optional<String> dynamicimportPackages) {
         super(javacOptions, amender);
+        this.bundleDescription = processParameter(bundleDescription);
+        this.importPackages = processParameter(importPackages);
+        this.exportPackages = processParameter(exportPackages);
+        this.includeResources = processParameter(includeResources);
+        this.dynamicimportPackages = processParameter(dynamicimportPackages);
+        this.groupId = processParameter(groupId);
+        this.bundleName = processParameter(bundleName);
+        this.bundleVersion = processParameter(bundleVersion);
+        this.bundleLicense = processParameter(bundleLicense);
         this.webContext = processParameter(webContext);
         this.apiTitle = processParameter(apiTitle);
         this.apiVersion = processParameter(apiVersion);
@@ -114,6 +143,11 @@ public class OnosJarStepFactory extends JavacToJarStepFactory {
                                                       apiPackage, apiDescription);
             sourceFilePathBuilder.add(swaggerStep.apiRegistratorPath());
             steps.add(swaggerStep);
+
+//            steps.addAll(sourceFilePaths.stream()
+//                    .filter(sp -> sp.startsWith("src/main/webapp/"))
+//                    .map(sp -> CopyStep.forFile(filesystem, sp, outputDirectory))
+//                    .iterator());
         }
 
         createCompileStep(context,
@@ -132,6 +166,7 @@ public class OnosJarStepFactory extends JavacToJarStepFactory {
 
         // post compilation steps
 
+
         // FIXME BOC: add mechanism to inject new Steps
         //context.additionalStepFactory(JavaStep.class);
 
@@ -143,6 +178,28 @@ public class OnosJarStepFactory extends JavacToJarStepFactory {
                                        manifestFile.orNull(),
                                        true,
                                        blacklistBuilder.build()));
+
+        OSGiWrapper osgiStep = new OSGiWrapper(
+                outputJar, //input jar
+                outputJar, //Paths.get(outputJar.toString() + ".jar"), //output jar
+                invokingRule.getBasePath(), // sources dir
+                outputDirectory, // classes dir
+                declaredClasspathEntries, // classpath
+                bundleName, // bundle name
+                groupId, // groupId
+                bundleVersion, // bundle version
+                bundleLicense, // bundle license
+                importPackages, // import packages
+                exportPackages, // export packages
+                includeResources, // include resources
+                webContext, // web context
+                dynamicimportPackages, // dynamic import packages
+                bundleDescription  // bundle description
+        );
+        steps.add(osgiStep);
+
+        //steps.add(CopyStep.forFile(filesystem, Paths.get(outputJar.toString() + ".jar"), outputJar));
+
     }
 
     private ImmutableSortedSet<Path> findSwaggerModelDefs(SourcePathResolver resolver,

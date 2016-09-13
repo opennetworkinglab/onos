@@ -19,13 +19,21 @@ import com.facebook.buck.cli.BuckConfig;
 import com.facebook.buck.jvm.java.CalculateAbi;
 import com.facebook.buck.jvm.java.DefaultJavaLibrary;
 import com.facebook.buck.jvm.java.JavaBuckConfig;
+import com.facebook.buck.jvm.java.JavaLibrary;
 import com.facebook.buck.jvm.java.JavaLibraryDescription;
 import com.facebook.buck.jvm.java.JavaOptions;
+import com.facebook.buck.jvm.java.JavaSourceJar;
 import com.facebook.buck.jvm.java.JavacOptions;
 import com.facebook.buck.jvm.java.JavacOptionsAmender;
 import com.facebook.buck.jvm.java.JavacOptionsFactory;
+import com.facebook.buck.jvm.java.JavacToJarStepFactory;
+import com.facebook.buck.jvm.java.JavadocJar;
+import com.facebook.buck.jvm.java.MavenUberJar;
+import com.facebook.buck.maven.AetherUtil;
 import com.facebook.buck.model.BuildTarget;
 import com.facebook.buck.model.Flavor;
+import com.facebook.buck.model.Flavored;
+import com.facebook.buck.model.ImmutableFlavor;
 import com.facebook.buck.parser.NoSuchBuildTargetException;
 import com.facebook.buck.rules.BuildRule;
 import com.facebook.buck.rules.BuildRuleParams;
@@ -37,7 +45,9 @@ import com.facebook.buck.rules.Description;
 import com.facebook.buck.rules.SourcePathResolver;
 import com.facebook.buck.rules.SourcePaths;
 import com.facebook.buck.rules.TargetGraph;
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
@@ -51,8 +61,16 @@ import static com.facebook.buck.jvm.common.ResourceValidator.validateResources;
  *
  * Currently, this only does Swagger generation.
  */
-public class OnosJarDescription implements Description<OnosJarDescription.Arg> {
+public class OnosJarDescription implements Description<OnosJarDescription.Arg>, Flavored {
     public static final BuildRuleType TYPE = BuildRuleType.of("onos_jar");
+    public static final Flavor NON_OSGI_JAR = ImmutableFlavor.of("non-osgi");
+
+    public static final ImmutableSet<Flavor> SUPPORTED_FLAVORS = ImmutableSet.of(
+            JavaLibrary.SRC_JAR,
+            JavaLibrary.MAVEN_JAR,
+            JavaLibrary.JAVADOC_JAR,
+            NON_OSGI_JAR);
+
     private final JavacOptions defaultJavacOptions;
     private final JavaOptions defaultJavaOptions;
 
@@ -89,6 +107,63 @@ public class OnosJarDescription implements Description<OnosJarDescription.Arg> {
         ImmutableSortedSet<Flavor> flavors = target.getFlavors();
         BuildRuleParams paramsWithMavenFlavor = null;
 
+        if (flavors.contains(JavaLibrary.MAVEN_JAR)) {
+            paramsWithMavenFlavor = params;
+
+            // Maven rules will depend upon their vanilla versions, so the latter have to be constructed
+            // without the maven flavor to prevent output-path conflict
+            params = params.copyWithBuildTarget(
+                    params.getBuildTarget().withoutFlavors(ImmutableSet.of(JavaLibrary.MAVEN_JAR)));
+        }
+
+        if (flavors.contains(JavaLibrary.SRC_JAR)) {
+            args.mavenCoords = args.mavenCoords.transform(
+                    new Function<String, String>() {
+                        @Override
+                        public String apply(String input) {
+                            return AetherUtil.addClassifier(input, AetherUtil.CLASSIFIER_SOURCES);
+                        }
+                    });
+
+            if (!flavors.contains(JavaLibrary.MAVEN_JAR)) {
+                return new JavaSourceJar(
+                        params,
+                        pathResolver,
+                        args.srcs.get(),
+                        args.mavenCoords);
+            } else {
+                return MavenUberJar.SourceJar.create(
+                        Preconditions.checkNotNull(paramsWithMavenFlavor),
+                        pathResolver,
+                        args.srcs.get(),
+                        args.mavenCoords);
+            }
+        }
+
+        if (flavors.contains(JavaLibrary.JAVADOC_JAR)) {
+            args.mavenCoords = args.mavenCoords.transform(
+                    new Function<String, String>() {
+                        @Override
+                        public String apply(String input) {
+                            return AetherUtil.addClassifier(input, AetherUtil.CLASSIFIER_JAVADOC);
+                        }
+                    });
+
+            if (!flavors.contains(JavaLibrary.MAVEN_JAR)) {
+                return new JavadocJar(
+                        params,
+                        pathResolver,
+                        args.srcs.get(),
+                        args.mavenCoords);
+            } else {
+                return MavenUberJar.MavenJavadocJar.create(
+                        Preconditions.checkNotNull(paramsWithMavenFlavor),
+                        pathResolver,
+                        args.srcs.get(),
+                        args.mavenCoords);
+            }
+        }
+
         JavacOptions javacOptions = JavacOptionsFactory.create(
                 defaultJavacOptions,
                 params,
@@ -101,45 +176,84 @@ public class OnosJarDescription implements Description<OnosJarDescription.Arg> {
 
         ImmutableSortedSet<BuildRule> exportedDeps = resolver.getAllRules(args.exportedDeps.get());
 
-        DefaultJavaLibrary defaultJavaLibrary =
-                resolver.addToIndex(
-                        new OnosJar(
-                                params.appendExtraDeps(
-                                        Iterables.concat(
-                                                BuildRules.getExportedRules(
-                                                        Iterables.concat(
-                                                                params.getDeclaredDeps().get(),
-                                                                exportedDeps,
-                                                                resolver.getAllRules(args.providedDeps.get()))),
-                                                pathResolver.filterBuildRuleInputs(
-                                                        javacOptions.getInputs(pathResolver)))),
-                                pathResolver,
-                                args.srcs.get(),
-                                validateResources(
-                                        pathResolver,
-                                        params.getProjectFilesystem(),
-                                        args.resources.get()),
-                                javacOptions.getGeneratedSourceFolderName(),
-                                args.proguardConfig.transform(
-                                        SourcePaths.toSourcePath(params.getProjectFilesystem())),
-                                args.postprocessClassesCommands.get(), // FIXME this should be forbidden
-                                exportedDeps,
-                                resolver.getAllRules(args.providedDeps.get()),
-                                new BuildTargetSourcePath(abiJarTarget),
-                                javacOptions.trackClassUsage(),
+        final DefaultJavaLibrary defaultJavaLibrary;
+        if (!flavors.contains(NON_OSGI_JAR)) {
+            defaultJavaLibrary =
+                    resolver.addToIndex(
+                            new OnosJar(
+                                    params.appendExtraDeps(
+                                            Iterables.concat(
+                                                    BuildRules.getExportedRules(
+                                                            Iterables.concat(
+                                                                    params.getDeclaredDeps().get(),
+                                                                    exportedDeps,
+                                                                    resolver.getAllRules(args.providedDeps.get()))),
+                                                    pathResolver.filterBuildRuleInputs(
+                                                            javacOptions.getInputs(pathResolver)))),
+                                    pathResolver,
+                                    args.srcs.get(),
+                                    validateResources(
+                                            pathResolver,
+                                            params.getProjectFilesystem(),
+                                            args.resources.get()),
+                                    javacOptions.getGeneratedSourceFolderName(),
+                                    args.proguardConfig.transform(
+                                            SourcePaths.toSourcePath(params.getProjectFilesystem())),
+                                    args.postprocessClassesCommands.get(), // FIXME this should be forbidden
+                                    exportedDeps,
+                                    resolver.getAllRules(args.providedDeps.get()),
+                                    new BuildTargetSourcePath(abiJarTarget),
+                                    javacOptions.trackClassUsage(),
                                 /* additionalClasspathEntries */ ImmutableSet.<Path>of(),
-                                new OnosJarStepFactory(javacOptions, JavacOptionsAmender.IDENTITY,
-                                                       args.webContext, args.apiTitle, args.apiVersion,
-                                                       args.apiPackage, args.apiDescription, args.resources),
-                                args.resourcesRoot,
-                                args.mavenCoords,
-                                args.tests.get(),
-                                javacOptions.getClassesToRemoveFromJar(),
-                                args.webContext,
-                                args.apiTitle,
-                                args.apiVersion,
-                                args.apiPackage,
-                                args.apiDescription));
+                                    new OnosJarStepFactory(javacOptions, JavacOptionsAmender.IDENTITY,
+                                                           args.webContext, args.apiTitle, args.apiVersion,
+                                                           args.apiPackage, args.apiDescription, args.resources,
+                                                           args.groupId, args.bundleName, args.bundleVersion,
+                                                           args.bundleLicense, args.bundleDescription, args.importPackages,
+                                                           args.exportPackages, args.includeResources, args.dynamicimportPackages),
+                                    args.resourcesRoot,
+                                    args.mavenCoords,
+                                    args.tests.get(),
+                                    javacOptions.getClassesToRemoveFromJar(),
+                                    args.webContext,
+                                    args.apiTitle,
+                                    args.apiVersion,
+                                    args.apiPackage,
+                                    args.apiDescription));
+        } else {
+            defaultJavaLibrary =
+                    resolver.addToIndex(
+                            new DefaultJavaLibrary(
+                                    params.appendExtraDeps(
+                                            Iterables.concat(
+                                                    BuildRules.getExportedRules(
+                                                            Iterables.concat(
+                                                                    params.getDeclaredDeps().get(),
+                                                                    exportedDeps,
+                                                                    resolver.getAllRules(args.providedDeps.get()))),
+                                                    pathResolver.filterBuildRuleInputs(
+                                                            javacOptions.getInputs(pathResolver)))),
+                                    pathResolver,
+                                    args.srcs.get(),
+                                    validateResources(
+                                            pathResolver,
+                                            params.getProjectFilesystem(),
+                                            args.resources.get()),
+                                    javacOptions.getGeneratedSourceFolderName(),
+                                    args.proguardConfig.transform(
+                                            SourcePaths.toSourcePath(params.getProjectFilesystem())),
+                                    args.postprocessClassesCommands.get(),
+                                    exportedDeps,
+                                    resolver.getAllRules(args.providedDeps.get()),
+                                    new BuildTargetSourcePath(abiJarTarget),
+                                    javacOptions.trackClassUsage(),
+                                    /* additionalClasspathEntries */ ImmutableSet.<Path>of(),
+                                    new JavacToJarStepFactory(javacOptions, JavacOptionsAmender.IDENTITY),
+                                    args.resourcesRoot,
+                                    args.mavenCoords,
+                                    args.tests.get(),
+                                    javacOptions.getClassesToRemoveFromJar()));
+        }
 
         resolver.addToIndex(
                 CalculateAbi.of(
@@ -151,6 +265,10 @@ public class OnosJarDescription implements Description<OnosJarDescription.Arg> {
         return defaultJavaLibrary;
     }
 
+    @Override
+    public boolean hasFlavors(ImmutableSet<Flavor> flavors) {
+        return SUPPORTED_FLAVORS.containsAll(flavors);
+    }
 
     public static class Arg extends JavaLibraryDescription.Arg {
         public Optional<String> webContext;
@@ -158,5 +276,16 @@ public class OnosJarDescription implements Description<OnosJarDescription.Arg> {
         public Optional<String> apiVersion;
         public Optional<String> apiPackage;
         public Optional<String> apiDescription;
+
+        public Optional<String> groupId;
+        public Optional<String> bundleName;
+        public Optional<String> bundleVersion;
+        public Optional<String> bundleLicense;
+        public Optional<String> bundleDescription;
+
+        public Optional<String> importPackages;
+        public Optional<String> exportPackages;
+        public Optional<String> includeResources;
+        public Optional<String> dynamicimportPackages;
     }
 }

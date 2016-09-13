@@ -17,6 +17,10 @@ package org.onosproject.onosjar;
 
 import com.facebook.buck.jvm.java.CompileToJarStepFactory;
 import com.facebook.buck.jvm.java.DefaultJavaLibrary;
+import com.facebook.buck.jvm.java.HasClasspathEntries;
+import com.facebook.buck.jvm.java.HasMavenCoordinates;
+import com.facebook.buck.jvm.java.JavaLibrary;
+import com.facebook.buck.jvm.java.MavenPublishable;
 import com.facebook.buck.model.BuildTarget;
 import com.facebook.buck.rules.AddToRuleKey;
 import com.facebook.buck.rules.BuildRule;
@@ -24,6 +28,7 @@ import com.facebook.buck.rules.BuildRuleParams;
 import com.facebook.buck.rules.SourcePath;
 import com.facebook.buck.rules.SourcePathResolver;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
@@ -36,7 +41,8 @@ import java.util.regex.Pattern;
  * Implementation of a build rule that generates a onosjar.json file for a set
  * of Java sources.
  */
-public class OnosJar extends DefaultJavaLibrary {
+public class OnosJar extends DefaultJavaLibrary
+        implements MavenPublishable{
 
     @AddToRuleKey
     final Optional<String> webContext;
@@ -52,6 +58,8 @@ public class OnosJar extends DefaultJavaLibrary {
 
     @AddToRuleKey
     final Optional<String> apiDescription;
+
+    private final ImmutableSortedSet<HasMavenCoordinates> mavenDeps;
 
     public OnosJar(BuildRuleParams params,
                    SourcePathResolver resolver,
@@ -84,5 +92,32 @@ public class OnosJar extends DefaultJavaLibrary {
         this.apiVersion = apiVersion;
         this.apiPackage = apiPackage;
         this.apiDescription = apiDescription;
+        this.mavenDeps = computeMavenDeps();
+    }
+
+    private ImmutableSortedSet<HasMavenCoordinates> computeMavenDeps() {
+        ImmutableSortedSet.Builder<HasMavenCoordinates> mavenDeps = ImmutableSortedSet.naturalOrder();
+        for (JavaLibrary javaLibrary : getTransitiveClasspathDeps()) {
+            if (this.equals(javaLibrary)) {
+                // no need to include ourself
+                continue;
+            } else if (HasMavenCoordinates.MAVEN_COORDS_PRESENT_PREDICATE.apply(javaLibrary)) {
+                mavenDeps.add(javaLibrary);
+                //FIXME BOC do we always want to exclude all of a maven jar's dependencies? probably.
+                mavenDeps.addAll(javaLibrary.getTransitiveClasspathDeps());
+            }
+        }
+        return mavenDeps.build();
+    }
+
+    @Override
+    public Iterable<HasMavenCoordinates> getMavenDeps() {
+        return mavenDeps;
+    }
+
+    @Override
+    public Iterable<BuildRule> getPackagedDependencies() {
+        //FIXME this is not supported at the moment
+        return ImmutableList.of();
     }
 }
