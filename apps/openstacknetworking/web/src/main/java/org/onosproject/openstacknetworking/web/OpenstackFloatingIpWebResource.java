@@ -118,7 +118,7 @@ public class OpenstackFloatingIpWebResource extends AbstractWebResource {
      */
     @DELETE
     @Path("{id}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteFloatingIp(@PathParam("id") String id) {
         checkNotNull(id);
 

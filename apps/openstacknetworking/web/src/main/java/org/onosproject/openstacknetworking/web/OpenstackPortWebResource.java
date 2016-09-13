@@ -57,6 +57,7 @@ public class OpenstackPortWebResource extends AbstractWebResource {
 
     @Path("{portUUID}")
     @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
     public Response deletePorts(@PathParam("portUUID") String id) {
         return Response.noContent().build();
     }

@@ -57,6 +57,7 @@ public class OpenstackSubnetWebResource extends AbstractWebResource {
 
     @DELETE
     @Path("{subnetId}")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response deleteSubnet(@PathParam("subnetId") String id) {
         return Response.noContent().build();
     }

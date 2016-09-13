@@ -143,6 +143,7 @@ public class OpensatckRouterWebResource extends AbstractWebResource {
 
     @DELETE
     @Path("{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteRouter(@PathParam("id") String id) {
         checkNotNull(id);
         OpenstackRoutingService routingService
