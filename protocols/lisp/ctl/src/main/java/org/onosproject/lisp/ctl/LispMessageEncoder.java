@@ -30,7 +30,8 @@ import java.util.List;
 public class LispMessageEncoder extends MessageToByteEncoder {
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, Object msg,
+                          ByteBuf out) throws Exception {
         if (!(msg instanceof List)) {
             ((LispMessage) msg).writeTo(out);
             return;

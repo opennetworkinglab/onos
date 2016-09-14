@@ -276,20 +276,13 @@ public final class DefaultLispMapNotify implements LispMapNotify {
             // keyId
             byteBuf.writeShort(message.getKeyId());
 
-            // authentication data length in octet
-            byteBuf.writeShort(message.getAuthDataLength());
-
-            // authentication data
-            byte[] data = message.getAuthenticationData();
-            byte[] clone;
-            if (data != null) {
-                clone = data.clone();
-                Arrays.fill(clone, (byte) UNUSED_ZERO);
+            // authentication data and its length
+            if (message.getAuthenticationData() == null) {
+                byteBuf.writeShort((short) 0);
+            } else {
+                byteBuf.writeShort(message.getAuthenticationData().length);
+                byteBuf.writeBytes(message.getAuthenticationData());
             }
-
-            byteBuf.writeBytes(data);
-
-            // TODO: need to implement MAC authentication mechanism
 
             // serialize map records
             MapRecordWriter writer = new MapRecordWriter();
