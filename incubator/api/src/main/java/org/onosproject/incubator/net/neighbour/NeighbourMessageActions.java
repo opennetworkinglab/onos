@@ -36,21 +36,21 @@ public interface NeighbourMessageActions {
     void reply(NeighbourMessageContext context, MacAddress targetMac);
 
     /**
-     * Proxies the incoming message to the given connect point.
+     * Forwards the incoming message to the given connect point.
      *
      * @param context incoming message context
      * @param outPort port to send the message out
      */
-    void proxy(NeighbourMessageContext context, ConnectPoint outPort);
+    void forward(NeighbourMessageContext context, ConnectPoint outPort);
 
     /**
-     * Proxies the incoming message to a given interface.
+     * Forwards the incoming message to a given interface. The message will be
+     * modified to fit the parameters of the outgoing interface.
      *
      * @param context incoming message context
-     * @param outIntf interface to send the message out. The message will be
-     *                modified to fit the parameters of the outgoing interface.
+     * @param outIntf interface to send the message out
      */
-    void proxy(NeighbourMessageContext context, Interface outIntf);
+    void forward(NeighbourMessageContext context, Interface outIntf);
 
     /**
      * Floods the incoming message to all edge ports except the in port.

@@ -85,7 +85,7 @@ import static org.onosproject.net.packet.PacketPriority.CONTROL;
  */
 @Service
 @Component(immediate = true)
-public class NeighbourPacketManager implements NeighbourResolutionService {
+public class NeighbourResolutionManager implements NeighbourResolutionService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -509,16 +509,16 @@ public class NeighbourPacketManager implements NeighbourResolutionService {
 
         @Override
         public void reply(NeighbourMessageContext context, MacAddress targetMac) {
-            NeighbourPacketManager.this.reply(context, targetMac);
+            NeighbourResolutionManager.this.reply(context, targetMac);
         }
 
         @Override
-        public void proxy(NeighbourMessageContext context, ConnectPoint outPort) {
+        public void forward(NeighbourMessageContext context, ConnectPoint outPort) {
             sendTo(context.packet(), outPort);
         }
 
         @Override
-        public void proxy(NeighbourMessageContext context, Interface outIntf) {
+        public void forward(NeighbourMessageContext context, Interface outIntf) {
             // TODO implement
         }
 

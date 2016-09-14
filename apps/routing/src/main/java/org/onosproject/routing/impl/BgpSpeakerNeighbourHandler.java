@@ -142,12 +142,12 @@ public class BgpSpeakerNeighbourHandler {
             case REQUEST:
                 // Reply to requests that target our configured interface IP
                 // address on this port. Drop all other requests.
-
                 interfaceService.getInterfacesByPort(context.inPort())
                         .stream()
                         .filter(intf -> intf.ipAddresses()
                                 .stream()
-                                .anyMatch(ia -> ia.ipAddress().equals(context.target())))
+                                .anyMatch(ia -> ia.ipAddress().equals(context.target()) &&
+                                        ia.subnetAddress().contains(context.sender())))
                         .forEach(intf -> context.reply(intf.mac()));
 
                 break;
