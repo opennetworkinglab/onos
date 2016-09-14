@@ -662,6 +662,7 @@ public class DefaultRoutingHandler {
         if (updatedEcmpSpgMap != null) {
             updatedEcmpSpgMap.remove(deviceId);
         }
+        this.populateRoutingRulesForLinkStatusChange(null);
     }
 
     private final class RetryFilters implements Runnable {
