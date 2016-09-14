@@ -31,6 +31,7 @@ if [ -n "$FORCE_UPDATE" ] || [ ! -f "buck" ] || [ "$REQUIRED_VERSION" != "$(cat 
     chmod 444 .buck_version
     rm -rf ./buck-out
     printf "Successfully downloaded Buck to $ONOS_ROOT/bin/buck\n\n"
+    ONOS_BUILD_PLUGIN="true"
 fi
 popd > /dev/null
 
