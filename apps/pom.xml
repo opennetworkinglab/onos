@@ -79,6 +79,7 @@
         <module>tetopology</module>
         <module>rabbitmq</module>
         <module>learning-switch</module>
+        <module>tenbi</module>
     </modules>
 
 

@@ -1,0 +1,9 @@
+COMPILE = [
+  '//lib:guava',
+]
+
+#yang_library(
+#  deps = COMPILE,
+#  name = 'onos-app-tenbi-yangmodel',
+#  srcs = glob(['src/main/**/*.yang']),
+#)
