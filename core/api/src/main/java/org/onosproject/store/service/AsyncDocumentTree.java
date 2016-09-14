@@ -113,6 +113,7 @@ public interface AsyncDocumentTree<V> extends DistributedPrimitive {
      *
      * @param path path to root of subtree to monitor for updates
      * @param listener listener to be notified
+     * @return a future that is completed when the operation completes
      */
     CompletableFuture<Void> addListener(DocumentPath path, DocumentTreeListener<V> listener);
 
@@ -120,6 +121,7 @@ public interface AsyncDocumentTree<V> extends DistributedPrimitive {
      * Unregisters a previously added listener.
      *
      * @param listener listener to unregister
+     * @return a future that is completed when the operation completes
      */
     CompletableFuture<Void> removeListener(DocumentTreeListener<V> listener);
 
@@ -127,6 +129,7 @@ public interface AsyncDocumentTree<V> extends DistributedPrimitive {
      * Registers a listener to be notified when the tree is modified.
      *
      * @param listener listener to be notified
+     * @return a future that is completed when the operation completes
      */
     default CompletableFuture<Void> addListener(DocumentTreeListener<V> listener) {
         return addListener(root(), listener);

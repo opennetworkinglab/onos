@@ -33,8 +33,6 @@ import com.google.common.collect.Maps;
  * <p>
  * This implementation delegates execution to a backing tree implemented on top of Atomix framework.
  *
- * @See AtomixDocumentTree
- *
  * @param <V> tree node value type.
  */
 public class DefaultDistributedDocumentTree<V> implements AsyncDocumentTree<V> {
