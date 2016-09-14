@@ -253,7 +253,6 @@ public final class DefaultLispMapNotify implements LispMapNotify {
      */
     public static final class NotifyWriter implements LispMessageWriter<LispMapNotify> {
 
-        private static final int NOTIFY_MSG_TYPE = 4;
         private static final int NOTIFY_SHIFT_BIT = 4;
 
         private static final int UNUSED_ZERO = 0;
@@ -262,7 +261,7 @@ public final class DefaultLispMapNotify implements LispMapNotify {
         public void writeTo(ByteBuf byteBuf, LispMapNotify message) throws LispWriterException {
 
             // specify LISP message type
-            byte msgType = (byte) (NOTIFY_MSG_TYPE << NOTIFY_SHIFT_BIT);
+            byte msgType = (byte) (LispType.LISP_MAP_NOTIFY.getTypeCode() << NOTIFY_SHIFT_BIT);
             byteBuf.writeByte(msgType);
 
             // reserved field

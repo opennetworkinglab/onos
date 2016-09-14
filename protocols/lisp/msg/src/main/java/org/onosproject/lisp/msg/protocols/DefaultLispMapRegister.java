@@ -296,7 +296,6 @@ public final class DefaultLispMapRegister implements LispMapRegister {
      */
     public static class RegisterWriter implements LispMessageWriter<LispMapRegister> {
 
-        private static final int REGISTER_MSG_TYPE = 3;
         private static final int REGISTER_SHIFT_BIT = 4;
 
         private static final int PROXY_MAP_REPLY_SHIFT_BIT = 3;
@@ -310,7 +309,7 @@ public final class DefaultLispMapRegister implements LispMapRegister {
         public void writeTo(ByteBuf byteBuf, LispMapRegister message) throws LispWriterException {
 
             // specify LISP message type
-            byte msgType = (byte) (REGISTER_MSG_TYPE << REGISTER_SHIFT_BIT);
+            byte msgType = (byte) (LispType.LISP_MAP_REGISTER.getTypeCode() << REGISTER_SHIFT_BIT);
 
             // proxy map reply flag
             byte proxyMapReply = DISABLE_BIT;

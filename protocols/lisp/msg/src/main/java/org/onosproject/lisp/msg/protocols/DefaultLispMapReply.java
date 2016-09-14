@@ -242,7 +242,6 @@ public final class DefaultLispMapReply implements LispMapReply {
      */
     public static final class ReplyWriter implements LispMessageWriter<LispMapReply> {
 
-        private static final int REPLY_MSG_TYPE = 2;
         private static final int REPLY_SHIFT_BIT = 4;
 
         private static final int PROBE_FLAG_SHIFT_BIT = 3;
@@ -258,7 +257,7 @@ public final class DefaultLispMapReply implements LispMapReply {
         public void writeTo(ByteBuf byteBuf, LispMapReply message) throws LispWriterException {
 
             // specify LISP message type
-            byte msgType = (byte) (REPLY_MSG_TYPE << REPLY_SHIFT_BIT);
+            byte msgType = (byte) (LispType.LISP_MAP_REPLY.getTypeCode() << REPLY_SHIFT_BIT);
 
             // probe flag
             byte probe = DISABLE_BIT;

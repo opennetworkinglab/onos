@@ -369,7 +369,6 @@ public final class DefaultLispMapRequest implements LispMapRequest {
      */
     public static final class RequestWriter implements LispMessageWriter<LispMapRequest> {
 
-        private static final int REQUEST_MSG_TYPE = 1;
         private static final int REQUEST_SHIFT_BIT = 4;
 
         private static final int AUTHORITATIVE_SHIFT_BIT = 3;
@@ -386,7 +385,7 @@ public final class DefaultLispMapRequest implements LispMapRequest {
         public void writeTo(ByteBuf byteBuf, LispMapRequest message) throws LispWriterException {
 
             // specify LISP message type
-            byte msgType = (byte) (REQUEST_MSG_TYPE << REQUEST_SHIFT_BIT);
+            byte msgType = (byte) (LispType.LISP_MAP_REQUEST.getTypeCode() << REQUEST_SHIFT_BIT);
 
             // authoritative flag
             byte authoritative = DISABLE_BIT;
