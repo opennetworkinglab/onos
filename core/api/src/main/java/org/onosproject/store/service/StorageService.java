@@ -114,10 +114,19 @@ public interface StorageService {
      * @param <E> work element type
      * @param name work queue name
      * @param serializer serializer
-     *
      * @return WorkQueue instance
      */
     <E> WorkQueue<E> getWorkQueue(String name, Serializer serializer);
+
+    /**
+     * Returns an instance of {@code AsyncDocumentTree} with specified name.
+     *
+     * @param <V> tree node value type
+     * @param name document tree name
+     * @param serializer serializer
+     * @return AsyncDocumentTree instance
+     */
+    <V> AsyncDocumentTree<V> getDocumentTree(String name, Serializer serializer);
 
     /**
      * Returns an instance of {@code Topic} with specified name.

@@ -15,6 +15,7 @@
  */
 package org.onosproject.vtnrsc.util;
 
+import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.Topic;
 import org.onosproject.store.service.ConsistentTreeMapBuilder;
 import org.onosproject.store.service.WorkQueue;
@@ -79,6 +80,11 @@ public class VtnStorageServiceAdapter implements StorageService {
 
     @Override
     public <T> Topic<T> getTopic(String name, Serializer serializer) {
+        return null;
+    }
+
+    @Override
+    public <V> AsyncDocumentTree<V> getDocumentTree(String name, Serializer serializer) {
         return null;
     }
 }

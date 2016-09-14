@@ -64,7 +64,13 @@ public class StorageServiceAdapter implements StorageService {
         return null;
     }
 
+    @Override
     public <V> ConsistentTreeMapBuilder<V> consistentTreeMapBuilder() {
+        return null;
+    }
+
+    @Override
+    public <V> AsyncDocumentTree<V> getDocumentTree(String name, Serializer serializer) {
         return null;
     }
 }

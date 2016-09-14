@@ -43,6 +43,7 @@ import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.AtomicCounterBuilder;
 import org.onosproject.store.service.AtomicValueBuilder;
 import org.onosproject.store.service.ConsistentMap;
@@ -177,6 +178,12 @@ public class StorageManager implements StorageService, StorageAdminService {
     public <E> WorkQueue<E> getWorkQueue(String name, Serializer serializer) {
         checkPermission(STORAGE_WRITE);
         return federatedPrimitiveCreator.newWorkQueue(name, serializer);
+    }
+
+    @Override
+    public <V> AsyncDocumentTree<V> getDocumentTree(String name, Serializer serializer) {
+        checkPermission(STORAGE_WRITE);
+        return federatedPrimitiveCreator.newAsyncDocumentTree(name, serializer);
     }
 
     @Override

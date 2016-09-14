@@ -22,9 +22,10 @@ import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncDistributedSet;
+import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.AsyncLeaderElector;
-import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.WorkQueue;
 
 /**
  * Interface for entity that can create instances of different distributed primitives.
@@ -97,6 +98,16 @@ public interface DistributedPrimitiveCreator {
      * @return work queue
      */
     <E> WorkQueue<E> newWorkQueue(String name, Serializer serializer);
+
+    /**
+     * Creates a new {@code AsyncDocumentTree}.
+     *
+     * @param <V> document tree node value type
+     * @param name tree name
+     * @param serializer serializer
+     * @return document tree
+     */
+    <V> AsyncDocumentTree<V> newAsyncDocumentTree(String name, Serializer serializer);
 
     /**
      * Returns the names of all created {@code AsyncConsistentMap} instances.

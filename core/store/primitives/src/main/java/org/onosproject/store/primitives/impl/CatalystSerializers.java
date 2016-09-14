@@ -106,7 +106,6 @@ public final class CatalystSerializers {
         serializer.register(DocumentTreeUpdateResult.class, factory);
         serializer.register(DocumentTreeUpdateResult.Status.class, factory);
         serializer.register(DocumentTreeEvent.class, factory);
-        serializer.register(DocumentTreeEvent.Type.class, factory);
         serializer.register(Maps.immutableEntry("a", "b").getClass(), factory);
         serializer.register(ImmutableList.of().getClass(), factory);
 

@@ -41,6 +41,7 @@ import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMap;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMap;
 import org.onosproject.store.primitives.resources.impl.AtomixCounter;
+import org.onosproject.store.primitives.resources.impl.AtomixDocumentTree;
 import org.onosproject.store.primitives.resources.impl.AtomixLeaderElector;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueue;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -49,6 +50,7 @@ import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncDistributedSet;
+import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.DistributedPrimitive.Status;
 import org.onosproject.store.service.PartitionClientInfo;
@@ -188,6 +190,12 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
     public <E> WorkQueue<E> newWorkQueue(String name, Serializer serializer) {
         AtomixWorkQueue workQueue = client.getResource(name, AtomixWorkQueue.class).join();
         return new DefaultDistributedWorkQueue<>(workQueue, serializer);
+    }
+
+    @Override
+    public <V> AsyncDocumentTree<V> newAsyncDocumentTree(String name, Serializer serializer) {
+        AtomixDocumentTree atomixDocumentTree = client.getResource(name, AtomixDocumentTree.class).join();
+        return new DefaultDistributedDocumentTree<>(name, atomixDocumentTree, serializer);
     }
 
     @Override

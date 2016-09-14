@@ -320,10 +320,6 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
             }
         }
 
-        public boolean eventReceived() {
-            return !queue.isEmpty();
-        }
-
         public DocumentTreeEvent<byte[]> event() throws InterruptedException {
             return queue.take();
         }

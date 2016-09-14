@@ -65,7 +65,7 @@ public class AtomixDocumentTreeState
 
     private final Logger log = getLogger(getClass());
     private final Map<Long, Commit<? extends Listen>> listeners = new HashMap<>();
-    private final AtomicLong versionCounter = new AtomicLong(0);
+    private AtomicLong versionCounter = new AtomicLong(0);
     private final DocumentTree<TreeNodeValue> docTree = new DefaultDocumentTree<>(versionCounter::incrementAndGet);
 
     public AtomixDocumentTreeState(Properties properties) {
@@ -79,7 +79,7 @@ public class AtomixDocumentTreeState
 
     @Override
     public void install(SnapshotReader reader) {
-        versionCounter.set(reader.readLong());
+        versionCounter = new AtomicLong(reader.readLong());
     }
 
     @Override
@@ -101,8 +101,7 @@ public class AtomixDocumentTreeState
             commit.close();
             return;
         }
-        commit.session()
-                .onStateChange(
+        commit.session().onStateChange(
                         state -> {
                             if (state == ServerSession.State.CLOSED
                                     || state == ServerSession.State.EXPIRED) {
@@ -262,11 +261,10 @@ public class AtomixDocumentTreeState
                         result.created() ? Type.CREATED : result.newValue() == null ? Type.DELETED : Type.UPDATED,
                         Optional.ofNullable(result.newValue()),
                         Optional.ofNullable(result.oldValue()));
-        Object message = ImmutableList.of(event);
-        listeners.values().forEach(commit -> {
-            commit.session().publish(AtomixDocumentTree.CHANGE_SUBJECT, message);
-            System.out.println("Sent " + message + " to " + commit.session().id());
-        });
+        listeners.values()
+                 .forEach(commit -> commit.session()
+                                          .publish(AtomixDocumentTree.CHANGE_SUBJECT,
+                                                   ImmutableList.of(event)));
     }
 
     @Override
