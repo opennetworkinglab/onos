@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.intent;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,6 +24,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.TestApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -42,8 +42,6 @@ public abstract class ConnectivityIntentTest extends IntentTest {
     public static final IntentId IID = new IntentId(123);
     public static final TrafficSelector MATCH = DefaultTrafficSelector.emptySelector();
     public static final TrafficTreatment NOP = DefaultTrafficTreatment.emptyTreatment();
-    public static final Map<ConnectPoint, TrafficSelector> MATCHES = Collections.emptyMap();
-    public static final Map<ConnectPoint, TrafficTreatment> TREATMENTS = Collections.emptyMap();
 
     public static final ConnectPoint P1 = new ConnectPoint(DeviceId.deviceId("111"), PortNumber.portNumber(0x1));
     public static final ConnectPoint P2 = new ConnectPoint(DeviceId.deviceId("222"), PortNumber.portNumber(0x2));
@@ -52,12 +50,20 @@ public abstract class ConnectivityIntentTest extends IntentTest {
     public static final Set<ConnectPoint> PS1 = itemSet(new ConnectPoint[]{P1, P3});
     public static final Set<ConnectPoint> PS2 = itemSet(new ConnectPoint[]{P2, P3});
 
+
     public static final TrafficSelector VLANMATCH1 = DefaultTrafficSelector.builder()
             .matchVlanId(VlanId.vlanId("2"))
             .build();
     public static final TrafficSelector VLANMATCH2 = DefaultTrafficSelector.builder()
             .matchVlanId(VlanId.vlanId("3"))
             .build();
+
+    public static final FilteredConnectPoint FP1 = new FilteredConnectPoint(P1, VLANMATCH1);
+    public static final FilteredConnectPoint FP2 = new FilteredConnectPoint(P2, VLANMATCH1);
+    public static final FilteredConnectPoint FP3 = new FilteredConnectPoint(P3, VLANMATCH2);
+
+    public static final Set<FilteredConnectPoint> FPS1 = itemSet(new FilteredConnectPoint[]{FP1, FP3});
+    public static final Set<FilteredConnectPoint> FPS2 = itemSet(new FilteredConnectPoint[]{FP2, FP3});
 
     public static final Map<ConnectPoint, TrafficSelector> VLANMATCHES = Maps.newHashMap();
     static {

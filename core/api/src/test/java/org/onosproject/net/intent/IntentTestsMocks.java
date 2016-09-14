@@ -26,7 +26,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.Path;
-import org.onosproject.net.flow.FlowRule.FlowRemoveReason;
+import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.flow.FlowId;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleExtPayLoad;
@@ -155,6 +155,67 @@ public class IntentTestsMocks {
             }
 
             result.add(createPath(src instanceof HostId, dst instanceof HostId, allHops));
+            return result;
+        }
+
+        @Override
+        public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight) {
+            final Set<Path> paths = getPaths(src, dst);
+
+            for (Path path : paths) {
+                final DeviceId srcDevice = path.src().elementId() instanceof DeviceId ? path.src().deviceId() : null;
+                final DeviceId dstDevice = path.dst().elementId() instanceof DeviceId ? path.dst().deviceId() : null;
+                if (srcDevice != null && dstDevice != null) {
+                    final TopologyVertex srcVertex = new DefaultTopologyVertex(srcDevice);
+                    final TopologyVertex dstVertex = new DefaultTopologyVertex(dstDevice);
+                    final Link link = link(src.toString(), 1, dst.toString(), 1);
+
+                    final double weightValue = weight.weight(new DefaultTopologyEdge(srcVertex, dstVertex, link));
+                    if (weightValue < 0) {
+                        return new HashSet<>();
+                    }
+                }
+            }
+            return paths;
+        }
+    }
+
+    /**
+     * Mock path service for creating paths within the test.
+     *
+     */
+    public static class Mp2MpMockPathService
+            extends PathServiceAdapter {
+
+        final String[] pathHops;
+        final String[] reversePathHops;
+
+        /**
+         * Constructor that provides a set of hops to mock.
+         *
+         * @param pathHops path hops to mock
+         */
+        public Mp2MpMockPathService(String[] pathHops) {
+            this.pathHops = pathHops;
+            String[] reversed = pathHops.clone();
+            Collections.reverse(Arrays.asList(reversed));
+            reversePathHops = reversed;
+        }
+
+        @Override
+        public Set<Path> getPaths(ElementId src, ElementId dst) {
+            Set<Path> result = new HashSet<>();
+
+            String[] allHops = new String[pathHops.length + 2];
+            allHops[0] = src.toString();
+            allHops[allHops.length - 1] = dst.toString();
+
+            if (pathHops.length != 0) {
+                System.arraycopy(pathHops, 0, allHops, 1, pathHops.length);
+            }
+
+            result.add(createPath(allHops));
+
             return result;
         }
 
@@ -426,6 +487,16 @@ public class IntentTestsMocks {
             }
             MockTimestamp that = (MockTimestamp) o;
             return this.value - that.value;
+        }
+    }
+
+    /**
+     * Mocks the device service so that a device appears available in the test.
+     */
+    public static class MockDeviceService extends DeviceServiceAdapter {
+        @Override
+        public boolean isAvailable(DeviceId deviceId) {
+            return true;
         }
     }
 

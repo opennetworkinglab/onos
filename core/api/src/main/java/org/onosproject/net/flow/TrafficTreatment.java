@@ -397,6 +397,14 @@ public interface TrafficTreatment {
         Builder extension(ExtensionTreatment extension, DeviceId deviceId);
 
         /**
+         * Add all instructions from another treatment.
+         *
+         * @param treatment another treatment
+         * @return a treatment builder
+         */
+        Builder addTreatment(TrafficTreatment treatment);
+
+        /**
          * Builds an immutable traffic treatment descriptor.
          * <p>
          * If the treatment is empty when build() is called, it will add a default

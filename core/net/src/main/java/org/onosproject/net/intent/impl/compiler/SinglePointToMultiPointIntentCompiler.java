@@ -69,15 +69,13 @@ public class SinglePointToMultiPointIntentCompiler
         Intent result = LinkCollectionIntent.builder()
                 .appId(intent.appId())
                 .key(intent.key())
-                .selector(intent.selector())
                 .treatment(intent.treatment())
                 .links(links)
-                .ingressPoints(ImmutableSet.of(intent.ingressPoint()))
-                .egressPoints(intent.egressPoints())
+                .filteredIngressPoints(ImmutableSet.of(intent.filteredIngressPoint()))
+                .filteredEgressPoints(intent.filteredEgressPoints())
                 .priority(intent.priority())
                 .applyTreatmentOnEgress(true)
                 .constraints(intent.constraints())
-                .egressTreatments(intent.egressTreatments())
                 .build();
 
         return Collections.singletonList(result);

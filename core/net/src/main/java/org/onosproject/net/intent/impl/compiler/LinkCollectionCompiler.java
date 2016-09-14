@@ -17,32 +17,39 @@
 package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.MplsCriterion;
+import org.onosproject.net.flow.criteria.TunnelIdCriterion;
+import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 import org.onosproject.net.flow.instructions.L1ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsBosInstruction;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModTunnelIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsBosInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModTunnelIdInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
-import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpEthInstruction;
-import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpIPInstruction;
-import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpOpInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpIPInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpEthInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpOpInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransportPortInstruction;
 import org.onosproject.net.intent.IntentCompilationException;
@@ -53,10 +60,18 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.onosproject.net.flow.criteria.Criterion.Type.MPLS_LABEL;
+import static org.onosproject.net.flow.criteria.Criterion.Type.TUNNEL_ID;
+import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
+
+
 /**
  * Shared APIs and implementations for Link Collection compilers.
  */
 public class LinkCollectionCompiler<T> {
+
+    private static final Set<Criterion.Type> TAG_CRITERION_TYPES =
+            Sets.immutableEnumSet(VLAN_VID, MPLS_LABEL, TUNNEL_ID);
 
     /**
      * Helper class to encapsulate treatment and selector.
@@ -107,13 +122,13 @@ public class LinkCollectionCompiler<T> {
         for (ConnectPoint egressPoint : intent.egressPoints()) {
             outputPorts.put(egressPoint.deviceId(), egressPoint.port());
         }
-
     }
 
     /**
-     * Helper method to compute ingress and egress ports.
+     * Gets ingress and egress port number of specific device.
      *
-     * @param intent the related intents
+     * @param intent the related
+     * @param deviceId device Id
      * @param ingressPorts the ingress ports to compute
      * @param egressPorts the egress ports to compute
      */
@@ -156,11 +171,11 @@ public class LinkCollectionCompiler<T> {
      * in the flow representation (Rule, Objective).
      *
      * @param intent the intent to compile
-     * @param inPort the input port
+     * @param inPort the input port of this device
      * @param deviceId the current device
-     * @param outPorts the output ports
-     * @param ingressPorts the ingress ports
-     * @param egressPorts the egress ports
+     * @param outPorts the output ports of this device
+     * @param ingressPorts intent ingress ports of this device
+     * @param egressPorts intent egress ports of this device
      * @return the forwarding instruction object which encapsulates treatment and selector
      */
     protected ForwardingInstructions createForwardingInstructions(LinkCollectionIntent intent,
@@ -170,119 +185,214 @@ public class LinkCollectionCompiler<T> {
                                                                   Set<PortNumber> ingressPorts,
                                                                   Set<PortNumber> egressPorts) {
 
-        TrafficTreatment.Builder defaultTreatmentBuilder = DefaultTrafficTreatment.builder();
-        outPorts.forEach(defaultTreatmentBuilder::setOutput);
-        TrafficTreatment outputOnlyTreatment = defaultTreatmentBuilder.build();
-        TrafficSelector.Builder selectorBuilder;
-        TrafficTreatment treatment;
-        TrafficTreatment intentTreatment;
+        TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder(intent.selector());
+        selectorBuilder.matchInPort(inPort);
 
         if (!intent.applyTreatmentOnEgress()) {
-            TrafficTreatment.Builder ingressTreatmentBuilder = DefaultTrafficTreatment.builder(intent.treatment());
-            outPorts.forEach(ingressTreatmentBuilder::setOutput);
-            intentTreatment = ingressTreatmentBuilder.build();
+            // FIXME: currently, we assume this intent is compile from mp2sp intent
+            Optional<FilteredConnectPoint> filteredIngressPoint =
+                    getFilteredConnectPointFromIntent(deviceId, inPort, intent);
+            Optional<FilteredConnectPoint> filteredEgressPoint =
+                    intent.filteredEgressPoints().stream().findFirst();
 
-            if (ingressPorts.contains(inPort)) {
-                if (intent.ingressSelectors() != null && !intent.ingressSelectors().isEmpty()) {
-                    /**
-                     * We iterate on the ingress points looking for the connect point
-                     * associated to inPort.
-                     */
-                    Optional<ConnectPoint> connectPoint = intent.ingressPoints()
-                            .stream()
-                            .filter(ingressPoint -> ingressPoint.port().equals(inPort)
-                                    && ingressPoint.deviceId().equals(deviceId))
-                            .findFirst();
-                    if (connectPoint.isPresent()) {
-                        selectorBuilder = DefaultTrafficSelector
-                                .builder(intent.ingressSelectors().get(connectPoint.get()));
-                    } else {
-                        throw new IntentCompilationException("Looking for connect point associated to the selector." +
-                                                                     "inPort not in IngressPoints");
-                    }
+            if (filteredIngressPoint.isPresent()) {
+                // Ingress device
+                intent.treatment().allInstructions().stream()
+                        .filter(inst -> inst.type() != Instruction.Type.NOACTION)
+                        .forEach(treatmentBuilder::add);
+
+                if (filteredEgressPoint.isPresent()) {
+                    // Apply selector from ingress point
+                    filteredIngressPoint.get()
+                            .trafficSelector()
+                            .criteria()
+                            .forEach(selectorBuilder::add);
+
+                    TrafficTreatment forwardingTreatment =
+                            forwardingTreatment(filteredIngressPoint.get(),
+                                                filteredEgressPoint.get());
+
+                    forwardingTreatment.allInstructions().stream()
+                            .filter(inst -> inst.type() != Instruction.Type.NOACTION)
+                            .forEach(treatmentBuilder::add);
                 } else {
-                    selectorBuilder = DefaultTrafficSelector.builder(intent.selector());
+                    throw new IntentCompilationException("Can't find filtered connection point");
                 }
-                treatment = this.updateBuilder(ingressTreatmentBuilder, selectorBuilder.build()).build();
+
             } else {
-                selectorBuilder = this.createSelectorFromFwdInstructions(
-                        new ForwardingInstructions(intentTreatment, intent.selector())
-                );
-                treatment = outputOnlyTreatment;
+                // Not ingress device, won't apply treatments.
+                // Use selector by treatment from intent.
+                updateBuilder(selectorBuilder, intent.treatment());
+
+                // Selector should be overridden by selector from connect point.
+                if (filteredEgressPoint.isPresent()) {
+                    filteredEgressPoint.get()
+                            .trafficSelector()
+                            .criteria()
+                            .forEach(selectorBuilder::add);
+                }
+
             }
+
+            outPorts.forEach(treatmentBuilder::setOutput);
+
         } else {
-            if (outPorts.stream().allMatch(egressPorts::contains)) {
-                TrafficTreatment.Builder egressTreatmentBuilder = DefaultTrafficTreatment.builder();
-                if (intent.egressTreatments() != null && !intent.egressTreatments().isEmpty()) {
-                    for (PortNumber outPort : outPorts) {
-                        Optional<ConnectPoint> connectPoint = intent.egressPoints()
-                                .stream()
-                                .filter(egressPoint -> egressPoint.port().equals(outPort)
-                                        && egressPoint.deviceId().equals(deviceId))
-                                .findFirst();
-                        if (connectPoint.isPresent()) {
-                            TrafficTreatment egressTreatment = intent.egressTreatments().get(connectPoint.get());
-                            this.addTreatment(egressTreatmentBuilder, egressTreatment);
-                            egressTreatmentBuilder = this.updateBuilder(egressTreatmentBuilder, intent.selector());
-                            egressTreatmentBuilder.setOutput(outPort);
-                        } else {
-                            throw new IntentCompilationException("Looking for connect point associated to " +
-                                                                         "the treatment. outPort not in egressPoints");
-                        }
-                    }
-                } else {
-                    egressTreatmentBuilder = this
-                            .updateBuilder(DefaultTrafficTreatment.builder(intent.treatment()), intent.selector());
-                    outPorts.forEach(egressTreatmentBuilder::setOutput);
-                }
-                selectorBuilder = DefaultTrafficSelector.builder(intent.selector());
-                treatment = egressTreatmentBuilder.build();
+            // FIXME: currently, we assume this intent is compile from sp2mp intent
+            Optional<FilteredConnectPoint> filteredIngressPoint =
+                    intent.filteredIngressPoints().stream().findFirst();
+
+            if (filteredIngressPoint.isPresent()) {
+                // Apply selector from ingress point
+                filteredIngressPoint.get()
+                        .trafficSelector()
+                        .criteria()
+                        .forEach(selectorBuilder::add);
             } else {
-                selectorBuilder = DefaultTrafficSelector.builder(intent.selector());
-                treatment = outputOnlyTreatment;
+                throw new IntentCompilationException(
+                        "Filtered connection point for ingress" +
+                                "point does not exist");
+            }
+
+            for (PortNumber outPort : outPorts) {
+                Optional<FilteredConnectPoint> filteredEgressPoint =
+                        getFilteredConnectPointFromIntent(deviceId, outPort, intent);
+
+                if (filteredEgressPoint.isPresent()) {
+                    // Egress port, apply treatment + forwarding treatment
+                    intent.treatment().allInstructions().stream()
+                            .filter(inst -> inst.type() != Instruction.Type.NOACTION)
+                            .forEach(treatmentBuilder::add);
+
+                    TrafficTreatment forwardingTreatment =
+                            forwardingTreatment(filteredIngressPoint.get(),
+                                                filteredEgressPoint.get());
+                    forwardingTreatment.allInstructions().stream()
+                            .filter(inst -> inst.type() != Instruction.Type.NOACTION)
+                            .forEach(treatmentBuilder::add);
+                }
+
+                treatmentBuilder.setOutput(outPort);
+
+            }
+
+        }
+
+
+        return new ForwardingInstructions(treatmentBuilder.build(), selectorBuilder.build());
+
+    }
+
+    /**
+     * Get FilteredConnectPoint from LinkCollectionIntent.
+     * @param deviceId device Id for connect point
+     * @param portNumber port number
+     * @param intent source intent
+     * @return filtered connetion point
+     */
+    private Optional<FilteredConnectPoint> getFilteredConnectPointFromIntent(DeviceId deviceId,
+                                                                             PortNumber portNumber,
+                                                                             LinkCollectionIntent intent) {
+        Set<FilteredConnectPoint> filteredConnectPoints =
+                Sets.union(intent.filteredIngressPoints(), intent.filteredEgressPoints());
+        return filteredConnectPoints.stream()
+                .filter(port -> port.connectPoint().deviceId().equals(deviceId))
+                .filter(port -> port.connectPoint().port().equals(portNumber))
+                .findFirst();
+    }
+
+    /**
+     * Get tag criterion from selector.
+     * The criterion should be one of type in tagCriterionTypes.
+     *
+     * @param selector selector
+     * @return Criterion that matched, if there is no tag criterion, return null
+     */
+    private Criterion getTagCriterion(TrafficSelector selector) {
+        return selector.criteria().stream()
+                .filter(criterion -> TAG_CRITERION_TYPES.contains(criterion.type()))
+                .findFirst()
+                .orElse(Criteria.dummy());
+
+    }
+
+    /**
+     * Compares tag type between ingress and egress point and generate
+     * treatment for egress point of intent.
+     *
+     * @param ingress ingress point for the intent
+     * @param egress egress point for the intent
+     * @return Builder of TrafficTreatment
+     */
+    private TrafficTreatment forwardingTreatment(FilteredConnectPoint ingress,
+                                                         FilteredConnectPoint egress) {
+
+
+        if (ingress.trafficSelector().equals(egress.trafficSelector())) {
+            return DefaultTrafficTreatment.emptyTreatment();
+        }
+
+        TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
+
+        /*
+         * "null" means there is no tag for the port
+         * Tag criterion will be null if port is normal connection point
+         */
+        Criterion ingressTagCriterion = getTagCriterion(ingress.trafficSelector());
+        Criterion egressTagCriterion = getTagCriterion(egress.trafficSelector());
+
+        if (ingressTagCriterion.type() != egressTagCriterion.type()) {
+
+            /*
+             * Tag type of ingress port and egress port are different.
+             * Need to remove tag from ingress, then add new tag for egress.
+             * Remove nothing if ingress port use VXLAN or there is no tag
+             * on ingress port.
+             */
+            switch (ingressTagCriterion.type()) {
+                case VLAN_VID:
+                    builder.popVlan();
+                    break;
+                case MPLS_LABEL:
+                    builder.popMpls();
+                    break;
+                default:
+                    break;
+            }
+
+            /*
+             * Push new tag for egress port.
+             */
+            switch (egressTagCriterion.type()) {
+                case VLAN_VID:
+                    builder.pushVlan();
+                    break;
+                case MPLS_LABEL:
+                    builder.pushMpls();
+                    break;
+                default:
+                    break;
             }
         }
 
-        TrafficSelector selector = selectorBuilder.matchInPort(inPort).build();
-
-        return new ForwardingInstructions(treatment, selector);
-
-    }
-
-    /**
-     * Update a builder using a treatment.
-     * @param builder the builder to update
-     * @param treatment the treatment to add
-     * @return the new builder
-     */
-    private TrafficTreatment.Builder addTreatment(TrafficTreatment.Builder builder, TrafficTreatment treatment) {
-        builder.deferred();
-        for (Instruction instruction : treatment.deferred()) {
-            builder.add(instruction);
+        switch (egressTagCriterion.type()) {
+            case VLAN_VID:
+                VlanIdCriterion vlanIdCriterion = (VlanIdCriterion) egressTagCriterion;
+                builder.setVlanId(vlanIdCriterion.vlanId());
+                break;
+            case MPLS_LABEL:
+                MplsCriterion mplsCriterion = (MplsCriterion) egressTagCriterion;
+                builder.setMpls(mplsCriterion.label());
+                break;
+            case TUNNEL_ID:
+                TunnelIdCriterion tunnelIdCriterion = (TunnelIdCriterion) egressTagCriterion;
+                builder.setTunnelId(tunnelIdCriterion.tunnelId());
+                break;
+            default:
+                break;
         }
-        builder.immediate();
-        for (Instruction instruction : treatment.immediate()) {
-            builder.add(instruction);
-        }
-        return builder;
-    }
 
-    /**
-     * Update the original builder with the necessary operations
-     * to have a correct forwarding given an ingress selector.
-     * TODO
-     * This means that if the ingress selectors match on different vlanids and
-     * the egress treatment rewrite the vlanid the forwarding works
-     * but if we need to push for example an mpls label at the egress
-     * we need to implement properly this method.
-     *
-     * @param treatmentBuilder the builder to modify
-     * @param intentSelector the intent selector to use as input
-     * @return the new treatment created
-     */
-    private TrafficTreatment.Builder updateBuilder(TrafficTreatment.Builder treatmentBuilder,
-                                                   TrafficSelector intentSelector) {
-        return treatmentBuilder;
+        return builder.build();
     }
 
     /**
@@ -467,46 +577,45 @@ public class LinkCollectionCompiler<T> {
     }
 
     /**
-     * Computes the new traffic selector using the
-     * forwarding instructions.
+     * Update selector builder by using treatment.
      *
-     * @param fwInstructions it encapsulates the instructions to compute the new selector
-     * @return the traffic selector builder
+     * @param builder builder to update
+     * @param treatment traffic treatment
      */
-    private TrafficSelector.Builder createSelectorFromFwdInstructions(ForwardingInstructions fwInstructions) {
-            TrafficSelector.Builder defaultSelectorBuilder = DefaultTrafficSelector.builder(fwInstructions.selector());
-            fwInstructions.treatment().allInstructions().forEach(instruction -> {
-                switch (instruction.type()) {
-                    case L0MODIFICATION:
-                        updateBuilder(defaultSelectorBuilder, (L0ModificationInstruction) instruction);
-                        break;
-                    case L1MODIFICATION:
-                        updateBuilder(defaultSelectorBuilder, (L1ModificationInstruction) instruction);
-                        break;
-                    case L2MODIFICATION:
-                        updateBuilder(defaultSelectorBuilder, (L2ModificationInstruction) instruction);
-                        break;
-                    case L3MODIFICATION:
-                        updateBuilder(defaultSelectorBuilder, (L3ModificationInstruction) instruction);
-                        break;
-                    case L4MODIFICATION:
-                        updateBuilder(defaultSelectorBuilder, (L4ModificationInstruction) instruction);
-                        break;
-                    case NOACTION:
-                    case OUTPUT:
-                    case GROUP:
-                    case QUEUE:
-                    case TABLE:
-                    case METER:
-                    case METADATA:
-                    case EXTENSION: // TODO is extension no-op or unsupported?
-                        // Nothing to do
-                        break;
-                    default:
-                        throw new IntentCompilationException("Unknown instruction type");
-                }
-            });
-            return defaultSelectorBuilder;
+    private void updateBuilder(TrafficSelector.Builder builder, TrafficTreatment treatment) {
+
+        treatment.allInstructions().forEach(instruction -> {
+            switch (instruction.type()) {
+                case L0MODIFICATION:
+                    updateBuilder(builder, (L0ModificationInstruction) instruction);
+                    break;
+                case L1MODIFICATION:
+                    updateBuilder(builder, (L1ModificationInstruction) instruction);
+                    break;
+                case L2MODIFICATION:
+                    updateBuilder(builder, (L2ModificationInstruction) instruction);
+                    break;
+                case L3MODIFICATION:
+                    updateBuilder(builder, (L3ModificationInstruction) instruction);
+                    break;
+                case L4MODIFICATION:
+                    updateBuilder(builder, (L4ModificationInstruction) instruction);
+                    break;
+                case NOACTION:
+                case OUTPUT:
+                case GROUP:
+                case QUEUE:
+                case TABLE:
+                case METER:
+                case METADATA:
+                case EXTENSION: // TODO is extension no-op or unsupported?
+                    // Nothing to do
+                    break;
+                default:
+                    throw new IntentCompilationException("Unknown instruction type");
+            }
+        });
+
     }
 
 }

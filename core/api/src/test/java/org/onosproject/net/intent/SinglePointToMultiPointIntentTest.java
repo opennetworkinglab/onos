@@ -15,9 +15,7 @@
  */
 package org.onosproject.net.intent;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static org.junit.Assert.assertEquals;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
@@ -42,41 +40,28 @@ public class SinglePointToMultiPointIntentTest extends ConnectivityIntentTest {
         assertEquals("incorrect match", MATCH, intent.selector());
         assertEquals("incorrect ingress", P1, intent.ingressPoint());
         assertEquals("incorrect egress", PS2, intent.egressPoints());
+
+        intent = createAnother();
+        assertEquals("incorrect id", APPID, intent.appId());
+        assertEquals("incorrect match", MATCH, intent.selector());
+        assertEquals("incorrect ingress", P2, intent.ingressPoint());
+        assertEquals("incorrect egress", PS1, intent.egressPoints());
     }
 
-    @Rule
-    public ExpectedException wrongMultiple = ExpectedException.none();
-
     @Test
-    public void multipleTreatments() {
-
-        SinglePointToMultiPointIntent intent = createFirstMultiple();
+    public void filteredIntent() {
+        SinglePointToMultiPointIntent intent = createFilteredOne();
         assertEquals("incorrect id", APPID, intent.appId());
         assertEquals("incorrect match", MATCH, intent.selector());
-        assertEquals("incorrect ingress", P1, intent.ingressPoint());
-        assertEquals("incorrect egress", PS2, intent.egressPoints());
-        assertEquals("incorrect treatment", NOP, intent.treatment());
-        assertEquals("incorrect treatments", TREATMENTS, intent.egressTreatments());
+        assertEquals("incorrect filtered ingress", FP2, intent.filteredIngressPoint());
+        assertEquals("incorrect filtered egress", FPS1, intent.filteredEgressPoints());
 
-        intent = createSecondMultiple();
+        intent = createAnotherFiltered();
         assertEquals("incorrect id", APPID, intent.appId());
         assertEquals("incorrect match", MATCH, intent.selector());
-        assertEquals("incorrect ingress", P1, intent.ingressPoint());
-        assertEquals("incorrect egress", PS2, intent.egressPoints());
-        assertEquals("incorrect treatment", VLANACTION1, intent.treatment());
-        assertEquals("incorrect selectors", TREATMENTS, intent.egressTreatments());
+        assertEquals("incorrect filtered ingress", FP1, intent.filteredIngressPoint());
+        assertEquals("incorrect filtered egress", FPS2, intent.filteredEgressPoints());
 
-        intent = createThirdMultiple();
-        assertEquals("incorrect id", APPID, intent.appId());
-        assertEquals("incorrect match", MATCH, intent.selector());
-        assertEquals("incorrect ingress", P1, intent.ingressPoint());
-        assertEquals("incorrect egress", PS2, intent.egressPoints());
-        assertEquals("incorrect treatment", NOP, intent.treatment());
-        assertEquals("incorrect selectors", VLANACTIONS, intent.egressTreatments());
-
-        wrongMultiple.expect(IllegalArgumentException.class);
-        wrongMultiple.expectMessage("Treatment and Multiple Treatments are both set");
-        intent = createWrongMultiple();
     }
 
     @Override
@@ -101,48 +86,31 @@ public class SinglePointToMultiPointIntentTest extends ConnectivityIntentTest {
                 .build();
     }
 
-
-    protected SinglePointToMultiPointIntent createFirstMultiple() {
+    protected SinglePointToMultiPointIntent createFilteredOne() {
         return SinglePointToMultiPointIntent.builder()
                 .appId(APPID)
-                .selector(MATCH)
                 .treatment(NOP)
-                .ingressPoint(P1)
-                .egressPoints(PS2)
-                .treatments(TREATMENTS)
+                .filteredEgressPoints(FPS1)
+                .filteredIngressPoint(FP2)
                 .build();
     }
 
-    protected SinglePointToMultiPointIntent createSecondMultiple() {
+    protected SinglePointToMultiPointIntent createAnotherFiltered() {
         return SinglePointToMultiPointIntent.builder()
                 .appId(APPID)
-                .selector(MATCH)
-                .treatment(VLANACTION1)
-                .ingressPoint(P1)
-                .egressPoints(PS2)
-                .treatments(TREATMENTS)
-                .build();
-    }
-
-    protected SinglePointToMultiPointIntent createThirdMultiple() {
-        return SinglePointToMultiPointIntent.builder()
-                .appId(APPID)
-                .selector(MATCH)
                 .treatment(NOP)
-                .ingressPoint(P1)
-                .egressPoints(PS2)
-                .treatments(VLANACTIONS)
+                .filteredEgressPoints(FPS2)
+                .filteredIngressPoint(FP1)
                 .build();
     }
 
-    protected SinglePointToMultiPointIntent createWrongMultiple() {
+    protected SinglePointToMultiPointIntent createWrongIntent() {
         return SinglePointToMultiPointIntent.builder()
                 .appId(APPID)
-                .selector(MATCH)
-                .treatment(VLANACTION1)
-                .ingressPoint(P1)
-                .egressPoints(PS2)
-                .treatments(VLANACTIONS)
+                .treatment(NOP)
+                .selector(VLANMATCH1)
+                .filteredEgressPoints(FPS2)
+                .filteredIngressPoint(FP1)
                 .build();
     }
 

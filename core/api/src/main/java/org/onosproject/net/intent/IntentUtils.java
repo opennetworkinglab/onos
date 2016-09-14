@@ -57,19 +57,19 @@ public final class IntentUtils {
             SinglePointToMultiPointIntent intent2 = (SinglePointToMultiPointIntent) two;
 
             return Objects.equals(intent1.selector(), intent2.selector()) &&
-                    Objects.equals(intent1.treatment(), intent2.treatment()) &&
-                    Objects.equals(intent1.constraints(), intent2.constraints()) &&
-                    Objects.equals(intent1.ingressPoint(), intent2.ingressPoint()) &&
-                    Objects.equals(intent1.egressPoints(), intent2.egressPoints());
+                   Objects.equals(intent1.treatment(), intent2.treatment()) &&
+                   Objects.equals(intent1.filteredIngressPoint(), intent2.filteredIngressPoint()) &&
+                   Objects.equals(intent1.filteredEgressPoints(), intent2.filteredEgressPoints()) &&
+                   Objects.equals(intent1.constraints(), intent2.constraints());
         } else if (one instanceof MultiPointToSinglePointIntent) {
             MultiPointToSinglePointIntent intent1 = (MultiPointToSinglePointIntent) one;
             MultiPointToSinglePointIntent intent2 = (MultiPointToSinglePointIntent) two;
 
             return Objects.equals(intent1.selector(), intent2.selector()) &&
-                    Objects.equals(intent1.treatment(), intent2.treatment()) &&
-                    Objects.equals(intent1.constraints(), intent2.constraints()) &&
-                    Objects.equals(intent1.ingressPoints(), intent2.ingressPoints()) &&
-                    Objects.equals(intent1.egressPoint(), intent2.egressPoint());
+                   Objects.equals(intent1.filteredIngressPoints(), intent2.filteredIngressPoints()) &&
+                   Objects.equals(intent1.filteredEgressPoint(), intent2.filteredEgressPoint()) &&
+                   Objects.equals(intent1.treatment(), intent2.treatment()) &&
+                   Objects.equals(intent1.constraints(), intent2.constraints());
         } else if (one instanceof PointToPointIntent) {
             PointToPointIntent intent1 = (PointToPointIntent) one;
             PointToPointIntent intent2 = (PointToPointIntent) two;
