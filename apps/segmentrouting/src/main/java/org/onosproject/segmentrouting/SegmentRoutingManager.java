@@ -693,6 +693,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     if (event.type() == LinkEvent.Type.LINK_ADDED) {
                         processLinkAdded((Link) event.subject());
                     } else if (event.type() == LinkEvent.Type.LINK_REMOVED) {
+                        Link linkRemoved = (Link) event.subject();
+                        if (linkRemoved.src().elementId() instanceof DeviceId &&
+                                !deviceService.isAvailable(linkRemoved.src().deviceId())) {
+                            continue;
+                        }
+                        if (linkRemoved.dst().elementId() instanceof DeviceId &&
+                                !deviceService.isAvailable(linkRemoved.dst().deviceId())) {
+                            continue;
+                        }
                         processLinkRemoved((Link) event.subject());
                     } else if (event.type() == DeviceEvent.Type.DEVICE_ADDED ||
                             event.type() == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED ||
