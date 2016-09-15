@@ -111,7 +111,7 @@ public class NeighbourResolutionManager implements NeighbourResolutionService {
     private static final String APP_NAME = "org.onosproject.neighbour";
     private ApplicationId appId;
 
-    private SetMultimap<ConnectPoint, NeighbourHandlerRegistration> packetHandlers =
+    private final SetMultimap<ConnectPoint, NeighbourHandlerRegistration> packetHandlers =
             Multimaps.synchronizedSetMultimap(HashMultimap.create());
 
     private final InternalPacketProcessor processor = new InternalPacketProcessor();
@@ -146,7 +146,11 @@ public class NeighbourResolutionManager implements NeighbourResolutionService {
                     ndpEnabled ? "enabled" : "disabled");
         }
 
-        requestPackets();
+        synchronized (packetHandlers) {
+            if (!packetHandlers.isEmpty()) {
+                requestPackets();
+            }
+        }
     }
 
     private void requestPackets() {
@@ -199,30 +203,47 @@ public class NeighbourResolutionManager implements NeighbourResolutionService {
     public void registerNeighbourHandler(ConnectPoint connectPoint,
                                          NeighbourMessageHandler handler,
                                          ApplicationId appId) {
-        packetHandlers.put(connectPoint, new HandlerRegistration(handler, appId));
+        register(connectPoint, new HandlerRegistration(handler, appId));
     }
 
     @Override
     public void registerNeighbourHandler(Interface intf,
                                          NeighbourMessageHandler handler,
                                          ApplicationId appId) {
-        packetHandlers.put(intf.connectPoint(),
-                new HandlerRegistration(handler, intf, appId));
+        register(intf.connectPoint(), new HandlerRegistration(handler, intf, appId));
+    }
+
+    private void register(ConnectPoint connectPoint, HandlerRegistration registration) {
+        synchronized (packetHandlers) {
+            if (packetHandlers.isEmpty()) {
+                requestPackets();
+            }
+            packetHandlers.put(connectPoint, registration);
+        }
     }
 
     @Override
     public void unregisterNeighbourHandler(ConnectPoint connectPoint,
                                            NeighbourMessageHandler handler,
                                            ApplicationId appId) {
-        packetHandlers.remove(connectPoint, new HandlerRegistration(handler, appId));
+        unregister(connectPoint, new HandlerRegistration(handler, appId));
     }
 
     @Override
     public void unregisterNeighbourHandler(Interface intf,
                                            NeighbourMessageHandler handler,
                                            ApplicationId appId) {
-        packetHandlers.remove(intf.connectPoint(),
-                new HandlerRegistration(handler, intf, appId));
+        unregister(intf.connectPoint(), new HandlerRegistration(handler, intf, appId));
+    }
+
+    private void unregister(ConnectPoint connectPoint, HandlerRegistration registration) {
+        synchronized (packetHandlers) {
+            packetHandlers.remove(connectPoint, registration);
+
+            if (packetHandlers.isEmpty()) {
+                cancelPackets();
+            }
+        }
     }
 
     @Override
@@ -235,6 +256,10 @@ public class NeighbourResolutionManager implements NeighbourResolutionService {
                 if (registration.appId().equals(appId)) {
                     it.remove();
                 }
+            }
+
+            if (packetHandlers.isEmpty()) {
+                cancelPackets();
             }
         }
     }
@@ -316,7 +341,6 @@ public class NeighbourResolutionManager implements NeighbourResolutionService {
         return intf.ipAddressesList().stream()
                 .anyMatch(intfAddress -> intfAddress.ipAddress().equals(ip));
     }
-
 
     private void reply(NeighbourMessageContext context, MacAddress targetMac) {
         switch (context.protocol()) {
