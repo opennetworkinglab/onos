@@ -108,6 +108,8 @@ public final class CatalystSerializers {
         serializer.register(DocumentTreeEvent.class, factory);
         serializer.register(Maps.immutableEntry("a", "b").getClass(), factory);
         serializer.register(ImmutableList.of().getClass(), factory);
+        serializer.register(ImmutableList.of("a").getClass(), factory);
+        serializer.register(Arrays.asList().getClass(), factory);
 
         serializer.resolve(new LongCommands.TypeResolver());
         serializer.resolve(new AtomixConsistentMapCommands.TypeResolver());

@@ -19,7 +19,6 @@ package org.onosproject.store.primitives.resources.impl;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -32,7 +31,6 @@ import java.util.concurrent.BlockingQueue;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onosproject.store.service.DocumentPath;
 import org.onosproject.store.service.DocumentTreeEvent;
@@ -311,7 +309,6 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
      * Tests listeners.
      */
     @Test
-    @Ignore
     public void testNotifications() throws Exception {
         AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
                 AtomixDocumentTree.class).join();
@@ -320,9 +317,30 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
         // add listener; create a node in the tree and verify an CREATED event is received.
         tree.addListener(listener).thenCompose(v -> tree.set(DocumentPath.from("root.a"), "a".getBytes())).join();
         DocumentTreeEvent<byte[]> event = listener.event();
-        assertNotNull(event);
         assertEquals(DocumentTreeEvent.Type.CREATED, event.type());
+        assertFalse(event.oldValue().isPresent());
         assertArrayEquals("a".getBytes(), event.newValue().get().value());
+        // update a node in the tree and verify an UPDATED event is received.
+        tree.set(DocumentPath.from("root.a"), "newA".getBytes()).join();
+        event = listener.event();
+        assertEquals(DocumentTreeEvent.Type.UPDATED, event.type());
+        assertArrayEquals("newA".getBytes(), event.newValue().get().value());
+        assertArrayEquals("a".getBytes(), event.oldValue().get().value());
+        // remove a node in the tree and verify an REMOVED event is received.
+        tree.removeNode(DocumentPath.from("root.a")).join();
+        event = listener.event();
+        assertEquals(DocumentTreeEvent.Type.DELETED, event.type());
+        assertFalse(event.newValue().isPresent());
+        assertArrayEquals("newA".getBytes(), event.oldValue().get().value());
+        // recursively create a node and verify CREATED events for all intermediate nodes.
+        tree.createRecursive(DocumentPath.from("root.x.y"), "xy".getBytes()).join();
+        event = listener.event();
+        assertEquals(DocumentTreeEvent.Type.CREATED, event.type());
+        assertEquals(DocumentPath.from("root.x"), event.path());
+        event = listener.event();
+        assertEquals(DocumentTreeEvent.Type.CREATED, event.type());
+        assertEquals(DocumentPath.from("root.x.y"), event.path());
+        assertArrayEquals("xy".getBytes(), event.newValue().get().value());
     }
 
     private static class TestEventListener implements DocumentTreeListener<byte[]> {
