@@ -106,6 +106,25 @@ public class DefaultDocumentTree<V> implements DocumentTree<V> {
     }
 
     @Override
+    public boolean createRecursive(DocumentPath path, V value) {
+        checkRootModification(path);
+        DocumentTreeNode<V> node = getNode(path);
+        if (node != null) {
+            return false;
+        }
+        DocumentPath parentPath = path.parent();
+        if (getNode(parentPath) == null) {
+            createRecursive(parentPath, null);
+        }
+        DefaultDocumentTreeNode<V> parentNode =  getNode(parentPath);
+        if (parentNode == null) {
+            throw new IllegalDocumentModificationException();
+        }
+        parentNode.addChild(simpleName(path), value, versionSupplier.get());
+        return true;
+    }
+
+    @Override
     public boolean replace(DocumentPath path, V newValue, long version) {
         checkRootModification(path);
         DocumentTreeNode<V> node = getNode(path);

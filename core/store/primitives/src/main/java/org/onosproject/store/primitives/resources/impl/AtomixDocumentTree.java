@@ -17,6 +17,9 @@
 package org.onosproject.store.primitives.resources.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.store.primitives.resources.impl.DocumentTreeUpdateResult.Status.ILLEGAL_MODIFICATION;
+import static org.onosproject.store.primitives.resources.impl.DocumentTreeUpdateResult.Status.INVALID_PATH;
+import static org.onosproject.store.primitives.resources.impl.DocumentTreeUpdateResult.Status.OK;
 import io.atomix.copycat.client.CopycatClient;
 import io.atomix.resource.AbstractResource;
 import io.atomix.resource.ResourceTypeInfo;
@@ -107,9 +110,9 @@ public class AtomixDocumentTree extends AbstractResource<AtomixDocumentTree>
     public CompletableFuture<Versioned<byte[]>> set(DocumentPath path, byte[] value) {
         return client.submit(new Update(checkNotNull(path), checkNotNull(value), Match.any(), Match.any()))
                 .thenCompose(result -> {
-                    if (result.status() == DocumentTreeUpdateResult.Status.INVALID_PATH) {
+                    if (result.status() == INVALID_PATH) {
                         return Tools.exceptionalFuture(new NoSuchDocumentPathException());
-                    } else if (result.status() == DocumentTreeUpdateResult.Status.ILLEGAL_MODIFICATION) {
+                    } else if (result.status() == ILLEGAL_MODIFICATION) {
                         return Tools.exceptionalFuture(new IllegalDocumentModificationException());
                     } else {
                         return CompletableFuture.completedFuture(result);
@@ -119,16 +122,25 @@ public class AtomixDocumentTree extends AbstractResource<AtomixDocumentTree>
 
     @Override
     public CompletableFuture<Boolean> create(DocumentPath path, byte[] value) {
-        return client.submit(new Update(checkNotNull(path), checkNotNull(value), Match.ifNull(), Match.any()))
-                .thenCompose(result -> {
-                    if (result.status() == DocumentTreeUpdateResult.Status.INVALID_PATH) {
-                        return Tools.exceptionalFuture(new NoSuchDocumentPathException());
-                    } else if (result.status() == DocumentTreeUpdateResult.Status.ILLEGAL_MODIFICATION) {
+        return createInternal(path, value)
+                .thenCompose(status -> {
+                    if (status == ILLEGAL_MODIFICATION) {
                         return Tools.exceptionalFuture(new IllegalDocumentModificationException());
-                    } else {
-                        return CompletableFuture.completedFuture(result);
                     }
-                }).thenApply(result -> result.created());
+                    return CompletableFuture.completedFuture(true);
+                });
+    }
+
+    @Override
+    public CompletableFuture<Boolean> createRecursive(DocumentPath path, byte[] value) {
+        return createInternal(path, value)
+                .thenCompose(status -> {
+                    if (status == ILLEGAL_MODIFICATION) {
+                        return createRecursive(path.parent(), new byte[0])
+                                    .thenCompose(r -> createInternal(path, value).thenApply(v -> true));
+                    }
+                    return CompletableFuture.completedFuture(status == OK);
+                });
     }
 
     @Override
@@ -141,9 +153,9 @@ public class AtomixDocumentTree extends AbstractResource<AtomixDocumentTree>
     public CompletableFuture<Boolean> replace(DocumentPath path, byte[] newValue, byte[] currentValue) {
         return client.submit(new Update(checkNotNull(path), newValue, Match.ifValue(currentValue), Match.any()))
                 .thenCompose(result -> {
-                    if (result.status() == DocumentTreeUpdateResult.Status.INVALID_PATH) {
+                    if (result.status() == INVALID_PATH) {
                         return Tools.exceptionalFuture(new NoSuchDocumentPathException());
-                    } else if (result.status() == DocumentTreeUpdateResult.Status.ILLEGAL_MODIFICATION) {
+                    } else if (result.status() == ILLEGAL_MODIFICATION) {
                         return Tools.exceptionalFuture(new IllegalDocumentModificationException());
                     } else {
                         return CompletableFuture.completedFuture(result);
@@ -158,9 +170,9 @@ public class AtomixDocumentTree extends AbstractResource<AtomixDocumentTree>
         }
         return client.submit(new Update(checkNotNull(path), null, Match.ifNotNull(), Match.any()))
                 .thenCompose(result -> {
-                    if (result.status() == DocumentTreeUpdateResult.Status.INVALID_PATH) {
+                    if (result.status() == INVALID_PATH) {
                         return Tools.exceptionalFuture(new NoSuchDocumentPathException());
-                    } else if (result.status() == DocumentTreeUpdateResult.Status.ILLEGAL_MODIFICATION) {
+                    } else if (result.status() == ILLEGAL_MODIFICATION) {
                         return Tools.exceptionalFuture(new IllegalDocumentModificationException());
                     } else {
                         return CompletableFuture.completedFuture(result);
@@ -189,6 +201,11 @@ public class AtomixDocumentTree extends AbstractResource<AtomixDocumentTree>
             return client.submit(new Unlisten()).thenApply(v -> null);
         }
         return CompletableFuture.completedFuture(null);
+    }
+
+    private CompletableFuture<DocumentTreeUpdateResult.Status> createInternal(DocumentPath path, byte[] value) {
+        return client.submit(new Update(checkNotNull(path), checkNotNull(value), Match.ifNull(), Match.any()))
+                     .thenApply(result -> result.status());
     }
 
     private boolean isListening() {

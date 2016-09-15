@@ -49,6 +49,21 @@ public class DefaultDocumentTreeTest {
         Assert.assertTrue(tree.create(path("root.a.b"), "baz"));
     }
 
+    @Test
+    public void testCreateRecursive() {
+        DocumentTree<String> tree = new DefaultDocumentTree<>();
+        tree.createRecursive(path("root.a.b.c"), "bar");
+        Assert.assertEquals(tree.get(path("root.a.b.c")).value(), "bar");
+        Assert.assertNull(tree.get(path("root.a.b")).value());
+        Assert.assertNull(tree.get(path("root.a")).value());
+    }
+
+    @Test(expected = IllegalDocumentModificationException.class)
+    public void testCreateRecursiveRoot() {
+        DocumentTree<String> tree = new DefaultDocumentTree<>();
+        tree.createRecursive(path("root"), "bar");;
+    }
+
     @Test(expected = IllegalDocumentModificationException.class)
     public void testCreateNodeFailure() {
         DocumentTree<String> tree = new DefaultDocumentTree<>();

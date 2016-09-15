@@ -88,6 +88,11 @@ public class DefaultDistributedDocumentTree<V> implements AsyncDocumentTree<V> {
     }
 
     @Override
+    public CompletableFuture<Boolean> createRecursive(DocumentPath path, V value) {
+        return backingTree.createRecursive(path, serializer.encode(value));
+    }
+
+    @Override
     public CompletableFuture<Boolean> replace(DocumentPath path, V newValue, long version) {
         return backingTree.replace(path, serializer.encode(newValue), version);
     }

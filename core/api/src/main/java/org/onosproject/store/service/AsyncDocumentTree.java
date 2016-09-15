@@ -37,81 +37,94 @@ public interface AsyncDocumentTree<V> extends DistributedPrimitive {
     DocumentPath root();
 
     /**
-     * Returns the child values for this node.
+     * Returns the children of node at specified path in the form of a mapping from child name to child value.
      *
      * @param path path to the node
-     * @return future for mapping from a child name to its value
-     * @throws NoSuchDocumentPathException if the path does not point to a valid node
+     * @return future for mapping from child name to child value
+     * @throws {@code NoSuchDocumentPathException} if the path does not point to a valid node
      */
     CompletableFuture<Map<String, Versioned<V>>> getChildren(DocumentPath path);
 
     /**
-     * Returns a value (and version) of the tree node at specified path.
+     * Returns the value of the tree node at specified path.
      *
-     * @param path path to node
-     * @return future for node value or {@code null} if path does not point to a valid node
+     * @param path path to the node
+     * @return future that will be either be completed with node value or {@code null} if path
+     * does not point to a valid node
      */
     CompletableFuture<Versioned<V>> get(DocumentPath path);
 
     /**
      * Creates or updates a document tree node.
      *
-     * @param path path for the node to create or update
-     * @param value the non-null value to be associated with the key
-     * @return future for the previous mapping or {@code null} if there was no previous mapping. Future will
-     * be completed with a NoSuchDocumentPathException if the parent node (for the node to create/update) does not exist
+     * @param path path to the node
+     * @param value the non-null value to be associated with the node
+     * @return future that will either be completed with the previous node value or {@code null} if there was no
+     * node previously at that path. Future will be completed with a {@code IllegalDocumentModificationException}
+     * if the parent node (for the node to create/update) does not exist
      */
     CompletableFuture<Versioned<V>> set(DocumentPath path, V value);
 
     /**
      * Creates a document tree node if one does not exist already.
      *
-     * @param path path for the node to create
-     * @param value the non-null value to be associated with the key
-     * @return future that is completed with {@code true} if the mapping could be added
-     * successfully; {@code false} otherwise. Future will be completed with a
-     * IllegalDocumentModificationException if the parent node (for the node to create) does not exist
+     * @param path path to the node
+     * @param value the non-null value to be associated with the node
+     * @return future that is completed with {@code true} if the new node was successfully
+     * created. Future will be completed with {@code false} if a node already exists at the specified path.
+     * Future will be completed exceptionally with a {@code IllegalDocumentModificationException} if the parent
+     * node (for the node to create) does not exist
      */
     CompletableFuture<Boolean> create(DocumentPath path, V value);
 
     /**
+     * Creates a document tree node recursively by creating all missing intermediate nodes in the path.
+     *
+     * @param path path to the node
+     * @param value the non-null value to be associated with the key
+     * @return future that is completed with {@code true} if the new node was successfully
+     * created. Future will be completed with {@code false} if a node already exists at the specified path
+     */
+    CompletableFuture<Boolean> createRecursive(DocumentPath path, V value);
+
+    /**
      * Conditionally updates a tree node if the current version matches a specified version.
      *
-     * @param path path for the node to create
-     * @param newValue the non-null value to be associated with the key
-     * @param version current version of the value for update to occur
-     * @return future that is completed with {@code true} if the update was made and the tree was
-     * modified, {@code false} otherwise.
+     * @param path path to the node
+     * @param newValue the non-null value to be associated with the node
+     * @param version current version of the node for update to occur
+     * @return future that is either completed with {@code true} if the update was made and the tree was
+     * modified or {@code false} if update did not happen
      */
     CompletableFuture<Boolean> replace(DocumentPath path, V newValue, long version);
 
     /**
-     * Conditionally updates a tree node if the current value matches a specified value.
+     * Conditionally updates a tree node if the current node value matches a specified version.
      *
-     * @param path path for the node to create
-     * @param newValue the non-null value to be associated with the key
-     * @param currentValue current value for update to occur
-     * @return future that is completed with {@code true} if the update was made and the tree was
-     * modified, {@code false} otherwise.
+     * @param path path to the node
+     * @param newValue the non-null value to be associated with the node
+     * @param currentValue current value of the node for update to occur
+     * @return future that is either completed with {@code true} if the update was made and the tree was
+     * modified or {@code false} if update did not happen
      */
     CompletableFuture<Boolean> replace(DocumentPath path, V newValue, V currentValue);
 
     /**
      * Removes the node with the specified path.
      *
-     * @param path path for the node to remove
+     * @param path path to the node
      * @return future for the previous value. Future will be completed with a
-     * IllegalDocumentModificationException if the node to be removed is either the root
+     * {@code IllegalDocumentModificationException} if the node to be removed is either the root
      * node or has one or more children. Future will be completed with a
-     * NoSuchDocumentPathException if the node to be removed does not exist
+     * {@code NoSuchDocumentPathException} if the node to be removed does not exist
      */
     CompletableFuture<Versioned<V>> removeNode(DocumentPath path);
 
     /**
-     * Registers a listener to be notified when a subtree rooted at the specified path
+     * Registers a listener to be notified when the subtree rooted at the specified path
      * is modified.
      *
-     * @param path path to root of subtree to monitor for updates
+     * @param  path path to the node
      * @param listener listener to be notified
      * @return a future that is completed when the operation completes
      */

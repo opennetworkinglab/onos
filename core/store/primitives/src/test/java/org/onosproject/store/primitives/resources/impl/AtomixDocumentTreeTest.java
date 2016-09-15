@@ -93,6 +93,24 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
     }
 
     /**
+     * Tests recursive create.
+     */
+    @Test
+    public void testRecursiveCreate() throws Throwable {
+        AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
+                AtomixDocumentTree.class).join();
+        tree.createRecursive(DocumentPath.from("root.a.b.c"), "abc".getBytes()).join();
+        Versioned<byte[]> a = tree.get(DocumentPath.from("root.a")).join();
+        assertArrayEquals(new byte[0], a.value());
+
+        Versioned<byte[]> ab = tree.get(DocumentPath.from("root.a.b")).join();
+        assertArrayEquals(new byte[0], ab.value());
+
+        Versioned<byte[]> abc = tree.get(DocumentPath.from("root.a.b.c")).join();
+        assertArrayEquals("abc".getBytes(), abc.value());
+    }
+
+    /**
      * Tests set.
      */
     @Test

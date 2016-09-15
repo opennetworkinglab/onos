@@ -73,6 +73,17 @@ public interface DocumentTree<V> {
     boolean create(DocumentPath path, V value);
 
     /**
+     * Creates a document tree node by first creating any missing intermediate nodes in the path.
+     *
+     * @param path path for the node to create
+     * @param value the non-null value to be associated with the key
+     * @return returns {@code true} if the mapping could be added successfully, {@code false} if
+     * a node already exists at that path
+     * @throws IllegalDocumentModificationException if {@code path} points to root
+     */
+    boolean createRecursive(DocumentPath path, V value);
+
+    /**
      * Conditionally updates a tree node if the current version matches a specified version.
      *
      * @param path path for the node to create
