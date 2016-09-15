@@ -32,7 +32,7 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
-import org.onosproject.net.intent.IntentPartitionService;
+import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
@@ -84,7 +84,7 @@ public class GossipIntentStore
     protected StorageService storageService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected IntentPartitionService partitionService;
+    protected WorkPartitionService partitionService;
 
     private final AtomicLong sequenceNumber = new AtomicLong(0);
 
@@ -211,7 +211,7 @@ public class GossipIntentStore
     }
 
     private Collection<NodeId> getPeerNodes(Key key, IntentData data) {
-        NodeId master = partitionService.getLeader(key);
+        NodeId master = partitionService.getLeader(key, Key::hash);
         NodeId origin = (data != null) ? data.origin() : null;
         if (data != null && (master == null || origin == null)) {
             log.debug("Intent {} missing master and/or origin; master = {}, origin = {}",
@@ -283,7 +283,7 @@ public class GossipIntentStore
 
     @Override
     public boolean isMaster(Key intentKey) {
-        return partitionService.isMine(intentKey);
+        return partitionService.isMine(intentKey, Key::hash);
     }
 
     @Override

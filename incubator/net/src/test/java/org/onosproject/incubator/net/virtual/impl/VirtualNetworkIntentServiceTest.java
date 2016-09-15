@@ -54,8 +54,8 @@ import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.IntentListener;
-import org.onosproject.net.intent.IntentPartitionService;
-import org.onosproject.net.intent.IntentPartitionServiceAdapter;
+import org.onosproject.net.intent.WorkPartitionService;
+import org.onosproject.net.intent.WorkPartitionServiceAdapter;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentTestsMocks;
@@ -103,7 +103,7 @@ public class VirtualNetworkIntentServiceTest extends TestDeviceParams {
     private VirtualNetworkIntentService vnetIntentService;
     private TestIntentCompiler compiler = new TestIntentCompiler();
     private IntentExtensionService intentExtensionService;
-    private IntentPartitionService intentPartitionService;
+    private WorkPartitionService workPartitionService;
     private ServiceDirectory testDirectory;
     private TestListener listener = new TestListener();
     private IdGenerator idGenerator = new MockIdGenerator();
@@ -142,11 +142,11 @@ public class VirtualNetworkIntentServiceTest extends TestDeviceParams {
         withdrawn = new Semaphore(0, true);
         purged = new Semaphore(0, true);
 
-        intentPartitionService = new IntentPartitionServiceAdapter();
+        workPartitionService = new WorkPartitionServiceAdapter();
         testDirectory = new TestServiceDirectory()
                 .add(VirtualNetworkStore.class, virtualNetworkManagerStore)
                 .add(IntentService.class, intentService)
-                .add(IntentPartitionService.class, intentPartitionService);
+                .add(WorkPartitionService.class, workPartitionService);
         BaseResource.setServiceDirectory(testDirectory);
     }
 
@@ -215,7 +215,7 @@ public class VirtualNetworkIntentServiceTest extends TestDeviceParams {
         vnetIntentService = new VirtualNetworkIntentService(manager, virtualNetwork, testDirectory);
         vnetIntentService.intentService = intentService;
         vnetIntentService.store = virtualNetworkManagerStore;
-        vnetIntentService.partitionService = intentPartitionService;
+        vnetIntentService.partitionService = workPartitionService;
         return virtualNetwork;
     }
 

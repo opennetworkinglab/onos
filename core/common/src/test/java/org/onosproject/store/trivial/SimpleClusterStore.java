@@ -16,6 +16,7 @@
 package org.onosproject.store.trivial;
 
 import com.google.common.collect.ImmutableSet;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -32,14 +33,14 @@ import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.ListenerRegistry;
-import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.IntentPartitionEvent;
-import org.onosproject.net.intent.IntentPartitionEventListener;
-import org.onosproject.net.intent.IntentPartitionService;
+import org.onosproject.net.intent.WorkPartitionEvent;
+import org.onosproject.net.intent.WorkPartitionEventListener;
+import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
 import java.util.Set;
+import java.util.function.Function;
 
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.*;
@@ -53,7 +54,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Service
 public class SimpleClusterStore
         extends AbstractStore<ClusterEvent, ClusterStoreDelegate>
-        implements ClusterStore, IntentPartitionService {
+        implements ClusterStore, WorkPartitionService {
 
     public static final IpAddress LOCALHOST = IpAddress.valueOf("127.0.0.1");
 
@@ -66,7 +67,7 @@ public class SimpleClusterStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
 
-    private ListenerRegistry<IntentPartitionEvent, IntentPartitionEventListener> listenerRegistry;
+    private ListenerRegistry<WorkPartitionEvent, WorkPartitionEventListener> listenerRegistry;
     private boolean started = false;
 
     @Activate
@@ -74,14 +75,14 @@ public class SimpleClusterStore
         instance = new DefaultControllerNode(new NodeId("local"), LOCALHOST);
 
         listenerRegistry = new ListenerRegistry<>();
-        eventDispatcher.addSink(IntentPartitionEvent.class, listenerRegistry);
+        eventDispatcher.addSink(WorkPartitionEvent.class, listenerRegistry);
 
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        eventDispatcher.removeSink(IntentPartitionEvent.class);
+        eventDispatcher.removeSink(WorkPartitionEvent.class);
         log.info("Stopped");
     }
 
@@ -126,25 +127,25 @@ public class SimpleClusterStore
     }
 
     @Override
-    public boolean isMine(Key intentKey) {
+    public <K> boolean isMine(K key, Function<K, Long> hasher) {
         checkPermission(INTENT_READ);
         return true;
     }
 
     @Override
-    public NodeId getLeader(Key intentKey) {
+    public <K> NodeId getLeader(K key, Function<K, Long> hasher) {
         checkPermission(INTENT_READ);
         return instance.id();
     }
 
     @Override
-    public void addListener(IntentPartitionEventListener listener) {
+    public void addListener(WorkPartitionEventListener listener) {
         checkPermission(INTENT_EVENT);
         listenerRegistry.addListener(listener);
     }
 
     @Override
-    public void removeListener(IntentPartitionEventListener listener) {
+    public void removeListener(WorkPartitionEventListener listener) {
         checkPermission(INTENT_EVENT);
         listenerRegistry.removeListener(listener);
     }

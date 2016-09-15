@@ -43,9 +43,9 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.IntentPartitionEvent;
-import org.onosproject.net.intent.IntentPartitionEventListener;
-import org.onosproject.net.intent.IntentPartitionService;
+import org.onosproject.net.intent.WorkPartitionEvent;
+import org.onosproject.net.intent.WorkPartitionEventListener;
+import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.resource.ResourceEvent;
 import org.onosproject.net.resource.ResourceListener;
@@ -113,7 +113,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     protected IntentService intentService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected IntentPartitionService partitionService;
+    protected WorkPartitionService partitionService;
 
     private ExecutorService executorService =
             newSingleThreadExecutor(groupedThreads("onos/intent", "objectivetracker", log));
@@ -124,7 +124,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     private ResourceListener resourceListener = new InternalResourceListener();
     private DeviceListener deviceListener = new InternalDeviceListener();
     private HostListener hostListener = new InternalHostListener();
-    private IntentPartitionEventListener partitionListener = new InternalPartitionListener();
+    private WorkPartitionEventListener partitionListener = new InternalPartitionListener();
     private TopologyChangeDelegate delegate;
 
     protected final AtomicBoolean updateScheduled = new AtomicBoolean(false);
@@ -417,9 +417,9 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         }
     }
 
-    private final class InternalPartitionListener implements IntentPartitionEventListener {
+    private final class InternalPartitionListener implements WorkPartitionEventListener {
         @Override
-        public void event(IntentPartitionEvent event) {
+        public void event(WorkPartitionEvent event) {
             log.debug("got message {}", event.subject());
             scheduleIntentUpdate(1);
         }

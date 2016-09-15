@@ -51,7 +51,7 @@ import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.IntentPartitionService;
+import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
@@ -139,7 +139,7 @@ public class IntentPerfInstaller {
     protected MastershipService mastershipService;
 
     @Reference(cardinality = MANDATORY_UNARY)
-    protected IntentPartitionService partitionService;
+    protected WorkPartitionService partitionService;
 
     @Reference(cardinality = MANDATORY_UNARY)
     protected ComponentConfigService configService;
@@ -371,7 +371,7 @@ public class IntentPerfInstaller {
         for (int count = 0, k = firstKey; count < numberOfKeys; k++) {
             Key key = Key.of(keyPrefix + k, appId);
 
-            NodeId leader = partitionService.getLeader(key);
+            NodeId leader = partitionService.getLeader(key, Key::hash);
             if (!neighbors.contains(leader) || intents.get(leader).size() >= maxKeysPerNode) {
                 // Bail if we are not sending to this node or we have enough for this node
                 continue;

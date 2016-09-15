@@ -50,9 +50,9 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Unit tests for the IntentPartitionManager class.
+ * Unit tests for the WorkPartitionManager class.
  */
-public class IntentPartitionManagerTest {
+public class WorkPartitionManagerTest {
 
     private final LeadershipEvent event
             = new LeadershipEvent(LeadershipEvent.Type.CANDIDATES_CHANGED,
@@ -64,12 +64,12 @@ public class IntentPartitionManagerTest {
     private static final NodeId OTHER_NODE_ID = new NodeId("other");
     private static final NodeId INACTIVE_NODE_ID = new NodeId("inactive");
 
-    private static final String ELECTION_PREFIX = "intent-partition-";
+    private static final String ELECTION_PREFIX = "work-partition-";
 
         private LeadershipService leadershipService;
     private LeadershipEventListener leaderListener;
 
-    private IntentPartitionManager partitionManager;
+    private WorkPartitionManager partitionManager;
 
     @Before
     public void setUp() {
@@ -77,13 +77,13 @@ public class IntentPartitionManagerTest {
 
         leadershipService.addListener(anyObject(LeadershipEventListener.class));
         expectLastCall().andDelegateTo(new TestLeadershipService());
-        for (int i = 0; i < IntentPartitionManager.NUM_PARTITIONS; i++) {
+        for (int i = 0; i < WorkPartitionManager.NUM_PARTITIONS; i++) {
             expect(leadershipService.runForLeadership(ELECTION_PREFIX + i))
                 .andReturn(null)
                 .times(1);
         }
 
-        partitionManager = new IntentPartitionManager()
+        partitionManager = new WorkPartitionManager()
                 .withScheduledExecutor(new NullScheduledExecutor());
 
         partitionManager.clusterService = new TestClusterService();
@@ -109,14 +109,14 @@ public class IntentPartitionManagerTest {
                                     .anyTimes();
         }
 
-        for (int i = numMine; i < IntentPartitionManager.NUM_PARTITIONS; i++) {
+        for (int i = numMine; i < WorkPartitionManager.NUM_PARTITIONS; i++) {
             expect(leadershipService.getLeadership(ELECTION_PREFIX + i))
                                     .andReturn(new Leadership(ELECTION_PREFIX + i,
                                                               new Leader(OTHER_NODE_ID, 1, 1000),
                                                               allNodes))
                                     .anyTimes();
         }
-        for (int i = 0; i < IntentPartitionManager.NUM_PARTITIONS; i++) {
+        for (int i = 0; i < WorkPartitionManager.NUM_PARTITIONS; i++) {
             expect(leadershipService.getCandidates(ELECTION_PREFIX + i))
             .andReturn(Arrays.asList(MY_NODE_ID, OTHER_NODE_ID))
             .anyTimes();
@@ -133,7 +133,7 @@ public class IntentPartitionManagerTest {
 
         leadershipService.addListener(anyObject(LeadershipEventListener.class));
 
-        for (int i = 0; i < IntentPartitionManager.NUM_PARTITIONS; i++) {
+        for (int i = 0; i < WorkPartitionManager.NUM_PARTITIONS; i++) {
             expect(leadershipService.runForLeadership(ELECTION_PREFIX + i))
                 .andReturn(null)
                 .times(1);
@@ -159,20 +159,20 @@ public class IntentPartitionManagerTest {
         Key myKey = new ControllableHashKey(0);
         Key notMyKey = new ControllableHashKey(1);
 
-        assertTrue(partitionManager.isMine(myKey));
-        assertFalse(partitionManager.isMine(notMyKey));
+        assertTrue(partitionManager.isMine(myKey, Key::hash));
+        assertFalse(partitionManager.isMine(notMyKey, Key::hash));
 
         // Make us the owner of 4 partitions now
         reset(leadershipService);
         setUpLeadershipService(4);
         replay(leadershipService);
 
-        assertTrue(partitionManager.isMine(myKey));
+        assertTrue(partitionManager.isMine(myKey, Key::hash));
         // notMyKey is now my key because because we're in control of that
         // partition now
-        assertTrue(partitionManager.isMine(notMyKey));
+        assertTrue(partitionManager.isMine(notMyKey, Key::hash));
 
-        assertFalse(partitionManager.isMine(new ControllableHashKey(4)));
+        assertFalse(partitionManager.isMine(new ControllableHashKey(4), Key::hash));
     }
 
     /**
@@ -183,7 +183,7 @@ public class IntentPartitionManagerTest {
     @Test
     public void testRebalanceScheduling() {
         // We have all the partitions so we'll need to relinquish some
-        setUpLeadershipService(IntentPartitionManager.NUM_PARTITIONS);
+        setUpLeadershipService(WorkPartitionManager.NUM_PARTITIONS);
 
         replay(leadershipService);
 
@@ -202,7 +202,7 @@ public class IntentPartitionManagerTest {
     @Test
     public void testRebalance() {
         // We have all the partitions so we'll need to relinquish some
-        setUpLeadershipService(IntentPartitionManager.NUM_PARTITIONS);
+        setUpLeadershipService(WorkPartitionManager.NUM_PARTITIONS);
 
         leadershipService.withdraw(anyString());
         expectLastCall().times(7);
@@ -224,7 +224,7 @@ public class IntentPartitionManagerTest {
     @Test
     public void testNoRebalance() {
         // Partitions are already perfectly balanced among the two active instances
-        setUpLeadershipService(IntentPartitionManager.NUM_PARTITIONS / 2);
+        setUpLeadershipService(WorkPartitionManager.NUM_PARTITIONS / 2);
         replay(leadershipService);
 
         partitionManager.activate();
@@ -236,7 +236,7 @@ public class IntentPartitionManagerTest {
 
         reset(leadershipService);
         // We have a smaller share than we should
-        setUpLeadershipService(IntentPartitionManager.NUM_PARTITIONS / 2 - 1);
+        setUpLeadershipService(WorkPartitionManager.NUM_PARTITIONS / 2 - 1);
         replay(leadershipService);
 
         // trigger rebalance

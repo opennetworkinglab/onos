@@ -59,7 +59,7 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.IntentClockService;
-import org.onosproject.net.intent.IntentPartitionService;
+import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.net.link.LinkAdminService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.PacketService;
@@ -227,7 +227,7 @@ public final class DefaultPolicyBuilder {
         permSet.add(new ServicePermission(IntentService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(IntentClockService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(IntentExtensionService.class.getName(), ServicePermission.GET));
-        permSet.add(new ServicePermission(IntentPartitionService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(WorkPartitionService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(DeviceKeyService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(LinkService.class.getName(), ServicePermission.GET));
 //        permSet.add(new ServicePermission(MulticastRouteService.class.getName(), ServicePermission.GET));
@@ -314,12 +314,12 @@ public final class DefaultPolicyBuilder {
         serviceDirectory.put(HOST_EVENT, ImmutableSet.of(
                 HostService.class.getName()));
         serviceDirectory.put(INTENT_READ, ImmutableSet.of(
-                IntentService.class.getName(), IntentPartitionService.class.getName(),
+                IntentService.class.getName(), WorkPartitionService.class.getName(),
                 IntentClockService.class.getName(), IntentExtensionService.class.getName()));
         serviceDirectory.put(INTENT_WRITE, ImmutableSet.of(
                 IntentService.class.getName(), IntentExtensionService.class.getName()));
         serviceDirectory.put(INTENT_EVENT, ImmutableSet.of(
-                IntentService.class.getName(), IntentPartitionService.class.getName()));
+                IntentService.class.getName(), WorkPartitionService.class.getName()));
 //        serviceDirectory.put(LINK_READ, ImmutableSet.of(
 //                LinkService.class.getName(), LinkResourceService.class.getName(),
 //                LabelResourceService.class.getName()));

@@ -30,7 +30,7 @@ import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.net.intent.MockIdGenerator;
-import org.onosproject.net.intent.IntentPartitionServiceAdapter;
+import org.onosproject.net.intent.WorkPartitionServiceAdapter;
 import org.onosproject.store.service.TestStorageService;
 
 import static org.hamcrest.Matchers.is;
@@ -52,7 +52,7 @@ public class GossipIntentStoreTest {
     public void setUp() {
         intentStore = new GossipIntentStore();
         intentStore.storageService = new TestStorageService();
-        intentStore.partitionService = new IntentPartitionServiceAdapter();
+        intentStore.partitionService = new WorkPartitionServiceAdapter();
         intentStore.clusterService = new ClusterServiceAdapter();
         idGenerator = new MockIdGenerator();
         Intent.bindIdGenerator(idGenerator);

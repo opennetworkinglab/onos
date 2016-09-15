@@ -32,7 +32,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
-import org.onosproject.net.intent.IntentPartitionService;
+import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
@@ -64,7 +64,7 @@ public class VirtualNetworkIntentService extends AbstractListenerManager<IntentE
 
     protected IntentService intentService;
     protected VirtualNetworkStore store;
-    protected IntentPartitionService partitionService;
+    protected WorkPartitionService partitionService;
 
     private final VirtualNetwork network;
     private final VirtualNetworkService manager;
@@ -83,7 +83,7 @@ public class VirtualNetworkIntentService extends AbstractListenerManager<IntentE
         this.manager = virtualNetworkManager;
         this.store = serviceDirectory.get(VirtualNetworkStore.class);
         this.intentService = serviceDirectory.get(IntentService.class);
-        this.partitionService = serviceDirectory.get(IntentPartitionService.class);
+        this.partitionService = serviceDirectory.get(WorkPartitionService.class);
     }
 
     @Override
@@ -225,7 +225,7 @@ public class VirtualNetworkIntentService extends AbstractListenerManager<IntentE
         checkNotNull(intentKey, INTENT_KEY_NULL);
         Intent intent = getIntent(intentKey);
         checkNotNull(intent, INTENT_NULL);
-        return partitionService.isMine(intentKey);
+        return partitionService.isMine(intentKey, Key::hash);
     }
 
     @Override
