@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.onlab.packet;
 
 import org.onlab.packet.ipv6.Authentication;
@@ -37,7 +35,7 @@ import static org.onlab.packet.PacketUtils.checkInput;
 /**
  * Implements IPv6 packet format. (RFC 2460)
  */
-public class IPv6 extends BasePacket implements IExtensionHeader {
+public class IPv6 extends IP implements IExtensionHeader {
     public static final byte FIXED_HEADER_LENGTH = 40; // bytes
 
     public static final byte PROTOCOL_TCP = 0x6;
@@ -83,21 +81,12 @@ public class IPv6 extends BasePacket implements IExtensionHeader {
         this.version = 6;
     }
 
-    /**
-     * Gets IP version.
-     *
-     * @return the IP version
-     */
+    @Override
     public byte getVersion() {
         return this.version;
     }
 
-    /**
-     * Sets IP version.
-     *
-     * @param version the IP version to set
-     * @return this
-     */
+    @Override
     public IPv6 setVersion(final byte version) {
         this.version = version;
         return this;
