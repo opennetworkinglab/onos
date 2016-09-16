@@ -61,7 +61,7 @@ public class DefaultDocumentTreeTest {
     @Test(expected = IllegalDocumentModificationException.class)
     public void testCreateRecursiveRoot() {
         DocumentTree<String> tree = new DefaultDocumentTree<>();
-        tree.createRecursive(path("root"), "bar");;
+        tree.createRecursive(path("root"), "bar");
     }
 
     @Test(expected = IllegalDocumentModificationException.class)
