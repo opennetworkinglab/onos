@@ -73,5 +73,10 @@
             <artifactId>onlab-junit</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.karaf.shell</groupId>
+            <artifactId>org.apache.karaf.shell.console</artifactId>
+        </dependency>
+
     </dependencies>
 </project>
