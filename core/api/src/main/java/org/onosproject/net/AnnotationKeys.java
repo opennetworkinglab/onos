@@ -145,6 +145,13 @@ public final class AnnotationKeys {
     public static final String PASSWORD = "password";
 
     /**
+     * Link annotation key to express that a Link
+     * is backed by underlying protection mechanism.
+     */
+    // value is undefined at the moment, only using key existence
+    public static final String PROTECTED = "protected";
+
+    /**
      * Returns the value annotated object for the specified annotation key.
      * The annotated value is expected to be String that can be parsed as double.
      * If parsing fails, the returned value will be 1.0.
