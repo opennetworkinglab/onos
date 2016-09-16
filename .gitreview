@@ -3,4 +3,4 @@ host=gerrit.onosproject.org
 port=29418
 project=onos.git
 defaultremote=origin
-defaultbranch=master
+defaultbranch=onos-1.7
