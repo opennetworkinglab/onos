@@ -45,7 +45,7 @@ if [ ! -f "$ONOS_PLUGIN" -o -n "$ONOS_BUILD_PLUGIN" ]; then
     # Build it first
     pluginJar=$(NO_BUCKD=1 $BUCK build //tools/build/buck-plugin:onosjar --show-output 2>/dev/null | grep onosjar.jar | cut -d\  -f2)
 
-    CHK_NEW=$(cksum $pluginJar | cut -d' ' -f1-2)
+    CHK_NEW=$(cksum $ONOS_ROOT/$pluginJar | cut -d' ' -f1-2)
     CHK_OLD=$(cksum $ONOS_PLUGIN 2>/dev/null | cut -d' ' -f1-2)
     if [ "$CHK_NEW" != "$CHK_OLD" ]; then
         # diff plugins... if different, copy and restart buckd
