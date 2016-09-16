@@ -25,5 +25,4 @@
     <artifact>mvn:${project.groupId}/onos-pcep-controller-impl/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcep-provider-topology/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcep-provider-tunnel/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-pcep-provider-packet/${project.version}</artifact>
 </app>
