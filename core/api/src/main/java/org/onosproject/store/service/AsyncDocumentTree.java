@@ -49,8 +49,8 @@ public interface AsyncDocumentTree<V> extends DistributedPrimitive {
      * Returns the value of the tree node at specified path.
      *
      * @param path path to the node
-     * @return future that will be either be completed with node value or {@code null} if path
-     * does not point to a valid node
+     * @return future that will be either be completed with node's {@link Versioned versioned} value
+     * or {@code null} if path does not point to a valid node
      */
     CompletableFuture<Versioned<V>> get(DocumentPath path);
 
@@ -58,9 +58,10 @@ public interface AsyncDocumentTree<V> extends DistributedPrimitive {
      * Creates or updates a document tree node.
      *
      * @param path path to the node
-     * @param value the non-null value to be associated with the node
-     * @return future that will either be completed with the previous node value or {@code null} if there was no
-     * node previously at that path. Future will be completed with a {@code IllegalDocumentModificationException}
+     * @param value value to be associated with the node ({@code null} is a valid value)
+     * @return future that will either be completed with the previous {@link Versioned versioned}
+     * value or {@code null} if there was no node previously at that path.
+     * Future will be completed with a {@code IllegalDocumentModificationException}
      * if the parent node (for the node to create/update) does not exist
      */
     CompletableFuture<Versioned<V>> set(DocumentPath path, V value);
@@ -81,7 +82,7 @@ public interface AsyncDocumentTree<V> extends DistributedPrimitive {
      * Creates a document tree node recursively by creating all missing intermediate nodes in the path.
      *
      * @param path path to the node
-     * @param value the non-null value to be associated with the key
+     * @param value value to be associated with the node ({@code null} is a valid value)
      * @return future that is completed with {@code true} if the new node was successfully
      * created. Future will be completed with {@code false} if a node already exists at the specified path
      */
@@ -91,10 +92,10 @@ public interface AsyncDocumentTree<V> extends DistributedPrimitive {
      * Conditionally updates a tree node if the current version matches a specified version.
      *
      * @param path path to the node
-     * @param newValue the non-null value to be associated with the node
+     * @param newValue value to associate with the node ({@code null} is a valid value)
      * @param version current version of the node for update to occur
-     * @return future that is either completed with {@code true} if the update was made and the tree was
-     * modified or {@code false} if update did not happen
+     * @return future that is either completed with {@code true} if the update was made
+     * or {@code false} if update did not happen
      */
     CompletableFuture<Boolean> replace(DocumentPath path, V newValue, long version);
 
@@ -102,10 +103,10 @@ public interface AsyncDocumentTree<V> extends DistributedPrimitive {
      * Conditionally updates a tree node if the current node value matches a specified version.
      *
      * @param path path to the node
-     * @param newValue the non-null value to be associated with the node
+     * @param newValue value to associate with the node ({@code null} is a valid value)
      * @param currentValue current value of the node for update to occur
-     * @return future that is either completed with {@code true} if the update was made and the tree was
-     * modified or {@code false} if update did not happen
+     * @return future that is either completed with {@code true} if the update was made
+     * or {@code false} if update did not happen
      */
     CompletableFuture<Boolean> replace(DocumentPath path, V newValue, V currentValue);
 

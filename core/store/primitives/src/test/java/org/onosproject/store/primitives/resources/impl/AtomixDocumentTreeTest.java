@@ -89,6 +89,10 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
 
         Versioned<byte[]> ac = tree.get(DocumentPath.from("root.a.c")).join();
         assertArrayEquals("ac".getBytes(), ac.value());
+
+        tree.create(DocumentPath.from("root.x"), null).join();
+        Versioned<byte[]> x = tree.get(DocumentPath.from("root.x")).join();
+        assertNull(x.value());
     }
 
     /**
@@ -100,10 +104,10 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
                 AtomixDocumentTree.class).join();
         tree.createRecursive(DocumentPath.from("root.a.b.c"), "abc".getBytes()).join();
         Versioned<byte[]> a = tree.get(DocumentPath.from("root.a")).join();
-        assertArrayEquals(new byte[0], a.value());
+        assertArrayEquals(null, a.value());
 
         Versioned<byte[]> ab = tree.get(DocumentPath.from("root.a.b")).join();
-        assertArrayEquals(new byte[0], ab.value());
+        assertArrayEquals(null, ab.value());
 
         Versioned<byte[]> abc = tree.get(DocumentPath.from("root.a.b.c")).join();
         assertArrayEquals("abc".getBytes(), abc.value());
@@ -131,6 +135,10 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
         tree.set(DocumentPath.from("root.a.b"), "newAB".getBytes()).join();
         Versioned<byte[]> newAB = tree.get(DocumentPath.from("root.a.b")).join();
         assertArrayEquals("newAB".getBytes(), newAB.value());
+
+        tree.set(DocumentPath.from("root.x"), null).join();
+        Versioned<byte[]> x = tree.get(DocumentPath.from("root.x")).join();
+        assertNull(x.value());
     }
 
     /**
@@ -199,6 +207,11 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
         Versioned<byte[]> a = tree.removeNode(DocumentPath.from("root.a")).join();
         assertArrayEquals("a".getBytes(), a.value());
         assertNull(tree.get(DocumentPath.from("root.a")).join());
+
+        tree.create(DocumentPath.from("root.x"), null).join();
+        Versioned<byte[]> x = tree.removeNode(DocumentPath.from("root.x")).join();
+        assertNull(x.value());
+        assertNull(tree.get(DocumentPath.from("root.a.x")).join());
     }
 
     /**

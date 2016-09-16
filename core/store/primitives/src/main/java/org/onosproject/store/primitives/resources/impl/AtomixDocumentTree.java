@@ -27,6 +27,7 @@ import io.atomix.resource.ResourceTypeInfo;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -108,7 +109,7 @@ public class AtomixDocumentTree extends AbstractResource<AtomixDocumentTree>
 
     @Override
     public CompletableFuture<Versioned<byte[]>> set(DocumentPath path, byte[] value) {
-        return client.submit(new Update(checkNotNull(path), checkNotNull(value), Match.any(), Match.any()))
+        return client.submit(new Update(checkNotNull(path), Optional.ofNullable(value), Match.any(), Match.any()))
                 .thenCompose(result -> {
                     if (result.status() == INVALID_PATH) {
                         return Tools.exceptionalFuture(new NoSuchDocumentPathException());
@@ -136,7 +137,7 @@ public class AtomixDocumentTree extends AbstractResource<AtomixDocumentTree>
         return createInternal(path, value)
                 .thenCompose(status -> {
                     if (status == ILLEGAL_MODIFICATION) {
-                        return createRecursive(path.parent(), new byte[0])
+                        return createRecursive(path.parent(), null)
                                     .thenCompose(r -> createInternal(path, value).thenApply(v -> true));
                     }
                     return CompletableFuture.completedFuture(status == OK);
@@ -145,13 +146,19 @@ public class AtomixDocumentTree extends AbstractResource<AtomixDocumentTree>
 
     @Override
     public CompletableFuture<Boolean> replace(DocumentPath path, byte[] newValue, long version) {
-        return client.submit(new Update(checkNotNull(path), newValue, Match.any(), Match.ifValue(version)))
+        return client.submit(new Update(checkNotNull(path),
+                                        Optional.ofNullable(newValue),
+                                        Match.any(),
+                                        Match.ifValue(version)))
                 .thenApply(result -> result.updated());
     }
 
     @Override
     public CompletableFuture<Boolean> replace(DocumentPath path, byte[] newValue, byte[] currentValue) {
-        return client.submit(new Update(checkNotNull(path), newValue, Match.ifValue(currentValue), Match.any()))
+        return client.submit(new Update(checkNotNull(path),
+                                        Optional.ofNullable(newValue),
+                                        Match.ifValue(currentValue),
+                                        Match.any()))
                 .thenCompose(result -> {
                     if (result.status() == INVALID_PATH) {
                         return Tools.exceptionalFuture(new NoSuchDocumentPathException());
@@ -168,7 +175,7 @@ public class AtomixDocumentTree extends AbstractResource<AtomixDocumentTree>
         if (path.equals(DocumentPath.from("root"))) {
             return Tools.exceptionalFuture(new IllegalDocumentModificationException());
         }
-        return client.submit(new Update(checkNotNull(path), null, Match.ifNotNull(), Match.any()))
+        return client.submit(new Update(checkNotNull(path), null, Match.any(), Match.ifNotNull()))
                 .thenCompose(result -> {
                     if (result.status() == INVALID_PATH) {
                         return Tools.exceptionalFuture(new NoSuchDocumentPathException());
@@ -204,7 +211,7 @@ public class AtomixDocumentTree extends AbstractResource<AtomixDocumentTree>
     }
 
     private CompletableFuture<DocumentTreeUpdateResult.Status> createInternal(DocumentPath path, byte[] value) {
-        return client.submit(new Update(checkNotNull(path), checkNotNull(value), Match.ifNull(), Match.any()))
+        return client.submit(new Update(checkNotNull(path), Optional.ofNullable(value), Match.any(), Match.ifNull()))
                      .thenApply(result -> result.status());
     }
 

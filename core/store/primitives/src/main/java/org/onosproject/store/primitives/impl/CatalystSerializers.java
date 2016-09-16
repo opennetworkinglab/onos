@@ -21,6 +21,7 @@ import io.atomix.manager.util.ResourceManagerTypeResolver;
 import io.atomix.variables.internal.LongCommands;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import org.onlab.util.Match;
 import org.onosproject.cluster.Leader;
@@ -110,6 +111,7 @@ public final class CatalystSerializers {
         serializer.register(ImmutableList.of().getClass(), factory);
         serializer.register(ImmutableList.of("a").getClass(), factory);
         serializer.register(Arrays.asList().getClass(), factory);
+        serializer.register(Optional.class, factory);
 
         serializer.resolve(new LongCommands.TypeResolver());
         serializer.resolve(new AtomixConsistentMapCommands.TypeResolver());

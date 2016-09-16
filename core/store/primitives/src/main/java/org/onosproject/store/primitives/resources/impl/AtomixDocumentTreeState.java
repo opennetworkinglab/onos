@@ -244,7 +244,7 @@ public class AtomixDocumentTreeState
 
         @Override
         public byte[] value() {
-            return commit.operation().value();
+            return commit.operation().value().orElse(null);
         }
 
         @Override
