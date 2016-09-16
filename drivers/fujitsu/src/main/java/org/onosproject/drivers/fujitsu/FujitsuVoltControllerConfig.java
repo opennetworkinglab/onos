@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.fujitsu.FujitsuVoltXmlUtility.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -57,33 +58,20 @@ public class FujitsuVoltControllerConfig extends AbstractHandlerBehaviour
     private static final String RESOURCE_XML = "voltcontrollers.xml";
 
     private static final String DOT = ".";
-    private static final String L_ANGLE_BR = "<";
-    private static final String R_ANGLE_BR = "/>";
-    private static final String VOLT_NE_NAMESPACE =
-            "xmlns=\"http://fujitsu.com/ns/volt/1.1\"";
     private static final String DATA = "data";
-    private static final String VOLT_NE = "volt-ne";
     private static final String VOLT_OFCONFIG = "volt-ofconfig";
     private static final String OF_CONTROLLERS = "of-controllers";
     private static final String OF_CONTROLLER = "of-controller";
     private static final String CONTROLLER_INFO = "controller-info";
-    private static final String REPORT_ALL = "report-all";
     private static final String IP_ADDRESS = "ip-address";
     private static final String PORT = "port";
     private static final String PROTOCOL = "protocol";
     private static final String CONFIG = "config";
     private static final String OFCONFIG_ID = "ofconfig-id";
-    private static final String EDIT_CONFIG = "edit-config";
     private static final String TARGET = "target";
-    private static final String RUNNING = "running";
     private static final String MERGE = "merge";
     private static final String DEFAULT_OPERATION = "default-operation";
 
-    private static final String VOLT_NE_OPEN = "<" + VOLT_NE + " ";
-    private static final String VOLT_NE_CLOSE = "</" + VOLT_NE + ">";
-    private static final String VOLT_OFCONFIG_EL = "<" + VOLT_OFCONFIG + "/>\n";
-    private static final String TARGET_OPEN = "<" + TARGET + ">";
-    private static final String TARGET_CLOSE = "</" + TARGET + ">";
     private static final String END_LICENSE_HEADER = "-->";
 
     private static final String VOLT_DATACONFIG = DATA + DOT + VOLT_NE + DOT +
@@ -95,10 +83,8 @@ public class FujitsuVoltControllerConfig extends AbstractHandlerBehaviour
     private static final String CONTROLLER_INFO_IP = CONTROLLER_INFO + DOT + IP_ADDRESS;
     private static final String CONTROLLER_INFO_PORT = CONTROLLER_INFO + DOT + PORT;
     private static final String CONTROLLER_INFO_PROTOCOL = CONTROLLER_INFO + DOT + PROTOCOL;
-
     private static final String VOLT_EDITCONFIG = EDIT_CONFIG + DOT +
             CONFIG + DOT + VOLT_NE + DOT + VOLT_OFCONFIG + DOT + OF_CONTROLLERS;
-
 
     @Override
     public List<ControllerInfo> getControllers() {
@@ -112,13 +98,15 @@ public class FujitsuVoltControllerConfig extends AbstractHandlerBehaviour
             try {
                 StringBuilder request = new StringBuilder();
                 request.append(VOLT_NE_OPEN).append(VOLT_NE_NAMESPACE).append(">\n");
-                request.append(VOLT_OFCONFIG_EL);
+                request.append(buildEmptyTag(VOLT_OFCONFIG));
                 request.append(VOLT_NE_CLOSE);
 
                 String reply;
-                reply = controller.
-                        getDevicesMap().get(ncDeviceId).getSession().
-                        get(request.toString(), REPORT_ALL);
+                reply = controller
+                            .getDevicesMap()
+                            .get(ncDeviceId)
+                            .getSession()
+                            .get(request.toString(), REPORT_ALL);
                 log.debug("Reply XML {}", reply);
                 controllers.addAll(parseStreamVoltControllers(XmlConfigParser.
                         loadXml(new ByteArrayInputStream(reply.getBytes(StandardCharsets.UTF_8)))));
@@ -150,7 +138,7 @@ public class FujitsuVoltControllerConfig extends AbstractHandlerBehaviour
                 device.getSession().editConfig(config.substring(
                         config.indexOf(END_LICENSE_HEADER) + END_LICENSE_HEADER.length()));
             } catch (NetconfException e) {
-                log.error("Cannot communicate to device {} , exception ", ncdeviceId, e);
+                log.error("Cannot communicate to device {} , exception {}", ncdeviceId, e);
             }
         } else {
             log.warn("I'm not master for {} please use master, {} to execute command",
@@ -201,7 +189,7 @@ public class FujitsuVoltControllerConfig extends AbstractHandlerBehaviour
      * @param controllers list of controllers
      * @return XML string
      */
-    public static String createVoltControllersConfig(HierarchicalConfiguration cfg,
+    private String createVoltControllersConfig(HierarchicalConfiguration cfg,
                                                      String target, String netconfOperation,
                                                      List<ControllerInfo> controllers) {
         XMLConfiguration editcfg = null;
@@ -234,8 +222,11 @@ public class FujitsuVoltControllerConfig extends AbstractHandlerBehaviour
             e.printStackTrace();
         }
         String s = stringWriter.toString();
-        s = s.replace(TARGET_OPEN + target + TARGET_CLOSE,
-                      TARGET_OPEN + L_ANGLE_BR + target + R_ANGLE_BR + TARGET_CLOSE);
+        String fromStr = buildStartTag(TARGET, false) + target +
+                   buildEndTag(TARGET, false);
+        String toStr = buildStartTag(TARGET, false) +
+                   buildEmptyTag(target, false) + buildEndTag(TARGET, false);
+        s = s.replace(fromStr, toStr);
         return s;
     }
 
