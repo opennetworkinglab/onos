@@ -154,13 +154,14 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
 
         @Override
         public double weight(TopologyEdge edge) {
-            if (!constraints.iterator().hasNext()) {
-                return 1.0;
-            }
 
             // iterate over all constraints in order and return the weight of
             // the first one with fast fail over the first failure
             Iterator<Constraint> it = constraints.iterator();
+
+            if (!it.hasNext()) {
+                return 1.0;
+            }
 
             double cost = it.next().cost(edge.link(), resourceService::isAvailable);
             while (it.hasNext() && cost > 0) {
