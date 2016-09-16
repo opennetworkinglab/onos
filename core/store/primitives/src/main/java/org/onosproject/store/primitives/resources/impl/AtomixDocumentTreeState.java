@@ -26,7 +26,10 @@ import io.atomix.copycat.server.storage.snapshot.SnapshotReader;
 import io.atomix.copycat.server.storage.snapshot.SnapshotWriter;
 import io.atomix.resource.ResourceStateMachine;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -52,7 +55,7 @@ import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 
@@ -64,7 +67,7 @@ public class AtomixDocumentTreeState
     implements SessionListener, Snapshottable {
 
     private final Logger log = getLogger(getClass());
-    private final Map<Long, Commit<? extends Listen>> listeners = new HashMap<>();
+    private final Map<Long, SessionListenCommits> listeners = new HashMap<>();
     private AtomicLong versionCounter = new AtomicLong(0);
     private final DocumentTree<TreeNodeValue> docTree = new DefaultDocumentTree<>(versionCounter::incrementAndGet);
 
@@ -97,25 +100,23 @@ public class AtomixDocumentTreeState
 
     protected void listen(Commit<? extends Listen> commit) {
         Long sessionId = commit.session().id();
-        if (listeners.putIfAbsent(sessionId, commit) != null) {
-            commit.close();
-            return;
-        }
+        listeners.computeIfAbsent(sessionId, k -> new SessionListenCommits()).add(commit);
         commit.session().onStateChange(
                         state -> {
                             if (state == ServerSession.State.CLOSED
                                     || state == ServerSession.State.EXPIRED) {
-                                Commit<? extends Listen> listener = listeners.remove(sessionId);
-                                if (listener != null) {
-                                    listener.close();
-                                }
+                                closeListener(commit.session().id());
                             }
                         });
     }
 
     protected void unlisten(Commit<? extends Unlisten> commit) {
+        Long sessionId = commit.session().id();
         try {
-            closeListener(commit.session().id());
+            SessionListenCommits listenCommits = listeners.get(sessionId);
+            if (listenCommits != null) {
+                listenCommits.remove(commit);
+            }
         } finally {
             commit.close();
         }
@@ -261,10 +262,11 @@ public class AtomixDocumentTreeState
                         result.created() ? Type.CREATED : result.newValue() == null ? Type.DELETED : Type.UPDATED,
                         Optional.ofNullable(result.newValue()),
                         Optional.ofNullable(result.oldValue()));
+
         listeners.values()
-                 .forEach(commit -> commit.session()
-                                          .publish(AtomixDocumentTree.CHANGE_SUBJECT,
-                                                   ImmutableList.of(event)));
+                 .stream()
+                 .filter(l -> event.path().isDescendentOf(l.leastCommonAncestorPath()))
+                 .forEach(listener -> listener.publish(AtomixDocumentTree.CHANGE_SUBJECT, Arrays.asList(event)));
     }
 
     @Override
@@ -287,9 +289,52 @@ public class AtomixDocumentTreeState
     }
 
     private void closeListener(Long sessionId) {
-        Commit<? extends Listen> commit = listeners.remove(sessionId);
-        if (commit != null) {
-            commit.close();
+        SessionListenCommits listenCommits = listeners.remove(sessionId);
+        if (listenCommits != null) {
+            listenCommits.close();
+        }
+    }
+
+    private class SessionListenCommits {
+        private final List<Commit<? extends Listen>> commits = Lists.newArrayList();
+        private DocumentPath leastCommonAncestorPath;
+
+        public void add(Commit<? extends Listen> commit) {
+            commits.add(commit);
+            recomputeLeastCommonAncestor();
+        }
+
+        public void remove(Commit<? extends Unlisten> commit) {
+            // Remove the first listen commit with path matching path in unlisten commit
+            Iterator<Commit<? extends Listen>> iterator = commits.iterator();
+            while (iterator.hasNext()) {
+                Commit<? extends Listen> listenCommit = iterator.next();
+                if (listenCommit.operation().path().equals(commit.operation().path())) {
+                    iterator.remove();
+                    listenCommit.close();
+                }
+            }
+            recomputeLeastCommonAncestor();
+        }
+
+        public DocumentPath leastCommonAncestorPath() {
+            return leastCommonAncestorPath;
+        }
+
+        public <M> void publish(String topic, M message) {
+            commits.stream().findAny().ifPresent(commit -> commit.session().publish(topic, message));
+        }
+
+        public void close() {
+            commits.forEach(Commit::close);
+            commits.clear();
+            leastCommonAncestorPath = null;
+        }
+
+        private void recomputeLeastCommonAncestor() {
+            this.leastCommonAncestorPath = DocumentPath.leastCommonAncestor(commits.stream()
+                    .map(c -> c.operation().path())
+                    .collect(Collectors.toList()));
         }
     }
 }

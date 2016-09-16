@@ -22,6 +22,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import io.atomix.AtomixClient;
 import io.atomix.resource.ResourceType;
 
 import java.util.Map;
@@ -343,12 +344,53 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
         assertArrayEquals("xy".getBytes(), event.newValue().get().value());
     }
 
+    @Test
+    public void testFilteredNotifications() throws Throwable {
+        AtomixClient client1 = createAtomixClient();
+        AtomixClient client2 = createAtomixClient();
+
+        String treeName = UUID.randomUUID().toString();
+        AtomixDocumentTree tree1 = client1.getResource(treeName, AtomixDocumentTree.class).join();
+        AtomixDocumentTree tree2 = client2.getResource(treeName, AtomixDocumentTree.class).join();
+
+        TestEventListener listener1a = new TestEventListener(3);
+        TestEventListener listener1ab = new TestEventListener(2);
+        TestEventListener listener2abc = new TestEventListener(1);
+
+        tree1.addListener(DocumentPath.from("root.a"), listener1a).join();
+        tree1.addListener(DocumentPath.from("root.a.b"), listener1ab).join();
+        tree2.addListener(DocumentPath.from("root.a.b.c"), listener2abc).join();
+
+        tree1.createRecursive(DocumentPath.from("root.a.b.c"), "abc".getBytes()).join();
+        DocumentTreeEvent<byte[]> event = listener1a.event();
+        assertEquals(DocumentPath.from("root.a"), event.path());
+        event = listener1a.event();
+        assertEquals(DocumentPath.from("root.a.b"), event.path());
+        event = listener1a.event();
+        assertEquals(DocumentPath.from("root.a.b.c"), event.path());
+        event = listener1ab.event();
+        assertEquals(DocumentPath.from("root.a.b"), event.path());
+        event = listener1ab.event();
+        assertEquals(DocumentPath.from("root.a.b.c"), event.path());
+        event = listener2abc.event();
+        assertEquals(DocumentPath.from("root.a.b.c"), event.path());
+    }
+
     private static class TestEventListener implements DocumentTreeListener<byte[]> {
 
-        private final BlockingQueue<DocumentTreeEvent<byte[]>> queue = new ArrayBlockingQueue<>(1);
+        private final BlockingQueue<DocumentTreeEvent<byte[]>> queue;
+
+        public TestEventListener() {
+            this(1);
+        }
+
+        public TestEventListener(int maxEvents) {
+            queue = new ArrayBlockingQueue<>(maxEvents);
+        }
 
         @Override
         public void event(DocumentTreeEvent<byte[]> event) {
+
             try {
                 queue.put(event);
             } catch (InterruptedException e) {

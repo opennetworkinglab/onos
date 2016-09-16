@@ -225,11 +225,10 @@ public class AtomixDocumentTreeCommands {
         }
 
         @Override
-        public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
-        }
-
-        @Override
-        public void readObject(BufferInput<?> buffer, Serializer serializer) {
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                    .add("path", path())
+                    .toString();
         }
     }
 
@@ -248,11 +247,10 @@ public class AtomixDocumentTreeCommands {
         }
 
         @Override
-        public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
-        }
-
-        @Override
-        public void readObject(BufferInput<?> buffer, Serializer serializer) {
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                    .add("path", path())
+                    .toString();
         }
     }
 

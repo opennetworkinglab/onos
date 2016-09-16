@@ -17,9 +17,13 @@
 package org.onosproject.store.service;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -101,6 +105,46 @@ public class DocumentPath implements Comparable<DocumentPath> {
      */
     public List<String> pathElements() {
         return ImmutableList.copyOf(pathElements);
+    }
+
+    /**
+     * Returns if the specified path belongs to a direct ancestor of the node pointed at by this path.
+     * <p>
+     * Example: {@code root.a} is a direct ancestor of {@code r.a.b.c}; while {@code r.a.x} is not.
+     *
+     * @param other other path
+     * @return {@code true} is yes; {@code false} otherwise.
+     */
+    public boolean isAncestorOf(DocumentPath other) {
+        return !other.equals(this) && other.toString().startsWith(toString());
+    }
+
+    /**
+     * Returns if the specified path is belongs to a subtree rooted this path.
+     * <p>
+     * Example: {@code root.a.b} and {@code root.a.b.c.d.e} are descendants of {@code r.a.b};
+     * while {@code r.a.x.c} is not.
+     *
+     * @param other other path
+     * @return {@code true} is yes; {@code false} otherwise.
+     */
+    public boolean isDescendentOf(DocumentPath other) {
+        return other.equals(this) || other.isAncestorOf(this);
+    }
+
+    /**
+     * Returns the path that points to the least common ancestor of the specified
+     * collection of paths.
+     * @param paths collection of path
+     * @return path to least common ancestor
+     */
+    public static DocumentPath leastCommonAncestor(Collection<DocumentPath> paths) {
+        if (CollectionUtils.isEmpty(paths)) {
+            return null;
+        }
+        return DocumentPath.from(StringUtils.getCommonPrefix(paths.stream()
+                    .map(DocumentPath::toString)
+                    .toArray(String[]::new)));
     }
 
     @Override
