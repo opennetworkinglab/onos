@@ -41,7 +41,7 @@ public interface AsyncDocumentTree<V> extends DistributedPrimitive {
      *
      * @param path path to the node
      * @return future for mapping from child name to child value
-     * @throws {@code NoSuchDocumentPathException} if the path does not point to a valid node
+     * @throws NoSuchDocumentPathException if the path does not point to a valid node
      */
     CompletableFuture<Map<String, Versioned<V>>> getChildren(DocumentPath path);
 
