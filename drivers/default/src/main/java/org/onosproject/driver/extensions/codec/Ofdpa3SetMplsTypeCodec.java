@@ -13,42 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.driver.extensions.codec;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onlab.packet.VlanId;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
-import org.onosproject.driver.extensions.OfdpaSetVlanVid;
+import org.onosproject.driver.extensions.Ofdpa3SetMplsType;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;
 
 /**
- * JSON Codec for Ofdpa set vlan vid class.
+ * JSON Codec for Ofdpa set mpls type class.
  */
-public class OfdpaSetVlanVidCodec extends JsonCodec<OfdpaSetVlanVid> {
+public class Ofdpa3SetMplsTypeCodec extends JsonCodec<Ofdpa3SetMplsType>  {
 
-    private static final String VLAN_ID = "vlanId";
-    private static final String MISSING_MEMBER_MESSAGE = " member is required in OfdpaSetVlanVid";
-    private static final String MISSING_VLAN_ID_MESSAGE = "Vlan ID cannot be null";
+    private static final String MPLS_TYPE = "mplsType";
+
+    private static final String MISSING_MEMBER_MESSAGE = " member is required in Ofdpa3SetMplsType";
+    private static final String MISSING_MPLS_TYPE_MESSAGE = "mplsType cannot be null";
 
     @Override
-    public ObjectNode encode(OfdpaSetVlanVid vlanId, CodecContext context) {
-        checkNotNull(vlanId, MISSING_VLAN_ID_MESSAGE);
+    public ObjectNode encode(Ofdpa3SetMplsType mplsType, CodecContext context) {
+        checkNotNull(mplsType, MISSING_MPLS_TYPE_MESSAGE);
         return context.mapper().createObjectNode()
-                .put(VLAN_ID, vlanId.vlanId().id());
+                .put(MPLS_TYPE, mplsType.mplsType());
     }
 
     @Override
-    public OfdpaSetVlanVid decode(ObjectNode json, CodecContext context) {
+    public Ofdpa3SetMplsType decode(ObjectNode json, CodecContext context) {
         if (json == null || !json.isObject()) {
             return null;
         }
 
-        // parse ofdpa set vlan vid
-        short vlanVid = (short) nullIsIllegal(json.get(VLAN_ID),
-                VLAN_ID + MISSING_MEMBER_MESSAGE).asInt();
-        return new OfdpaSetVlanVid(VlanId.vlanId(vlanVid));
+        // parse ofdpa mpls type
+        short mplsType = (short) nullIsIllegal(json.get(MPLS_TYPE),
+                MPLS_TYPE + MISSING_MEMBER_MESSAGE).asInt();
+        return new Ofdpa3SetMplsType(mplsType);
     }
 }

@@ -59,6 +59,6 @@ public class CpqdOfdpa3Pipeline extends CpqdOfdpa2Pipeline {
 
     @Override
     protected Collection<FlowRule> processEthTypeSpecific(ForwardingObjective fwd) {
-        return processEthTypeSpecificInternal(fwd, true);
+        return processEthTypeSpecificInternal(fwd, true, ACL_TABLE);
     }
 }

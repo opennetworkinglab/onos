@@ -30,15 +30,14 @@ import static org.onlab.util.Tools.nullIsIllegal;
 public class OfdpaMatchVlanVidCodec extends JsonCodec<OfdpaMatchVlanVid> {
 
     private static final String VLAN_ID = "vlanId";
-
     private static final String MISSING_MEMBER_MESSAGE = " member is required in OfdpaMatchVlanVid";
+    private static final String MISSING_VLAN_ID_MESSAGE = "Vlan ID cannot be null";
 
     @Override
     public ObjectNode encode(OfdpaMatchVlanVid vlanId, CodecContext context) {
-        checkNotNull(vlanId, "Vlan ID cannot be null");
-        ObjectNode root = context.mapper().createObjectNode()
+        checkNotNull(vlanId, MISSING_VLAN_ID_MESSAGE);
+        return context.mapper().createObjectNode()
                 .put(VLAN_ID, vlanId.vlanId().id());
-        return root;
     }
 
     @Override

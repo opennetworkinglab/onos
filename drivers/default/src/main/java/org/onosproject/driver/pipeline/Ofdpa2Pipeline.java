@@ -37,6 +37,8 @@ import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.driver.extensions.Ofdpa3MplsType;
+import org.onosproject.driver.extensions.Ofdpa3SetMplsType;
 import org.onosproject.driver.extensions.OfdpaMatchVlanVid;
 import org.onosproject.driver.extensions.OfdpaSetVlanVid;
 import org.onosproject.net.DeviceId;
@@ -98,6 +100,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected static final int MULTICAST_ROUTING_TABLE = 40;
     protected static final int MPLS_TABLE_0 = 23;
     protected static final int MPLS_TABLE_1 = 24;
+    protected static final int MPLS_L3_TYPE = 27;
     protected static final int BRIDGING_TABLE = 50;
     protected static final int ACL_TABLE = 60;
     protected static final int MAC_LEARNING_TABLE = 254;
@@ -824,7 +827,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      * @return A collection of flow rules, or an empty set
      */
     protected Collection<FlowRule> processEthTypeSpecific(ForwardingObjective fwd) {
-        return processEthTypeSpecificInternal(fwd, false);
+        return processEthTypeSpecificInternal(fwd, false, ACL_TABLE);
     }
 
     /**
@@ -840,7 +843,8 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      * @return A collection of flow rules, or an empty set
      */
     protected Collection<FlowRule> processEthTypeSpecificInternal(ForwardingObjective fwd,
-                                                                  boolean allowDefaultRoute) {
+                                                                  boolean allowDefaultRoute,
+                                                                  int mplsNextTable) {
         TrafficSelector selector = fwd.selector();
         EthTypeCriterion ethType =
                 (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
@@ -970,7 +974,17 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 return Collections.emptySet();
             }
         }
-        tb.transition(ACL_TABLE);
+
+        if (forTableId == MPLS_TABLE_1) {
+            if (mplsNextTable == MPLS_L3_TYPE) {
+                Ofdpa3SetMplsType setMplsType = new Ofdpa3SetMplsType(Ofdpa3MplsType.L3_PHP);
+                tb.extension(setMplsType, deviceId);
+            }
+            tb.transition(mplsNextTable);
+        } else {
+            tb.transition(ACL_TABLE);
+        }
+
         FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
                 .fromApp(fwd.appId())
                 .withPriority(fwd.priority())

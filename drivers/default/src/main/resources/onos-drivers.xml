@@ -87,6 +87,10 @@
             manufacturer="Broadcom Corp." hwVersion="OF-DPA 3.0" swVersion="OF-DPA 3.0">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.Ofdpa3Pipeline"/>
+        <behaviour api="org.onosproject.openflow.controller.ExtensionTreatmentInterpreter"
+                   impl="org.onosproject.driver.extensions.Ofdpa3ExtensionTreatmentInterpreter" />
+        <behaviour api="org.onosproject.net.behaviour.ExtensionTreatmentResolver"
+                   impl="org.onosproject.driver.extensions.Ofdpa3ExtensionTreatmentInterpreter" />
         <behaviour api="org.onosproject.openflow.controller.ExtensionSelectorInterpreter"
                    impl="org.onosproject.driver.extensions.OfdpaExtensionSelectorInterpreter" />
         <behaviour api="org.onosproject.net.behaviour.ExtensionSelectorResolver"

@@ -427,7 +427,7 @@ public class FlowEntryBuilder {
         return configureTreatmentBuilder(actions, builder, driverHandler, deviceId);
     }
 
-
+    // CHECKSTYLE IGNORE MethodLength FOR NEXT 1 LINES
     private static void handleSetField(TrafficTreatment.Builder builder,
                                        OFActionSetField action,
                                        DriverHandler driverHandler,
@@ -576,6 +576,16 @@ public class FlowEntryBuilder {
             @SuppressWarnings("unchecked")
             OFOxm<IPv4Address> arpspa = (OFOxm<IPv4Address>) oxm;
             builder.setArpSpa(Ip4Address.valueOf(arpspa.getValue().getInt()));
+            break;
+        case OFDPA_MPLS_TYPE:
+            if (treatmentInterpreter != null) {
+                try {
+                    builder.extension(treatmentInterpreter.mapAction(action), deviceId);
+                    break;
+                } catch (UnsupportedOperationException e) {
+                    log.warn("Unsupported action extension");
+                }
+            }
             break;
         case ARP_THA:
         case ARP_TPA:
