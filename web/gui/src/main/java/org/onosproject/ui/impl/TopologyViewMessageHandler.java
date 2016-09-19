@@ -493,7 +493,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void process(long sid, ObjectNode payload) {
             NodeSelection nodeSelection =
-                    new NodeSelection(payload, deviceService, hostService);
+                    new NodeSelection(payload, deviceService, hostService, linkService);
             traffic.monitor(Mode.DEV_LINK_FLOWS, nodeSelection);
         }
     }
@@ -506,7 +506,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void process(long sid, ObjectNode payload) {
             NodeSelection nodeSelection =
-                    new NodeSelection(payload, deviceService, hostService);
+                    new NodeSelection(payload, deviceService, hostService, linkService);
             traffic.monitor(Mode.RELATED_INTENTS, nodeSelection);
         }
     }
