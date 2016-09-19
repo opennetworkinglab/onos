@@ -74,9 +74,12 @@ public class TopoIntentFilter {
      *
      * @param hosts         set of hosts to query by
      * @param devices       set of devices to query by
-     * @return set of intents that 'match' all hosts and devices given
+     * @param links       set of links to query by
+     * @return set of intents that 'match' all hosts, devices and links given
      */
-    public List<Intent> findPathIntents(Set<Host> hosts, Set<Device> devices) {
+    public List<Intent> findPathIntents(Set<Host> hosts,
+                                        Set<Device> devices,
+                                        Set<Link> links) {
         // start with all intents
         Iterable<Intent> sourceIntents = intentService.getIntents();
 
@@ -85,7 +88,7 @@ public class TopoIntentFilter {
 
         // Iterate over all intents and produce a set that contains only those
         // intents that target all selected hosts or derived edge connect points.
-        return getIntents(hosts, devices, edgePoints, sourceIntents);
+        return getIntents(hosts, devices, links, edgePoints, sourceIntents);
     }
 
 
@@ -98,12 +101,12 @@ public class TopoIntentFilter {
         return edgePoints;
     }
 
-    // Produces a list of intents that target all selected hosts, devices or connect points.
-    private List<Intent> getIntents(Set<Host> hosts, Set<Device> devices,
+    // Produces a list of intents that target all selected hosts, devices, links or connect points.
+    private List<Intent> getIntents(Set<Host> hosts, Set<Device> devices, Set<Link> links,
                                     Set<ConnectPoint> edgePoints,
                                     Iterable<Intent> sourceIntents) {
         List<Intent> intents = new ArrayList<>();
-        if (hosts.isEmpty() && devices.isEmpty()) {
+        if (hosts.isEmpty() && devices.isEmpty() && links.isEmpty()) {
             return intents;
         }
 
@@ -115,13 +118,13 @@ public class TopoIntentFilter {
                 boolean isRelevant = false;
                 if (intent instanceof HostToHostIntent) {
                     isRelevant = isIntentRelevantToHosts((HostToHostIntent) intent, hosts) &&
-                            isIntentRelevantToDevices(intent, devices);
+                            isIntentRelevantToDevices(intent, devices) && isIntentRelevantToLinks(intent, links);
                 } else if (intent instanceof PointToPointIntent) {
                     isRelevant = isIntentRelevant((PointToPointIntent) intent, edgePoints) &&
-                            isIntentRelevantToDevices(intent, devices);
+                            isIntentRelevantToDevices(intent, devices) && isIntentRelevantToLinks(intent, links);
                 } else if (intent instanceof MultiPointToSinglePointIntent) {
                     isRelevant = isIntentRelevant((MultiPointToSinglePointIntent) intent, edgePoints) &&
-                            isIntentRelevantToDevices(intent, devices);
+                            isIntentRelevantToDevices(intent, devices) && isIntentRelevantToLinks(intent, links);
                 } else if (intent instanceof OpticalConnectivityIntent) {
                     opticalIntents.add((OpticalConnectivityIntent) intent);
                 }
@@ -167,6 +170,17 @@ public class TopoIntentFilter {
         return true;
     }
 
+    // Indicates whether the specified intent involves all of the given links.
+    private boolean isIntentRelevantToLinks(Intent intent, Iterable<Link> links) {
+        List<Intent> installables = intentService.getInstallableIntents(intent.key());
+        for (Link link : links) {
+            if (!isIntentRelevantToLink(installables, link)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     // Indicates whether the specified intent involves the given device.
     private boolean isIntentRelevantToDevice(List<Intent> installables, Device device) {
         if (installables != null) {
@@ -190,6 +204,38 @@ public class TopoIntentFilter {
                     if (pathContainsDevice(linksIntent.links(), device.id())) {
                         return true;
                     }
+                }
+            }
+        }
+        return false;
+    }
+
+    // Indicates whether the specified intent involves the given link.
+    private boolean isIntentRelevantToLink(List<Intent> installables, Link link) {
+        Link reverseLink = linkService.getLink(link.dst(), link.src());
+
+        if (installables != null) {
+            for (Intent installable : installables) {
+                if (installable instanceof PathIntent) {
+                    PathIntent pathIntent = (PathIntent) installable;
+                    return pathIntent.path().links().contains(link) ||
+                            pathIntent.path().links().contains(reverseLink);
+
+                } else if (installable instanceof FlowRuleIntent) {
+                    FlowRuleIntent flowRuleIntent = (FlowRuleIntent) installable;
+                    return flowRuleIntent.resources().contains(link) ||
+                            flowRuleIntent.resources().contains(reverseLink);
+
+                } else if (installable instanceof FlowObjectiveIntent) {
+                    FlowObjectiveIntent objectiveIntent = (FlowObjectiveIntent) installable;
+                    return objectiveIntent.resources().contains(link) ||
+                            objectiveIntent.resources().contains(reverseLink);
+
+                } else if (installable instanceof LinkCollectionIntent) {
+                    LinkCollectionIntent linksIntent = (LinkCollectionIntent) installable;
+                    return linksIntent.links().contains(link) ||
+                            linksIntent.links().contains(reverseLink);
+
                 }
             }
         }

@@ -19,11 +19,14 @@ package org.onosproject.ui.topo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.Element;
 import org.onosproject.net.Host;
+import org.onosproject.net.Link;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.link.LinkService;
 import org.onosproject.ui.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,11 +36,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onosproject.net.ConnectPoint.deviceConnectPoint;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.HostId.hostId;
 
 /**
- * Encapsulates a selection of devices and/or hosts from the topology view.
+ * Encapsulates a selection of devices, hosts and links from the topology view.
  */
 public class NodeSelection {
 
@@ -46,31 +50,38 @@ public class NodeSelection {
 
     private static final String IDS = "ids";
     private static final String HOVER = "hover";
+    private static final String LINK_ID_DELIM = "-";
 
     private final DeviceService deviceService;
     private final HostService hostService;
+    private final LinkService linkService;
 
     private final Set<String> ids;
     private final String hover;
 
     private final Set<Device> devices = new HashSet<>();
     private final Set<Host> hosts = new HashSet<>();
+    private final Set<Link> links = new HashSet<>();
     private Element hovered;
 
     /**
      * Creates a node selection entity, from the given payload, using the
-     * supplied device and host services. Note that if a device or host was
-     * hovered over by the mouse, it is available via {@link #hovered()}.
+     * supplied link, device and host services. Note that if a link, device
+     * or host was hovered over by the mouse, it is available
+     * via {@link #hovered()}.
      *
      * @param payload message payload
      * @param deviceService device service
      * @param hostService host service
+     * @param linkService link service
      */
     public NodeSelection(ObjectNode payload,
                          DeviceService deviceService,
-                         HostService hostService) {
+                         HostService hostService,
+                         LinkService linkService) {
         this.deviceService = deviceService;
         this.hostService = hostService;
+        this.linkService = linkService;
 
         ids = extractIds(payload);
         hover = extractHover(payload);
@@ -82,8 +93,9 @@ public class NodeSelection {
             setHoveredElement();
         }
 
-        // now go find the devices and hosts that are in the selection list
-        Set<String> unmatched = findDevices(ids);
+        // now go find the links, devices and hosts that are in the selection list
+        Set<String> unmatched = findLinks(ids);
+        unmatched = findDevices(unmatched);
         unmatched = findHosts(unmatched);
         if (unmatched.size() > 0) {
             log.debug("Skipping unmatched IDs {}", unmatched);
@@ -98,6 +110,15 @@ public class NodeSelection {
      */
     public Set<Device> devices() {
         return Collections.unmodifiableSet(devices);
+    }
+
+    /**
+     * Returns a view of the selected links (hover not included).
+     *
+     * @return selected links
+     */
+    public Set<Link> links() {
+        return Collections.unmodifiableSet(links);
     }
 
     /**
@@ -144,7 +165,24 @@ public class NodeSelection {
     }
 
     /**
-     * Returns the element (host or device) over which the mouse was hovering,
+     * Returns a view of the selected links, including the hovered link
+     * if thee was one.
+     *
+     * @return selected (plus hovered) links
+     */
+    public Set<Link> linksWithHover() {
+        Set<Link> withHover;
+        if (hovered != null && hovered instanceof Link) {
+            withHover = new HashSet<>(links);
+            withHover.add((Link) hovered);
+        } else {
+            withHover = links;
+        }
+        return Collections.unmodifiableSet(withHover);
+    }
+
+    /**
+     * Returns the element (link, host or device) over which the mouse was hovering,
      * or null.
      *
      * @return element hovered over
@@ -159,7 +197,7 @@ public class NodeSelection {
      * @return true if nothing selected
      */
     public boolean none() {
-        return devices().size() == 0 && hosts().size() == 0;
+        return devices().isEmpty() && hosts().isEmpty() && links().isEmpty();
     }
 
     @Override
@@ -169,6 +207,7 @@ public class NodeSelection {
                 ", hover='" + hover + '\'' +
                 ", #devices=" + devices.size() +
                 ", #hosts=" + hosts.size() +
+                ", #links=" + links.size() +
                 '}';
     }
 
@@ -242,6 +281,36 @@ public class NodeSelection {
                 } else {
                     unmatched.add(id);
                 }
+            } catch (Exception e) {
+                unmatched.add(id);
+            }
+        }
+        return unmatched;
+    }
+
+    private Set<String> findLinks(Set<String> ids) {
+        Set<String> unmatched = new HashSet<>();
+        ConnectPoint cpSrc, cpDst;
+        Link link;
+
+        for (String id : ids) {
+            try {
+                String[] connectPoints = id.split(LINK_ID_DELIM);
+                if (connectPoints.length != 2) {
+                    unmatched.add(id);
+                    continue;
+                }
+
+                cpSrc = deviceConnectPoint(connectPoints[0]);
+                cpDst = deviceConnectPoint(connectPoints[1]);
+                link = linkService.getLink(cpSrc, cpDst);
+
+                if (link != null) {
+                    links.add(link);
+                } else {
+                    unmatched.add(id);
+                }
+
             } catch (Exception e) {
                 unmatched.add(id);
             }

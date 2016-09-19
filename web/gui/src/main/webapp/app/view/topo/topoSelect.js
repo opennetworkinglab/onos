@@ -31,7 +31,7 @@
        node()                         // get ref to D3 selection of nodes
        zoomingOrPanning( ev )
        updateDeviceColors( [dev] )
-       deselectLink()
+       deselectAllLinks()
      */
 
     // internal state
@@ -106,12 +106,27 @@
                 }
             });
         }
-        if (!n) return;
+
+        if (obj.class === 'link') {
+
+            if (selections[obj.key]) {
+                deselectObject(obj.key);
+            } else {
+                selections[obj.key] = { obj: obj, el: el };
+                selectOrder.push(obj.key);
+            }
+
+            updateDetail();
+            return;
+        }
+
+        if (!n) {
+            return;
+        }
 
         if (nodeEv) {
             consumeClick = true;
         }
-        api.deselectLink();
 
         if (ev.shiftKey && n.classed('selected')) {
             deselectObject(obj.id);
@@ -196,6 +211,11 @@
 
     function singleSelect() {
         var data = getSel(0).obj;
+
+        //the link details are already taken care of in topoLink.js
+        if (data.class === 'link') {
+            return;
+        }
         requestDetails(data);
         // NOTE: detail panel is shown as a response to receiving
         //       a 'showDetails' event from the server. See 'showDetails'
