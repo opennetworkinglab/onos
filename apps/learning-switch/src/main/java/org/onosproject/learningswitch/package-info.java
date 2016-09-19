@@ -15,6 +15,6 @@
  */
 
 /**
- * Learning Switch Tutorial
+ * Learning Switch Tutorial.
  */
 package org.onosproject.learningswitch;
