@@ -192,7 +192,7 @@
             // else if we have node selections, deselect them all
             // (work already done)
 
-        } else if (tls.deselectLink()) {
+        } else if (tls.deselectAllLinks()) {
             // else if we have a link selected, deselect it
             // (work already done)
 
