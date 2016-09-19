@@ -23,10 +23,14 @@ import com.google.common.util.concurrent.Futures;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.metrics.MetricsService;
+import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -97,12 +101,22 @@ public class MastershipManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RegionService regionService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     private NodeId localNodeId;
     private Timer requestRoleTimer;
+
+    static final boolean DEFAULT_USE_REGION_FOR_BALANCE_ROLES = false;
+    @Property(name = "useRegionForBalanceRoles", boolValue = DEFAULT_USE_REGION_FOR_BALANCE_ROLES,
+              label = "Use Regions for balancing roles")
     public boolean useRegionForBalanceRoles;
 
     @Activate
     public void activate() {
+        cfgService.registerProperties(getClass());
+        modified();
+
         requestRoleTimer = createTimer("Mastership", "requestRole", "responseTime");
         localNodeId = clusterService.getLocalNode().id();
         eventDispatcher.addSink(MastershipEvent.class, listenerRegistry);
@@ -110,11 +124,22 @@ public class MastershipManager
         log.info("Started");
     }
 
+    @Modified
+    public void modified() {
+        Set<ConfigProperty> configProperties = cfgService.getProperties(getClass().getCanonicalName());
+        for (ConfigProperty property : configProperties) {
+            if (property.name().equals("useRegionForBalanceRoles")) {
+                useRegionForBalanceRoles = property.asBoolean();
+            }
+        }
+    }
+
     @Deactivate
     public void deactivate() {
         eventDispatcher.removeSink(MastershipEvent.class);
         store.unsetDelegate(delegate);
         log.info("Stopped");
+        cfgService.unregisterProperties(getClass(), false);
     }
 
     @Override

@@ -21,11 +21,13 @@ import java.util.function.Consumer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.packet.IpAddress;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
@@ -47,6 +49,10 @@ import org.onosproject.store.trivial.SimpleMastershipStore;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.*;
 import static org.onosproject.net.MastershipRole.MASTER;
 import static org.onosproject.net.MastershipRole.NONE;
@@ -106,6 +112,18 @@ public class MastershipManagerTest {
         TestUtils.setField(regionManager, "store", regionStore);
         regionManager.activate();
         mgr.regionService = regionManager;
+
+        ComponentConfigService mockConfigService =
+                EasyMock.createMock(ComponentConfigService.class);
+        expect(mockConfigService.getProperties(anyObject())).andReturn(ImmutableSet.of());
+        mockConfigService.registerProperties(mgr.getClass());
+        expectLastCall();
+        mockConfigService.unregisterProperties(mgr.getClass(), false);
+        expectLastCall();
+        expect(mockConfigService.getProperties(anyObject())).andReturn(ImmutableSet.of());
+        mgr.cfgService = mockConfigService;
+        replay(mockConfigService);
+
         mgr.activate();
     }
 
