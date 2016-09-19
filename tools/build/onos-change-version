@@ -28,7 +28,7 @@ done
 
 # Augment the version in envDefaults, onos.py and archetypes test
 sed -i "" -E "s/ONOS_VERSION:-[^$]*/ONOS_VERSION:-$NEW_VERSION_SHORT./" $ONOS_ROOT/tools/build/envDefaults
-sed -i "" -E "s/features\/.*\/xml/features\/$NEW_VERSION\/xml/" $ONOS_ROOT/tools/test/topos/onos.py
+sed -i "" -E "s/features\/.*\/xml/features\/$NEW_VERSION\/xml/" $ONOS_ROOT/tools/dev/mininet/onos.py
 sed -i "" -E "s/ -Dversion=.*\"/ -Dversion=$NEW_VERSION\"/" $ONOS_ROOT/tools/test/bin/onos-archetypes-test
 sed -i "" -E "s/ONOS_POM_VERSION=.*\"/ONOS_POM_VERSION=\"$NEW_VERSION\"/" $ONOS_ROOT/tools/build/envDefaults
 
@@ -50,8 +50,4 @@ sed -i "" -E "s#demo/cord-gui/target/cord-gui-.*\.war#demo/cord-gui/target/cord-
 sed -i "" -E "s#CORD=./cord-gui-.*\.war#CORD=./cord-gui-$NEW_VERSION.war#" $ONOS_ROOT/apps/demo/cord-gui/src/scripts/run.me
 
 # Version the BUCK artifacts
-sed -i "" -E "s#/org/onosproject/onos-features/.*/#/org/onosproject/onos-features/$NEW_VERSION/#" $ONOS_ROOT/buck-tools/onos_stage.py
-sed -i "" -E "s#onos-features-.*-features.xml#onos-features-$NEW_VERSION-features.xml#" $ONOS_ROOT/buck-tools/onos_stage.py
-
-sed -i "" -E "s#ONOS_VERSION = .*#ONOS_VERSION = '$NEW_VERSION'#" $ONOS_ROOT/bucklets/onos.bucklet
-sed -i "" -E "s#ONOS_VERSION = .*#ONOS_VERSION = '$NEW_VERSION'#" $ONOS_ROOT/bucklets/onos_app.bucklet
+sed -i "" -E "s/ONOS_VERSION.*/ONOS_VERSION = '$NEW_VERSION'/" onos.defs
