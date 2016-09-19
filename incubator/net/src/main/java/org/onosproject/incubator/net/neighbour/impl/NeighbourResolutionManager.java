@@ -71,6 +71,7 @@ import java.util.Dictionary;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.packet.Ethernet.TYPE_ARP;
@@ -280,19 +281,24 @@ public class NeighbourResolutionManager implements NeighbourResolutionService {
             return;
         }
 
-        handleMessage(msgContext);
+        if (handleMessage(msgContext)) {
+            context.block();
+        }
 
-        context.block();
     }
 
-    private void handleMessage(NeighbourMessageContext context) {
+    private boolean handleMessage(NeighbourMessageContext context) {
         Collection<NeighbourHandlerRegistration> handlers = packetHandlers.get(context.inPort());
 
-        handlers.forEach(registration -> {
-            if (registration.intf() == null || matches(context, registration.intf())) {
-                registration.handler().handleMessage(context, hostService);
-            }
-        });
+        Collection<NeighbourHandlerRegistration> handled = handlers
+                .stream()
+                .filter(registration -> registration.intf() == null || matches(context, registration.intf()))
+                .collect(Collectors.toSet());
+
+        handled.forEach(registration -> registration.handler().handleMessage(context, hostService));
+
+        return !handled.isEmpty();
+
     }
 
     /**
