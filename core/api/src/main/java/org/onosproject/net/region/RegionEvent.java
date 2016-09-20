@@ -36,12 +36,12 @@ public class RegionEvent extends AbstractEvent<RegionEvent.Type, Region> {
         REGION_ADDED,
 
         /**
-         * Signifies that a region was updated.
+         * Signifies that a region was removed.
          */
         REGION_REMOVED,
 
         /**
-         * Signifies that a region was removed.
+         * Signifies that a region was updated.
          */
         REGION_UPDATED,
 
