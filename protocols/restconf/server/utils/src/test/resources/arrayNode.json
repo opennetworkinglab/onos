@@ -1,0 +1,18 @@
+{
+  "surname": "Bangalore",
+  "networklist":[
+    {
+      "network-id": "520",
+      "server-provided": "123"
+    },
+    {
+      "network-id": "521",
+      "server-provided": "124"
+    },
+    {
+      "network-id": "523",
+      "server-provided": "125"
+    }
+
+  ]
+}

@@ -34,6 +34,7 @@
         <module>restconfmgr</module>
         <module>rpp</module>
         <module>app</module>
+        <module>utils</module>
     </modules>
 
     <description>RESTCONF Server Module</description>

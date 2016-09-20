@@ -22,4 +22,5 @@
     <artifact>mvn:${project.groupId}/onos-restconf-server-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-restconf-server-restconfmanager/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-restconf-server-rpp/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-restconf-server-utils/${project.version}</artifact>
 </app>
