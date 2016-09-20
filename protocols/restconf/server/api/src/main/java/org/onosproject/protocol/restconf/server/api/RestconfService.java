@@ -25,57 +25,80 @@ import org.glassfish.jersey.server.ChunkedOutput;
 public interface RestconfService {
     /**
      * Processes a GET request against a data resource. The
-     * target data resource is identified by its URI.
+     * target data resource is identified by its URI. If the
+     * GET operation cannot be fulfilled due to reasons such
+     * as the nonexistence of the target resource, then a
+     * RestconfException exception is raised. The proper
+     * HTTP error status code is enclosed in the exception, so
+     * that the caller may return it to the RESTCONF client to
+     * display.
      *
      * @param uri URI of the target data resource
      * @return JSON representation of the data resource
-     * @throws RestconfException if the GET operation cannot be fulfilled due
-     *                           reasons such as the nonexistence of the target
-     *                           resource. The proper HTTP error status code is
-     *                           enclosed in the exception, so that the caller
-     *                           may return it to the RESTCONF client
+     * @throws RestconfException if the GET operation cannot be fulfilled
      */
-    ObjectNode runGetOperationOnDataResource(String uri) throws RestconfException;
+    ObjectNode runGetOperationOnDataResource(String uri)
+            throws RestconfException;
 
     /**
      * Processes a POST request against a data resource. The location of
      * the target resource is passed in as a URI. And the resource's
-     * content is passed in as a JSON ObjectNode.
+     * content is passed in as a JSON ObjectNode. If the POST operation
+     * cannot be fulfilled due to reasons such as wrong input URIs or
+     * syntax errors in the JSON payloads, a RestconfException exception
+     * is raised. The proper HTTP error status code is enclosed in the
+     * exception.
      *
      * @param uri      URI of the data resource to be created
      * @param rootNode JSON representation of the data resource
-     * @throws RestconfException if the POST operation cannot be fulfilled due
-     *                           reasons such as wrong URI or syntax error
-     *                           in JSON payload. The proper HTTP error status
-     *                           code is enclosed in the exception
+     * @throws RestconfException if the POST operation cannot be fulfilled
      */
-    void runPostOperationOnDataResource(String uri, ObjectNode rootNode) throws RestconfException;
+    void runPostOperationOnDataResource(String uri, ObjectNode rootNode)
+            throws RestconfException;
 
     /**
      * Processes a PUT request against a data resource. The location of
      * the target resource is passed in as a URI. And the resource's
-     * content is passed in as a JSON ObjectNode.
+     * content is passed in as a JSON ObjectNode. If the PUT operation
+     * cannot be fulfilled due to reasons such as wrong input URIs or
+     * syntax errors in the JSON payloads, a RestconfException exception
+     * is raised. The proper HTTP error status code is enclosed in the
+     * exception.
      *
      * @param uri      URI of the data resource to be created or updated
      * @param rootNode JSON representation of the data resource
-     * @throws RestconfException if the PUT operation cannot be fulfilled due
-     *                           reasons such as wrong URI or syntax error
-     *                           in JSON payload. The proper HTTP error status
-     *                           code is enclosed in the exception
+     * @throws RestconfException if the PUT operation cannot be fulfilled
      */
-    void runPutOperationOnDataResource(String uri, ObjectNode rootNode) throws RestconfException;
+    void runPutOperationOnDataResource(String uri, ObjectNode rootNode)
+            throws RestconfException;
 
     /**
      * Processes the DELETE operation against a data resource. The target
-     * data resource is identified by its URI.
+     * data resource is identified by its URI. If the DELETE operation
+     * cannot be fulfilled due reasons such as the nonexistence of the
+     * target resource, a RestconfException exception is raised. The
+     * proper HTTP error status code is enclosed in the exception.
      *
      * @param uri URI of the data resource to be deleted
-     * @throws RestconfException if the DELETE operation cannot be fulfilled due
-     *                           reasons such as the nonexistence of the target
-     *                           resource. The proper HTTP error status code is
-     *                           enclosed in the exception
+     * @throws RestconfException if the DELETE operation cannot be fulfilled
      */
     void runDeleteOperationOnDataResource(String uri) throws RestconfException;
+
+    /**
+     * Processes a PATCH operation on a data resource. The target data
+     * resource is identified by its URI passed in by the caller.
+     * And the content of the data resource is passed in as a JSON ObjectNode.
+     * If the PATCH operation cannot be fulfilled due reasons such as
+     * the nonexistence of the target resource, a RestconfException
+     * exception is raised. The proper HTTP error status code is
+     * enclosed in the exception.
+     *
+     * @param uri      URI of the data resource to be patched
+     * @param rootNode JSON representation of the data resource
+     * @throws RestconfException if the PATCH operation cannot be fulfilled
+     */
+    void runPatchOperationOnDataResource(String uri, ObjectNode rootNode)
+            throws RestconfException;
 
     /**
      * Retrieves the RESTCONF Root directory.
@@ -90,13 +113,18 @@ public interface RestconfService {
      * which is passed in from the caller. (The worker thread blocks if
      * no events arrive.) The ChuckedOutput is a pipe to which this
      * function acts as the writer and the caller the reader.
+     * <p>
+     * If the Event Stream cannot be subscribed due to reasons such as
+     * the nonexistence of the target stream or failure to allocate
+     * worker thread to handle the request, a RestconfException exception
+     * is raised. The proper HTTP error status code is enclosed in the
+     * exception, so that the caller may return it to the RESTCONF client
+     * to display.
      *
      * @param streamId ID of the RESTCONF stream to subscribe
      * @param output   A string data stream
-     * @throws RestconfException if the Event Stream cannot be subscribed due to
-     *                           reasons such as the nonexistence of the target
-     *                           stream or unable to allocate any free worker
-     *                           thread to handle the request
+     * @throws RestconfException if the Event Stream cannot be subscribed
      */
-    void subscribeEventStream(String streamId, ChunkedOutput<String> output) throws RestconfException;
+    void subscribeEventStream(String streamId, ChunkedOutput<String> output)
+            throws RestconfException;
 }

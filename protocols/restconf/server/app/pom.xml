@@ -51,5 +51,10 @@
             <artifactId>onos-restconf-server-rpp</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-restconf-server-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

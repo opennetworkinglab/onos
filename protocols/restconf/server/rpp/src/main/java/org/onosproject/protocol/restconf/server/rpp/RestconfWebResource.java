@@ -19,6 +19,7 @@ package org.onosproject.protocol.restconf.server.rpp;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.glassfish.jersey.server.ChunkedOutput;
+import org.onosproject.protocol.restconf.server.api.Patch;
 import org.onosproject.protocol.restconf.server.api.RestconfException;
 import org.onosproject.protocol.restconf.server.api.RestconfService;
 import org.onosproject.rest.AbstractWebResource;
@@ -39,7 +40,10 @@ import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.slf4j.LoggerFactory.getLogger;
+
 
 /*
  * This class is the main implementation of the RESTCONF Protocol
@@ -134,7 +138,8 @@ public class RestconfWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("data/{identifier : .+}")
-    public Response handlePostRequest(@PathParam("identifier") String uriString, InputStream stream) {
+    public Response handlePostRequest(@PathParam("identifier") String uriString,
+                                      InputStream stream) {
 
         log.debug("handlePostRequest: {}", uriString);
 
@@ -145,14 +150,14 @@ public class RestconfWebResource extends AbstractWebResource {
             return Response.created(uriInfo.getRequestUri()).build();
         } catch (JsonProcessingException e) {
             log.error("ERROR: handlePostRequest ", e);
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         } catch (RestconfException e) {
             log.error("ERROR: handlePostRequest: {}", e.getMessage());
             log.debug("Exception in handlePostRequest:", e);
             return e.getResponse();
         } catch (IOException ex) {
             log.error("ERROR: handlePostRequest ", ex);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -174,7 +179,8 @@ public class RestconfWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("data/{identifier : .+}")
-    public Response handlePutRequest(@PathParam("identifier") String uriString, InputStream stream) {
+    public Response handlePutRequest(@PathParam("identifier") String uriString,
+                                     InputStream stream) {
 
         log.debug("handlePutRequest: {}", uriString);
 
@@ -185,14 +191,14 @@ public class RestconfWebResource extends AbstractWebResource {
             return Response.created(uriInfo.getRequestUri()).build();
         } catch (JsonProcessingException e) {
             log.error("ERROR: handlePutRequest ", e);
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         } catch (RestconfException e) {
             log.error("ERROR: handlePutRequest: {}", e.getMessage());
             log.debug("Exception in handlePutRequest:", e);
             return e.getResponse();
         } catch (IOException ex) {
             log.error("ERROR: handlePutRequest ", ex);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -220,6 +226,43 @@ public class RestconfWebResource extends AbstractWebResource {
             log.error("ERROR: handleDeleteRequest: {}", e.getMessage());
             log.debug("Exception in handleDeleteRequest:", e);
             return e.getResponse();
+        }
+    }
+
+    /**
+     * Handles a RESTCONF PATCH operation against a data resource.
+     * If the PATCH request succeeds, a "200 OK" status-line is returned if
+     * there is a message-body, and "204 No Content" is returned if no
+     * response message-body is sent.
+     *
+     * @param uriString URI of the data resource
+     * @param stream    Input JSON object
+     * @return HTTP response
+     */
+    @Patch
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("data/{identifier : .+}")
+    public Response handlePatchRequest(@PathParam("identifier") String uriString,
+                                       InputStream stream) {
+
+        log.debug("handlePatchRequest: {}", uriString);
+
+        try {
+            ObjectNode rootNode = (ObjectNode) mapper().readTree(stream);
+
+            service.runPatchOperationOnDataResource(uriString, rootNode);
+            return Response.ok().build();
+        } catch (JsonProcessingException e) {
+            log.error("ERROR: handlePatchRequest ", e);
+            return Response.status(BAD_REQUEST).build();
+        } catch (RestconfException e) {
+            log.error("ERROR: handlePatchRequest: {}", e.getMessage());
+            log.debug("Exception in handlePatchRequest:", e);
+            return e.getResponse();
+        } catch (IOException ex) {
+            log.error("ERROR: handlePatchRequest ", ex);
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 

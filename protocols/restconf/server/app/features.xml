@@ -21,5 +21,6 @@
         <bundle>mvn:${project.groupId}/onos-restconf-server-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-restconf-server-restconfmanager/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-restconf-server-rpp/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-restconf-server-utils/${project.version}</bundle>
     </feature>
 </features>
