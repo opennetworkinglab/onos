@@ -215,7 +215,6 @@ def osgi_jar_with_tests(
     deps = deps +
            test_deps +
            [':' + name + '-jar'],
-    source_under_test = [':' + name + '-jar'],
     resources = test_resources,
     resources_root = test_resources_root,
     visibility = visibility

@@ -25,5 +25,4 @@ java_test(
     deps = COMPILE_DEPS +
            TEST_DEPS +
            [CURRENT_TARGET],
-    source_under_test = [CURRENT_TARGET],
 )
