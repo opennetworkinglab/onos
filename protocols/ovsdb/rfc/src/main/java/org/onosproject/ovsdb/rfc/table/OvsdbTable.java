@@ -21,7 +21,7 @@ package org.onosproject.ovsdb.rfc.table;
 public enum OvsdbTable {
     INTERFACE("Interface"), BRIDGE("Bridge"), CONTROLLER("Controller"),
     PORT("Port"), OPENVSWITCH("Open_vSwitch"), FLWTABLE("Flow_Table"),
-    QOS("Qos"), QUEUE("Queue"), MIRROR("Mirror"), MANAGER("Manager"),
+    QOS("QoS"), QUEUE("Queue"), MIRROR("Mirror"), MANAGER("Manager"),
     NETFLOW("NetFlow"), SSL("SSL"), SFLOW("sFlow"), IPFIX("IPFIX"),
     FLOWSAMPLECOLLECTORSET("Flow_Sample_Collector_Set");
 

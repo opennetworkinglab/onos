@@ -431,8 +431,6 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         port.setName(portName);
         if (portUuid == null) {
             insertConfig(PORT, UUID, BRIDGE, PORTS, bridgeUuid, port.getRow());
-        } else {
-            updateConfig(PORT, UUID, portUuid, port.getRow());
         }
     }
 
