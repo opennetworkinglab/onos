@@ -16,7 +16,6 @@
 
 package org.onosproject.yms.app.ysr;
 
-import org.onosproject.event.ListenerService;
 import org.onosproject.yangutils.datamodel.RpcNotificationContainer;
 import org.onosproject.yangutils.datamodel.YangInclude;
 import org.onosproject.yangutils.datamodel.YangModule;
@@ -24,7 +23,6 @@ import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangSchemaNode;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
-import org.onosproject.yms.app.ynh.YangNotificationExtendedService;
 import org.onosproject.yms.ysr.YangModuleIdentifier;
 import org.onosproject.yms.ysr.YangModuleInformation;
 import org.onosproject.yms.ysr.YangModuleLibrary;
@@ -79,72 +77,21 @@ public class DefaultYangSchemaRegistry
     private static final String DATE_FORMAT = "yyyy-mm-dd";
     private static final Logger log =
             LoggerFactory.getLogger(DefaultYangSchemaRegistry.class);
-
-    /*
-     * Map for storing app objects.
-     */
     private final ConcurrentMap<String, YsrAppContext> appObjectStore;
-
-    /*
-     * Map for storing YANG schema nodes.
-     */
     private final ConcurrentMap<String, YsrAppContext> yangSchemaStore;
-
-    /*
-     * Map for storing YANG schema nodes with respect to root's generated
-     * interface file name.
-     */
     private final ConcurrentMap<String, YsrAppContext>
             yangSchemaStoreForRootInterface;
-
-    /*
-     * Map for storing YANG schema nodes root's generated op param file name.
-     */
     private final ConcurrentMap<String, YsrAppContext>
             yangSchemaStoreForRootOpParam;
-
-    /*
-     * Map for storing YANG schema nodes with respect to notifications.
-     */
     private final ConcurrentMap<String, YsrAppContext>
             yangRootSchemaStoreForNotification;
-
-    /*
-     * Map for storing registered classes.
-     */
     private final ConcurrentMap<String, Class<?>> registerClassStore;
-
-    /*
-     * Map for storing YANG file details.
-     */
     private final ConcurrentMap<YangModuleIdentifier, String> yangFileStore;
-
-    /*
-     * Context of application which is registering with YMS.
-     */
-    private YsrAppContext ysrAppContext;
-
-    /*
-     * Context of application which is registering with YMS with multiple
-     * revision.
-     */
-    private YsrAppContext ysrContextForSchemaStore;
-
-    /*
-     * Context of application which is registering with YMS with multiple
-     * manager object.
-     */
-    private YsrAppContext ysrContextForAppStore;
-
-    /*
-     * Class loader of service application.
-     */
-    private ClassLoader classLoader;
-
-    /**
-     * YANG module library.
-     */
     private final YangModuleLibrary library;
+    private YsrAppContext ysrAppContext;
+    private YsrAppContext ysrContextForSchemaStore;
+    private YsrAppContext ysrContextForAppStore;
+    private ClassLoader classLoader;
 
     /**
      * Creates an instance of default YANG schema registry.
@@ -164,20 +111,14 @@ public class DefaultYangSchemaRegistry
 
 
     @Override
-    public void registerApplication(Object appObject, Class<?> serviceClass,
-                                    YangNotificationExtendedService
-                                            notificationExtendedService) {
+    public void registerApplication(Object appObject, Class<?> serviceClass) {
 
         BundleContext bundleContext = getBundle(serviceClass)
                 .getBundleContext();
         String jarPath = getJarPathFromBundleLocation(
                 bundleContext.getBundle().getLocation(),
                 bundleContext.getProperty(USER_DIRECTORY));
-        // process application registration.
         processRegistration(serviceClass, appObject, jarPath);
-        //process notification registration.
-        processNotificationRegistration(serviceClass, appObject,
-                                        notificationExtendedService);
     }
 
     /**
@@ -588,7 +529,6 @@ public class DefaultYangSchemaRegistry
         }
         log.info("successfully registered this application {}{}", appName,
                  SERVICE);
-
     }
 
     /**
@@ -773,7 +713,7 @@ public class DefaultYangSchemaRegistry
      * @return true if the manager object is already registered with
      * notification handler
      */
-    boolean verifyNotificationObject(Class<?> serviceClass) {
+    public boolean verifyNotificationObject(Class<?> serviceClass) {
         YangSchemaNode schemaNode = null;
         String serviceName = serviceClass.getName();
         if (appObjectStore.containsKey(serviceName)) {
@@ -1016,25 +956,6 @@ public class DefaultYangSchemaRegistry
     }
 
     /**
-     * Process notification registration for manager class object.
-     *
-     * @param yangService yang service
-     * @param yangManager yang manager
-     * @param ynhService  notification extended service
-     */
-    private void processNotificationRegistration(
-            Class<?> yangService, Object yangManager,
-            YangNotificationExtendedService ynhService) {
-
-        if (yangManager != null && yangManager instanceof ListenerService) {
-            if (verifyNotificationObject(yangService)) {
-                ynhService.registerAsListener(
-                        (ListenerService) yangManager);
-            }
-        }
-    }
-
-    /**
      * Clears database for YSR.
      */
     public void flushYsrData() {
@@ -1112,5 +1033,4 @@ public class DefaultYangSchemaRegistry
     public YangModuleLibrary getLibrary() {
         return library;
     }
-
 }

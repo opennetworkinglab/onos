@@ -17,7 +17,6 @@
 package org.onosproject.yms.app.ydt;
 
 import org.onosproject.yangutils.datamodel.YangSchemaNode;
-import org.onosproject.yms.app.ynh.YangNotificationExtendedService;
 import org.onosproject.yms.app.ysr.DefaultYangSchemaRegistry;
 import org.onosproject.yms.app.ysr.TestYangSchemaNodeProvider;
 import org.onosproject.yms.app.ysr.YangSchemaRegistry;
@@ -36,8 +35,7 @@ public class MockYangSchemaRegistry implements YangSchemaRegistry {
     @Override
     public void registerApplication(
             Object managerObject,
-            Class<?> serviceClass,
-            YangNotificationExtendedService notificationExtendedService) {
+            Class<?> serviceClass) {
     }
 
     @Override

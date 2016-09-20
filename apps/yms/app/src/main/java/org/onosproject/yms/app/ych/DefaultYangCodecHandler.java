@@ -102,7 +102,7 @@ public class DefaultYangCodecHandler implements YangCodecHandler {
 
     @Override
     public void addDeviceSchema(Class<?> yangModule) {
-        schemaRegistry.registerApplication(null, yangModule, null);
+        schemaRegistry.registerApplication(null, yangModule);
     }
 
     @Override

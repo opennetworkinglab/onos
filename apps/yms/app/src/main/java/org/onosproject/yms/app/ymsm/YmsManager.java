@@ -25,12 +25,14 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
+import org.onosproject.event.ListenerService;
 import org.onosproject.yms.app.yab.YangApplicationBroker;
 import org.onosproject.yms.app.ych.DefaultYangCodecHandler;
 import org.onosproject.yms.app.ych.defaultcodecs.YangCodecRegistry;
 import org.onosproject.yms.app.ydt.DefaultYdtWalker;
 import org.onosproject.yms.app.ydt.YangRequestWorkBench;
 import org.onosproject.yms.app.ynh.YangNotificationExtendedService;
+import org.onosproject.yms.app.ynh.YangNotificationManager;
 import org.onosproject.yms.app.ysr.DefaultYangSchemaRegistry;
 import org.onosproject.yms.app.ysr.YangSchemaRegistry;
 import org.onosproject.yms.ych.YangCodecHandler;
@@ -86,7 +88,7 @@ public class YmsManager
                 Executors.newSingleThreadExecutor(groupedThreads(
                         "onos/apps/yang-management-system/schema-registry",
                         "schema-registry-handler", log));
-
+        ynhExtendedService = new YangNotificationManager(schemaRegistry);
         //Initilize the default codecs
         YangCodecRegistry.initializeDefaultCodec();
 
@@ -159,15 +161,6 @@ public class YmsManager
         return ynhExtendedService;
     }
 
-    /**
-     * Returns YANG notification extended service.
-     *
-     * @return YANG notification extended service
-     */
-    private YangNotificationExtendedService getYnhExtendedService() {
-        return ynhExtendedService;
-    }
-
     @Override
     public YangModuleLibrary getYangModuleLibrary() {
         return ((DefaultYangSchemaRegistry) schemaRegistry).getLibrary();
@@ -180,18 +173,35 @@ public class YmsManager
     }
 
     @Override
-    public void registerDefaultCodec(YangDataTreeCodec defaultCodec, YangProtocolEncodingFormat dataFormat) {
+    public void registerDefaultCodec(YangDataTreeCodec defaultCodec,
+                                     YangProtocolEncodingFormat dataFormat) {
         YangCodecRegistry.registerDefaultCodec(defaultCodec, dataFormat);
     }
 
     @Override
-    public void registerService(Object yangManager, Class<?> yangService,
-                                List<String> supportedFeatureList) {
+    public void registerService(Object manager, Class<?> service,
+                                List<String> features) {
+        schemaRegistryExecutor.execute(() -> {
+            schemaRegistry.registerApplication(manager, service);
+            processNotificationRegistration(service, manager);
+        });
+        // TODO implementation based on supported features.
+    }
 
-        //perform registration of service
-        schemaRegistryExecutor.execute(() -> schemaRegistry
-                .registerApplication(yangManager, yangService,
-                                     getYnhExtendedService()));
+    /**
+     * Process notification registration for manager class object.
+     *
+     * @param service yang service
+     * @param manager yang manager
+     */
+    private void processNotificationRegistration(Class<?> service,
+                                                 Object manager) {
+        if (manager != null && manager instanceof ListenerService) {
+            if (((DefaultYangSchemaRegistry) schemaRegistry)
+                    .verifyNotificationObject(service)) {
+                ynhExtendedService.registerAsListener((ListenerService) manager);
+            }
+        }
     }
 
     @Override
