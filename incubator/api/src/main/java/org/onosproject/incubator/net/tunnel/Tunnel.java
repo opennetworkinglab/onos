@@ -92,7 +92,17 @@ public interface Tunnel extends Annotated, Provided, NetworkResource {
         /**
          * Signifies that the tunnel's state is unreliable and should be setup again.
          */
-        UNSTABLE
+        UNSTABLE,
+
+        /**
+         * Signifies that a tunnel is being established.
+         */
+        ESTABLISHING,
+
+        /**
+         * Signifies that a tunnel is being removed.
+         */
+        REMOVING
     }
 
     /**
