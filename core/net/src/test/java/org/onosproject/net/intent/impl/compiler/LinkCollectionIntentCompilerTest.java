@@ -358,7 +358,7 @@ private final VlanId ingressVlan = VlanId.vlanId("10");
         assertThat(compiled, hasSize(1));
 
         Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
-        assertThat(rules, hasSize((linksMultiple.size() + intentMultipleTreatments.egressPoints().size())));
+        assertThat(rules, hasSize(2));
 
         Set<FlowRule> d3Rules = rules
                 .parallelStream()
@@ -424,7 +424,7 @@ private final VlanId ingressVlan = VlanId.vlanId("10");
 
 
         Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
-        assertThat(rules, hasSize((linksMultiple2.size() + intentMultipleTreatments2.egressPoints().size())));
+        assertThat(rules, hasSize(4));
 
 
         Set<FlowRule> d2Rules = rules
