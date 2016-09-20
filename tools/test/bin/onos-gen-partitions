@@ -1,16 +1,35 @@
 #!/usr/bin/env python
 """
-  Generate the partitions json file from the $OC* environment variables
+usage: onos-gen-partitions [-h] [-s PARTITION_SIZE] [-n NUM_PARTITIONS]
+                           [filename] [node_ip [node_ip ...]]
 
-  Usage: onos-gen-partitions [output file] [node_ip ...]
-  If output file is not provided, the json is written to stdout.
+Generate the partitions json file given a list of IPs or from the $OC*
+environment variables.
+
+positional arguments:
+  filename              File to write output to. If none is provided, output
+                        is written to stdout.
+  node_ip               IP Address(es) of the node(s) in the cluster. If no
+                        IPs are given, will use the $OC* environment
+                        variables. NOTE: these arguemnts are only processed
+                        after the filename argument.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -s PARTITION_SIZE, --partition-size PARTITION_SIZE
+                        Number of nodes per partition. Note that partition
+                        sizes smaller than 3 are not fault tolerant. Defaults
+                        to 3.
+  -n NUM_PARTITIONS, --num-partitions NUM_PARTITIONS
+                        Number of partitions. Defaults to the number of nodes
+                        in the cluster.
 """
 
 from os import environ
-from collections import deque, OrderedDict
+from collections import deque
+import argparse
 import re
 import json
-import sys
 import hashlib
 
 convert = lambda text: int(text) if text.isdigit() else text.lower()
@@ -29,10 +48,10 @@ def get_nodes(ips=None, port=9876):
     ips = [ environ[v] for v in get_OC_vars() ]
   return [ node(v) for v in ips ]
 
-def generate_partitions(nodes, k):
+def generate_partitions(nodes, k, n):
   l = deque(nodes)
   perms = []
-  for i in range(1, len(nodes)+1):
+  for i in range(1, n+1):
     part = {
              'id': i,
              'members': list(l)[:k]
@@ -42,8 +61,33 @@ def generate_partitions(nodes, k):
   return perms
 
 if __name__ == '__main__':
-  nodes = get_nodes(sys.argv[2:])
-  partitions = generate_partitions([v.get('id') for v in nodes], 3)
+  parser = argparse.ArgumentParser(
+      description="Generate the partitions json file given a list of IPs or from the $OC* environment variables.")
+  parser.add_argument(
+      '-s', '--partition-size', type=int, default=3,
+      help="Number of nodes per partition. Note that partition sizes smaller than 3 are not fault tolerant. Defaults to 3." )
+  parser.add_argument(
+      '-n', '--num-partitions', type=int,
+      help="Number of partitions. Defaults to the number of nodes in the cluster." )
+ # TODO: make filename and nodes independent. This will break backwards compatibility with existing usage.
+  parser.add_argument(
+     'filename', metavar='filename', type=str, nargs='?',
+     help='File to write output to. If none is provided, output is written to stdout.')
+  parser.add_argument(
+      'nodes', metavar='node_ip', type=str, nargs='*',
+      help='IP Address(es) of the node(s) in the cluster. If no IPs are given, ' +
+           'will use the $OC* environment variables. NOTE: these arguemnts' +
+           ' are only processed after the filename argument.')
+
+  args = parser.parse_args()
+  filename = args.filename
+  partition_size = args.partition_size
+  nodes = get_nodes(args.nodes)
+  num_partitions = args.num_partitions
+  if not num_partitions:
+    num_partitions = len(nodes)
+
+  partitions = generate_partitions([v.get('id') for v in nodes], partition_size, num_partitions)
   m = hashlib.sha256()
   for node in nodes:
     m.update(node['ip'])
@@ -55,8 +99,7 @@ if __name__ == '__main__':
          }
   output = json.dumps(data, indent=4)
 
-  if len(sys.argv) >= 2 and sys.argv[1] != '-':
-    filename = sys.argv[1]
+  if filename:
     with open(filename, 'w') as f:
       f.write(output)
   else:
