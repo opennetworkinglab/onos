@@ -81,7 +81,7 @@ public class LinkCollectionIntentCompiler
         computePorts(intent, inputPorts, outputPorts);
 
         List<FlowRule> rules = new ArrayList<>();
-        for (DeviceId deviceId: outputPorts.keys()) {
+        for (DeviceId deviceId: outputPorts.keySet()) {
             rules.addAll(createRules(intent, deviceId, inputPorts.get(deviceId), outputPorts.get(deviceId)));
         }
         return Collections.singletonList(new FlowRuleIntent(appId, rules, intent.resources()));
