@@ -27,7 +27,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.TreeMultimap;
 import org.onlab.metrics.MetricsService;
+import org.onlab.util.ItemNotFoundException;
 import org.onosproject.rest.AbstractWebResource;
+
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -43,6 +45,8 @@ import java.util.Map;
  */
 @Path("metrics")
 public class MetricsWebResource extends AbstractWebResource {
+
+    private static final String E_METRIC_NAME_NOT_FOUND = "Metric Name is not found";
 
     private final MetricsService service = get(MetricsService.class);
     private final ObjectNode root = mapper().createObjectNode();
@@ -83,6 +87,10 @@ public class MetricsWebResource extends AbstractWebResource {
         ObjectNode metricNode = root.putObject("metric");
         MetricFilter filter = metricName != null ? (name, metric) -> name.equals(metricName) : MetricFilter.ALL;
         TreeMultimap<String, Metric> matched = listMetrics(service, filter);
+
+        if (matched.isEmpty()) {
+            throw new ItemNotFoundException(E_METRIC_NAME_NOT_FOUND);
+        }
 
         matched.asMap().get(metricName).forEach(m -> {
             metricNode.set(metricName, codec(Metric.class).encode(m, this));
