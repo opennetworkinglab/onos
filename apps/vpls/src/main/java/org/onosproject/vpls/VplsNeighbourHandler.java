@@ -16,8 +16,7 @@
 
 package org.onosproject.vpls;
 
-import com.google.common.collect.Maps;
-
+import com.google.common.collect.SetMultimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -33,20 +32,28 @@ import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageHandler;
 import org.onosproject.incubator.net.neighbour.NeighbourResolutionService;
 import org.onosproject.net.Host;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.host.HostService;
+import org.onosproject.vpls.config.VplsConfigurationService;
 import org.slf4j.Logger;
 
-import java.util.Map;
+import java.util.Collection;
+import java.util.Set;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Handles neighbour messages for VPLS use case.
- * Handlers will be changed automatically by interface or network configuration
- * events.
+ * Handlers will be changed automatically by interface or network configuration events.
  */
 @Component(immediate = true)
 public class VplsNeighbourHandler {
+    private static final String UNKNOWN_CONTEXT = "Unknown context type: {}";
+
+    private static final String CAN_NOT_FIND_NETWORK =
+            "Cannot find VPLS for port {} with VLAN Id {}.";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -57,16 +64,22 @@ public class VplsNeighbourHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NeighbourResolutionService neighbourService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected VplsConfigurationService vplsConfigService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService configService;
+
     private VplsInterfaceListener interfaceListener
             = new VplsInterfaceListener();
 
-    private VplsNeighbourMessageHandler neighbourHandler =
+    protected VplsNeighbourMessageHandler neighbourHandler =
             new VplsNeighbourMessageHandler();
 
-    private final Logger log = getLogger(getClass());
+    protected VplsConfigListener configListener =
+            new VplsConfigListener();
 
-    private Map<Interface, NeighbourMessageHandler> neighbourHandlers =
-            Maps.newHashMap();
+    private final Logger log = getLogger(getClass());
 
     private ApplicationId appId;
 
@@ -75,42 +88,29 @@ public class VplsNeighbourHandler {
     protected void activate() {
         appId = coreService.registerApplication(Vpls.VPLS_APP);
         interfaceService.addListener(interfaceListener);
-
-        interfaceService.getInterfaces().forEach(intf -> {
-            neighbourHandlers.put(intf, neighbourHandler);
-
-            neighbourService.registerNeighbourHandler(intf, neighbourHandler, appId);
-        });
-
-        log.debug("Activated");
+        configService.addListener(configListener);
+        configNeighbourHandler();
     }
 
     @Deactivate
     protected void deactivate() {
         interfaceService.removeListener(interfaceListener);
-        neighbourHandlers.entrySet().forEach(e -> {
-            neighbourService.unregisterNeighbourHandler(e.getKey(), e.getValue(), appId);
-        });
-        log.debug("Deactivated");
+        configService.removeListener(configListener);
+        neighbourService.unregisterNeighbourHandlers(appId);
     }
 
-    private void configNeighbourHandler(Interface intf,
-                                          NeighbourMessageHandler handler,
-                                          InterfaceEvent.Type eventType) {
-        switch (eventType) {
-            case INTERFACE_ADDED:
-                neighbourHandlers.put(intf, handler);
-                neighbourService.registerNeighbourHandler(intf, handler, appId);
-                break;
-            case INTERFACE_REMOVED:
-                neighbourHandlers.remove(intf, handler);
-                neighbourService.unregisterNeighbourHandler(intf, handler, appId);
-                break;
-            case INTERFACE_UPDATED:
-                break;
-            default:
-                break;
-        }
+    private void configNeighbourHandler() {
+        neighbourService.unregisterNeighbourHandlers(appId);
+        Set<Interface> interfaces = vplsConfigService.getAllInterfaces();
+
+        interfaceService.getInterfaces()
+                .stream()
+                .filter(interfaces::contains)
+                .forEach(intf -> {
+                    neighbourService.registerNeighbourHandler(intf,
+                                                              neighbourHandler,
+                                                              appId);
+                });
     }
 
     /**
@@ -124,23 +124,62 @@ public class VplsNeighbourHandler {
 
             switch (context.type()) {
                 case REQUEST:
-                    interfaceService.getInterfacesByVlan(context.vlan())
-                            .stream()
-                            .filter(intf -> !context.inPort().equals(intf.connectPoint()))
-                            .forEach(context::forward);
+                    handleRequest(context);
                     break;
+
                 case REPLY:
-                    hostService.getHostsByMac(context.dstMac())
-                            .stream()
-                            .filter(host -> host.vlan().equals(context.vlan()))
-                            .map(Host::location)
-                            .forEach(context::forward);
+                    handleReply(context, hostService);
                     break;
 
                 default:
-                    log.warn("Unknown context type: {}", context.type());
+                    log.warn(UNKNOWN_CONTEXT, context.type());
                     break;
             }
+        }
+    }
+
+    /**
+     * Handles request messages.
+     *
+     * @param context the message context
+     */
+    protected void handleRequest(NeighbourMessageContext context) {
+
+        SetMultimap<String, Interface> vplsNetwork =
+                vplsConfigService.getVplsNetwork(context.vlan(), context.inPort());
+
+        if (vplsNetwork != null) {
+            Collection<Interface> vplsInterfaces = vplsNetwork.values();
+            vplsInterfaces.stream()
+                    .filter(intf -> !context.inPort().equals(intf.connectPoint()))
+                    .forEach(context::forward);
+
+        } else {
+            log.debug(CAN_NOT_FIND_NETWORK, context.inPort(), context.vlan());
+        }
+    }
+
+    /**
+     * Handles reply messages between VLAN tagged interfaces.
+     *
+     * @param context the message context
+     * @param hostService the host service
+     */
+    protected void handleReply(NeighbourMessageContext context,
+                               HostService hostService) {
+
+        SetMultimap<String, Interface> vplsNetwork =
+                vplsConfigService.getVplsNetwork(context.vlan(), context.inPort());
+
+        Set<Host> hosts = hostService.getHostsByMac(context.dstMac());
+        if (vplsNetwork != null) {
+            Collection<Interface> vplsInterfaces = vplsNetwork.values();
+            hosts.forEach(host -> vplsInterfaces.stream()
+                    .filter(intf -> intf.connectPoint().equals(host.location()))
+                    .filter(intf -> intf.vlan().equals(host.vlan()))
+                    .forEach(context::forward));
+        } else {
+            log.debug(CAN_NOT_FIND_NETWORK, context.inPort(), context.vlan());
         }
     }
 
@@ -151,7 +190,18 @@ public class VplsNeighbourHandler {
 
         @Override
         public void event(InterfaceEvent event) {
-            configNeighbourHandler(event.subject(), neighbourHandler, event.type());
+            configNeighbourHandler();
+        }
+    }
+
+    /**
+     * Listener for network configuration events.
+     */
+    private class VplsConfigListener implements NetworkConfigListener {
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            configNeighbourHandler();
         }
     }
 
