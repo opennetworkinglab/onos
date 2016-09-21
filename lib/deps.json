@@ -163,7 +163,7 @@
     "catalyst-netty": "mvn:io.atomix.catalyst:catalyst-netty:1.1.1",
     "catalyst-transport": "mvn:io.atomix.catalyst:catalyst-transport:1.1.1",
     "objenesis": "mvn:org.objenesis:objenesis:2.2",
-    "openflowj": "mvn:org.onosproject:openflowj:0.9.5.onos",
+    "openflowj": "mvn:org.onosproject:openflowj:0.9.6.onos",
     "org.apache.felix.scr": "mvn:org.apache.felix:org.apache.felix.scr:1.8.2",
     "org.apache.felix.scr.annotations": "mvn:org.apache.felix:org.apache.felix.scr.annotations:1.9.12",
     "org.apache.karaf.features.core": "mvn:org.apache.karaf.features:org.apache.karaf.features.core:3.0.5",
