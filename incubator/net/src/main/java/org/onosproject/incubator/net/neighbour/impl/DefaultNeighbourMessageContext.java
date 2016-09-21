@@ -124,12 +124,12 @@ public class DefaultNeighbourMessageContext implements NeighbourMessageContext {
     }
 
     @Override
-    public void proxy(ConnectPoint outPort) {
+    public void forward(ConnectPoint outPort) {
         actions.forward(this, outPort);
     }
 
     @Override
-    public void proxy(Interface outIntf) {
+    public void forward(Interface outIntf) {
         actions.forward(this, outIntf);
     }
 
