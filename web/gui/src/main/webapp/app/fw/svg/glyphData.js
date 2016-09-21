@@ -70,7 +70,7 @@
     //          firewall, balancer, ips, ids,
     //          controller, virtual, other
 
-    // NOTE: when adding glyphs, please also update TopoConstants.Glyphs class.
+    // NOTE: when adding glyphs, please also update GlyphConstants class.
 
         tableFrame = 'M6.3,5.3h8.5v14.2h-8.5z' +
             'M95.3,5.3h8.5v14.2h-8.5z' +

@@ -23,7 +23,7 @@ import org.onosproject.ui.UiTopoOverlay;
 import org.onosproject.ui.topo.ButtonId;
 import org.onosproject.ui.topo.PropertyPanel;
 import org.onosproject.ui.topo.TopoConstants.CoreButtons;
-import org.onosproject.ui.topo.GlyphConstants.CROWN;
+import org.onosproject.ui.GlyphConstants.CROWN;
 
 import static org.onosproject.ui.topo.TopoConstants.Properties.FLOWS;
 import static org.onosproject.ui.topo.TopoConstants.Properties.INTENTS;
