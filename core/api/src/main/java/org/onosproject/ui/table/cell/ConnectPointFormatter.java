@@ -30,7 +30,7 @@ public final class ConnectPointFormatter extends AbstractCellFormatter {
     @Override
     protected String nonNullFormat(Object value) {
         ConnectPoint cp = (ConnectPoint) value;
-        return cp.elementId() + "/" + cp.port();
+        return cp.elementId() + SLASH + cp.port();
     }
 
     /**

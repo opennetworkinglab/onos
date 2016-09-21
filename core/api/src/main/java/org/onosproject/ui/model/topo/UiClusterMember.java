@@ -43,7 +43,7 @@ public class UiClusterMember extends UiElement {
      * topology instance and the specified controller node instance.
      *
      * @param topology parent topology containing this cluster member
-     * @param cnode    underlying controller node.
+     * @param cnode    underlying controller node
      */
     public UiClusterMember(UiTopology topology, ControllerNode cnode) {
         this.topology = topology;

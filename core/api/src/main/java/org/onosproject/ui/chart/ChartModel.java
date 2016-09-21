@@ -35,9 +35,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * A simple model of time series chart data.
  * <p>
  * Note that this is not a full MVC type model; the expected usage pattern
- * is to create an empty chart, add data points (by consulting the business model),
- * and produce the list of data points which contain a label and a set of data
- * values for all serials.
+ * is to create an empty chart, add data points (by consulting the business
+ * model), and produce the list of data points which contain a label and a set
+ * of data values for all serials.
  */
 public class ChartModel {
 

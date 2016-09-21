@@ -50,6 +50,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class TableModel {
 
+    private static final String DESC = "desc";
+
     private static final CellComparator DEF_CMP = DefaultCellComparator.INSTANCE;
     private static final CellFormatter DEF_FMT = DefaultCellFormatter.INSTANCE;
     private static final String EMPTY = "";
@@ -220,6 +222,9 @@ public class TableModel {
         Collections.sort(rows, new RowComparator(id1, dir1, id2, dir2));
     }
 
+    private boolean nullOrEmpty(String s) {
+        return s == null || EMPTY.equals(s.trim());
+    }
 
     /** Designates sorting direction. */
     public enum SortDir {
@@ -229,9 +234,6 @@ public class TableModel {
         DESC
     }
 
-    private boolean nullOrEmpty(String s) {
-        return s == null || EMPTY.equals(s.trim());
-    }
 
     /**
      * Row comparator.
@@ -380,8 +382,6 @@ public class TableModel {
             return formatted.toArray(new String[formatted.size()]);
         }
     }
-
-    private static final String DESC = "desc";
 
     /**
      * Returns the appropriate sort direction for the given string.

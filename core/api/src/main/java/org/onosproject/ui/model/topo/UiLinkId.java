@@ -49,7 +49,7 @@ public final class UiLinkId {
         B_TO_A
     }
 
-    static final String CP_DELIMITER = "~";
+    private static final String CP_DELIMITER = "~";
     static final String ID_PORT_DELIMITER = "/";
 
     private final RegionId regionA;
@@ -236,7 +236,8 @@ public final class UiLinkId {
         ConnectPoint src = link.src();
         ConnectPoint dst = link.dst();
         if (src == null || dst == null) {
-            throw new NullPointerException("null src or dst connect point: " + link);
+            throw new NullPointerException(
+                    "null src or dst connect point: " + link);
         }
 
         ElementId srcId = src.elementId();

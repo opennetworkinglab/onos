@@ -22,7 +22,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 /**
- * Formats number using the specified format string".
+ * Formats number using the specified format string.
  */
 public final class NumberFormatter extends AbstractCellFormatter {
 

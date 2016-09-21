@@ -30,7 +30,7 @@ public final class HostLocationFormatter extends AbstractCellFormatter {
     @Override
     protected String nonNullFormat(Object value) {
         HostLocation loc = (HostLocation) value;
-        return loc.deviceId() + "/" + loc.port();
+        return loc.deviceId() + SLASH + loc.port();
     }
 
     /**

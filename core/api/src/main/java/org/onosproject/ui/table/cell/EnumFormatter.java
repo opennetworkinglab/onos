@@ -30,7 +30,7 @@ public final class EnumFormatter extends AbstractCellFormatter {
 
     @Override
     protected String nonNullFormat(Object value) {
-        return capitalizeFully(value.toString().replace("_", " "));
+        return capitalizeFully(value.toString().replace(UNDERSCORE, SPACE));
     }
 
     /**

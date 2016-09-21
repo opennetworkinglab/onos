@@ -15,6 +15,6 @@
  */
 
 /**
- * Facilities for creating chart models of data for the GUI.
+ * Facilities for creating chart models of data for the Web UI.
  */
 package org.onosproject.ui.chart;

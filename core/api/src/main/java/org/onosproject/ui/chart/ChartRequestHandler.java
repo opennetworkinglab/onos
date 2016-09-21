@@ -27,11 +27,11 @@ import java.util.List;
  */
 public abstract class ChartRequestHandler extends RequestHandler {
 
+    protected static final String LABEL = "label";
+    private static final String ANNOTS = "annots";
+
     private final String respType;
     private final String nodeName;
-    protected static final String LABEL = "label";
-
-    private static final String ANNOTS = "annots";
 
     /**
      * Constructs a chart model handler for a specific graph view. When chart
@@ -56,7 +56,7 @@ public abstract class ChartRequestHandler extends RequestHandler {
         ObjectNode rootNode = MAPPER.createObjectNode();
         rootNode.set(nodeName, ChartUtils.generateDataPointArrayNode(cm));
         rootNode.set(ANNOTS, ChartUtils.generateAnnotObjectNode(cm));
-        sendMessage(respType, 0, rootNode);
+        sendMessage(respType, rootNode);
     }
 
     /**
@@ -72,8 +72,8 @@ public abstract class ChartRequestHandler extends RequestHandler {
         List<String> series = new ArrayList<>();
         series.addAll(Arrays.asList(getSeries()));
         series.add(LABEL);
-        String[] seiresArray = new String[series.size()];
-        return new ChartModel(series.toArray(seiresArray));
+        String[] array = new String[series.size()];
+        return new ChartModel(series.toArray(array));
     }
 
     /**

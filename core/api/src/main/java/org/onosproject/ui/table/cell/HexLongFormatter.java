@@ -28,7 +28,7 @@ public final class HexLongFormatter extends AbstractCellFormatter {
 
     @Override
     protected String nonNullFormat(Object value) {
-        return "0x" + Long.toHexString((Long) value);
+        return OX + Long.toHexString((Long) value);
     }
 
     /**

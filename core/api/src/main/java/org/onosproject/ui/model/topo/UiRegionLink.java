@@ -36,7 +36,7 @@ public class UiRegionLink extends UiLink {
      * link identifier is one that has region IDs as source and destination.
      *
      * @param topology parent topology
-     * @param id       canonicalized link identifier
+     * @param id       canonicalized link ID
      * @throws IllegalArgumentException if the link ID is not region-region
      */
     public UiRegionLink(UiTopology topology, UiLinkId id) {

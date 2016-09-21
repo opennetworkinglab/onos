@@ -28,7 +28,7 @@ public final class HexFormatter extends AbstractCellFormatter {
 
     @Override
     protected String nonNullFormat(Object value) {
-        return "0x" + Integer.toHexString((Integer) value);
+        return OX + Integer.toHexString((Integer) value);
     }
 
     /**

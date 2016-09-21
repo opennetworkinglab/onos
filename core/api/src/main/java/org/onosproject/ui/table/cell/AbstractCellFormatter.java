@@ -25,9 +25,17 @@ import org.onosproject.ui.table.CellFormatter;
  */
 public abstract class AbstractCellFormatter implements CellFormatter {
 
+    protected static final String EMPTY = "";
+    protected static final String SLASH = "/";
+    protected static final String QUERY = "?";
+    protected static final String UNDERSCORE = "_";
+    protected static final String SPACE = " ";
+    protected static final String OX = "0x";
+
+
     @Override
     public String format(Object value) {
-        return value == null ? "" : nonNullFormat(value);
+        return value == null ? EMPTY : nonNullFormat(value);
     }
 
     /**

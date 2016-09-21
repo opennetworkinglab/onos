@@ -24,6 +24,8 @@ import org.onosproject.ui.table.CellFormatter;
  */
 public final class AppIdFormatter extends AbstractCellFormatter {
 
+    private static final String COLON = " : ";
+
     // non-instantiable
     private AppIdFormatter() { }
 
@@ -31,7 +33,7 @@ public final class AppIdFormatter extends AbstractCellFormatter {
     @Override
     protected String nonNullFormat(Object value) {
         ApplicationId appId = (ApplicationId) value;
-        return appId.id() + " : " + appId.name();
+        return appId.id() + COLON + appId.name();
     }
 
     /**

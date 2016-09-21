@@ -101,7 +101,7 @@ public class UiDevice extends UiNode {
      * Returns the identifier of the region to which this device belongs.
      * This will be null if the device does not belong to any region.
      *
-     * @return region identity
+     * @return region ID
      */
     public RegionId regionId() {
         return regionId;

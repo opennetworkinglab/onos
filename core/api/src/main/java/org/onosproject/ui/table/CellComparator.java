@@ -24,21 +24,19 @@ public interface CellComparator {
     /**
      * Compares its two arguments for order.  Returns a negative integer,
      * zero, or a positive integer as the first argument is less than, equal
-     * to, or greater than the second.<p>
-     *
+     * to, or greater than the second.
+     * <p>
      * Note that nulls are permitted, and should be sorted to the beginning
      * of an ascending sort; i.e. null is considered to be "smaller" than
      * non-null values.
      *
      * @see java.util.Comparator#compare(Object, Object)
      *
-     * @param o1 the first object to be compared.
-     * @param o2 the second object to be compared.
-     * @return a negative integer, zero, or a positive integer as the
-     *         first argument is less than, equal to, or greater than the
-     *         second.
+     * @param o1 the first object to be compared
+     * @param o2 the second object to be compared
+     * @return an integer representing relative ordering
      * @throws ClassCastException if the arguments' types prevent them from
-     *         being compared by this comparator.
+     *         being compared by this comparator
      */
     int compare(Object o1, Object o2);
 

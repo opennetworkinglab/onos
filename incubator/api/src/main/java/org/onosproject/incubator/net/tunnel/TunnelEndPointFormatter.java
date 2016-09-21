@@ -20,9 +20,11 @@ import com.google.common.annotations.Beta;
 import org.onosproject.ui.table.CellFormatter;
 import org.onosproject.ui.table.cell.AbstractCellFormatter;
 
+import java.util.Optional;
+
 /**
- * Formats a optical tunnel endpoint as "(type)/(element-id)/(port)".
- * Formats a ip tunnel endpoint as "ip".
+ * Formats an optical tunnel endpoint as "(type)/(element-id)/(port)".
+ * Formats an IP tunnel endpoint as "ip".
  */
 @Beta
 public final class TunnelEndPointFormatter extends AbstractCellFormatter {
@@ -30,17 +32,26 @@ public final class TunnelEndPointFormatter extends AbstractCellFormatter {
     private TunnelEndPointFormatter() {
     }
 
+    private String safeOptional(Optional<?> optional) {
+        return optional.isPresent() ? optional.get().toString() : QUERY;
+    }
+
     @Override
     protected String nonNullFormat(Object value) {
 
         if (value instanceof DefaultOpticalTunnelEndPoint) {
-            DefaultOpticalTunnelEndPoint cp = (DefaultOpticalTunnelEndPoint) value;
-            return cp.type() + "/" + cp.elementId().get() + "/" + cp.portNumber().get();
+            DefaultOpticalTunnelEndPoint ep =
+                    (DefaultOpticalTunnelEndPoint) value;
+
+            String e = safeOptional(ep.elementId());
+            String p = safeOptional(ep.portNumber());
+            return ep.type() + SLASH + e + SLASH + p;
+
         } else if (value instanceof IpTunnelEndPoint) {
             IpTunnelEndPoint cp = (IpTunnelEndPoint) value;
             return cp.ip().toString();
         }
-        return "";
+        return EMPTY;
     }
 
     /**
