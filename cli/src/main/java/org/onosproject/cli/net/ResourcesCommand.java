@@ -50,10 +50,10 @@ import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
 
 /**
- * Lists available resources.
+ * Lists registered resources.
  */
 @Command(scope = "onos", name = "resources",
-         description = "Lists available resources")
+         description = "Lists registered resources")
 public class ResourcesCommand extends AbstractShellCommand {
 
     @Option(name = "-s", aliases = "--sort", description = "Sort output",
