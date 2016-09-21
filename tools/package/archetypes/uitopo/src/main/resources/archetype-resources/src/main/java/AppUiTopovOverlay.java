@@ -23,7 +23,7 @@ import org.onosproject.ui.UiTopoOverlay;
 import org.onosproject.ui.topo.ButtonId;
 import org.onosproject.ui.topo.PropertyPanel;
 import org.onosproject.ui.topo.TopoConstants.CoreButtons;
-import org.onosproject.ui.topo.TopoConstants.Glyphs;
+import org.onosproject.ui.topo.GlyphConstants.CROWN;
 
 import static org.onosproject.ui.topo.TopoConstants.Properties.FLOWS;
 import static org.onosproject.ui.topo.TopoConstants.Properties.INTENTS;
@@ -56,7 +56,7 @@ public class AppUiTopovOverlay extends UiTopoOverlay {
     @Override
     public void modifySummary(PropertyPanel pp) {
         pp.title(MY_TITLE)
-                .typeId(Glyphs.CROWN)
+                .typeId(CROWN)
                 .removeProps(
                         TOPOLOGY_SSCS,
                         INTENTS,
