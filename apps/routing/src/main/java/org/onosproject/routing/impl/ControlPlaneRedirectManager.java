@@ -83,6 +83,8 @@ public class ControlPlaneRedirectManager {
     private final Logger log = getLogger(getClass());
 
     private static final int MIN_IP_PRIORITY = 10;
+    private static final int IPV4_PRIORITY = 2000;
+    private static final int IPV6_PRIORITY = 500;
     private static final int ACL_PRIORITY = 40001;
     private static final int OSPF_IP_PROTO = 0x59;
 
@@ -421,15 +423,22 @@ public class ControlPlaneRedirectManager {
         public void event(NetworkConfigEvent event) {
             if (event.configClass().equals(RoutingService.ROUTER_CONFIG_CLASS)) {
                 switch (event.type()) {
-                case CONFIG_ADDED:
-                case CONFIG_UPDATED:
-                    readConfig();
-                    break;
-                case CONFIG_REGISTERED:
-                case CONFIG_UNREGISTERED:
-                case CONFIG_REMOVED:
-                default:
-                    break;
+                    case CONFIG_ADDED:
+                    case CONFIG_UPDATED:
+                        readConfig();
+                        if (event.prevConfig().isPresent()) {
+                            updateConfig(event);
+                            }
+
+                        break;
+                    case CONFIG_REGISTERED:
+                    case CONFIG_UNREGISTERED:
+                    case CONFIG_REMOVED:
+                        removeConfig();
+
+                        break;
+                    default:
+                        break;
                 }
             }
         }
@@ -576,8 +585,66 @@ public class ControlPlaneRedirectManager {
 
     private int getPriorityFromPrefix(IpPrefix prefix) {
         return (prefix.isIp4()) ?
-                2000 * prefix.prefixLength() + MIN_IP_PRIORITY :
-                500 * prefix.prefixLength() + MIN_IP_PRIORITY;
+                IPV4_PRIORITY * prefix.prefixLength() + MIN_IP_PRIORITY :
+                IPV6_PRIORITY * prefix.prefixLength() + MIN_IP_PRIORITY;
+    }
+
+    private void updateConfig(NetworkConfigEvent event) {
+        RouterConfig prevRouterConfig = (RouterConfig) event.prevConfig().get();
+        List<String> prevInterfaces = prevRouterConfig.getInterfaces();
+        Set<Interface> previntfs = filterInterfaces(prevInterfaces);
+        if (previntfs.isEmpty() && !interfaces.isEmpty()) {
+            interfaceService.getInterfaces().stream()
+                    .filter(intf -> !interfaces.contains(intf.name()))
+                    .forEach(intf -> processIntfFilter(false, intf));
+            return;
+        }
+        //remove the filtering objective for the interfaces which are not
+        //part of updated interfaces list.
+        previntfs.stream()
+                .filter(intf -> !interfaces.contains(intf.name()))
+                .forEach(intf -> processIntfFilter(false, intf));
+    }
+
+  /**
+   * process filtering objective for interface add/remove.
+   *
+   * @param install true to install flows, false to uninstall the flows
+   * @param intf Interface object captured on event
+   */
+    private void processIntfFilter(boolean install, Interface intf) {
+
+        if (!intf.connectPoint().deviceId().equals(controlPlaneConnectPoint.deviceId())) {
+            // Ignore interfaces if they are not on the router switch
+            return;
+        }
+        if (!interfaces.contains(intf.name()) && install) {
+            return;
+        }
+
+        provisionInterface(intf, install);
+    }
+
+    private Set<Interface> filterInterfaces(List<String> interfaces) {
+        Set<Interface> intfs = interfaceService.getInterfaces().stream()
+                .filter(intf -> intf.connectPoint().deviceId().equals(controlPlaneConnectPoint.deviceId()))
+                .filter(intf -> interfaces.contains(intf.name()))
+                .collect(Collectors.toSet());
+        return intfs;
+    }
+
+    private void removeConfig() {
+        Set<Interface> intfs = getInterfaces();
+        if (!intfs.isEmpty()) {
+            intfs.forEach(intf -> processIntfFilter(false, intf));
+        }
+        networkConfigService.removeConfig();
+    }
+
+    private Set<Interface> getInterfaces() {
+
+        return interfaces.isEmpty() ? interfaceService.getInterfaces()
+                : filterInterfaces(interfaces);
     }
 
     /**
@@ -587,6 +654,11 @@ public class ControlPlaneRedirectManager {
      * @param intf the current occurred update event
      **/
     private void updateInterface(Interface prevIntf, Interface intf) {
+        if (!intf.connectPoint().deviceId().equals(controlPlaneConnectPoint.deviceId())
+                || !interfaces.contains(intf.name())) {
+            // Ignore interfaces if they are not on the router switch
+            return;
+        }
         if (!prevIntf.vlan().equals(intf.vlan()) || !prevIntf.mac().equals(intf)) {
             provisionInterface(prevIntf, false);
             provisionInterface(intf, true);
@@ -612,26 +684,20 @@ public class ControlPlaneRedirectManager {
         @Override
         public void event(InterfaceEvent event) {
             if (controlPlaneConnectPoint == null) {
-                log.info("Control plane connect point is not configured. Abort InterfaceEvent.");
+                log.warn("Control plane connect point is not configured. Abort InterfaceEvent.");
                 return;
             }
             Interface intf = event.subject();
             Interface prevIntf = event.prevSubject();
             switch (event.type()) {
                 case INTERFACE_ADDED:
-                    if (intf != null && !intf.connectPoint().equals(controlPlaneConnectPoint)) {
-                        provisionInterface(intf, true);
-                    }
+                    processIntfFilter(true, intf);
                     break;
                 case INTERFACE_UPDATED:
-                    if (intf != null && !intf.connectPoint().equals(controlPlaneConnectPoint)) {
-                        updateInterface(prevIntf, intf);
-                    }
+                    updateInterface(prevIntf, intf);
                     break;
                 case INTERFACE_REMOVED:
-                    if (intf != null && !intf.connectPoint().equals(controlPlaneConnectPoint)) {
-                        provisionInterface(intf, false);
-                    }
+                    processIntfFilter(false, intf);
                     break;
                 default:
                     break;
