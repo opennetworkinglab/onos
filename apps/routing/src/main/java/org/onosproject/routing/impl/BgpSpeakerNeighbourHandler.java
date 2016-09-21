@@ -159,7 +159,7 @@ public class BgpSpeakerNeighbourHandler {
                 if (h == null) {
                     context.drop();
                 } else {
-                    context.proxy(h.location());
+                    context.forward(h.location());
                 }
                 break;
             default:
@@ -182,7 +182,7 @@ public class BgpSpeakerNeighbourHandler {
                     .stream()
                     .filter(intf -> intf.vlan().equals(context.vlan()))
                     .map(intf -> intf.connectPoint())
-                    .forEach(context::proxy);
+                    .forEach(context::forward);
         }
     }
 

@@ -39,7 +39,7 @@ public class DefaultNeighbourMessageHandler implements NeighbourMessageHandler {
             if (h == null) {
                 context.flood();
             } else {
-                context.proxy(h.location());
+                context.forward(h.location());
             }
             break;
         case REQUEST:

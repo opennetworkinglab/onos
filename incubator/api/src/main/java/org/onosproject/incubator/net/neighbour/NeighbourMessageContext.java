@@ -100,18 +100,22 @@ public interface NeighbourMessageContext {
     IpAddress sender();
 
     /**
-     * Proxies the message to a given output port.
+     * Forwards the message to a given output port.
      *
      * @param outPort output port
      */
-    void proxy(ConnectPoint outPort);
+    void forward(ConnectPoint outPort);
 
     /**
-     * Proxies the message to a given interface.
-     *
+     * Forwards the message to a given interface.
+     * <p>
+     * The message will be modified to fit the parameters of the outgoing
+     * interface. For example, if the interface has a VLAN configured, the
+     * outgoing packet will have that VLAN tag added.
+     * </p>
      * @param outIntf output interface
      */
-    void proxy(Interface outIntf);
+    void forward(Interface outIntf);
 
     /**
      * Replies to the request message with a given MAC address.
