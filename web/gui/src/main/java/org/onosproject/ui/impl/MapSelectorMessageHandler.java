@@ -74,14 +74,14 @@ class MapSelectorMessageHandler extends UiMessageHandler {
             UiTopoMapFactory mapFactory = ext.topoMapFactory();
 
             if (mapFactory != null) {
-                List<UiTopoMap> topoMaps = mapFactory.newMaps();
+                List<UiTopoMap> topoMaps = mapFactory.geoMaps();
 
                 topoMaps.forEach(m -> {
-                    maps.set(m.getId(), objectNode().put(MAP_ID, m.getId())
-                            .put(DESCRIPTION, m.getDescription())
-                            .put(FILE_PATH, m.getFilePath())
-                            .put(SCALE, m.getScale()));
-                    order.add(m.getId());
+                    maps.set(m.id(), objectNode().put(MAP_ID, m.id())
+                            .put(DESCRIPTION, m.description())
+                            .put(FILE_PATH, m.filePath())
+                            .put(SCALE, m.scale()));
+                    order.add(m.id());
                 });
             }
         });

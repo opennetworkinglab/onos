@@ -23,6 +23,8 @@ import java.util.Set;
 
 /**
  * Service for managing {@link UiTopoLayout} instances.
+ * Those instances are used in conjunction with modeling the region-based
+ * topology views.
  */
 public interface UiTopoLayoutService {
 
@@ -45,7 +47,7 @@ public interface UiTopoLayoutService {
      * Adds a layout to the system or updates an existing one.
      *
      * @param layout the layout to add or update
-     * @return an indication of success
+     * @return true if added; false if updated
      */
     boolean addLayout(UiTopoLayout layout);
 
@@ -87,7 +89,7 @@ public interface UiTopoLayoutService {
      * Removes a layout from the system.
      *
      * @param layout the layout to remove
-     * @return an indication of success
+     * @return true if removed; false if no longer registered
      */
     boolean removeLayout(UiTopoLayout layout);
 

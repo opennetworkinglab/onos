@@ -154,16 +154,16 @@ public abstract class UiMessageHandler {
     }
 
     /**
-     * Returns the user interface connection with which this handler was primed.
+     * Returns the service directory with which this handler was primed.
      *
-     * @return user interface connection
+     * @return service directory
      */
     public ServiceDirectory directory() {
         return directory;
     }
 
     /**
-     * Returns implementation of the specified service class.
+     * Returns an implementation of the specified service class.
      *
      * @param serviceClass service class
      * @param <T>          type of service

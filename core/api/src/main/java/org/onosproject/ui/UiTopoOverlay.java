@@ -27,6 +27,10 @@ import java.util.Map;
 
 /**
  * Represents user interface topology view overlay.
+ * <p>
+ * This base class does little more than provide a logger and an identifier.
+ * Subclasses will probably want to override some or all of the base methods
+ * to do useful things during the life-cycle of the overlay.
  */
 public class UiTopoOverlay {
 
@@ -40,7 +44,8 @@ public class UiTopoOverlay {
     private boolean isActive = false;
 
     /**
-     * Creates a new user interface topology view overlay descriptor.
+     * Creates a new user interface topology view overlay descriptor, with
+     * the given identifier.
      *
      * @param id overlay identifier
      */
@@ -139,7 +144,7 @@ public class UiTopoOverlay {
      * @param event the link event
      * @return map of additional key/value pairs to be added to the JSON event
      * @deprecated this is a temporary addition for Goldeneye (1.6) release,
-     * and expected to be replaced in the Hummingbird (1.7) release
+     * and expected to be replaced in the Ibis (1.8) release
      */
     @Deprecated
     public Map<String, String> additionalLinkData(LinkEvent event) {

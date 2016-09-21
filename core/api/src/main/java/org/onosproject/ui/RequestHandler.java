@@ -32,6 +32,12 @@ public abstract class RequestHandler {
     private UiMessageHandler parent;
 
 
+    /**
+     * Constructs a request handler instance that will handle events
+     * of the specified type.
+     *
+     * @param eventType type of event that will be handled
+     */
     public RequestHandler(String eventType) {
         this.eventType = eventType;
     }
@@ -64,7 +70,7 @@ public abstract class RequestHandler {
     // === Convenience methods...
 
     /**
-     * Returns implementation of the specified service class.
+     * Returns an implementation of the specified service class.
      *
      * @param serviceClass service class
      * @param <T>          type of service
@@ -76,19 +82,20 @@ public abstract class RequestHandler {
     }
 
     /**
-     * Sends a message back to the client.
+     * Sends a message back to the client with the given event type and payload.
      *
      * @param eventType message event type
      * @param sid       message sequence identifier
      * @param payload   message payload
      */
     // TODO: remove sid from signature
+    @Deprecated
     protected void sendMessage(String eventType, long sid, ObjectNode payload) {
         parent.connection().sendMessage(eventType, sid, payload);
     }
 
     /**
-     * Sends a message back to the client.
+     * Sends a message back to the client with the given event type and payload.
      *
      * @param eventType message event type
      * @param payload   message payload
@@ -100,8 +107,8 @@ public abstract class RequestHandler {
 
     /**
      * Sends a message back to the client.
-     * Here, the message is preformatted; the assumption is it has its
-     * eventType, sid and payload attributes already filled in.
+     * Here, the message is preformatted; the assumption is that it has its
+     * eventType and payload attributes already filled in.
      *
      * @param message the message to send
      */
@@ -161,5 +168,4 @@ public abstract class RequestHandler {
     protected boolean bool(ObjectNode node, String key) {
         return JsonUtils.bool(node, key);
     }
-
 }

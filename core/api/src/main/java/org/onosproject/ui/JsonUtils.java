@@ -31,15 +31,14 @@ public final class JsonUtils {
     }
 
     /**
-     * Wraps a message payload into an event structure for the given event
-     * type and sequence ID. Generally, the sequence ID should be a copy of
-     * the ID from the client request event.
+     * Composes a message structure for the given message type and payload.
      *
      * @param type    event type
      * @param sid     sequence ID
      * @param payload event payload
      * @return the object node representation
      */
+    @Deprecated
     public static ObjectNode envelope(String type, long sid, ObjectNode payload) {
         ObjectNode event = MAPPER.createObjectNode();
         event.put("event", type);
@@ -82,6 +81,7 @@ public final class JsonUtils {
      * @param event message event
      * @return extracted sequence identifier
      */
+    @Deprecated
     public static long sid(ObjectNode event) {
         return number(event, "sid");
     }

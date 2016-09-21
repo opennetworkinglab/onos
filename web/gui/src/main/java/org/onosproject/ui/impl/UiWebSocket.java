@@ -23,6 +23,7 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.ServiceNotFoundException;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
+import org.onosproject.ui.GlyphConstants;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandler;
@@ -32,7 +33,6 @@ import org.onosproject.ui.UiTopoOverlayFactory;
 import org.onosproject.ui.impl.topo.UiTopoSession;
 import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
 import org.onosproject.ui.model.topo.UiTopoLayout;
-import org.onosproject.ui.topo.TopoConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -293,7 +293,7 @@ public class UiWebSocket
             ObjectNode instance = mapper.createObjectNode()
                     .put(ID, node.id().toString())
                     .put(IP, node.ip().toString())
-                    .put(TopoConstants.Glyphs.UI_ATTACHED,
+                    .put(GlyphConstants.UI_ATTACHED,
                             node.equals(service.getLocalNode()));
             instances.add(instance);
         }

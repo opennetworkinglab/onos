@@ -20,12 +20,12 @@ import com.google.common.base.MoreObjects;
 import java.util.Objects;
 
 /**
- * Represents user interface view addition.
+ * Represents a user interface view addition.
  */
 public class UiView {
 
     /**
-     * Designates navigation menu category.
+     * Designates the navigation menu category.
      */
     public enum Category {
         /**
@@ -57,7 +57,7 @@ public class UiView {
         }
 
         /**
-         * Returns display label for the category.
+         * Returns the display label for the category.
          *
          * @return display label
          */
@@ -87,6 +87,9 @@ public class UiView {
      * Creates a new user interface view descriptor. The navigation item
      * will appear in the navigation menu under the specified category,
      * with the specified icon adornment.
+     * <p>
+     * Note: see the {@code glyphMapping} structure in {@code icon.js} for
+     * valid icon identifiers.
      *
      * @param category view category
      * @param id       view identifier
@@ -112,7 +115,7 @@ public class UiView {
     /**
      * Returns the view identifier.
      *
-     * @return view id
+     * @return view ID
      */
     public String id() {
         return id;
@@ -128,7 +131,7 @@ public class UiView {
     }
 
     /**
-     * Returns the icon ID.
+     * Returns the icon identifier.
      *
      * @return icon ID
      */
@@ -149,7 +152,7 @@ public class UiView {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final UiView other = (UiView) obj;
+        UiView other = (UiView) obj;
         return Objects.equals(this.id, other.id);
     }
 
