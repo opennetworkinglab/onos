@@ -61,15 +61,6 @@
         return remappedDeviceTypes[type] || type || 'unknown';
     }
 
-    function iconBox(dim, labelWidth) {
-        return {
-            x: -dim / 2,
-            y: -dim / 2,
-            width: dim + labelWidth,
-            height: dim
-        };
-    }
-
     // note: these are the device icon colors without affinity (no master)
     var dColTheme = {
         light: {
@@ -130,11 +121,11 @@
                         // Label
                         var labelElements = this.addLabelElements(label);
                         labelWidth = label ? this.computeLabelWidth(node) : 0;
-                        labelElements.rect.attr(iconBox(devIconDim, labelWidth));
+                        labelElements.rect.attr(this.iconBox(devIconDim, labelWidth));
 
                         // Icon
                         glyph = is.addDeviceIcon(node, glyphId, devIconDim);
-                        glyph.attr(iconBox(devIconDim, 0));
+                        glyph.attr(this.iconBox(devIconDim, 0));
 
                         node.attr('transform', sus.translate(-halfDevIcon, -halfDevIcon));
                         this.render();

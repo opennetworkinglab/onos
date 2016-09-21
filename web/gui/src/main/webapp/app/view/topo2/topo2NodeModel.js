@@ -22,7 +22,7 @@
 (function () {
     'use strict';
 
-    var randomService;
+    var randomService, ps;
     var fn;
 
     // Internal state;
@@ -107,11 +107,12 @@
 
     angular.module('ovTopo2')
     .factory('Topo2NodeModel',
-        ['Topo2Model', 'FnService', 'RandomService',
-        function (Model, _fn_, _RandomService_) {
+        ['Topo2Model', 'FnService', 'RandomService', 'Topo2PrefsService',
+        function (Model, _fn_, _RandomService_, _ps_) {
 
             randomService = _RandomService_;
             fn = _fn_;
+            ps = _ps_;
 
             return Model.extend({
                 initialize: function () {
@@ -125,7 +126,7 @@
                         id = this.get('id'),
                         friendlyName = props ? props.name : id,
                         labels = ['', friendlyName, id],
-                        nli = nodeLabelIndex,
+                        nli = ps.get('dlbls'),
                         idx = (nli < labels.length) ? nli : 0;
 
                     return labels[idx];
@@ -150,6 +151,14 @@
                         text: text
                     };
                 },
+                iconBox: function(dim, labelWidth) {
+                    return {
+                        x: -dim / 2,
+                        y: -dim / 2,
+                        width: dim + labelWidth,
+                        height: dim
+                    };
+                },
                 svgClassName: function () {
                     return fn.classNames('node',
                         this.nodeType,
@@ -158,6 +167,21 @@
                             online: this.get('online')
                         }
                     );
+                },
+                update: function () {
+                    this.updateLabel();
+                },
+                updateLabel: function () {
+                    var node = this.el,
+                        label = this.trimLabel(this.label()),
+                        labelWidth;
+
+                    node.select('text').text(label);
+                    labelWidth = label ? this.computeLabelWidth(node) : 0;
+
+                    node.select('rect')
+                        .transition()
+                        .attr(this.iconBox(devIconDim, labelWidth));
                 },
                 createNode: function () {
 

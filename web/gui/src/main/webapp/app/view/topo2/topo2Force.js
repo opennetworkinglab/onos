@@ -190,6 +190,13 @@
 
     // ========================== Main Service Definition
 
+    function updateNodes() {
+        var allNodes = t2rs.regionNodes();
+        angular.forEach(allNodes, function (node) {
+            node.update();
+        })
+    }
+
     angular.module('ovTopo2')
     .factory('Topo2ForceService',
         ['$log', 'WebSocketService', 'Topo2InstanceService', 'Topo2RegionService',
@@ -216,7 +223,9 @@
                 topo2StartDone: startDone,
 
                 showMastership: showMastership,
-                topo2PeerRegions: topo2PeerRegions
+                topo2PeerRegions: topo2PeerRegions,
+
+                updateNodes: updateNodes
             };
         }]);
 })();
