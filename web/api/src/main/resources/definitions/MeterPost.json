@@ -2,16 +2,11 @@
   "type": "object",
   "title": "meter",
   "required": [
-    "deviceId",
     "unit",
     "burst",
     "bands"
   ],
   "properties": {
-    "deviceId": {
-      "type": "string",
-      "example": "of:0000000000000001"
-    },
     "unit": {
       "type": "string",
       "example": "KB_PER_SEC"
