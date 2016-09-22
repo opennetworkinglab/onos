@@ -20,7 +20,9 @@ import static org.onosproject.net.DeviceId.deviceId;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import com.google.common.base.Strings;
@@ -53,13 +55,15 @@ import org.onosproject.net.resource.ResourceService;
          description = "Lists allocated resources")
 public class AllocationsCommand extends AbstractShellCommand {
 
-    @Option(name = "-t", aliases = "--type", description = "List of resource types",
+    @Option(name = "-t", aliases = "--type",
+            description = "resource types to include in the list",
             required = false, multiValued = true)
     String[] typeStrings = null;
 
     Set<String> typesToPrint;
 
-    @Option(name = "-i", aliases = "--intentId", description = "Intent ID",
+    @Option(name = "-i", aliases = "--intentId",
+            description = "Intent ID to include in the list",
             required = false, multiValued = true)
     String[] intentStrings;
 
@@ -129,7 +133,21 @@ public class AllocationsCommand extends AbstractShellCommand {
             // print DeviceId when Port was directly specified.
             print("%s", did);
         }
-        print("%s%s", Strings.repeat(" ", level), asVerboseString(num));
+
+        DiscreteResourceId resourceId = Resources.discrete(did, num).id();
+
+        List<String> portConsumers = resourceService.getResourceAllocations(resourceId)
+            .stream()
+            .filter(this::isSubjectToPrint)
+            .map(ResourceAllocation::consumerId)
+            .map(AllocationsCommand::asVerboseString)
+            .collect(Collectors.toList());
+        if (portConsumers.isEmpty()) {
+            print("%s%s", Strings.repeat(" ", level), asVerboseString(num));
+        } else {
+            print("%s%s allocated by %s", Strings.repeat(" ", level), asVerboseString(num),
+                                        portConsumers);
+        }
 
         // FIXME: This workaround induces a lot of distributed store access.
         //        ResourceService should have an API to get all allocations under a parent resource.
@@ -141,7 +159,6 @@ public class AllocationsCommand extends AbstractShellCommand {
                 .add(TributarySlot.class)
                 .build();
 
-        DiscreteResourceId resourceId = Resources.discrete(did, num).id();
         for (Class<?> t : subResourceTypes) {
             resourceService.getResourceAllocations(resourceId, t).stream()
                     .filter(a -> isSubjectToPrint(a))
