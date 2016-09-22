@@ -137,7 +137,11 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
             openstackService.ports().stream()
                     .filter(osPort -> osPort.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE) &&
                             osPort.deviceId().equals(osRouter.id()))
-                    .forEach(osPort -> unsetExternalConnection(osRouter, osPort.networkId()));
+                    .forEach(osPort -> {
+                        String subnetId = osPort.fixedIps().keySet().stream().findFirst().get();
+                        OpenstackSubnet osSubNet = openstackService.subnet(subnetId);
+                        unsetExternalConnection(osRouter, osPort.networkId(), osSubNet.cidr());
+                    });
 
             log.info("Disconnected external gateway from router {}",
                      osRouter.name());
@@ -184,7 +188,7 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
         unsetRoutes(osRouter, osSubnet);
 
         if (osRouter.gatewayExternalInfo().externalFixedIps().size() > 0) {
-            unsetExternalConnection(osRouter, osNet.id());
+            unsetExternalConnection(osRouter, osNet.id(), osSubnet.cidr());
         }
         log.info("Disconnected {} from router {}", osSubnet.cidr(), osRouter.name());
     }
@@ -250,7 +254,7 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
         populateExternalRules(osNet, osSubNet);
     }
 
-    private void unsetExternalConnection(OpenstackRouter osRouter, String osNetId) {
+    private void unsetExternalConnection(OpenstackRouter osRouter, String osNetId, String subNetCidr) {
         if (!osRouter.gatewayExternalInfo().isEnablePnat()) {
             log.debug("Source NAT is disabled");
             return;
@@ -258,7 +262,7 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
 
         // FIXME router interface is subnet specific, not network
         OpenstackNetwork osNet = openstackService.network(osNetId);
-        removeExternalRules(osNet);
+        removeExternalRules(osNet, subNetCidr);
     }
 
     private void setRoutes(OpenstackRouter osRouter, Optional<Host> host) {
@@ -324,10 +328,11 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
         populateGatewayToController(Long.valueOf(osNet.segmentId()), osSubNet.cidr());
     }
 
-    private void removeExternalRules(OpenstackNetwork osNet) {
+    private void removeExternalRules(OpenstackNetwork osNet, String subNetCidr) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         sBuilder.matchEthType(Ethernet.TYPE_IPV4)
                 .matchTunnelId(Long.valueOf(osNet.segmentId()))
+                .matchIPSrc(IpPrefix.valueOf(subNetCidr))
                 .matchEthDst(Constants.DEFAULT_GATEWAY_MAC);
 
         nodeService.completeNodes().forEach(node -> {
