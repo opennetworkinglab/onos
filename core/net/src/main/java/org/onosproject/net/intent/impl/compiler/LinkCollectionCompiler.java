@@ -85,7 +85,7 @@ public class LinkCollectionCompiler<T> {
     }
 
     /**
-     * Helper method to compute input and ouput ports.
+     * Helper method to compute input and output ports.
      *
      * @param intent the related intents
      * @param inputPorts the input ports to compute
