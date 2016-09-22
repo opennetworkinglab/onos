@@ -56,6 +56,11 @@ import com.google.common.collect.TreeRangeSet;
          description = "Lists registered resources")
 public class ResourcesCommand extends AbstractShellCommand {
 
+    @Option(name = "-a", aliases = "--available",
+            description = "Output available resources only",
+            required = false, multiValued = false)
+    boolean availablesOnly = false;
+
     @Option(name = "-s", aliases = "--sort", description = "Sort output",
             required = false, multiValued = false)
     boolean sort = false;
@@ -102,7 +107,6 @@ public class ResourcesCommand extends AbstractShellCommand {
     }
 
     private void printResource(Resource resource, int level) {
-        // TODO add an option to show only available resource
         // workaround to preserve the original behavior of ResourceService#getRegisteredResources
         Set<Resource> children;
         if (resource instanceof DiscreteResource) {
@@ -118,21 +122,27 @@ public class ResourcesCommand extends AbstractShellCommand {
             if (resource instanceof ContinuousResource) {
                 print("%s%s: %f", Strings.repeat(" ", level),
                                   resourceName,
-                                  // Note: last() does not return, what we've registered
-                                  // following does not work
-                                  //((Class<?>) resource.last()).getSimpleName(),
                                   ((ContinuousResource) resource).value());
                 // Continuous resource is terminal node, stop here
                 return;
             } else {
+                String availability = "";
+                if (availablesOnly && !children.isEmpty()) {
+                    // intermediate nodes cannot be omitted, print availability
+                    if (resourceService.isAvailable(resource)) {
+                        availability = " ✔";
+                    } else {
+                        availability = " ✘";
+                    }
+                }
                 String toString = String.valueOf(resource.valueAs(Object.class).orElse(""));
                 if (toString.startsWith(resourceName)) {
-                    print("%s%s", Strings.repeat(" ", level),
-                          toString);
+                    print("%s%s%s", Strings.repeat(" ", level),
+                          toString, availability);
                 } else {
-                    print("%s%s: %s", Strings.repeat(" ", level),
+                    print("%s%s: %s%s", Strings.repeat(" ", level),
                           resourceName,
-                          toString);
+                          toString, availability);
                 }
             }
         }
@@ -218,6 +228,10 @@ public class ResourcesCommand extends AbstractShellCommand {
             if (!resourceService.getRegisteredResources(((DiscreteResource) resource).id()).isEmpty()) {
                 // resource which has children should be printed
                 return true;
+            }
+            if (availablesOnly && !resourceService.isAvailable(resource)) {
+                // don't print unavailable discrete resource
+                return false;
             }
         } else if (!(resource instanceof ContinuousResource)) {
             log.warn("Unexpected resource class: {}", resource.getClass().getSimpleName());
