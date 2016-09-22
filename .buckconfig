@@ -17,3 +17,7 @@
 
 [maven_repositories]
   central = https://repo.maven.apache.org/maven2
+
+[project]
+  ide = intellij
+  ignore = .git
