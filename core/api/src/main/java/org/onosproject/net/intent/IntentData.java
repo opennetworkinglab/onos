@@ -114,7 +114,8 @@ public class IntentData { //FIXME need to make this "immutable"
     public IntentData(IntentData original, List<Intent> installables) {
         this(original);
 
-        this.installables = ImmutableList.copyOf(checkNotNull(installables));
+        this.installables = checkNotNull(installables).isEmpty() ?
+                Collections.emptyList() : ImmutableList.copyOf(installables);
     }
 
     // kryo constructor

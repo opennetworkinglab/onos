@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -112,7 +113,8 @@ class IntentInstaller {
                         uninstallData.setState(WITHDRAWN);
                         break;
                 }
-                store.write(uninstallData);
+                // Intent has been withdrawn; we can clear the installables
+                store.write(new IntentData(uninstallData, Collections.emptyList()));
             }
         };
 
