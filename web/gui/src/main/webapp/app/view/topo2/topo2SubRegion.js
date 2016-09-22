@@ -75,6 +75,9 @@
                     nodeType: 'sub-region',
                     mapDeviceTypeToGlyph: mapDeviceTypeToGlyph,
                     onClick: function () {
+
+                        if (d3.event.defaultPrevented) return;
+
                         wss.sendEvent('topo2navRegion', {
                             dir: 'down',
                             rid: this.get('id')

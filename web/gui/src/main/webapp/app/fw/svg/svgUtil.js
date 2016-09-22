@@ -104,6 +104,8 @@
                 }
             })
             .on('dragend', function(d) {
+                d3.event.sourceEvent.preventDefault();
+
                 if (d.dragStarted) {
                     d.dragStarted = false;
                     if (!dragged(d)) {

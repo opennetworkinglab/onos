@@ -17,12 +17,14 @@
 (function () {
 
     // Injected Services
-    var ks, t2ps;
+    var ks, t2ps, t2ms;
     var topo2ForceService;
 
     // Commmands
     var actionMap = {
-        L: [cycleDeviceLabels, 'Cycle device labels']
+        L: [cycleDeviceLabels, 'Cycle device labels'],
+        G: [openMapSelection, 'Select background geo map'],
+        B: [toggleMap, 'Toggle background geo map'],
     };
 
     function init(t2fs) {
@@ -49,13 +51,22 @@
         topo2ForceService.updateNodes();
     }
 
+    function openMapSelection() {
+        t2ms.openMapSelection();
+    }
+
+    function toggleMap(x) {
+        t2ms.toggle(x);
+    }
+
     angular.module('ovTopo2')
     .factory('Topo2KeyCommandService',
-    ['KeyService', 'Topo2PrefsService',
+    ['KeyService', 'Topo2PrefsService', 'Topo2MapService',
 
-        function (_ks_, _t2ps_) {
+        function (_ks_, _t2ps_, _t2ms_) {
 
             t2ps = _t2ps_;
+            t2ms = _t2ms_;
             ks = _ks_;
 
             return {

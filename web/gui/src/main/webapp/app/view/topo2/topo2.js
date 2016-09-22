@@ -25,7 +25,7 @@
 
     // references to injected services
     var $scope, $log, fs, mast, ks, zs,
-        gs, sus, ps, t2es, t2fs, t2is, t2bcs, t2kcs;
+        gs, sus, ps, t2es, t2fs, t2is, t2bcs, t2kcs, t2ms;
 
     // DOM elements
     var ovtopo2, svg, defs, zoomLayer, forceG;
@@ -87,13 +87,13 @@
         'GlyphService', 'MapService', 'SvgUtilService', 'FlashService',
         'WebSocketService', 'PrefsService', 'ThemeService',
         'Topo2EventService', 'Topo2ForceService', 'Topo2InstanceService',
-        'Topo2BreadcrumbService', 'Topo2KeyCommandService',
+        'Topo2BreadcrumbService', 'Topo2KeyCommandService', 'Topo2MapService',
 
         function (_$scope_, _$log_, _$loc_,
             _fs_, _mast_, _ks_, _zs_,
             _gs_, _ms_, _sus_, _flash_,
             _wss_, _ps_, _th_,
-            _t2es_, _t2fs_, _t2is_, _t2bcs_, _t2kcs_) {
+            _t2es_, _t2fs_, _t2is_, _t2bcs_, _t2kcs_, _t2ms_) {
 
             var params = _$loc_.search(),
                 dim,
@@ -126,8 +126,7 @@
             t2is = _t2is_;
             t2bcs = _t2bcs_;
             t2kcs = _t2kcs_;
-
-            t2kcs.init(t2fs);
+            t2ms = _t2ms_;
 
             // capture selected intent parameters (if they are set in the
             //  query string) so that the traffic overlay can highlight
@@ -172,10 +171,22 @@
             // make sure we can respond to topology events from the server
             t2es.bindHandlers();
 
+            // Add the map SVG Group
+            t2ms.init(zoomLayer).then(
+                function (proj) {
+                    var z = ps.getPrefs('topo_zoom', { tx: 0, ty: 0, sc: 1 });
+                    zoomer.panZoom([z.tx, z.ty], z.sc);
+                    $log.debug('** Zoom restored:', z);
+                    $log.debug('** We installed the projection:', proj);
+                }
+            );
+
             // initialize the force layout, ready to render the topology
             forceG = zoomLayer.append('g').attr('id', 'topo-force');
             t2fs.init(svg, forceG, uplink, dim);
             t2bcs.init();
+            t2kcs.init(t2fs);
+
 
             // =-=-=-=-=-=-=-=-
             // TODO: in future, we will load background map data
@@ -188,34 +199,9 @@
 
             // === ORIGINAL CODE ===
 
-            // setUpKeys();
             // setUpToolbar();
-            // setUpDefs();
-            // setUpZoom();
             // setUpNoDevs();
-            /*
-            setUpMap().then(
-                function (proj) {
-                    var z = ps.getPrefs('topo_zoom', { tx:0, ty:0, sc:1 });
-                    zoomer.panZoom([z.tx, z.ty], z.sc);
-                    $log.debug('** Zoom restored:', z);
 
-                    projection = proj;
-                    $log.debug('** We installed the projection:', proj);
-                    flash.enable(false);
-                    toggleMap(prefsState.bg);
-                    flash.enable(true);
-                    mapShader(true);
-
-                    // now we have the map projection, we are ready for
-                    //  the server to send us device/host data...
-                    tes.start();
-                    // need to do the following so we immediately get
-                    //  the summary panel data back from the server
-                    restoreSummaryFromPrefs();
-                }
-            );
-            */
             // tes.bindHandlers();
             // setUpSprites();
 
