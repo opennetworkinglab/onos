@@ -126,7 +126,7 @@ public class VplsNeighbourHandler {
                 case REQUEST:
                     interfaceService.getInterfacesByVlan(context.vlan())
                             .stream()
-                            .map(Interface::connectPoint)
+                            .filter(intf -> !context.inPort().equals(intf.connectPoint()))
                             .forEach(context::forward);
                     break;
                 case REPLY:

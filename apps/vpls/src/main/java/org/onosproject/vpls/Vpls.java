@@ -100,13 +100,13 @@ public class Vpls {
 
         setupConnectivity();
 
-        log.debug("Activated");
+        log.info("Activated");
     }
 
     @Deactivate
     public void deactivate() {
         intentSynchronizer.removeIntentsByAppId(appId);
-        log.debug("Deactivated");
+        log.info("Deactivated");
     }
 
     protected void setupConnectivity() {

@@ -16,7 +16,6 @@
 package org.onosproject.vpls;
 
 import com.google.common.collect.SetMultimap;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -101,22 +100,21 @@ public class IntentInstaller {
                                 .collect(Collectors.toSet());
                         Key brcKey = buildKey(PREFIX_BROADCAST, src, vlanId);
 
-                        if (intentService.getIntent(brcKey) == null && dsts.size() > 0) {
-                            intents.add(buildBrcIntent(brcKey, src, dsts, vlanId));
+                        if (dsts.isEmpty()) {
+                            return;
                         }
 
-                        if (mac != null && countMacInCPoints(cPoints) > 1 &&
-                                dsts.size() > 0) {
+                        intents.add(buildBrcIntent(brcKey, src, dsts, vlanId));
+
+                        if (mac != null && countMacInCPoints(cPoints) > 1) {
                             Key uniKey = buildKey(PREFIX_UNICAST, src, vlanId);
-                            if (intentService.getIntent(uniKey) == null) {
-                                MultiPointToSinglePointIntent uniIntent =
-                                        buildUniIntent(uniKey,
-                                                       dsts,
-                                                       src,
-                                                       vlanId,
-                                                       mac);
-                                intents.add(uniIntent);
-                            }
+                            MultiPointToSinglePointIntent uniIntent =
+                                    buildUniIntent(uniKey,
+                                                   dsts,
+                                                   src,
+                                                   vlanId,
+                                                   mac);
+                            intents.add(uniIntent);
                         }
                     });
                 });

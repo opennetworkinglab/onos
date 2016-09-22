@@ -17,11 +17,13 @@ package org.onosproject.vpls;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -574,15 +576,15 @@ public class VplsTest {
      */
     private class TestIntentService extends IntentServiceAdapter {
 
-        private Set<Intent> intents;
+        private Map<Key, Intent> intents;
 
         public TestIntentService() {
-            intents = Sets.newHashSet();
+            intents = Maps.newHashMap();
         }
 
         @Override
         public void submit(Intent intent) {
-            intents.add(intent);
+            intents.put(intent.key(), intent);
         }
 
         @Override
@@ -592,12 +594,12 @@ public class VplsTest {
 
         @Override
         public Iterable<Intent> getIntents() {
-            return intents;
+            return intents.values();
         }
 
         @Override
         public Intent getIntent(Key intentKey) {
-            for (Intent intent : intents) {
+            for (Intent intent : intents.values()) {
                 if (intent.key().equals(intentKey)) {
                     return intent;
                 }
