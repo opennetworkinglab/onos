@@ -18,6 +18,7 @@ package org.onlab.packet;
 import org.junit.Before;
 import org.junit.Test;
 
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 
 /**
@@ -44,7 +45,7 @@ public class IGMPTest {
         deserializer = IGMP.deserializer();
 
         // Create an IGMP Query object
-        igmpQuery = new IGMP();
+        igmpQuery = new IGMP.IGMPv3();
         igmpQuery.setIgmpType(IGMP.TYPE_IGMPV3_MEMBERSHIP_QUERY);
         igmpQuery.setMaxRespCode((byte) 0x7f);
         IGMPQuery q = new IGMPQuery(gaddr1, (byte) 0x7f);
@@ -54,7 +55,7 @@ public class IGMPTest {
         igmpQuery.groups.add(q);
 
         // Create an IGMP Membership Object
-        igmpMembership = new IGMP();
+        igmpMembership = new IGMP.IGMPv3();
         igmpMembership.setIgmpType(IGMP.TYPE_IGMPV3_MEMBERSHIP_REPORT);
         IGMPMembership g1 = new IGMPMembership(gaddr1);
         g1.addSource(saddr1);
@@ -92,6 +93,19 @@ public class IGMPTest {
         byte[] data = igmpMembership.serialize();
         IGMP igmp = deserializer.deserialize(data, 0, data.length);
         assertTrue(igmp.equals(igmpMembership));
+    }
+
+    @Test
+    public void testIGMPv2() throws Exception {
+        IGMP igmp = new IGMP.IGMPv2();
+        igmp.setIgmpType((byte) 0x11);
+        igmp.setMaxRespCode((byte) 0x64);
+        igmp.addGroup(new IGMPQuery(IpAddress.valueOf(0), 0));
+
+        byte[] data = igmp.serialize();
+        assertEquals("Packet length is not 8 bytes", data.length, IGMP.IGMPv2.HEADER_LENGTH);
+        IGMP deserialized = deserializer.deserialize(data, 0, data.length);
+        assertTrue(igmp.equals(deserialized));
     }
 
     /**
