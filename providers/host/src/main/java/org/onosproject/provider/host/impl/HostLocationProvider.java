@@ -44,7 +44,6 @@ import org.onosproject.net.Device;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
-import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -270,14 +269,20 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     @Override
     public void triggerProbe(Host host) {
         log.info("Triggering probe on device {} ", host);
-        MastershipRole role = deviceService.getRole(host.location().deviceId());
-        if (role.equals(MastershipRole.MASTER)) {
-            host.ipAddresses().forEach(ip -> {
-                sendProbe(host, ip);
-            });
-        } else {
-            log.info("not the master, master will probe {}");
-        }
+
+        // FIXME Disabling host probing for now, because sending packets from a
+        // broadcast MAC address caused problems when two ONOS networks were
+        // interconnected. Host probing should take into account the interface
+        // configuration when determining which source address to use.
+
+        //MastershipRole role = deviceService.getRole(host.location().deviceId());
+        //if (role.equals(MastershipRole.MASTER)) {
+        //    host.ipAddresses().forEach(ip -> {
+        //        sendProbe(host, ip);
+        //    });
+        //} else {
+        //    log.info("not the master, master will probe {}");
+        //}
     }
 
     private void sendProbe(Host host, IpAddress targetIp) {
@@ -287,7 +292,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             probePacket = buildArpRequest(targetIp, host);
         } else {
             // IPv6: Use Neighbor Discovery
-            //FIX ME need to implement ndp probe
+            //TODO need to implement ndp probe
             log.info("Triggering probe on device {} ", host);
         }
 
@@ -376,7 +381,11 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             if (eth == null) {
                 return;
             }
+
             MacAddress srcMac = eth.getSourceMAC();
+            if (srcMac.isBroadcast() || srcMac.isMulticast()) {
+                return;
+            }
 
             VlanId vlan = VlanId.vlanId(eth.getVlanID());
             ConnectPoint heardOn = context.inPacket().receivedFrom();
