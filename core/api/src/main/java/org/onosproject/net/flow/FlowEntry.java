@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Represents a generalized match &amp; action pair to be applied to
- * an infrastucture device.
+ * an infrastructure device.
  */
 public interface FlowEntry extends FlowRule {
 
