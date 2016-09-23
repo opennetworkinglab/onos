@@ -33,7 +33,7 @@
     <groupId>org.onosproject</groupId>
     <artifactId>onos-dependencies</artifactId>
     <packaging>pom</packaging>
-    <version>1.7.0</version>
+    <version>1.7.1-SNAPSHOT</version>
 
     <name>${project.artifactId}</name>
     <description>Open Network Operating System shared dependencies</description>

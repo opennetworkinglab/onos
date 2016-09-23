@@ -18,8 +18,8 @@ export PATH="$ONOS_ROOT/tools/build:$PATH"
 export BUILD_NUMBER=${BUILD_NUMBER:-$(id -un)~$(date +'%Y/%m/%d@%H:%M')}
 
 # ONOS Version and onos.tar.gz staging environment
-export ONOS_POM_VERSION="1.7.0"
-export ONOS_VERSION=${ONOS_VERSION:-1.7.0.$BUILD_NUMBER}
+export ONOS_POM_VERSION="1.7.1-SNAPSHOT"
+export ONOS_VERSION=${ONOS_VERSION:-1.7.1.$BUILD_NUMBER}
 
 # ONOS production bits (onos.tar.gz, onos.zip, onos.deb, onos.rpm) staging environment
 export ONOS_BITS=onos-${ONOS_VERSION%~*}

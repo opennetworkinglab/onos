@@ -22,7 +22,7 @@
     <parent>
         <artifactId>onos-cpman</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.7.0</version>
+        <version>1.7.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>onos-app-cpman-api</artifactId>
