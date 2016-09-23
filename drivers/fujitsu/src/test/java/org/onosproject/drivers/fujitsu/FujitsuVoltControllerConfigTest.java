@@ -52,9 +52,6 @@ public class FujitsuVoltControllerConfigTest {
     private static final String TEST_VOLT_OFCONFIG = "volt-ofconfig";
     private static final String TEST_OFCONFIG_ID = "ofconfig-id";
     private static final String TEST_END_LICENSE_HEADER = "-->";
-    private static final int FIRST_PART = 0;
-    private static final int SECOND_PART = 1;
-    private static final int THIRD_PART = 2;
 
     private static final Map<Integer, String> GET_CONTROLLERS = new HashMap<Integer, String>() {
         {

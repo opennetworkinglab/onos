@@ -42,9 +42,6 @@ public class FujitsuVoltPonLinkConfigTest {
     private static final String TEST_VOLT_PORTS = "volt-ports";
     private static final String TEST_GPON_PONLINK_PORTS = "gpon-ponlink-ports";
     private static final String TEST_GPON_PONLINK_PORT = "gpon-ponlink-port";
-    private static final int FIRST_PART = 0;
-    private static final int SECOND_PART = 1;
-    private static final int THIRD_PART = 2;
 
     private static final Map<Integer, String> INVALID_GET_TCS = new HashMap<Integer, String>() {
         {

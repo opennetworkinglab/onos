@@ -79,13 +79,8 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
     private static final int LOF_THRESHOLD_MAX = 10;
     private static final int LOS_THRESHOLD_MIN = 1;
     private static final int LOS_THRESHOLD_MAX = 10;
-    private static final int FIRST_PART = 0;
-    private static final int SECOND_PART = 1;
-    private static final int THIRD_PART = 2;
     private static final int RANGE_MIN = 0;
     private static final int RANGE_MAX = 1;
-    private static final int ZERO = 0;
-    private static final int THREE = 3;
 
     @Override
     public String getPonLinks(String target) {
@@ -100,7 +95,7 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
             log.warn("Not master for {} Use {} to execute command",
                      ncDeviceId,
                      mastershipService.getMasterFor(ncDeviceId));
-            return reply;
+            return null;
         }
 
         try {
@@ -114,11 +109,11 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
                     pon = Integer.parseInt(target);
                     if (pon <= ZERO) {
                         log.error("Invalid integer for ponlink-id:{}", target);
-                        return reply;
+                        return null;
                     }
                 } catch (NumberFormatException e) {
                     log.error("Non-number input for ponlink-id:{}", target);
-                    return reply;
+                    return null;
                 }
                 request.append(buildStartTag(GPON_PONLINK_PORTS));
                 request.append(buildStartTag(GPON_PONLINK_PORT));

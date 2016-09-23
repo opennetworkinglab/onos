@@ -40,9 +40,14 @@ public class FujitsuVoltOnuConfig extends AbstractHandlerBehaviour
         implements VoltOnuConfig {
 
     private final Logger log = getLogger(FujitsuVoltOnuConfig.class);
-    private final Set<String> onuConfigParams = ImmutableSet.of(
-            "admin-state", "pm-enable", "fec-enable",
-            "security-enable", "password");
+    private static final String ADMIN_STATE = "admin-state";
+    private static final String PASSWORD = "password";
+    private static final Set<String> ONUCONFIGPARAMS =
+            ImmutableSet.of(ADMIN_STATE, "pm-enable", "fec-enable", "security-enable", PASSWORD);
+    private static final Set<String> ADMINSTATES =
+            ImmutableSet.of("enable", "disable");
+    private static final Set<String> ENABLES =
+            ImmutableSet.of("true", "false");
     private static final String VOLT_ONUS = "volt-onus";
     private static final String ONUS_PERLINK = "onus-perlink";
     private static final String ONUS_LIST = "onus-list";
@@ -55,9 +60,7 @@ public class FujitsuVoltOnuConfig extends AbstractHandlerBehaviour
     private static final String ETH_STATS = "eth-stats";
     private static final String ONU_GEM_STATS = "onu-gem-stats";
     private static final String GEM_STATS = "gem-stats";
-    private int pon;
-    private int onu;
-
+    private static final String PASSWORD_PATTERN = "^[a-zA-Z0-9]+$";
 
     @Override
     public String getOnus(String target) {
@@ -73,23 +76,14 @@ public class FujitsuVoltOnuConfig extends AbstractHandlerBehaviour
             log.warn("Not master for {} Use {} to execute command",
                      ncDeviceId,
                      mastershipService.getMasterFor(ncDeviceId));
-            return reply;
+            return null;
         }
 
         if (target != null) {
-            onuId = target.split(HYPHEN);
-            if (onuId.length > 2) {
-                log.error("Invalid number of arguments");
-                return reply;
-            }
-            try {
-                pon = Integer.parseInt(onuId[0]);
-                if (onuId.length > 1) {
-                    onu = Integer.parseInt(onuId[1]);
-                }
-            } catch (NumberFormatException e) {
-                log.error("Non-number input");
-                return reply;
+            onuId = checkIdString(target);
+            if (onuId == null) {
+                log.error("Invalid ONU identifier {}", target);
+                return null;
             }
         }
 
@@ -101,13 +95,13 @@ public class FujitsuVoltOnuConfig extends AbstractHandlerBehaviour
                 request.append(buildStartTag(VOLT_ONUS));
                 request.append(buildStartTag(ONUS_PERLINK));
                 request.append(buildStartTag(PONLINK_ID, false));
-                request.append(onuId[0]);
+                request.append(onuId[FIRST_PART]);
                 request.append(buildEndTag(PONLINK_ID));
-                if (onuId.length > 1) {
+                if (onuId.length > ONE) {
                     request.append(buildStartTag(ONUS_LIST));
                     request.append(buildStartTag(ONU_INFO));
                     request.append(buildStartTag(ONU_ID, false));
-                    request.append(onuId[1]);
+                    request.append(onuId[SECOND_PART]);
                     request.append(buildEndTag(ONU_ID));
                     request.append(buildEndTag(ONU_INFO));
                     request.append(buildEndTag(ONUS_LIST));
@@ -119,11 +113,13 @@ public class FujitsuVoltOnuConfig extends AbstractHandlerBehaviour
             }
             request.append(VOLT_NE_CLOSE);
 
-            reply = controller.
-                    getDevicesMap().get(ncDeviceId).getSession().
-                    get(request.toString(), REPORT_ALL);
+            reply = controller
+                        .getDevicesMap()
+                        .get(ncDeviceId)
+                        .getSession()
+                        .get(request.toString(), REPORT_ALL);
         } catch (IOException e) {
-            log.error("Cannot communicate to device {} exception ", ncDeviceId, e);
+            log.error("Cannot communicate to device {} exception {}", ncDeviceId, e);
         }
         return reply;
     }
@@ -141,32 +137,25 @@ public class FujitsuVoltOnuConfig extends AbstractHandlerBehaviour
             log.warn("Not master for {} Use {} to execute command",
                      ncDeviceId,
                      mastershipService.getMasterFor(ncDeviceId));
-            return reply;
+            return null;
         }
 
         String[] data = target.split(COLON);
-        if (data.length != 3) {
+        if (data.length != THREE) {
             log.error("Invalid number of arguments");
-            return reply;
+            return null;
         }
 
-        String[] onuId = data[0].split(HYPHEN);
-        if (onuId.length != 2) {
-            log.error("Invalid ONU identifier");
-            return reply;
+        String[] onuId = checkIdString(data[FIRST_PART]);
+        if ((onuId == null) || (onuId.length != TWO)) {
+            log.error("Invalid ONU identifier {}", target);
+            return null;
         }
 
-        try {
-            pon = Integer.parseInt(onuId[0]);
-            onu = Integer.parseInt(onuId[1]);
-        } catch (NumberFormatException e) {
-            log.error("Non-number input");
-            return reply;
-        }
-
-        if (!onuConfigParams.contains(data[1])) {
-            log.error("Unsupported parameter: " + data[1]);
-            return reply;
+        if (!checkSetParam(data[SECOND_PART],
+                            data[THIRD_PART])) {
+            log.error("Failed to check input {}", target);
+            return null;
         }
 
         try {
@@ -174,23 +163,25 @@ public class FujitsuVoltOnuConfig extends AbstractHandlerBehaviour
             request.append(ANGLE_LEFT).append(ONU_SET_CONFIG).append(SPACE);
             request.append(VOLT_NE_NAMESPACE).append(ANGLE_RIGHT).append(NEW_LINE);
             request.append(buildStartTag(PONLINK_ID, false));
-            request.append(onuId[0]);
+            request.append(onuId[FIRST_PART]);
             request.append(buildEndTag(PONLINK_ID));
             request.append(buildStartTag(ONU_ID, false));
-            request.append(onuId[1]);
+            request.append(onuId[SECOND_PART]);
             request.append(buildEndTag(ONU_ID));
             request.append(buildStartTag(CONFIG_INFO));
-            request.append(buildStartTag(data[1], false));
-            request.append(data[2]);
-            request.append(buildEndTag(data[1]));
+            request.append(buildStartTag(data[SECOND_PART], false));
+            request.append(data[THIRD_PART]);
+            request.append(buildEndTag(data[SECOND_PART]));
             request.append(buildEndTag(CONFIG_INFO));
             request.append(buildEndTag(ONU_SET_CONFIG));
 
-            reply = controller.
-                    getDevicesMap().get(ncDeviceId).getSession().
-                    doWrappedRpc(request.toString());
+            reply = controller
+                        .getDevicesMap()
+                        .get(ncDeviceId)
+                        .getSession()
+                        .doWrappedRpc(request.toString());
         } catch (IOException e) {
-            log.error("Cannot communicate to device {} exception ", ncDeviceId, e);
+            log.error("Cannot communicate to device {} exception {}", ncDeviceId, e);
         }
         return reply;
     }
@@ -209,23 +200,14 @@ public class FujitsuVoltOnuConfig extends AbstractHandlerBehaviour
             log.warn("Not master for {} Use {} to execute command",
                      ncDeviceId,
                      mastershipService.getMasterFor(ncDeviceId));
-            return reply;
+            return null;
         }
 
         if (target != null) {
-            onuId = target.split(HYPHEN);
-            if (onuId.length > 2) {
-                log.error("Invalid number of arguments:" + onuId.length);
-                return reply;
-            }
-            try {
-                pon = Integer.parseInt(onuId[0]);
-                if (onuId.length > 1) {
-                    onu = Integer.parseInt(onuId[1]);
-                }
-            } catch (NumberFormatException e) {
-                log.error("Non-number input");
-                return reply;
+            onuId = checkIdString(target);
+            if (onuId == null) {
+                log.error("Failed to check ID: {}", target);
+                return null;
             }
         }
 
@@ -239,11 +221,11 @@ public class FujitsuVoltOnuConfig extends AbstractHandlerBehaviour
                 request.append(buildStartTag(ONU_GEM_STATS));
                 request.append(buildStartTag(GEM_STATS));
                 request.append(buildStartTag(PONLINK_ID, false));
-                request.append(onuId[0]);
+                request.append(onuId[FIRST_PART]);
                 request.append(buildEndTag(PONLINK_ID));
-                if (onuId.length > 1) {
+                if (onuId.length > ONE) {
                     request.append(buildStartTag(ONU_ID, false));
-                    request.append(onuId[1]);
+                    request.append(onuId[SECOND_PART]);
                     request.append(buildEndTag(ONU_ID));
                 }
                 request.append(buildEndTag(GEM_STATS));
@@ -252,30 +234,119 @@ public class FujitsuVoltOnuConfig extends AbstractHandlerBehaviour
                 request.append(buildStartTag(ONU_ETH_STATS));
                 request.append(buildStartTag(ETH_STATS));
                 request.append(buildStartTag(PONLINK_ID, false));
-                request.append(onuId[0]);
+                request.append(onuId[FIRST_PART]);
                 request.append(buildEndTag(PONLINK_ID));
-                if (onuId.length > 1) {
+                if (onuId.length > ONE) {
                     request.append(buildStartTag(ONU_ID, false));
-                    request.append(onuId[1]);
+                    request.append(onuId[SECOND_PART]);
                     request.append(buildEndTag(ONU_ID));
                 }
                 request.append(buildEndTag(ETH_STATS));
                 request.append(buildEndTag(ONU_ETH_STATS));
-
                 request.append(buildEndTag(ONU_STATISTICS));
-            } else {
+            } else  {
                 request.append(buildEmptyTag(ONU_STATISTICS));
             }
             request.append(buildEndTag(VOLT_STATISTICS));
             request.append(VOLT_NE_CLOSE);
 
-            reply = controller.
-                    getDevicesMap().get(ncDeviceId).getSession().
-                    get(request.toString(), REPORT_ALL);
+            reply = controller
+                        .getDevicesMap()
+                        .get(ncDeviceId)
+                        .getSession()
+                        .get(request.toString(), REPORT_ALL);
         } catch (IOException e) {
-            log.error("Cannot communicate to device {} exception ", ncDeviceId, e);
+            log.error("Cannot communicate to device {} exception {}", ncDeviceId, e);
         }
         return reply;
+    }
+
+    /**
+     * Verifies input string for ponlink-id{-onu-id}.
+     *
+     * @param target input data in string
+     * @return String array
+     * @return null if an error condition is detected
+     */
+    private String[] checkIdString(String target) {
+        String[] onuId = target.split(HYPHEN);
+        int pon;
+        int onu;
+
+        if (onuId.length > TWO) {
+            log.error("Invalid number of arguments for id:{}", onuId.length);
+            return null;
+        }
+        try {
+            pon = Integer.parseInt(onuId[FIRST_PART]);
+            if (pon <= ZERO) {
+                log.error("Invalid integer for ponlink-id:{}", onuId[FIRST_PART]);
+                return null;
+            }
+            if (onuId.length > ONE) {
+                onu = Integer.parseInt(onuId[SECOND_PART]);
+                if (onu <= ZERO) {
+                    log.error("Invalid integer for onu-id:{}", onuId[SECOND_PART]);
+                    return null;
+                }
+            }
+        } catch (NumberFormatException e) {
+            log.error("Non-number input for id:{}", target);
+            return null;
+        }
+        return onuId;
+    }
+
+    /**
+     * Verifies input string for valid options.
+     *
+     * @param name input data in string
+     * @param value input data in string
+     * @return true if the parameter is valid
+     * @return false if the parameter is invalid
+     */
+    private boolean checkSetParam(String name, String value) {
+        if (!ONUCONFIGPARAMS.contains(name)) {
+            log.error("Unsupported parameter: {}", name);
+            return false;
+        }
+
+        switch (name) {
+            case ADMIN_STATE:
+                if (!validState(ADMINSTATES, name, value)) {
+                    return false;
+                }
+                break;
+            case PASSWORD:
+                if (!value.matches(PASSWORD_PATTERN)) {
+                    log.error("Invalid value for Name {} : Value {}.", name, value);
+                    return false;
+                }
+                break;
+            default:
+                if (!validState(ENABLES, name, value)) {
+                    return false;
+                }
+                break;
+        }
+        return true;
+    }
+
+    /**
+     * Verifies input string for valid options.
+     *
+     * @param states input data in string for parameter state
+     * @param name input data in string for parameter name
+     * @param value input data in string for parameter value
+     * @return true if the param is valid
+     * @return false if the param is invalid
+     */
+    private boolean validState(Set<String> states, String name, String value) {
+        if (!states.contains(value)) {
+            log.error("Invalid value for Name {} : Value {}.", name, value);
+            return false;
+        }
+        return true;
     }
 
 }

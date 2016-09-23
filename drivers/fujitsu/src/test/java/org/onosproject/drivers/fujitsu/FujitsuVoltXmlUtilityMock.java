@@ -55,6 +55,10 @@ final class FujitsuVoltXmlUtilityMock {
     public static final String TEST_VOLT_NAMESPACE = TEST_VOLT_NE_OPEN +
             TEST_VOLT_NE_NAMESPACE;
 
+    public static final int FIRST_PART = 0;
+    public static final int SECOND_PART = 1;
+    public static final int THIRD_PART = 2;
+    public static final int ONE = 1;
 
     private FujitsuVoltXmlUtilityMock() {
     }

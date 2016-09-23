@@ -42,6 +42,14 @@ public final class FujitsuVoltXmlUtility {
     public static final String VOLT_NE_OPEN = ANGLE_LEFT + VOLT_NE + SPACE;
     public static final String VOLT_NE_CLOSE = ANGLE_LEFT + SLASH + VOLT_NE + ANGLE_RIGHT;
 
+    public static final int FIRST_PART = 0;
+    public static final int SECOND_PART = 1;
+    public static final int THIRD_PART = 2;
+    public static final int ZERO = 0;
+    public static final int ONE = 1;
+    public static final int TWO = 2;
+    public static final int THREE = 3;
+
     private FujitsuVoltXmlUtility() {
         // Preventing any allocation
     }
