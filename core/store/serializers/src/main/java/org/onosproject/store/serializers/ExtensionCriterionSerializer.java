@@ -21,6 +21,7 @@ import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import org.onlab.osgi.DefaultServiceDirectory;
+import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ExtensionSelectorResolver;
 import org.onosproject.net.driver.DefaultDriverData;
@@ -31,6 +32,7 @@ import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.ExtensionCriterion;
 import org.onosproject.net.flow.criteria.ExtensionSelector;
 import org.onosproject.net.flow.criteria.ExtensionSelectorType;
+import org.onosproject.net.flow.criteria.UnresolvedExtensionSelector;
 
 /**
  * Serializer for extension criteria.
@@ -56,16 +58,20 @@ public class ExtensionCriterionSerializer extends Serializer<ExtensionCriterion>
             Class<ExtensionCriterion> type) {
         ExtensionSelectorType exType = (ExtensionSelectorType) kryo.readClassAndObject(input);
         DeviceId deviceId = (DeviceId) kryo.readClassAndObject(input);
-
         DriverService driverService = DefaultServiceDirectory.getService(DriverService.class);
-        DriverHandler handler = new DefaultDriverHandler(
-                new DefaultDriverData(driverService.getDriver(deviceId), deviceId));
-
-        ExtensionSelectorResolver resolver = handler.behaviour(ExtensionSelectorResolver.class);
-        ExtensionSelector selector = resolver.getExtensionSelector(exType);
-
         byte[] bytes = (byte[]) kryo.readClassAndObject(input);
-        selector.deserialize(bytes);
+        ExtensionSelector selector;
+
+        try {
+            DriverHandler handler = new DefaultDriverHandler(
+                    new DefaultDriverData(driverService.getDriver(deviceId), deviceId));
+            ExtensionSelectorResolver resolver = handler.behaviour(ExtensionSelectorResolver.class);
+            selector = resolver.getExtensionSelector(exType);
+            selector.deserialize(bytes);
+        } catch (ItemNotFoundException | IllegalArgumentException e) {
+            selector = new UnresolvedExtensionSelector(bytes, exType);
+        }
+
         return Criteria.extension(selector, deviceId);
     }
 }
