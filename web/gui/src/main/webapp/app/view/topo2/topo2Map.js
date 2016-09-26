@@ -22,56 +22,16 @@
 (function () {
     'use strict';
 
-    var $log, $loc, wss, ps, ms, t2ds, sus;
+    // Injected Services
+    var $loc, ps, ms, sus, countryFilters;
+
+    // Injected Classes
+    var MapSelectionDialog;
 
     // internal state
-    var mapG, order, maps, map, mapItems, tintCheck, messageHandlers;
-
-    // constants
-    var mapRequest = 'mapSelectorRequest';
-
-    var countryFilters = {
-        s_america: function (c) {
-            return c.properties.continent === 'South America';
-        },
-
-        ns_america: function (c) {
-            return c.properties.custom === 'US-cont' ||
-                c.properties.subregion === 'Central America' ||
-                c.properties.continent === 'South America';
-        },
-
-        japan: function (c) {
-            return c.properties.geounit === 'Japan';
-        },
-
-        europe: function (c) {
-            return c.properties.continent === 'Europe';
-        },
-
-        italy: function (c) {
-            return c.properties.geounit === 'Italy';
-        },
-
-        uk: function (c) {
-            // technically, Ireland is not part of the United Kingdom,
-            // but the map looks weird without it showing.
-            return c.properties.adm0_a3 === 'GBR' ||
-                c.properties.adm0_a3 === 'IRL';
-        },
-
-        s_korea: function (c) {
-            return c.properties.adm0_a3 === 'KOR';
-        },
-
-        australia: function (c) {
-            return c.properties.adm0_a3 === 'AUS';
-        }
-    };
+    var mapG;
 
     function init(zoomLayer) {
-
-        start();
         return setUpMap(zoomLayer);
     }
 
@@ -80,7 +40,7 @@
             mapId = prefs.mapid,
             mapFilePath = prefs.mapfilepath,
             mapScale = prefs.mapscale,
-            tint = prefs.tint,
+            loadMap = ms.loadMapInto,
             promise, cfilter;
 
         mapG = d3.select('#topo-map');
@@ -93,34 +53,18 @@
             });
         }
 
-        cfilter = countryFilters[mapId] || countryFilters.uk;
-
         if (mapFilePath === '*countries') {
-
             cfilter = countryFilters[mapId] || countryFilters.uk;
-
-            promise = ms.loadMapRegionInto(mapG, {
-                countryFilter: cfilter,
-                adjustScale: mapScale,
-                shading: ''
-            });
-        } else {
-
-            promise = ms.loadMapInto(mapG, mapFilePath, mapId, {
-                adjustScale: mapScale,
-                shading: ''
-            });
+            loadMap = ms.loadMapRegionInto
         }
 
+        promise = loadMap(mapG, mapFilePath, mapId, {
+            countryFilters: cfilter,
+            adjustScale: mapScale,
+            shading: ''
+        });
+
         return promise;
-    }
-
-    function start() {
-        wss.bindHandlers(messageHandlers);
-    }
-
-    function stop() {
-        wss.unbindHandlers(messageHandlers);
     }
 
     function currentMap() {
@@ -136,10 +80,6 @@
         );
     }
 
-    function openMapSelection() {
-        wss.sendEvent(mapRequest);
-    }
-
     function opacifyMap(b) {
         mapG.transition()
             .duration(1000)
@@ -152,56 +92,6 @@
         opacifyMap(true);
     }
 
-    function dOk() {
-        var p = {
-            mapid: map.id,
-            mapscale: map.scale,
-            mapfilepath: map.filePath,
-            tint: 'off'
-            // tint: tintCheck.property('checked') ? 'on' : 'off'
-        };
-        setMap(p);
-        $log.debug('Dialog OK button clicked');
-    }
-
-    function dClose() {
-        $log.debug('Dialog Close button clicked (or Esc pressed)');
-    }
-
-    function selectMap() {
-        map = maps[this.options[this.selectedIndex].value];
-        $log.info('Selected map', map);
-    }
-
-    function createListContent() {
-        var content = t2ds.createDiv('map-list'),
-            form = content.append('form'),
-            current = currentMap();
-        map = maps[current.mapid];
-        mapItems = form.append('select').on('change', selectMap);
-        order.forEach(function (id) {
-            var m = maps[id];
-            mapItems.append('option')
-                .attr('value', m.id)
-                .attr('selected', m.id === current.mapid ? true : null)
-                .text(m.description);
-        });
-
-        return content;
-    }
-
-    function handleMapResponse(data) {
-        $log.info('Got response', data);
-        order = data.order;
-        maps = data.maps;
-        t2ds.openDialog()
-            .setTitle('Select Map')
-            .addContent(createListContent())
-            .addOk(dOk, 'OK')
-            .addCancel(dClose, 'Close')
-            .bindKeys();
-    }
-
     // TODO: -- START -- Move to dedicated module
     var prefsState = {};
 
@@ -211,8 +101,7 @@
     }
 
     function _togSvgLayer(x, G, tag, what) {
-        var on = (x === 'keyev') ? !sus.visible(G) : !!x,
-            verb = on ? 'Show' : 'Hide';
+        var on = (x === 'keyev') ? !sus.visible(G) : Boolean(x);
         sus.visible(G, on);
         updatePrefsState(tag, on);
         // flash.flash(verb + ' ' + what);
@@ -223,29 +112,35 @@
         _togSvgLayer(x, mapG, 'bg', 'background map');
     }
 
+    function openMapSelection() {
+
+        // TODO: Create a view class with extend method
+        MapSelectionDialog.prototype.currentMap = currentMap;
+
+        new MapSelectionDialog({
+            okHandler: function (preferences) {
+                setMap(preferences);
+            }
+        }).open();
+    }
+
     angular.module('ovTopo2')
     .factory('Topo2MapService',
-        ['$log', '$location', 'WebSocketService', 'PrefsService', 'MapService',
-            'SvgUtilService', 'Topo2DialogService',
-            function (_$log_, _$loc_, _wss_, _ps_, _ms_, _sus_, _t2ds_) {
+        ['$location', 'PrefsService', 'MapService',
+            'SvgUtilService', 'Topo2CountryFilters', 'Topo2MapDialog',
+            function (_$loc_, _ps_, _ms_, _sus_, _t2cf_, _t2md_) {
 
-                $log = _$log_;
                 $loc = _$loc_;
-                wss = _wss_;
                 ps = _ps_;
                 ms = _ms_;
                 sus = _sus_;
-                t2ds = _t2ds_;
-
-                messageHandlers = {
-                    mapSelectorResponse: handleMapResponse
-                };
+                countryFilters = _t2cf_;
+                MapSelectionDialog = _t2md_;
 
                 return {
                     init: init,
                     openMapSelection: openMapSelection,
-                    toggle: toggle,
-                    stop: stop
+                    toggle: toggle
                 };
             }
         ]);
