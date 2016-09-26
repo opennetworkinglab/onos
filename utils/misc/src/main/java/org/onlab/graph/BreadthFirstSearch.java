@@ -25,16 +25,15 @@ public class BreadthFirstSearch<V extends Vertex, E extends Edge<V>>
         extends AbstractGraphPathSearch<V, E> {
 
     @Override
-    public Result<V, E> search(Graph<V, E> graph, V src, V dst,
-                               EdgeWeight<V, E> weight, int maxPaths) {
-        checkArguments(graph, src, dst);
+    protected Result<V, E> internalSearch(Graph<V, E> graph, V src, V dst,
+                               EdgeWeigher<V, E> weigher, int maxPaths) {
 
         // Prepare the graph result.
         DefaultResult result = new DefaultResult(src, dst, maxPaths);
 
         // Setup the starting frontier with the source as the sole vertex.
         Set<V> frontier = new HashSet<>();
-        result.updateVertex(src, null, 0.0, true);
+        result.updateVertex(src, null, weigher.getInitialWeight(), true);
         frontier.add(src);
 
         boolean reachedEnd = false;
@@ -44,14 +43,14 @@ public class BreadthFirstSearch<V extends Vertex, E extends Edge<V>>
 
             // Visit all vertexes in the current frontier.
             for (V vertex : frontier) {
-                double cost = result.cost(vertex);
+                Weight cost = result.cost(vertex);
 
                 // Visit all egress edges of the current frontier vertex.
                 for (E edge : graph.getEdgesFrom(vertex)) {
                     V nextVertex = edge.dst();
                     if (!result.hasCost(nextVertex)) {
                         // If this vertex has not been visited yet, update it.
-                        double newCost = cost + (weight == null ? 1.0 : weight.weight(edge));
+                        Weight newCost = cost.merge(weigher.weight(edge));
                         result.updateVertex(nextVertex, edge, newCost, true);
                         // If we have reached our intended destination, bail.
                         if (nextVertex.equals(dst)) {

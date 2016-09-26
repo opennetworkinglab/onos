@@ -30,11 +30,13 @@ public class DefaultMutablePathTest extends DefaultPathTest {
     @Test
     public void equality() {
         DefaultPath<TestVertex, TestEdge> p1 =
-                new DefaultPath<>(of(new TestEdge(A, B, 1),
-                                     new TestEdge(B, C, 1)), 2.0);
+                new DefaultPath<>(of(new TestEdge(A, B),
+                                     new TestEdge(B, C)),
+                        new TestDoubleWeight(2.0));
         DefaultPath<TestVertex, TestEdge> p2 =
-                new DefaultPath<>(of(new TestEdge(A, B, 1),
-                                     new TestEdge(B, D, 1)), 2.0);
+                new DefaultPath<>(of(new TestEdge(A, B),
+                                     new TestEdge(B, D)),
+                        new TestDoubleWeight(2.0));
         new EqualsTester().addEqualityGroup(new DefaultMutablePath<>(p1),
                                             new DefaultMutablePath<>(p1))
                 .addEqualityGroup(new DefaultMutablePath<>(p2))
@@ -47,61 +49,62 @@ public class DefaultMutablePathTest extends DefaultPathTest {
         assertNull("src should be null", p.src());
         assertNull("dst should be null", p.dst());
         assertEquals("incorrect edge count", 0, p.edges().size());
-        assertEquals("incorrect path cost", 0.0, p.cost(), 0.1);
+        assertEquals("incorrect path cost", null, p.cost());
     }
 
     @Test
     public void pathCost() {
         MutablePath<TestVertex, TestEdge> p = new DefaultMutablePath<>();
-        p.setCost(4);
-        assertEquals("incorrect path cost", 4.0, p.cost(), 0.1);
+        Weight weight = new TestDoubleWeight(4);
+        p.setCost(weight);
+        assertEquals("incorrect path cost", weight, p.cost());
     }
 
     private void validatePath(Path<TestVertex, TestEdge> p,
                               TestVertex src, TestVertex dst, int length) {
-        validatePath(p, src, dst, length, 0.0);
+        validatePath(p, src, dst, length, null);
     }
 
     @Test
     public void insertEdge() {
         MutablePath<TestVertex, TestEdge> p = new DefaultMutablePath<>();
-        p.insertEdge(new TestEdge(B, C, 1));
-        p.insertEdge(new TestEdge(A, B, 1));
+        p.insertEdge(new TestEdge(B, C));
+        p.insertEdge(new TestEdge(A, B));
         validatePath(p, A, C, 2);
     }
 
     @Test
     public void appendEdge() {
         MutablePath<TestVertex, TestEdge> p = new DefaultMutablePath<>();
-        p.appendEdge(new TestEdge(A, B, 1));
-        p.appendEdge(new TestEdge(B, C, 1));
+        p.appendEdge(new TestEdge(A, B));
+        p.appendEdge(new TestEdge(B, C));
         validatePath(p, A, C, 2);
     }
 
     @Test
     public void removeEdge() {
         MutablePath<TestVertex, TestEdge> p = new DefaultMutablePath<>();
-        p.appendEdge(new TestEdge(A, B, 1));
-        p.appendEdge(new TestEdge(B, C, 1));
-        p.appendEdge(new TestEdge(C, C, 2));
-        p.appendEdge(new TestEdge(C, D, 1));
+        p.appendEdge(new TestEdge(A, B));
+        p.appendEdge(new TestEdge(B, C));
+        p.appendEdge(new TestEdge(C, C));
+        p.appendEdge(new TestEdge(C, D));
         validatePath(p, A, D, 4);
 
-        p.removeEdge(new TestEdge(A, B, 1));
+        p.removeEdge(new TestEdge(A, B));
         validatePath(p, B, D, 3);
 
-        p.removeEdge(new TestEdge(C, C, 2));
+        p.removeEdge(new TestEdge(C, C));
         validatePath(p, B, D, 2);
 
-        p.removeEdge(new TestEdge(C, D, 1));
+        p.removeEdge(new TestEdge(C, D));
         validatePath(p, B, C, 1);
     }
 
     @Test
     public void toImmutable() {
         MutablePath<TestVertex, TestEdge> p = new DefaultMutablePath<>();
-        p.appendEdge(new TestEdge(A, B, 1));
-        p.appendEdge(new TestEdge(B, C, 1));
+        p.appendEdge(new TestEdge(A, B));
+        p.appendEdge(new TestEdge(B, C));
         validatePath(p, A, C, 2);
 
         assertEquals("immutables should equal", p.toImmutable(), p.toImmutable());

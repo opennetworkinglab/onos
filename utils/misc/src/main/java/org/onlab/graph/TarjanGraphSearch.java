@@ -37,17 +37,17 @@ public class TarjanGraphSearch<V extends Vertex, E extends Edge<V>>
      * SCCs within the graph.
      * </p>
      * <p>
-     * To prevent traversal of an edge, the {@link EdgeWeight#weight} should
-     * return a negative value as an edge weight.
+     * To prevent traversal of an edge, the {@link EdgeWeigher#weight} should
+     * return a negative value as an edge weigher.
      * </p>
      */
     @Override
-    public SccResult<V, E> search(Graph<V, E> graph, EdgeWeight<V, E> weight) {
+    public SccResult<V, E> search(Graph<V, E> graph, EdgeWeigher<V, E> weigher) {
         SccResult<V, E> result = new SccResult<>(graph);
         for (V vertex : graph.getVertexes()) {
             VertexData data = result.data(vertex);
             if (data == null) {
-                connect(graph, vertex, weight, result);
+                connect(graph, vertex, weigher, result);
             }
         }
         return result.build();
@@ -56,14 +56,14 @@ public class TarjanGraphSearch<V extends Vertex, E extends Edge<V>>
     /**
      * Scans the specified graph, using recursion, and produces SCC results.
      *
-     * @param graph  graph to search
-     * @param vertex current vertex to scan and connect
-     * @param weight optional edge weight
-     * @param result graph search result
+     * @param graph   graph to search
+     * @param vertex  current vertex to scan and connect
+     * @param weigher optional edge weigher
+     * @param result  graph search result
      * @return augmentation vertexData for the current vertex
      */
     private VertexData<V> connect(Graph<V, E> graph, V vertex,
-                                  EdgeWeight<V, E> weight,
+                                  EdgeWeigher<V, E> weigher,
                                   SccResult<V, E> result) {
         VertexData<V> data = result.addData(vertex);
 
@@ -71,8 +71,8 @@ public class TarjanGraphSearch<V extends Vertex, E extends Edge<V>>
         for (E edge : graph.getEdgesFrom(vertex)) {
             V nextVertex = edge.dst();
 
-            // If edge weight is negative, skip it.
-            if (weight != null && weight.weight(edge) < 0) {
+            // If edge is not viable, skip it.
+            if (weigher != null && !weigher.weight(edge).isViable()) {
                 continue;
             }
 
@@ -80,7 +80,7 @@ public class TarjanGraphSearch<V extends Vertex, E extends Edge<V>>
             VertexData<V> nextData = result.data(nextVertex);
             if (nextData == null) {
                 // Next vertex has not been visited yet, so do this now.
-                nextData = connect(graph, nextVertex, weight, result);
+                nextData = connect(graph, nextVertex, weigher, result);
                 data.lowLink = Math.min(data.lowLink, nextData.lowLink);
 
             } else if (result.visited(nextData)) {

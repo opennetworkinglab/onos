@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-present Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.graph;
+
+package org.onosproject.net.topology;
+
+import org.onlab.graph.EdgeWeigher;
 
 /**
- * Abstraction of a graph edge weight function.
+ * Entity capable of determining cost or weight of a specified topology
+ * graph edge. Returns {@link org.onlab.graph.Weight} instances.
  */
-public interface EdgeWeight<V extends Vertex, E extends Edge<V>> {
-
-    /**
-     * Returns the weight of the given edge as a unit-less number.
-     *
-     * @param edge edge to be weighed
-     * @return edge weight as a unit-less number
-     */
-    double weight(E edge);
-
+public interface LinkWeigher extends EdgeWeigher<TopologyVertex, TopologyEdge> {
 }

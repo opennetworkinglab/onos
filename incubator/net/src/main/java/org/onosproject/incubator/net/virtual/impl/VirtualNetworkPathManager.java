@@ -23,7 +23,7 @@ import org.onosproject.net.ElementId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.host.HostService;
-import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.AbstractPathService;
 import org.onosproject.net.topology.TopologyService;
@@ -57,18 +57,18 @@ public class VirtualNetworkPathManager
 
     @Override
     public Set<Path> getPaths(ElementId src, ElementId dst) {
-        return getPaths(src, dst, null);
+        return super.getPaths(src, dst, (LinkWeigher) null);
     }
 
     @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst) {
-        return getDisjointPaths(src, dst, (LinkWeight) null);
+        return getDisjointPaths(src, dst, (LinkWeigher) null);
     }
 
     @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst,
                                               Map<Link, Object> riskProfile) {
-        return getDisjointPaths(src, dst, null, riskProfile);
+        return getDisjointPaths(src, dst, (LinkWeigher) null, riskProfile);
     }
 
     @Override

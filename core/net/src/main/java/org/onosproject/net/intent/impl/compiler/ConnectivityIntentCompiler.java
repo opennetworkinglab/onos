@@ -20,6 +20,9 @@ import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.graph.DefaultEdgeWeigher;
+import org.onlab.graph.ScalarWeight;
+import org.onlab.graph.Weight;
 import org.onosproject.net.DisjointPath;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Path;
@@ -30,9 +33,10 @@ import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.impl.PathNotFoundException;
 import org.onosproject.net.resource.ResourceQueryService;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyEdge;
+import org.onosproject.net.topology.TopologyVertex;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -65,8 +69,8 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
      * @param constraints path constraints
      * @return edge-weight function
      */
-    protected LinkWeight weight(List<Constraint> constraints) {
-        return new ConstraintBasedLinkWeight(constraints);
+    protected LinkWeigher weigher(List<Constraint> constraints) {
+        return new ConstraintBasedLinkWeigher(constraints);
     }
 
     /**
@@ -115,7 +119,7 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
      */
     protected Path getPath(ConnectivityIntent intent,
                            ElementId one, ElementId two) {
-        Set<Path> paths = pathService.getPaths(one, two, weight(intent.constraints()));
+        Set<Path> paths = pathService.getPaths(one, two, weigher(intent.constraints()));
         final List<Constraint> constraints = intent.constraints();
         ImmutableList<Path> filtered = FluentIterable.from(paths)
                 .filter(path -> checkPath(path, constraints))
@@ -138,7 +142,7 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
      */
     protected DisjointPath getDisjointPath(ConnectivityIntent intent,
                            ElementId one, ElementId two) {
-        Set<DisjointPath> paths = pathService.getDisjointPaths(one, two, weight(intent.constraints()));
+        Set<DisjointPath> paths = pathService.getDisjointPaths(one, two, weigher(intent.constraints()));
         final List<Constraint> constraints = intent.constraints();
         ImmutableList<DisjointPath> filtered = FluentIterable.from(paths)
                 .filter(path -> checkPath(path, constraints))
@@ -153,7 +157,8 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
     /**
      * Edge-weight capable of evaluating link cost using a set of constraints.
      */
-    protected class ConstraintBasedLinkWeight implements LinkWeight {
+    protected class ConstraintBasedLinkWeigher extends DefaultEdgeWeigher<TopologyVertex, TopologyEdge>
+            implements LinkWeigher {
 
         private final List<Constraint> constraints;
 
@@ -163,7 +168,7 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
          *
          * @param constraints path constraints
          */
-        ConstraintBasedLinkWeight(List<Constraint> constraints) {
+        ConstraintBasedLinkWeigher(List<Constraint> constraints) {
             if (constraints == null) {
                 this.constraints = Collections.emptyList();
             } else {
@@ -172,23 +177,23 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
         }
 
         @Override
-        public double weight(TopologyEdge edge) {
+        public Weight weight(TopologyEdge edge) {
 
             // iterate over all constraints in order and return the weight of
             // the first one with fast fail over the first failure
             Iterator<Constraint> it = constraints.iterator();
 
             if (!it.hasNext()) {
-                return 1.0;
+                return new ScalarWeight(HOP_WEIGHT_VALUE);
             }
 
             double cost = it.next().cost(edge.link(), resourceService::isAvailable);
             while (it.hasNext() && cost > 0) {
                 if (it.next().cost(edge.link(), resourceService::isAvailable) < 0) {
-                    return -1;
+                    cost = -1;
                 }
             }
-            return cost;
+            return new ScalarWeight(cost);
 
         }
     }

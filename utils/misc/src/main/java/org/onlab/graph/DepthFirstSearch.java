@@ -35,15 +35,14 @@ public class DepthFirstSearch<V extends Vertex, E extends Edge<V>>
     }
 
     @Override
-    public SpanningTreeResult search(Graph<V, E> graph, V src, V dst,
-                                     EdgeWeight<V, E> weight, int maxPaths) {
-        checkArguments(graph, src, dst);
+    protected SpanningTreeResult internalSearch(Graph<V, E> graph, V src, V dst,
+                                             EdgeWeigher<V, E> weigher, int maxPaths) {
 
         // Prepare the search result.
         SpanningTreeResult result = new SpanningTreeResult(src, dst, maxPaths);
 
         // The source vertex has cost 0, of course.
-        result.updateVertex(src, null, 0.0, true);
+        result.updateVertex(src, null, weigher.getInitialWeight(), true);
 
         // Track finished vertexes and keep a stack of vertexes that have been
         // started; start this stack with the source on it.
@@ -58,7 +57,7 @@ public class DepthFirstSearch<V extends Vertex, E extends Edge<V>>
                 break;
             }
 
-            double cost = result.cost(vertex);
+            Weight cost = result.cost(vertex);
             boolean tangent = false;
 
             // Visit all egress edges of the current vertex.
@@ -74,7 +73,7 @@ public class DepthFirstSearch<V extends Vertex, E extends Edge<V>>
                     // If this vertex have not finished this vertex yet,
                     // not started it, then start it as a tree-edge.
                     result.markEdge(edge, EdgeType.TREE_EDGE);
-                    double newCost = cost + (weight == null ? 1.0 : weight.weight(edge));
+                    Weight newCost = cost.merge(weigher.weight(edge));
                     result.updateVertex(nextVertex, edge, newCost, true);
                     stack.push(nextVertex);
                     tangent = true;

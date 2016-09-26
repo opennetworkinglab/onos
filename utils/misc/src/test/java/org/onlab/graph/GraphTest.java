@@ -34,13 +34,33 @@ public class GraphTest {
     static final TestVertex H = new TestVertex("H");
     static final TestVertex Z = new TestVertex("Z");
 
+    static final TestDoubleWeight ZW = new TestDoubleWeight(0);
+    static final TestDoubleWeight NW5 = new TestDoubleWeight(-5);
+    static final TestDoubleWeight NW2 = new TestDoubleWeight(-2);
+    static final TestDoubleWeight NW1 = new TestDoubleWeight(-1);
+    static final TestDoubleWeight W1 = new TestDoubleWeight(1);
+    static final TestDoubleWeight W2 = new TestDoubleWeight(2);
+    static final TestDoubleWeight W3 = new TestDoubleWeight(3);
+    static final TestDoubleWeight W4 = new TestDoubleWeight(4);
+    static final TestDoubleWeight W5 = new TestDoubleWeight(5);
+
     protected Graph<TestVertex, TestEdge> graph;
 
-    protected EdgeWeight<TestVertex, TestEdge> weight =
-            new EdgeWeight<TestVertex, TestEdge>() {
+    protected EdgeWeigher<TestVertex, TestEdge> weigher =
+            new EdgeWeigher<TestVertex, TestEdge>() {
                 @Override
-                public double weight(TestEdge edge) {
+                public Weight weight(TestEdge edge) {
                     return edge.weight();
+                }
+
+                @Override
+                public Weight getInitialWeight() {
+                    return ZW;
+                }
+
+                @Override
+                public Weight getNonViableWeight() {
+                    return TestDoubleWeight.NON_VIABLE_WEIGHT;
                 }
             };
 
@@ -55,12 +75,18 @@ public class GraphTest {
     }
 
     protected Set<TestEdge> edges() {
-        return of(new TestEdge(A, B, 1), new TestEdge(A, C, 3),
-                  new TestEdge(B, D, 2), new TestEdge(B, C, 1),
-                  new TestEdge(B, E, 4), new TestEdge(C, E, 1),
-                  new TestEdge(D, H, 5), new TestEdge(D, E, 1),
-                  new TestEdge(E, F, 1), new TestEdge(F, D, 1),
-                  new TestEdge(F, G, 1), new TestEdge(F, H, 1));
+        return of(new TestEdge(A, B, W1),
+                  new TestEdge(A, C, W3),
+                  new TestEdge(B, D, W2),
+                  new TestEdge(B, C, W1),
+                  new TestEdge(B, E, W4),
+                  new TestEdge(C, E, W1),
+                  new TestEdge(D, H, W5),
+                  new TestEdge(D, E, W1),
+                  new TestEdge(E, F, W1),
+                  new TestEdge(F, D, W1),
+                  new TestEdge(F, G, W1),
+                  new TestEdge(F, H, W1));
     }
 
 }

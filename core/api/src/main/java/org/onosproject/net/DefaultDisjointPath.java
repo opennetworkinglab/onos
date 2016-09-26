@@ -16,6 +16,7 @@
 
 package org.onosproject.net;
 
+import org.onlab.graph.Weight;
 import org.onosproject.net.provider.ProviderId;
 
 import java.util.List;
@@ -40,7 +41,7 @@ public class DefaultDisjointPath extends DefaultPath implements DisjointPath {
      */
     public DefaultDisjointPath(ProviderId providerId, DefaultPath path1, DefaultPath path2) {
         // Note: cost passed to super will never be used
-        super(providerId, path1.links(), path1.cost());
+        super(providerId, path1.links(), path1.weight());
         this.path1 = path1;
         this.path2 = path2;
     }
@@ -66,10 +67,12 @@ public class DefaultDisjointPath extends DefaultPath implements DisjointPath {
 
     @Override
     public double cost() {
-        if (usingPath1) {
-            return path1.cost();
-        }
-        return path2.cost();
+        return usingPath1 ? path1.cost() : path2.cost();
+    }
+
+    @Override
+    public Weight weight() {
+        return usingPath1 ? path1.weight() : path2.weight();
     }
 
     @Override

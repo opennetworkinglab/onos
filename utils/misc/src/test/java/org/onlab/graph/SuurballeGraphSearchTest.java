@@ -34,17 +34,6 @@ public class SuurballeGraphSearchTest extends BreadthFirstSearchTest {
         return new SuurballeGraphSearch<>();
     }
 
-    public void setWeights() {
-        weight = new EdgeWeight<TestVertex, TestEdge>() {
-            @Override
-            public double weight(TestEdge edge) {
-                return edge.weight();
-            }
-        };
-    }
-    public void setDefaultWeights() {
-        weight = null;
-    }
     @Override
     public void defaultGraphTest() {
 
@@ -57,41 +46,38 @@ public class SuurballeGraphSearchTest extends BreadthFirstSearchTest {
 
     @Test
     public void basicGraphTest() {
-        setDefaultWeights();
         Graph<TestVertex, TestEdge> graph = new AdjacencyListsGraph<>(of(A, B, C, D),
-                                                                      of(new TestEdge(A, B, 1),
-                                                                         new TestEdge(B, C, 1),
-                                                                         new TestEdge(A, D, 1),
-                                                                         new TestEdge(D, C, 1)));
-        executeSearch(graphSearch(), graph, A, C, weight, 1, 4.0);
+                                                                      of(new TestEdge(A, B),
+                                                                         new TestEdge(B, C),
+                                                                         new TestEdge(A, D),
+                                                                         new TestEdge(D, C)));
+        executeSearch(graphSearch(), graph, A, C, null, 1, new ScalarWeight(4.0));
     }
 
     @Test
     public void multiplePathOnePairGraphTest() {
-        setWeights();
         Graph<TestVertex, TestEdge> graph = new AdjacencyListsGraph<>(of(A, B, C, D, E),
-                                                                      of(new TestEdge(A, B, 1),
-                                                                         new TestEdge(B, C, 1),
-                                                                         new TestEdge(A, D, 1),
-                                                                         new TestEdge(D, C, 1),
-                                                                         new TestEdge(B, E, 2),
-                                                                         new TestEdge(C, E, 1)));
-        executeSearch(graphSearch(), graph, A, E, weight, 1, 6.0);
+                                                                      of(new TestEdge(A, B, W1),
+                                                                         new TestEdge(B, C, W1),
+                                                                         new TestEdge(A, D, W1),
+                                                                         new TestEdge(D, C, W1),
+                                                                         new TestEdge(B, E, W2),
+                                                                         new TestEdge(C, E, W1)));
+        executeSearch(graphSearch(), graph, A, E, weigher, 1, new TestDoubleWeight(6.0));
     }
 
     @Test
     public void multiplePathsMultiplePairs() {
-        setWeights();
         Graph<TestVertex, TestEdge> graph = new AdjacencyListsGraph<>(of(A, B, C, D, E),
-                                                                      of(new TestEdge(A, B, 1),
-                                                                         new TestEdge(B, E, 1),
-                                                                         new TestEdge(A, C, 1),
-                                                                         new TestEdge(C, E, 1),
-                                                                         new TestEdge(A, D, 1),
-                                                                         new TestEdge(D, E, 1),
-                                                                         new TestEdge(A, E, 2)));
+                                                                      of(new TestEdge(A, B, W1),
+                                                                         new TestEdge(B, E, W1),
+                                                                         new TestEdge(A, C, W1),
+                                                                         new TestEdge(C, E, W1),
+                                                                         new TestEdge(A, D, W1),
+                                                                         new TestEdge(D, E, W1),
+                                                                         new TestEdge(A, E, W2)));
         GraphPathSearch.Result<TestVertex, TestEdge> result =
-                graphSearch().search(graph, A, E, weight, GraphPathSearch.ALL_PATHS);
+                graphSearch().search(graph, A, E, weigher, GraphPathSearch.ALL_PATHS);
         Set<Path<TestVertex, TestEdge>> paths = result.paths();
         System.out.println("\n\n" + paths + "\n\n\ndone\n");
         assertEquals("incorrect paths count", 3, paths.size());
@@ -101,27 +87,25 @@ public class SuurballeGraphSearchTest extends BreadthFirstSearchTest {
 
     @Test
     public void differingPrimaryAndBackupPathLengths() {
-        setWeights();
         Graph<TestVertex, TestEdge> graph = new AdjacencyListsGraph<>(of(A, B, C, D, E),
-                                                                      of(new TestEdge(A, B, 1),
-                                                                         new TestEdge(B, C, 1),
-                                                                         new TestEdge(A, D, 1),
-                                                                         new TestEdge(D, C, 1),
-                                                                         new TestEdge(B, E, 1),
-                                                                         new TestEdge(C, E, 1)));
-        executeSearch(graphSearch(), graph, A, E, weight, 1, 5.0);
+                                                                      of(new TestEdge(A, B),
+                                                                         new TestEdge(B, C),
+                                                                         new TestEdge(A, D),
+                                                                         new TestEdge(D, C),
+                                                                         new TestEdge(B, E),
+                                                                         new TestEdge(C, E)));
+        executeSearch(graphSearch(), graph, A, E, weigher, 1, new TestDoubleWeight(5.0));
     }
 
     @Test
     public void onePath() {
-        setWeights();
         Graph<TestVertex, TestEdge> graph = new AdjacencyListsGraph<>(of(A, B, C, D),
-                                                                      of(new TestEdge(A, B, 1),
-                                                                         new TestEdge(B, C, 1),
-                                                                         new TestEdge(A, C, 4),
-                                                                         new TestEdge(C, D, 1)));
+                                                                      of(new TestEdge(A, B, W1),
+                                                                         new TestEdge(B, C, W1),
+                                                                         new TestEdge(A, C, W4),
+                                                                         new TestEdge(C, D, W1)));
         GraphPathSearch.Result<TestVertex, TestEdge> result =
-                graphSearch().search(graph, A, D, weight, GraphPathSearch.ALL_PATHS);
+                graphSearch().search(graph, A, D, weigher, GraphPathSearch.ALL_PATHS);
         Set<Path<TestVertex, TestEdge>> paths = result.paths();
         assertEquals("incorrect paths count", 1, paths.size());
         DisjointPathPair<TestVertex, TestEdge> dpp = (DisjointPathPair<TestVertex, TestEdge>) paths.iterator().next();
@@ -130,24 +114,22 @@ public class SuurballeGraphSearchTest extends BreadthFirstSearchTest {
 
     @Test
     public void noPath() {
-        setWeights();
         Graph<TestVertex, TestEdge> graph = new AdjacencyListsGraph<>(of(A, B, C, D),
-                                                                      of(new TestEdge(A, B, 1),
-                                                                         new TestEdge(B, C, 1),
-                                                                         new TestEdge(A, C, 4)));
+                                                                      of(new TestEdge(A, B, W1),
+                                                                         new TestEdge(B, C, W1),
+                                                                         new TestEdge(A, C, W4)));
         GraphPathSearch.Result<TestVertex, TestEdge> result =
-                graphSearch().search(graph, A, D, weight, GraphPathSearch.ALL_PATHS);
+                graphSearch().search(graph, A, D, weigher, GraphPathSearch.ALL_PATHS);
         Set<Path<TestVertex, TestEdge>> paths = result.paths();
         assertEquals("incorrect paths count", paths.size(), 0);
     }
 
     @Test
     public void disconnected() {
-        setWeights();
         Graph<TestVertex, TestEdge> graph = new AdjacencyListsGraph<>(of(A, B, C, D),
                                                                       of());
         GraphPathSearch.Result<TestVertex, TestEdge> result =
-                graphSearch().search(graph, A, D, weight, GraphPathSearch.ALL_PATHS);
+                graphSearch().search(graph, A, D, weigher, GraphPathSearch.ALL_PATHS);
         Set<Path<TestVertex, TestEdge>> paths = result.paths();
         assertEquals("incorrect paths count", 0, paths.size());
     }

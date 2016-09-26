@@ -16,6 +16,7 @@
 package org.onosproject.net.intent;
 
 import com.google.common.base.MoreObjects;
+import org.onlab.graph.Weight;
 import org.onlab.util.Bandwidth;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
@@ -46,7 +47,7 @@ import org.onosproject.net.resource.ResourceListener;
 import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.topology.DefaultTopologyEdge;
 import org.onosproject.net.topology.DefaultTopologyVertex;
-import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.PathServiceAdapter;
 import org.onosproject.net.topology.TopologyVertex;
 import org.onosproject.store.Timestamp;
@@ -159,19 +160,19 @@ public class IntentTestsMocks {
         }
 
         @Override
-        public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight) {
-            final Set<Path> paths = getPaths(src, dst);
+        public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeigher weigher) {
+            Set<Path> paths = getPaths(src, dst);
 
             for (Path path : paths) {
-                final DeviceId srcDevice = path.src().elementId() instanceof DeviceId ? path.src().deviceId() : null;
-                final DeviceId dstDevice = path.dst().elementId() instanceof DeviceId ? path.dst().deviceId() : null;
+                DeviceId srcDevice = path.src().elementId() instanceof DeviceId ? path.src().deviceId() : null;
+                DeviceId dstDevice = path.dst().elementId() instanceof DeviceId ? path.dst().deviceId() : null;
                 if (srcDevice != null && dstDevice != null) {
-                    final TopologyVertex srcVertex = new DefaultTopologyVertex(srcDevice);
-                    final TopologyVertex dstVertex = new DefaultTopologyVertex(dstDevice);
-                    final Link link = link(src.toString(), 1, dst.toString(), 1);
+                    TopologyVertex srcVertex = new DefaultTopologyVertex(srcDevice);
+                    TopologyVertex dstVertex = new DefaultTopologyVertex(dstDevice);
+                    Link link = link(src.toString(), 1, dst.toString(), 1);
 
-                    final double weightValue = weight.weight(new DefaultTopologyEdge(srcVertex, dstVertex, link));
-                    if (weightValue < 0) {
+                    Weight weightValue = weigher.weight(new DefaultTopologyEdge(srcVertex, dstVertex, link));
+                    if (weightValue.isNegative()) {
                         return new HashSet<>();
                     }
                 }
@@ -220,7 +221,7 @@ public class IntentTestsMocks {
         }
 
         @Override
-        public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight) {
+        public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeigher weigher) {
             final Set<Path> paths = getPaths(src, dst);
 
             for (Path path : paths) {
@@ -231,8 +232,8 @@ public class IntentTestsMocks {
                     final TopologyVertex dstVertex = new DefaultTopologyVertex(dstDevice);
                     final Link link = link(src.toString(), 1, dst.toString(), 1);
 
-                    final double weightValue = weight.weight(new DefaultTopologyEdge(srcVertex, dstVertex, link));
-                    if (weightValue < 0) {
+                    final Weight weightValue = weigher.weight(new DefaultTopologyEdge(srcVertex, dstVertex, link));
+                    if (weightValue.isNegative()) {
                         return new HashSet<>();
                     }
                 }

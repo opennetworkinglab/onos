@@ -31,7 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DefaultMutablePath<V extends Vertex, E extends Edge<V>> implements MutablePath<V, E> {
 
     private final List<E> edges = new ArrayList<>();
-    private double cost = 0.0;
+    private Weight cost;
 
     /**
      * Creates a new empty path.
@@ -61,7 +61,7 @@ public class DefaultMutablePath<V extends Vertex, E extends Edge<V>> implements 
     }
 
     @Override
-    public double cost() {
+    public Weight cost() {
         return cost;
     }
 
@@ -71,7 +71,7 @@ public class DefaultMutablePath<V extends Vertex, E extends Edge<V>> implements 
     }
 
     @Override
-    public void setCost(double cost) {
+    public void setCost(Weight cost) {
         this.cost = cost;
     }
 

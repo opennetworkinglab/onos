@@ -29,6 +29,7 @@ import org.onosproject.net.Path;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.ClusterId;
 import org.onosproject.net.topology.GraphDescription;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyCluster;
@@ -43,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.onosproject.net.topology.AdapterLinkWeigher.adapt;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -112,7 +114,13 @@ public class SimpleTopologyStore
     @Override
     public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
                               LinkWeight weight) {
-        return defaultTopology(topology).getPaths(src, dst, weight);
+        return getPaths(topology, src, dst, adapt(weight));
+    }
+
+    @Override
+    public Set<Path> getPaths(Topology topology, DeviceId src,
+                              DeviceId dst, LinkWeigher weigher) {
+        return defaultTopology(topology).getPaths(src, dst, weigher);
     }
 
     @Override
@@ -123,7 +131,13 @@ public class SimpleTopologyStore
     @Override
     public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
                                               LinkWeight weight) {
-        return defaultTopology(topology).getDisjointPaths(src, dst, weight);
+        return getDisjointPaths(topology, src, dst, adapt(weight));
+    }
+
+    @Override
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src,
+                                              DeviceId dst, LinkWeigher weigher) {
+        return defaultTopology(topology).getDisjointPaths(src, dst, weigher);
     }
 
     @Override
@@ -135,7 +149,15 @@ public class SimpleTopologyStore
     @Override
     public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
                                                   LinkWeight weight, Map<Link, Object> riskProfile) {
-        return defaultTopology(topology).getDisjointPaths(src, dst, weight, riskProfile);
+        return getDisjointPaths(topology, src, dst, adapt(weight), riskProfile);
+    }
+
+    @Override
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src,
+                                              DeviceId dst,
+                                              LinkWeigher weigher,
+                                              Map<Link, Object> riskProfile) {
+        return defaultTopology(topology).getDisjointPaths(src, dst, weigher, riskProfile);
     }
 
     @Override

@@ -34,31 +34,31 @@ public class BreadthFirstSearchTest extends AbstractGraphPathSearchTest {
 
     @Test
     public void defaultGraphTest() {
-        executeDefaultTest(7, 3, 8.0);
+        executeDefaultTest(7, 3, new TestDoubleWeight(8.0));
     }
 
     @Test
     public void defaultHopCountWeight() {
-        weight = null;
-        executeDefaultTest(7, 3, 3.0);
+        weigher = null;
+        executeDefaultTest(7, 3, new ScalarWeight(3.0));
     }
 
     // Executes the default test
-    protected void executeDefaultTest(int pathCount, int pathLength, double pathCost) {
+    protected void executeDefaultTest(int pathCount, int pathLength, Weight pathCost) {
         graph = new AdjacencyListsGraph<>(vertexes(), edges());
 
         GraphPathSearch<TestVertex, TestEdge> search = graphSearch();
         Set<Path<TestVertex, TestEdge>> paths =
-                search.search(graph, A, H, weight, ALL_PATHS).paths();
+                search.search(graph, A, H, weigher, ALL_PATHS).paths();
         assertEquals("incorrect paths count", 1, paths.size());
 
         Path p = paths.iterator().next();
         assertEquals("incorrect src", A, p.src());
         assertEquals("incorrect dst", H, p.dst());
         assertEquals("incorrect path length", pathLength, p.edges().size());
-        assertEquals("incorrect path cost", pathCost, p.cost(), 0.1);
+        assertEquals("incorrect path cost", pathCost, p.cost());
 
-        paths = search.search(graph, A, null, weight, ALL_PATHS).paths();
+        paths = search.search(graph, A, null, weigher, ALL_PATHS).paths();
         printPaths(paths);
         assertEquals("incorrect paths count", pathCount, paths.size());
     }
@@ -67,16 +67,16 @@ public class BreadthFirstSearchTest extends AbstractGraphPathSearchTest {
     protected void executeSearch(GraphPathSearch<TestVertex, TestEdge> search,
                                  Graph<TestVertex, TestEdge> graph,
                                  TestVertex src, TestVertex dst,
-                                 EdgeWeight<TestVertex, TestEdge> weight,
-                                 int pathCount, double pathCost) {
+                                 EdgeWeigher<TestVertex, TestEdge> weigher,
+                                 int pathCount, Weight pathCost) {
         GraphPathSearch.Result<TestVertex, TestEdge> result =
-                search.search(graph, src, dst, weight, ALL_PATHS);
+                search.search(graph, src, dst, weigher, ALL_PATHS);
         Set<Path<TestVertex, TestEdge>> paths = result.paths();
         printPaths(paths);
         assertEquals("incorrect paths count", pathCount, paths.size());
         if (pathCount > 0) {
             Path<TestVertex, TestEdge> path = paths.iterator().next();
-            assertEquals("incorrect path cost", pathCost, path.cost(), 0.1);
+            assertEquals("incorrect path cost", pathCost, path.cost());
         }
     }
 
@@ -84,16 +84,16 @@ public class BreadthFirstSearchTest extends AbstractGraphPathSearchTest {
     protected void executeSinglePathSearch(GraphPathSearch<TestVertex, TestEdge> search,
                                            Graph<TestVertex, TestEdge> graph,
                                            TestVertex src, TestVertex dst,
-                                           EdgeWeight<TestVertex, TestEdge> weight,
-                                           int pathCount, double pathCost) {
+                                           EdgeWeigher<TestVertex, TestEdge> weigher,
+                                           int pathCount, Weight pathCost) {
         GraphPathSearch.Result<TestVertex, TestEdge> result =
-                search.search(graph, src, dst, weight, 1);
+                search.search(graph, src, dst, weigher, 1);
         Set<Path<TestVertex, TestEdge>> paths = result.paths();
         printPaths(paths);
         assertEquals("incorrect paths count", Math.min(pathCount, 1), paths.size());
         if (pathCount > 0) {
             Path<TestVertex, TestEdge> path = paths.iterator().next();
-            assertEquals("incorrect path cost", pathCost, path.cost(), 0.1);
+            assertEquals("incorrect path cost", pathCost, path.cost());
         }
     }
 

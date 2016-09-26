@@ -18,24 +18,37 @@ package org.onlab.graph;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.onlab.graph.GraphTest.W1;
 
 /**
  * Test edge.
  */
 public class TestEdge extends AbstractEdge<TestVertex> {
 
-    private final double weight;
+    private final Weight weight;
 
     /**
-     * Creates a new edge between the specified source and destination vertexes.
+     * Creates a new edge between the specified source and destination vertexes
+     * with the given weight.
      *
      * @param src    source vertex
      * @param dst    destination vertex
      * @param weight edge weight
      */
-    public TestEdge(TestVertex src, TestVertex dst, double weight) {
+    public TestEdge(TestVertex src, TestVertex dst, Weight weight) {
         super(src, dst);
         this.weight = weight;
+    }
+
+    /**
+     * Creates a new edge between the specified source and destination vertexes
+     * with the default weight.
+     *
+     * @param src source vertex
+     * @param dst destination vertext
+     */
+    public TestEdge(TestVertex src, TestVertex dst) {
+        this(src, dst, W1);
     }
 
     /**
@@ -43,7 +56,7 @@ public class TestEdge extends AbstractEdge<TestVertex> {
      *
      * @return edge weight
      */
-    public double weight() {
+    public Weight weight() {
         return weight;
     }
 

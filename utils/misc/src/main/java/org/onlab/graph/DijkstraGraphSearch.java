@@ -27,16 +27,15 @@ public class DijkstraGraphSearch<V extends Vertex, E extends Edge<V>>
         extends AbstractGraphPathSearch<V, E> {
 
     @Override
-    public Result<V, E> search(Graph<V, E> graph, V src, V dst,
-                               EdgeWeight<V, E> weight, int maxPaths) {
-        checkArguments(graph, src, dst);
+    protected Result<V, E> internalSearch(Graph<V, E> graph, V src, V dst,
+                               EdgeWeigher<V, E> weigher, int maxPaths) {
 
         // Use the default result to remember cumulative costs and parent
         // edges to each each respective vertex.
         DefaultResult result = new DefaultResult(src, dst, maxPaths);
 
         // Cost to reach the source vertex is 0 of course.
-        result.updateVertex(src, null, 0.0, false);
+        result.updateVertex(src, null, weigher.getInitialWeight(), false);
 
         if (graph.getEdges().isEmpty()) {
             result.buildPaths();
@@ -56,11 +55,12 @@ public class DijkstraGraphSearch<V extends Vertex, E extends Edge<V>>
             }
 
             // Find its cost and use it to determine if the vertex is reachable.
-            double cost = result.cost(nearest);
-            if (cost < Double.MAX_VALUE) {
+            if (result.hasCost(nearest)) {
+                Weight cost = result.cost(nearest);
+
                 // If the vertex is reachable, relax all its egress edges.
                 for (E e : graph.getEdgesFrom(nearest)) {
-                    result.relaxEdge(e, cost, weight, true);
+                    result.relaxEdge(e, cost, weigher, true);
                 }
             }
 
@@ -84,8 +84,16 @@ public class DijkstraGraphSearch<V extends Vertex, E extends Edge<V>>
 
         @Override
         public int compare(V v1, V v2) {
-            double delta = result.cost(v2) - result.cost(v1);
-            return delta < 0 ? -1 : (delta > 0 ? 1 : 0);
+            //not accessed vertices should be pushed to the back of the queue
+            if (!result.hasCost(v1) && !result.hasCost(v2)) {
+                return 0;
+            } else if (!result.hasCost(v1)) {
+                return -1;
+            } else if (!result.hasCost(v2)) {
+                return 1;
+            }
+
+            return result.cost(v2).compareTo(result.cost(v1));
         }
     }
 

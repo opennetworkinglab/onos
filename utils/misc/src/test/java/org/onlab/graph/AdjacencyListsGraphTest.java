@@ -37,9 +37,11 @@ public class AdjacencyListsGraphTest {
     private static final TestVertex G = new TestVertex("G");
 
     private final Set<TestEdge> edges =
-            ImmutableSet.of(new TestEdge(A, B, 1), new TestEdge(B, C, 1),
-                            new TestEdge(C, D, 1), new TestEdge(D, A, 1),
-                            new TestEdge(B, D, 1));
+            ImmutableSet.of(new TestEdge(A, B),
+                            new TestEdge(B, C),
+                            new TestEdge(C, D),
+                            new TestEdge(D, A),
+                            new TestEdge(B, D));
 
     @Test
     public void equality() {

@@ -16,6 +16,7 @@
 package org.onlab.graph;
 
 import static org.junit.Assert.*;
+import static org.onlab.graph.GraphTest.W1;
 
 import org.junit.Test;
 
@@ -32,15 +33,15 @@ public class DisjointPathPairTest {
     private static final TestVertex C = new TestVertex("C");
     private static final TestVertex D = new TestVertex("D");
 
-    private static final TestEdge AB = new TestEdge(A, B, 1.0);
-    private static final TestEdge BC = new TestEdge(B, C, 1.0);
-    private static final TestEdge AD = new TestEdge(A, D, 1.0);
-    private static final TestEdge DC = new TestEdge(D, C, 1.0);
+    private static final TestEdge AB = new TestEdge(A, B);
+    private static final TestEdge BC = new TestEdge(B, C);
+    private static final TestEdge AD = new TestEdge(A, D);
+    private static final TestEdge DC = new TestEdge(D, C);
 
-    private static final Path<TestVertex, TestEdge> ABC
-                            = new DefaultPath<>(ImmutableList.of(AB, BC), 1.0);
-    private static final Path<TestVertex, TestEdge> ADC
-                            = new DefaultPath<>(ImmutableList.of(AD, DC), 1.0);
+    private static final Path<TestVertex, TestEdge> ABC =
+            new DefaultPath<>(ImmutableList.of(AB, BC), W1);
+    private static final Path<TestVertex, TestEdge> ADC =
+            new DefaultPath<>(ImmutableList.of(AD, DC), W1);
 
     @Test
     public void testSwappingPrimarySecondaryDoesntImpactHashCode() {

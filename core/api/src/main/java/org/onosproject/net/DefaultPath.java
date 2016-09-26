@@ -17,6 +17,8 @@ package org.onosproject.net;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
+import org.onlab.graph.ScalarWeight;
+import org.onlab.graph.Weight;
 import org.onosproject.net.provider.ProviderId;
 
 import java.util.List;
@@ -31,7 +33,27 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DefaultPath extends DefaultLink implements Path {
 
     private final List<Link> links;
-    private final double cost;
+    private final Weight cost;
+
+    /**
+     * Creates a path from the specified source and destination using the
+     * supplied list of links.
+     *
+     * @param providerId provider identity
+     * @param links      contiguous links that comprise the path
+     * @param cost       unit-less path cost
+     * @param annotations optional key/value annotations
+     *
+     * @deprecated in Junco (1.9.0)
+     */
+    @Deprecated
+    public DefaultPath(ProviderId providerId, List<Link> links, double cost,
+                       Annotations... annotations) {
+        super(providerId, source(links), destination(links), Type.INDIRECT,
+                State.ACTIVE, annotations);
+        this.links = ImmutableList.copyOf(links);
+        this.cost = new ScalarWeight(cost);
+    }
 
     /**
      * Creates a path from the specified source and destination using the
@@ -42,7 +64,7 @@ public class DefaultPath extends DefaultLink implements Path {
      * @param cost       unit-less path cost
      * @param annotations optional key/value annotations
      */
-    public DefaultPath(ProviderId providerId, List<Link> links, double cost,
+    public DefaultPath(ProviderId providerId, List<Link> links, Weight cost,
                        Annotations... annotations) {
         super(providerId, source(links), destination(links), Type.INDIRECT, State.ACTIVE, annotations);
         this.links = ImmutableList.copyOf(links);
@@ -56,6 +78,14 @@ public class DefaultPath extends DefaultLink implements Path {
 
     @Override
     public double cost() {
+        if (cost instanceof ScalarWeight) {
+            return ((ScalarWeight) cost).value();
+        }
+        return 0;
+    }
+
+    @Override
+    public Weight weight() {
         return cost;
     }
 

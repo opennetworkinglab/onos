@@ -30,28 +30,29 @@ public class DefaultPathTest extends GraphTest {
 
     @Test
     public void equality() {
-        List<TestEdge> edges = of(new TestEdge(A, B, 1), new TestEdge(B, C, 1));
-        new EqualsTester().addEqualityGroup(new DefaultPath<>(edges, 2.0),
-                                            new DefaultPath<>(edges, 2.0))
-                .addEqualityGroup(new DefaultPath<>(edges, 3.0))
+        List<TestEdge> edges = of(new TestEdge(A, B), new TestEdge(B, C));
+        new EqualsTester().addEqualityGroup(new DefaultPath<>(edges, new TestDoubleWeight(2.0)),
+                                            new DefaultPath<>(edges, new TestDoubleWeight(2.0)))
+                .addEqualityGroup(new DefaultPath<>(edges, new TestDoubleWeight(3.0)))
                 .testEquals();
     }
 
     @Test
     public void basics() {
-        Path<TestVertex, TestEdge> p = new DefaultPath<>(of(new TestEdge(A, B, 1),
-                                                            new TestEdge(B, C, 1)), 2.0);
-        validatePath(p, A, C, 2, 2.0);
+        Path<TestVertex, TestEdge> p = new DefaultPath<>(of(new TestEdge(A, B),
+                                                            new TestEdge(B, C)),
+                new TestDoubleWeight(2.0));
+        validatePath(p, A, C, 2, new TestDoubleWeight(2.0));
     }
 
     // Validates the path against expected attributes
     protected void validatePath(Path<TestVertex, TestEdge> p,
                                 TestVertex src, TestVertex dst,
-                                int length, double cost) {
+                                int length, Weight cost) {
         assertEquals("incorrect path length", length, p.edges().size());
         assertEquals("incorrect source", src, p.src());
         assertEquals("incorrect destination", dst, p.dst());
-        assertEquals("incorrect path cost", cost, p.cost(), 0.1);
+        assertEquals("incorrect path cost", cost, p.cost());
     }
 
 }

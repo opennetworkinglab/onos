@@ -39,7 +39,7 @@ public class SrlgGraphSearchTest extends BreadthFirstSearchTest {
     }
 
     public void setDefaultWeights() {
-        weight = null;
+        weigher = null;
     }
 
     @Override
@@ -53,10 +53,10 @@ public class SrlgGraphSearchTest extends BreadthFirstSearchTest {
     @Test
     public void onePathPair() {
         setDefaultWeights();
-        TestEdge aB = new TestEdge(A, B, 1);
-        TestEdge bC = new TestEdge(B, C, 1);
-        TestEdge aD = new TestEdge(A, D, 1);
-        TestEdge dC = new TestEdge(D, C, 1);
+        TestEdge aB = new TestEdge(A, B);
+        TestEdge bC = new TestEdge(B, C);
+        TestEdge aD = new TestEdge(A, D);
+        TestEdge dC = new TestEdge(D, C);
         Graph<TestVertex, TestEdge> graph = new AdjacencyListsGraph<>(of(A, B, C, D),
                                                                       of(aB, bC, aD, dC));
         Map<TestEdge, Integer> riskProfile = new HashMap<>();
@@ -65,7 +65,7 @@ public class SrlgGraphSearchTest extends BreadthFirstSearchTest {
         riskProfile.put(aD, 1);
         riskProfile.put(dC, 1);
         SrlgGraphSearch<TestVertex, TestEdge> search = new SrlgGraphSearch<>(2, riskProfile);
-        Set<Path<TestVertex, TestEdge>> paths = search.search(graph, A, C, weight, ALL_PATHS).paths();
+        Set<Path<TestVertex, TestEdge>> paths = search.search(graph, A, C, weigher, ALL_PATHS).paths();
         System.out.println("\n\n\n" + paths + "\n\n\n");
         assertEquals("one disjoint path pair found", 1, paths.size());
         checkIsDisjoint(paths.iterator().next(), riskProfile);
@@ -90,12 +90,12 @@ public class SrlgGraphSearchTest extends BreadthFirstSearchTest {
     @Test
     public void complexGraphTest() {
         setDefaultWeights();
-        TestEdge aB = new TestEdge(A, B, 1);
-        TestEdge bC = new TestEdge(B, C, 1);
-        TestEdge aD = new TestEdge(A, D, 1);
-        TestEdge dC = new TestEdge(D, C, 1);
-        TestEdge cE = new TestEdge(C, E, 1);
-        TestEdge bE = new TestEdge(B, E, 1);
+        TestEdge aB = new TestEdge(A, B);
+        TestEdge bC = new TestEdge(B, C);
+        TestEdge aD = new TestEdge(A, D);
+        TestEdge dC = new TestEdge(D, C);
+        TestEdge cE = new TestEdge(C, E);
+        TestEdge bE = new TestEdge(B, E);
         Graph<TestVertex, TestEdge> graph = new AdjacencyListsGraph<>(of(A, B, C, D, E),
                                                                       of(aB, bC, aD, dC, cE, bE));
         Map<TestEdge, Integer> riskProfile = new HashMap<>();
@@ -106,18 +106,18 @@ public class SrlgGraphSearchTest extends BreadthFirstSearchTest {
         riskProfile.put(cE, 2);
         riskProfile.put(bE, 3);
         SrlgGraphSearch<TestVertex, TestEdge> search = new SrlgGraphSearch<>(4, riskProfile);
-        search.search(graph, A, E, weight, ALL_PATHS).paths();
+        search.search(graph, A, E, weigher, ALL_PATHS).paths();
     }
 
     @Test
     public void multiplePathGraphTest() {
         setDefaultWeights();
-        TestEdge aB = new TestEdge(A, B, 1);
-        TestEdge bE = new TestEdge(B, E, 1);
-        TestEdge aD = new TestEdge(A, D, 1);
-        TestEdge dE = new TestEdge(D, E, 1);
-        TestEdge aC = new TestEdge(A, C, 1);
-        TestEdge cE = new TestEdge(C, E, 1);
+        TestEdge aB = new TestEdge(A, B);
+        TestEdge bE = new TestEdge(B, E);
+        TestEdge aD = new TestEdge(A, D);
+        TestEdge dE = new TestEdge(D, E);
+        TestEdge aC = new TestEdge(A, C);
+        TestEdge cE = new TestEdge(C, E);
         Graph<TestVertex, TestEdge> graph = new AdjacencyListsGraph<>(of(A, B, C, D, E),
                                                                       of(aB, bE, aD, dE, aC, cE));
         Map<TestEdge, Integer> riskProfile = new HashMap<>();
@@ -128,7 +128,7 @@ public class SrlgGraphSearchTest extends BreadthFirstSearchTest {
         riskProfile.put(aC, 4);
         riskProfile.put(cE, 5);
         SrlgGraphSearch<TestVertex, TestEdge> search = new SrlgGraphSearch<>(6, riskProfile);
-        Set<Path<TestVertex, TestEdge>> paths = search.search(graph, A, E, weight, ALL_PATHS).paths();
+        Set<Path<TestVertex, TestEdge>> paths = search.search(graph, A, E, weigher, ALL_PATHS).paths();
         assertTrue("> one disjoint path pair found", paths.size() >= 1);
         checkIsDisjoint(paths.iterator().next(), riskProfile);
     }
@@ -136,10 +136,10 @@ public class SrlgGraphSearchTest extends BreadthFirstSearchTest {
     @Test
     public void onePath() {
         setDefaultWeights();
-        TestEdge aB = new TestEdge(A, B, 1);
-        TestEdge bC = new TestEdge(B, C, 1);
-        TestEdge aD = new TestEdge(A, D, 1);
-        TestEdge dC = new TestEdge(D, C, 1);
+        TestEdge aB = new TestEdge(A, B);
+        TestEdge bC = new TestEdge(B, C);
+        TestEdge aD = new TestEdge(A, D);
+        TestEdge dC = new TestEdge(D, C);
         Graph<TestVertex, TestEdge> graph = new AdjacencyListsGraph<>(of(A, B, C, D),
                                                                       of(aB, bC, aD, dC));
         Map<TestEdge, Integer> riskProfile = new HashMap<>();
@@ -148,7 +148,7 @@ public class SrlgGraphSearchTest extends BreadthFirstSearchTest {
         riskProfile.put(aD, 1);
         riskProfile.put(dC, 0);
         SrlgGraphSearch<TestVertex, TestEdge> search = new SrlgGraphSearch<>(2, riskProfile);
-        Set<Path<TestVertex, TestEdge>> paths = search.search(graph, A, C, weight, ALL_PATHS).paths();
+        Set<Path<TestVertex, TestEdge>> paths = search.search(graph, A, C, weigher, ALL_PATHS).paths();
         System.out.println(paths);
         assertTrue("no disjoint path pairs found", paths.size() == 0);
     }
@@ -156,10 +156,10 @@ public class SrlgGraphSearchTest extends BreadthFirstSearchTest {
     @Test
     public void noPath() {
         setDefaultWeights();
-        TestEdge aB = new TestEdge(A, B, 1);
-        TestEdge bC = new TestEdge(B, C, 1);
-        TestEdge aD = new TestEdge(A, D, 1);
-        TestEdge dC = new TestEdge(D, C, 1);
+        TestEdge aB = new TestEdge(A, B);
+        TestEdge bC = new TestEdge(B, C);
+        TestEdge aD = new TestEdge(A, D);
+        TestEdge dC = new TestEdge(D, C);
         Graph<TestVertex, TestEdge> graph = new AdjacencyListsGraph<>(of(A, B, C, D, E),
                                                                       of(aB, bC, aD, dC));
         Map<TestEdge, Integer> riskProfile = new HashMap<>();
@@ -168,7 +168,7 @@ public class SrlgGraphSearchTest extends BreadthFirstSearchTest {
         riskProfile.put(aD, 1);
         riskProfile.put(dC, 0);
         SrlgGraphSearch<TestVertex, TestEdge> search = new SrlgGraphSearch<>(2, riskProfile);
-        Set<Path<TestVertex, TestEdge>> paths = search.search(graph, A, E, weight, ALL_PATHS).paths();
+        Set<Path<TestVertex, TestEdge>> paths = search.search(graph, A, E, weigher, ALL_PATHS).paths();
         assertTrue("no disjoint path pairs found", paths.size() == 0);
     }
 }

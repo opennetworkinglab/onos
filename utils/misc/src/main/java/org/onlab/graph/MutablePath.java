@@ -46,11 +46,11 @@ public interface MutablePath<V extends Vertex, E extends Edge<V>> extends Path<V
     void removeEdge(E edge);
 
     /**
-     * Sets the total path cost as a unit-less double.
+     * Sets the total path cost as a weight object.
      *
      * @param cost new path cost
      */
-    void setCost(double cost);
+    void setCost(Weight cost);
 
     /**
      * Returns an immutable copy of this path.

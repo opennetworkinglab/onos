@@ -34,8 +34,8 @@ import java.util.stream.Collectors;
 public class SuurballeGraphSearch<V extends Vertex, E extends Edge<V>> extends DijkstraGraphSearch<V, E> {
 
     @Override
-    public Result<V, E> search(Graph<V, E> graph, V src, V dst,
-                               EdgeWeight<V, E> weight, int maxPaths) {
+    protected Result<V, E> internalSearch(Graph<V, E> graph, V src, V dst,
+                               EdgeWeigher<V, E> weigher, int maxPaths) {
         // FIXME: This method needs to be refactored as it is difficult to follow and debug.
 
         // FIXME: There is a defect here triggered by 3+ edges between the same vertices,
@@ -46,13 +46,12 @@ public class SuurballeGraphSearch<V extends Vertex, E extends Edge<V>> extends D
         // This class needs to filter its own results to make sure that the
         // paths are indeed disjoint. Temporary fix for this is provided, but
         // the issue needs to be addressed through refactoring.
-        if (weight == null) {
-            weight = edge -> 1;
-        }
 
-        final EdgeWeight weightf = weight;
-        DefaultResult firstDijkstraS = (DefaultResult) super.search(graph, src, dst, weight, ALL_PATHS);
-        DefaultResult firstDijkstra = (DefaultResult) super.search(graph, src, null, weight, ALL_PATHS);
+        EdgeWeigher weightf = weigher;
+        DefaultResult firstDijkstraS = (DefaultResult) super.internalSearch(
+                graph, src, dst, weigher, ALL_PATHS);
+        DefaultResult firstDijkstra = (DefaultResult) super.internalSearch(
+                graph, src, null, weigher, ALL_PATHS);
 
         //choose an arbitrary shortest path to run Suurballe on
         Path<V, E> shortPath = null;
@@ -65,11 +64,43 @@ public class SuurballeGraphSearch<V extends Vertex, E extends Edge<V>> extends D
         for (Path p: firstDijkstraS.paths()) {
             shortPath = p;
             //transforms the graph so tree edges have 0 weight
-            EdgeWeight<V, E> modified = edge ->
-                edge instanceof ReverseEdge ? 0 :
-                    weightf.weight(edge) + firstDijkstra.cost(edge.src()) - firstDijkstra.cost(edge.dst());
-            EdgeWeight<V, E> modified2 = edge ->
-                    weightf.weight(edge) + firstDijkstra.cost(edge.src()) - firstDijkstra.cost(edge.dst());
+            EdgeWeigher<V, E> modified = new EdgeWeigher<V, E>() {
+                @Override
+                public Weight weight(E edge) {
+                    return edge instanceof ReverseEdge ?
+                            weightf.getInitialWeight() :
+                            weightf.weight(edge).merge(firstDijkstra.cost(edge.src()))
+                                    .subtract(firstDijkstra.cost(edge.dst()));
+                }
+
+                @Override
+                public Weight getInitialWeight() {
+                    return weightf.getInitialWeight();
+                }
+
+                @Override
+                public Weight getNonViableWeight() {
+                    return weightf.getNonViableWeight();
+                }
+            };
+
+            EdgeWeigher<V, E> modified2 = new EdgeWeigher<V, E>() {
+                @Override
+                public Weight weight(E edge) {
+                    return weightf.weight(edge).merge(firstDijkstra.cost(edge.src()))
+                            .subtract(firstDijkstra.cost(edge.dst()));
+                }
+
+                @Override
+                public Weight getInitialWeight() {
+                    return weightf.getInitialWeight();
+                }
+
+                @Override
+                public Weight getNonViableWeight() {
+                    return weightf.getNonViableWeight();
+                }
+            };
 
             //create a residual graph g' by removing all src vertices and reversing 0 length path edges
             MutableGraph<V, E> gt = mutableCopy(graph);
@@ -114,11 +145,13 @@ public class SuurballeGraphSearch<V extends Vertex, E extends Edge<V>> extends D
                     }
                 }
                 //Actually build the final result
-                DefaultResult lastSearch = (DefaultResult) super.search(roundTrip, src, dst, weight, ALL_PATHS);
+                DefaultResult lastSearch = (DefaultResult)
+                        super.internalSearch(roundTrip, src, dst, weigher, ALL_PATHS);
                 Path<V, E> primary = lastSearch.paths().iterator().next();
                 primary.edges().forEach(roundTrip::removeEdge);
 
-                Set<Path<V, E>> backups = super.search(roundTrip, src, dst, weight, ALL_PATHS).paths();
+                Set<Path<V, E>> backups = super.internalSearch(roundTrip, src, dst,
+                        weigher, ALL_PATHS).paths();
 
                 // Find first backup path that does not share any nodes with the primary
                 for (Path<V, E> backup : backups) {
@@ -220,7 +253,7 @@ public class SuurballeGraphSearch<V extends Vertex, E extends Edge<V>> extends D
         }
 
         @Override
-        public Map<V, Double> costs() {
+        public Map<V, Weight> costs() {
             return searchResult.costs();
         }
     }

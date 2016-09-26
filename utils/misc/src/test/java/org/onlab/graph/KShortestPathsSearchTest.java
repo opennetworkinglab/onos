@@ -41,12 +41,12 @@ public class KShortestPathsSearchTest<V extends Vertex, E extends Edge<V>> exten
     @Test
     public void noPath() {
         graph = new AdjacencyListsGraph<>(of(A, B, C, D),
-                                          of(new TestEdge(A, B, 1),
-                                             new TestEdge(B, A, 1),
-                                             new TestEdge(C, D, 1),
-                                             new TestEdge(D, C, 1)));
+                                          of(new TestEdge(A, B),
+                                             new TestEdge(B, A),
+                                             new TestEdge(C, D),
+                                             new TestEdge(D, C)));
         KShortestPathsSearch<TestVertex, TestEdge> kShortestPathsSearch = new KShortestPathsSearch<>();
-        GraphPathSearch.Result<TestVertex, TestEdge> result = kShortestPathsSearch.search(graph, A, D, weight, 1);
+        GraphPathSearch.Result<TestVertex, TestEdge> result = kShortestPathsSearch.search(graph, A, D, weigher, 1);
         Set<Path<TestVertex, TestEdge>> resultPathSet = result.paths();
         assertTrue("There should not be any paths.", resultPathSet.isEmpty());
     }
@@ -55,11 +55,11 @@ public class KShortestPathsSearchTest<V extends Vertex, E extends Edge<V>> exten
     public void testSinglePath() {
         //Tests that there is only a single path possible between A and B
         graph = new AdjacencyListsGraph<>(vertexes(), edges());
-        this.result = kShortestPathsSearch.search(graph, A, B, weight, 2);
+        this.result = kShortestPathsSearch.search(graph, A, B, weigher, 2);
         Iterator<Path<TestVertex, TestEdge>> itr = result.paths().iterator();
         assertEquals("incorrect paths count", 1, result.paths().size());
         List<TestEdge> correctEdgeList = Lists.newArrayList();
-        correctEdgeList.add(new TestEdge(A, B, 1));
+        correctEdgeList.add(new TestEdge(A, B, W1));
         assertTrue("That wrong path was returned.",
                    edgeListsAreEqual(correctEdgeList, result.paths().iterator().next().edges()));
     }
@@ -67,16 +67,16 @@ public class KShortestPathsSearchTest<V extends Vertex, E extends Edge<V>> exten
     @Test
     public void testTwoPath() {
         //Tests that there are only two paths between A and C and that they are returned in the correct order
-        result = kShortestPathsSearch.search(graph, A, C, weight, 3);
+        result = kShortestPathsSearch.search(graph, A, C, weigher, 3);
         assertTrue("There are an unexpected number of paths.", result.paths().size() == 2);
         Iterator<Path<TestVertex, TestEdge>> edgeListIterator = result.paths().iterator();
         List<TestEdge> correctEdgeList = Lists.newArrayList();
-        correctEdgeList.add(new TestEdge(A, B, 1));
-        correctEdgeList.add(new TestEdge(B, C, 1));
+        correctEdgeList.add(new TestEdge(A, B, W1));
+        correctEdgeList.add(new TestEdge(B, C, W1));
         assertTrue("The first path from A to C was incorrect.",
                    edgeListsAreEqual(edgeListIterator.next().edges(), correctEdgeList));
         correctEdgeList.clear();
-        correctEdgeList.add(new TestEdge(A, C, 3));
+        correctEdgeList.add(new TestEdge(A, C, W3));
         assertTrue("The second path from A to C was incorrect.",
                    edgeListsAreEqual(edgeListIterator.next().edges(), correctEdgeList));
     }
@@ -85,23 +85,23 @@ public class KShortestPathsSearchTest<V extends Vertex, E extends Edge<V>> exten
     public void testFourPath() {
         //Tests that there are only four paths between A and E and that they are returned in the correct order
         //Also tests the special case where some correct solutions are equal
-        result = kShortestPathsSearch.search(graph, A, E, weight, 5);
+        result = kShortestPathsSearch.search(graph, A, E, weigher, 5);
         assertTrue("There are an unexpected number of paths.", result.paths().size() == 4);
         Iterator<Path<TestVertex, TestEdge>> edgeListIterator = result.paths().iterator();
         List<TestEdge> correctEdgeList = Lists.newArrayList();
-        correctEdgeList.add(new TestEdge(A, B, 1));
-        correctEdgeList.add(new TestEdge(B, C, 1));
-        correctEdgeList.add(new TestEdge(C, E, 1));
+        correctEdgeList.add(new TestEdge(A, B, W1));
+        correctEdgeList.add(new TestEdge(B, C, W1));
+        correctEdgeList.add(new TestEdge(C, E, W1));
         assertTrue("The first path from A to E was incorrect.",
                    edgeListsAreEqual(edgeListIterator.next().edges(), correctEdgeList));
         correctEdgeList.clear();
         //There are two paths of equal length that should hold positions two and three
         List<TestEdge> alternateCorrectEdgeList = Lists.newArrayList();
-        correctEdgeList.add(new TestEdge(A, C, 3));
-        correctEdgeList.add(new TestEdge(C, E, 1));
-        alternateCorrectEdgeList.add(new TestEdge(A, B, 1));
-        alternateCorrectEdgeList.add(new TestEdge(B, D, 2));
-        alternateCorrectEdgeList.add(new TestEdge(D, E, 1));
+        correctEdgeList.add(new TestEdge(A, C, W3));
+        correctEdgeList.add(new TestEdge(C, E, W1));
+        alternateCorrectEdgeList.add(new TestEdge(A, B, W1));
+        alternateCorrectEdgeList.add(new TestEdge(B, D, W2));
+        alternateCorrectEdgeList.add(new TestEdge(D, E, W1));
         List<TestEdge> candidateOne = edgeListIterator.next().edges();
         List<TestEdge> candidateTwo = edgeListIterator.next().edges();
         if (candidateOne.size() == 2) {
@@ -116,8 +116,8 @@ public class KShortestPathsSearchTest<V extends Vertex, E extends Edge<V>> exten
                        edgeListsAreEqual(candidateTwo, correctEdgeList));
         }
         correctEdgeList.clear();
-        correctEdgeList.add(new TestEdge(A, B, 1));
-        correctEdgeList.add(new TestEdge(B, E, 4));
+        correctEdgeList.add(new TestEdge(A, B, W1));
+        correctEdgeList.add(new TestEdge(B, E, W4));
         assertTrue("The fourth path rom A to E was incorrect",
                    edgeListsAreEqual(edgeListIterator.next().edges(), correctEdgeList));
 
@@ -128,16 +128,16 @@ public class KShortestPathsSearchTest<V extends Vertex, E extends Edge<V>> exten
         //H is a sink in this topology, insure there are no paths from it to any other location
         for (TestVertex vertex : vertexes()) {
             assertTrue("There should be no paths from vertex H to any other node.",
-                       kShortestPathsSearch.search(graph, H, vertex, weight, 1).paths().size() == 0);
+                       kShortestPathsSearch.search(graph, H, vertex, weigher, 1).paths().size() == 0);
         }
     }
 
     @Test
     public void testLimitPathSetSize() {
         //Checks to make sure that no more than K paths are returned
-        result = kShortestPathsSearch.search(graph, A, E, weight, 3);
+        result = kShortestPathsSearch.search(graph, A, E, weigher, 3);
         assertTrue("There are an unexpected number of paths.", result.paths().size() == 3);
-        result = kShortestPathsSearch.search(graph, A, G, weight, 1);
+        result = kShortestPathsSearch.search(graph, A, G, weigher, 1);
         assertTrue("There are an unexpected number of paths.", result.paths().size() == 1);
     }
 
@@ -157,47 +157,45 @@ public class KShortestPathsSearchTest<V extends Vertex, E extends Edge<V>> exten
          * +---+       +---+ +---+  +---+
          */
         graph = new AdjacencyListsGraph<>(of(A, B, C, D, E, F, G, H), of(
-                new TestEdge(A, B, 1),
-                new TestEdge(B, A, 1),
-                new TestEdge(B, C, 1),
-                new TestEdge(C, B, 1),
-                new TestEdge(C, D, 1),
-                new TestEdge(D, C, 1),
-                new TestEdge(D, E, 1),
-                new TestEdge(E, D, 1),
-                new TestEdge(E, H, 1),
-                new TestEdge(H, E, 1),
-                new TestEdge(H, G, 1),
-                new TestEdge(G, H, 1),
-                new TestEdge(G, F, 1),
-                new TestEdge(F, G, 1),
-                new TestEdge(F, B, 1),
-                new TestEdge(B, F, 1)
+                new TestEdge(A, B),
+                new TestEdge(B, A),
+                new TestEdge(B, C),
+                new TestEdge(C, B),
+                new TestEdge(C, D),
+                new TestEdge(D, C),
+                new TestEdge(D, E),
+                new TestEdge(E, D),
+                new TestEdge(E, H),
+                new TestEdge(H, E),
+                new TestEdge(H, G),
+                new TestEdge(G, H),
+                new TestEdge(G, F),
+                new TestEdge(F, G),
+                new TestEdge(F, B),
+                new TestEdge(B, F)
         ));
 
-        weight = edge -> 1.0;
-
         //Tests that there are only two paths between A and G and that they are returned in the correct order
-        result = kShortestPathsSearch.search(graph, A, G, weight, 5);
+        result = kShortestPathsSearch.search(graph, A, G, weigher, 5);
 
         assertEquals("There are an unexpected number of paths.", 2, result.paths().size());
 
         Iterator<Path<TestVertex, TestEdge>> edgeListIterator = result.paths().iterator();
 
         List<TestEdge> correctEdgeList = Lists.newArrayList();
-        correctEdgeList.add(new TestEdge(A, B, 1));
-        correctEdgeList.add(new TestEdge(B, F, 1));
-        correctEdgeList.add(new TestEdge(F, G, 1));
+        correctEdgeList.add(new TestEdge(A, B));
+        correctEdgeList.add(new TestEdge(B, F));
+        correctEdgeList.add(new TestEdge(F, G));
         assertTrue("The first path from A to G was incorrect.",
                 edgeListsAreEqual(edgeListIterator.next().edges(), correctEdgeList));
 
         correctEdgeList.clear();
-        correctEdgeList.add(new TestEdge(A, B, 1));
-        correctEdgeList.add(new TestEdge(B, C, 1));
-        correctEdgeList.add(new TestEdge(C, D, 1));
-        correctEdgeList.add(new TestEdge(D, E, 1));
-        correctEdgeList.add(new TestEdge(E, H, 1));
-        correctEdgeList.add(new TestEdge(H, G, 1));
+        correctEdgeList.add(new TestEdge(A, B));
+        correctEdgeList.add(new TestEdge(B, C));
+        correctEdgeList.add(new TestEdge(C, D));
+        correctEdgeList.add(new TestEdge(D, E));
+        correctEdgeList.add(new TestEdge(E, H));
+        correctEdgeList.add(new TestEdge(H, G));
         assertTrue("The second path from A to G was incorrect.",
                 edgeListsAreEqual(edgeListIterator.next().edges(), correctEdgeList));
     }

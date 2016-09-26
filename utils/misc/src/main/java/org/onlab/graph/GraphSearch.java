@@ -32,12 +32,12 @@ public interface GraphSearch<V extends Vertex, E extends Edge<V>> {
     /**
      * Searches the specified graph.
      *
-     * @param graph  graph to be searched
-     * @param weight optional edge-weight; if null cost of each edge will be
-     *               assumed to be 1.0
+     * @param graph   graph to be searched
+     * @param weigher optional edge-weigher; if null, {@link DefaultEdgeWeigher}
+     *                will be used (assigns equal weights to all links)
      *
      * @return search results
      */
-    Result search(Graph<V, E> graph, EdgeWeight<V, E> weight);
+    Result search(Graph<V, E> graph, EdgeWeigher<V, E> weigher);
 
 }

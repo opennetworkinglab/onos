@@ -33,27 +33,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V>>
         implements GraphPathSearch<V, E> {
 
-    private double samenessThreshold = Double.MIN_VALUE;
-
-    /**
-     * Sets a new sameness threshold for comparing cost values; default is
-     * is {@link Double#MIN_VALUE}.
-     *
-     * @param threshold fractional double value
-     */
-    public void setSamenessThreshold(double threshold) {
-        samenessThreshold = threshold;
-    }
-
-    /**
-     * Returns the current sameness threshold for comparing cost values.
-     *
-     * @return current threshold
-     */
-    public double samenessThreshold() {
-        return samenessThreshold;
-    }
-
     /**
      * Default path search result that uses the DefaultPath to convey paths
      * in a graph.
@@ -63,7 +42,7 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
         private final V src;
         private final V dst;
         protected final Set<Path<V, E>> paths = new HashSet<>();
-        protected final Map<V, Double> costs = new HashMap<>();
+        protected final Map<V, Weight> costs = new HashMap<>();
         protected final Map<V, Set<E>> parents = new HashMap<>();
         protected final int maxPaths;
 
@@ -108,7 +87,7 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
         }
 
         @Override
-        public Map<V, Double> costs() {
+        public Map<V, Weight> costs() {
             return costs;
         }
 
@@ -124,18 +103,20 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
          * @return true if the vertex has cost already
          */
         boolean hasCost(V v) {
-            return costs.get(v) != null;
+            return costs.containsKey(v);
         }
 
         /**
          * Returns the current cost to reach the specified vertex.
+         * If the vertex has not been accessed yet, it has no cost
+         * associated and null will be returned.
          *
          * @param v vertex to reach
-         * @return cost to reach the vertex
+         * @return weight cost to reach the vertex if already accessed;
+         *         null otherwise
          */
-        double cost(V v) {
-            Double c = costs.get(v);
-            return c == null ? Double.MAX_VALUE : c;
+        Weight cost(V v) {
+            return costs.get(v);
         }
 
         /**
@@ -151,7 +132,7 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
          *                added to the previously accrued edges as they yield
          *                the same cost
          */
-        void updateVertex(V vertex, E edge, double cost, boolean replace) {
+        void updateVertex(V vertex, E edge, Weight cost, boolean replace) {
             costs.put(vertex, cost);
             if (edge != null) {
                 Set<E> edges = parents.get(vertex);
@@ -187,22 +168,27 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
          * @param forbidNegatives if true negative values will forbid the link
          * @return true if the edge was relaxed; false otherwise
          */
-        boolean relaxEdge(E edge, double cost, EdgeWeight<V, E> ew,
+        boolean relaxEdge(E edge, Weight cost, EdgeWeigher<V, E> ew,
                           boolean... forbidNegatives) {
             V v = edge.dst();
-            double oldCost = cost(v);
-            double hopCost = ew == null ? 1.0 : ew.weight(edge);
-            if (hopCost < 0 && forbidNegatives.length == 1 && forbidNegatives[0]) {
+
+            Weight hopCost = ew.weight(edge);
+            if ((!hopCost.isViable()) ||
+                    (hopCost.isNegative() && forbidNegatives.length == 1 && forbidNegatives[0])) {
                 return false;
             }
+            Weight newCost = cost.merge(hopCost);
 
-            double newCost = cost + hopCost;
-            boolean relaxed = newCost < oldCost;
-            boolean same = Math.abs(newCost - oldCost) <= samenessThreshold;
-            if (same || relaxed) {
-                updateVertex(v, edge, newCost, !same);
+            int compareResult = -1;
+            if (hasCost(v)) {
+                Weight oldCost = cost(v);
+                compareResult = newCost.compareTo(oldCost);
             }
-            return relaxed;
+
+            if (compareResult <= 0) {
+                updateVertex(v, edge, newCost, compareResult < 0);
+            }
+            return compareResult < 0;
         }
 
         /**
@@ -328,4 +314,16 @@ public abstract class AbstractGraphPathSearch<V extends Vertex, E extends Edge<V
                       "Destination not in graph");
     }
 
+    @Override
+    public Result<V, E> search(Graph<V, E> graph, V src, V dst,
+                               EdgeWeigher<V, E> weigher, int maxPaths) {
+        checkArguments(graph, src, dst);
+
+        return internalSearch(graph, src, dst,
+                weigher != null ? weigher : new DefaultEdgeWeigher<>(),
+                maxPaths);
+    }
+
+    protected abstract Result<V, E> internalSearch(Graph<V, E> graph, V src, V dst,
+                                          EdgeWeigher<V, E> weigher, int maxPaths);
 }

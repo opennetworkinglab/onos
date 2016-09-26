@@ -58,6 +58,7 @@ import org.onosproject.net.resource.Resources;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.DefaultTopologyEdge;
 import org.onosproject.net.topology.DefaultTopologyVertex;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyVertex;
@@ -92,6 +93,7 @@ import static org.onosproject.net.resource.Resources.continuous;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.Link.State.ACTIVE;
 import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.topology.AdapterLinkWeigher.adapt;
 import static org.onosproject.pce.pceservice.constraint.CostConstraint.Type.COST;
 import static org.onosproject.pce.pceservice.constraint.CostConstraint.Type.TE_COST;
 
@@ -184,8 +186,8 @@ public class PathComputationTest {
      * @param constraints path constraints
      * @return edge-weight function
      */
-    private LinkWeight weight(List<Constraint> constraints) {
-        return new MockTeConstraintBasedLinkWeight(constraints);
+    private LinkWeigher weight(List<Constraint> constraints) {
+        return adapt(new MockTeConstraintBasedLinkWeight(constraints));
     }
 
     private Set<Path> computePath(Link link1, Link link2, Link link3, Link link4, List<Constraint> constraints) {

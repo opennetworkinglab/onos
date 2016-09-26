@@ -73,8 +73,8 @@ public class DisjointPathPair<V extends Vertex, E extends Edge<V>> implements Pa
     }
 
     @Override
-    public double cost() {
-        return hasBackup() ? primary.cost() + secondary.cost() : primary.cost();
+    public Weight cost() {
+        return hasBackup() ? primary.cost().merge(secondary.cost()) : primary.cost();
     }
 
     @Override

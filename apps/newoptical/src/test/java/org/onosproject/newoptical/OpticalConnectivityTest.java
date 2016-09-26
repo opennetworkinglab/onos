@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.graph.Weight;
 import org.onlab.util.Bandwidth;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplicationId;
@@ -286,6 +287,11 @@ public class OpticalConnectivityTest {
         @Override
         public double cost() {
             return 0;
+        }
+
+        @Override
+        public Weight weight() {
+            return null;
         }
     }
 }

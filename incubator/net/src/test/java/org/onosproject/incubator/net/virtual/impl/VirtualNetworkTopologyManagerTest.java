@@ -42,6 +42,7 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.TestDeviceParams;
 import org.onosproject.net.intent.FakeIntentManager;
 import org.onosproject.net.intent.TestableIntentService;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyCluster;
@@ -391,7 +392,8 @@ public class VirtualNetworkTopologyManagerTest extends TestDeviceParams {
         VirtualDevice dstVirtualDevice = getVirtualDevice(virtualNetwork.id(), DID2);
 
         // test the getPaths() method using a null weight.
-        Set<Path> paths = topologyService.getPaths(topology, srcVirtualDevice.id(), dstVirtualDevice.id(), null);
+        Set<Path> paths = topologyService.getPaths(topology, srcVirtualDevice.id(),
+                dstVirtualDevice.id(), (LinkWeigher) null);
     }
 
     /**

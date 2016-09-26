@@ -28,7 +28,7 @@ interface GAOrganism {
      *
      * @return fitness of organism
      */
-    double fitness();
+    Comparable fitness();
 
     /**
      * A method that slightly mutates an organism.

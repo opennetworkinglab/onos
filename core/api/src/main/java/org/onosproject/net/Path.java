@@ -15,13 +15,16 @@
  */
 package org.onosproject.net;
 
+import org.onlab.graph.Weight;
+
 import java.util.List;
 
 /**
  * Representation of a contiguous directed path in a network. Path comprises
  * of a sequence of links, where adjacent links must share the same device,
  * meaning that destination of the source of one link must coincide with the
- * destination of the previous link.
+ * destination of the previous link. Path weight (cost) is an aggregation
+ * of the weights of the links the path consists of.
  */
 public interface Path extends Link {
 
@@ -36,7 +39,17 @@ public interface Path extends Link {
      * Returns the path cost as a unit-less value.
      *
      * @return unit-less path cost
+     *
+     * @deprecated in Junco (1.9.0), use weight() instead
      */
+    @Deprecated
     double cost();
+
+    /**
+     * Returns the path cost as an weight instance.
+     *
+     * @return weight path cost
+     */
+    Weight weight();
 
 }

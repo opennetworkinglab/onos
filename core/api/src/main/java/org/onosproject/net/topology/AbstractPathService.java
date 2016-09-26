@@ -18,6 +18,7 @@ package org.onosproject.net.topology;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.onlab.graph.Weight;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultDisjointPath;
 import org.onosproject.net.DefaultEdgeLink;
@@ -40,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.topology.AdapterLinkWeigher.adapt;
 
 /**
  * Helper class for path service.
@@ -56,14 +58,24 @@ public abstract class AbstractPathService
     private static final ProviderId PID = new ProviderId("core", "org.onosproject.core");
     private static final PortNumber P0 = PortNumber.portNumber(0);
 
+    protected static final LinkWeigher DEFAULT_WEIGHER =
+            adapt(new HopCountLinkWeight());
+
     protected TopologyService topologyService;
 
     protected HostService hostService;
 
     @Override
     public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight) {
+        return getPaths(src, dst, adapt(weight));
+    }
+
+    @Override
+    public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeigher weigher) {
         checkNotNull(src, ELEMENT_ID_NULL);
         checkNotNull(dst, ELEMENT_ID_NULL);
+
+        LinkWeigher internalWeigher = weigher != null ? weigher : DEFAULT_WEIGHER;
 
         // Get the source and destination edge locations
         EdgeLink srcEdge = getEdgeLink(src, true);
@@ -80,23 +92,29 @@ public abstract class AbstractPathService
         // If the source and destination are on the same edge device, there
         // is just one path, so build it and return it.
         if (srcDevice.equals(dstDevice)) {
-            return edgeToEdgePaths(srcEdge, dstEdge);
+            return edgeToEdgePaths(srcEdge, dstEdge, internalWeigher);
         }
 
         // Otherwise get all paths between the source and destination edge
         // devices.
         Topology topology = topologyService.currentTopology();
-        Set<Path> paths = weight == null ?
-                topologyService.getPaths(topology, srcDevice, dstDevice) :
-                topologyService.getPaths(topology, srcDevice, dstDevice, weight);
+        Set<Path> paths = topologyService.getPaths(topology, srcDevice,
+                dstDevice, internalWeigher);
 
-        return edgeToEdgePaths(srcEdge, dstEdge, paths);
+        return edgeToEdgePaths(srcEdge, dstEdge, paths, internalWeigher);
     }
 
     @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeight weight) {
+        return getDisjointPaths(src, dst, adapt(weight));
+    }
+
+    @Override
+    public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeigher weigher) {
         checkNotNull(src, ELEMENT_ID_NULL);
         checkNotNull(dst, ELEMENT_ID_NULL);
+
+        LinkWeigher internalWeigher = weigher != null ? weigher : DEFAULT_WEIGHER;
 
         // Get the source and destination edge locations
         EdgeLink srcEdge = getEdgeLink(src, true);
@@ -113,24 +131,31 @@ public abstract class AbstractPathService
         // If the source and destination are on the same edge device, there
         // is just one path, so build it and return it.
         if (srcDevice.equals(dstDevice)) {
-            return edgeToEdgePathsDisjoint(srcEdge, dstEdge);
+            return edgeToEdgePathsDisjoint(srcEdge, dstEdge, internalWeigher);
         }
 
         // Otherwise get all paths between the source and destination edge
         // devices.
         Topology topology = topologyService.currentTopology();
-        Set<DisjointPath> paths = weight == null ?
-                topologyService.getDisjointPaths(topology, srcDevice, dstDevice) :
-                topologyService.getDisjointPaths(topology, srcDevice, dstDevice, weight);
+        Set<DisjointPath> paths = topologyService.getDisjointPaths(topology,
+                srcDevice, dstDevice, internalWeigher);
 
-        return edgeToEdgePathsDisjoint(srcEdge, dstEdge, paths);
+        return edgeToEdgePathsDisjoint(srcEdge, dstEdge, paths, internalWeigher);
     }
 
     @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeight weight,
                                               Map<Link, Object> riskProfile) {
+        return getDisjointPaths(src, dst, adapt(weight), riskProfile);
+    }
+
+    @Override
+    public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst,
+                                              LinkWeigher weigher, Map<Link, Object> riskProfile) {
         checkNotNull(src, ELEMENT_ID_NULL);
         checkNotNull(dst, ELEMENT_ID_NULL);
+
+        LinkWeigher internalWeigher = weigher != null ? weigher : DEFAULT_WEIGHER;
 
         // Get the source and destination edge locations
         EdgeLink srcEdge = getEdgeLink(src, true);
@@ -147,17 +172,16 @@ public abstract class AbstractPathService
         // If the source and destination are on the same edge device, there
         // is just one path, so build it and return it.
         if (srcDevice.equals(dstDevice)) {
-            return edgeToEdgePathsDisjoint(srcEdge, dstEdge);
+            return edgeToEdgePathsDisjoint(srcEdge, dstEdge, internalWeigher);
         }
 
         // Otherwise get all paths between the source and destination edge
         // devices.
         Topology topology = topologyService.currentTopology();
-        Set<DisjointPath> paths = weight == null ?
-                topologyService.getDisjointPaths(topology, srcDevice, dstDevice, riskProfile) :
-                topologyService.getDisjointPaths(topology, srcDevice, dstDevice, weight, riskProfile);
+        Set<DisjointPath> paths = topologyService.getDisjointPaths(topology,
+                srcDevice, dstDevice, internalWeigher, riskProfile);
 
-        return edgeToEdgePathsDisjoint(srcEdge, dstEdge, paths);
+        return edgeToEdgePathsDisjoint(srcEdge, dstEdge, paths, internalWeigher);
     }
 
     // Finds the host edge link if the element ID is a host id of an existing
@@ -178,61 +202,63 @@ public abstract class AbstractPathService
 
     // Produces a set of edge-to-edge paths using the set of infrastructure
     // paths and the given edge links.
-    private Set<Path> edgeToEdgePaths(EdgeLink srcLink, EdgeLink dstLink) {
+    private Set<Path> edgeToEdgePaths(EdgeLink srcLink, EdgeLink dstLink, LinkWeigher weigher) {
         Set<Path> endToEndPaths = Sets.newHashSetWithExpectedSize(1);
-        endToEndPaths.add(edgeToEdgePath(srcLink, dstLink, null));
+        endToEndPaths.add(edgeToEdgePath(srcLink, dstLink, null, weigher));
         return endToEndPaths;
     }
 
     // Produces a set of edge-to-edge paths using the set of infrastructure
     // paths and the given edge links.
-    private Set<Path> edgeToEdgePaths(EdgeLink srcLink, EdgeLink dstLink, Set<Path> paths) {
+    private Set<Path> edgeToEdgePaths(EdgeLink srcLink, EdgeLink dstLink, Set<Path> paths,
+                                      LinkWeigher weigher) {
         Set<Path> endToEndPaths = Sets.newHashSetWithExpectedSize(paths.size());
         for (Path path : paths) {
-            endToEndPaths.add(edgeToEdgePath(srcLink, dstLink, path));
+            endToEndPaths.add(edgeToEdgePath(srcLink, dstLink, path, weigher));
         }
         return endToEndPaths;
     }
 
-    private Set<DisjointPath> edgeToEdgePathsDisjoint(EdgeLink srcLink, EdgeLink dstLink) {
+    private Set<DisjointPath> edgeToEdgePathsDisjoint(EdgeLink srcLink, EdgeLink dstLink, LinkWeigher weigher) {
         Set<DisjointPath> endToEndPaths = Sets.newHashSetWithExpectedSize(1);
-        endToEndPaths.add(edgeToEdgePathD(srcLink, dstLink, null));
+        endToEndPaths.add(edgeToEdgePathD(srcLink, dstLink, null, weigher));
         return endToEndPaths;
     }
 
     private Set<DisjointPath> edgeToEdgePathsDisjoint(EdgeLink srcLink, EdgeLink dstLink,
-                                                             Set<DisjointPath> paths) {
+                                                             Set<DisjointPath> paths, LinkWeigher weigher) {
         Set<DisjointPath> endToEndPaths = Sets.newHashSetWithExpectedSize(paths.size());
         for (DisjointPath path : paths) {
-            endToEndPaths.add(edgeToEdgePathD(srcLink, dstLink, path));
+            endToEndPaths.add(edgeToEdgePathD(srcLink, dstLink, path, weigher));
         }
         return endToEndPaths;
     }
 
     // Produces a direct edge-to-edge path.
-    private Path edgeToEdgePath(EdgeLink srcLink, EdgeLink dstLink, Path path) {
+    private Path edgeToEdgePath(EdgeLink srcLink, EdgeLink dstLink, Path path, LinkWeigher weigher) {
         List<Link> links = Lists.newArrayListWithCapacity(2);
-        double cost = 0;
+        Weight cost = weigher.getInitialWeight();
 
         // Add source and destination edge links only if they are real and
         // add the infrastructure path only if it is not null.
         if (srcLink != NOT_HOST) {
             links.add(srcLink);
-            cost++;
+            cost = cost.merge(weigher.weight(new DefaultTopologyEdge(null, null, srcLink)));
         }
         if (path != null) {
             links.addAll(path.links());
-            cost += path.cost();
+            cost = cost.merge(path.weight());
         }
         if (dstLink != NOT_HOST) {
             links.add(dstLink);
-            cost++;
+            cost = cost.merge(weigher.weight(new DefaultTopologyEdge(null, null, srcLink)));
         }
         return new DefaultPath(PID, links, cost);
     }
 
     // Produces a direct edge-to-edge path.
-    private DisjointPath edgeToEdgePathD(EdgeLink srcLink, EdgeLink dstLink, DisjointPath path) {
+    private DisjointPath edgeToEdgePathD(EdgeLink srcLink, EdgeLink dstLink, DisjointPath path,
+                                         LinkWeigher weigher) {
         Path primary = null;
         Path backup = null;
         if (path != null) {
@@ -240,10 +266,12 @@ public abstract class AbstractPathService
             backup = path.backup();
         }
         if (backup == null) {
-        return new DefaultDisjointPath(PID, (DefaultPath) edgeToEdgePath(srcLink, dstLink, primary));
+        return new DefaultDisjointPath(PID,
+                (DefaultPath) edgeToEdgePath(srcLink, dstLink, primary, weigher));
         }
-        return new DefaultDisjointPath(PID, (DefaultPath) edgeToEdgePath(srcLink, dstLink, primary),
-                                       (DefaultPath) edgeToEdgePath(srcLink, dstLink, backup));
+        return new DefaultDisjointPath(PID,
+                (DefaultPath) edgeToEdgePath(srcLink, dstLink, primary, weigher),
+                (DefaultPath) edgeToEdgePath(srcLink, dstLink, backup, weigher));
     }
 
 

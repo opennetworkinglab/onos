@@ -33,15 +33,8 @@ class GAPopulation<Organism extends GAOrganism> extends ArrayList<Organism> {
      * 25% (as well as some "random" newcomers).
      */
     void step() {
-        Collections.sort(this, (org1, org2) -> {
-            double d = org1.fitness() - org2.fitness();
-            if (d < 0) {
-                return -1;
-            } else if (d == 0) {
-                return 0;
-            }
-            return 1;
-        });
+        Collections.sort(this, (org1, org2) ->
+                org1.fitness().compareTo(org2.fitness()));
         int maxSize = size();
         for (int i = size() - 1; i > maxSize / 4; i--) {
             remove(i);

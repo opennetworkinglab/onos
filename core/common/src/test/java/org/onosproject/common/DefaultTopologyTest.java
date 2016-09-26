@@ -17,6 +17,9 @@ package org.onosproject.common;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.graph.DefaultEdgeWeigher;
+import org.onlab.graph.ScalarWeight;
+import org.onlab.graph.Weight;
 import org.onlab.packet.ChassisId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultDevice;
@@ -31,8 +34,9 @@ import org.onosproject.net.topology.ClusterId;
 import org.onosproject.net.topology.DefaultGraphDescription;
 import org.onosproject.net.topology.DefaultTopologyVertex;
 import org.onosproject.net.topology.GraphDescription;
-import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.TopologyCluster;
+import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyVertex;
 
 import java.util.Set;
@@ -61,9 +65,19 @@ public class DefaultTopologyTest {
     public static final PortNumber P1 = portNumber(1);
     public static final PortNumber P2 = portNumber(2);
 
-    public static final LinkWeight WEIGHT = edge ->
-            edge.src().deviceId().equals(D4) || edge.dst().deviceId().equals(D4)
-                    ? 2.0 : 1.0;
+    public static final class TestLinkWeigher
+            extends DefaultEdgeWeigher<TopologyVertex, TopologyEdge>
+            implements LinkWeigher {
+        @Override
+        public Weight weight(TopologyEdge edge) {
+            double value = edge.src().deviceId().equals(D4) ||
+                    edge.dst().deviceId().equals(D4)
+                    ? 2.0 : HOP_WEIGHT_VALUE;
+            return new ScalarWeight(value);
+        }
+    }
+    public static final LinkWeigher WEIGHER = new TestLinkWeigher();
+
 
     private DefaultTopology dt;
 
@@ -105,7 +119,7 @@ public class DefaultTopologyTest {
         paths = dt.getPaths(D1, D5);
         assertTrue("no paths expected", paths.isEmpty());
 
-        paths = dt.getPaths(D1, D3, WEIGHT);
+        paths = dt.getPaths(D1, D3, WEIGHER);
         assertEquals("incorrect path count", 1, paths.size());
     }
 

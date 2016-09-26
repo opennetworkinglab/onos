@@ -36,24 +36,25 @@ public class DepthFirstSearchTest extends AbstractGraphPathSearchTest {
 
     @Test
     public void defaultGraphTest() {
-        executeDefaultTest(3, 6, 5.0, 12.0);
+        executeDefaultTest(3, 6, new TestDoubleWeight(5.0), new TestDoubleWeight(12.0));
         executeBroadSearch();
     }
 
     @Test
     public void defaultHopCountWeight() {
-        weight = null;
-        executeDefaultTest(3, 6, 3.0, 6.0);
+        weigher = null;
+        executeDefaultTest(3, 6, new ScalarWeight(3.0), new ScalarWeight(6.0));
         executeBroadSearch();
     }
 
     protected void executeDefaultTest(int minLength, int maxLength,
-                                      double minCost, double maxCost) {
+                                      Weight minCost, Weight maxCost) {
         graph = new AdjacencyListsGraph<>(vertexes(), edges());
         DepthFirstSearch<TestVertex, TestEdge> search = graphSearch();
 
         DepthFirstSearch<TestVertex, TestEdge>.SpanningTreeResult result =
-                search.search(graph, A, H, weight, 1);
+                (DepthFirstSearch<TestVertex, TestEdge>.SpanningTreeResult)
+                        search.search(graph, A, H, weigher, 1);
         Set<Path<TestVertex, TestEdge>> paths = result.paths();
         assertEquals("incorrect path count", 1, paths.size());
 
@@ -66,7 +67,8 @@ public class DepthFirstSearchTest extends AbstractGraphPathSearchTest {
         assertTrue("incorrect path length " + l,
                    minLength <= l && l <= maxLength);
         assertTrue("incorrect path cost " + path.cost(),
-                   minCost <= path.cost() && path.cost() <= maxCost);
+                   path.cost().compareTo(minCost) >= 0 &&
+                   path.cost().compareTo(maxCost) <= 0);
 
         System.out.println(result.edges());
         printPaths(paths);
@@ -78,7 +80,8 @@ public class DepthFirstSearchTest extends AbstractGraphPathSearchTest {
 
         // Perform narrow path search to a specific destination.
         DepthFirstSearch<TestVertex, TestEdge>.SpanningTreeResult result =
-                search.search(graph, A, null, weight, ALL_PATHS);
+                (DepthFirstSearch<TestVertex, TestEdge>.SpanningTreeResult)
+                        search.search(graph, A, null, weigher, ALL_PATHS);
         assertEquals("incorrect paths count", 7, result.paths().size());
 
         int[] types = new int[]{0, 0, 0, 0};

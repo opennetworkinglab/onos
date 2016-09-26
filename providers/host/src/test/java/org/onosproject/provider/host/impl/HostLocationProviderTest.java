@@ -56,7 +56,6 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceServiceAdapter;
-import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostProvider;
 import org.onosproject.net.host.HostProviderRegistry;
@@ -64,8 +63,7 @@ import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.host.HostServiceAdapter;
 import org.onosproject.net.packet.DefaultInboundPacket;
 import org.onosproject.net.packet.InboundPacket;
-import org.onosproject.net.packet.OutboundPacket;
-import org.onosproject.net.packet.PacketContext;
+import org.onosproject.net.packet.PacketContextAdapter;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketServiceAdapter;
 import org.onosproject.net.provider.AbstractProviderService;
@@ -306,9 +304,9 @@ public class HostLocationProviderTest {
      * When receiving ARP, updates location and IP.
      */
     @Test
-    public void testReceiveArp() {
+    public void receiveArp() {
         testProcessor.process(new TestArpPacketContext(DEV1));
-        assertThat("testReceiveArp. One host description expected",
+        assertThat("receiveArp. One host description expected",
                 providerService.descriptions.size(), is(1));
         HostDescription descr = providerService.descriptions.get(0);
         assertThat(descr.location(), is(LOCATION));
@@ -321,9 +319,9 @@ public class HostLocationProviderTest {
      * When receiving IPv4, updates location only.
      */
     @Test
-    public void testReceiveIpv4() {
+    public void receiveIpv4() {
         testProcessor.process(new TestIpv4PacketContext(DEV1));
-        assertThat("testReceiveIpv4. One host description expected",
+        assertThat("receiveIpv4. One host description expected",
                 providerService.descriptions.size(), is(1));
         HostDescription descr = providerService.descriptions.get(0);
         assertThat(descr.location(), is(LOCATION));
@@ -337,10 +335,10 @@ public class HostLocationProviderTest {
      * When receiving DHCP ACK, update MAC, location of server and IP of client.
      */
     @Test
-    public void testReceiveDhcp() {
+    public void receiveDhcp() {
         // DHCP Request
         testProcessor.process(new TestDhcpRequestPacketContext(DEV1));
-        assertThat("testReceiveDhcpRequest. One host description expected",
+        assertThat("receiveDhcpRequest. One host description expected",
                 providerService.descriptions.size(), is(1));
         // Should learn the MAC and location of DHCP client
         HostDescription descr = providerService.descriptions.get(0);
@@ -351,7 +349,7 @@ public class HostLocationProviderTest {
 
         // DHCP Ack
         testProcessor.process(new TestDhcpAckPacketContext(DEV1));
-        assertThat("testReceiveDhcpAck. Two additional host descriptions expected",
+        assertThat("receiveDhcpAck. Two additional host descriptions expected",
                 providerService.descriptions.size(), is(3));
         // Should learn the IP of DHCP client
         HostDescription descr2 = providerService.descriptions.get(1);
@@ -373,9 +371,9 @@ public class HostLocationProviderTest {
      * When receiving NeighborAdvertisement, updates location and IP.
      */
     @Test
-    public void testReceiveNa() {
+    public void receiveNa() {
         testProcessor.process(new TestNaPacketContext(DEV4));
-        assertThat("testReceiveNa. One host description expected",
+        assertThat("receiveNa. One host description expected",
                 providerService.descriptions.size(), is(1));
         HostDescription descr = providerService.descriptions.get(0);
         assertThat(descr.location(), is(LOCATION2));
@@ -388,9 +386,9 @@ public class HostLocationProviderTest {
      * When receiving NeighborSolicitation, updates location and IP.
      */
     @Test
-    public void testReceiveNs() {
+    public void receiveNs() {
         testProcessor.process(new TestNsPacketContext(DEV4));
-        assertThat("testReceiveNs. One host description expected",
+        assertThat("receiveNs. One host description expected",
                 providerService.descriptions.size(), is(1));
         HostDescription descr = providerService.descriptions.get(0);
         assertThat(descr.location(), is(LOCATION2));
@@ -403,9 +401,9 @@ public class HostLocationProviderTest {
      * When receiving RouterAdvertisement, ignores it.
      */
     @Test
-    public void testReceivesRa() {
+    public void receivesRa() {
         testProcessor.process(new TestRAPacketContext(DEV4));
-        assertThat("testReceiveRa. No host description expected",
+        assertThat("receivesRa. No host description expected",
                 providerService.descriptions.size(), is(0));
     }
 
@@ -413,9 +411,9 @@ public class HostLocationProviderTest {
      * When receiving RouterSolicitation, ignores it.
      */
     @Test
-    public void testReceiveRs() {
+    public void receiveRs() {
         testProcessor.process(new TestRSPacketContext(DEV4));
-        assertThat("testReceiveRs. No host description expected",
+        assertThat("receiveRs. No host description expected",
                 providerService.descriptions.size(), is(0));
     }
 
@@ -423,9 +421,9 @@ public class HostLocationProviderTest {
      * When receiving Duplicate Address Detection (DAD), ignores it.
      */
     @Test
-    public void testReceiveDad() {
+    public void receiveDad() {
         testProcessor.process(new TestDadPacketContext(DEV4));
-        assertThat("testReceiveDad. No host description expected",
+        assertThat("receiveDad. No host description expected",
                 providerService.descriptions.size(), is(0));
     }
 
@@ -433,9 +431,9 @@ public class HostLocationProviderTest {
      * When receiving IPv6 multicast packet, ignores it.
      */
     @Test
-    public void testReceiveIpv6Multicast() {
+    public void receiveIpv6Multicast() {
         testProcessor.process(new TestIpv6McastPacketContext(DEV4));
-        assertThat("testReceiveIpv6Multicast. No host description expected",
+        assertThat("receiveIpv6Multicast. No host description expected",
                 providerService.descriptions.size(), is(0));
     }
 
@@ -443,9 +441,9 @@ public class HostLocationProviderTest {
      * When receiving IPv6 unicast packet, updates location only.
      */
     @Test
-    public void testReceiveIpv6Unicast() {
+    public void receiveIpv6Unicast() {
         testProcessor.process(new TestIpv6PacketContext(DEV4));
-        assertThat("testReceiveIpv6Unicast. One host description expected",
+        assertThat("receiveIpv6Unicast. One host description expected",
                 providerService.descriptions.size(), is(1));
         HostDescription descr = providerService.descriptions.get(0);
         assertThat(descr.location(), is(LOCATION2));
@@ -535,16 +533,12 @@ public class HostLocationProviderTest {
     /**
      * Generates ARP packet.
      */
-    private class TestArpPacketContext implements PacketContext {
+    private class TestArpPacketContext extends PacketContextAdapter {
         private final String deviceId;
 
         public TestArpPacketContext(String deviceId) {
+            super(0, null, null, false);
             this.deviceId = deviceId;
-        }
-
-        @Override
-        public long time() {
-            return 0;
         }
 
         @Override
@@ -566,46 +560,17 @@ public class HostLocationProviderTest {
             return new DefaultInboundPacket(receivedFrom, eth,
                                             ByteBuffer.wrap(eth.serialize()));
         }
-
-        @Override
-        public OutboundPacket outPacket() {
-            return null;
-        }
-
-        @Override
-        public TrafficTreatment.Builder treatmentBuilder() {
-            return null;
-        }
-
-        @Override
-        public void send() {
-
-        }
-
-        @Override
-        public boolean block() {
-            return false;
-        }
-
-        @Override
-        public boolean isHandled() {
-            return false;
-        }
     }
 
     /**
      * Generates IPv4 Unicast packet.
      */
-    private class TestIpv4PacketContext implements PacketContext {
+    private class TestIpv4PacketContext extends PacketContextAdapter {
         private final String deviceId;
 
         public TestIpv4PacketContext(String deviceId) {
+            super(0, null, null, false);
             this.deviceId = deviceId;
-        }
-
-        @Override
-        public long time() {
-            return 0;
         }
 
         @Override
@@ -624,45 +589,16 @@ public class HostLocationProviderTest {
             return new DefaultInboundPacket(receivedFrom, eth,
                                             ByteBuffer.wrap(eth.serialize()));
         }
-
-        @Override
-        public OutboundPacket outPacket() {
-            return null;
-        }
-
-        @Override
-        public TrafficTreatment.Builder treatmentBuilder() {
-            return null;
-        }
-
-        @Override
-        public void send() {
-
-        }
-
-        @Override
-        public boolean block() {
-            return false;
-        }
-
-        @Override
-        public boolean isHandled() {
-            return false;
-        }
     }
     /**
      * Generates DHCP REQUEST packet.
      */
-    private class TestDhcpRequestPacketContext implements PacketContext {
+    private class TestDhcpRequestPacketContext extends PacketContextAdapter {
         private final String deviceId;
 
         public TestDhcpRequestPacketContext(String deviceId) {
+            super(0, null, null, false);
             this.deviceId = deviceId;
-        }
-
-        @Override
-        public long time() {
-            return 0;
         }
 
         @Override
@@ -696,46 +632,17 @@ public class HostLocationProviderTest {
             return new DefaultInboundPacket(receivedFrom, eth,
                     ByteBuffer.wrap(eth.serialize()));
         }
-
-        @Override
-        public OutboundPacket outPacket() {
-            return null;
-        }
-
-        @Override
-        public TrafficTreatment.Builder treatmentBuilder() {
-            return null;
-        }
-
-        @Override
-        public void send() {
-
-        }
-
-        @Override
-        public boolean block() {
-            return false;
-        }
-
-        @Override
-        public boolean isHandled() {
-            return false;
-        }
     }
 
     /**
      * Generates DHCP ACK packet.
      */
-    private class TestDhcpAckPacketContext implements PacketContext {
+    private class TestDhcpAckPacketContext extends PacketContextAdapter {
         private final String deviceId;
 
         public TestDhcpAckPacketContext(String deviceId) {
+            super(0, null, null, false);
             this.deviceId = deviceId;
-        }
-
-        @Override
-        public long time() {
-            return 0;
         }
 
         @Override
@@ -770,46 +677,17 @@ public class HostLocationProviderTest {
             return new DefaultInboundPacket(receivedFrom, eth,
                     ByteBuffer.wrap(eth.serialize()));
         }
-
-        @Override
-        public OutboundPacket outPacket() {
-            return null;
-        }
-
-        @Override
-        public TrafficTreatment.Builder treatmentBuilder() {
-            return null;
-        }
-
-        @Override
-        public void send() {
-
-        }
-
-        @Override
-        public boolean block() {
-            return false;
-        }
-
-        @Override
-        public boolean isHandled() {
-            return false;
-        }
     }
 
     /**
      * Generates NeighborAdvertisement packet.
      */
-    private class TestNaPacketContext implements PacketContext {
+    private class TestNaPacketContext extends PacketContextAdapter {
         private final String deviceId;
 
         public TestNaPacketContext(String deviceId) {
+            super(0, null, null, false);
             this.deviceId = deviceId;
-        }
-
-        @Override
-        public long time() {
-            return 0;
         }
 
         @Override
@@ -832,46 +710,17 @@ public class HostLocationProviderTest {
             return new DefaultInboundPacket(receivedFrom, eth,
                                             ByteBuffer.wrap(eth.serialize()));
         }
-
-        @Override
-        public OutboundPacket outPacket() {
-            return null;
-        }
-
-        @Override
-        public TrafficTreatment.Builder treatmentBuilder() {
-            return null;
-        }
-
-        @Override
-        public void send() {
-
-        }
-
-        @Override
-        public boolean block() {
-            return false;
-        }
-
-        @Override
-        public boolean isHandled() {
-            return false;
-        }
     }
 
     /**
      * Generates NeighborSolicitation packet.
      */
-    private class TestNsPacketContext implements PacketContext {
+    private class TestNsPacketContext extends PacketContextAdapter {
         private final String deviceId;
 
         public TestNsPacketContext(String deviceId) {
+            super(0, null, null, false);
             this.deviceId = deviceId;
-        }
-
-        @Override
-        public long time() {
-            return 0;
         }
 
         @Override
@@ -894,46 +743,17 @@ public class HostLocationProviderTest {
             return new DefaultInboundPacket(receivedFrom, eth,
                                             ByteBuffer.wrap(eth.serialize()));
         }
-
-        @Override
-        public OutboundPacket outPacket() {
-            return null;
-        }
-
-        @Override
-        public TrafficTreatment.Builder treatmentBuilder() {
-            return null;
-        }
-
-        @Override
-        public void send() {
-
-        }
-
-        @Override
-        public boolean block() {
-            return false;
-        }
-
-        @Override
-        public boolean isHandled() {
-            return false;
-        }
     }
 
     /**
      * Generates Duplicate Address Detection packet.
      */
-    private class TestDadPacketContext implements PacketContext {
+    private class TestDadPacketContext extends PacketContextAdapter {
         private final String deviceId;
 
         public TestDadPacketContext(String deviceId) {
+            super(0, null, null, false);
             this.deviceId = deviceId;
-        }
-
-        @Override
-        public long time() {
-            return 0;
         }
 
         @Override
@@ -956,46 +776,17 @@ public class HostLocationProviderTest {
             return new DefaultInboundPacket(receivedFrom, eth,
                                             ByteBuffer.wrap(eth.serialize()));
         }
-
-        @Override
-        public OutboundPacket outPacket() {
-            return null;
-        }
-
-        @Override
-        public TrafficTreatment.Builder treatmentBuilder() {
-            return null;
-        }
-
-        @Override
-        public void send() {
-
-        }
-
-        @Override
-        public boolean block() {
-            return false;
-        }
-
-        @Override
-        public boolean isHandled() {
-            return false;
-        }
     }
 
     /**
      * Generates Router Solicitation packet.
      */
-    private class TestRSPacketContext implements PacketContext {
+    private class TestRSPacketContext extends PacketContextAdapter {
         private final String deviceId;
 
         public TestRSPacketContext(String deviceId) {
+            super(0, null, null, false);
             this.deviceId = deviceId;
-        }
-
-        @Override
-        public long time() {
-            return 0;
         }
 
         @Override
@@ -1018,46 +809,17 @@ public class HostLocationProviderTest {
             return new DefaultInboundPacket(receivedFrom, eth,
                                             ByteBuffer.wrap(eth.serialize()));
         }
-
-        @Override
-        public OutboundPacket outPacket() {
-            return null;
-        }
-
-        @Override
-        public TrafficTreatment.Builder treatmentBuilder() {
-            return null;
-        }
-
-        @Override
-        public void send() {
-
-        }
-
-        @Override
-        public boolean block() {
-            return false;
-        }
-
-        @Override
-        public boolean isHandled() {
-            return false;
-        }
     }
 
     /**
      * Generates Router Advertisement packet.
      */
-    private class TestRAPacketContext implements PacketContext {
+    private class TestRAPacketContext extends PacketContextAdapter {
         private final String deviceId;
 
         public TestRAPacketContext(String deviceId) {
+            super(0, null, null, false);
             this.deviceId = deviceId;
-        }
-
-        @Override
-        public long time() {
-            return 0;
         }
 
         @Override
@@ -1080,46 +842,17 @@ public class HostLocationProviderTest {
             return new DefaultInboundPacket(receivedFrom, eth,
                                             ByteBuffer.wrap(eth.serialize()));
         }
-
-        @Override
-        public OutboundPacket outPacket() {
-            return null;
-        }
-
-        @Override
-        public TrafficTreatment.Builder treatmentBuilder() {
-            return null;
-        }
-
-        @Override
-        public void send() {
-
-        }
-
-        @Override
-        public boolean block() {
-            return false;
-        }
-
-        @Override
-        public boolean isHandled() {
-            return false;
-        }
     }
 
     /**
      * Generates IPv6 Multicast packet.
      */
-    private class TestIpv6McastPacketContext implements PacketContext {
+    private class TestIpv6McastPacketContext extends PacketContextAdapter {
         private final String deviceId;
 
         public TestIpv6McastPacketContext(String deviceId) {
+            super(0, null, null, false);
             this.deviceId = deviceId;
-        }
-
-        @Override
-        public long time() {
-            return 0;
         }
 
         @Override
@@ -1138,46 +871,17 @@ public class HostLocationProviderTest {
             return new DefaultInboundPacket(receivedFrom, eth,
                                             ByteBuffer.wrap(eth.serialize()));
         }
-
-        @Override
-        public OutboundPacket outPacket() {
-            return null;
-        }
-
-        @Override
-        public TrafficTreatment.Builder treatmentBuilder() {
-            return null;
-        }
-
-        @Override
-        public void send() {
-
-        }
-
-        @Override
-        public boolean block() {
-            return false;
-        }
-
-        @Override
-        public boolean isHandled() {
-            return false;
-        }
     }
 
     /**
      * Generates IPv6 Unicast packet.
      */
-    private class TestIpv6PacketContext implements PacketContext {
+    private class TestIpv6PacketContext extends PacketContextAdapter {
         private final String deviceId;
 
         public TestIpv6PacketContext(String deviceId) {
+            super(0, null, null, false);
             this.deviceId = deviceId;
-        }
-
-        @Override
-        public long time() {
-            return 0;
         }
 
         @Override
@@ -1195,31 +899,6 @@ public class HostLocationProviderTest {
                                                          portNumber(INPORT));
             return new DefaultInboundPacket(receivedFrom, eth,
                                             ByteBuffer.wrap(eth.serialize()));
-        }
-
-        @Override
-        public OutboundPacket outPacket() {
-            return null;
-        }
-
-        @Override
-        public TrafficTreatment.Builder treatmentBuilder() {
-            return null;
-        }
-
-        @Override
-        public void send() {
-
-        }
-
-        @Override
-        public boolean block() {
-            return false;
-        }
-
-        @Override
-        public boolean isHandled() {
-            return false;
         }
     }
 

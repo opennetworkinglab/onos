@@ -22,14 +22,17 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ImmutableSetMultimap.Builder;
+import org.onlab.graph.DefaultEdgeWeigher;
 import org.onlab.graph.DijkstraGraphSearch;
 import org.onlab.graph.DisjointPathPair;
 import org.onlab.graph.GraphPathSearch;
 import org.onlab.graph.GraphPathSearch.Result;
+import org.onlab.graph.ScalarWeight;
 import org.onlab.graph.SrlgGraphSearch;
 import org.onlab.graph.SuurballeGraphSearch;
 import org.onlab.graph.TarjanGraphSearch;
 import org.onlab.graph.TarjanGraphSearch.SccResult;
+import org.onlab.graph.Weight;
 import org.onosproject.net.AbstractModel;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultDisjointPath;
@@ -45,7 +48,7 @@ import org.onosproject.net.topology.DefaultTopologyCluster;
 import org.onosproject.net.topology.DefaultTopologyVertex;
 import org.onosproject.net.topology.GraphDescription;
 import org.onosproject.net.topology.HopCountLinkWeight;
-import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyCluster;
 import org.onosproject.net.topology.TopologyEdge;
@@ -67,6 +70,7 @@ import static org.onlab.util.Tools.isNullOrEmpty;
 import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
 import static org.onosproject.net.Link.State.INACTIVE;
 import static org.onosproject.net.Link.Type.INDIRECT;
+import static org.onosproject.net.topology.AdapterLinkWeigher.adapt;
 
 /**
  * Default implementation of the topology descriptor. This carries the backing
@@ -76,11 +80,14 @@ public class DefaultTopology extends AbstractModel implements Topology {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultTopology.class);
 
-    private static final DijkstraGraphSearch<TopologyVertex, TopologyEdge> DIJKSTRA = new DijkstraGraphSearch<>();
-    private static final TarjanGraphSearch<TopologyVertex, TopologyEdge> TARJAN = new TarjanGraphSearch<>();
-    private static final SuurballeGraphSearch<TopologyVertex, TopologyEdge> SUURBALLE = new SuurballeGraphSearch<>();
+    private static final DijkstraGraphSearch<TopologyVertex, TopologyEdge> DIJKSTRA =
+            new DijkstraGraphSearch<>();
+    private static final TarjanGraphSearch<TopologyVertex, TopologyEdge> TARJAN =
+            new TarjanGraphSearch<>();
+    private static final SuurballeGraphSearch<TopologyVertex, TopologyEdge> SUURBALLE =
+            new SuurballeGraphSearch<>();
 
-    private static LinkWeight defaultLinkWeight = null;
+    private static LinkWeigher defaultLinkWeigher = null;
     private static GraphPathSearch<TopologyVertex, TopologyEdge> defaultGraphPathSearch = null;
 
     private final long time;
@@ -88,7 +95,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
     private final long computeCost;
     private final TopologyGraph graph;
 
-    private final LinkWeight hopCountWeight;
+    private final LinkWeigher hopCountWeigher;
 
     private final Supplier<SccResult<TopologyVertex, TopologyEdge>> clusterResults;
     private final Supplier<ImmutableMap<ClusterId, TopologyCluster>> clusters;
@@ -102,11 +109,11 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * specified, the builtin default link-weight measuring hop-counts will be
      * used.
      *
-     * @param linkWeight new default link-weight
+     * @param linkWeigher new default link-weight
      */
-    public static void setDefaultLinkWeight(LinkWeight linkWeight) {
-        log.info("Setting new default link-weight function to {}", linkWeight);
-        defaultLinkWeight = linkWeight;
+    public static void setDefaultLinkWeigher(LinkWeigher linkWeigher) {
+        log.info("Setting new default link-weight function to {}", linkWeigher);
+        defaultLinkWeigher = linkWeigher;
     }
 
     /**
@@ -115,7 +122,8 @@ public class DefaultTopology extends AbstractModel implements Topology {
      *
      * @param graphPathSearch new default algorithm
      */
-    public static void setDefaultGraphPathSearch(GraphPathSearch<TopologyVertex, TopologyEdge> graphPathSearch) {
+    public static void setDefaultGraphPathSearch(
+            GraphPathSearch<TopologyVertex, TopologyEdge> graphPathSearch) {
         log.info("Setting new default graph path algorithm to {}", graphPathSearch);
         defaultGraphPathSearch = graphPathSearch;
     }
@@ -137,16 +145,16 @@ public class DefaultTopology extends AbstractModel implements Topology {
 
         // Build the graph
         this.graph = new DefaultTopologyGraph(description.vertexes(),
-                                              description.edges());
+                description.edges());
 
-        this.clusterResults = Suppliers.memoize(() -> searchForClusters());
-        this.clusters = Suppliers.memoize(() -> buildTopologyClusters());
+        this.clusterResults = Suppliers.memoize(this::searchForClusters);
+        this.clusters = Suppliers.memoize(this::buildTopologyClusters);
 
-        this.clusterIndexes = Suppliers.memoize(() -> buildIndexes());
+        this.clusterIndexes = Suppliers.memoize(this::buildIndexes);
 
-        this.hopCountWeight = new HopCountLinkWeight(graph.getVertexes().size());
-        this.broadcastSets = Suppliers.memoize(() -> buildBroadcastSets());
-        this.infrastructurePoints = Suppliers.memoize(() -> findInfrastructurePoints());
+        this.hopCountWeigher = adapt(new HopCountLinkWeight(graph.getVertexes().size()));
+        this.broadcastSets = Suppliers.memoize(this::buildBroadcastSets);
+        this.infrastructurePoints = Suppliers.memoize(this::findInfrastructurePoints);
         this.computeCost = Math.max(0, System.nanoTime() - time);
     }
 
@@ -288,7 +296,8 @@ public class DefaultTopology extends AbstractModel implements Topology {
 
         // Find the cluster to which the device belongs.
         TopologyCluster cluster = clustersByDevice().get(connectPoint.deviceId());
-        checkArgument(cluster != null, "No cluster found for device %s", connectPoint.deviceId());
+        checkArgument(cluster != null,
+                "No cluster found for device %s", connectPoint.deviceId());
 
         // If the broadcast set is null or empty, or if the point explicitly
         // belongs to it, return true.
@@ -328,18 +337,17 @@ public class DefaultTopology extends AbstractModel implements Topology {
         return getPaths(src, dst, linkWeight(), ALL_PATHS);
     }
 
-
     /**
      * Computes on-demand the set of shortest paths between source and
      * destination devices.
      *
-     * @param src    source device
-     * @param dst    destination device
-     * @param weight link weight function
+     * @param src     source device
+     * @param dst     destination device
+     * @param weigher link weight function
      * @return set of shortest paths
      */
-    public Set<Path> getPaths(DeviceId src, DeviceId dst, LinkWeight weight) {
-        return getPaths(src, dst, weight, ALL_PATHS);
+    public Set<Path> getPaths(DeviceId src, DeviceId dst, LinkWeigher weigher) {
+        return getPaths(src, dst, weigher, ALL_PATHS);
     }
 
     /**
@@ -355,11 +363,11 @@ public class DefaultTopology extends AbstractModel implements Topology {
      *
      * @param src    source device
      * @param dst    destination device
-     * @param weight link weight function
+     * @param weigher link weight function
      * @param maxPaths maximum number of paths
      * @return set of shortest paths
      */
-    public Set<Path> getPaths(DeviceId src, DeviceId dst, LinkWeight weight,
+    public Set<Path> getPaths(DeviceId src, DeviceId dst, LinkWeigher weigher,
                               int maxPaths) {
         DefaultTopologyVertex srcV = new DefaultTopologyVertex(src);
         DefaultTopologyVertex dstV = new DefaultTopologyVertex(dst);
@@ -370,7 +378,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
         }
 
         GraphPathSearch.Result<TopologyVertex, TopologyEdge> result =
-                graphPathSearch().search(graph, srcV, dstV, weight, maxPaths);
+                graphPathSearch().search(graph, srcV, dstV, weigher, maxPaths);
         ImmutableSet.Builder<Path> builder = ImmutableSet.builder();
         for (org.onlab.graph.Path<TopologyVertex, TopologyEdge> path : result.paths()) {
             builder.add(networkPath(path));
@@ -380,8 +388,8 @@ public class DefaultTopology extends AbstractModel implements Topology {
 
     /**
      * /**
-     * Returns the set of pre-computed shortest disjoint path pairs between source and
-     * destination devices.
+     * Returns the set of pre-computed shortest disjoint path pairs between
+     * source and destination devices.
      *
      * @param src source device
      * @param dst destination device
@@ -392,15 +400,16 @@ public class DefaultTopology extends AbstractModel implements Topology {
     }
 
     /**
-     * Computes on-demand the set of shortest disjoint path pairs between source and
-     * destination devices.
+     * Computes on-demand the set of shortest disjoint path pairs between
+     * source and destination devices.
      *
-     * @param src    source device
-     * @param dst    destination device
-     * @param weight link weight function
+     * @param src     source device
+     * @param dst     destination device
+     * @param weigher link weight function
      * @return set of disjoint shortest path pairs
      */
-    public Set<DisjointPath> getDisjointPaths(DeviceId src, DeviceId dst, LinkWeight weight) {
+    public Set<DisjointPath> getDisjointPaths(DeviceId src, DeviceId dst,
+                                              LinkWeigher weigher) {
         DefaultTopologyVertex srcV = new DefaultTopologyVertex(src);
         DefaultTopologyVertex dstV = new DefaultTopologyVertex(dst);
         Set<TopologyVertex> vertices = graph.getVertexes();
@@ -410,11 +419,11 @@ public class DefaultTopology extends AbstractModel implements Topology {
         }
 
         GraphPathSearch.Result<TopologyVertex, TopologyEdge> result =
-                SUURBALLE.search(graph, srcV, dstV, weight, ALL_PATHS);
+                SUURBALLE.search(graph, srcV, dstV, weigher, ALL_PATHS);
         ImmutableSet.Builder<DisjointPath> builder = ImmutableSet.builder();
         for (org.onlab.graph.Path<TopologyVertex, TopologyEdge> path : result.paths()) {
             DisjointPath disjointPath =
-                    networkDisjointPath((org.onlab.graph.DisjointPathPair<TopologyVertex, TopologyEdge>) path);
+                    networkDisjointPath((DisjointPathPair<TopologyVertex, TopologyEdge>) path);
             if (disjointPath.backup() != null) {
                 builder.add(disjointPath);
             }
@@ -423,16 +432,17 @@ public class DefaultTopology extends AbstractModel implements Topology {
     }
 
     /**
-     * Computes on-demand the set of shortest disjoint risk groups path pairs between source and
-     * destination devices.
+     * Computes on-demand the set of shortest disjoint risk groups path pairs
+     * between source and destination devices.
      *
      * @param src         source device
      * @param dst         destination device
-     * @param weight      edge weight object
+     * @param weigher     edge weight object
      * @param riskProfile map representing risk groups for each edge
      * @return set of shortest disjoint paths
      */
-    private Set<DisjointPath> disjointPaths(DeviceId src, DeviceId dst, LinkWeight weight,
+    private Set<DisjointPath> disjointPaths(DeviceId src, DeviceId dst,
+                                            LinkWeigher weigher,
                                             Map<TopologyEdge, Object> riskProfile) {
         DefaultTopologyVertex srcV = new DefaultTopologyVertex(src);
         DefaultTopologyVertex dstV = new DefaultTopologyVertex(dst);
@@ -443,13 +453,14 @@ public class DefaultTopology extends AbstractModel implements Topology {
             return ImmutableSet.of();
         }
 
-        SrlgGraphSearch<TopologyVertex, TopologyEdge> srlg = new SrlgGraphSearch<>(riskProfile);
+        SrlgGraphSearch<TopologyVertex, TopologyEdge> srlg =
+                new SrlgGraphSearch<>(riskProfile);
         GraphPathSearch.Result<TopologyVertex, TopologyEdge> result =
-                srlg.search(graph, srcV, dstV, weight, ALL_PATHS);
+                srlg.search(graph, srcV, dstV, weigher, ALL_PATHS);
         ImmutableSet.Builder<DisjointPath> builder = ImmutableSet.builder();
         for (org.onlab.graph.Path<TopologyVertex, TopologyEdge> path : result.paths()) {
             DisjointPath disjointPath =
-                    networkDisjointPath((org.onlab.graph.DisjointPathPair<TopologyVertex, TopologyEdge>) path);
+                    networkDisjointPath((DisjointPathPair<TopologyVertex, TopologyEdge>) path);
             if (disjointPath.backup() != null) {
                 builder.add(disjointPath);
             }
@@ -458,16 +469,17 @@ public class DefaultTopology extends AbstractModel implements Topology {
     }
 
     /**
-     * Computes on-demand the set of shortest disjoint risk groups path pairs between source and
-     * destination devices.
+     * Computes on-demand the set of shortest disjoint risk groups path pairs
+     * between source and destination devices.
      *
      * @param src         source device
      * @param dst         destination device
-     * @param weight      edge weight object
+     * @param weigher     edge weight object
      * @param riskProfile map representing risk groups for each link
      * @return set of shortest disjoint paths
      */
-    public Set<DisjointPath> getDisjointPaths(DeviceId src, DeviceId dst, LinkWeight weight,
+    public Set<DisjointPath> getDisjointPaths(DeviceId src, DeviceId dst,
+                                              LinkWeigher weigher,
                                               Map<Link, Object> riskProfile) {
         Map<TopologyEdge, Object> riskProfile2 = new HashMap<>();
         for (Link l : riskProfile.keySet()) {
@@ -490,49 +502,53 @@ public class DefaultTopology extends AbstractModel implements Topology {
                 }
             }, riskProfile.get(l));
         }
-        return disjointPaths(src, dst, weight, riskProfile2);
+        return disjointPaths(src, dst, weigher, riskProfile2);
     }
 
     /**
-     * Computes on-demand the set of shortest disjoint risk groups path pairs between source and
-     * destination devices.
+     * Computes on-demand the set of shortest disjoint risk groups path pairs
+     * between source and destination devices.
      *
      * @param src         source device
      * @param dst         destination device
      * @param riskProfile map representing risk groups for each link
      * @return set of shortest disjoint paths
      */
-    public Set<DisjointPath> getDisjointPaths(DeviceId src, DeviceId dst, Map<Link, Object> riskProfile) {
+    public Set<DisjointPath> getDisjointPaths(DeviceId src, DeviceId dst,
+                                              Map<Link, Object> riskProfile) {
         return getDisjointPaths(src, dst, linkWeight(), riskProfile);
     }
 
     // Converts graph path to a network path with the same cost.
     private Path networkPath(org.onlab.graph.Path<TopologyVertex, TopologyEdge> path) {
-        List<Link> links = path.edges().stream().map(TopologyEdge::link).collect(Collectors.toList());
+        List<Link> links = path.edges().stream().map(TopologyEdge::link)
+                .collect(Collectors.toList());
         return new DefaultPath(CORE_PROVIDER_ID, links, path.cost());
     }
 
-    private DisjointPath networkDisjointPath(DisjointPathPair<TopologyVertex, TopologyEdge> path) {
+    private DisjointPath networkDisjointPath(
+            DisjointPathPair<TopologyVertex, TopologyEdge> path) {
         if (!path.hasBackup()) {
             // There was no secondary path available.
             return new DefaultDisjointPath(CORE_PROVIDER_ID,
-                                           (DefaultPath) networkPath(path.primary()),
-                                           null);
+                    (DefaultPath) networkPath(path.primary()),
+                    null);
         }
         return new DefaultDisjointPath(CORE_PROVIDER_ID,
-                                       (DefaultPath) networkPath(path.primary()),
-                                       (DefaultPath) networkPath(path.secondary()));
+                (DefaultPath) networkPath(path.primary()),
+                (DefaultPath) networkPath(path.secondary()));
     }
 
     // Searches for SCC clusters in the network topology graph using Tarjan
     // algorithm.
     private SccResult<TopologyVertex, TopologyEdge> searchForClusters() {
-        return TARJAN.search(graph, new NoIndirectLinksWeight());
+        return TARJAN.search(graph, new NoIndirectLinksWeigher());
     }
 
     // Builds the topology clusters and returns the id-cluster bindings.
     private ImmutableMap<ClusterId, TopologyCluster> buildTopologyClusters() {
-        ImmutableMap.Builder<ClusterId, TopologyCluster> clusterBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<ClusterId, TopologyCluster> clusterBuilder =
+                ImmutableMap.builder();
         SccResult<TopologyVertex, TopologyEdge> results = clusterResults.get();
 
         // Extract both vertexes and edges from the results; the lists form
@@ -547,9 +563,9 @@ public class DefaultTopology extends AbstractModel implements Topology {
 
             ClusterId cid = ClusterId.clusterId(i);
             DefaultTopologyCluster cluster = new DefaultTopologyCluster(cid,
-                                                                        vertexSet.size(),
-                                                                        edgeSet.size(),
-                                                                        findRoot(vertexSet));
+                    vertexSet.size(),
+                    edgeSet.size(),
+                    findRoot(vertexSet));
             clusterBuilder.put(cid, cluster);
         }
         return clusterBuilder.build();
@@ -580,10 +596,13 @@ public class DefaultTopology extends AbstractModel implements Topology {
     // Finds all broadcast points for the cluster. These are those connection
     // points which lie along the shortest paths between the cluster root and
     // all other devices within the cluster.
-    private void addClusterBroadcastSet(TopologyCluster cluster, Builder<ClusterId, ConnectPoint> builder) {
+    private void addClusterBroadcastSet(TopologyCluster cluster,
+                                        Builder<ClusterId, ConnectPoint> builder) {
         // Use the graph root search results to build the broadcast set.
-        Result<TopologyVertex, TopologyEdge> result = DIJKSTRA.search(graph, cluster.root(), null, hopCountWeight, 1);
-        for (Map.Entry<TopologyVertex, Set<TopologyEdge>> entry : result.parents().entrySet()) {
+        Result<TopologyVertex, TopologyEdge> result =
+                DIJKSTRA.search(graph, cluster.root(), null, hopCountWeigher, 1);
+        for (Map.Entry<TopologyVertex, Set<TopologyEdge>> entry :
+                result.parents().entrySet()) {
             TopologyVertex vertex = entry.getKey();
 
             // Ignore any parents that lead outside the cluster.
@@ -649,24 +668,27 @@ public class DefaultTopology extends AbstractModel implements Topology {
 
         // Finalize all indexes.
         return new ClusterIndexes(clusterBuilder.build(),
-                                  devicesBuilder.build(),
-                                  linksBuilder.build());
+                devicesBuilder.build(),
+                linksBuilder.build());
     }
 
     private GraphPathSearch<TopologyVertex, TopologyEdge> graphPathSearch() {
         return defaultGraphPathSearch != null ? defaultGraphPathSearch : DIJKSTRA;
     }
 
-    private LinkWeight linkWeight() {
-        return defaultLinkWeight != null ? defaultLinkWeight : hopCountWeight;
+    private LinkWeigher linkWeight() {
+        return defaultLinkWeigher != null ? defaultLinkWeigher : hopCountWeigher;
     }
 
     // Link weight for preventing traversal over indirect links.
-    private static class NoIndirectLinksWeight implements LinkWeight {
+    private static class NoIndirectLinksWeigher
+            extends DefaultEdgeWeigher<TopologyVertex, TopologyEdge>
+            implements LinkWeigher {
         @Override
-        public double weight(TopologyEdge edge) {
-            return (edge.link().state() == INACTIVE)
-                    || (edge.link().type() == INDIRECT) ? -1 : 1;
+        public Weight weight(TopologyEdge edge) {
+            return (edge.link().state() == INACTIVE) ||
+                    (edge.link().type() == INDIRECT) ?
+                    getNonViableWeight() : new ScalarWeight(HOP_WEIGHT_VALUE);
         }
     }
 

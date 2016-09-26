@@ -36,10 +36,10 @@ public interface Path<V extends Vertex, E extends Edge<V>> extends Edge<V> {
     List<E> edges();
 
     /**
-     * Returns the total cost of the path as a unit-less number.
+     * Returns the total cost of the path as a weight object.
      *
-     * @return path cost as a unit-less number
+     * @return path cost as a weight object
      */
-    double cost();
+    Weight cost();
 
 }

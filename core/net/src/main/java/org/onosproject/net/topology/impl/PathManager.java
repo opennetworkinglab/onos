@@ -26,6 +26,7 @@ import org.onosproject.net.ElementId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyService;
@@ -74,7 +75,7 @@ public class PathManager extends AbstractPathService implements PathService {
     public Set<Path> getPaths(ElementId src, ElementId dst) {
         checkPermission(TOPOLOGY_READ);
 
-        return getPaths(src, dst, null);
+        return getPaths(src, dst, (LinkWeigher) null);
     }
 
     @Override
@@ -83,11 +84,17 @@ public class PathManager extends AbstractPathService implements PathService {
         return super.getPaths(src, dst, weight);
     }
 
+    @Override
+    public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeigher weigher) {
+        checkPermission(TOPOLOGY_READ);
+        return super.getPaths(src, dst, weigher);
+    }
+
 
     @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst) {
         checkPermission(TOPOLOGY_READ);
-        return getDisjointPaths(src, dst, (LinkWeight) null);
+        return getDisjointPaths(src, dst, (LinkWeigher) null);
     }
 
     @Override
@@ -97,10 +104,16 @@ public class PathManager extends AbstractPathService implements PathService {
     }
 
     @Override
+    public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeigher weigher) {
+        checkPermission(TOPOLOGY_READ);
+        return super.getDisjointPaths(src, dst, weigher);
+    }
+
+    @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst,
                                               Map<Link, Object> riskProfile) {
         checkPermission(TOPOLOGY_READ);
-        return getDisjointPaths(src, dst, null, riskProfile);
+        return getDisjointPaths(src, dst, (LinkWeigher) null, riskProfile);
     }
 
     @Override
@@ -108,6 +121,13 @@ public class PathManager extends AbstractPathService implements PathService {
                                               Map<Link, Object> riskProfile) {
         checkPermission(TOPOLOGY_READ);
         return super.getDisjointPaths(src, dst, weight, riskProfile);
+    }
+
+    @Override
+    public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeigher weigher,
+                                              Map<Link, Object> riskProfile) {
+        checkPermission(TOPOLOGY_READ);
+        return super.getDisjointPaths(src, dst, weigher, riskProfile);
     }
 
 }
